@@ -27,6 +27,12 @@ class STextStyles {
           fontWeight: FontWeight.w600,
           fontSize: 20,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 20,
+        );
     }
   }
 
@@ -45,6 +51,12 @@ class STextStyles {
           fontSize: 18,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 18,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
@@ -73,6 +85,12 @@ class STextStyles {
           fontWeight: FontWeight.w600,
           fontSize: 16,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 16,
+        );
     }
   }
 
@@ -91,6 +109,12 @@ class STextStyles {
           fontSize: 16,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 16,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
@@ -119,6 +143,12 @@ class STextStyles {
           fontWeight: FontWeight.w400,
           fontSize: 16,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w400,
+          fontSize: 16,
+        );
     }
   }
 
@@ -137,6 +167,12 @@ class STextStyles {
           fontSize: 16,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w400,
+          fontSize: 16,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w400,
@@ -165,6 +201,12 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 16,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 16,
+        );
     }
   }
 
@@ -183,6 +225,12 @@ class STextStyles {
           fontSize: 16,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 16,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
@@ -211,6 +259,12 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 16,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).buttonTextPrimary,
+          fontWeight: FontWeight.w500,
+          fontSize: 16,
+        );
     }
   }
 
@@ -229,6 +283,12 @@ class STextStyles {
           fontSize: 16,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 16,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w500,
@@ -257,6 +317,12 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 16,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark3,
+          fontWeight: FontWeight.w500,
+          fontSize: 16,
+        );
     }
   }
 
@@ -280,6 +346,12 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 14,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark3,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+        );
     }
   }
 
@@ -298,6 +370,12 @@ class STextStyles {
           fontSize: 12,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textSubtitle1,
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).textSubtitle1,
           fontWeight: FontWeight.w500,
@@ -329,6 +407,13 @@ class STextStyles {
           fontSize: 14,
           height: 14 / 14,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textFieldActiveSearchIconRight,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+          height: 14 / 14,
+        );
     }
   }
 
@@ -347,6 +432,12 @@ class STextStyles {
           fontSize: 12,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textSubtitle1,
+          fontWeight: FontWeight.w700,
+          fontSize: 12,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).textSubtitle1,
           fontWeight: FontWeight.w700,
@@ -375,6 +466,12 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 14,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).infoItemLabel,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+        );
     }
   }
 
@@ -393,6 +490,12 @@ class STextStyles {
           fontSize: 14,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w500,
@@ -421,6 +524,12 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 14,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+        );
     }
   }
 
@@ -441,6 +550,13 @@ class STextStyles {
           height: 1.5,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textSubtitle2,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+          height: 1.5,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).textSubtitle2,
           fontWeight: FontWeight.w500,
@@ -473,6 +589,13 @@ class STextStyles {
           fontSize: 14,
           height: 1.5,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+          height: 1.5,
+        );
     }
   }
 
@@ -491,6 +614,12 @@ class STextStyles {
           fontSize: 14,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w400,
+          fontSize: 14,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w400,
@@ -519,6 +648,12 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 14,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).accentColorRed,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+        );
     }
   }
 
@@ -537,6 +672,12 @@ class STextStyles {
           fontSize: 14,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).infoItemIcons,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).infoItemIcons,
           fontWeight: FontWeight.w500,
@@ -565,6 +706,12 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 12,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).accentColorBlue,
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        );
     }
   }
 
@@ -583,6 +730,12 @@ class STextStyles {
           fontSize: 12,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
@@ -611,6 +764,12 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 12,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        );
     }
   }
 
@@ -629,6 +788,12 @@ class STextStyles {
           fontSize: 12,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w500,
@@ -657,6 +822,12 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 10,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textError,
+          fontWeight: FontWeight.w500,
+          fontSize: 10,
+        );
     }
   }
 
@@ -675,6 +846,12 @@ class STextStyles {
           fontSize: 10,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textSubtitle1,
+          fontWeight: FontWeight.w500,
+          fontSize: 10,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).textSubtitle1,
           fontWeight: FontWeight.w500,
@@ -708,6 +885,13 @@ class STextStyles {
           fontSize: 40,
           height: 40 / 40,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 40,
+          height: 40 / 40,
+        );
     }
   }
 
@@ -728,6 +912,13 @@ class STextStyles {
           height: 32 / 32,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 32,
+          height: 32 / 32,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
@@ -760,6 +951,13 @@ class STextStyles {
           fontSize: 24,
           height: 24 / 24,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 24,
+          height: 24 / 24,
+        );
     }
   }
 
@@ -780,6 +978,13 @@ class STextStyles {
           height: 30 / 20,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 20,
+          height: 30 / 20,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w500,
@@ -812,6 +1017,13 @@ class STextStyles {
           fontSize: 20,
           height: 30 / 20,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w400,
+          fontSize: 20,
+          height: 30 / 20,
+        );
     }
   }
 
@@ -832,6 +1044,13 @@ class STextStyles {
           height: 28 / 20,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w400,
+          fontSize: 20,
+          height: 28 / 20,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w400,
@@ -864,6 +1083,13 @@ class STextStyles {
           fontSize: 24,
           height: 33 / 24,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w400,
+          fontSize: 24,
+          height: 33 / 24,
+        );
     }
   }
 
@@ -884,6 +1110,13 @@ class STextStyles {
           height: 26 / 20,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).buttonTextPrimary,
+          fontWeight: FontWeight.w500,
+          fontSize: 20,
+          height: 26 / 20,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextPrimary,
           fontWeight: FontWeight.w500,
@@ -916,6 +1149,13 @@ class STextStyles {
           fontSize: 20,
           height: 26 / 20,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).buttonTextPrimaryDisabled,
+          fontWeight: FontWeight.w500,
+          fontSize: 20,
+          height: 26 / 20,
+        );
     }
   }
 
@@ -936,6 +1176,13 @@ class STextStyles {
           height: 26 / 20,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).buttonTextSecondary,
+          fontWeight: FontWeight.w500,
+          fontSize: 20,
+          height: 26 / 20,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextSecondary,
           fontWeight: FontWeight.w500,
@@ -968,6 +1215,13 @@ class STextStyles {
           fontSize: 20,
           height: 26 / 20,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).buttonTextSecondaryDisabled,
+          fontWeight: FontWeight.w500,
+          fontSize: 20,
+          height: 26 / 20,
+        );
     }
   }
 
@@ -994,6 +1248,13 @@ class STextStyles {
           fontSize: 18,
           height: 27 / 18,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 18,
+          height: 27 / 18,
+        );
     }
   }
 
@@ -1014,6 +1275,13 @@ class STextStyles {
           height: 27 / 18,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).buttonTextPrimaryDisabled,
+          fontWeight: FontWeight.w700,
+          fontSize: 18,
+          height: 27 / 18,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextPrimaryDisabled,
           fontWeight: FontWeight.w700,
@@ -1046,6 +1314,13 @@ class STextStyles {
           fontSize: 16,
           height: 24 / 16,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).buttonTextPrimaryDisabled,
+          fontWeight: FontWeight.w500,
+          fontSize: 16,
+          height: 24 / 16,
+        );
     }
   }
 
@@ -1066,6 +1341,13 @@ class STextStyles {
           height: 21 / 14,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textSubtitle1,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+          height: 21 / 14,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).textSubtitle1,
           fontWeight: FontWeight.w500,
@@ -1098,6 +1380,13 @@ class STextStyles {
           fontSize: 14,
           height: 21 / 14,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+          height: 21 / 14,
+        );
     }
   }
 
@@ -1118,6 +1407,13 @@ class STextStyles {
           height: 24 / 16,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).buttonTextSecondary,
+          fontWeight: FontWeight.w500,
+          fontSize: 16,
+          height: 24 / 16,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextSecondary,
           fontWeight: FontWeight.w500,
@@ -1150,6 +1446,13 @@ class STextStyles {
           fontSize: 20,
           height: 30 / 20,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textSubtitle2,
+          fontWeight: FontWeight.w500,
+          fontSize: 20,
+          height: 30 / 20,
+        );
     }
   }
 
@@ -1170,6 +1473,13 @@ class STextStyles {
           height: 20.8 / 16,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark.withOpacity(0.8),
+          fontWeight: FontWeight.w500,
+          fontSize: 16,
+          height: 20.8 / 16,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).textDark.withOpacity(0.8),
           fontWeight: FontWeight.w500,
@@ -1202,6 +1512,13 @@ class STextStyles {
           fontSize: 16,
           height: 20.8 / 16,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 16,
+          height: 20.8 / 16,
+        );
     }
   }
 
@@ -1222,6 +1539,13 @@ class STextStyles {
           height: 20.8 / 16,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark.withOpacity(0.5),
+          fontWeight: FontWeight.w500,
+          fontSize: 16,
+          height: 20.8 / 16,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).textDark.withOpacity(0.5),
           fontWeight: FontWeight.w500,
@@ -1254,6 +1578,13 @@ class STextStyles {
           fontSize: 16,
           height: 20.8 / 16,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 16,
+          height: 20.8 / 16,
+        );
     }
   }
 
@@ -1277,6 +1608,12 @@ class STextStyles {
           fontWeight: FontWeight.w600,
           fontSize: 8,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.roboto(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 8,
+        );
     }
   }
 
@@ -1295,6 +1632,12 @@ class STextStyles {
           fontSize: 26,
         );
       case ThemeType.dark:
+        return GoogleFonts.roboto(
+          color: _theme(context).numberTextDefault,
+          fontWeight: FontWeight.w400,
+          fontSize: 26,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.roboto(
           color: _theme(context).numberTextDefault,
           fontWeight: FontWeight.w400,
@@ -1326,6 +1669,13 @@ class STextStyles {
           fontWeight: FontWeight.w400,
           fontSize: 12,
         );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          letterSpacing: 0.5,
+          color: _theme(context).accentColorDark,
+          fontWeight: FontWeight.w400,
+          fontSize: 12,
+        );
     }
   }
 
@@ -1346,6 +1696,13 @@ class STextStyles {
           fontSize: 16,
         );
       case ThemeType.dark:
+        return GoogleFonts.inter(
+          letterSpacing: 0.5,
+          color: _theme(context).accentColorDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 16,
+        );
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           letterSpacing: 0.5,
           color: _theme(context).accentColorDark,

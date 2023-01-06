@@ -248,6 +248,29 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           fromTicker: ref.read(exchangeFormStateProvider).fromTicker ?? "",
           onSelected: (to) =>
               ref.read(exchangeFormStateProvider).updateTo(to, true));
+
+      unawaited(
+        showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => WillPopScope(
+            onWillPop: () async => false,
+            child: Container(
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .overlay
+                  .withOpacity(0.6),
+              child: const CustomLoadingOverlay(
+                message: "Updating exchange rate",
+                eventBus: null,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      Navigator.of(context).pop();
     } else {
       final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "";
       final toTicker = ref.read(exchangeFormStateProvider).toTicker ?? "";

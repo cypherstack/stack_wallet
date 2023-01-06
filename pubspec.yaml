@@ -337,6 +337,7 @@ flutter:
     - assets/svg/dark-theme.svg
     - assets/svg/light-mode.svg
     - assets/svg/ocean-breeze-theme.svg
+    - assets/svg/oled-black-theme.svg
 
     # light theme specific
     - assets/svg/light/tx-exchange-icon.svg
@@ -383,6 +384,21 @@ flutter:
     - assets/svg/oceanBreeze/stack-icon1.svg
     - assets/svg/oceanBreeze/buy-coins-icon.svg
     - assets/svg/oceanBreeze/bg.svg
+
+    # OLED black theme specific
+    - assets/svg/oledBlack/tx-exchange-icon.svg
+    - assets/svg/oledBlack/tx-exchange-icon-pending.svg
+    - assets/svg/oledBlack/tx-exchange-icon-failed.svg
+    - assets/svg/oledBlack/tx-icon-send.svg
+    - assets/svg/oledBlack/tx-icon-send-pending.svg
+    - assets/svg/oledBlack/tx-icon-send-failed.svg
+    - assets/svg/oledBlack/tx-icon-receive.svg
+    - assets/svg/oledBlack/tx-icon-receive-pending.svg
+    - assets/svg/oledBlack/tx-icon-receive-failed.svg
+    - assets/svg/oledBlack/exchange-2.svg
+    - assets/svg/oledBlack/bell-new.svg
+    - assets/svg/oledBlack/stack-icon1.svg
+    - assets/svg/oledBlack/buy-coins-icon.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

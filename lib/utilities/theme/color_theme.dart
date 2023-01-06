@@ -3,12 +3,9 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/theme/dark_colors.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
+import 'package:stackwallet/utilities/theme/oled_black_colors.dart';
 
-enum ThemeType {
-  light,
-  dark,
-  oceanBreeze,
-}
+enum ThemeType { light, dark, oceanBreeze, oledBlack }
 
 extension ThemeTypeExt on ThemeType {
   StackColorTheme get colorTheme {
@@ -19,6 +16,8 @@ extension ThemeTypeExt on ThemeType {
         return DarkColors();
       case ThemeType.oceanBreeze:
         return OceanBreezeColors();
+      case ThemeType.oledBlack:
+        return OledBlackColors();
     }
   }
 
@@ -30,6 +29,8 @@ extension ThemeTypeExt on ThemeType {
         return "Dark";
       case ThemeType.oceanBreeze:
         return "Ocean Breeze";
+      case ThemeType.oledBlack:
+        return "Oled Black";
     }
   }
 }
