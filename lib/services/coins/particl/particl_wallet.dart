@@ -1200,7 +1200,8 @@ class ParticlWallet extends CoinServiceAPI {
     final priceData =
         await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
     Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
-    final locale = Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
+    final locale =
+        Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
     final String worthNow = Format.localizedStringAsFixed(
         value:
             ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
@@ -2288,7 +2289,7 @@ class ParticlWallet extends CoinServiceAPI {
 
         for (final out in tx["vout"] as List) {
           if (prevOut == out["n"]) {
-            final address = out["scriptPubKey"]["addresses"][0] as String?;
+            final address = getAddress(out);
             if (address != null) {
               sendersArray.add(address);
             }
@@ -2302,7 +2303,7 @@ class ParticlWallet extends CoinServiceAPI {
         // Particl has different tx types that need to be detected and handled here
         if (output.containsKey('scriptPubKey') as bool) {
           // Logging.instance.log("output is transparent", level: LogLevel.Info);
-          final address = output["scriptPubKey"]["addresses"][0] as String?;
+          final address = getAddress(output);
           if (address != null) {
             recipientsArray.add(address);
           }
@@ -2361,7 +2362,7 @@ class ParticlWallet extends CoinServiceAPI {
             try {
               final String address =
                   output["scriptPubKey"]!["addresses"][0] as String;
-              final value = output["value"]!;
+              final value = output["value"] ?? 0;
               final _value = (Decimal.parse(value.toString()) *
                       Decimal.fromInt(Constants.satsPerCoin(coin)))
                   .toBigInt()
@@ -2417,9 +2418,9 @@ class ParticlWallet extends CoinServiceAPI {
         // add up received tx value
         for (final output in txObject["vout"] as List) {
           try {
-            final address = output["scriptPubKey"]["addresses"][0];
+            final address = getAddress(output);
             if (address != null) {
-              final value = (Decimal.parse(output["value"].toString()) *
+              final value = (Decimal.parse((output["value"] ?? 0).toString()) *
                       Decimal.fromInt(Constants.satsPerCoin(coin)))
                   .toBigInt()
                   .toInt();
