@@ -15,6 +15,8 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../utilities/logger.dart';
+
 class SWException with Exception {
   SWException(this.message);
 
@@ -180,7 +182,7 @@ extension PayNym on DogecoinWallet {
         Map<String, dynamic> transactionObject = {
           "hex": txn.item1,
           "recipientPaynym": targetPaymentCodeString,
-          // "recipientAmt": recipientsAmtArray[0],
+          "amount": amountToSend,
           "fee": feeBeingPaid,
           "vSize": txn.item2,
         };
@@ -200,7 +202,7 @@ extension PayNym on DogecoinWallet {
         Map<String, dynamic> transactionObject = {
           "hex": txn.item1,
           "recipientPaynym": targetPaymentCodeString,
-          // "recipientAmt": recipientsAmtArray[0],
+          "amount": amountToSend,
           "fee": feeBeingPaid,
           "vSize": txn.item2,
         };
@@ -221,7 +223,7 @@ extension PayNym on DogecoinWallet {
       Map<String, dynamic> transactionObject = {
         "hex": txn.item1,
         "recipientPaynym": targetPaymentCodeString,
-        // "recipientAmt": recipientsAmtArray[0],
+        "amount": amountToSend,
         "fee": feeBeingPaid,
         "vSize": txn.item2,
       };
@@ -290,7 +292,7 @@ extension PayNym on DogecoinWallet {
     final notificationScript = bscript.compile([bobP2PKH.output]);
 
     // build a notification tx
-    final txb = TransactionBuilder();
+    final txb = TransactionBuilder(network: network);
     txb.setVersion(1);
 
     txb.addInput(
@@ -330,20 +332,56 @@ extension PayNym on DogecoinWallet {
     return Tuple2(builtTx.toHex(), builtTx.virtualSize());
   }
 
-  Future<bool> hasConfirmedNotificationTxSentTo(
-      String paymentCodeString) async {
-    final targetPaymentCode =
-        PaymentCode.fromPaymentCode(paymentCodeString, network);
-    final targetNotificationAddress = targetPaymentCode.notificationAddress();
+  Future<String> confirmNotificationTx(
+      {required Map<String, dynamic> preparedTx}) async {
+    try {
+      Logging.instance.log("confirmNotificationTx txData: $preparedTx",
+          level: LogLevel.Info);
+      final txHash = await electrumXClient.broadcastTransaction(
+          rawTx: preparedTx["hex"] as String);
+      Logging.instance.log("Sent txHash: $txHash", level: LogLevel.Info);
 
-    final myTxHistory = (await transactionData)
-        .getAllTransactions()
-        .entries
-        .map((e) => e.value)
+      await updatePaynymNotificationInfo(
+        txid: txHash,
+        confirmed: false,
+        paymentCodeString: preparedTx["paymentCodeString"] as String,
+      );
+      return txHash;
+    } catch (e, s) {
+      Logging.instance.log("Exception rethrown from confirmSend(): $e\n$s",
+          level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
+  // Future<bool> hasConfirmedNotificationTxSentTo(
+  //     String paymentCodeString) async {
+  //   final targetPaymentCode =
+  //       PaymentCode.fromPaymentCode(paymentCodeString, network);
+  //   final targetNotificationAddress = targetPaymentCode.notificationAddress();
+  //
+  //   final myTxHistory = (await transactionData)
+  //       .getAllTransactions()
+  //       .entries
+  //       .map((e) => e.value)
+  //       .where((e) =>
+  //           e.txType == "Sent" && e.address == targetNotificationAddress);
+  //
+  //   return myTxHistory.isNotEmpty;
+  // }
+
+  bool hasConnected(String paymentCodeString) {
+    return getPaynymNotificationTxInfo()
+        .where((e) => e["paymentCodeString"] == paymentCodeString)
+        .isNotEmpty;
+  }
+
+  bool hasConnectedConfirmed(String paymentCodeString) {
+    return getPaynymNotificationTxInfo()
         .where((e) =>
-            e.txType == "Sent" && e.address == targetNotificationAddress);
-
-    return myTxHistory.isNotEmpty;
+            e["paymentCodeString"] == paymentCodeString &&
+            e["confirmed"] == true)
+        .isNotEmpty;
   }
 
   // fetch paynym notification tx meta data

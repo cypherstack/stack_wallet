@@ -2,11 +2,18 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/paynym/dialogs/confirm_paynym_connect_dialog.dart';
 import 'package:stackwallet/pages/paynym/subwidgets/paynym_bot.dart';
+import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/route_generator.dart';
+import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
+import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -14,8 +21,9 @@ import 'package:stackwallet/widgets/custom_buttons/paynym_follow_toggle_button.d
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/loading_indicator.dart';
 
-class PaynymDetailsPopup extends StatefulWidget {
+class PaynymDetailsPopup extends ConsumerStatefulWidget {
   const PaynymDetailsPopup({
     Key? key,
     required this.walletId,
@@ -26,10 +34,103 @@ class PaynymDetailsPopup extends StatefulWidget {
   final PaynymAccountLite accountLite;
 
   @override
-  State<PaynymDetailsPopup> createState() => _PaynymDetailsPopupState();
+  ConsumerState<PaynymDetailsPopup> createState() => _PaynymDetailsPopupState();
 }
 
-class _PaynymDetailsPopupState extends State<PaynymDetailsPopup> {
+class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
+  Future<void> _onConnectPressed() async {
+    bool canPop = false;
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (context) => WillPopScope(
+          onWillPop: () async => canPop,
+          child: const LoadingIndicator(
+            width: 200,
+          ),
+        ),
+      ),
+    );
+
+    final wallet = ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(widget.walletId)
+        .wallet as DogecoinWallet;
+
+    // sanity check to prevent second notifcation tx
+    if (wallet.hasConnectedConfirmed(widget.accountLite.code)) {
+      canPop = true;
+      Navigator.of(context).pop();
+      // TODO show info popup
+      return;
+    } else if (wallet.hasConnected(widget.accountLite.code)) {
+      canPop = true;
+      Navigator.of(context).pop();
+      // TODO show info popup
+      return;
+    }
+
+    final rates = await wallet.fees;
+
+    Map<String, dynamic> preparedTx;
+
+    try {
+      preparedTx = await wallet.buildNotificationTx(
+        selectedTxFeeRate: rates.medium,
+        targetPaymentCodeString: widget.accountLite.code,
+      );
+    } on InsufficientBalanceException catch (e) {
+      if (mounted) {
+        canPop = true;
+        Navigator.of(context).pop();
+      }
+      // TODO show info popup
+      print(e);
+      return;
+    }
+
+    if (mounted) {
+      // We have enough balance and prepared tx should be good to go.
+
+      canPop = true;
+      // close loading
+      Navigator.of(context).pop();
+
+      // Close details
+      Navigator.of(context).pop();
+
+      // show info pop up
+      await showDialog<void>(
+        context: context,
+        builder: (context) => ConfirmPaynymConnectDialog(
+          nymName: widget.accountLite.nymName,
+          onConfirmPressed: () {
+            //
+            print("CONFIRM NOTIF TX: $preparedTx");
+
+            Navigator.of(context).push(
+              RouteGenerator.getRoute(
+                builder: (_) => ConfirmTransactionView(
+                  walletId: wallet.walletId,
+                  transactionInfo: {
+                    "hex": preparedTx["hex"],
+                    "recipient": preparedTx["recipientPaynym"],
+                    "recipientAmt": preparedTx["amount"],
+                    "fee": preparedTx["fee"],
+                    "vSize": preparedTx["vSize"],
+                    "note": "PayNym connect"
+                  },
+                ),
+              ),
+            );
+          },
+          amount: (preparedTx["amount"] as int) + (preparedTx["fee"] as int),
+          coin: wallet.coin,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return DesktopDialog(
@@ -75,9 +176,7 @@ class _PaynymDetailsPopupState extends State<PaynymDetailsPopup> {
                   ),
                   iconSpacing: 4,
                   width: 86,
-                  onPressed: () {
-                    // todo notification tx
-                  },
+                  onPressed: _onConnectPressed,
                 ),
               ],
             ),
