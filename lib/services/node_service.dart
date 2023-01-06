@@ -39,6 +39,7 @@ class NodeService extends ChangeNotifier {
             key: savedNode.id,
             value: defaultNode.copyWith(
               enabled: savedNode.enabled,
+              isFailover: savedNode.isFailover,
               trusted: savedNode.trusted,
             ));
       }
@@ -52,6 +53,7 @@ class NodeService extends ChangeNotifier {
           coin: coin,
           node: defaultNode.copyWith(
             enabled: primaryNode.enabled,
+            isFailover: primaryNode.isFailover,
             trusted: primaryNode.trusted,
           ),
         );
