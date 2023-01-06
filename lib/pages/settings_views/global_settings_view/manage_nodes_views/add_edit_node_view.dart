@@ -1120,7 +1120,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
           Row(
             children: [
               GestureDetector(
-                onTap: trustedCheckbox
+                onTap: !widget.readOnly && trustedCheckbox
                     ? () {
                         setState(() {
                           _trusted = !_trusted;
@@ -1136,7 +1136,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                         width: 20,
                         height: 20,
                         child: Checkbox(
-                          fillColor: trustedCheckbox
+                          fillColor: !widget.readOnly && trustedCheckbox
                               ? null
                               : MaterialStateProperty.all(Theme.of(context)
                                   .extension<StackColors>()!
@@ -1144,7 +1144,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,
                           value: _trusted,
-                          onChanged: trustedCheckbox
+                          onChanged: !widget.readOnly && trustedCheckbox
                               ? (newValue) {
                                   setState(() {
                                     _trusted = newValue!;
