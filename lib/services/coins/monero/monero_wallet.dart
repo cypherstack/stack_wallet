@@ -398,7 +398,10 @@ class MoneroWallet extends CoinServiceAPI {
     final node = await _getCurrentNode();
     final host = Uri.parse(node.host).host;
     await walletBase!.connectToNode(
-        node: Node(uri: "$host:${node.port}", type: WalletType.monero));
+        node: Node(
+            uri: "$host:${node.port}",
+            type: WalletType.monero,
+            trusted: node.trusted ?? false));
     await walletBase!.startSync();
     await DB.instance
         .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
@@ -666,7 +669,10 @@ class MoneroWallet extends CoinServiceAPI {
       final node = await _getCurrentNode();
       final host = Uri.parse(node.host).host;
       await walletBase!.connectToNode(
-          node: Node(uri: "$host:${node.port}", type: WalletType.monero));
+          node: Node(
+              uri: "$host:${node.port}",
+              type: WalletType.monero,
+              trusted: node.trusted ?? false));
       await walletBase!.rescan(height: credentials.height);
       walletBase!.close();
     } catch (e, s) {
@@ -775,7 +781,10 @@ class MoneroWallet extends CoinServiceAPI {
             final node = await _getCurrentNode();
             final host = Uri.parse(node.host).host;
             await walletBase?.connectToNode(
-                node: Node(uri: "$host:${node.port}", type: WalletType.monero));
+                node: Node(
+                    uri: "$host:${node.port}",
+                    type: WalletType.monero,
+                    trusted: node.trusted ?? false));
           }
           await walletBase?.startSync();
           await refresh();
@@ -851,7 +860,10 @@ class MoneroWallet extends CoinServiceAPI {
 
     final host = Uri.parse(node.host).host;
     await walletBase?.connectToNode(
-        node: Node(uri: "$host:${node.port}", type: WalletType.monero));
+        node: Node(
+            uri: "$host:${node.port}",
+            type: WalletType.monero,
+            trusted: node.trusted ?? false));
 
     // TODO: is this sync call needed? Do we need to notify ui here?
     await walletBase?.startSync();
