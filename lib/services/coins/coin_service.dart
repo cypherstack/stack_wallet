@@ -179,6 +179,7 @@ abstract class CoinServiceAPI {
           walletName: walletName,
           coin: coin,
           secureStore: secureStorageInterface,
+          tracker: tracker,
         );
 
       case Coin.monero:

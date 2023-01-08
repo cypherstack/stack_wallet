@@ -10,6 +10,7 @@ import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart';
 import 'package:stackwallet/models/paymint/utxo_model.dart';
 import 'package:stackwallet/services/price.dart';
+import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -31,6 +32,11 @@ import 'package:stackwallet/services/event_bus/events/global/node_connection_sta
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+
+import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/services/notifications_api.dart';
+
+import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 
 const int MINIMUM_CONFIRMATIONS = 1;
 const int DUST_LIMIT = 294;
@@ -82,23 +88,28 @@ class EthereumWallet extends CoinServiceAPI {
   Coin get coin => _coin;
 
   late SecureStorageInterface _secureStore;
-
+  late final TransactionNotificationTracker txTracker;
   late PriceAPI _priceAPI;
   final _prefs = Prefs.instance;
+  bool longMutex = false;
+
   final _client = Web3Client(
       "https://goerli.infura.io/v3/22677300bf774e49a458b73313ee56ba", Client());
 
   final _blockExplorer = "https://eth-goerli.blockscout.com/api?";
 
   late EthPrivateKey _credentials;
-  int _chainId = 5; //5 for testnet and 1 for mainnet
+  final int _chainId = 5; //5 for testnet and 1 for mainnet
 
-  EthereumWallet(
-      {required String walletId,
-      required String walletName,
-      required Coin coin,
-      PriceAPI? priceAPI,
-      required SecureStorageInterface secureStore}) {
+  EthereumWallet({
+    required String walletId,
+    required String walletName,
+    required Coin coin,
+    PriceAPI? priceAPI,
+    required SecureStorageInterface secureStore,
+    required TransactionNotificationTracker tracker,
+  }) {
+    txTracker = tracker;
     _walletId = walletId;
     _walletName = walletName;
     _coin = coin;
@@ -107,17 +118,35 @@ class EthereumWallet extends CoinServiceAPI {
     _secureStore = secureStore;
   }
 
+  bool _shouldAutoSync = false;
+
   @override
-  bool shouldAutoSync = false;
+  bool get shouldAutoSync => _shouldAutoSync;
+
+  @override
+  set shouldAutoSync(bool shouldAutoSync) {
+    if (_shouldAutoSync != shouldAutoSync) {
+      _shouldAutoSync = shouldAutoSync;
+      if (!shouldAutoSync) {
+        timer?.cancel();
+        timer = null;
+        stopNetworkAlivePinging();
+      } else {
+        startNetworkAlivePinging();
+        refresh();
+      }
+    }
+  }
 
   @override
   String get walletName => _walletName;
   late String _walletName;
 
   late Coin _coin;
+  Timer? timer;
+  Timer? _networkAliveTimer;
 
   @override
-  // TODO: implement allOwnAddresses
   Future<List<String>> get allOwnAddresses =>
       _allOwnAddresses ??= _fetchAllOwnAddresses();
   Future<List<String>>? _allOwnAddresses;
@@ -143,6 +172,11 @@ class EthereumWallet extends CoinServiceAPI {
   @override
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
     final gasPrice = await _client.getGasPrice();
+
+    //Get Gas Limit for current block
+    final blockInfo = await _client.getBlockInformation(blockNumber: 'latest');
+    String gasLimit = blockInfo.gasLimit;
+
     final amount = txData['recipientAmt'];
     final decimalAmount =
         Format.satoshisToAmount(amount as int, coin: Coin.ethereum);
@@ -150,7 +184,7 @@ class EthereumWallet extends CoinServiceAPI {
     final tx = Transaction.Transaction(
         to: EthereumAddress.fromHex(txData['addresss'] as String),
         gasPrice: gasPrice,
-        maxGas: 21000,
+        maxGas: int.parse(gasLimit),
         value: EtherAmount.inWei(bigIntAmount));
     final transaction =
         await _client.sendTransaction(_credentials, tx, chainId: _chainId);
@@ -357,32 +391,168 @@ class EthereumWallet extends CoinServiceAPI {
       required int maxUnusedAddressGap,
       required int maxNumberOfIndexesToCheck,
       required int height}) async {
-    await _prefs.init();
-    print("Mnemonic is $mnemonic");
-    _credentials = EthPrivateKey.fromHex(StringToHex.toHexString(mnemonic));
+    longMutex = true;
+    final start = DateTime.now();
 
-    await _secureStore.write(key: '${_walletId}_mnemonic', value: mnemonic);
+    try {
+      if ((await _secureStore.read(key: '${_walletId}_mnemonic')) != null) {
+        print("DUPLICATE MNEMONIC");
+        longMutex = false;
+        throw Exception("Attempted to overwrite mnemonic on restore!");
+      }
 
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: 'receivingAddresses', value: ["0"]);
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: "receivingIndex", value: 0);
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: "changeIndex", value: 0);
-    await DB.instance.put<dynamic>(
-      boxName: walletId,
-      key: 'blocked_tx_hashes',
-      value: ["0xdefault"],
-    ); // A list of transaction hashes to represent frozen utxos in wallet
-    // initialize address book entries
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'addressBookEntries',
-        value: <String, String>{});
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: "isFavorite", value: false);
+      await _secureStore.write(
+          key: '${_walletId}_mnemonic', value: mnemonic.trim());
+
+      _credentials = EthPrivateKey.fromHex(StringToHex.toHexString(mnemonic));
+    } catch (e, s) {
+      Logging.instance.log(
+          "Exception rethrown from recoverFromMnemonic(): $e\n$s",
+          level: LogLevel.Error);
+      longMutex = false;
+      rethrow;
+    }
+
+    longMutex = false;
+    final end = DateTime.now();
+    Logging.instance.log(
+        "$walletName recovery time: ${end.difference(start).inMilliseconds} millis",
+        level: LogLevel.Info);
+  }
+
+  Future<bool> refreshIfThereIsNewData() async {
+    if (longMutex) return false;
+    if (_hasCalledExit) return false;
+    Logging.instance.log("refreshIfThereIsNewData", level: LogLevel.Info);
+
+    try {
+      bool needsRefresh = false;
+      Set<String> txnsToCheck = {};
+
+      for (final String txid in txTracker.pendings) {
+        if (!txTracker.wasNotifiedConfirmed(txid)) {
+          txnsToCheck.add(txid);
+        }
+      }
+
+      // for (String txid in txnsToCheck) {
+      //   final txn = await _client.getTransactionByHash(txid);
+      //   int confirmations = txn["confirmations"] as int? ?? 0;
+      //   bool isUnconfirmed = confirmations < MINIMUM_CONFIRMATIONS;
+      //   if (!isUnconfirmed) {
+      //     // unconfirmedTxs = {};
+      //     needsRefresh = true;
+      //     break;
+      //   }
+      // }
+      // if (!needsRefresh) {
+      //   var allOwnAddresses = await _fetchAllOwnAddresses();
+      //   List<Map<String, dynamic>> allTxs =
+      //       await _fetchHistory(allOwnAddresses);
+      //   final txData = await transactionData;
+      //   for (Map<String, dynamic> transaction in allTxs) {
+      //     if (txData.findTransaction(transaction['tx_hash'] as String) ==
+      //         null) {
+      //       Logging.instance.log(
+      //           " txid not found in address history already ${transaction['tx_hash']}",
+      //           level: LogLevel.Info);
+      //       needsRefresh = true;
+      //       break;
+      //     }
+      //   }
+      // }
+      return needsRefresh;
+    } catch (e, s) {
+      Logging.instance.log(
+          "Exception caught in refreshIfThereIsNewData: $e\n$s",
+          level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
+  Future<void> getAllTxsToWatch(
+    TransactionData txData,
+  ) async {
+    if (_hasCalledExit) return;
+    List<models.Transaction> unconfirmedTxnsToNotifyPending = [];
+    List<models.Transaction> unconfirmedTxnsToNotifyConfirmed = [];
+
+    for (final chunk in txData.txChunks) {
+      for (final tx in chunk.transactions) {
+        if (tx.confirmedStatus) {
+          // get all transactions that were notified as pending but not as confirmed
+          if (txTracker.wasNotifiedPending(tx.txid) &&
+              !txTracker.wasNotifiedConfirmed(tx.txid)) {
+            unconfirmedTxnsToNotifyConfirmed.add(tx);
+          }
+        } else {
+          // get all transactions that were not notified as pending yet
+          if (!txTracker.wasNotifiedPending(tx.txid)) {
+            unconfirmedTxnsToNotifyPending.add(tx);
+          }
+        }
+      }
+    }
+
+    // notify on unconfirmed transactions
+    for (final tx in unconfirmedTxnsToNotifyPending) {
+      if (tx.txType == "Received") {
+        unawaited(NotificationApi.showNotification(
+          title: "Incoming transaction",
+          body: walletName,
+          walletId: walletId,
+          iconAssetName: Assets.svg.iconFor(coin: coin),
+          date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
+          shouldWatchForUpdates: tx.confirmations < MINIMUM_CONFIRMATIONS,
+          coinName: coin.name,
+          txid: tx.txid,
+          confirmations: tx.confirmations,
+          requiredConfirmations: MINIMUM_CONFIRMATIONS,
+        ));
+        await txTracker.addNotifiedPending(tx.txid);
+      } else if (tx.txType == "Sent") {
+        unawaited(NotificationApi.showNotification(
+          title: "Sending transaction",
+          body: walletName,
+          walletId: walletId,
+          iconAssetName: Assets.svg.iconFor(coin: coin),
+          date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
+          shouldWatchForUpdates: tx.confirmations < MINIMUM_CONFIRMATIONS,
+          coinName: coin.name,
+          txid: tx.txid,
+          confirmations: tx.confirmations,
+          requiredConfirmations: MINIMUM_CONFIRMATIONS,
+        ));
+        await txTracker.addNotifiedPending(tx.txid);
+      }
+    }
+
+    // notify on confirmed
+    for (final tx in unconfirmedTxnsToNotifyConfirmed) {
+      if (tx.txType == "Received") {
+        unawaited(NotificationApi.showNotification(
+          title: "Incoming transaction confirmed",
+          body: walletName,
+          walletId: walletId,
+          iconAssetName: Assets.svg.iconFor(coin: coin),
+          date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
+          shouldWatchForUpdates: false,
+          coinName: coin.name,
+        ));
+        await txTracker.addNotifiedConfirmed(tx.txid);
+      } else if (tx.txType == "Sent") {
+        unawaited(NotificationApi.showNotification(
+          title: "Outgoing transaction confirmed",
+          body: walletName,
+          walletId: walletId,
+          iconAssetName: Assets.svg.iconFor(coin: coin),
+          date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
+          shouldWatchForUpdates: false,
+          coinName: coin.name,
+        ));
+        await txTracker.addNotifiedConfirmed(tx.txid);
+      }
+    }
   }
 
   @override
@@ -395,7 +565,7 @@ class EthereumWallet extends CoinServiceAPI {
       refreshMutex = true;
     }
 
-    final blockNumber = await _client.getBlockNumber();
+    // final blockNumber = await _client.getBlockNumber();
 
     try {
       GlobalEventBus.instance.fire(
@@ -423,9 +593,60 @@ class EthereumWallet extends CoinServiceAPI {
           unawaited(updateStoredChainHeight(newHeight: currentHeight));
         }
 
-        final newTxData = await _fetchTransactionData();
+        GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.2, walletId));
+
+        final newTxData = _fetchTransactionData();
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.50, walletId));
+
+        final feeObj = _getFees();
+        GlobalEventBus.instance
+            .fire(RefreshPercentChangedEvent(0.60, walletId));
+
+        _transactionData = Future(() => newTxData);
+
+        GlobalEventBus.instance
+            .fire(RefreshPercentChangedEvent(0.70, walletId));
+        _feeObject = Future(() => feeObj);
+        GlobalEventBus.instance
+            .fire(RefreshPercentChangedEvent(0.80, walletId));
+
+        final allTxsToWatch = getAllTxsToWatch(await newTxData);
+        await Future.wait([
+          newTxData,
+          feeObj,
+
+          /// TODO - GET fee object
+          allTxsToWatch,
+        ]);
+        GlobalEventBus.instance
+            .fire(RefreshPercentChangedEvent(0.90, walletId));
+      }
+      refreshMutex = false;
+      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(1.0, walletId));
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.synced,
+          walletId,
+          coin,
+        ),
+      );
+
+      if (shouldAutoSync) {
+        timer ??= Timer.periodic(const Duration(seconds: 30), (timer) async {
+          Logging.instance.log(
+              "Periodic refresh check for $walletId $walletName in object instance: $hashCode",
+              level: LogLevel.Info);
+          // chain height check currently broken
+          // if ((await chainHeight) != (await storedChainHeight)) {
+          if (await refreshIfThereIsNewData()) {
+            await refresh();
+            GlobalEventBus.instance.fire(UpdatedInBackgroundEvent(
+                "New data found in $walletId $walletName in background!",
+                walletId));
+          }
+          // }
+        });
       }
     } catch (error, strace) {
       refreshMutex = false;
@@ -459,9 +680,27 @@ class EthereumWallet extends CoinServiceAPI {
   }
 
   @override
-  Future<bool> testNetworkConnection() {
-    // TODO: implement testNetworkConnection
-    throw UnimplementedError();
+  Future<bool> testNetworkConnection() async {
+    //TODO - LOOK for correct implementation of ping
+    try {
+      // final result = await _electrumXClient.ping();
+      // return result;
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  void _periodicPingCheck() async {
+    bool hasNetwork = await testNetworkConnection();
+    _isConnected = hasNetwork;
+    if (_isConnected != hasNetwork) {
+      NodeConnectionStatus status = hasNetwork
+          ? NodeConnectionStatus.connected
+          : NodeConnectionStatus.disconnected;
+      GlobalEventBus.instance
+          .fire(NodeConnectionStatusChangedEvent(status, walletId, coin));
+    }
   }
 
   @override
@@ -679,6 +918,23 @@ class EthereumWallet extends CoinServiceAPI {
   late String _walletId;
 
   @override
-  @override
   set walletName(String newName) => _walletName = newName;
+
+  void stopNetworkAlivePinging() {
+    _networkAliveTimer?.cancel();
+    _networkAliveTimer = null;
+  }
+
+  void startNetworkAlivePinging() {
+    // call once on start right away
+    _periodicPingCheck();
+
+    // then periodically check
+    _networkAliveTimer = Timer.periodic(
+      Constants.networkAliveTimerDuration,
+      (_) async {
+        _periodicPingCheck();
+      },
+    );
+  }
 }
