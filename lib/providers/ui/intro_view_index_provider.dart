@@ -6,7 +6,6 @@ int _count = 0;
 final introViewIndexProvider = StateProvider<int>((_) {
   if (kDebugMode) {
     _count++;
-    debugPrint("introViewIndexProvider instantiation count: $_count");
   }
 
   return 0;

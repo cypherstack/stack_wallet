@@ -109,8 +109,6 @@ class _VerifyRecoveryPhraseViewState extends ConsumerState<VerifyMnemonicView> {
 
     result.insert(random.nextInt(wordsToShow), chosenWord);
 
-    debugPrint("Mnemonic game correct word: $chosenWord");
-
     return Tuple2(result, chosenWord);
   }
 

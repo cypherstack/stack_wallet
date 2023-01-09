@@ -149,6 +149,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         const double overestimateSecondsPerBlock = 61;
         int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
         int approximateHeight = chosenSeconds ~/ overestimateSecondsPerBlock;
+        // todo: check if print needed
         debugPrint(
             "approximate height: $approximateHeight chosen_seconds: $chosenSeconds");
         height = approximateHeight;
@@ -436,7 +437,6 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   }
 
   Future<void> pasteMnemonic() async {
-    debugPrint("restoreWalletPasteButton tapped");
     final ClipboardData? data =
         await widget.clipboard.getData(Clipboard.kTextPlain);
 
