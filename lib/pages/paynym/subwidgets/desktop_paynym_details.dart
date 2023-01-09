@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/paynym/dialogs/confirm_paynym_connect_dialog.dart';
 import 'package:stackwallet/pages/paynym/subwidgets/paynym_bot.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
@@ -14,15 +15,15 @@ import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/paynym_follow_toggle_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-
-import '../../../notifications/show_flush_bar.dart';
 
 class DesktopPaynymDetails extends ConsumerStatefulWidget {
   const DesktopPaynymDetails({
@@ -40,6 +41,8 @@ class DesktopPaynymDetails extends ConsumerStatefulWidget {
 }
 
 class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
+  bool _showInsufficientFundsInfo = false;
+
   Future<void> _onConnectPressed() async {
     bool canPop = false;
     unawaited(
@@ -59,15 +62,15 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
         .getManager(widget.walletId)
         .wallet as DogecoinWallet;
 
-    // sanity check to prevent second notifcation tx
+    // sanity check to prevent second notification tx
     if (wallet.hasConnectedConfirmed(widget.accountLite.code)) {
       canPop = true;
-      Navigator.of(context).pop();
+      Navigator.of(context, rootNavigator: true).pop();
       // TODO show info popup
       return;
     } else if (wallet.hasConnected(widget.accountLite.code)) {
       canPop = true;
-      Navigator.of(context).pop();
+      Navigator.of(context, rootNavigator: true).pop();
       // TODO show info popup
       return;
     }
@@ -84,10 +87,11 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
     } on InsufficientBalanceException catch (e) {
       if (mounted) {
         canPop = true;
-        Navigator.of(context).pop();
+        Navigator.of(context, rootNavigator: true).pop();
       }
-      // TODO show info popup
-      print(e);
+      setState(() {
+        _showInsufficientFundsInfo = true;
+      });
       return;
     }
 
@@ -96,10 +100,7 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
 
       canPop = true;
       // close loading
-      Navigator.of(context).pop();
-
-      // Close details
-      Navigator.of(context).pop();
+      Navigator.of(context, rootNavigator: true).pop();
 
       // show info pop up
       await showDialog<void>(
@@ -192,6 +193,33 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                     ),
                   ],
                 ),
+                if (_showInsufficientFundsInfo)
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(
+                        height: 24,
+                      ),
+                      RoundedContainer(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .warningBackground,
+                        child: Text(
+                          "Adding a PayNym to your contacts requires a one-time "
+                          "transaction fee for creating the record on the "
+                          "blockchain. Please deposit more "
+                          "${ref.read(walletsChangeNotifierProvider).getManager(widget.walletId).wallet.coin.ticker} "
+                          "into your wallet and try again.",
+                          style: STextStyles.desktopTextExtraExtraSmall(context)
+                              .copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .warningForeground,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),

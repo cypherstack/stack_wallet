@@ -15,6 +15,7 @@ import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/paynym_follow_toggle_button.dart';
@@ -22,6 +23,7 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 
 class PaynymDetailsPopup extends ConsumerStatefulWidget {
   const PaynymDetailsPopup({
@@ -38,6 +40,8 @@ class PaynymDetailsPopup extends ConsumerStatefulWidget {
 }
 
 class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
+  bool _showInsufficientFundsInfo = false;
+
   Future<void> _onConnectPressed() async {
     bool canPop = false;
     unawaited(
@@ -79,13 +83,14 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
         selectedTxFeeRate: rates.medium,
         targetPaymentCodeString: widget.accountLite.code,
       );
-    } on InsufficientBalanceException catch (e) {
+    } on InsufficientBalanceException catch (_) {
       if (mounted) {
         canPop = true;
         Navigator.of(context).pop();
       }
-      // TODO show info popup
-      print(e);
+      setState(() {
+        _showInsufficientFundsInfo = true;
+      });
       return;
     }
 
@@ -145,39 +150,69 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
               right: 24,
               bottom: 16,
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
               children: [
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    PayNymBot(
-                      paymentCodeString: widget.accountLite.code,
-                      size: 32,
+                    Row(
+                      children: [
+                        PayNymBot(
+                          paymentCodeString: widget.accountLite.code,
+                          size: 32,
+                        ),
+                        const SizedBox(
+                          width: 12,
+                        ),
+                        Text(
+                          widget.accountLite.nymName,
+                          style: STextStyles.w600_12(context),
+                        ),
+                      ],
                     ),
-                    const SizedBox(
-                      width: 12,
-                    ),
-                    Text(
-                      widget.accountLite.nymName,
-                      style: STextStyles.w600_12(context),
+                    PrimaryButton(
+                      label: "Connect",
+                      buttonHeight: ButtonHeight.l,
+                      icon: SvgPicture.asset(
+                        Assets.svg.circlePlusFilled,
+                        width: 10,
+                        height: 10,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .buttonTextPrimary,
+                      ),
+                      iconSpacing: 4,
+                      width: 86,
+                      onPressed: _onConnectPressed,
                     ),
                   ],
                 ),
-                PrimaryButton(
-                  label: "Connect",
-                  buttonHeight: ButtonHeight.l,
-                  icon: SvgPicture.asset(
-                    Assets.svg.circlePlusFilled,
-                    width: 10,
-                    height: 10,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .buttonTextPrimary,
+                if (_showInsufficientFundsInfo)
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(
+                        height: 24,
+                      ),
+                      RoundedContainer(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .warningBackground,
+                        child: Text(
+                          "Adding a PayNym to your contacts requires a one-time "
+                          "transaction fee for creating the record on the "
+                          "blockchain. Please deposit more "
+                          "${ref.read(walletsChangeNotifierProvider).getManager(widget.walletId).wallet.coin.ticker} "
+                          "into your wallet and try again.",
+                          style: STextStyles.infoSmall(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .warningForeground,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  iconSpacing: 4,
-                  width: 86,
-                  onPressed: _onConnectPressed,
-                ),
               ],
             ),
           ),
