@@ -27,6 +27,7 @@ import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/copy_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/share_icon.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/toggle.dart';
 
@@ -48,6 +49,8 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
   bool showFollowers = false;
   int secretCount = 0;
   Timer? timer;
+
+  bool _followButtonHoverState = false;
 
   @override
   void dispose() {
@@ -107,22 +110,34 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                 ],
               ),
               trailing: Padding(
-                padding: const EdgeInsets.only(right: 22),
-                child: MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: () {
-                      showDialog<void>(
-                        context: context,
-                        builder: (context) => AddNewPaynymFollowView(
-                          walletId: widget.walletId,
-                        ),
-                      );
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      child: Padding(
-                        padding: const EdgeInsets.all(10.0),
+                padding: const EdgeInsets.only(right: 12),
+                child: SizedBox(
+                  height: 56,
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    onEnter: (_) => setState(() {
+                      _followButtonHoverState = true;
+                    }),
+                    onExit: (_) => setState(() {
+                      _followButtonHoverState = false;
+                    }),
+                    child: GestureDetector(
+                      onTap: () {
+                        showDialog<void>(
+                          context: context,
+                          builder: (context) => AddNewPaynymFollowView(
+                            walletId: widget.walletId,
+                          ),
+                        );
+                      },
+                      child: RoundedContainer(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                        color: _followButtonHoverState
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .highlight
+                            : Colors.transparent,
+                        radiusMultiplier: 100,
                         child: Row(
                           children: [
                             SvgPicture.asset(
