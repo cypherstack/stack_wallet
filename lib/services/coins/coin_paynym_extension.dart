@@ -9,6 +9,7 @@ import 'package:bitcoindart/src/utils/script.dart' as bscript;
 import 'package:decimal/decimal.dart';
 import 'package:pointycastle/digests/sha256.dart';
 import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/models/models.dart' as models;
 import 'package:stackwallet/models/paymint/utxo_model.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
@@ -70,6 +71,75 @@ extension PayNym on DogecoinWallet {
     // final bytes =
     //     await signWithNotificationKey(Uint8List.fromList(utf8.encode(data)));
     // return Format.uint8listToString(bytes);
+  }
+
+  /// Update cached lists of notification transaction IDs.
+  /// Returns true if there are new notification transactions found since last
+  /// checked.
+  Future<bool> checkForNotificationTransactions() async {
+    final myPCode = await getPaymentCode();
+
+    final transactionIds = await electrumXClient.getHistory(
+      scripthash: AddressUtils.convertToScriptHash(
+        myPCode.notificationAddress(),
+        network,
+      ),
+    );
+
+    final confirmedNotificationTransactionIds = DB.instance.get<dynamic>(
+          boxName: walletId,
+          key: "confirmedNotificationTransactionIds",
+        ) as Set? ??
+        {};
+
+    final unconfirmedNotificationTransactionIds = DB.instance.get<dynamic>(
+          boxName: walletId,
+          key: "unconfirmedNotificationTransactionIds",
+        ) as Set? ??
+        {};
+
+    // since we are only checking for newly found transactions here we can use the sum
+    final totalCount = confirmedNotificationTransactionIds.length +
+        unconfirmedNotificationTransactionIds.length;
+
+    for (final entry in transactionIds) {
+      final txid = entry["tx_hash"] as String;
+
+      final tx = await cachedElectrumXClient.getTransaction(
+        txHash: txid,
+        coin: coin,
+      );
+
+      // check if tx is confirmed
+      if ((tx["confirmations"] as int? ?? 0) > MINIMUM_CONFIRMATIONS) {
+        // remove it from unconfirmed set
+        unconfirmedNotificationTransactionIds.remove(txid);
+
+        // add it to confirmed set
+        confirmedNotificationTransactionIds.add(txid);
+      } else {
+        // otherwise add it to the unconfirmed set
+        unconfirmedNotificationTransactionIds.add(txid);
+      }
+    }
+
+    final newTotalCount = confirmedNotificationTransactionIds.length +
+        unconfirmedNotificationTransactionIds.length;
+
+    return newTotalCount > totalCount;
+  }
+
+  /// return the notification tx sent from my wallet if it exists
+  Future<models.Transaction?> hasSentNotificationTx(PaymentCode pCode) async {
+    final txData = await transactionData;
+
+    for (final tx in txData.getAllTransactions().values) {
+      if (tx.address == pCode.notificationAddress()) {
+        return tx;
+      }
+    }
+
+    return null;
   }
 
   void preparePaymentCodeSend(PaymentCode pCode) async {
