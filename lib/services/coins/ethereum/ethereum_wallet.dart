@@ -38,7 +38,7 @@ import 'package:stackwallet/services/notifications_api.dart';
 
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 
-const int MINIMUM_CONFIRMATIONS = 1;
+const int MINIMUM_CONFIRMATIONS = 10;
 const int DUST_LIMIT = 294;
 
 const String GENESIS_HASH_MAINNET =
@@ -396,7 +396,6 @@ class EthereumWallet extends CoinServiceAPI {
 
     try {
       if ((await _secureStore.read(key: '${_walletId}_mnemonic')) != null) {
-        print("DUPLICATE MNEMONIC");
         longMutex = false;
         throw Exception("Attempted to overwrite mnemonic on restore!");
       }
@@ -405,6 +404,11 @@ class EthereumWallet extends CoinServiceAPI {
           key: '${_walletId}_mnemonic', value: mnemonic.trim());
 
       _credentials = EthPrivateKey.fromHex(StringToHex.toHexString(mnemonic));
+
+      await DB.instance
+          .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
+      await DB.instance
+          .put<dynamic>(boxName: walletId, key: "isFavorite", value: false);
     } catch (e, s) {
       Logging.instance.log(
           "Exception rethrown from recoverFromMnemonic(): $e\n$s",
@@ -424,7 +428,8 @@ class EthereumWallet extends CoinServiceAPI {
     if (longMutex) return false;
     if (_hasCalledExit) return false;
     Logging.instance.log("refreshIfThereIsNewData", level: LogLevel.Info);
-
+    Logging.instance.log("TX Tracker Pendings is ${txTracker.pendings}",
+        level: LogLevel.Info);
     try {
       bool needsRefresh = false;
       Set<String> txnsToCheck = {};
@@ -435,16 +440,17 @@ class EthereumWallet extends CoinServiceAPI {
         }
       }
 
-      // for (String txid in txnsToCheck) {
-      //   final txn = await _client.getTransactionByHash(txid);
-      //   int confirmations = txn["confirmations"] as int? ?? 0;
-      //   bool isUnconfirmed = confirmations < MINIMUM_CONFIRMATIONS;
-      //   if (!isUnconfirmed) {
-      //     // unconfirmedTxs = {};
-      //     needsRefresh = true;
-      //     break;
-      //   }
-      // }
+      for (String txid in txnsToCheck) {
+        final txn = await _client.getTransactionByHash(txid);
+        print("TXS TO CHECK IS $txn");
+        // int confirmations = txn["confirmations"] as int? ?? 0;
+        // bool isUnconfirmed = confirmations < MINIMUM_CONFIRMATIONS;
+        // if (!isUnconfirmed) {
+        //   // unconfirmedTxs = {};
+        //   needsRefresh = true;
+        //   break;
+        // }
+      }
       // if (!needsRefresh) {
       //   var allOwnAddresses = await _fetchAllOwnAddresses();
       //   List<Map<String, dynamic>> allTxs =
