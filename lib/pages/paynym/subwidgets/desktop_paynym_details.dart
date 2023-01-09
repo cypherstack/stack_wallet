@@ -11,7 +11,6 @@ import 'package:stackwallet/pages/paynym/dialogs/confirm_paynym_connect_dialog.d
 import 'package:stackwallet/pages/paynym/subwidgets/paynym_bot.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -20,6 +19,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/paynym_follow_toggle_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
@@ -110,19 +110,38 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
           onConfirmPressed: () {
             //
             print("CONFIRM NOTIF TX: $preparedTx");
-
-            Navigator.of(context).push(
-              RouteGenerator.getRoute(
-                builder: (_) => ConfirmTransactionView(
-                  walletId: wallet.walletId,
-                  transactionInfo: {
-                    "hex": preparedTx["hex"],
-                    "recipient": preparedTx["recipientPaynym"],
-                    "recipientAmt": preparedTx["amount"],
-                    "fee": preparedTx["fee"],
-                    "vSize": preparedTx["vSize"],
-                    "note": "PayNym connect"
-                  },
+            Navigator.of(context, rootNavigator: true).pop();
+            unawaited(
+              showDialog(
+                context: context,
+                builder: (context) => DesktopDialog(
+                  maxHeight: double.infinity,
+                  maxWidth: 580,
+                  child: ConfirmTransactionView(
+                    walletId: wallet.walletId,
+                    isPaynymNotificationTransaction: true,
+                    transactionInfo: {
+                      "hex": preparedTx["hex"],
+                      "address": preparedTx["recipientPaynym"],
+                      "recipientAmt": preparedTx["amount"],
+                      "fee": preparedTx["fee"],
+                      "vSize": preparedTx["vSize"],
+                      "note": "PayNym connect"
+                    },
+                    onSuccessInsteadOfRouteOnSuccess: () {
+                      Navigator.of(context, rootNavigator: true).pop();
+                      Navigator.of(context, rootNavigator: true).pop();
+                      unawaited(
+                        showFloatingFlushBar(
+                          type: FlushBarType.success,
+                          message:
+                              "Connection initiated to ${widget.accountLite.nymName}",
+                          iconAsset: Assets.svg.copy,
+                          context: context,
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
             );
