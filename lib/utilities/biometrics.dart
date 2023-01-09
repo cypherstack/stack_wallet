@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:epicpay/utilities/logger.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:local_auth/auth_strings.dart';
 import 'package:local_auth/local_auth.dart';
 
@@ -45,14 +44,14 @@ class Biometrics {
     final canCheckBiometrics = await localAuth.canCheckBiometrics;
     final isDeviceSupported = await localAuth.isDeviceSupported();
 
-    debugPrint("canCheckBiometrics: $canCheckBiometrics");
-    debugPrint("isDeviceSupported: $isDeviceSupported");
+    // debugPrint("canCheckBiometrics: $canCheckBiometrics");
+    // debugPrint("isDeviceSupported: $isDeviceSupported");
 
     if (canCheckBiometrics && isDeviceSupported) {
       List<BiometricType> availableSystems =
           await localAuth.getAvailableBiometrics();
 
-      debugPrint("availableSystems: $availableSystems");
+      // debugPrint("availableSystems: $availableSystems");
 
       //TODO properly handle caught exceptions
       if (Platform.isIOS) {

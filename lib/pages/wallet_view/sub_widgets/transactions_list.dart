@@ -162,8 +162,6 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
           list.sort((a, b) => b.timestamp - a.timestamp);
           return RefreshIndicator(
             onRefresh: () async {
-              debugPrint("pulled down to refresh on transaction list");
-
               if (!ref.read(walletProvider)!.isRefreshing) {
                 unawaited(ref.read(walletProvider)!.refresh());
               }

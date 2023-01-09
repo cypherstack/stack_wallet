@@ -984,7 +984,6 @@ class EpicCashWallet extends CoinServiceAPI {
     await _secureStore.write(key: '${_walletId}_wallet', value: walletOpen);
 
     if ((DB.instance.get<dynamic>(boxName: walletId, key: "id")) == null) {
-      debugPrint("Exception was thrown");
       throw Exception(
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
@@ -1216,7 +1215,7 @@ class EpicCashWallet extends CoinServiceAPI {
         // return message;
         transactionFees = message['result'] as String;
       });
-      debugPrint(transactionFees);
+      // debugPrint(transactionFees);
       dynamic decodeData;
       try {
         decodeData = json.decode(transactionFees!);

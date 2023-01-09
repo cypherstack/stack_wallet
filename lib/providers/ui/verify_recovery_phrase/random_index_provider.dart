@@ -6,8 +6,6 @@ int _count = 0;
 final verifyMnemonicWordIndexStateProvider = StateProvider<int>((_) {
   if (kDebugMode) {
     _count++;
-    debugPrint(
-        "verifyMnemonicWordIndexStateProvider instantiation count: $_count");
   }
 
   return 0;
