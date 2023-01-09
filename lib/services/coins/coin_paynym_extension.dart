@@ -11,11 +11,11 @@ import 'package:pointycastle/digests/sha256.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/paymint/utxo_model.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
+import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:tuple/tuple.dart';
-
-import '../../utilities/logger.dart';
 
 class SWException with Exception {
   SWException(this.message);
@@ -28,6 +28,10 @@ class SWException with Exception {
 
 class InsufficientBalanceException extends SWException {
   InsufficientBalanceException(super.message);
+}
+
+class PaynymSendException extends SWException {
+  PaynymSendException(super.message);
 }
 
 extension PayNym on DogecoinWallet {
@@ -68,8 +72,89 @@ extension PayNym on DogecoinWallet {
     // return Format.uint8listToString(bytes);
   }
 
-  // Future<Map<String, dynamic>> prepareNotificationTransaction(
-  //     String targetPaymentCode) async {}
+  void preparePaymentCodeSend(PaymentCode pCode) async {
+    final notifTx = await hasSentNotificationTx(pCode);
+
+    if (notifTx == null) {
+      throw PaynymSendException("No notification transaction sent to $pCode");
+    } else if (!notifTx.confirmedStatus) {
+      throw PaynymSendException(
+          "Notification transaction sent to $pCode has not confirmed yet");
+    } else {
+      final node = getBip32Root((await mnemonic).join(" "), network)
+          .derivePath("m/47'/0'/0'");
+      final sendToAddress = await nextUnusedSendAddressFrom(
+        pCode,
+        node.derive(0).privateKey!,
+      );
+
+      // todo: Actual transaction build
+    }
+  }
+
+  /// get the next unused address to send to given the receiver's payment code
+  /// and your own private key
+  Future<String> nextUnusedSendAddressFrom(
+    PaymentCode pCode,
+    Uint8List privateKey,
+  ) async {
+    // https://en.bitcoin.it/wiki/BIP_0047#Path_levels
+    const maxCount = 2147483647;
+
+    final paymentAddress = PaymentAddress.initWithPrivateKey(
+      privateKey,
+      pCode,
+      0, // initial index to check
+    );
+
+    for (paymentAddress.index = 0;
+        paymentAddress.index <= maxCount;
+        paymentAddress.index++) {
+      final address = paymentAddress.getSendAddress();
+
+      final transactionIds = await electrumXClient.getHistory(
+        scripthash: AddressUtils.convertToScriptHash(
+          address,
+          network,
+        ),
+      );
+
+      if (transactionIds.isEmpty) {
+        return address;
+      }
+    }
+
+    throw PaynymSendException("Exhausted unused send addresses!");
+  }
+
+  /// get your receiving addresses given the sender's payment code and your own
+  /// private key
+  List<String> deriveReceivingAddressesFor(
+    PaymentCode pCode,
+    Uint8List privateKey,
+    int count,
+  ) {
+    // https://en.bitcoin.it/wiki/BIP_0047#Path_levels
+    const maxCount = 2147483647;
+    assert(count <= maxCount);
+
+    final paymentAddress = PaymentAddress.initWithPrivateKey(
+      privateKey,
+      pCode,
+      0, // initial index
+    );
+
+    final List<String> result = [];
+    for (paymentAddress.index = 0;
+        paymentAddress.index < count;
+        paymentAddress.index++) {
+      final address = paymentAddress.getReceiveAddress();
+
+      result.add(address);
+    }
+
+    return result;
+  }
 
   Future<Map<String, dynamic>> buildNotificationTx({
     required int selectedTxFeeRate,
@@ -283,13 +368,6 @@ extension PayNym on DogecoinWallet {
       (op.OPS["OP_RETURN"] as int),
       blindedPaymentCode,
     ]);
-
-    final bobP2PKH = P2PKH(
-      data: PaymentData(
-        pubkey: targetPaymentCode.notificationPublicKey(),
-      ),
-    ).data;
-    final notificationScript = bscript.compile([bobP2PKH.output]);
 
     // build a notification tx
     final txb = TransactionBuilder(network: network);
