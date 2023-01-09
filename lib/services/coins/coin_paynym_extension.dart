@@ -492,7 +492,7 @@ extension PayNym on DogecoinWallet {
       await updatePaynymNotificationInfo(
         txid: txHash,
         confirmed: false,
-        paymentCodeString: preparedTx["paymentCodeString"] as String,
+        paymentCodeString: preparedTx["address"] as String,
       );
       return txHash;
     } catch (e, s) {
@@ -520,12 +520,14 @@ extension PayNym on DogecoinWallet {
 
   bool hasConnected(String paymentCodeString) {
     return getPaynymNotificationTxInfo()
+        .values
         .where((e) => e["paymentCodeString"] == paymentCodeString)
         .isNotEmpty;
   }
 
   bool hasConnectedConfirmed(String paymentCodeString) {
     return getPaynymNotificationTxInfo()
+        .values
         .where((e) =>
             e["paymentCodeString"] == paymentCodeString &&
             e["confirmed"] == true)
@@ -533,12 +535,12 @@ extension PayNym on DogecoinWallet {
   }
 
   // fetch paynym notification tx meta data
-  Set<Map<String, dynamic>> getPaynymNotificationTxInfo() {
-    final set = DB.instance.get<dynamic>(
-            boxName: walletId, key: "paynymNotificationTxInfo") as Set? ??
+  Map<String, dynamic> getPaynymNotificationTxInfo() {
+    final map = DB.instance.get<dynamic>(
+            boxName: walletId, key: "paynymNotificationTxInfo") as Map? ??
         {};
 
-    return Set<Map<String, dynamic>>.from(set);
+    return Map<String, dynamic>.from(map);
   }
 
   // add/update paynym notification tx meta data entry
@@ -548,11 +550,11 @@ extension PayNym on DogecoinWallet {
     required String paymentCodeString,
   }) async {
     final data = getPaynymNotificationTxInfo();
-    data.add({
+    data[txid] = {
       "txid": txid,
       "confirmed": confirmed,
       "paymentCodeString": paymentCodeString,
-    });
+    };
     await DB.instance.put<dynamic>(
       boxName: walletId,
       key: "paynymNotificationTxInfo",
@@ -605,6 +607,7 @@ Future<Map<String, dynamic>> parseTransaction(
         // get input(prevOut) address
         final address = output["scriptPubKey"]?["addresses"]?[0] as String? ??
             output["scriptPubKey"]?["address"] as String?;
+
         if (address != null) {
           inputAddresses.add(address);
 
@@ -629,8 +632,8 @@ Future<Map<String, dynamic>> parseTransaction(
     totalOutputValue += value;
 
     // get output address
-    final address = output["scriptPubKey"]["addresses"][0] as String? ??
-        output["scriptPubKey"]["address"] as String?;
+    final address = output["scriptPubKey"]?["addresses"]?[0] as String? ??
+        output["scriptPubKey"]?["address"] as String?;
     if (address != null) {
       outputAddresses.add(address);
 
