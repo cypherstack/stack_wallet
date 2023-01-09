@@ -153,8 +153,16 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
     }
   }
 
+  Future<void> _onSend() async {
+    print("sned");
+  }
+
   @override
   Widget build(BuildContext context) {
+    final wallet = ref
+        .watch(walletsChangeNotifierProvider)
+        .getManager(widget.walletId)
+        .wallet as DogecoinWallet;
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(0),
       child: Column(
@@ -184,22 +192,40 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                 ),
                 Row(
                   children: [
-                    Expanded(
-                      child: PrimaryButton(
-                        label: "Connect",
-                        buttonHeight: ButtonHeight.s,
-                        icon: SvgPicture.asset(
-                          Assets.svg.circlePlusFilled,
-                          width: 16,
-                          height: 16,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .buttonTextPrimary,
+                    if (!wallet.hasConnected(widget.accountLite.code))
+                      Expanded(
+                        child: PrimaryButton(
+                          label: "Connect",
+                          buttonHeight: ButtonHeight.s,
+                          icon: SvgPicture.asset(
+                            Assets.svg.circlePlusFilled,
+                            width: 16,
+                            height: 16,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .buttonTextPrimary,
+                          ),
+                          iconSpacing: 6,
+                          onPressed: _onConnectPressed,
                         ),
-                        iconSpacing: 6,
-                        onPressed: _onConnectPressed,
                       ),
-                    ),
+                    if (wallet.hasConnected(widget.accountLite.code))
+                      Expanded(
+                        child: PrimaryButton(
+                          label: "Send",
+                          buttonHeight: ButtonHeight.s,
+                          icon: SvgPicture.asset(
+                            Assets.svg.circleArrowUpRight,
+                            width: 16,
+                            height: 16,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .buttonTextPrimary,
+                          ),
+                          iconSpacing: 6,
+                          onPressed: _onSend,
+                        ),
+                      ),
                     const SizedBox(
                       width: 20,
                     ),
