@@ -152,9 +152,20 @@ class SecondaryButton extends StatelessWidget {
                 width: iconSpacing,
               ),
             if (label != null)
-              Text(
-                label!,
-                style: getStyle(isDesktop, context),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    label!,
+                    style: getStyle(isDesktop, context),
+                  ),
+                  if (buttonHeight != null && buttonHeight == ButtonHeight.s)
+                    const SizedBox(
+                      height: 2,
+                    ),
+                ],
               ),
           ],
         ),

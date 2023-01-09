@@ -21,6 +21,7 @@ import 'package:stackwallet/widgets/loading_indicator.dart';
 enum PaynymFollowToggleButtonStyle {
   primary,
   detailsPopup,
+  detailsDesktop,
 }
 
 class PaynymFollowToggleButton extends ConsumerStatefulWidget {
@@ -286,6 +287,21 @@ class _PaynymFollowToggleButtonState
                 Theme.of(context).extension<StackColors>()!.buttonTextSecondary,
           ),
           iconSpacing: 4,
+          onPressed: _onPressed,
+        );
+
+      case PaynymFollowToggleButtonStyle.detailsDesktop:
+        return SecondaryButton(
+          label: isFollowing ? "Unfollow" : "Follow",
+          buttonHeight: ButtonHeight.s,
+          icon: SvgPicture.asset(
+            isFollowing ? Assets.svg.userMinus : Assets.svg.userPlus,
+            width: 16,
+            height: 16,
+            color:
+                Theme.of(context).extension<StackColors>()!.buttonTextSecondary,
+          ),
+          iconSpacing: 6,
           onPressed: _onPressed,
         );
     }

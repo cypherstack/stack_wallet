@@ -7,9 +7,11 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/paynym/add_new_paynym_follow_view.dart';
 import 'package:stackwallet/pages/paynym/dialogs/paynym_qr_popup.dart';
+import 'package:stackwallet/pages/paynym/subwidgets/desktop_paynym_details.dart';
 import 'package:stackwallet/pages/paynym/subwidgets/paynym_bot.dart';
 import 'package:stackwallet/pages/paynym/subwidgets/paynym_followers_list.dart';
 import 'package:stackwallet/pages/paynym/subwidgets/paynym_following_list.dart';
+import 'package:stackwallet/providers/ui/selected_paynym_details_item_Provider.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -553,9 +555,47 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                 condition: isDesktop,
                 builder: (child) => Padding(
                   padding: const EdgeInsets.only(left: 24),
-                  child: SizedBox(
-                    width: 490,
-                    child: child,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 490,
+                        child: child,
+                      ),
+                      const SizedBox(
+                        width: 24,
+                      ),
+                      if (ref
+                              .watch(selectedPaynymDetailsItemProvider.state)
+                              .state !=
+                          null)
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 600,
+                                ),
+                                child: DesktopPaynymDetails(
+                                  walletId: widget.walletId,
+                                  accountLite: ref
+                                      .watch(selectedPaynymDetailsItemProvider
+                                          .state)
+                                      .state!,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      if (ref
+                              .watch(selectedPaynymDetailsItemProvider.state)
+                              .state !=
+                          null)
+                        const SizedBox(
+                          width: 24,
+                        ),
+                    ],
                   ),
                 ),
                 child: ConditionalParent(
