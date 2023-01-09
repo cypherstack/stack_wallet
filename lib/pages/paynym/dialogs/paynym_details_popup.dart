@@ -8,6 +8,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/paynym/dialogs/confirm_paynym_connect_dialog.dart';
+import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages/paynym/subwidgets/paynym_bot.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
@@ -117,9 +118,11 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
               RouteGenerator.getRoute(
                 builder: (_) => ConfirmTransactionView(
                   walletId: wallet.walletId,
+                  routeOnSuccessName: PaynymHomeView.routeName,
+                  isPaynymNotificationTransaction: true,
                   transactionInfo: {
                     "hex": preparedTx["hex"],
-                    "recipient": preparedTx["recipientPaynym"],
+                    "address": preparedTx["recipientPaynym"],
                     "recipientAmt": preparedTx["amount"],
                     "fee": preparedTx["fee"],
                     "vSize": preparedTx["vSize"],
