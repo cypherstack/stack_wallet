@@ -44,6 +44,7 @@ const int DUST_LIMIT = 294;
 const String GENESIS_HASH_MAINNET =
     "0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa";
 
+//THis is used for mapping transactions per address from the block explorer
 class AddressTransaction {
   final String message;
   final List<dynamic> result;
@@ -60,6 +61,26 @@ class AddressTransaction {
       message: json['message'] as String,
       result: json['result'] as List<dynamic>,
       status: json['status'] as String,
+    );
+  }
+}
+
+class GasTracker {
+  final String status;
+  final String message;
+  final List<dynamic> result;
+
+  const GasTracker({
+    required this.status,
+    required this.message,
+    required this.result,
+  });
+
+  factory GasTracker.fromJson(Map<String, dynamic> json) {
+    return GasTracker(
+      status: json['status'] as String,
+      message: json['message'] as String,
+      result: json['result'] as List<dynamic>,
     );
   }
 }
@@ -99,7 +120,6 @@ class EthereumWallet extends CoinServiceAPI {
   final _blockExplorer = "https://eth-goerli.blockscout.com/api?";
 
   late EthPrivateKey _credentials;
-  final int _chainId = 5; //5 for testnet and 1 for mainnet
 
   EthereumWallet({
     required String walletId,
@@ -172,7 +192,7 @@ class EthereumWallet extends CoinServiceAPI {
   @override
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
     final gasPrice = await _client.getGasPrice();
-
+    final int chainId = await _client.getNetworkId();
     //Get Gas Limit for current block
     final blockInfo = await _client.getBlockInformation(blockNumber: 'latest');
     String gasLimit = blockInfo.gasLimit;
@@ -187,7 +207,7 @@ class EthereumWallet extends CoinServiceAPI {
         maxGas: int.parse(gasLimit),
         value: EtherAmount.inWei(bigIntAmount));
     final transaction =
-        await _client.sendTransaction(_credentials, tx, chainId: _chainId);
+        await _client.sendTransaction(_credentials, tx, chainId: chainId);
 
     Logging.instance.log("Generated TX IS  $transaction", level: LogLevel.Info);
     return transaction;
@@ -226,6 +246,8 @@ class EthereumWallet extends CoinServiceAPI {
   Future<FeeObject>? _feeObject;
 
   Future<FeeObject> _getFees() async {
+    String feesEndPoint =
+        "https://api.etherscan.io/api?module=gastracker&action=gasoracle&apikey=5JJW1UH269SV6ZPC78ZZI7H4QVV1A1TQDH";
     return FeeObject(
         numberOfBlocksFast: 10,
         numberOfBlocksAverage: 10,
@@ -687,11 +709,9 @@ class EthereumWallet extends CoinServiceAPI {
 
   @override
   Future<bool> testNetworkConnection() async {
-    //TODO - LOOK for correct implementation of ping
     try {
-      // final result = await _electrumXClient.ping();
-      // return result;
-      return true;
+      final result = await _client.isListeningForNetwork();
+      return result;
     } catch (_) {
       return false;
     }
