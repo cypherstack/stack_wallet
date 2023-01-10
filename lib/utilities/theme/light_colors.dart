@@ -194,6 +194,10 @@ class LightColors extends StackColorTheme {
   Color get textFieldErrorBG => const Color(0xFFFFDAD4);
   @override
   Color get textFieldSuccessBG => const Color(0xFFB9E9D4);
+  @override
+  Color get textFieldErrorBorder => textFieldErrorBG;
+  @override
+  Color get textFieldSuccessBorder => textFieldSuccessBG;
 
   @override
   Color get textFieldActiveSearchIconLeft => const Color(0xFFA9ACAC);

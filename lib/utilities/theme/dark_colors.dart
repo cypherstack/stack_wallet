@@ -194,6 +194,10 @@ class DarkColors extends StackColorTheme {
   Color get textFieldErrorBG => const Color(0xFFFFB4A9);
   @override
   Color get textFieldSuccessBG => const Color(0xFF8EF5C3);
+  @override
+  Color get textFieldErrorBorder => textFieldErrorBG;
+  @override
+  Color get textFieldSuccessBorder => textFieldSuccessBG;
 
   @override
   Color get textFieldActiveSearchIconLeft => const Color(0xFFA9ACAC);

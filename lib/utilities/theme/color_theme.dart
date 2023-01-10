@@ -7,6 +7,8 @@ import 'package:stackwallet/utilities/theme/oled_black_colors.dart';
 
 enum ThemeType { light, dark, oceanBreeze, oledBlack }
 
+// adjust this file
+
 extension ThemeTypeExt on ThemeType {
   StackColorTheme get colorTheme {
     switch (this) {
@@ -144,6 +146,8 @@ abstract class StackColorTheme {
   Color get textFieldDefaultBG;
   Color get textFieldErrorBG;
   Color get textFieldSuccessBG;
+  Color get textFieldErrorBorder;
+  Color get textFieldSuccessBorder;
   Color get textFieldActiveSearchIconLeft;
   Color get textFieldDefaultSearchIconLeft;
   Color get textFieldErrorSearchIconLeft;

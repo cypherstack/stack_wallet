@@ -196,6 +196,10 @@ class OledBlackColors extends StackColorTheme {
   @override
   Color get textFieldSuccessBG => const Color(0xFF141414);
   //add border color vars here
+  @override
+  Color get textFieldErrorBorder => const Color(0xFFCF6679);
+  @override
+  Color get textFieldSuccessBorder => const Color(0xFF23CFA1);
 
   @override
   Color get textFieldActiveSearchIconLeft => const Color(0xFF9C9C9C);
