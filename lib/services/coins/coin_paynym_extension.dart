@@ -676,7 +676,7 @@ Future<Transaction> parseTransaction(
 
   if (mySentFromAddresses.isNotEmpty && myReceivedOnAddresses.isNotEmpty) {
     // tx is sent to self
-    tx.type = TransactionType.sendToSelf;
+    tx.type = TransactionType.sentToSelf;
     tx.amount =
         amountSentFromWallet - amountReceivedInWallet - fee - changeAmount;
   } else if (mySentFromAddresses.isNotEmpty) {

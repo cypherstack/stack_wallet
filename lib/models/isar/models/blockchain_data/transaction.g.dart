@@ -260,7 +260,7 @@ const _TransactiontypeEnumValueMap = {
 const _TransactiontypeValueEnumMap = {
   0: TransactionType.outgoing,
   1: TransactionType.incoming,
-  2: TransactionType.sendToSelf,
+  2: TransactionType.sentToSelf,
   3: TransactionType.unknown,
   4: TransactionType.anonymize,
 };

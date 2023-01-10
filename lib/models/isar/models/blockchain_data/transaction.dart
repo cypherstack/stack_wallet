@@ -64,7 +64,7 @@ enum TransactionType {
   // TODO: add more types before prod release?
   outgoing,
   incoming,
-  sendToSelf, // should we keep this?
+  sentToSelf, // should we keep this?
   unknown,
   anonymize; // firo specific
 
