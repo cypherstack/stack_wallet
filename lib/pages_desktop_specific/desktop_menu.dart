@@ -162,7 +162,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     DesktopMenuItem(
                       duration: duration,
                       icon: const DesktopBuyIcon(),
-                      label: "Buy",
+                      label: "Buy crypto",
                       value: DesktopMenuItemId.buy,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[2],
