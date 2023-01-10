@@ -31,11 +31,10 @@ const TransactionNoteSchema = CollectionSchema(
   indexes: {},
   links: {
     r'transaction': LinkSchema(
-      id: -3227504867737807188,
+      id: -2827073548125040615,
       name: r'transaction',
       target: r'Transaction',
       single: true,
-      linkName: r'note',
     )
   },
   embeddedSchemas: {},

@@ -42,6 +42,7 @@ class Transaction {
 
   final outputs = IsarLinks<Output>();
 
+  @Backlink(to: "transaction")
   final note = IsarLink<TransactionNote>();
 
   int getConfirmations(int currentChainHeight) {

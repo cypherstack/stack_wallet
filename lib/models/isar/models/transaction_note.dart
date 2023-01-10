@@ -9,6 +9,5 @@ class TransactionNote {
 
   late String value;
 
-  @Backlink(to: 'note')
   final transaction = IsarLink<Transaction>();
 }
