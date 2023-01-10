@@ -580,6 +580,11 @@ class MockManager extends _i1.Mock implements _i6.Manager {
         returnValue: false,
       ) as bool);
   @override
+  int get currentHeight => (super.noSuchMethod(
+        Invocation.getter(#currentHeight),
+        returnValue: 0,
+      ) as int);
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
@@ -950,6 +955,11 @@ class MockCoinServiceAPI extends _i1.Mock implements _i7.CoinServiceAPI {
         Invocation.getter(#isConnected),
         returnValue: false,
       ) as bool);
+  @override
+  int get storedChainHeight => (super.noSuchMethod(
+        Invocation.getter(#storedChainHeight),
+        returnValue: 0,
+      ) as int);
   @override
   _i16.Future<Map<String, dynamic>> prepareSend({
     required String? address,
@@ -1396,6 +1406,11 @@ class MockFiroWallet extends _i1.Mock implements _i19.FiroWallet {
         Invocation.getter(#hasCalledExit),
         returnValue: false,
       ) as bool);
+  @override
+  int get storedChainHeight => (super.noSuchMethod(
+        Invocation.getter(#storedChainHeight),
+        returnValue: 0,
+      ) as int);
   @override
   set onIsActiveWalletChanged(void Function(bool)? _onIsActiveWalletChanged) =>
       super.noSuchMethod(

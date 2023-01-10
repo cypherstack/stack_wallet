@@ -1507,6 +1507,11 @@ class MockManager extends _i1.Mock implements _i6.Manager {
         returnValue: false,
       ) as bool);
   @override
+  int get currentHeight => (super.noSuchMethod(
+        Invocation.getter(#currentHeight),
+        returnValue: 0,
+      ) as int);
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
@@ -1873,6 +1878,11 @@ class MockCoinServiceAPI extends _i1.Mock implements _i12.CoinServiceAPI {
         Invocation.getter(#isConnected),
         returnValue: false,
       ) as bool);
+  @override
+  int get storedChainHeight => (super.noSuchMethod(
+        Invocation.getter(#storedChainHeight),
+        returnValue: 0,
+      ) as int);
   @override
   _i15.Future<Map<String, dynamic>> prepareSend({
     required String? address,

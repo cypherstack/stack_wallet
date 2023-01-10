@@ -366,6 +366,11 @@ class MockFiroWallet extends _i1.Mock implements _i7.FiroWallet {
         returnValue: false,
       ) as bool);
   @override
+  int get storedChainHeight => (super.noSuchMethod(
+        Invocation.getter(#storedChainHeight),
+        returnValue: 0,
+      ) as int);
+  @override
   set onIsActiveWalletChanged(void Function(bool)? _onIsActiveWalletChanged) =>
       super.noSuchMethod(
         Invocation.setter(

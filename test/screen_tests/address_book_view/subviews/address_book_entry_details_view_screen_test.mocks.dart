@@ -377,6 +377,11 @@ class MockManager extends _i1.Mock implements _i9.Manager {
         returnValue: false,
       ) as bool);
   @override
+  int get currentHeight => (super.noSuchMethod(
+        Invocation.getter(#currentHeight),
+        returnValue: 0,
+      ) as int);
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
