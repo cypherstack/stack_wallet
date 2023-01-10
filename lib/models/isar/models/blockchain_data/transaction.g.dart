@@ -32,61 +32,46 @@ const TransactionSchema = CollectionSchema(
       name: r'cancelled',
       type: IsarType.bool,
     ),
-    r'confirmations': PropertySchema(
-      id: 3,
-      name: r'confirmations',
-      type: IsarType.long,
-    ),
-    r'confirmed': PropertySchema(
-      id: 4,
-      name: r'confirmed',
-      type: IsarType.bool,
-    ),
     r'fee': PropertySchema(
-      id: 5,
+      id: 3,
       name: r'fee',
       type: IsarType.long,
     ),
     r'height': PropertySchema(
-      id: 6,
+      id: 4,
       name: r'height',
       type: IsarType.long,
     ),
     r'otherData': PropertySchema(
-      id: 7,
+      id: 5,
       name: r'otherData',
       type: IsarType.string,
     ),
     r'slateId': PropertySchema(
-      id: 8,
+      id: 6,
       name: r'slateId',
       type: IsarType.string,
     ),
     r'subType': PropertySchema(
-      id: 9,
+      id: 7,
       name: r'subType',
       type: IsarType.byte,
       enumMap: _TransactionsubTypeEnumValueMap,
     ),
     r'timestamp': PropertySchema(
-      id: 10,
+      id: 8,
       name: r'timestamp',
       type: IsarType.long,
     ),
     r'txType': PropertySchema(
-      id: 11,
+      id: 9,
       name: r'txType',
       type: IsarType.byte,
       enumMap: _TransactiontxTypeEnumValueMap,
     ),
     r'txid': PropertySchema(
-      id: 12,
+      id: 10,
       name: r'txid',
-      type: IsarType.string,
-    ),
-    r'worthAtBlockTimestamp': PropertySchema(
-      id: 13,
-      name: r'worthAtBlockTimestamp',
       type: IsarType.string,
     )
   },
@@ -143,7 +128,6 @@ int _transactionEstimateSize(
     }
   }
   bytesCount += 3 + object.txid.length * 3;
-  bytesCount += 3 + object.worthAtBlockTimestamp.length * 3;
   return bytesCount;
 }
 
@@ -156,17 +140,14 @@ void _transactionSerialize(
   writer.writeString(offsets[0], object.address);
   writer.writeLong(offsets[1], object.amount);
   writer.writeBool(offsets[2], object.cancelled);
-  writer.writeLong(offsets[3], object.confirmations);
-  writer.writeBool(offsets[4], object.confirmed);
-  writer.writeLong(offsets[5], object.fee);
-  writer.writeLong(offsets[6], object.height);
-  writer.writeString(offsets[7], object.otherData);
-  writer.writeString(offsets[8], object.slateId);
-  writer.writeByte(offsets[9], object.subType.index);
-  writer.writeLong(offsets[10], object.timestamp);
-  writer.writeByte(offsets[11], object.txType.index);
-  writer.writeString(offsets[12], object.txid);
-  writer.writeString(offsets[13], object.worthAtBlockTimestamp);
+  writer.writeLong(offsets[3], object.fee);
+  writer.writeLong(offsets[4], object.height);
+  writer.writeString(offsets[5], object.otherData);
+  writer.writeString(offsets[6], object.slateId);
+  writer.writeByte(offsets[7], object.subType.index);
+  writer.writeLong(offsets[8], object.timestamp);
+  writer.writeByte(offsets[9], object.txType.index);
+  writer.writeString(offsets[10], object.txid);
 }
 
 Transaction _transactionDeserialize(
@@ -179,22 +160,19 @@ Transaction _transactionDeserialize(
   object.address = reader.readString(offsets[0]);
   object.amount = reader.readLong(offsets[1]);
   object.cancelled = reader.readBool(offsets[2]);
-  object.confirmations = reader.readLong(offsets[3]);
-  object.confirmed = reader.readBool(offsets[4]);
-  object.fee = reader.readLong(offsets[5]);
-  object.height = reader.readLong(offsets[6]);
+  object.fee = reader.readLong(offsets[3]);
+  object.height = reader.readLong(offsets[4]);
   object.id = id;
-  object.otherData = reader.readStringOrNull(offsets[7]);
-  object.slateId = reader.readStringOrNull(offsets[8]);
+  object.otherData = reader.readStringOrNull(offsets[5]);
+  object.slateId = reader.readStringOrNull(offsets[6]);
   object.subType =
-      _TransactionsubTypeValueEnumMap[reader.readByteOrNull(offsets[9])] ??
+      _TransactionsubTypeValueEnumMap[reader.readByteOrNull(offsets[7])] ??
           TransactionSubType.none;
-  object.timestamp = reader.readLong(offsets[10]);
+  object.timestamp = reader.readLong(offsets[8]);
   object.txType =
-      _TransactiontxTypeValueEnumMap[reader.readByteOrNull(offsets[11])] ??
+      _TransactiontxTypeValueEnumMap[reader.readByteOrNull(offsets[9])] ??
           TransactionType.outgoing;
-  object.txid = reader.readString(offsets[12]);
-  object.worthAtBlockTimestamp = reader.readString(offsets[13]);
+  object.txid = reader.readString(offsets[10]);
   return object;
 }
 
@@ -214,26 +192,20 @@ P _transactionDeserializeProp<P>(
     case 3:
       return (reader.readLong(offset)) as P;
     case 4:
-      return (reader.readBool(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 5:
-      return (reader.readLong(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 6:
-      return (reader.readLong(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 7:
-      return (reader.readStringOrNull(offset)) as P;
-    case 8:
-      return (reader.readStringOrNull(offset)) as P;
-    case 9:
       return (_TransactionsubTypeValueEnumMap[reader.readByteOrNull(offset)] ??
           TransactionSubType.none) as P;
-    case 10:
+    case 8:
       return (reader.readLong(offset)) as P;
-    case 11:
+    case 9:
       return (_TransactiontxTypeValueEnumMap[reader.readByteOrNull(offset)] ??
           TransactionType.outgoing) as P;
-    case 12:
-      return (reader.readString(offset)) as P;
-    case 13:
+    case 10:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -552,72 +524,6 @@ extension TransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'cancelled',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      confirmationsEqualTo(int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'confirmations',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      confirmationsGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'confirmations',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      confirmationsLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'confirmations',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      confirmationsBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'confirmations',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      confirmedEqualTo(bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'confirmed',
         value: value,
       ));
     });
@@ -1383,143 +1289,6 @@ extension TransactionQueryFilter
       ));
     });
   }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      worthAtBlockTimestampEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'worthAtBlockTimestamp',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      worthAtBlockTimestampGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'worthAtBlockTimestamp',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      worthAtBlockTimestampLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'worthAtBlockTimestamp',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      worthAtBlockTimestampBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'worthAtBlockTimestamp',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      worthAtBlockTimestampStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'worthAtBlockTimestamp',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      worthAtBlockTimestampEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'worthAtBlockTimestamp',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      worthAtBlockTimestampContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'worthAtBlockTimestamp',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      worthAtBlockTimestampMatches(String pattern,
-          {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'worthAtBlockTimestamp',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      worthAtBlockTimestampIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'worthAtBlockTimestamp',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      worthAtBlockTimestampIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'worthAtBlockTimestamp',
-        value: '',
-      ));
-    });
-  }
 }
 
 extension TransactionQueryObject
@@ -1701,31 +1470,6 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByConfirmations() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'confirmations', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy>
-      sortByConfirmationsDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'confirmations', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByConfirmed() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'confirmed', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByConfirmedDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'confirmed', Sort.desc);
-    });
-  }
-
   QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByFee() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fee', Sort.asc);
@@ -1821,20 +1565,6 @@ extension TransactionQuerySortBy
       return query.addSortBy(r'txid', Sort.desc);
     });
   }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy>
-      sortByWorthAtBlockTimestamp() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'worthAtBlockTimestamp', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy>
-      sortByWorthAtBlockTimestampDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'worthAtBlockTimestamp', Sort.desc);
-    });
-  }
 }
 
 extension TransactionQuerySortThenBy
@@ -1872,31 +1602,6 @@ extension TransactionQuerySortThenBy
   QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByCancelledDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'cancelled', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByConfirmations() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'confirmations', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy>
-      thenByConfirmationsDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'confirmations', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByConfirmed() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'confirmed', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByConfirmedDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'confirmed', Sort.desc);
     });
   }
 
@@ -2007,20 +1712,6 @@ extension TransactionQuerySortThenBy
       return query.addSortBy(r'txid', Sort.desc);
     });
   }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy>
-      thenByWorthAtBlockTimestamp() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'worthAtBlockTimestamp', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy>
-      thenByWorthAtBlockTimestampDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'worthAtBlockTimestamp', Sort.desc);
-    });
-  }
 }
 
 extension TransactionQueryWhereDistinct
@@ -2041,18 +1732,6 @@ extension TransactionQueryWhereDistinct
   QueryBuilder<Transaction, Transaction, QDistinct> distinctByCancelled() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'cancelled');
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QDistinct> distinctByConfirmations() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'confirmations');
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QDistinct> distinctByConfirmed() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'confirmed');
     });
   }
 
@@ -2106,14 +1785,6 @@ extension TransactionQueryWhereDistinct
       return query.addDistinctBy(r'txid', caseSensitive: caseSensitive);
     });
   }
-
-  QueryBuilder<Transaction, Transaction, QDistinct>
-      distinctByWorthAtBlockTimestamp({bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'worthAtBlockTimestamp',
-          caseSensitive: caseSensitive);
-    });
-  }
 }
 
 extension TransactionQueryProperty
@@ -2139,18 +1810,6 @@ extension TransactionQueryProperty
   QueryBuilder<Transaction, bool, QQueryOperations> cancelledProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'cancelled');
-    });
-  }
-
-  QueryBuilder<Transaction, int, QQueryOperations> confirmationsProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'confirmations');
-    });
-  }
-
-  QueryBuilder<Transaction, bool, QQueryOperations> confirmedProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'confirmed');
     });
   }
 
@@ -2201,13 +1860,6 @@ extension TransactionQueryProperty
   QueryBuilder<Transaction, String, QQueryOperations> txidProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'txid');
-    });
-  }
-
-  QueryBuilder<Transaction, String, QQueryOperations>
-      worthAtBlockTimestampProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'worthAtBlockTimestamp');
     });
   }
 }

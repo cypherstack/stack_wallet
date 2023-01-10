@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/input.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/output.dart';
@@ -11,10 +13,6 @@ class Transaction {
 
   late String txid;
 
-  late bool confirmed;
-
-  late int confirmations;
-
   late int timestamp;
 
   @enumerated
@@ -27,8 +25,6 @@ class Transaction {
 
   // TODO: do we need this?
   // late List<dynamic> aliens;
-
-  late String worthAtBlockTimestamp;
 
   late int fee;
 
@@ -47,6 +43,15 @@ class Transaction {
   final outputs = IsarLinks<Output>();
 
   final note = IsarLink<TransactionNote>();
+
+  int getConfirmations(int currentChainHeight) {
+    return max(0, currentChainHeight - height);
+  }
+
+  bool isConfirmed(int currentChainHeight, int minimumConfirms) {
+    final confirmations = getConfirmations(currentChainHeight);
+    return confirmations >= minimumConfirms;
+  }
 }
 
 // Used in Isar db and stored there as int indexes so adding/removing values

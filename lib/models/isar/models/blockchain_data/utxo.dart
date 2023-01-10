@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:isar/isar.dart';
 
 part 'utxo.g.dart';
@@ -14,24 +16,29 @@ class UTXO {
 
   late int value;
 
-  late String fiatWorth;
-
   late String txName;
 
   late bool blocked;
+
+  late String? blockedReason;
 
   late bool isCoinbase;
 }
 
 @Embedded()
 class Status {
-  late bool confirmed;
-
-  late int confirmations;
-
   late String blockHash;
 
   late int blockHeight;
 
   late int blockTime;
+
+  int getConfirmations(int currentChainHeight) {
+    return max(0, currentChainHeight - blockHeight);
+  }
+
+  bool isConfirmed(int currentChainHeight, int minimumConfirms) {
+    final confirmations = getConfirmations(currentChainHeight);
+    return confirmations >= minimumConfirms;
+  }
 }

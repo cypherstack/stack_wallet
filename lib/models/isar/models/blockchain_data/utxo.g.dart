@@ -22,9 +22,9 @@ const UTXOSchema = CollectionSchema(
       name: r'blocked',
       type: IsarType.bool,
     ),
-    r'fiatWorth': PropertySchema(
+    r'blockedReason': PropertySchema(
       id: 1,
-      name: r'fiatWorth',
+      name: r'blockedReason',
       type: IsarType.string,
     ),
     r'isCoinbase': PropertySchema(
@@ -79,7 +79,12 @@ int _uTXOEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  bytesCount += 3 + object.fiatWorth.length * 3;
+  {
+    final value = object.blockedReason;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 +
       StatusSchema.estimateSize(object.status, allOffsets[Status]!, allOffsets);
   bytesCount += 3 + object.txName.length * 3;
@@ -94,7 +99,7 @@ void _uTXOSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeBool(offsets[0], object.blocked);
-  writer.writeString(offsets[1], object.fiatWorth);
+  writer.writeString(offsets[1], object.blockedReason);
   writer.writeBool(offsets[2], object.isCoinbase);
   writer.writeObject<Status>(
     offsets[3],
@@ -116,7 +121,7 @@ UTXO _uTXODeserialize(
 ) {
   final object = UTXO();
   object.blocked = reader.readBool(offsets[0]);
-  object.fiatWorth = reader.readString(offsets[1]);
+  object.blockedReason = reader.readStringOrNull(offsets[1]);
   object.id = id;
   object.isCoinbase = reader.readBool(offsets[2]);
   object.status = reader.readObjectOrNull<Status>(
@@ -142,7 +147,7 @@ P _uTXODeserializeProp<P>(
     case 0:
       return (reader.readBool(offset)) as P;
     case 1:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 2:
       return (reader.readBool(offset)) as P;
     case 3:
@@ -262,59 +267,75 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> fiatWorthEqualTo(
-    String value, {
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockedReasonIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'blockedReason',
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockedReasonIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'blockedReason',
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockedReasonEqualTo(
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'fiatWorth',
+        property: r'blockedReason',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> fiatWorthGreaterThan(
-    String value, {
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockedReasonGreaterThan(
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'fiatWorth',
+        property: r'blockedReason',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> fiatWorthLessThan(
-    String value, {
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockedReasonLessThan(
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'fiatWorth',
+        property: r'blockedReason',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> fiatWorthBetween(
-    String lower,
-    String upper, {
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockedReasonBetween(
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'fiatWorth',
+        property: r'blockedReason',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -324,69 +345,69 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> fiatWorthStartsWith(
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockedReasonStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'fiatWorth',
+        property: r'blockedReason',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> fiatWorthEndsWith(
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockedReasonEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'fiatWorth',
+        property: r'blockedReason',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> fiatWorthContains(
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockedReasonContains(
       String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
-        property: r'fiatWorth',
+        property: r'blockedReason',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> fiatWorthMatches(
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockedReasonMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
-        property: r'fiatWorth',
+        property: r'blockedReason',
         wildcard: pattern,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> fiatWorthIsEmpty() {
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockedReasonIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'fiatWorth',
+        property: r'blockedReason',
         value: '',
       ));
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> fiatWorthIsNotEmpty() {
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockedReasonIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'fiatWorth',
+        property: r'blockedReason',
         value: '',
       ));
     });
@@ -839,15 +860,15 @@ extension UTXOQuerySortBy on QueryBuilder<UTXO, UTXO, QSortBy> {
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByFiatWorth() {
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByBlockedReason() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'fiatWorth', Sort.asc);
+      return query.addSortBy(r'blockedReason', Sort.asc);
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByFiatWorthDesc() {
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByBlockedReasonDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'fiatWorth', Sort.desc);
+      return query.addSortBy(r'blockedReason', Sort.desc);
     });
   }
 
@@ -925,15 +946,15 @@ extension UTXOQuerySortThenBy on QueryBuilder<UTXO, UTXO, QSortThenBy> {
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByFiatWorth() {
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByBlockedReason() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'fiatWorth', Sort.asc);
+      return query.addSortBy(r'blockedReason', Sort.asc);
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByFiatWorthDesc() {
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByBlockedReasonDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'fiatWorth', Sort.desc);
+      return query.addSortBy(r'blockedReason', Sort.desc);
     });
   }
 
@@ -1017,10 +1038,11 @@ extension UTXOQueryWhereDistinct on QueryBuilder<UTXO, UTXO, QDistinct> {
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QDistinct> distinctByFiatWorth(
+  QueryBuilder<UTXO, UTXO, QDistinct> distinctByBlockedReason(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'fiatWorth', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'blockedReason',
+          caseSensitive: caseSensitive);
     });
   }
 
@@ -1070,9 +1092,9 @@ extension UTXOQueryProperty on QueryBuilder<UTXO, UTXO, QQueryProperty> {
     });
   }
 
-  QueryBuilder<UTXO, String, QQueryOperations> fiatWorthProperty() {
+  QueryBuilder<UTXO, String?, QQueryOperations> blockedReasonProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'fiatWorth');
+      return query.addPropertyName(r'blockedReason');
     });
   }
 
@@ -1138,16 +1160,6 @@ const StatusSchema = Schema(
       id: 2,
       name: r'blockTime',
       type: IsarType.long,
-    ),
-    r'confirmations': PropertySchema(
-      id: 3,
-      name: r'confirmations',
-      type: IsarType.long,
-    ),
-    r'confirmed': PropertySchema(
-      id: 4,
-      name: r'confirmed',
-      type: IsarType.bool,
     )
   },
   estimateSize: _statusEstimateSize,
@@ -1175,8 +1187,6 @@ void _statusSerialize(
   writer.writeString(offsets[0], object.blockHash);
   writer.writeLong(offsets[1], object.blockHeight);
   writer.writeLong(offsets[2], object.blockTime);
-  writer.writeLong(offsets[3], object.confirmations);
-  writer.writeBool(offsets[4], object.confirmed);
 }
 
 Status _statusDeserialize(
@@ -1189,8 +1199,6 @@ Status _statusDeserialize(
   object.blockHash = reader.readString(offsets[0]);
   object.blockHeight = reader.readLong(offsets[1]);
   object.blockTime = reader.readLong(offsets[2]);
-  object.confirmations = reader.readLong(offsets[3]);
-  object.confirmed = reader.readBool(offsets[4]);
   return object;
 }
 
@@ -1207,10 +1215,6 @@ P _statusDeserializeProp<P>(
       return (reader.readLong(offset)) as P;
     case 2:
       return (reader.readLong(offset)) as P;
-    case 3:
-      return (reader.readLong(offset)) as P;
-    case 4:
-      return (reader.readBool(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -1449,69 +1453,6 @@ extension StatusQueryFilter on QueryBuilder<Status, Status, QFilterCondition> {
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Status, Status, QAfterFilterCondition> confirmationsEqualTo(
-      int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'confirmations',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Status, Status, QAfterFilterCondition> confirmationsGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'confirmations',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Status, Status, QAfterFilterCondition> confirmationsLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'confirmations',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Status, Status, QAfterFilterCondition> confirmationsBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'confirmations',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Status, Status, QAfterFilterCondition> confirmedEqualTo(
-      bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'confirmed',
-        value: value,
       ));
     });
   }
