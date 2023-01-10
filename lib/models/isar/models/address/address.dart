@@ -8,12 +8,16 @@ class AddressException extends SWException {
   AddressException(super.message);
 }
 
-@Collection(inheritance: true)
+@collection
 class Address extends CryptoCurrencyAddress {
   Id id = Isar.autoIncrement;
 
+  @Index(unique: true, replace: true)
+  late String value;
+
   late List<byte> publicKey;
 
+  @Index()
   late int derivationIndex;
 
   @enumerated
