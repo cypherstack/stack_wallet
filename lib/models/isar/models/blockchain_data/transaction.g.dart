@@ -80,7 +80,34 @@ const TransactionSchema = CollectionSchema(
   deserialize: _transactionDeserialize,
   deserializeProp: _transactionDeserializeProp,
   idName: r'id',
-  indexes: {},
+  indexes: {
+    r'txid': IndexSchema(
+      id: 7339874292043634331,
+      name: r'txid',
+      unique: true,
+      replace: true,
+      properties: [
+        IndexPropertySchema(
+          name: r'txid',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
+    r'timestamp': IndexSchema(
+      id: 1852253767416892198,
+      name: r'timestamp',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'timestamp',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    )
+  },
   links: {
     r'inputs': LinkSchema(
       id: 4634425919890543640,
@@ -95,10 +122,11 @@ const TransactionSchema = CollectionSchema(
       single: false,
     ),
     r'note': LinkSchema(
-      id: 1009915346265072213,
+      id: -7669541085246698630,
       name: r'note',
       target: r'TransactionNote',
       single: true,
+      linkName: r'transaction',
     )
   },
   embeddedSchemas: {},
@@ -161,7 +189,7 @@ Transaction _transactionDeserialize(
   object.amount = reader.readLong(offsets[1]);
   object.cancelled = reader.readBool(offsets[2]);
   object.fee = reader.readLong(offsets[3]);
-  object.height = reader.readLong(offsets[4]);
+  object.height = reader.readLongOrNull(offsets[4]);
   object.id = id;
   object.otherData = reader.readStringOrNull(offsets[5]);
   object.slateId = reader.readStringOrNull(offsets[6]);
@@ -192,7 +220,7 @@ P _transactionDeserializeProp<P>(
     case 3:
       return (reader.readLong(offset)) as P;
     case 4:
-      return (reader.readLong(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 5:
       return (reader.readStringOrNull(offset)) as P;
     case 6:
@@ -253,11 +281,74 @@ void _transactionAttach(
   object.note.attach(col, col.isar.collection<TransactionNote>(), r'note', id);
 }
 
+extension TransactionByIndex on IsarCollection<Transaction> {
+  Future<Transaction?> getByTxid(String txid) {
+    return getByIndex(r'txid', [txid]);
+  }
+
+  Transaction? getByTxidSync(String txid) {
+    return getByIndexSync(r'txid', [txid]);
+  }
+
+  Future<bool> deleteByTxid(String txid) {
+    return deleteByIndex(r'txid', [txid]);
+  }
+
+  bool deleteByTxidSync(String txid) {
+    return deleteByIndexSync(r'txid', [txid]);
+  }
+
+  Future<List<Transaction?>> getAllByTxid(List<String> txidValues) {
+    final values = txidValues.map((e) => [e]).toList();
+    return getAllByIndex(r'txid', values);
+  }
+
+  List<Transaction?> getAllByTxidSync(List<String> txidValues) {
+    final values = txidValues.map((e) => [e]).toList();
+    return getAllByIndexSync(r'txid', values);
+  }
+
+  Future<int> deleteAllByTxid(List<String> txidValues) {
+    final values = txidValues.map((e) => [e]).toList();
+    return deleteAllByIndex(r'txid', values);
+  }
+
+  int deleteAllByTxidSync(List<String> txidValues) {
+    final values = txidValues.map((e) => [e]).toList();
+    return deleteAllByIndexSync(r'txid', values);
+  }
+
+  Future<Id> putByTxid(Transaction object) {
+    return putByIndex(r'txid', object);
+  }
+
+  Id putByTxidSync(Transaction object, {bool saveLinks = true}) {
+    return putByIndexSync(r'txid', object, saveLinks: saveLinks);
+  }
+
+  Future<List<Id>> putAllByTxid(List<Transaction> objects) {
+    return putAllByIndex(r'txid', objects);
+  }
+
+  List<Id> putAllByTxidSync(List<Transaction> objects,
+      {bool saveLinks = true}) {
+    return putAllByIndexSync(r'txid', objects, saveLinks: saveLinks);
+  }
+}
+
 extension TransactionQueryWhereSort
     on QueryBuilder<Transaction, Transaction, QWhere> {
   QueryBuilder<Transaction, Transaction, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterWhere> anyTimestamp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'timestamp'),
+      );
     });
   }
 }
@@ -325,6 +416,142 @@ extension TransactionQueryWhere
         lower: lowerId,
         includeLower: includeLower,
         upper: upperId,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterWhereClause> txidEqualTo(
+      String txid) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'txid',
+        value: [txid],
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterWhereClause> txidNotEqualTo(
+      String txid) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid',
+              lower: [],
+              upper: [txid],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid',
+              lower: [txid],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid',
+              lower: [txid],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid',
+              lower: [],
+              upper: [txid],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterWhereClause> timestampEqualTo(
+      int timestamp) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'timestamp',
+        value: [timestamp],
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterWhereClause> timestampNotEqualTo(
+      int timestamp) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'timestamp',
+              lower: [],
+              upper: [timestamp],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'timestamp',
+              lower: [timestamp],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'timestamp',
+              lower: [timestamp],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'timestamp',
+              lower: [],
+              upper: [timestamp],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterWhereClause>
+      timestampGreaterThan(
+    int timestamp, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'timestamp',
+        lower: [timestamp],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterWhereClause> timestampLessThan(
+    int timestamp, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'timestamp',
+        lower: [],
+        upper: [timestamp],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterWhereClause> timestampBetween(
+    int lowerTimestamp,
+    int upperTimestamp, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'timestamp',
+        lower: [lowerTimestamp],
+        includeLower: includeLower,
+        upper: [upperTimestamp],
         includeUpper: includeUpper,
       ));
     });
@@ -584,8 +811,25 @@ extension TransactionQueryFilter
     });
   }
 
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> heightIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'height',
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      heightIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'height',
+      ));
+    });
+  }
+
   QueryBuilder<Transaction, Transaction, QAfterFilterCondition> heightEqualTo(
-      int value) {
+      int? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'height',
@@ -596,7 +840,7 @@ extension TransactionQueryFilter
 
   QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
       heightGreaterThan(
-    int value, {
+    int? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -609,7 +853,7 @@ extension TransactionQueryFilter
   }
 
   QueryBuilder<Transaction, Transaction, QAfterFilterCondition> heightLessThan(
-    int value, {
+    int? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -622,8 +866,8 @@ extension TransactionQueryFilter
   }
 
   QueryBuilder<Transaction, Transaction, QAfterFilterCondition> heightBetween(
-    int lower,
-    int upper, {
+    int? lower,
+    int? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -1820,7 +2064,7 @@ extension TransactionQueryProperty
     });
   }
 
-  QueryBuilder<Transaction, int, QQueryOperations> heightProperty() {
+  QueryBuilder<Transaction, int?, QQueryOperations> heightProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'height');
     });

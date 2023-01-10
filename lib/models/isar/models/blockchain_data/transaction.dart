@@ -11,8 +11,10 @@ part 'transaction.g.dart';
 class Transaction {
   Id id = Isar.autoIncrement;
 
+  @Index(unique: true, replace: true)
   late String txid;
 
+  @Index()
   late int timestamp;
 
   @enumerated
@@ -30,7 +32,7 @@ class Transaction {
 
   late String address;
 
-  late int height;
+  late int? height;
 
   late bool cancelled;
 
@@ -46,7 +48,8 @@ class Transaction {
   final note = IsarLink<TransactionNote>();
 
   int getConfirmations(int currentChainHeight) {
-    return max(0, currentChainHeight - height);
+    if (height == null) return 0;
+    return max(0, currentChainHeight - height!);
   }
 
   bool isConfirmed(int currentChainHeight, int minimumConfirms) {
