@@ -253,7 +253,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
     }
   }
 
-  Future<int> get storedChainHeight async {
+  @override
+  int get storedChainHeight {
     final storedHeight = DB.instance
         .get<dynamic>(boxName: walletId, key: "storedChainHeight") as int?;
     return storedHeight ?? 0;
@@ -1174,7 +1175,8 @@ class BitcoinCashWallet extends CoinServiceAPI {
     final priceData =
         await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
     Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
-    final locale = Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
+    final locale =
+        Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
     final String worthNow = Format.localizedStringAsFixed(
         value:
             ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /

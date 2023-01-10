@@ -278,4 +278,6 @@ class Manager with ChangeNotifier {
     }
     return success;
   }
+
+  int get currentHeight => _currentWallet.storedChainHeight;
 }

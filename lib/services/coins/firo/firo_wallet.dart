@@ -883,7 +883,8 @@ class FiroWallet extends CoinServiceAPI {
   @override
   Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
     final currentPrice = await firoPrice;
-    final locale = Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
+    final locale =
+        Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
     final String worthNow = Format.localizedStringAsFixed(
         value:
             ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
@@ -2756,7 +2757,8 @@ class FiroWallet extends CoinServiceAPI {
     var price = await firoPrice;
     var builtHex = txb.build();
     // return builtHex;
-    final locale =Platform.isWindows ? "en_US" :  await Devicelocale.currentLocale;
+    final locale =
+        Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
     return {
       "transaction": builtHex,
       "txid": txId,
@@ -2810,7 +2812,8 @@ class FiroWallet extends CoinServiceAPI {
     final currentPrice = await firoPrice;
     // Grab the most recent information on all the joinsplits
 
-    final locale = Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
+    final locale =
+        Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
     final updatedJSplit = await getJMintTransactions(cachedElectrumXClient,
         joinsplits, _prefs.currency, coin, currentPrice, locale!);
 
@@ -3249,7 +3252,8 @@ class FiroWallet extends CoinServiceAPI {
     final currentPrice = await firoPrice;
     final List<Map<String, dynamic>> midSortedArray = [];
 
-    final locale = Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
+    final locale =
+        Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
 
     Logging.instance.log("refresh the txs", level: LogLevel.Info);
     for (final txObject in allTransactions) {
@@ -4375,7 +4379,8 @@ class FiroWallet extends CoinServiceAPI {
     final lelantusEntry = await _getLelantusEntry();
     final anonymitySets = await fetchAnonymitySets();
     final locktime = await getBlockHead(electrumXClient);
-    final locale = Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
+    final locale =
+        Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
 
     ReceivePort receivePort = await getIsolate({
       "function": "createJoinSplit",
@@ -4806,4 +4811,8 @@ class FiroWallet extends CoinServiceAPI {
   Future<Decimal> availablePublicBalance() async {
     return (await balances)[4];
   }
+
+  @override
+  // TODO: implement storedChainHeight
+  int get storedChainHeight => throw UnimplementedError();
 }

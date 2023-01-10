@@ -307,4 +307,6 @@ abstract class CoinServiceAPI {
 
   // used for electrumx coins
   Future<void> updateSentCachedTxData(Map<String, dynamic> txData);
+
+  int get storedChainHeight;
 }

@@ -1378,4 +1378,8 @@ class WowneroWallet extends CoinServiceAPI {
         key: "highestPercentCached",
         value: value,
       );
+
+  @override
+  // TODO: implement storedChainHeight
+  int get storedChainHeight => throw UnimplementedError();
 }
