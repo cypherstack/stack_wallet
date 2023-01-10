@@ -51,9 +51,9 @@ class OledBlackColors extends StackColorTheme {
   @override
   Color get textSubtitle6 => const Color(0xFF878A8A);
   @override
-  Color get textWhite => const Color(0xFFDEDEDE);
+  Color get textWhite => const Color(0xFF242424);
   @override
-  Color get textFavoriteCard => const Color(0xFFDEDEDE);
+  Color get textFavoriteCard => const Color(0xFF232323);
   @override
   Color get textError => const Color(0xFFCF6679);
 
@@ -76,7 +76,7 @@ class OledBlackColors extends StackColorTheme {
   @override
   Color get numpadBackDefault => const Color(0xFF6F9CE9);
   @override
-  Color get bottomNavBack => const Color(0xFFDEDEDE);
+  Color get bottomNavBack => const Color(0xFF202122);
 
   // button text/element
   @override
@@ -195,6 +195,7 @@ class OledBlackColors extends StackColorTheme {
   Color get textFieldErrorBG => const Color(0xFF141414);
   @override
   Color get textFieldSuccessBG => const Color(0xFF141414);
+  //add border color vars here
 
   @override
   Color get textFieldActiveSearchIconLeft => const Color(0xFF9C9C9C);
