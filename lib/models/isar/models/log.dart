@@ -13,6 +13,8 @@ class Log {
   @Index()
   late int timestampInMillisUTC;
 
+  // ignore: undefined_name
+  @Enumerated(EnumType.name)
   late LogLevel logLevel;
 
   @override

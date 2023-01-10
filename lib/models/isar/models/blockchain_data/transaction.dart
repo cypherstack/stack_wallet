@@ -3,6 +3,8 @@ import 'package:stackwallet/models/isar/models/blockchain_data/input.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/output.dart';
 import 'package:stackwallet/models/isar/models/transaction_note.dart';
 
+part 'transaction.g.dart';
+
 @Collection()
 class Transaction {
   Id id = Isar.autoIncrement;
@@ -15,8 +17,10 @@ class Transaction {
 
   late int timestamp;
 
+  @enumerated
   late TransactionType txType;
 
+  @enumerated
   late TransactionSubType subType;
 
   late int amount;
@@ -47,25 +51,21 @@ class Transaction {
 
 // Used in Isar db and stored there as int indexes so adding/removing values
 // in this definition should be done extremely carefully in production
-enum TransactionType with IsarEnum<int> {
+enum TransactionType {
   // TODO: add more types before prod release?
   outgoing,
   incoming,
   sendToSelf, // should we keep this?
   anonymize; // firo specific
 
-  @override
-  int get value => index;
 }
 
 // Used in Isar db and stored there as int indexes so adding/removing values
 // in this definition should be done extremely carefully in production
-enum TransactionSubType with IsarEnum<int> {
+enum TransactionSubType {
   // TODO: add more types before prod release?
   none,
   bip47Notification, // bip47 payment code notification transaction flag
   mint; // firo specific
 
-  @override
-  int get value => index;
 }

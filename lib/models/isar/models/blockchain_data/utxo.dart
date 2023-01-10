@@ -1,5 +1,7 @@
 import 'package:isar/isar.dart';
 
+part 'utxo.g.dart';
+
 @Collection()
 class UTXO {
   Id id = Isar.autoIncrement;
@@ -23,8 +25,6 @@ class UTXO {
 
 @Embedded()
 class Status {
-  Id id = Isar.autoIncrement;
-
   late bool confirmed;
 
   late int confirmations;

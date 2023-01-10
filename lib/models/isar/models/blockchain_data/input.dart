@@ -2,6 +2,8 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/output.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 
+part 'input.g.dart';
+
 @Collection()
 class Input {
   Id id = Isar.autoIncrement;

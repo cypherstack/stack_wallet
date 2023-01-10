@@ -251,6 +251,16 @@ class MockWallets extends _i1.Mock implements _i12.Wallets {
                 List<_i5.ChangeNotifierProvider<_i6.Manager>>>{},
           ) as Map<_i13.Coin, List<_i5.ChangeNotifierProvider<_i6.Manager>>>);
   @override
+  List<_i5.ChangeNotifierProvider<_i6.Manager>> getManagerProvidersForCoin(
+          _i13.Coin? coin) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getManagerProvidersForCoin,
+          [coin],
+        ),
+        returnValue: <_i5.ChangeNotifierProvider<_i6.Manager>>[],
+      ) as List<_i5.ChangeNotifierProvider<_i6.Manager>>);
+  @override
   _i5.ChangeNotifierProvider<_i6.Manager> getManagerProvider(
           String? walletId) =>
       (super.noSuchMethod(
