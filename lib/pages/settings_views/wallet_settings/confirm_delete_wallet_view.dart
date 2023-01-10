@@ -109,7 +109,7 @@ class ConfirmWalletDeleteView extends ConsumerWidget {
                 children: [
                   const Spacer(),
                   Text(
-                    "There is not turning back after this. Are you sure you want to delete your wallet?",
+                    "There is no turning back after this. Are you sure you want to delete your wallet?",
                     style: STextStyles.titleH3(context),
                     textAlign: TextAlign.center,
                   ),
