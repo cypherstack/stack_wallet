@@ -17,7 +17,7 @@ class Transaction {
 
   late TransactionType txType;
 
-  late String subType;
+  late TransactionSubType subType;
 
   late int amount;
 
@@ -53,6 +53,18 @@ enum TransactionType with IsarEnum<int> {
   incoming,
   sendToSelf, // should we keep this?
   anonymize; // firo specific
+
+  @override
+  int get value => index;
+}
+
+// Used in Isar db and stored there as int indexes so adding/removing values
+// in this definition should be done extremely carefully in production
+enum TransactionSubType with IsarEnum<int> {
+  // TODO: add more types before prod release?
+  none,
+  bip47Notification, // bip47 payment code notification transaction flag
+  mint; // firo specific
 
   @override
   int get value => index;
