@@ -200,37 +200,37 @@ class WalletNavigationBar extends StatelessWidget {
             ),
             // TODO: Do not delete this code.
             // only temporarily disabled
-            // Spacer(
-            //   flex: 2,
-            // ),
-            // GestureDetector(
-            //   onTap: onBuyPressed,
-            //   child: Container(
-            //     color: Colors.transparent,
-            //     child: Padding(
-            //       padding: const EdgeInsets.symmetric(vertical: 2.0),
-            //       child: Column(
-            //         crossAxisAlignment: CrossAxisAlignment.center,
-            //         children: [
-            //           Spacer(),
-            //           SvgPicture.asset(
-            //             Assets.svg.buy,
-            //             width: 24,
-            //             height: 24,
-            //           ),
-            //           SizedBox(
-            //             height: 4,
-            //           ),
-            //           Text(
-            //             "Buy",
-            //             style: STextStyles.buttonSmall(context),
-            //           ),
-            //           Spacer(),
-            //         ],
-            //       ),
-            //     ),
-            //   ),
-            // ),
+            Spacer(
+              flex: 2,
+            ),
+            GestureDetector(
+              onTap: onBuyPressed,
+              child: Container(
+                color: Colors.transparent,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Spacer(),
+                      SvgPicture.asset(
+                        Assets.svg.buyDesktop,
+                        width: 24,
+                        height: 24,
+                      ),
+                      SizedBox(
+                        height: 4,
+                      ),
+                      Text(
+                        "Buy2",
+                        style: STextStyles.buttonSmall(context),
+                      ),
+                      Spacer(),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),

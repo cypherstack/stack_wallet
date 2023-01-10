@@ -153,7 +153,7 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
               "Buy",
               style: STextStyles.button(context).copyWith(
                 fontSize: 14,
-                color: selectedIndex == 1
+                color: selectedIndex == 2
                     ? Theme.of(context)
                         .extension<StackColors>()!
                         .buttonTextPrimary

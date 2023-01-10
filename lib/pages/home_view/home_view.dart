@@ -308,7 +308,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                         if (next == 1) {
                           _exchangeDataLoadingService.loadAll(ref);
                         }
-                        if (next >= 0 && next <= 1) {
+                        if (next >= 0 && next <= 2) {
                           _pageController.animateToPage(
                             next,
                             duration: const Duration(milliseconds: 300),
