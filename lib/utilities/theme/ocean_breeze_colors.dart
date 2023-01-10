@@ -62,6 +62,8 @@ class OceanBreezeColors extends StackColorTheme {
   Color get textFavoriteCard => const Color(0xFF232323);
   @override
   Color get textError => const Color(0xFF8D0006);
+  @override
+  Color get textRestore => overlay;
 
   // button background
   @override

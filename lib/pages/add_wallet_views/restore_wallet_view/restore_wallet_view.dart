@@ -373,17 +373,22 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       FormInputStatus status, String prefix) {
     Color color;
     Color prefixColor;
+    Color borderColor;
     Widget? suffixIcon;
     switch (status) {
       case FormInputStatus.empty:
         color = Theme.of(context).extension<StackColors>()!.textFieldDefaultBG;
         prefixColor = Theme.of(context).extension<StackColors>()!.textSubtitle2;
+        borderColor =
+            Theme.of(context).extension<StackColors>()!.textFieldDefaultBG;
         break;
       case FormInputStatus.invalid:
         color = Theme.of(context).extension<StackColors>()!.textFieldErrorBG;
         prefixColor = Theme.of(context)
             .extension<StackColors>()!
             .textFieldErrorSearchIconLeft;
+        borderColor =
+            Theme.of(context).extension<StackColors>()!.textFieldErrorBorder;
         suffixIcon = SvgPicture.asset(
           Assets.svg.alertCircle,
           width: 16,
@@ -398,6 +403,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         prefixColor = Theme.of(context)
             .extension<StackColors>()!
             .textFieldSuccessSearchIconLeft;
+        borderColor =
+            Theme.of(context).extension<StackColors>()!.textFieldSuccessBorder;
         suffixIcon = SvgPicture.asset(
           Assets.svg.checkCircle,
           width: 16,
@@ -449,11 +456,11 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           child: suffixIcon,
         ),
       ),
-      enabledBorder: _buildOutlineInputBorder(color),
-      focusedBorder: _buildOutlineInputBorder(color),
-      errorBorder: _buildOutlineInputBorder(color),
-      disabledBorder: _buildOutlineInputBorder(color),
-      focusedErrorBorder: _buildOutlineInputBorder(color),
+      enabledBorder: _buildOutlineInputBorder(borderColor),
+      focusedBorder: _buildOutlineInputBorder(borderColor),
+      errorBorder: _buildOutlineInputBorder(borderColor),
+      disabledBorder: _buildOutlineInputBorder(borderColor),
+      focusedErrorBorder: _buildOutlineInputBorder(borderColor),
     );
   }
 
@@ -786,7 +793,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                         .copyWith(
                                                   color: Theme.of(context)
                                                       .extension<StackColors>()!
-                                                      .overlay,
+                                                      .textRestore,
                                                   fontSize: isDesktop ? 16 : 14,
                                                 ),
                                               ),
@@ -993,7 +1000,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                           STextStyles.field(context).copyWith(
                                         color: Theme.of(context)
                                             .extension<StackColors>()!
-                                            .overlay,
+                                            .textRestore,
                                         fontSize: isDesktop ? 16 : 14,
                                       ),
                                     ),

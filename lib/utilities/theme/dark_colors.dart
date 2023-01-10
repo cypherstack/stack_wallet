@@ -55,6 +55,8 @@ class DarkColors extends StackColorTheme {
   Color get textFavoriteCard => const Color(0xFF232323);
   @override
   Color get textError => const Color(0xFFF37475);
+  @override
+  Color get textRestore => overlay;
 
   // button background
   @override

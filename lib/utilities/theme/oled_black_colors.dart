@@ -56,6 +56,8 @@ class OledBlackColors extends StackColorTheme {
   Color get textFavoriteCard => const Color(0xFF232323);
   @override
   Color get textError => const Color(0xFFCF6679);
+  @override
+  Color get textRestore => textDark;
 
   // button background
   @override

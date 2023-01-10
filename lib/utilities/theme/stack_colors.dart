@@ -32,6 +32,7 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color textWhite;
   final Color textFavoriteCard;
   final Color textError;
+  final Color textRestore;
 
 // button background
   final Color buttonBackPrimary;
@@ -200,6 +201,7 @@ class StackColors extends ThemeExtension<StackColors> {
     required this.textWhite,
     required this.textFavoriteCard,
     required this.textError,
+    required this.textRestore,
     required this.buttonBackPrimary,
     required this.buttonBackSecondary,
     required this.buttonBackPrimaryDisabled,
@@ -338,6 +340,7 @@ class StackColors extends ThemeExtension<StackColors> {
       textWhite: colorTheme.textWhite,
       textFavoriteCard: colorTheme.textFavoriteCard,
       textError: colorTheme.textError,
+      textRestore: colorTheme.textRestore,
       buttonBackPrimary: colorTheme.buttonBackPrimary,
       buttonBackSecondary: colorTheme.buttonBackSecondary,
       buttonBackPrimaryDisabled: colorTheme.buttonBackPrimaryDisabled,
@@ -479,6 +482,7 @@ class StackColors extends ThemeExtension<StackColors> {
     Color? textWhite,
     Color? textFavoriteCard,
     Color? textError,
+    Color? textRestore,
     Color? buttonBackPrimary,
     Color? buttonBackSecondary,
     Color? buttonBackPrimaryDisabled,
@@ -615,6 +619,7 @@ class StackColors extends ThemeExtension<StackColors> {
       textWhite: textWhite ?? this.textWhite,
       textFavoriteCard: textFavoriteCard ?? this.textFavoriteCard,
       textError: textError ?? this.textError,
+      textRestore: textRestore ?? this.textRestore,
       buttonBackPrimary: buttonBackPrimary ?? this.buttonBackPrimary,
       buttonBackSecondary: buttonBackSecondary ?? this.buttonBackSecondary,
       buttonBackPrimaryDisabled:
@@ -886,6 +891,11 @@ class StackColors extends ThemeExtension<StackColors> {
       textError: Color.lerp(
         textError,
         other.textError,
+        t,
+      )!,
+      textRestore: Color.lerp(
+        textRestore,
+        other.textRestore,
         t,
       )!,
       buttonBackPrimary: Color.lerp(

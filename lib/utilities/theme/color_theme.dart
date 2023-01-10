@@ -68,6 +68,7 @@ abstract class StackColorTheme {
   Color get textWhite;
   Color get textFavoriteCard;
   Color get textError;
+  Color get textRestore;
 
 // button background
   Color get buttonBackPrimary;
