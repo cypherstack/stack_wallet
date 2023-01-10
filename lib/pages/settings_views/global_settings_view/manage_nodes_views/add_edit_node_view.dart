@@ -671,7 +671,6 @@ class _NodeFormState extends ConsumerState<NodeForm> {
   bool _trusted = false;
   int? port;
   late bool enableSSLCheckbox;
-  late bool trustedCheckbox;
 
   late final bool enableAuthFields;
 
@@ -721,6 +720,9 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     }
     return enable;
   }
+
+  bool get shouldBeReadOnly =>
+      widget.readOnly || widget.node?.isDefault == true;
 
   void _updateState() {
     port = int.tryParse(_portController.text);
@@ -775,11 +777,6 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       } else {
         enableSSLCheckbox = true;
       }
-      if (widget.coin == Coin.monero || widget.coin == Coin.wownero) {
-        trustedCheckbox = node.trusted ?? false;
-      } else {
-        trustedCheckbox = false;
-      }
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         // update provider state object so test connection works without having to modify a field in the ui first
@@ -822,7 +819,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             autocorrect: Util.isDesktop ? false : true,
             enableSuggestions: Util.isDesktop ? false : true,
             key: const Key("addCustomNodeNodeNameFieldKey"),
-            readOnly: widget.readOnly,
+            readOnly: shouldBeReadOnly,
             enabled: enableField(_nameController),
             controller: _nameController,
             focusNode: _nameFocusNode,
@@ -832,7 +829,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               _nameFocusNode,
               context,
             ).copyWith(
-              suffixIcon: !widget.readOnly && _nameController.text.isNotEmpty
+              suffixIcon: !shouldBeReadOnly && _nameController.text.isNotEmpty
                   ? Padding(
                       padding: const EdgeInsets.only(right: 0),
                       child: UnconstrainedBox(
@@ -868,7 +865,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             autocorrect: Util.isDesktop ? false : true,
             enableSuggestions: Util.isDesktop ? false : true,
             key: const Key("addCustomNodeNodeAddressFieldKey"),
-            readOnly: widget.readOnly,
+            readOnly: shouldBeReadOnly,
             enabled: enableField(_hostController),
             controller: _hostController,
             focusNode: _hostFocusNode,
@@ -880,7 +877,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               _hostFocusNode,
               context,
             ).copyWith(
-              suffixIcon: !widget.readOnly && _hostController.text.isNotEmpty
+              suffixIcon: !shouldBeReadOnly && _hostController.text.isNotEmpty
                   ? Padding(
                       padding: const EdgeInsets.only(right: 0),
                       child: UnconstrainedBox(
@@ -927,7 +924,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             autocorrect: Util.isDesktop ? false : true,
             enableSuggestions: Util.isDesktop ? false : true,
             key: const Key("addCustomNodeNodePortFieldKey"),
-            readOnly: widget.readOnly,
+            readOnly: shouldBeReadOnly,
             enabled: enableField(_portController),
             controller: _portController,
             focusNode: _portFocusNode,
@@ -939,7 +936,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               _portFocusNode,
               context,
             ).copyWith(
-              suffixIcon: !widget.readOnly && _portController.text.isNotEmpty
+              suffixIcon: !shouldBeReadOnly && _portController.text.isNotEmpty
                   ? Padding(
                       padding: const EdgeInsets.only(right: 0),
                       child: UnconstrainedBox(
@@ -976,7 +973,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               autocorrect: Util.isDesktop ? false : true,
               enableSuggestions: Util.isDesktop ? false : true,
               controller: _usernameController,
-              readOnly: widget.readOnly,
+              readOnly: shouldBeReadOnly,
               enabled: enableField(_usernameController),
               keyboardType: TextInputType.number,
               focusNode: _usernameFocusNode,
@@ -987,7 +984,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                 context,
               ).copyWith(
                 suffixIcon:
-                    !widget.readOnly && _usernameController.text.isNotEmpty
+                    !shouldBeReadOnly && _usernameController.text.isNotEmpty
                         ? Padding(
                             padding: const EdgeInsets.only(right: 0),
                             child: UnconstrainedBox(
@@ -1025,7 +1022,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               autocorrect: Util.isDesktop ? false : true,
               enableSuggestions: Util.isDesktop ? false : true,
               controller: _passwordController,
-              readOnly: widget.readOnly,
+              readOnly: shouldBeReadOnly,
               enabled: enableField(_passwordController),
               keyboardType: TextInputType.number,
               focusNode: _passwordFocusNode,
@@ -1036,7 +1033,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                 context,
               ).copyWith(
                 suffixIcon:
-                    !widget.readOnly && _passwordController.text.isNotEmpty
+                    !shouldBeReadOnly && _passwordController.text.isNotEmpty
                         ? Padding(
                             padding: const EdgeInsets.only(right: 0),
                             child: UnconstrainedBox(
@@ -1069,7 +1066,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
           Row(
             children: [
               GestureDetector(
-                onTap: !widget.readOnly && enableSSLCheckbox
+                onTap: !shouldBeReadOnly && enableSSLCheckbox
                     ? () {
                         setState(() {
                           _useSSL = !_useSSL;
@@ -1085,7 +1082,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                         width: 20,
                         height: 20,
                         child: Checkbox(
-                          fillColor: !widget.readOnly && enableSSLCheckbox
+                          fillColor: !shouldBeReadOnly && enableSSLCheckbox
                               ? null
                               : MaterialStateProperty.all(Theme.of(context)
                                   .extension<StackColors>()!
@@ -1093,7 +1090,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,
                           value: _useSSL,
-                          onChanged: !widget.readOnly && enableSSLCheckbox
+                          onChanged: !shouldBeReadOnly && enableSSLCheckbox
                               ? (newValue) {
                                   setState(() {
                                     _useSSL = newValue!;
@@ -1136,7 +1133,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                         width: 20,
                         height: 20,
                         child: Checkbox(
-                          fillColor: !widget.readOnly /*&& trustedCheckbox*/
+                          fillColor: !widget.readOnly
                               ? null
                               : MaterialStateProperty.all(Theme.of(context)
                                   .extension<StackColors>()!
@@ -1144,7 +1141,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,
                           value: _trusted,
-                          onChanged: !widget.readOnly /*&& trustedCheckbox*/
+                          onChanged: !widget.readOnly
                               ? (newValue) {
                                   setState(() {
                                     _trusted = newValue!;
