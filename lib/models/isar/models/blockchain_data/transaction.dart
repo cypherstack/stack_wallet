@@ -16,7 +16,7 @@ class Transaction {
   late int timestamp;
 
   @enumerated
-  late TransactionType txType;
+  late TransactionType type;
 
   @enumerated
   late TransactionSubType subType;
@@ -61,6 +61,7 @@ enum TransactionType {
   outgoing,
   incoming,
   sendToSelf, // should we keep this?
+  unknown,
   anonymize; // firo specific
 
 }

@@ -63,16 +63,16 @@ const TransactionSchema = CollectionSchema(
       name: r'timestamp',
       type: IsarType.long,
     ),
-    r'txType': PropertySchema(
-      id: 9,
-      name: r'txType',
-      type: IsarType.byte,
-      enumMap: _TransactiontxTypeEnumValueMap,
-    ),
     r'txid': PropertySchema(
-      id: 10,
+      id: 9,
       name: r'txid',
       type: IsarType.string,
+    ),
+    r'type': PropertySchema(
+      id: 10,
+      name: r'type',
+      type: IsarType.byte,
+      enumMap: _TransactiontypeEnumValueMap,
     )
   },
   estimateSize: _transactionEstimateSize,
@@ -146,8 +146,8 @@ void _transactionSerialize(
   writer.writeString(offsets[6], object.slateId);
   writer.writeByte(offsets[7], object.subType.index);
   writer.writeLong(offsets[8], object.timestamp);
-  writer.writeByte(offsets[9], object.txType.index);
-  writer.writeString(offsets[10], object.txid);
+  writer.writeString(offsets[9], object.txid);
+  writer.writeByte(offsets[10], object.type.index);
 }
 
 Transaction _transactionDeserialize(
@@ -169,10 +169,10 @@ Transaction _transactionDeserialize(
       _TransactionsubTypeValueEnumMap[reader.readByteOrNull(offsets[7])] ??
           TransactionSubType.none;
   object.timestamp = reader.readLong(offsets[8]);
-  object.txType =
-      _TransactiontxTypeValueEnumMap[reader.readByteOrNull(offsets[9])] ??
+  object.txid = reader.readString(offsets[9]);
+  object.type =
+      _TransactiontypeValueEnumMap[reader.readByteOrNull(offsets[10])] ??
           TransactionType.outgoing;
-  object.txid = reader.readString(offsets[10]);
   return object;
 }
 
@@ -203,10 +203,10 @@ P _transactionDeserializeProp<P>(
     case 8:
       return (reader.readLong(offset)) as P;
     case 9:
-      return (_TransactiontxTypeValueEnumMap[reader.readByteOrNull(offset)] ??
-          TransactionType.outgoing) as P;
-    case 10:
       return (reader.readString(offset)) as P;
+    case 10:
+      return (_TransactiontypeValueEnumMap[reader.readByteOrNull(offset)] ??
+          TransactionType.outgoing) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -222,17 +222,19 @@ const _TransactionsubTypeValueEnumMap = {
   1: TransactionSubType.bip47Notification,
   2: TransactionSubType.mint,
 };
-const _TransactiontxTypeEnumValueMap = {
+const _TransactiontypeEnumValueMap = {
   'outgoing': 0,
   'incoming': 1,
   'sendToSelf': 2,
-  'anonymize': 3,
+  'unknown': 3,
+  'anonymize': 4,
 };
-const _TransactiontxTypeValueEnumMap = {
+const _TransactiontypeValueEnumMap = {
   0: TransactionType.outgoing,
   1: TransactionType.incoming,
   2: TransactionType.sendToSelf,
-  3: TransactionType.anonymize,
+  3: TransactionType.unknown,
+  4: TransactionType.anonymize,
 };
 
 Id _transactionGetId(Transaction object) {
@@ -1105,60 +1107,6 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> txTypeEqualTo(
-      TransactionType value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'txType',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      txTypeGreaterThan(
-    TransactionType value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'txType',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> txTypeLessThan(
-    TransactionType value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'txType',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> txTypeBetween(
-    TransactionType lower,
-    TransactionType upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'txType',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
   QueryBuilder<Transaction, Transaction, QAfterFilterCondition> txidEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1286,6 +1234,59 @@ extension TransactionQueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'txid',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> typeEqualTo(
+      TransactionType value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'type',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> typeGreaterThan(
+    TransactionType value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'type',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> typeLessThan(
+    TransactionType value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'type',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> typeBetween(
+    TransactionType lower,
+    TransactionType upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'type',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -1542,18 +1543,6 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByTxType() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'txType', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByTxTypeDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'txType', Sort.desc);
-    });
-  }
-
   QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByTxid() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'txid', Sort.asc);
@@ -1563,6 +1552,18 @@ extension TransactionQuerySortBy
   QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByTxidDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'txid', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.desc);
     });
   }
 }
@@ -1689,18 +1690,6 @@ extension TransactionQuerySortThenBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByTxType() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'txType', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByTxTypeDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'txType', Sort.desc);
-    });
-  }
-
   QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByTxid() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'txid', Sort.asc);
@@ -1710,6 +1699,18 @@ extension TransactionQuerySortThenBy
   QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByTxidDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'txid', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.desc);
     });
   }
 }
@@ -1773,16 +1774,16 @@ extension TransactionQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QDistinct> distinctByTxType() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'txType');
-    });
-  }
-
   QueryBuilder<Transaction, Transaction, QDistinct> distinctByTxid(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'txid', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QDistinct> distinctByType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'type');
     });
   }
 }
@@ -1850,16 +1851,15 @@ extension TransactionQueryProperty
     });
   }
 
-  QueryBuilder<Transaction, TransactionType, QQueryOperations>
-      txTypeProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'txType');
-    });
-  }
-
   QueryBuilder<Transaction, String, QQueryOperations> txidProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'txid');
+    });
+  }
+
+  QueryBuilder<Transaction, TransactionType, QQueryOperations> typeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'type');
     });
   }
 }
