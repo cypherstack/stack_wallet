@@ -28,7 +28,7 @@ import 'dogecoin_wallet_test_parameters.dart';
 void main() {
   group("dogecoin constants", () {
     test("dogecoin minimum confirmations", () async {
-      expect(MINIMUM_CONFIRMATIONS, 3);
+      expect(MINIMUM_CONFIRMATIONS, 1);
     });
     test("dogecoin dust limit", () async {
       expect(DUST_LIMIT, 1000000);
