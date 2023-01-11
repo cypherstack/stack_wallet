@@ -10,51 +10,60 @@ part of 'utxo.dart';
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetUTXOCollection on Isar {
-  IsarCollection<UTXO> get uTXOs => this.collection();
+  IsarCollection<UTXO> get utxos => this.collection();
 }
 
 const UTXOSchema = CollectionSchema(
   name: r'UTXO',
   id: 5934032492047519621,
   properties: {
-    r'blocked': PropertySchema(
+    r'blockHash': PropertySchema(
       id: 0,
-      name: r'blocked',
-      type: IsarType.bool,
+      name: r'blockHash',
+      type: IsarType.string,
+    ),
+    r'blockHeight': PropertySchema(
+      id: 1,
+      name: r'blockHeight',
+      type: IsarType.long,
+    ),
+    r'blockTime': PropertySchema(
+      id: 2,
+      name: r'blockTime',
+      type: IsarType.long,
     ),
     r'blockedReason': PropertySchema(
-      id: 1,
+      id: 3,
       name: r'blockedReason',
       type: IsarType.string,
     ),
+    r'isBlocked': PropertySchema(
+      id: 4,
+      name: r'isBlocked',
+      type: IsarType.bool,
+    ),
     r'isCoinbase': PropertySchema(
-      id: 2,
+      id: 5,
       name: r'isCoinbase',
       type: IsarType.bool,
     ),
-    r'status': PropertySchema(
-      id: 3,
-      name: r'status',
-      type: IsarType.object,
-      target: r'Status',
-    ),
-    r'txName': PropertySchema(
-      id: 4,
-      name: r'txName',
+    r'name': PropertySchema(
+      id: 6,
+      name: r'name',
       type: IsarType.string,
     ),
     r'txid': PropertySchema(
-      id: 5,
+      id: 7,
       name: r'txid',
       type: IsarType.string,
     ),
     r'value': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'value',
       type: IsarType.long,
     ),
     r'vout': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'vout',
       type: IsarType.long,
     )
@@ -64,9 +73,36 @@ const UTXOSchema = CollectionSchema(
   deserialize: _uTXODeserialize,
   deserializeProp: _uTXODeserializeProp,
   idName: r'id',
-  indexes: {},
+  indexes: {
+    r'txid': IndexSchema(
+      id: 7339874292043634331,
+      name: r'txid',
+      unique: true,
+      replace: true,
+      properties: [
+        IndexPropertySchema(
+          name: r'txid',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
+    r'isBlocked': IndexSchema(
+      id: 4270553749242334751,
+      name: r'isBlocked',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'isBlocked',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    )
+  },
   links: {},
-  embeddedSchemas: {r'Status': StatusSchema},
+  embeddedSchemas: {},
   getId: _uTXOGetId,
   getLinks: _uTXOGetLinks,
   attach: _uTXOAttach,
@@ -80,14 +116,18 @@ int _uTXOEstimateSize(
 ) {
   var bytesCount = offsets.last;
   {
+    final value = object.blockHash;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.blockedReason;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
   }
-  bytesCount += 3 +
-      StatusSchema.estimateSize(object.status, allOffsets[Status]!, allOffsets);
-  bytesCount += 3 + object.txName.length * 3;
+  bytesCount += 3 + object.name.length * 3;
   bytesCount += 3 + object.txid.length * 3;
   return bytesCount;
 }
@@ -98,19 +138,16 @@ void _uTXOSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeBool(offsets[0], object.blocked);
-  writer.writeString(offsets[1], object.blockedReason);
-  writer.writeBool(offsets[2], object.isCoinbase);
-  writer.writeObject<Status>(
-    offsets[3],
-    allOffsets,
-    StatusSchema.serialize,
-    object.status,
-  );
-  writer.writeString(offsets[4], object.txName);
-  writer.writeString(offsets[5], object.txid);
-  writer.writeLong(offsets[6], object.value);
-  writer.writeLong(offsets[7], object.vout);
+  writer.writeString(offsets[0], object.blockHash);
+  writer.writeLong(offsets[1], object.blockHeight);
+  writer.writeLong(offsets[2], object.blockTime);
+  writer.writeString(offsets[3], object.blockedReason);
+  writer.writeBool(offsets[4], object.isBlocked);
+  writer.writeBool(offsets[5], object.isCoinbase);
+  writer.writeString(offsets[6], object.name);
+  writer.writeString(offsets[7], object.txid);
+  writer.writeLong(offsets[8], object.value);
+  writer.writeLong(offsets[9], object.vout);
 }
 
 UTXO _uTXODeserialize(
@@ -120,20 +157,17 @@ UTXO _uTXODeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = UTXO();
-  object.blocked = reader.readBool(offsets[0]);
-  object.blockedReason = reader.readStringOrNull(offsets[1]);
+  object.blockHash = reader.readStringOrNull(offsets[0]);
+  object.blockHeight = reader.readLongOrNull(offsets[1]);
+  object.blockTime = reader.readLongOrNull(offsets[2]);
+  object.blockedReason = reader.readStringOrNull(offsets[3]);
   object.id = id;
-  object.isCoinbase = reader.readBool(offsets[2]);
-  object.status = reader.readObjectOrNull<Status>(
-        offsets[3],
-        StatusSchema.deserialize,
-        allOffsets,
-      ) ??
-      Status();
-  object.txName = reader.readString(offsets[4]);
-  object.txid = reader.readString(offsets[5]);
-  object.value = reader.readLong(offsets[6]);
-  object.vout = reader.readLong(offsets[7]);
+  object.isBlocked = reader.readBool(offsets[4]);
+  object.isCoinbase = reader.readBool(offsets[5]);
+  object.name = reader.readString(offsets[6]);
+  object.txid = reader.readString(offsets[7]);
+  object.value = reader.readLong(offsets[8]);
+  object.vout = reader.readLong(offsets[9]);
   return object;
 }
 
@@ -145,25 +179,24 @@ P _uTXODeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readBool(offset)) as P;
-    case 1:
       return (reader.readStringOrNull(offset)) as P;
+    case 1:
+      return (reader.readLongOrNull(offset)) as P;
     case 2:
-      return (reader.readBool(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 3:
-      return (reader.readObjectOrNull<Status>(
-            offset,
-            StatusSchema.deserialize,
-            allOffsets,
-          ) ??
-          Status()) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 4:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 5:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 6:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 7:
+      return (reader.readString(offset)) as P;
+    case 8:
+      return (reader.readLong(offset)) as P;
+    case 9:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -182,10 +215,72 @@ void _uTXOAttach(IsarCollection<dynamic> col, Id id, UTXO object) {
   object.id = id;
 }
 
+extension UTXOByIndex on IsarCollection<UTXO> {
+  Future<UTXO?> getByTxid(String txid) {
+    return getByIndex(r'txid', [txid]);
+  }
+
+  UTXO? getByTxidSync(String txid) {
+    return getByIndexSync(r'txid', [txid]);
+  }
+
+  Future<bool> deleteByTxid(String txid) {
+    return deleteByIndex(r'txid', [txid]);
+  }
+
+  bool deleteByTxidSync(String txid) {
+    return deleteByIndexSync(r'txid', [txid]);
+  }
+
+  Future<List<UTXO?>> getAllByTxid(List<String> txidValues) {
+    final values = txidValues.map((e) => [e]).toList();
+    return getAllByIndex(r'txid', values);
+  }
+
+  List<UTXO?> getAllByTxidSync(List<String> txidValues) {
+    final values = txidValues.map((e) => [e]).toList();
+    return getAllByIndexSync(r'txid', values);
+  }
+
+  Future<int> deleteAllByTxid(List<String> txidValues) {
+    final values = txidValues.map((e) => [e]).toList();
+    return deleteAllByIndex(r'txid', values);
+  }
+
+  int deleteAllByTxidSync(List<String> txidValues) {
+    final values = txidValues.map((e) => [e]).toList();
+    return deleteAllByIndexSync(r'txid', values);
+  }
+
+  Future<Id> putByTxid(UTXO object) {
+    return putByIndex(r'txid', object);
+  }
+
+  Id putByTxidSync(UTXO object, {bool saveLinks = true}) {
+    return putByIndexSync(r'txid', object, saveLinks: saveLinks);
+  }
+
+  Future<List<Id>> putAllByTxid(List<UTXO> objects) {
+    return putAllByIndex(r'txid', objects);
+  }
+
+  List<Id> putAllByTxidSync(List<UTXO> objects, {bool saveLinks = true}) {
+    return putAllByIndexSync(r'txid', objects, saveLinks: saveLinks);
+  }
+}
+
 extension UTXOQueryWhereSort on QueryBuilder<UTXO, UTXO, QWhere> {
   QueryBuilder<UTXO, UTXO, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterWhere> anyIsBlocked() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'isBlocked'),
+      );
     });
   }
 }
@@ -255,14 +350,375 @@ extension UTXOQueryWhere on QueryBuilder<UTXO, UTXO, QWhereClause> {
       ));
     });
   }
+
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidEqualTo(String txid) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'txid',
+        value: [txid],
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidNotEqualTo(String txid) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid',
+              lower: [],
+              upper: [txid],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid',
+              lower: [txid],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid',
+              lower: [txid],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid',
+              lower: [],
+              upper: [txid],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause> isBlockedEqualTo(bool isBlocked) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'isBlocked',
+        value: [isBlocked],
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause> isBlockedNotEqualTo(
+      bool isBlocked) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isBlocked',
+              lower: [],
+              upper: [isBlocked],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isBlocked',
+              lower: [isBlocked],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isBlocked',
+              lower: [isBlocked],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isBlocked',
+              lower: [],
+              upper: [isBlocked],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
 }
 
 extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockedEqualTo(bool value) {
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHashIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'blockHash',
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHashIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'blockHash',
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHashEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'blocked',
+        property: r'blockHash',
         value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHashGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'blockHash',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHashLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'blockHash',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHashBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'blockHash',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHashStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'blockHash',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHashEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'blockHash',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHashContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'blockHash',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHashMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'blockHash',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHashIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'blockHash',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHashIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'blockHash',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHeightIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'blockHeight',
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHeightIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'blockHeight',
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHeightEqualTo(
+      int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'blockHeight',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHeightGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'blockHeight',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHeightLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'blockHeight',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHeightBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'blockHeight',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockTimeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'blockTime',
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockTimeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'blockTime',
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockTimeEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'blockTime',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockTimeGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'blockTime',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockTimeLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'blockTime',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockTimeBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'blockTime',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -465,6 +921,15 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     });
   }
 
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> isBlockedEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isBlocked',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> isCoinbaseEqualTo(
       bool value) {
     return QueryBuilder.apply(this, (query) {
@@ -475,20 +940,20 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> txNameEqualTo(
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> nameEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'txName',
+        property: r'name',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> txNameGreaterThan(
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> nameGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -496,14 +961,14 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'txName',
+        property: r'name',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> txNameLessThan(
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> nameLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -511,14 +976,14 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'txName',
+        property: r'name',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> txNameBetween(
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> nameBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -527,7 +992,7 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'txName',
+        property: r'name',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -537,67 +1002,67 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> txNameStartsWith(
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> nameStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'txName',
+        property: r'name',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> txNameEndsWith(
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> nameEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'txName',
+        property: r'name',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> txNameContains(String value,
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> nameContains(String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
-        property: r'txName',
+        property: r'name',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> txNameMatches(String pattern,
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> nameMatches(String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
-        property: r'txName',
+        property: r'name',
         wildcard: pattern,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> txNameIsEmpty() {
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> nameIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'txName',
+        property: r'name',
         value: '',
       ));
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> txNameIsNotEmpty() {
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> nameIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'txName',
+        property: r'name',
         value: '',
       ));
     });
@@ -836,27 +1301,44 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
   }
 }
 
-extension UTXOQueryObject on QueryBuilder<UTXO, UTXO, QFilterCondition> {
-  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> status(
-      FilterQuery<Status> q) {
-    return QueryBuilder.apply(this, (query) {
-      return query.object(q, r'status');
-    });
-  }
-}
+extension UTXOQueryObject on QueryBuilder<UTXO, UTXO, QFilterCondition> {}
 
 extension UTXOQueryLinks on QueryBuilder<UTXO, UTXO, QFilterCondition> {}
 
 extension UTXOQuerySortBy on QueryBuilder<UTXO, UTXO, QSortBy> {
-  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByBlocked() {
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByBlockHash() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'blocked', Sort.asc);
+      return query.addSortBy(r'blockHash', Sort.asc);
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByBlockedDesc() {
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByBlockHashDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'blocked', Sort.desc);
+      return query.addSortBy(r'blockHash', Sort.desc);
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByBlockHeight() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'blockHeight', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByBlockHeightDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'blockHeight', Sort.desc);
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByBlockTime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'blockTime', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByBlockTimeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'blockTime', Sort.desc);
     });
   }
 
@@ -872,6 +1354,18 @@ extension UTXOQuerySortBy on QueryBuilder<UTXO, UTXO, QSortBy> {
     });
   }
 
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByIsBlocked() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isBlocked', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByIsBlockedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isBlocked', Sort.desc);
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByIsCoinbase() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isCoinbase', Sort.asc);
@@ -884,15 +1378,15 @@ extension UTXOQuerySortBy on QueryBuilder<UTXO, UTXO, QSortBy> {
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByTxName() {
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByName() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'txName', Sort.asc);
+      return query.addSortBy(r'name', Sort.asc);
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByTxNameDesc() {
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByNameDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'txName', Sort.desc);
+      return query.addSortBy(r'name', Sort.desc);
     });
   }
 
@@ -934,15 +1428,39 @@ extension UTXOQuerySortBy on QueryBuilder<UTXO, UTXO, QSortBy> {
 }
 
 extension UTXOQuerySortThenBy on QueryBuilder<UTXO, UTXO, QSortThenBy> {
-  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByBlocked() {
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByBlockHash() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'blocked', Sort.asc);
+      return query.addSortBy(r'blockHash', Sort.asc);
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByBlockedDesc() {
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByBlockHashDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'blocked', Sort.desc);
+      return query.addSortBy(r'blockHash', Sort.desc);
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByBlockHeight() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'blockHeight', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByBlockHeightDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'blockHeight', Sort.desc);
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByBlockTime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'blockTime', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByBlockTimeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'blockTime', Sort.desc);
     });
   }
 
@@ -970,6 +1488,18 @@ extension UTXOQuerySortThenBy on QueryBuilder<UTXO, UTXO, QSortThenBy> {
     });
   }
 
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByIsBlocked() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isBlocked', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByIsBlockedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isBlocked', Sort.desc);
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByIsCoinbase() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isCoinbase', Sort.asc);
@@ -982,15 +1512,15 @@ extension UTXOQuerySortThenBy on QueryBuilder<UTXO, UTXO, QSortThenBy> {
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByTxName() {
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByName() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'txName', Sort.asc);
+      return query.addSortBy(r'name', Sort.asc);
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByTxNameDesc() {
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByNameDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'txName', Sort.desc);
+      return query.addSortBy(r'name', Sort.desc);
     });
   }
 
@@ -1032,9 +1562,22 @@ extension UTXOQuerySortThenBy on QueryBuilder<UTXO, UTXO, QSortThenBy> {
 }
 
 extension UTXOQueryWhereDistinct on QueryBuilder<UTXO, UTXO, QDistinct> {
-  QueryBuilder<UTXO, UTXO, QDistinct> distinctByBlocked() {
+  QueryBuilder<UTXO, UTXO, QDistinct> distinctByBlockHash(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'blocked');
+      return query.addDistinctBy(r'blockHash', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QDistinct> distinctByBlockHeight() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'blockHeight');
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QDistinct> distinctByBlockTime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'blockTime');
     });
   }
 
@@ -1046,16 +1589,22 @@ extension UTXOQueryWhereDistinct on QueryBuilder<UTXO, UTXO, QDistinct> {
     });
   }
 
+  QueryBuilder<UTXO, UTXO, QDistinct> distinctByIsBlocked() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isBlocked');
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QDistinct> distinctByIsCoinbase() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isCoinbase');
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QDistinct> distinctByTxName(
+  QueryBuilder<UTXO, UTXO, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'txName', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'name', caseSensitive: caseSensitive);
     });
   }
 
@@ -1086,9 +1635,21 @@ extension UTXOQueryProperty on QueryBuilder<UTXO, UTXO, QQueryProperty> {
     });
   }
 
-  QueryBuilder<UTXO, bool, QQueryOperations> blockedProperty() {
+  QueryBuilder<UTXO, String?, QQueryOperations> blockHashProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'blocked');
+      return query.addPropertyName(r'blockHash');
+    });
+  }
+
+  QueryBuilder<UTXO, int?, QQueryOperations> blockHeightProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'blockHeight');
+    });
+  }
+
+  QueryBuilder<UTXO, int?, QQueryOperations> blockTimeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'blockTime');
     });
   }
 
@@ -1098,21 +1659,21 @@ extension UTXOQueryProperty on QueryBuilder<UTXO, UTXO, QQueryProperty> {
     });
   }
 
+  QueryBuilder<UTXO, bool, QQueryOperations> isBlockedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isBlocked');
+    });
+  }
+
   QueryBuilder<UTXO, bool, QQueryOperations> isCoinbaseProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isCoinbase');
     });
   }
 
-  QueryBuilder<UTXO, Status, QQueryOperations> statusProperty() {
+  QueryBuilder<UTXO, String, QQueryOperations> nameProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'status');
-    });
-  }
-
-  QueryBuilder<UTXO, String, QQueryOperations> txNameProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'txName');
+      return query.addPropertyName(r'name');
     });
   }
 
@@ -1134,328 +1695,3 @@ extension UTXOQueryProperty on QueryBuilder<UTXO, UTXO, QQueryProperty> {
     });
   }
 }
-
-// **************************************************************************
-// IsarEmbeddedGenerator
-// **************************************************************************
-
-// coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
-
-const StatusSchema = Schema(
-  name: r'Status',
-  id: -8158262482337811485,
-  properties: {
-    r'blockHash': PropertySchema(
-      id: 0,
-      name: r'blockHash',
-      type: IsarType.string,
-    ),
-    r'blockHeight': PropertySchema(
-      id: 1,
-      name: r'blockHeight',
-      type: IsarType.long,
-    ),
-    r'blockTime': PropertySchema(
-      id: 2,
-      name: r'blockTime',
-      type: IsarType.long,
-    )
-  },
-  estimateSize: _statusEstimateSize,
-  serialize: _statusSerialize,
-  deserialize: _statusDeserialize,
-  deserializeProp: _statusDeserializeProp,
-);
-
-int _statusEstimateSize(
-  Status object,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
-  var bytesCount = offsets.last;
-  bytesCount += 3 + object.blockHash.length * 3;
-  return bytesCount;
-}
-
-void _statusSerialize(
-  Status object,
-  IsarWriter writer,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
-  writer.writeString(offsets[0], object.blockHash);
-  writer.writeLong(offsets[1], object.blockHeight);
-  writer.writeLong(offsets[2], object.blockTime);
-}
-
-Status _statusDeserialize(
-  Id id,
-  IsarReader reader,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
-  final object = Status();
-  object.blockHash = reader.readString(offsets[0]);
-  object.blockHeight = reader.readLong(offsets[1]);
-  object.blockTime = reader.readLong(offsets[2]);
-  return object;
-}
-
-P _statusDeserializeProp<P>(
-  IsarReader reader,
-  int propertyId,
-  int offset,
-  Map<Type, List<int>> allOffsets,
-) {
-  switch (propertyId) {
-    case 0:
-      return (reader.readString(offset)) as P;
-    case 1:
-      return (reader.readLong(offset)) as P;
-    case 2:
-      return (reader.readLong(offset)) as P;
-    default:
-      throw IsarError('Unknown property with id $propertyId');
-  }
-}
-
-extension StatusQueryFilter on QueryBuilder<Status, Status, QFilterCondition> {
-  QueryBuilder<Status, Status, QAfterFilterCondition> blockHashEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'blockHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Status, Status, QAfterFilterCondition> blockHashGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'blockHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Status, Status, QAfterFilterCondition> blockHashLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'blockHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Status, Status, QAfterFilterCondition> blockHashBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'blockHash',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Status, Status, QAfterFilterCondition> blockHashStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'blockHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Status, Status, QAfterFilterCondition> blockHashEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'blockHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Status, Status, QAfterFilterCondition> blockHashContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'blockHash',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Status, Status, QAfterFilterCondition> blockHashMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'blockHash',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Status, Status, QAfterFilterCondition> blockHashIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'blockHash',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Status, Status, QAfterFilterCondition> blockHashIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'blockHash',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Status, Status, QAfterFilterCondition> blockHeightEqualTo(
-      int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'blockHeight',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Status, Status, QAfterFilterCondition> blockHeightGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'blockHeight',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Status, Status, QAfterFilterCondition> blockHeightLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'blockHeight',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Status, Status, QAfterFilterCondition> blockHeightBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'blockHeight',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Status, Status, QAfterFilterCondition> blockTimeEqualTo(
-      int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'blockTime',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Status, Status, QAfterFilterCondition> blockTimeGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'blockTime',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Status, Status, QAfterFilterCondition> blockTimeLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'blockTime',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Status, Status, QAfterFilterCondition> blockTimeBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'blockTime',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-}
-
-extension StatusQueryObject on QueryBuilder<Status, Status, QFilterCondition> {}

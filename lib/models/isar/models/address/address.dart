@@ -8,7 +8,7 @@ class AddressException extends SWException {
   AddressException(super.message);
 }
 
-@collection
+@Collection(accessor: "addresses")
 class Address extends CryptoCurrencyAddress {
   Id id = Isar.autoIncrement;
 

@@ -4,37 +4,35 @@ import 'package:isar/isar.dart';
 
 part 'utxo.g.dart';
 
-@Collection()
+@Collection(accessor: "utxos")
 class UTXO {
   Id id = Isar.autoIncrement;
 
+  @Index(unique: true, replace: true)
   late String txid;
 
   late int vout;
 
-  late Status status;
-
   late int value;
 
-  late String txName;
+  late String name;
 
-  late bool blocked;
+  @Index()
+  late bool isBlocked;
 
   late String? blockedReason;
 
   late bool isCoinbase;
-}
 
-@Embedded()
-class Status {
-  late String blockHash;
+  late String? blockHash;
 
-  late int blockHeight;
+  late int? blockHeight;
 
-  late int blockTime;
+  late int? blockTime;
 
   int getConfirmations(int currentChainHeight) {
-    return max(0, currentChainHeight - blockHeight);
+    if (blockHeight == null) return 0;
+    return max(0, currentChainHeight - blockHeight!);
   }
 
   bool isConfirmed(int currentChainHeight, int minimumConfirms) {
