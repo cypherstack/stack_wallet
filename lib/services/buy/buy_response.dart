@@ -1,9 +1,9 @@
-enum ExchangeExceptionType { generic, serializeResponseError }
+enum BuyExceptionType { generic, serializeResponseError }
 
-class ExchangeException implements Exception {
+class BuyException implements Exception {
   String errorMessage;
-  ExchangeExceptionType type;
-  ExchangeException(this.errorMessage, this.type);
+  BuyExceptionType type;
+  BuyException(this.errorMessage, this.type);
 
   @override
   String toString() {
@@ -11,11 +11,11 @@ class ExchangeException implements Exception {
   }
 }
 
-class ExchangeResponse<T> {
+class BuyResponse<T> {
   late final T? value;
-  late final ExchangeException? exception;
+  late final BuyException? exception;
 
-  ExchangeResponse({this.value, this.exception});
+  BuyResponse({this.value, this.exception});
 
   @override
   String toString() {
