@@ -222,7 +222,7 @@ class WalletNavigationBar extends StatelessWidget {
                         height: 4,
                       ),
                       Text(
-                        "Buy2",
+                        "Buy",
                         style: STextStyles.buttonSmall(context),
                       ),
                       Spacer(),

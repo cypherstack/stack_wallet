@@ -1,16 +1,13 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/providers/buy/buy_form_state_provider.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
+import 'package:stackwallet/widgets/textfields/buy_textfield.dart';
 
 class BuyForm extends ConsumerStatefulWidget {
   const BuyForm({
@@ -30,7 +27,62 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   late final String? walletId;
   late final Coin? coin;
 
+  late final TextEditingController _fiatController;
+  late final TextEditingController _cryptoController;
   final isDesktop = Util.isDesktop;
+  final FocusNode _fiatFocusNode = FocusNode();
+  final FocusNode _cryptoFocusNode = FocusNode();
+
+  void fiatFieldOnChanged(String value) async {
+    if (_fiatFocusNode.hasFocus) {
+      final newFromAmount = Decimal.tryParse(value);
+
+      await ref.read(buyFormStateProvider).setFromAmountAndCalculateToAmount(
+          newFromAmount ?? Decimal.zero, true);
+
+      if (newFromAmount == null) {
+        // _cryptoController.text =
+        //     ref.read(prefsChangeNotifierProvider).exchangeRateType ==
+        //             ExchangeRateType.estimated
+        //         ? "-"
+        //         : "";
+      }
+    }
+  }
+
+  void selectFiatCurrency() async {
+    // await Future<void>.delayed(const Duration(milliseconds: 300));
+    //
+    // Navigator.of(context, rootNavigator: true).pop();
+  }
+  @override
+  void initState() {
+    _fiatController = TextEditingController();
+    _cryptoController = TextEditingController();
+
+    walletId = widget.walletId;
+    coin = widget.coin;
+    // walletInitiated = walletId != null && coin != null;
+    //
+    // if (walletInitiated) {
+    //   WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+    //     ref.read(buyFormStateProvider).clearAmounts(true);
+    //     // ref.read(fixedRateExchangeFormProvider);
+    //   });
+    // } else {
+    // final isEstimated =
+    //     ref.read(prefsChangeNotifierProvider).exchangeRateType ==
+    //         ExchangeRateType.estimated;
+    _fiatController.text = ref.read(buyFormStateProvider).fromAmountString;
+    _cryptoController
+            .text = /*isEstimated
+          ? "-" //ref.read(estimatedRateExchangeFormProvider).toAmountString
+          :*/
+        ref.read(buyFormStateProvider).toAmountString;
+    // }
+
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -46,7 +98,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          "You will send",
+          "I want to buy",
           style: STextStyles.itemSubtitle(context).copyWith(
             color: Theme.of(context).extension<StackColors>()!.textDark3,
           ),
@@ -54,30 +106,6 @@ class _BuyFormState extends ConsumerState<BuyForm> {
         SizedBox(
           height: isDesktop ? 10 : 4,
         ),
-        // ExchangeTextField(
-        //   controller: _sendController,
-        //   focusNode: _sendFocusNode,
-        //   textStyle: STextStyles.smallMed14(context).copyWith(
-        //     color: Theme.of(context).extension<StackColors>()!.textDark,
-        //   ),
-        //   buttonColor:
-        //       Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
-        //   borderRadius: Constants.size.circularBorderRadius,
-        //   background:
-        //       Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
-        //   onTap: () {
-        //     if (_sendController.text == "-") {
-        //       _sendController.text = "";
-        //     }
-        //   },
-        //   onChanged: sendFieldOnChanged,
-        //   onButtonTap: selectSendCurrency,
-        //   isWalletCoin: isWalletCoin(coin, true),
-        //   image: _fetchIconUrlFromTicker(ref.watch(
-        //       buyFormStateProvider.select((value) => value.fromTicker))),
-        //   ticker: ref.watch(
-        //       buyFormStateProvider.select((value) => value.fromTicker)),
-        // ),
         SizedBox(
           height: isDesktop ? 10 : 4,
         ),
@@ -97,48 +125,16 @@ class _BuyFormState extends ConsumerState<BuyForm> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "You will receive",
+              "I want to pay with",
               style: STextStyles.itemSubtitle(context).copyWith(
                 color: Theme.of(context).extension<StackColors>()!.textDark3,
               ),
             ),
-            ConditionalParent(
-              condition: isDesktop,
-              builder: (child) => MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: child,
-              ),
-              child: RoundedContainer(
-                padding: isDesktop
-                    ? const EdgeInsets.all(6)
-                    : const EdgeInsets.all(2),
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .buttonBackSecondary,
-                radiusMultiplier: 0.75,
-                child: GestureDetector(
-                  // onTap: () async {
-                  //   await _swap();
-                  // },
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: SvgPicture.asset(
-                      Assets.svg.swap,
-                      width: 20,
-                      height: 20,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
-                    ),
-                  ),
-                ),
-              ),
-            ),
           ],
         ),
-        SizedBox(
-          height: isDesktop ? 10 : 7,
-        ),
+        // SizedBox(
+        //   height: isDesktop ? 10 : 7,
+        // ),
         // ExchangeTextField(
         //   focusNode: _receiveFocusNode,
         //   controller: _receiveController,
@@ -188,39 +184,64 @@ class _BuyFormState extends ConsumerState<BuyForm> {
         //     onChanged: onRateTypeChanged,
         //   ),
         // ),
-        // these reads should be watch
-        if (ref.watch(buyFormStateProvider).fromAmount != null &&
-            ref.watch(buyFormStateProvider).fromAmount != Decimal.zero)
-          SizedBox(
-            height: isDesktop ? 20 : 12,
-          ),
-        // these reads should be watch
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "Enter amount",
+              style: STextStyles.itemSubtitle(context).copyWith(
+                color: Theme.of(context).extension<StackColors>()!.textDark3,
+              ),
+            ),
+          ],
+        ),
+        // // these reads should be watch
         // if (ref.watch(buyFormStateProvider).fromAmount != null &&
         //     ref.watch(buyFormStateProvider).fromAmount != Decimal.zero)
-        //   ExchangeProviderOptions(
-        //     from: ref.watch(buyFormStateProvider).fromTicker,
-        //     to: ref.watch(buyFormStateProvider).toTicker,
-        //     fromAmount: ref.watch(buyFormStateProvider).fromAmount,
-        //     toAmount: ref.watch(buyFormStateProvider).toAmount,
-        //     fixedRate: ref.watch(prefsChangeNotifierProvider
-        //             .select((value) => value.exchangeRateType)) ==
-        //         ExchangeRateType.fixed,
-        //     reversed: ref
-        //         .watch(buyFormStateProvider.select((value) => value.reversed)),
-        //   ),
         SizedBox(
           height: isDesktop ? 20 : 12,
         ),
-        // PrimaryButton(
-        //   buttonHeight: isDesktop ? ButtonHeight.l : null,
-        //   enabled: ref
-        //       .watch(buyFormStateProvider.select((value) => value.canExchange)),
-        //   // onPressed: ref.watch(buyFormStateProvider
-        //   //         .select((value) => value.canExchange))
-        //   //     ? onExchangePressed
-        //   //     : null,
-        //   label: "Exchange",
-        // )
+        BuyTextField(
+          controller: _fiatController,
+          focusNode: _fiatFocusNode,
+          textStyle: STextStyles.smallMed14(context).copyWith(
+            color: Theme.of(context).extension<StackColors>()!.textDark,
+          ),
+          buttonColor:
+              Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
+          borderRadius: Constants.size.circularBorderRadius,
+          background:
+              Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
+          onTap: () {
+            if (_fiatController.text == "-") {
+              _fiatController.text = "";
+            }
+          },
+          onChanged: fiatFieldOnChanged,
+          onButtonTap: selectFiatCurrency,
+          // isWalletCoin: isWalletCoin(coin, true),
+          isWalletCoin: false,
+          // image: _fetchIconUrlFromTicker(ref
+          //     .watch(buyFormStateProvider.select((value) => value.fromTicker))),
+          // ticker: ref
+          //     .watch(buyFormStateProvider.select((value) => value.fromTicker)),
+        ),
+        SizedBox(
+          height: isDesktop ? 20 : 12,
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "Enter receiving address",
+              style: STextStyles.itemSubtitle(context).copyWith(
+                color: Theme.of(context).extension<StackColors>()!.textDark3,
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }

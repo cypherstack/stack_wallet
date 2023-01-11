@@ -1,6 +1,6 @@
 import 'package:hive/hive.dart';
 
-part 'buy.g.dart';
+// part 'buy.g.dart';
 
 @HiveType(typeId: Buy.typeId)
 class Buy {
@@ -10,7 +10,7 @@ class Buy {
   final String uuid;
 
   @HiveField(1)
-  final String tradeId;
+  final String buyId;
 
   @HiveField(2)
   final String rateType;
@@ -74,7 +74,7 @@ class Buy {
 
   const Buy({
     required this.uuid,
-    required this.tradeId,
+    required this.buyId,
     required this.rateType,
     required this.direction,
     required this.timestamp,
@@ -97,8 +97,8 @@ class Buy {
     required this.exchangeName,
   });
 
-  Trade copyWith({
-    String? tradeId,
+  Buy copyWith({
+    String? buyId,
     String? rateType,
     String? direction,
     DateTime? timestamp,
@@ -122,7 +122,7 @@ class Buy {
   }) {
     return Buy(
       uuid: uuid,
-      tradeId: tradeId ?? this.tradeId,
+      buyId: buyId ?? this.buyId,
       rateType: rateType ?? this.rateType,
       direction: direction ?? this.direction,
       timestamp: timestamp ?? this.timestamp,
@@ -149,7 +149,7 @@ class Buy {
   Map<String, String> toMap() {
     return {
       "uuid": uuid,
-      "tradeId": tradeId,
+      "buyId": buyId,
       "rateType": rateType,
       "direction": direction,
       "timestamp": timestamp.toIso8601String(),
@@ -176,7 +176,7 @@ class Buy {
   factory Buy.fromMap(Map<String, dynamic> map) {
     return Buy(
       uuid: map["uuid"] as String,
-      tradeId: map["tradeId"] as String,
+      buyId: map["buyId"] as String,
       rateType: map["rateType"] as String,
       direction: map["direction"] as String,
       timestamp: DateTime.parse(map["timestamp"] as String),
@@ -199,36 +199,6 @@ class Buy {
       exchangeName: map["exchangeName"] as String,
     );
   }
-
-  // factory Trade.fromExchangeTransaction(
-  //     ExchangeTransaction exTx, bool reversed) {
-  //   return Buy(
-  //     uuid: exTx.uuid,
-  //     tradeId: exTx.id,
-  //     rateType: "",
-  //     direction: reversed ? "reverse" : "direct",
-  //     timestamp: exTx.date,
-  //     updatedAt: DateTime.tryParse(exTx.statusObject!.updatedAt) ?? exTx.date,
-  //     payInCurrency: exTx.fromCurrency,
-  //     payInAmount: exTx.statusObject!.amountSendDecimal.isEmpty
-  //         ? exTx.statusObject!.expectedSendAmountDecimal
-  //         : exTx.statusObject!.amountSendDecimal,
-  //     payInAddress: exTx.payinAddress,
-  //     payInNetwork: "",
-  //     payInExtraId: exTx.payinExtraId,
-  //     payInTxid: exTx.statusObject!.payinHash,
-  //     payOutCurrency: exTx.toCurrency,
-  //     payOutAmount: exTx.amount,
-  //     payOutAddress: exTx.payoutAddress,
-  //     payOutNetwork: "",
-  //     payOutExtraId: exTx.payoutExtraId,
-  //     payOutTxid: exTx.statusObject!.payoutHash,
-  //     refundAddress: exTx.refundAddress,
-  //     refundExtraId: exTx.refundExtraId,
-  //     status: exTx.statusObject!.status.name,
-  //     exchangeName: ChangeNowExchange.exchangeName,
-  //   );
-  // }
 
   @override
   String toString() {

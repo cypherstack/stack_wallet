@@ -11,22 +11,22 @@ class BuysService extends ChangeNotifier {
     return list;
   }
 
-  Buy? get(String BuyId) {
+  Buy? get(String buyId) {
     try {
       return DB.instance
           .values<Buy>(boxName: DB.boxNameBuys)
-          .firstWhere((e) => e.BuyId == BuyId);
+          .firstWhere((e) => e.buyId == buyId);
     } catch (_) {
       return null;
     }
   }
 
   Future<void> add({
-    required Buy Buy,
+    required Buy buy,
     required bool shouldNotifyListeners,
   }) async {
     await DB.instance
-        .put<Buy>(boxName: DB.boxNameBuys, key: Buy.uuid, value: Buy);
+        .put<Buy>(boxName: DB.boxNameBuys, key: buy.uuid, value: buy);
 
     if (shouldNotifyListeners) {
       notifyListeners();
@@ -34,23 +34,23 @@ class BuysService extends ChangeNotifier {
   }
 
   Future<void> edit({
-    required Buy Buy,
+    required Buy buy,
     required bool shouldNotifyListeners,
   }) async {
-    if (DB.instance.get<Buy>(boxName: DB.boxNameBuys, key: Buy.uuid) == null) {
+    if (DB.instance.get<Buy>(boxName: DB.boxNameBuys, key: buy.uuid) == null) {
       throw Exception("Attempted to edit a Buy that does not exist in Hive!");
     }
 
     // add overwrites so this edit function is just a wrapper with an extra check
-    await add(Buy: Buy, shouldNotifyListeners: shouldNotifyListeners);
+    await add(buy: buy, shouldNotifyListeners: shouldNotifyListeners);
   }
 
   Future<void> delete({
-    required Buy Buy,
+    required Buy buy,
     required bool shouldNotifyListeners,
   }) async {
     await deleteByUuid(
-        uuid: Buy.uuid, shouldNotifyListeners: shouldNotifyListeners);
+        uuid: buy.uuid, shouldNotifyListeners: shouldNotifyListeners);
   }
 
   Future<void> deleteByUuid({
