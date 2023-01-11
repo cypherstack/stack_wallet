@@ -50,7 +50,34 @@ const AddressSchema = CollectionSchema(
   deserialize: _addressDeserialize,
   deserializeProp: _addressDeserializeProp,
   idName: r'id',
-  indexes: {},
+  indexes: {
+    r'value': IndexSchema(
+      id: -8658876004265234192,
+      name: r'value',
+      unique: true,
+      replace: true,
+      properties: [
+        IndexPropertySchema(
+          name: r'value',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
+    r'derivationIndex': IndexSchema(
+      id: -6950711977521998012,
+      name: r'derivationIndex',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'derivationIndex',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    )
+  },
   links: {},
   embeddedSchemas: {},
   getId: _addressGetId,
@@ -163,10 +190,72 @@ void _addressAttach(IsarCollection<dynamic> col, Id id, Address object) {
   object.id = id;
 }
 
+extension AddressByIndex on IsarCollection<Address> {
+  Future<Address?> getByValue(String value) {
+    return getByIndex(r'value', [value]);
+  }
+
+  Address? getByValueSync(String value) {
+    return getByIndexSync(r'value', [value]);
+  }
+
+  Future<bool> deleteByValue(String value) {
+    return deleteByIndex(r'value', [value]);
+  }
+
+  bool deleteByValueSync(String value) {
+    return deleteByIndexSync(r'value', [value]);
+  }
+
+  Future<List<Address?>> getAllByValue(List<String> valueValues) {
+    final values = valueValues.map((e) => [e]).toList();
+    return getAllByIndex(r'value', values);
+  }
+
+  List<Address?> getAllByValueSync(List<String> valueValues) {
+    final values = valueValues.map((e) => [e]).toList();
+    return getAllByIndexSync(r'value', values);
+  }
+
+  Future<int> deleteAllByValue(List<String> valueValues) {
+    final values = valueValues.map((e) => [e]).toList();
+    return deleteAllByIndex(r'value', values);
+  }
+
+  int deleteAllByValueSync(List<String> valueValues) {
+    final values = valueValues.map((e) => [e]).toList();
+    return deleteAllByIndexSync(r'value', values);
+  }
+
+  Future<Id> putByValue(Address object) {
+    return putByIndex(r'value', object);
+  }
+
+  Id putByValueSync(Address object, {bool saveLinks = true}) {
+    return putByIndexSync(r'value', object, saveLinks: saveLinks);
+  }
+
+  Future<List<Id>> putAllByValue(List<Address> objects) {
+    return putAllByIndex(r'value', objects);
+  }
+
+  List<Id> putAllByValueSync(List<Address> objects, {bool saveLinks = true}) {
+    return putAllByIndexSync(r'value', objects, saveLinks: saveLinks);
+  }
+}
+
 extension AddressQueryWhereSort on QueryBuilder<Address, Address, QWhere> {
   QueryBuilder<Address, Address, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterWhere> anyDerivationIndex() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'derivationIndex'),
+      );
     });
   }
 }
@@ -232,6 +321,140 @@ extension AddressQueryWhere on QueryBuilder<Address, Address, QWhereClause> {
         lower: lowerId,
         includeLower: includeLower,
         upper: upperId,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterWhereClause> valueEqualTo(String value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'value',
+        value: [value],
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterWhereClause> valueNotEqualTo(
+      String value) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'value',
+              lower: [],
+              upper: [value],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'value',
+              lower: [value],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'value',
+              lower: [value],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'value',
+              lower: [],
+              upper: [value],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterWhereClause> derivationIndexEqualTo(
+      int derivationIndex) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'derivationIndex',
+        value: [derivationIndex],
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterWhereClause> derivationIndexNotEqualTo(
+      int derivationIndex) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'derivationIndex',
+              lower: [],
+              upper: [derivationIndex],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'derivationIndex',
+              lower: [derivationIndex],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'derivationIndex',
+              lower: [derivationIndex],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'derivationIndex',
+              lower: [],
+              upper: [derivationIndex],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterWhereClause> derivationIndexGreaterThan(
+    int derivationIndex, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'derivationIndex',
+        lower: [derivationIndex],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterWhereClause> derivationIndexLessThan(
+    int derivationIndex, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'derivationIndex',
+        lower: [],
+        upper: [derivationIndex],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterWhereClause> derivationIndexBetween(
+    int lowerDerivationIndex,
+    int upperDerivationIndex, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'derivationIndex',
+        lower: [lowerDerivationIndex],
+        includeLower: includeLower,
+        upper: [upperDerivationIndex],
         includeUpper: includeUpper,
       ));
     });
