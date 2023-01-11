@@ -362,7 +362,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                     .extension<StackColors>()!
                                     .background,
                                 child: FiatSelectionView(
-                                  coins: tickers,
+                                  fiats: tickers,
                                 ),
                               ),
                             ),
@@ -377,7 +377,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
         : await Navigator.of(context).push(
             MaterialPageRoute<dynamic>(
               builder: (_) => FiatSelectionView(
-                coins: tickers,
+                fiats: tickers,
               ),
             ),
           );

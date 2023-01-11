@@ -3,7 +3,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/buy/response_objects/fiat.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/fiat_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -19,10 +19,10 @@ import 'package:stackwallet/widgets/textfield_icon_button.dart';
 class FiatSelectionView extends StatefulWidget {
   const FiatSelectionView({
     Key? key,
-    required this.coins,
+    required this.fiats,
   }) : super(key: key);
 
-  final List<Fiat> coins;
+  final List<Fiat> fiats;
 
   @override
   State<FiatSelectionView> createState() => _FiatSelectionViewState();
@@ -32,13 +32,13 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
   late TextEditingController _searchController;
   final _searchFocusNode = FocusNode();
 
-  late final List<Fiat> coins;
-  late List<Fiat> _coins;
+  late final List<Fiat> fiats;
+  late List<Fiat> _fiats;
 
   void filter(String text) {
     setState(() {
-      _coins = [
-        ...coins.where((e) =>
+      _fiats = [
+        ...fiats.where((e) =>
             e.name.toLowerCase().contains(text.toLowerCase()) ||
             e.ticker.toLowerCase().contains(text.toLowerCase()))
       ];
@@ -49,19 +49,19 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
   void initState() {
     _searchController = TextEditingController();
 
-    coins = [...widget.coins];
-    coins.sort(
+    fiats = [...widget.fiats];
+    fiats.sort(
         (a, b) => a.ticker.toLowerCase().compareTo(b.ticker.toLowerCase()));
-    for (Coin coin in Coin.values.reversed) {
-      int index = coins.indexWhere((element) =>
-          element.ticker.toLowerCase() == coin.ticker.toLowerCase());
+    for (Fiats fiat in Fiats.values.reversed) {
+      int index = fiats.indexWhere((element) =>
+          element.ticker.toLowerCase() == fiat.ticker.toLowerCase());
       if (index > 0) {
-        final currency = coins.removeAt(index);
-        coins.insert(0, currency);
+        final currency = fiats.removeAt(index);
+        fiats.insert(0, currency);
       }
     }
 
-    _coins = [...coins];
+    _fiats = [...fiats];
 
     super.initState();
   }
@@ -174,7 +174,7 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
             height: 10,
           ),
           Text(
-            "Popular coins",
+            "Popular fiats",
             style: STextStyles.smallMed12(context),
           ),
           const SizedBox(
@@ -182,10 +182,10 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
           ),
           Flexible(
             child: Builder(builder: (context) {
-              final items = _coins
-                  .where((e) => Coin.values
-                      .where((coin) =>
-                          coin.ticker.toLowerCase() == e.ticker.toLowerCase())
+              final items = _fiats
+                  .where((e) => Fiats.values
+                      .where((fiat) =>
+                          fiat.ticker.toLowerCase() == e.ticker.toLowerCase())
                       .isNotEmpty)
                   .toList(growable: false);
 
@@ -256,7 +256,7 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
             height: 20,
           ),
           Text(
-            "All coins",
+            "All fiats",
             style: STextStyles.smallMed12(context),
           ),
           const SizedBox(
@@ -268,13 +268,13 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
               child: ListView.builder(
                 shrinkWrap: true,
                 primary: isDesktop ? false : null,
-                itemCount: _coins.length,
+                itemCount: _fiats.length,
                 itemBuilder: (builderContext, index) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: GestureDetector(
                       onTap: () {
-                        Navigator.of(context).pop(_coins[index]);
+                        Navigator.of(context).pop(_fiats[index]);
                       },
                       child: RoundedWhiteContainer(
                         child: Row(
@@ -283,7 +283,7 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
                               width: 24,
                               height: 24,
                               child: SvgPicture.network(
-                                _coins[index].image,
+                                _fiats[index].image,
                                 width: 24,
                                 height: 24,
                                 placeholderBuilder: (_) =>
@@ -298,14 +298,14 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    _coins[index].name,
+                                    _fiats[index].name,
                                     style: STextStyles.largeMedium14(context),
                                   ),
                                   const SizedBox(
                                     height: 2,
                                   ),
                                   Text(
-                                    _coins[index].ticker.toUpperCase(),
+                                    _fiats[index].ticker.toUpperCase(),
                                     style: STextStyles.smallMed12(context)
                                         .copyWith(
                                       color: Theme.of(context)
