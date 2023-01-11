@@ -27,20 +27,20 @@ const TransactionSchema = CollectionSchema(
       name: r'amount',
       type: IsarType.long,
     ),
-    r'cancelled': PropertySchema(
-      id: 2,
-      name: r'cancelled',
-      type: IsarType.bool,
-    ),
     r'fee': PropertySchema(
-      id: 3,
+      id: 2,
       name: r'fee',
       type: IsarType.long,
     ),
     r'height': PropertySchema(
-      id: 4,
+      id: 3,
       name: r'height',
       type: IsarType.long,
+    ),
+    r'isCancelled': PropertySchema(
+      id: 4,
+      name: r'isCancelled',
+      type: IsarType.bool,
     ),
     r'otherData': PropertySchema(
       id: 5,
@@ -167,9 +167,9 @@ void _transactionSerialize(
 ) {
   writer.writeString(offsets[0], object.address);
   writer.writeLong(offsets[1], object.amount);
-  writer.writeBool(offsets[2], object.cancelled);
-  writer.writeLong(offsets[3], object.fee);
-  writer.writeLong(offsets[4], object.height);
+  writer.writeLong(offsets[2], object.fee);
+  writer.writeLong(offsets[3], object.height);
+  writer.writeBool(offsets[4], object.isCancelled);
   writer.writeString(offsets[5], object.otherData);
   writer.writeString(offsets[6], object.slateId);
   writer.writeByte(offsets[7], object.subType.index);
@@ -187,10 +187,10 @@ Transaction _transactionDeserialize(
   final object = Transaction();
   object.address = reader.readString(offsets[0]);
   object.amount = reader.readLong(offsets[1]);
-  object.cancelled = reader.readBool(offsets[2]);
-  object.fee = reader.readLong(offsets[3]);
-  object.height = reader.readLongOrNull(offsets[4]);
+  object.fee = reader.readLong(offsets[2]);
+  object.height = reader.readLongOrNull(offsets[3]);
   object.id = id;
+  object.isCancelled = reader.readBool(offsets[4]);
   object.otherData = reader.readStringOrNull(offsets[5]);
   object.slateId = reader.readStringOrNull(offsets[6]);
   object.subType =
@@ -216,11 +216,11 @@ P _transactionDeserializeProp<P>(
     case 1:
       return (reader.readLong(offset)) as P;
     case 2:
-      return (reader.readBool(offset)) as P;
-    case 3:
       return (reader.readLong(offset)) as P;
-    case 4:
+    case 3:
       return (reader.readLongOrNull(offset)) as P;
+    case 4:
+      return (reader.readBool(offset)) as P;
     case 5:
       return (reader.readStringOrNull(offset)) as P;
     case 6:
@@ -748,16 +748,6 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      cancelledEqualTo(bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'cancelled',
-        value: value,
-      ));
-    });
-  }
-
   QueryBuilder<Transaction, Transaction, QAfterFilterCondition> feeEqualTo(
       int value) {
     return QueryBuilder.apply(this, (query) {
@@ -931,6 +921,16 @@ extension TransactionQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      isCancelledEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isCancelled',
+        value: value,
       ));
     });
   }
@@ -1703,18 +1703,6 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByCancelled() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'cancelled', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByCancelledDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'cancelled', Sort.desc);
-    });
-  }
-
   QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByFee() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fee', Sort.asc);
@@ -1736,6 +1724,18 @@ extension TransactionQuerySortBy
   QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByHeightDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'height', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByIsCancelled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isCancelled', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByIsCancelledDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isCancelled', Sort.desc);
     });
   }
 
@@ -1838,18 +1838,6 @@ extension TransactionQuerySortThenBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByCancelled() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'cancelled', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByCancelledDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'cancelled', Sort.desc);
-    });
-  }
-
   QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByFee() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fee', Sort.asc);
@@ -1883,6 +1871,18 @@ extension TransactionQuerySortThenBy
   QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByIsCancelled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isCancelled', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByIsCancelledDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isCancelled', Sort.desc);
     });
   }
 
@@ -1974,12 +1974,6 @@ extension TransactionQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QDistinct> distinctByCancelled() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'cancelled');
-    });
-  }
-
   QueryBuilder<Transaction, Transaction, QDistinct> distinctByFee() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'fee');
@@ -1989,6 +1983,12 @@ extension TransactionQueryWhereDistinct
   QueryBuilder<Transaction, Transaction, QDistinct> distinctByHeight() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'height');
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QDistinct> distinctByIsCancelled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isCancelled');
     });
   }
 
@@ -2052,12 +2052,6 @@ extension TransactionQueryProperty
     });
   }
 
-  QueryBuilder<Transaction, bool, QQueryOperations> cancelledProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'cancelled');
-    });
-  }
-
   QueryBuilder<Transaction, int, QQueryOperations> feeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'fee');
@@ -2067,6 +2061,12 @@ extension TransactionQueryProperty
   QueryBuilder<Transaction, int?, QQueryOperations> heightProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'height');
+    });
+  }
+
+  QueryBuilder<Transaction, bool, QQueryOperations> isCancelledProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isCancelled');
     });
   }
 

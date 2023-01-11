@@ -2223,7 +2223,7 @@ class BitcoinCashWallet extends CoinServiceAPI {
 
       tx.height = txData["height"] as int?;
 
-      tx.cancelled = false;
+      tx.isCancelled = false;
       tx.slateId = null;
       tx.otherData = null;
 

@@ -122,7 +122,7 @@ class TxIcon2 extends StatelessWidget {
       child: Center(
         child: SvgPicture.asset(
           _getAssetName(
-            transaction.cancelled,
+            transaction.isCancelled,
             txIsReceived,
             !transaction.isConfirmed(
               currentHeight,

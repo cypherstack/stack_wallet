@@ -34,7 +34,7 @@ class Transaction {
 
   late int? height;
 
-  late bool cancelled;
+  late bool isCancelled;
 
   late String? slateId;
 

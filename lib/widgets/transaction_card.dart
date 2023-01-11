@@ -452,7 +452,7 @@ class _TransactionCardState2 extends ConsumerState<TransactionCard2> {
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Text(
-                                _transaction.cancelled
+                                _transaction.isCancelled
                                     ? "Cancelled"
                                     : whatIsIt(
                                         _transaction.type,
