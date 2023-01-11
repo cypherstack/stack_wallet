@@ -6,6 +6,7 @@ import 'package:decimal/decimal.dart';
 import 'package:devicelocale/devicelocale.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:flutter/foundation.dart';
+import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart';
 import 'package:stackwallet/models/paymint/utxo_model.dart';
@@ -38,7 +39,11 @@ import 'package:stackwallet/services/notifications_api.dart';
 
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 
-const int MINIMUM_CONFIRMATIONS = 10;
+import 'package:stackwallet/services/node_service.dart';
+
+import 'package:stackwallet/utilities/default_nodes.dart';
+
+const int MINIMUM_CONFIRMATIONS = 5;
 const int DUST_LIMIT = 294;
 
 const String GENESIS_HASH_MAINNET =
@@ -86,6 +91,8 @@ class GasTracker {
 }
 
 class EthereumWallet extends CoinServiceAPI {
+  NodeModel? _ethNode;
+
   @override
   set isFavorite(bool markFavorite) {
     DB.instance.put<dynamic>(
@@ -181,7 +188,6 @@ class EthereumWallet extends CoinServiceAPI {
   @override
   Future<Decimal> get availableBalance async {
     EtherAmount ethBalance = await _client.getBalance(_credentials.address);
-    print("THIS ETH BALANCE IS $ethBalance");
     return Decimal.parse(ethBalance.getValueInUnit(EtherUnit.ether).toString());
   }
 
@@ -193,23 +199,19 @@ class EthereumWallet extends CoinServiceAPI {
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
     final gasPrice = await _client.getGasPrice();
     final int chainId = await _client.getNetworkId();
-    //Get Gas Limit for current block
-    final blockInfo = await _client.getBlockInformation(blockNumber: 'latest');
-    String gasLimit = blockInfo.gasLimit;
 
     final amount = txData['recipientAmt'];
     final decimalAmount =
         Format.satoshisToAmount(amount as int, coin: Coin.ethereum);
     final bigIntAmount = amountToBigInt(decimalAmount.toDouble());
     final tx = Transaction.Transaction(
-        to: EthereumAddress.fromHex(txData['addresss'] as String),
+        to: EthereumAddress.fromHex(txData['address'] as String),
         gasPrice: gasPrice,
-        maxGas: int.parse(gasLimit),
+        maxGas: 21000,
         value: EtherAmount.inWei(bigIntAmount));
     final transaction =
         await _client.sendTransaction(_credentials, tx, chainId: chainId);
 
-    Logging.instance.log("Generated TX IS  $transaction", level: LogLevel.Info);
     return transaction;
   }
 
@@ -236,9 +238,11 @@ class EthereumWallet extends CoinServiceAPI {
   }
 
   @override
-  Future<void> exit() {
-    // TODO: implement exit
-    throw UnimplementedError();
+  Future<void> exit() async {
+    _hasCalledExit = true;
+    timer?.cancel();
+    timer = null;
+    stopNetworkAlivePinging();
   }
 
   @override
@@ -266,7 +270,7 @@ class EthereumWallet extends CoinServiceAPI {
 
   @override
   Future<bool> generateNewAddress() {
-    // TODO: implement generateNewAddress
+    // TODO: implement generateNewAddress - might not be needed for ETH
     throw UnimplementedError();
   }
 
@@ -339,9 +343,10 @@ class EthereumWallet extends CoinServiceAPI {
   @override
   bool get isConnected => _isConnected;
 
-  bool refreshMutex = false;
   @override
   bool get isRefreshing => refreshMutex;
+
+  bool refreshMutex = false;
 
   @override
   // TODO: implement maxFee
@@ -400,7 +405,7 @@ class EthereumWallet extends CoinServiceAPI {
       "fee": Format.decimalAmountToSatoshis(
           Decimal.parse(gasPrice.getValueInUnit(EtherUnit.ether).toString()),
           coin),
-      "addresss": address,
+      "address": address,
       "recipientAmt": satoshiAmount,
     };
 
@@ -449,9 +454,8 @@ class EthereumWallet extends CoinServiceAPI {
   Future<bool> refreshIfThereIsNewData() async {
     if (longMutex) return false;
     if (_hasCalledExit) return false;
-    Logging.instance.log("refreshIfThereIsNewData", level: LogLevel.Info);
-    Logging.instance.log("TX Tracker Pendings is ${txTracker.pendings}",
-        level: LogLevel.Info);
+    final currentChainHeight = await chainHeight;
+
     try {
       bool needsRefresh = false;
       Set<String> txnsToCheck = {};
@@ -464,14 +468,14 @@ class EthereumWallet extends CoinServiceAPI {
 
       for (String txid in txnsToCheck) {
         final txn = await _client.getTransactionByHash(txid);
-        print("TXS TO CHECK IS $txn");
-        // int confirmations = txn["confirmations"] as int? ?? 0;
-        // bool isUnconfirmed = confirmations < MINIMUM_CONFIRMATIONS;
-        // if (!isUnconfirmed) {
-        //   // unconfirmedTxs = {};
-        //   needsRefresh = true;
-        //   break;
-        // }
+        final int txBlockNumber = txn.blockNumber.blockNum;
+
+        final int txConfirmations = currentChainHeight - txBlockNumber;
+        bool isUnconfirmed = txConfirmations < MINIMUM_CONFIRMATIONS;
+        if (!isUnconfirmed) {
+          needsRefresh = true;
+          break;
+        }
       }
       // if (!needsRefresh) {
       //   var allOwnAddresses = await _fetchAllOwnAddresses();
@@ -660,22 +664,22 @@ class EthereumWallet extends CoinServiceAPI {
         ),
       );
 
-      if (shouldAutoSync) {
-        timer ??= Timer.periodic(const Duration(seconds: 30), (timer) async {
-          Logging.instance.log(
-              "Periodic refresh check for $walletId $walletName in object instance: $hashCode",
-              level: LogLevel.Info);
-          // chain height check currently broken
-          // if ((await chainHeight) != (await storedChainHeight)) {
-          if (await refreshIfThereIsNewData()) {
-            await refresh();
-            GlobalEventBus.instance.fire(UpdatedInBackgroundEvent(
-                "New data found in $walletId $walletName in background!",
-                walletId));
-          }
-          // }
-        });
-      }
+      // if (shouldAutoSync) {
+      //   timer ??= Timer.periodic(const Duration(seconds: 30), (timer) async {
+      //     Logging.instance.log(
+      //         "Periodic refresh check for $walletId $walletName in object instance: $hashCode",
+      //         level: LogLevel.Info);
+      //     // chain height check currently broken
+      //     // if ((await chainHeight) != (await storedChainHeight)) {
+      //     if (await refreshIfThereIsNewData()) {
+      //       await refresh();
+      //       GlobalEventBus.instance.fire(UpdatedInBackgroundEvent(
+      //           "New data found in $walletId $walletName in background!",
+      //           walletId));
+      //     }
+      //     // }
+      //   });
+      // }
     } catch (error, strace) {
       refreshMutex = false;
       GlobalEventBus.instance.fire(
@@ -748,9 +752,14 @@ class EthereumWallet extends CoinServiceAPI {
   Future<List<UtxoObject>> get unspentOutputs => throw UnimplementedError();
 
   @override
-  Future<void> updateNode(bool shouldRefresh) {
-    // TODO: implement updateNode
-    throw UnimplementedError();
+  Future<void> updateNode(bool shouldRefresh) async {
+    _ethNode = NodeService(secureStorageInterface: _secureStore)
+            .getPrimaryNodeFor(coin: coin) ??
+        DefaultNodes.getNodeFor(coin);
+
+    if (shouldRefresh) {
+      unawaited(refresh());
+    }
   }
 
   @override
@@ -844,7 +853,6 @@ class EthereumWallet extends CoinServiceAPI {
             transactionAmount / (pow(10, decimal));
 
         //Convert to satoshi, default display for other coins
-        // Decimal.parse(gasPrice.getValueInUnit(EtherUnit.ether).toString())
         final satAmount = Format.decimalAmountToSatoshis(
             Decimal.parse(transactionAmountInDecimal.toString()), coin);
 
