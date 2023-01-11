@@ -169,6 +169,17 @@ class DbVersionMigrator {
         // try to continue migrating
         return await migrate(4, secureStore: secureStore);
 
+      // case 4:
+      //   // TODO: once isar migration is ready
+      //  // 1. Address arrays
+      //
+      //   // update version
+      //   await DB.instance.put<dynamic>(
+      //       boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 5);
+      //
+      //   // try to continue migrating
+      //   return await migrate(5, secureStore: secureStore);
+
       default:
         // finally return
         return;
