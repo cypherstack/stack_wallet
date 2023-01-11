@@ -199,7 +199,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             left: 32,
                           ),
                           child: Text(
-                            "Choose a coin to exchange",
+                            "Choose a crypto to buy",
                             style: STextStyles.desktopH3(context),
                           ),
                         ),

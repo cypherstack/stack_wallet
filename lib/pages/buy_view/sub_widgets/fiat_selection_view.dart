@@ -97,7 +97,7 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
                 },
               ),
               title: Text(
-                "Choose a crypto to buy",
+                "Choose a currency with which to pay",
                 style: STextStyles.pageTitleH2(context),
               ),
             ),
@@ -174,7 +174,7 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
             height: 10,
           ),
           Text(
-            "Popular fiats",
+            "Popular currencies",
             style: STextStyles.smallMed12(context),
           ),
           const SizedBox(

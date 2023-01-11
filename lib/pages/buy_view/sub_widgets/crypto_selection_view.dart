@@ -97,7 +97,7 @@ class _CryptoSelectionViewState extends State<CryptoSelectionView> {
                 },
               ),
               title: Text(
-                "Choose a crypto to buy",
+                "Choose a coin to buy",
                 style: STextStyles.pageTitleH2(context),
               ),
             ),
