@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:bech32/bech32.dart';
 import 'package:bip32/bip32.dart' as bip32;
@@ -9,20 +8,15 @@ import 'package:bip39/bip39.dart' as bip39;
 import 'package:bitcoindart/bitcoindart.dart';
 import 'package:bitcoindart/bitcoindart.dart' as btc_dart;
 import 'package:bs58check/bs58check.dart' as bs58check;
-import 'package:crypto/crypto.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/models/isar/models/address/address.dart';
+import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
-import 'package:stackwallet/models/models.dart' as models;
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
-import 'package:stackwallet/models/paymint/utxo_model.dart';
 import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
@@ -32,8 +26,8 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
-import 'package:stackwallet/services/price.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
+import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
@@ -151,70 +145,25 @@ class DogecoinWallet extends CoinServiceAPI {
     }
   }
 
-  List<UtxoObject> outputsList = [];
+  @override
+  Future<List<isar_models.UTXO>> get utxos => isar.utxos.where().findAll();
+
+  @override
+  Future<List<isar_models.Transaction>> get transactions =>
+      isar.transactions.where().sortByTimestampDesc().findAll();
 
   @override
   Coin get coin => _coin;
-
-  @override
-  Future<List<String>> get allOwnAddresses =>
-      throw Exception("doeg all own address exception!!");
-  //     _allOwnAddresses ??= _fetchAllOwnAddresses();
-  // Future<List<String>>? _allOwnAddresses;
-
-  Future<UtxoData>? _utxoData;
-  Future<UtxoData> get utxoData => _utxoData ??= _fetchUtxoData();
-
-  @override
-  Future<List<UtxoObject>> get unspentOutputs async =>
-      (await utxoData).unspentOutputArray;
-
-  @override
-  Future<Decimal> get availableBalance async {
-    final data = await utxoData;
-    return Format.satoshisToAmount(
-        data.satoshiBalance - data.satoshiBalanceUnconfirmed,
-        coin: coin);
-  }
-
-  @override
-  Future<Decimal> get pendingBalance async {
-    final data = await utxoData;
-    return Format.satoshisToAmount(data.satoshiBalanceUnconfirmed, coin: coin);
-  }
-
-  @override
-  Future<Decimal> get balanceMinusMaxFee async =>
-      (await availableBalance) -
-      (Decimal.fromInt((await maxFee)) /
-              Decimal.fromInt(Constants.satsPerCoin(coin)))
-          .toDecimal();
-
-  @override
-  Future<Decimal> get totalBalance async {
-    if (!isActive) {
-      final totalBalance = DB.instance
-          .get<dynamic>(boxName: walletId, key: 'totalBalance') as int?;
-      if (totalBalance == null) {
-        final data = await utxoData;
-        return Format.satoshisToAmount(data.satoshiBalance, coin: coin);
-      } else {
-        return Format.satoshisToAmount(totalBalance, coin: coin);
-      }
-    }
-    final data = await utxoData;
-    return Format.satoshisToAmount(data.satoshiBalance, coin: coin);
-  }
 
   @override
   Future<String> get currentReceivingAddress async =>
       (await _currentReceivingAddress).value;
 
   Future<isar_models.Address> get _currentReceivingAddress async =>
-      (await isar.address
+      (await isar.addresses
           .filter()
           .typeEqualTo(isar_models.AddressType.p2pkh)
-          .subTypeEqualTo(AddressSubType.receiving)
+          .subTypeEqualTo(isar_models.AddressSubType.receiving)
           .sortByDerivationIndexDesc()
           .findFirst())!;
 
@@ -223,10 +172,10 @@ class DogecoinWallet extends CoinServiceAPI {
       (await _currentChangeAddress).value;
 
   Future<isar_models.Address> get _currentChangeAddress async =>
-      (await isar.address
+      (await isar.addresses
           .filter()
           .typeEqualTo(isar_models.AddressType.p2pkh)
-          .subTypeEqualTo(AddressSubType.change)
+          .subTypeEqualTo(isar_models.AddressSubType.change)
           .sortByDerivationIndexDesc()
           .findFirst())!;
 
@@ -566,7 +515,6 @@ class DogecoinWallet extends CoinServiceAPI {
         final address =
             await _generateAddressForChain(0, 0, DerivePathType.bip44);
         p2pkhReceiveAddressArray.add(address);
-        p2pkhReceiveIndex = 0;
       }
 
       // If restoring a wallet that never sent any funds with change, then set changeArray
@@ -575,15 +523,16 @@ class DogecoinWallet extends CoinServiceAPI {
         final address =
             await _generateAddressForChain(1, 0, DerivePathType.bip44);
         p2pkhChangeAddressArray.add(address);
-        p2pkhChangeIndex = 0;
       }
 
       await _isarInit();
 
       await isar.writeTxn(() async {
-        await isar.address.putAll(p2pkhChangeAddressArray);
-        await isar.address.putAll(p2pkhReceiveAddressArray);
+        await isar.addresses.putAll(p2pkhChangeAddressArray);
+        await isar.addresses.putAll(p2pkhReceiveAddressArray);
       });
+
+      await _updateUTXOs();
 
       await DB.instance
           .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
@@ -621,8 +570,7 @@ class DogecoinWallet extends CoinServiceAPI {
 
       for (String txid in txnsToCheck) {
         final txn = await electrumXClient.getTransaction(txHash: txid);
-        var confirmations = txn["confirmations"];
-        if (confirmations is! int) continue;
+        int confirmations = txn["confirmations"] as int? ?? 0;
         bool isUnconfirmed = confirmations < MINIMUM_CONFIRMATIONS;
         if (!isUnconfirmed) {
           // unconfirmedTxs = {};
@@ -631,10 +579,9 @@ class DogecoinWallet extends CoinServiceAPI {
         }
       }
       if (!needsRefresh) {
-        var allOwnAddresses = await _fetchAllOwnAddresses();
+        final allOwnAddresses = await _fetchAllOwnAddresses();
         List<Map<String, dynamic>> allTxs = await _fetchHistory(
             allOwnAddresses.map((e) => e.value).toList(growable: false));
-        // final txData = await transactionData;
         for (Map<String, dynamic> transaction in allTxs) {
           final txid = transaction['tx_hash'] as String;
           if ((await isar.transactions
@@ -664,8 +611,7 @@ class DogecoinWallet extends CoinServiceAPI {
     List<isar_models.Transaction> unconfirmedTxnsToNotifyPending = [];
     List<isar_models.Transaction> unconfirmedTxnsToNotifyConfirmed = [];
 
-    final currentChainHeight =
-        (await electrumXClient.getBlockHeadTip())["height"] as int;
+    final currentChainHeight = await chainHeight;
 
     final txCount = await isar.transactions.count();
 
@@ -690,22 +636,6 @@ class DogecoinWallet extends CoinServiceAPI {
         }
       }
     }
-
-    // // Get all unconfirmed incoming transactions
-    // for (final chunk in txData.txChunks) {
-    //   for (final tx in chunk.transactions) {
-    //     if (tx.confirmedStatus) {
-    //       if (txTracker.wasNotifiedPending(tx.txid) &&
-    //           !txTracker.wasNotifiedConfirmed(tx.txid)) {
-    //         unconfirmedTxnsToNotifyConfirmed.add(tx);
-    //       }
-    //     } else {
-    //       if (!txTracker.wasNotifiedPending(tx.txid)) {
-    //         unconfirmedTxnsToNotifyPending.add(tx);
-    //       }
-    //     }
-    //   }
-    // }
 
     // notify on new incoming transaction
     for (final tx in unconfirmedTxnsToNotifyPending) {
@@ -838,11 +768,11 @@ class DogecoinWallet extends CoinServiceAPI {
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
         await _checkCurrentReceivingAddressesForTransactions();
 
-        final fetchFuture = _fetchTransactionData();
+        final fetchFuture = _refreshTransactions();
+        final utxosRefreshFuture = _updateUTXOs();
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.50, walletId));
 
-        final newUtxoData = _fetchUtxoData();
         final feeObj = _getFees();
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.60, walletId));
@@ -850,7 +780,8 @@ class DogecoinWallet extends CoinServiceAPI {
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.70, walletId));
         _feeObject = Future(() => feeObj);
-        _utxoData = Future(() => newUtxoData);
+
+        await utxosRefreshFuture;
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.80, walletId));
 
@@ -936,9 +867,7 @@ class DogecoinWallet extends CoinServiceAPI {
         }
         // check for send all
         bool isSendAll = false;
-        final balance =
-            Format.decimalAmountToSatoshis(await availableBalance, coin);
-        if (satoshiAmount == balance) {
+        if (satoshiAmount == balance.spendable) {
           isSendAll = true;
         }
 
@@ -994,24 +923,6 @@ class DogecoinWallet extends CoinServiceAPI {
     } catch (e, s) {
       Logging.instance.log("Exception rethrown from confirmSend(): $e\n$s",
           level: LogLevel.Error);
-      rethrow;
-    }
-  }
-
-  @override
-  Future<String> send({
-    required String toAddress,
-    required int amount,
-    Map<String, String> args = const {},
-  }) async {
-    try {
-      final txData = await prepareSend(
-          address: toAddress, satoshiAmount: amount, args: args);
-      final txHash = await confirmSend(txData: txData);
-      return txHash;
-    } catch (e, s) {
-      Logging.instance
-          .log("Exception rethrown from send(): $e\n$s", level: LogLevel.Error);
       rethrow;
     }
   }
@@ -1108,17 +1019,14 @@ class DogecoinWallet extends CoinServiceAPI {
     Logging.instance.log("Opening existing ${coin.prettyName} wallet.",
         level: LogLevel.Info);
 
+    if ((DB.instance.get<dynamic>(boxName: walletId, key: "id")) == null) {
+      throw Exception(
+          "Attempted to initialize an existing wallet using an unknown wallet ID!");
+    }
+
     await _prefs.init();
     await _isarInit();
   }
-
-  @override
-  Future<TransactionData> get transactionData =>
-      throw Exception("dogecoin transactionData attempt");
-  //     _transactionData ??= _fetchTransactionData();
-  // Future<TransactionData>? _transactionData;
-
-  TransactionData? cachedTxData;
 
   // hack to add tx to txData before refresh completes
   // required based on current app architecture where we don't properly store
@@ -1194,8 +1102,6 @@ class DogecoinWallet extends CoinServiceAPI {
 
   late SecureStorageInterface _secureStore;
 
-  late PriceAPI _priceAPI;
-
   late Isar isar;
 
   DogecoinWallet({
@@ -1205,7 +1111,6 @@ class DogecoinWallet extends CoinServiceAPI {
     required ElectrumX client,
     required CachedElectrumX cachedClient,
     required TransactionNotificationTracker tracker,
-    PriceAPI? priceAPI,
     required SecureStorageInterface secureStore,
   }) {
     txTracker = tracker;
@@ -1214,8 +1119,6 @@ class DogecoinWallet extends CoinServiceAPI {
     _coin = coin;
     _electrumXClient = client;
     _cachedElectrumXClient = cachedClient;
-
-    _priceAPI = priceAPI ?? PriceAPI(Client());
     _secureStore = secureStore;
   }
 
@@ -1273,40 +1176,12 @@ class DogecoinWallet extends CoinServiceAPI {
   }
 
   Future<List<isar_models.Address>> _fetchAllOwnAddresses() async {
-    final allAddresses = await isar.address
+    final allAddresses = await isar.addresses
         .filter()
         .subTypeEqualTo(isar_models.AddressSubType.receiving)
         .or()
         .subTypeEqualTo(isar_models.AddressSubType.change)
         .findAll();
-    // final List<String> allAddresses = [];
-    //
-    // final receivingAddressesP2PKH = DB.instance.get<dynamic>(
-    //     boxName: walletId, key: 'receivingAddressesP2PKH') as List<dynamic>;
-    // final changeAddressesP2PKH =
-    //     DB.instance.get<dynamic>(boxName: walletId, key: 'changeAddressesP2PKH')
-    //         as List<dynamic>;
-    //
-    // // for (var i = 0; i < receivingAddresses.length; i++) {
-    // //   if (!allAddresses.contains(receivingAddresses[i])) {
-    // //     allAddresses.add(receivingAddresses[i]);
-    // //   }
-    // // }
-    // // for (var i = 0; i < changeAddresses.length; i++) {
-    // //   if (!allAddresses.contains(changeAddresses[i])) {
-    // //     allAddresses.add(changeAddresses[i]);
-    // //   }
-    // // }
-    // for (var i = 0; i < receivingAddressesP2PKH.length; i++) {
-    //   if (!allAddresses.contains(receivingAddressesP2PKH[i])) {
-    //     allAddresses.add(receivingAddressesP2PKH[i] as String);
-    //   }
-    // }
-    // for (var i = 0; i < changeAddressesP2PKH.length; i++) {
-    //   if (!allAddresses.contains(changeAddressesP2PKH[i])) {
-    //     allAddresses.add(changeAddressesP2PKH[i] as String);
-    //   }
-    // }
     return allAddresses;
   }
 
@@ -1375,16 +1250,6 @@ class DogecoinWallet extends CoinServiceAPI {
         key: '${_walletId}_mnemonic',
         value: bip39.generateMnemonic(strength: 256));
 
-    // // Set relevant indexes
-    // await DB.instance
-    //     .put<dynamic>(boxName: walletId, key: "receivingIndexP2PKH", value: 0);
-    // await DB.instance
-    //     .put<dynamic>(boxName: walletId, key: "changeIndexP2PKH", value: 0);
-    // await DB.instance.put<dynamic>(
-    //   boxName: walletId,
-    //   key: 'blocked_tx_hashes',
-    //   value: ["0xdefault"],
-    // ); // A list of transaction hashes to represent frozen utxos in wallet
     // initialize address book entries
     await DB.instance.put<dynamic>(
         boxName: walletId,
@@ -1400,7 +1265,7 @@ class DogecoinWallet extends CoinServiceAPI {
     await _isarInit();
 
     await isar.writeTxn(() async {
-      await isar.address.putAll([
+      await isar.addresses.putAll([
         initialReceivingAddressP2PKH,
         initialChangeAddressP2PKH,
       ]);
@@ -1462,17 +1327,21 @@ class DogecoinWallet extends CoinServiceAPI {
   /// Returns the latest receiving/change (external/internal) address for the wallet depending on [chain]
   /// and
   /// [chain] - Use 0 for receiving (external), 1 for change (internal). Should not be any other value!
-  Future<String> getCurrentAddressForChain(
-      int chain, DerivePathType derivePathType) async {
+  Future<String> _getCurrentAddressForChain(
+    int chain,
+    DerivePathType derivePathType,
+  ) async {
+    final subType = chain == 0 // Here, we assume that chain == 1 if it isn't 0
+        ? isar_models.AddressSubType.receiving
+        : isar_models.AddressSubType.change;
+
     isar_models.Address? address;
     switch (derivePathType) {
       case DerivePathType.bip44:
-        address = await isar.address
+        address = await isar.addresses
             .filter()
-            .subTypeEqualTo(
-                chain == 0 // Here, we assume that chain == 1 if it isn't 0
-                    ? isar_models.AddressSubType.receiving
-                    : isar_models.AddressSubType.change)
+            .typeEqualTo(isar_models.AddressType.p2pkh)
+            .subTypeEqualTo(subType)
             .sortByDerivationIndexDesc()
             .findFirst();
         break;
@@ -1609,7 +1478,7 @@ class DogecoinWallet extends CoinServiceAPI {
     return allTransactions;
   }
 
-  Future<UtxoData> _fetchUtxoData() async {
+  Future<void> _updateUTXOs() async {
     final allAddresses = await _fetchAllOwnAddresses();
 
     try {
@@ -1622,7 +1491,8 @@ class DogecoinWallet extends CoinServiceAPI {
         if (batches[batchNumber] == null) {
           batches[batchNumber] = {};
         }
-        final scripthash = _convertToScriptHash(allAddresses[i].value, network);
+        final scripthash =
+            AddressUtils.convertToScriptHash(allAddresses[i].value, network);
         batches[batchNumber]!.addAll({
           scripthash: [scripthash]
         });
@@ -1641,148 +1511,123 @@ class DogecoinWallet extends CoinServiceAPI {
         }
       }
 
-      final priceData =
-          await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
-      Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
-      final List<Map<String, dynamic>> outputArray = [];
-      int satoshiBalance = 0;
+      final currentChainHeight = await chainHeight;
+
+      final List<isar_models.UTXO> outputArray = [];
+      int satoshiBalanceTotal = 0;
       int satoshiBalancePending = 0;
+      int satoshiBalanceSpendable = 0;
+      int satoshiBalanceBlocked = 0;
 
       for (int i = 0; i < fetchedUtxoList.length; i++) {
         for (int j = 0; j < fetchedUtxoList[i].length; j++) {
-          int value = fetchedUtxoList[i][j]["value"] as int;
-          satoshiBalance += value;
-
           final txn = await cachedElectrumXClient.getTransaction(
             txHash: fetchedUtxoList[i][j]["tx_hash"] as String,
             verbose: true,
             coin: coin,
           );
 
-          final Map<String, dynamic> utxo = {};
-          final int confirmations = txn["confirmations"] as int? ?? 0;
-          final bool confirmed = txn["confirmations"] == null
-              ? false
-              : txn["confirmations"] as int >= MINIMUM_CONFIRMATIONS;
-          if (!confirmed) {
-            satoshiBalancePending += value;
+          final utxo = isar_models.UTXO();
+
+          utxo.txid = txn["txid"] as String;
+          utxo.vout = fetchedUtxoList[i][j]["tx_pos"] as int;
+          utxo.value = fetchedUtxoList[i][j]["value"] as int;
+          utxo.name = "";
+
+          // todo check here if we should mark as blocked
+          utxo.isBlocked = false;
+          utxo.blockedReason = null;
+
+          utxo.isCoinbase = txn["is_coinbase"] as bool? ?? false;
+          utxo.blockHash = txn["blockhash"] as String?;
+          utxo.blockHeight = fetchedUtxoList[i][j]["height"] as int?;
+          utxo.blockTime = txn["blocktime"] as int?;
+
+          satoshiBalanceTotal += utxo.value;
+
+          if (utxo.isBlocked) {
+            satoshiBalanceBlocked += utxo.value;
+          } else {
+            if (utxo.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
+              satoshiBalanceSpendable += utxo.value;
+            } else {
+              satoshiBalancePending += utxo.value;
+            }
           }
 
-          utxo["txid"] = txn["txid"];
-          utxo["vout"] = fetchedUtxoList[i][j]["tx_pos"];
-          utxo["value"] = value;
-
-          utxo["status"] = <String, dynamic>{};
-          utxo["status"]["confirmed"] = confirmed;
-          utxo["status"]["confirmations"] = confirmations;
-          utxo["status"]["block_height"] = fetchedUtxoList[i][j]["height"];
-          utxo["status"]["block_hash"] = txn["blockhash"];
-          utxo["status"]["block_time"] = txn["blocktime"];
-
-          final fiatValue = ((Decimal.fromInt(value) * currentPrice) /
-                  Decimal.fromInt(Constants.satsPerCoin(coin)))
-              .toDecimal(scaleOnInfinitePrecision: 2);
-          utxo["rawWorth"] = fiatValue;
-          utxo["fiatWorth"] = fiatValue.toString();
           outputArray.add(utxo);
         }
       }
 
-      Decimal currencyBalanceRaw =
-          ((Decimal.fromInt(satoshiBalance) * currentPrice) /
-                  Decimal.fromInt(Constants.satsPerCoin(coin)))
-              .toDecimal(scaleOnInfinitePrecision: 2);
-
-      final Map<String, dynamic> result = {
-        "total_user_currency": currencyBalanceRaw.toString(),
-        "total_sats": satoshiBalance,
-        "total_btc": (Decimal.fromInt(satoshiBalance) /
-                Decimal.fromInt(Constants.satsPerCoin(coin)))
-            .toDecimal(
-                scaleOnInfinitePrecision: Constants.decimalPlacesForCoin(coin))
-            .toString(),
-        "outputArray": outputArray,
-        "unconfirmed": satoshiBalancePending,
-      };
-
-      final dataModel = UtxoData.fromJson(result);
-
-      final List<UtxoObject> allOutputs = dataModel.unspentOutputArray;
       Logging.instance
-          .log('Outputs fetched: $allOutputs', level: LogLevel.Info);
-      await _sortOutputs(allOutputs);
-      await DB.instance.put<dynamic>(
-          boxName: walletId, key: 'latest_utxo_model', value: dataModel);
-      await DB.instance.put<dynamic>(
-          boxName: walletId,
-          key: 'totalBalance',
-          value: dataModel.satoshiBalance);
-      return dataModel;
+          .log('Outputs fetched: $outputArray', level: LogLevel.Info);
+
+      await isar.writeTxn(() async {
+        await isar.utxos.clear();
+        await isar.utxos.putAll(outputArray);
+      });
+
+      // finally update balance
+      _balance = Balance(
+        coin: coin,
+        total: satoshiBalanceTotal,
+        spendable: satoshiBalanceSpendable,
+        blockedTotal: satoshiBalanceBlocked,
+        pendingSpendable: satoshiBalancePending,
+      );
     } catch (e, s) {
       Logging.instance
           .log("Output fetch unsuccessful: $e\n$s", level: LogLevel.Error);
-      final latestTxModel =
-          DB.instance.get<dynamic>(boxName: walletId, key: 'latest_utxo_model');
-
-      if (latestTxModel == null) {
-        final emptyModel = {
-          "total_user_currency": "0.00",
-          "total_sats": 0,
-          "total_btc": "0",
-          "outputArray": <dynamic>[]
-        };
-        return UtxoData.fromJson(emptyModel);
-      } else {
-        Logging.instance
-            .log("Old output model located", level: LogLevel.Warning);
-        return latestTxModel as models.UtxoData;
-      }
     }
   }
 
-  /// Takes in a list of UtxoObjects and adds a name (dependent on object index within list)
-  /// and checks for the txid associated with the utxo being blocked and marks it accordingly.
-  /// Now also checks for output labeling.
-  Future<void> _sortOutputs(List<UtxoObject> utxos) async {
-    final blockedHashArray =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'blocked_tx_hashes')
-            as List<dynamic>?;
-    final List<String> lst = [];
-    if (blockedHashArray != null) {
-      for (var hash in blockedHashArray) {
-        lst.add(hash as String);
-      }
-    }
-    final labels =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'labels') as Map? ??
-            {};
+  @override
+  Balance get balance => _balance!;
+  Balance? _balance;
 
-    outputsList = [];
-
-    for (var i = 0; i < utxos.length; i++) {
-      if (labels[utxos[i].txid] != null) {
-        utxos[i].txName = labels[utxos[i].txid] as String? ?? "";
-      } else {
-        utxos[i].txName = 'Output #$i';
-      }
-
-      if (utxos[i].status.confirmed == false) {
-        outputsList.add(utxos[i]);
-      } else {
-        if (lst.contains(utxos[i].txid)) {
-          utxos[i].blocked = true;
-          outputsList.add(utxos[i]);
-        } else if (!lst.contains(utxos[i].txid)) {
-          outputsList.add(utxos[i]);
-        }
-      }
-    }
-  }
+  // /// Takes in a list of UtxoObjects and adds a name (dependent on object index within list)
+  // /// and checks for the txid associated with the utxo being blocked and marks it accordingly.
+  // /// Now also checks for output labeling.
+  // Future<void> _sortOutputs(List<UtxoObject> utxos) async {
+  //   final blockedHashArray =
+  //       DB.instance.get<dynamic>(boxName: walletId, key: 'blocked_tx_hashes')
+  //           as List<dynamic>?;
+  //   final List<String> lst = [];
+  //   if (blockedHashArray != null) {
+  //     for (var hash in blockedHashArray) {
+  //       lst.add(hash as String);
+  //     }
+  //   }
+  //   final labels =
+  //       DB.instance.get<dynamic>(boxName: walletId, key: 'labels') as Map? ??
+  //           {};
+  //
+  //   outputsList = [];
+  //
+  //   for (var i = 0; i < utxos.length; i++) {
+  //     if (labels[utxos[i].txid] != null) {
+  //       utxos[i].txName = labels[utxos[i].txid] as String? ?? "";
+  //     } else {
+  //       utxos[i].txName = 'Output #$i';
+  //     }
+  //
+  //     if (utxos[i].status.confirmed == false) {
+  //       outputsList.add(utxos[i]);
+  //     } else {
+  //       if (lst.contains(utxos[i].txid)) {
+  //         utxos[i].blocked = true;
+  //         outputsList.add(utxos[i]);
+  //       } else if (!lst.contains(utxos[i].txid)) {
+  //         outputsList.add(utxos[i]);
+  //       }
+  //     }
+  //   }
+  // }
 
   Future<int> getTxCount({required String address}) async {
     String? scripthash;
     try {
-      scripthash = _convertToScriptHash(address, network);
+      scripthash = AddressUtils.convertToScriptHash(address, network);
       final transactions =
           await electrumXClient.getHistory(scripthash: scripthash);
       return transactions.length;
@@ -1800,7 +1645,9 @@ class DogecoinWallet extends CoinServiceAPI {
     try {
       final Map<String, List<dynamic>> args = {};
       for (final entry in addresses.entries) {
-        args[entry.key] = [_convertToScriptHash(entry.value, network)];
+        args[entry.key] = [
+          AddressUtils.convertToScriptHash(entry.value, network)
+        ];
       }
       final response = await electrumXClient.getBatchHistory(args: args);
 
@@ -1827,6 +1674,7 @@ class DogecoinWallet extends CoinServiceAPI {
           level: LogLevel.Info);
 
       if (txCount >= 1) {
+        // First increment the receiving index
         final newReceivingIndex = currentReceiving.derivationIndex + 1;
 
         // Use new index to derive a new receiving address
@@ -1835,7 +1683,7 @@ class DogecoinWallet extends CoinServiceAPI {
 
         // Add that new receiving address
         await isar.writeTxn(() async {
-          await isar.address.put(newReceivingAddress);
+          await isar.addresses.put(newReceivingAddress);
         });
       }
     } on SocketException catch (se, s) {
@@ -1869,12 +1717,12 @@ class DogecoinWallet extends CoinServiceAPI {
 
         // Add that new change address
         await isar.writeTxn(() async {
-          await isar.address.put(newChangeAddress);
+          await isar.addresses.put(newChangeAddress);
         });
       }
     } catch (e, s) {
       Logging.instance.log(
-          "Exception rethrown from _checkChangeAddressForTransactions($DerivePathType.bip44): $e\n$s",
+          "Exception rethrown from _checkChangeAddressForTransactions(${DerivePathType.bip44}): $e\n$s",
           level: LogLevel.Error);
       rethrow;
     }
@@ -1882,9 +1730,9 @@ class DogecoinWallet extends CoinServiceAPI {
 
   Future<void> _checkCurrentReceivingAddressesForTransactions() async {
     try {
-      for (final type in DerivePathType.values) {
-        await _checkReceivingAddressForTransactions();
-      }
+      // for (final type in DerivePathType.values) {
+      await _checkReceivingAddressForTransactions();
+      // }
     } catch (e, s) {
       Logging.instance.log(
           "Exception rethrown from _checkCurrentReceivingAddressesForTransactions(): $e\n$s",
@@ -1906,9 +1754,9 @@ class DogecoinWallet extends CoinServiceAPI {
 
   Future<void> _checkCurrentChangeAddressesForTransactions() async {
     try {
-      for (final type in DerivePathType.values) {
-        await checkChangeAddressForTransactions();
-      }
+      // for (final type in DerivePathType.values) {
+      await checkChangeAddressForTransactions();
+      // }
     } catch (e, s) {
       Logging.instance.log(
           "Exception rethrown from _checkCurrentChangeAddressesForTransactions(): $e\n$s",
@@ -1928,31 +1776,6 @@ class DogecoinWallet extends CoinServiceAPI {
     }
   }
 
-  /// attempts to convert a string to a valid scripthash
-  ///
-  /// Returns the scripthash or throws an exception on invalid dogecoin address
-  String _convertToScriptHash(String dogecoinAddress, NetworkType network) {
-    try {
-      final output = btc_dart.Address.addressToOutputScript(
-        dogecoinAddress,
-        network,
-      );
-      final hash = sha256.convert(output.toList(growable: false)).toString();
-
-      final chars = hash.split("");
-      final reversedPairs = <String>[];
-      var i = chars.length - 1;
-      while (i > 0) {
-        reversedPairs.add(chars[i - 1]);
-        reversedPairs.add(chars[i]);
-        i -= 2;
-      }
-      return reversedPairs.join("");
-    } catch (e) {
-      rethrow;
-    }
-  }
-
   Future<List<Map<String, dynamic>>> _fetchHistory(
       List<String> allAddresses) async {
     try {
@@ -1966,7 +1789,8 @@ class DogecoinWallet extends CoinServiceAPI {
         if (batches[batchNumber] == null) {
           batches[batchNumber] = {};
         }
-        final scripthash = _convertToScriptHash(allAddresses[i], network);
+        final scripthash =
+            AddressUtils.convertToScriptHash(allAddresses[i], network);
         final id = Logger.isTestEnv ? "$i" : const Uuid().v1();
         requestIdToAddressMap[id] = allAddresses[i];
         batches[batchNumber]!.addAll({
@@ -2044,7 +1868,7 @@ class DogecoinWallet extends CoinServiceAPI {
   //       boxName: walletId, key: "changeAddressesP2PKH", value: []);
   // }
 
-  Future<void> _fetchTransactionData() async {
+  Future<void> _refreshTransactions() async {
     final List<isar_models.Address> allAddresses =
         await _fetchAllOwnAddresses();
 
@@ -2064,7 +1888,6 @@ class DogecoinWallet extends CoinServiceAPI {
         coin: coin,
       );
 
-      // Logging.instance.log("TRANSACTION: ${jsonEncode(tx)}");
       if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
         tx["address"] = txHash["address"];
         tx["height"] = txHash["height"];
@@ -2083,7 +1906,7 @@ class DogecoinWallet extends CoinServiceAPI {
     await fastFetch(vHashes.toList());
 
     for (final txObject in allTransactions) {
-      final midSortedTx = await parseTransaction(
+      final txn = await parseTransaction(
         txObject,
         cachedElectrumXClient,
         allAddresses,
@@ -2091,16 +1914,16 @@ class DogecoinWallet extends CoinServiceAPI {
         MINIMUM_CONFIRMATIONS,
       );
 
-      final tx = await isar.transactions
-          .filter()
-          .txidMatches(midSortedTx.txid)
-          .findFirst();
-      // we don't need to check this but it saves a write tx instead of overwriting the transaction in Isar
-      if (tx == null) {
-        await isar.writeTxn(() async {
-          await isar.transactions.put(midSortedTx);
-        });
-      }
+      // final tx = await isar.transactions
+      //     .filter()
+      //     .txidMatches(midSortedTx.txid)
+      //     .findFirst();
+      // // we don't need to check this but it saves a write tx instead of overwriting the transaction in Isar
+      // if (tx == null) {
+      await isar.writeTxn(() async {
+        await isar.transactions.put(txn);
+      });
+      // }
     }
   }
 
@@ -2112,27 +1935,34 @@ class DogecoinWallet extends CoinServiceAPI {
   /// with [satoshiAmountToSend] and [selectedTxFeeRate]. If so, it will call buildTrasaction() and return
   /// a map containing the tx hex along with other important information. If not, then it will return
   /// an integer (1 or 2)
-  dynamic coinSelection(int satoshiAmountToSend, int selectedTxFeeRate,
-      String _recipientAddress, bool isSendAll,
-      {int additionalOutputs = 0, List<UtxoObject>? utxos}) async {
+  dynamic coinSelection(
+    int satoshiAmountToSend,
+    int selectedTxFeeRate,
+    String _recipientAddress,
+    bool isSendAll, {
+    int additionalOutputs = 0,
+    List<isar_models.UTXO>? utxos,
+  }) async {
     Logging.instance
         .log("Starting coinSelection ----------", level: LogLevel.Info);
-    final List<UtxoObject> availableOutputs = utxos ?? outputsList;
-    final List<UtxoObject> spendableOutputs = [];
+    final List<isar_models.UTXO> availableOutputs = utxos ?? await this.utxos;
+    final currentChainHeight = await chainHeight;
+    final List<isar_models.UTXO> spendableOutputs = [];
     int spendableSatoshiValue = 0;
 
     // Build list of spendable outputs and totaling their satoshi amount
     for (var i = 0; i < availableOutputs.length; i++) {
-      if (availableOutputs[i].blocked == false &&
-          availableOutputs[i].status.confirmed == true) {
+      if (availableOutputs[i].isBlocked == false &&
+          availableOutputs[i]
+                  .isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS) ==
+              true) {
         spendableOutputs.add(availableOutputs[i]);
         spendableSatoshiValue += availableOutputs[i].value;
       }
     }
 
     // sort spendable by age (oldest first)
-    spendableOutputs.sort(
-        (a, b) => b.status.confirmations.compareTo(a.status.confirmations));
+    spendableOutputs.sort((a, b) => b.blockTime!.compareTo(a.blockTime!));
 
     Logging.instance.log("spendableOutputs.length: ${spendableOutputs.length}",
         level: LogLevel.Info);
@@ -2159,7 +1989,7 @@ class DogecoinWallet extends CoinServiceAPI {
     // Possible situation right here
     int satoshisBeingUsed = 0;
     int inputsBeingConsumed = 0;
-    List<UtxoObject> utxoObjectsToUse = [];
+    List<isar_models.UTXO> utxoObjectsToUse = [];
 
     for (var i = 0;
         satoshisBeingUsed < satoshiAmountToSend && i < spendableOutputs.length;
@@ -2238,7 +2068,7 @@ class DogecoinWallet extends CoinServiceAPI {
       utxoSigningData: utxoSigningData,
       recipients: [
         _recipientAddress,
-        await getCurrentAddressForChain(1, DerivePathType.bip44),
+        await _getCurrentAddressForChain(1, DerivePathType.bip44),
       ],
       satoshiAmounts: [
         satoshiAmountToSend,
@@ -2292,7 +2122,7 @@ class DogecoinWallet extends CoinServiceAPI {
           // generate new change address if current change address has been used
           await checkChangeAddressForTransactions();
           final String newChangeAddress =
-              await getCurrentAddressForChain(1, DerivePathType.bip44);
+              await _getCurrentAddressForChain(1, DerivePathType.bip44);
 
           int feeBeingPaid =
               satoshisBeingUsed - satoshiAmountToSend - changeOutputSize;
@@ -2460,7 +2290,7 @@ class DogecoinWallet extends CoinServiceAPI {
   }
 
   Future<Map<String, dynamic>> fetchBuildTxData(
-    List<UtxoObject> utxosToUse,
+    List<isar_models.UTXO> utxosToUse,
   ) async {
     // return data
     Map<String, dynamic> results = {};
@@ -2563,7 +2393,7 @@ class DogecoinWallet extends CoinServiceAPI {
 
   /// Builds and signs a transaction
   Future<Map<String, dynamic>> buildTransaction({
-    required List<UtxoObject> utxosToUse,
+    required List<isar_models.UTXO> utxosToUse,
     required Map<String, dynamic> utxoSigningData,
     required List<String> recipients,
     required List<int> satoshiAmounts,
@@ -2830,22 +2660,23 @@ class DogecoinWallet extends CoinServiceAPI {
 
   @override
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
-    final available =
-        Format.decimalAmountToSatoshis(await availableBalance, coin);
+    final available = balance.spendable;
 
     if (available == satoshiAmount) {
-      return satoshiAmount - sweepAllEstimate(feeRate);
+      return satoshiAmount - (await sweepAllEstimate(feeRate));
     } else if (satoshiAmount <= 0 || satoshiAmount > available) {
       return roughFeeEstimate(1, 2, feeRate);
     }
 
     int runningBalance = 0;
     int inputCount = 0;
-    for (final output in outputsList) {
-      runningBalance += output.value;
-      inputCount++;
-      if (runningBalance > satoshiAmount) {
-        break;
+    for (final output in (await utxos)) {
+      if (!output.isBlocked) {
+        runningBalance += output.value;
+        inputCount++;
+        if (runningBalance > satoshiAmount) {
+          break;
+        }
       }
     }
 
@@ -2877,11 +2708,12 @@ class DogecoinWallet extends CoinServiceAPI {
         (feeRatePerKB / 1000).ceil();
   }
 
-  int sweepAllEstimate(int feeRate) {
+  Future<int> sweepAllEstimate(int feeRate) async {
     int available = 0;
     int inputCount = 0;
-    for (final output in outputsList) {
-      if (output.status.confirmed) {
+    for (final output in (await utxos)) {
+      if (!output.isBlocked &&
+          output.isConfirmed(storedChainHeight, MINIMUM_CONFIRMATIONS)) {
         available += output.value;
         inputCount++;
       }
@@ -2906,7 +2738,7 @@ class DogecoinWallet extends CoinServiceAPI {
 
       // Add that new receiving address
       await isar.writeTxn(() async {
-        await isar.address.put(newReceivingAddress);
+        await isar.addresses.put(newReceivingAddress);
       });
 
       return true;
