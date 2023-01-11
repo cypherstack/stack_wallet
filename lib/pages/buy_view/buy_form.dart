@@ -42,6 +42,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   final FocusNode _fiatFocusNode = FocusNode();
   final FocusNode _cryptoFocusNode = FocusNode();
 
+  bool buyWithFiat = true;
+
   void fiatFieldOnChanged(String value) async {
     if (_fiatFocusNode.hasFocus) {
       final newFromAmount = Decimal.tryParse(value);
@@ -470,6 +472,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
+    buyWithFiat = ref.watch(
+        prefsChangeNotifierProvider.select((value) => value.buyWithFiat));
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -557,7 +562,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "Enter amount",
+              buyWithFiat ? "Enter amount" : "Enter crypto amount",
               style: STextStyles.itemSubtitle(context).copyWith(
                 color: Theme.of(context).extension<StackColors>()!.textDark3,
               ),
