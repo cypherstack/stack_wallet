@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-// import 'package:stackwallet/pages/buy_view/buy_form.dart';
-// import 'package:stackwallet/pages_desktop_specific/desktop_buy/subwidgets/desktop_buy_history.dart';
+import 'package:stackwallet/pages/buy_view/buy_form.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class DesktopBuyView extends StatefulWidget {
   const DesktopBuyView({Key? key}) : super(key: key);
@@ -25,7 +25,7 @@ class _DesktopBuyViewState extends State<DesktopBuyView> {
             left: 24,
           ),
           child: Text(
-            "Buy",
+            "Buy crypto",
             style: STextStyles.desktopH3(context),
           ),
         ),
@@ -44,17 +44,17 @@ class _DesktopBuyViewState extends State<DesktopBuyView> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "Coming soon",
-                    style: STextStyles.desktopTextExtraExtraSmall(context),
-                  ),
+                  // Text(
+                  //   "Coming soon",
+                  //   style: STextStyles.desktopTextExtraExtraSmall(context),
+                  // ),
                   const SizedBox(
                     height: 16,
                   ),
-                  // const RoundedWhiteContainer(
-                  //   padding: EdgeInsets.all(24),
-                  //   child: BuyForm(),
-                  // ),
+                  const RoundedWhiteContainer(
+                    padding: EdgeInsets.all(24),
+                    child: BuyForm(),
+                  ),
                 ],
               ),
             ),

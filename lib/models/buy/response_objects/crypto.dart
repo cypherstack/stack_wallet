@@ -1,14 +1,14 @@
-class Currency {
-  /// Currency ticker
+class Crypto {
+  /// Crypto ticker
   final String ticker;
 
-  /// Currency name
+  /// Crypto name
   final String name;
 
-  /// Currency network
+  /// Crypto network
   final String network;
 
-  /// Currency logo url
+  /// Crypto logo url
   final String image;
 
   /// Indicates if a currency has an Extra ID
@@ -33,7 +33,7 @@ class Currency {
   /// currently supported by change now
   final bool? isAvailable;
 
-  Currency({
+  Crypto({
     required this.ticker,
     required this.name,
     required this.network,
@@ -47,9 +47,9 @@ class Currency {
     this.isAvailable,
   });
 
-  factory Currency.fromJson(Map<String, dynamic> json) {
+  factory Crypto.fromJson(Map<String, dynamic> json) {
     try {
-      return Currency(
+      return Crypto(
         ticker: json["ticker"] as String,
         name: json["name"] as String,
         network: json["network"] as String? ?? "",
@@ -88,7 +88,7 @@ class Currency {
     return map;
   }
 
-  Currency copyWith({
+  Crypto copyWith({
     String? ticker,
     String? name,
     String? network,
@@ -101,7 +101,7 @@ class Currency {
     bool? supportsFixedRate,
     bool? isAvailable,
   }) {
-    return Currency(
+    return Crypto(
       ticker: ticker ?? this.ticker,
       name: name ?? this.name,
       network: network ?? this.network,
@@ -118,6 +118,6 @@ class Currency {
 
   @override
   String toString() {
-    return "Currency: ${toJson()}";
+    return "Crypto: ${toJson()}";
   }
 }
