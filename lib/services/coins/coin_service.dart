@@ -1,13 +1,15 @@
-import 'package:decimal/decimal.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
-import 'package:stackwallet/models/models.dart';
+import 'package:stackwallet/models/balance.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/node_model.dart';
+import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
 import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
+import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart';
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart';
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:stackwallet/services/coins/particl/particl_wallet.dart';
@@ -16,8 +18,6 @@ import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/prefs.dart';
-
-import 'litecoin/litecoin_wallet.dart';
 
 abstract class CoinServiceAPI {
   CoinServiceAPI();
@@ -240,30 +240,15 @@ abstract class CoinServiceAPI {
 
   Future<String> confirmSend({required Map<String, dynamic> txData});
 
-  /// create and submit tx to network
-  ///
-  /// Returns the txid of the sent tx
-  /// will throw exceptions on failure
-  Future<String> send(
-      {required String toAddress,
-      required int amount,
-      Map<String, String> args});
-
   Future<FeeObject> get fees;
   Future<int> get maxFee;
 
   Future<String> get currentReceivingAddress;
-  // Future<String> get currentLegacyReceivingAddress;
 
-  Future<Decimal> get availableBalance;
-  Future<Decimal> get pendingBalance;
-  Future<Decimal> get totalBalance;
-  Future<Decimal> get balanceMinusMaxFee;
+  Balance get balance;
 
-  Future<List<String>> get allOwnAddresses;
-
-  Future<TransactionData> get transactionData;
-  Future<List<UtxoObject>> get unspentOutputs;
+  Future<List<isar_models.Transaction>> get transactions;
+  Future<List<isar_models.UTXO>> get utxos;
 
   Future<void> refresh();
 
