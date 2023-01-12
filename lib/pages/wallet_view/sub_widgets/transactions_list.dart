@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
@@ -10,7 +9,6 @@ import 'package:stackwallet/providers/blockchain/dogecoin/current_height_provide
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -210,9 +208,8 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
         .select((value) => value.getManager(widget.walletId)));
 
     updateHeightProvider(manager);
-    final wallet = manager.wallet as DogecoinWallet;
     return FutureBuilder(
-      future: wallet.isar.transactions.where().findAll(),
+      future: manager.transactions,
       builder: (fbContext, AsyncSnapshot<List<Transaction>> snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             snapshot.hasData) {
