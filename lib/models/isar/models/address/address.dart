@@ -49,6 +49,7 @@ enum AddressType {
   p2pkh,
   p2sh,
   p2wpkh,
+  cryptonote,
 }
 
 enum AddressSubType {

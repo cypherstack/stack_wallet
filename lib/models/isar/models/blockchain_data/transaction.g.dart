@@ -42,34 +42,39 @@ const TransactionSchema = CollectionSchema(
       name: r'isCancelled',
       type: IsarType.bool,
     ),
-    r'otherData': PropertySchema(
+    r'isLelantus': PropertySchema(
       id: 5,
+      name: r'isLelantus',
+      type: IsarType.bool,
+    ),
+    r'otherData': PropertySchema(
+      id: 6,
       name: r'otherData',
       type: IsarType.string,
     ),
     r'slateId': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'slateId',
       type: IsarType.string,
     ),
     r'subType': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'subType',
       type: IsarType.byte,
       enumMap: _TransactionsubTypeEnumValueMap,
     ),
     r'timestamp': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'timestamp',
       type: IsarType.long,
     ),
     r'txid': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'txid',
       type: IsarType.string,
     ),
     r'type': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'type',
       type: IsarType.byte,
       enumMap: _TransactiontypeEnumValueMap,
@@ -170,12 +175,13 @@ void _transactionSerialize(
   writer.writeLong(offsets[2], object.fee);
   writer.writeLong(offsets[3], object.height);
   writer.writeBool(offsets[4], object.isCancelled);
-  writer.writeString(offsets[5], object.otherData);
-  writer.writeString(offsets[6], object.slateId);
-  writer.writeByte(offsets[7], object.subType.index);
-  writer.writeLong(offsets[8], object.timestamp);
-  writer.writeString(offsets[9], object.txid);
-  writer.writeByte(offsets[10], object.type.index);
+  writer.writeBool(offsets[5], object.isLelantus);
+  writer.writeString(offsets[6], object.otherData);
+  writer.writeString(offsets[7], object.slateId);
+  writer.writeByte(offsets[8], object.subType.index);
+  writer.writeLong(offsets[9], object.timestamp);
+  writer.writeString(offsets[10], object.txid);
+  writer.writeByte(offsets[11], object.type.index);
 }
 
 Transaction _transactionDeserialize(
@@ -191,15 +197,16 @@ Transaction _transactionDeserialize(
   object.height = reader.readLongOrNull(offsets[3]);
   object.id = id;
   object.isCancelled = reader.readBool(offsets[4]);
-  object.otherData = reader.readStringOrNull(offsets[5]);
-  object.slateId = reader.readStringOrNull(offsets[6]);
+  object.isLelantus = reader.readBoolOrNull(offsets[5]);
+  object.otherData = reader.readStringOrNull(offsets[6]);
+  object.slateId = reader.readStringOrNull(offsets[7]);
   object.subType =
-      _TransactionsubTypeValueEnumMap[reader.readByteOrNull(offsets[7])] ??
+      _TransactionsubTypeValueEnumMap[reader.readByteOrNull(offsets[8])] ??
           TransactionSubType.none;
-  object.timestamp = reader.readLong(offsets[8]);
-  object.txid = reader.readString(offsets[9]);
+  object.timestamp = reader.readLong(offsets[9]);
+  object.txid = reader.readString(offsets[10]);
   object.type =
-      _TransactiontypeValueEnumMap[reader.readByteOrNull(offsets[10])] ??
+      _TransactiontypeValueEnumMap[reader.readByteOrNull(offsets[11])] ??
           TransactionType.outgoing;
   return object;
 }
@@ -222,17 +229,19 @@ P _transactionDeserializeProp<P>(
     case 4:
       return (reader.readBool(offset)) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset)) as P;
     case 6:
       return (reader.readStringOrNull(offset)) as P;
     case 7:
+      return (reader.readStringOrNull(offset)) as P;
+    case 8:
       return (_TransactionsubTypeValueEnumMap[reader.readByteOrNull(offset)] ??
           TransactionSubType.none) as P;
-    case 8:
-      return (reader.readLong(offset)) as P;
     case 9:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 10:
+      return (reader.readString(offset)) as P;
+    case 11:
       return (_TransactiontypeValueEnumMap[reader.readByteOrNull(offset)] ??
           TransactionType.outgoing) as P;
     default:
@@ -244,25 +253,25 @@ const _TransactionsubTypeEnumValueMap = {
   'none': 0,
   'bip47Notification': 1,
   'mint': 2,
+  'join': 3,
 };
 const _TransactionsubTypeValueEnumMap = {
   0: TransactionSubType.none,
   1: TransactionSubType.bip47Notification,
   2: TransactionSubType.mint,
+  3: TransactionSubType.join,
 };
 const _TransactiontypeEnumValueMap = {
   'outgoing': 0,
   'incoming': 1,
   'sentToSelf': 2,
   'unknown': 3,
-  'anonymize': 4,
 };
 const _TransactiontypeValueEnumMap = {
   0: TransactionType.outgoing,
   1: TransactionType.incoming,
   2: TransactionType.sentToSelf,
   3: TransactionType.unknown,
-  4: TransactionType.anonymize,
 };
 
 Id _transactionGetId(Transaction object) {
@@ -930,6 +939,34 @@ extension TransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'isCancelled',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      isLelantusIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'isLelantus',
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      isLelantusIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'isLelantus',
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      isLelantusEqualTo(bool? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isLelantus',
         value: value,
       ));
     });
@@ -1739,6 +1776,18 @@ extension TransactionQuerySortBy
     });
   }
 
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByIsLelantus() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isLelantus', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByIsLelantusDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isLelantus', Sort.desc);
+    });
+  }
+
   QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByOtherData() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'otherData', Sort.asc);
@@ -1886,6 +1935,18 @@ extension TransactionQuerySortThenBy
     });
   }
 
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByIsLelantus() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isLelantus', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByIsLelantusDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isLelantus', Sort.desc);
+    });
+  }
+
   QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByOtherData() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'otherData', Sort.asc);
@@ -1992,6 +2053,12 @@ extension TransactionQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Transaction, Transaction, QDistinct> distinctByIsLelantus() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isLelantus');
+    });
+  }
+
   QueryBuilder<Transaction, Transaction, QDistinct> distinctByOtherData(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2067,6 +2134,12 @@ extension TransactionQueryProperty
   QueryBuilder<Transaction, bool, QQueryOperations> isCancelledProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isCancelled');
+    });
+  }
+
+  QueryBuilder<Transaction, bool?, QQueryOperations> isLelantusProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isLelantus');
     });
   }
 

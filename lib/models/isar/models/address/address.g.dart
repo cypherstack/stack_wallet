@@ -171,11 +171,13 @@ const _AddresstypeEnumValueMap = {
   'p2pkh': 0,
   'p2sh': 1,
   'p2wpkh': 2,
+  'cryptonote': 3,
 };
 const _AddresstypeValueEnumMap = {
   0: AddressType.p2pkh,
   1: AddressType.p2sh,
   2: AddressType.p2wpkh,
+  3: AddressType.cryptonote,
 };
 
 Id _addressGetId(Address object) {

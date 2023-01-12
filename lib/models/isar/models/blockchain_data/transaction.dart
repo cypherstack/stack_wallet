@@ -36,6 +36,8 @@ class Transaction {
 
   late bool isCancelled;
 
+  late bool? isLelantus;
+
   late String? slateId;
 
   late String? otherData;
@@ -65,9 +67,7 @@ enum TransactionType {
   outgoing,
   incoming,
   sentToSelf, // should we keep this?
-  unknown,
-  anonymize; // firo specific
-
+  unknown;
 }
 
 // Used in Isar db and stored there as int indexes so adding/removing values
@@ -76,6 +76,6 @@ enum TransactionSubType {
   // TODO: add more types before prod release?
   none,
   bip47Notification, // bip47 payment code notification transaction flag
-  mint; // firo specific
-
+  mint, // firo specific
+  join; // firo specific
 }
