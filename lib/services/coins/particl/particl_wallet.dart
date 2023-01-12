@@ -3384,6 +3384,9 @@ class ParticlWallet extends CoinServiceAPI {
       return false;
     }
   }
+
+  @override
+  Isar get isarInstance => isar;
 }
 
 // Particl Network

@@ -4873,11 +4873,12 @@ class FiroWallet extends CoinServiceAPI {
   Balance? _balancePrivate;
 
   @override
-  // TODO: implement utxos
   Future<List<isar_models.UTXO>> get utxos => isar.utxos.where().findAll();
 
   @override
-  // TODO: implement transactions
   Future<List<isar_models.Transaction>> get transactions =>
       isar.transactions.where().findAll();
+
+  @override
+  Isar get isarInstance => isar;
 }

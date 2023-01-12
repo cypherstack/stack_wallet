@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
+import 'package:isar/isar.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/models.dart';
@@ -214,4 +215,6 @@ class Manager with ChangeNotifier {
   }
 
   int get currentHeight => _currentWallet.storedChainHeight;
+
+  Isar get db => _currentWallet.isarInstance;
 }

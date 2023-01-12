@@ -2337,4 +2337,7 @@ class EpicCashWallet extends CoinServiceAPI {
   @override
   Future<List<isar_models.Transaction>> get transactions =>
       isar.transactions.where().findAll();
+
+  @override
+  Isar get isarInstance => isar;
 }

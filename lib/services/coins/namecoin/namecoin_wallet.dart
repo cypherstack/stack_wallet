@@ -3615,6 +3615,9 @@ class NamecoinWallet extends CoinServiceAPI {
       return false;
     }
   }
+
+  @override
+  Isar get isarInstance => isar;
 }
 
 // Namecoin Network

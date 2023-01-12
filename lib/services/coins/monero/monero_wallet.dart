@@ -1271,4 +1271,7 @@ class MoneroWallet extends CoinServiceAPI {
   @override
   // TODO: implement utxos
   Future<List<isar_models.UTXO>> get utxos => throw UnimplementedError();
+
+  @override
+  Isar get isarInstance => isar;
 }

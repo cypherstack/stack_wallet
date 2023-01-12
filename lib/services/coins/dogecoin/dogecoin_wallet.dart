@@ -2749,6 +2749,9 @@ class DogecoinWallet extends CoinServiceAPI {
       return false;
     }
   }
+
+  @override
+  Isar get isarInstance => isar;
 }
 
 // Dogecoin Network

@@ -3276,6 +3276,9 @@ class BitcoinCashWallet extends CoinServiceAPI {
       return false;
     }
   }
+
+  @override
+  Isar get isarInstance => isar;
 }
 
 // Bitcoincash Network

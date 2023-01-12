@@ -3623,6 +3623,9 @@ class LitecoinWallet extends CoinServiceAPI {
       return false;
     }
   }
+
+  @override
+  Isar get isarInstance => isar;
 }
 
 final litecoin = NetworkType(
