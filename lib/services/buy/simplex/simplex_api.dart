@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 // import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
 // import 'package:stackwallet/models/exchange/response_objects/pair.dart';
@@ -163,9 +164,11 @@ class SimplexAPI {
       }
 
       print(res.body);
-      return null;
+      dynamic jsonArray = jsonDecode(res.body);
 
-      // return await compute(_parseAvailableCurrenciesJson, jsonArray as List);
+      print(jsonArray);
+
+      return await compute(_parseSupported, jsonArray);
     } catch (e, s) {
       Logging.instance.log("getAvailableCurrencies exception: $e\n$s",
           level: LogLevel.Error);
@@ -178,22 +181,22 @@ class SimplexAPI {
     }
   }
 
-  BuyResponse<List<Fiat>> _parseAvailableCurrenciesJson(
-      List<dynamic> jsonArray) {
+  BuyResponse<List<Fiat>> _parseSupported(dynamic jsonArray) {
     try {
-      List<Fiat> currencies = [];
+      List<Fiat> cryptos = [];
+      List<Fiat> fiats = [];
 
       for (final json in jsonArray) {
-        try {
-          currencies.add(Fiat.fromJson(Map<String, dynamic>.from(json as Map)));
-        } catch (_) {
+      dynamic supportedCryptos =
+          jsonArray['result']['supported_digital_currencies'];
+      print(supportedCryptos);
           return BuyResponse(
               exception: BuyException("Failed to serialize $json",
                   BuyExceptionType.serializeResponseError));
-        }
-      }
+      dynamic supportedFiats = jsonArray['result']['supported_fiat_currencies'];
+      print(supportedFiats);
 
-      return BuyResponse(value: currencies);
+      return BuyResponse(value: cryptos);
     } catch (e, s) {
       Logging.instance.log("_parseAvailableCurrenciesJson exception: $e\n$s",
           level: LogLevel.Error);
