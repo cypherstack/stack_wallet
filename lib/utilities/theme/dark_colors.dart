@@ -55,6 +55,8 @@ class DarkColors extends StackColorTheme {
   Color get textFavoriteCard => const Color(0xFF232323);
   @override
   Color get textError => const Color(0xFFF37475);
+  @override
+  Color get textRestore => overlay;
 
   // button background
   @override
@@ -194,6 +196,10 @@ class DarkColors extends StackColorTheme {
   Color get textFieldErrorBG => const Color(0xFFFFB4A9);
   @override
   Color get textFieldSuccessBG => const Color(0xFF8EF5C3);
+  @override
+  Color get textFieldErrorBorder => textFieldErrorBG;
+  @override
+  Color get textFieldSuccessBorder => textFieldSuccessBG;
 
   @override
   Color get textFieldActiveSearchIconLeft => const Color(0xFFA9ACAC);
