@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_menu_item.dart';
 import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
+import 'package:stackwallet/services/buy/buy_data_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -42,6 +43,8 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
   late final List<DMIController> controllers;
 
   double _width = expandedWidth;
+
+  final _buyDataLoadingService = BuyDataLoadingService();
 
   void updateSelectedMenuItem(DesktopMenuItemId idKey) {
     widget.onSelectionWillChange?.call(idKey);
@@ -164,7 +167,9 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       icon: const DesktopBuyIcon(),
                       label: "Buy crypto",
                       value: DesktopMenuItemId.buy,
-                      onChanged: updateSelectedMenuItem,
+                      onChanged: (_) {
+                        _buyDataLoadingService.loadAll(ref);
+                      },
                       controller: controllers[2],
                     ),
                     const SizedBox(
