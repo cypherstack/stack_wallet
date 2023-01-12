@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:isar/isar.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_all_trades_view.dart';
 import 'package:stackwallet/providers/exchange/trade_sent_from_stack_lookup_provider.dart';
@@ -126,10 +128,10 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
                         //todo: check if print needed
                         // debugPrint("name: ${manager.walletName}");
 
-                        // TODO store tx data completely locally in isar so we don't lock up ui here when querying txData
-                        final txData = await manager.transactionData;
-
-                        final tx = txData.getAllTransactions()[txid];
+                        final tx = await manager.db.transactions
+                            .filter()
+                            .txidEqualTo(txid)
+                            .findFirst();
 
                         if (mounted) {
                           await showDialog<void>(
