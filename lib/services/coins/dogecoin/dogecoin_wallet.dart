@@ -1233,12 +1233,6 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
         key: '${_walletId}_mnemonic',
         value: bip39.generateMnemonic(strength: 256));
 
-    // initialize address book entries
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'addressBookEntries',
-        value: <String, String>{});
-
     // Generate and add addresses
     final initialReceivingAddressP2PKH =
         await _generateAddressForChain(0, 0, DerivePathType.bip44);

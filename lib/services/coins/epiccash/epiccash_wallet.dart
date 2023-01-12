@@ -1066,11 +1066,6 @@ class EpicCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
     await DB.instance.put<dynamic>(
         boxName: walletId, key: "restoreHeight", value: bufferedCreateHeight);
 
-    // initialize address book entries
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'addressBookEntries',
-        value: <String, String>{});
     await DB.instance
         .put<dynamic>(boxName: walletId, key: "isFavorite", value: false);
 
@@ -1399,16 +1394,7 @@ class EpicCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       }
       await DB.instance
           .put<dynamic>(boxName: walletId, key: "changeIndex", value: 0);
-      await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'blocked_tx_hashes',
-        value: ["0xdefault"],
-      ); // A list of transaction hashes to represent frozen utxos in wallet
-      // initialize address book entries
-      await DB.instance.put<dynamic>(
-          boxName: walletId,
-          key: 'addressBookEntries',
-          value: <String, String>{});
+
       await DB.instance
           .put<dynamic>(boxName: walletId, key: "isFavorite", value: false);
 

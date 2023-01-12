@@ -2109,12 +2109,6 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         key: '${_walletId}_mnemonic',
         value: bip39.generateMnemonic(strength: 256));
 
-    // initialize address book entries
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'addressBookEntries',
-        value: <String, String>{});
-
     await DB.instance
         .put<dynamic>(boxName: walletId, key: 'jindex', value: <dynamic>[]);
     // Generate and add addresses to relevant arrays

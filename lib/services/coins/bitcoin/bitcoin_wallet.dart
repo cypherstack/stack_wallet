@@ -1455,12 +1455,6 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
         key: '${_walletId}_mnemonic',
         value: bip39.generateMnemonic(strength: 256));
 
-    // initialize address book entries
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'addressBookEntries',
-        value: <String, String>{});
-
     // Generate and add addresses to relevant arrays
     final initialAddresses = await Future.wait([
       // P2WPKH
