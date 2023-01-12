@@ -1146,6 +1146,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         if (highestPercentCached < percent) {
           highestPercentCached = percent;
         }
+        await updateCachedChainHeight(height);
 
         GlobalEventBus.instance.fire(
           RefreshPercentChangedEvent(
@@ -1275,8 +1276,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
       );
 
   @override
-  // TODO: implement storedChainHeight
-  int get storedChainHeight => throw UnimplementedError();
+  int get storedChainHeight => getCachedChainHeight();
 
   @override
   Balance get balance => _balance ??= getCachedBalance();

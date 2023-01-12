@@ -85,7 +85,7 @@ mixin EpicCashHive {
   // epic restore height
   int? epicGetRestoreHeight() {
     return DB.instance.get<dynamic>(boxName: _walletId, key: "restoreHeight")
-        as int;
+        as int?;
   }
 
   Future<void> epicUpdateRestoreHeight(int height) async {
@@ -99,7 +99,7 @@ mixin EpicCashHive {
   // epic creation height
   int? epicGetCreationHeight() {
     return DB.instance.get<dynamic>(boxName: _walletId, key: "creationHeight")
-        as int;
+        as int?;
   }
 
   Future<void> epicUpdateCreationHeight(int height) async {

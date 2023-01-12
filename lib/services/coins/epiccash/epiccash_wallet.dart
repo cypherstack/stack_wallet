@@ -945,6 +945,7 @@ class EpicCashWallet extends CoinServiceAPI
     Logging.instance.log("Opening existing ${coin.prettyName} wallet",
         level: LogLevel.Info);
 
+    await isarInit(walletId);
     final config = await getRealConfig();
     final password = await _secureStore.read(key: '${_walletId}_password');
 
@@ -959,7 +960,6 @@ class EpicCashWallet extends CoinServiceAPI
     }
     await _prefs.init();
     await updateNode(false);
-    await isarInit(walletId);
     await _refreshBalance();
     // TODO: is there anything else that should be set up here whenever this wallet is first loaded again?
   }
@@ -1015,6 +1015,8 @@ class EpicCashWallet extends CoinServiceAPI
     String stringConfig = await getConfig();
     String epicboxConfig = await getEpicBoxConfig();
 
+    await isarInit(walletId);
+
     await _secureStore.write(
         key: '${_walletId}_mnemonic', value: mnemonicString);
     await _secureStore.write(key: '${_walletId}_config', value: stringConfig);
@@ -1051,8 +1053,6 @@ class EpicCashWallet extends CoinServiceAPI
       epicUpdateRestoreHeight(bufferedCreateHeight),
       updateCachedIsFavorite(false),
     ]);
-
-    await isarInit(walletId);
   }
 
   bool refreshMutex = false;
