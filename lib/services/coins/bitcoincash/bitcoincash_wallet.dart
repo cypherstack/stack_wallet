@@ -1430,9 +1430,6 @@ class BitcoinCashWallet extends CoinServiceAPI {
       ),
     );
     final data = PaymentData(pubkey: node.publicKey);
-    final p2shData =
-        PaymentData(redeem: P2WPKH(data: data, network: _network).data);
-
     String address;
     isar_models.AddressType addrType;
 
@@ -1442,7 +1439,12 @@ class BitcoinCashWallet extends CoinServiceAPI {
         addrType = isar_models.AddressType.p2pkh;
         break;
       case DerivePathType.bip49:
-        address = P2SH(data: p2shData, network: _network).data.address!;
+        address = P2SH(
+                data: PaymentData(
+                    redeem: P2WPKH(data: data, network: _network).data),
+                network: _network)
+            .data
+            .address!;
         addrType = isar_models.AddressType.p2sh;
         break;
       // default:
