@@ -724,6 +724,7 @@ Future<Transaction> parseTransaction(
   tx.isCancelled = false;
   tx.slateId = null;
   tx.otherData = null;
+  tx.isLelantus = null;
 
   return tx;
 }
