@@ -1082,19 +1082,6 @@ class EpicCashWallet extends CoinServiceAPI {
     await DB.instance.put<dynamic>(
         boxName: walletId, key: "restoreHeight", value: bufferedCreateHeight);
 
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: 'receivingAddresses', value: ["0"]);
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: "receivingIndex", value: 0);
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: "changeIndex", value: 0);
-    await DB.instance.put<dynamic>(
-      boxName: walletId,
-      key: 'blocked_tx_hashes',
-      value: ["0xdefault"],
-    ); // A list of transaction hashes to represent frozen utxos in wallet
     // initialize address book entries
     await DB.instance.put<dynamic>(
         boxName: walletId,
@@ -1102,6 +1089,8 @@ class EpicCashWallet extends CoinServiceAPI {
         value: <String, String>{});
     await DB.instance
         .put<dynamic>(boxName: walletId, key: "isFavorite", value: false);
+
+    await _isarInit();
   }
 
   bool refreshMutex = false;
