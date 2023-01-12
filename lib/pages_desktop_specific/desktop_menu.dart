@@ -181,7 +181,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       label: "Notifications",
                       value: DesktopMenuItemId.notifications,
                       onChanged: updateSelectedMenuItem,
-                      controller: controllers[2],
+                      controller: controllers[3],
                     ),
                     const SizedBox(
                       height: 2,
@@ -192,7 +192,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       label: "Address Book",
                       value: DesktopMenuItemId.addressBook,
                       onChanged: updateSelectedMenuItem,
-                      controller: controllers[3],
+                      controller: controllers[4],
                     ),
                     const SizedBox(
                       height: 2,
@@ -203,7 +203,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       label: "Settings",
                       value: DesktopMenuItemId.settings,
                       onChanged: updateSelectedMenuItem,
-                      controller: controllers[4],
+                      controller: controllers[5],
                     ),
                     const SizedBox(
                       height: 2,
@@ -214,7 +214,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       label: "Support",
                       value: DesktopMenuItemId.support,
                       onChanged: updateSelectedMenuItem,
-                      controller: controllers[5],
+                      controller: controllers[6],
                     ),
                     const SizedBox(
                       height: 2,
@@ -225,7 +225,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       label: "About",
                       value: DesktopMenuItemId.about,
                       onChanged: updateSelectedMenuItem,
-                      controller: controllers[6],
+                      controller: controllers[7],
                     ),
                     const Spacer(),
                     DesktopMenuItem(
@@ -239,7 +239,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         // exit(0);
                         SystemNavigator.pop();
                       },
-                      controller: controllers[7],
+                      controller: controllers[8],
                     ),
                   ],
                 ),
