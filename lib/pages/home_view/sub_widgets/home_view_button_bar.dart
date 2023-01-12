@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/services/buy/buy_data_loading_service.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -148,6 +149,7 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
               if (selectedIndex != 2) {
                 ref.read(homeViewPageIndexStateProvider.state).state = 2;
               }
+              await BuyDataLoadingService().loadAll(ref);
             },
             child: Text(
               "Buy",

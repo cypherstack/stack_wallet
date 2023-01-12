@@ -17,6 +17,7 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
+import 'package:stackwallet/services/buy/buy_data_loading_service.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
@@ -64,6 +65,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
   late final bool _shouldDisableAutoSyncOnLogOut;
 
   final _cnLoadingService = ExchangeDataLoadingService();
+  final _buyDataLoadingService = BuyDataLoadingService();
 
   Future<void> onBackPressed() async {
     await _logout();
@@ -97,6 +99,16 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
               .read(walletsChangeNotifierProvider)
               .getManager(widget.walletId)
               .coin);
+    } else {
+      Logging.instance.log("User does not want to use external calls",
+          level: LogLevel.Info);
+    }
+  }
+
+  void _loadSimplexData() {
+    // unawaited future
+    if (ref.read(prefsChangeNotifierProvider).externalCalls) {
+      _buyDataLoadingService.loadAll(ref);
     } else {
       Logging.instance.log("User does not want to use external calls",
           level: LogLevel.Info);

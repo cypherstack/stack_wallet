@@ -15,6 +15,7 @@ import 'package:stackwallet/providers/global/notifications_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/ui/home_view_index_provider.dart';
 import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
+import 'package:stackwallet/services/buy/buy_data_loading_service.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -46,6 +47,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
   bool _exitEnabled = false;
 
   final _exchangeDataLoadingService = ExchangeDataLoadingService();
+  final _buyDataLoadingService = BuyDataLoadingService();
 
   Future<bool> _onWillPop() async {
     // go to home view when tapping back on the main exchange view
@@ -87,6 +89,16 @@ class _HomeViewState extends ConsumerState<HomeView> {
     // unawaited future
     if (ref.read(prefsChangeNotifierProvider).externalCalls) {
       _exchangeDataLoadingService.loadAll(ref);
+    } else {
+      Logging.instance.log("User does not want to use external calls",
+          level: LogLevel.Info);
+    }
+  }
+
+  void _loadSimplexData() {
+    // unawaited future
+    if (ref.read(prefsChangeNotifierProvider).externalCalls) {
+      _buyDataLoadingService.loadAll(ref);
     } else {
       Logging.instance.log("User does not want to use external calls",
           level: LogLevel.Info);
@@ -307,6 +319,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
                       if (next is int) {
                         if (next == 1) {
                           _exchangeDataLoadingService.loadAll(ref);
+                        }
+                        if (next == 2) {
+                          _buyDataLoadingService.loadAll(ref);
                         }
                         if (next >= 0 && next <= 2) {
                           _pageController.animateToPage(

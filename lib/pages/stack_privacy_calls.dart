@@ -8,6 +8,7 @@ import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages_desktop_specific/password/create_password_view.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/price_provider.dart';
+import 'package:stackwallet/services/buy/buy_data_loading_service.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -232,6 +233,8 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                                 if (isEasy) {
                                   unawaited(ExchangeDataLoadingService()
                                       .loadAll(ref));
+                                  unawaited(
+                                      BuyDataLoadingService().loadAll(ref));
                                   ref
                                       .read(priceAnd24hChangeNotifierProvider)
                                       .start(true);

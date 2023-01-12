@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 // import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
 // import 'package:stackwallet/models/exchange/response_objects/pair.dart';
@@ -140,16 +139,16 @@ class SimplexAPI {
   //   }
   // }
 
-  Future<BuyResponse<List<Fiat>>> getAllCurrencies({
-    String? apiKey,
-    required bool fixedRate,
-  }) async {
+  dynamic /*Future<BuyResponse<List<Fiat>>>*/ getSupported() async {
     final uri = _buildUri("/quote", {});
 
     try {
       final jsonArray = await _makeGetRequest(uri);
 
-      return await compute(_parseAvailableCurrenciesJson, jsonArray as List);
+      print(jsonArray);
+      return null;
+
+      // return await compute(_parseAvailableCurrenciesJson, jsonArray as List);
     } catch (e, s) {
       Logging.instance.log("getAvailableCurrencies exception: $e\n$s",
           level: LogLevel.Error);
