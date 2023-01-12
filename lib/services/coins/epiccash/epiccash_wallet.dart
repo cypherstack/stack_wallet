@@ -2284,10 +2284,12 @@ class EpicCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
         coin,
       ),
     );
+
+    await updateCachedBalance(walletId, _balance!);
   }
 
   @override
-  Balance get balance => _balance!;
+  Balance get balance => _balance ??= getCachedBalance(walletId, coin);
   Balance? _balance;
 
   @override

@@ -1552,6 +1552,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
         blockedTotal: satoshiBalanceBlocked,
         pendingSpendable: satoshiBalancePending,
       );
+      await updateCachedBalance(walletId, _balance!);
     } catch (e, s) {
       Logging.instance
           .log("Output fetch unsuccessful: $e\n$s", level: LogLevel.Error);
@@ -1559,7 +1560,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   @override
-  Balance get balance => _balance!;
+  Balance get balance => _balance ??= getCachedBalance(walletId, coin);
   Balance? _balance;
 
   // /// Takes in a list of UtxoObjects and adds a name (dependent on object index within list)

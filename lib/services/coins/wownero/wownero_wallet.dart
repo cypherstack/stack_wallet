@@ -744,6 +744,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
       blockedTotal: 0,
       pendingSpendable: total - available,
     );
+    await updateCachedBalance(walletId, _balance!);
   }
 
   Future<int> get _availableBalance async {
@@ -1284,7 +1285,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
   int get storedChainHeight => throw UnimplementedError();
 
   @override
-  Balance get balance => _balance!;
+  Balance get balance => _balance ??= getCachedBalance(walletId, coin);
   Balance? _balance;
 
   @override

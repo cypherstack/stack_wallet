@@ -27,4 +27,30 @@ mixin WalletCache {
       value: balance.toJsonIgnoreCoin(),
     );
   }
+
+  Balance getCachedBalanceSecondary(String walletId, Coin coin) {
+    final jsonString = DB.instance.get<dynamic>(
+      boxName: walletId,
+      key: DBKeys.cachedBalanceSecondary,
+    ) as String?;
+    if (jsonString == null) {
+      return Balance(
+        coin: coin,
+        total: 0,
+        spendable: 0,
+        blockedTotal: 0,
+        pendingSpendable: 0,
+      );
+    }
+    return Balance.fromJson(jsonString, coin);
+  }
+
+  Future<void> updateCachedBalanceSecondary(
+      String walletId, Balance balance) async {
+    await DB.instance.put<dynamic>(
+      boxName: walletId,
+      key: DBKeys.cachedBalanceSecondary,
+      value: balance.toJsonIgnoreCoin(),
+    );
+  }
 }

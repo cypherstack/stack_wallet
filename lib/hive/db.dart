@@ -248,6 +248,7 @@ class DB {
 
 abstract class DBKeys {
   static const String cachedBalance = "cachedBalance";
+  static const String cachedBalanceSecondary = "cachedBalanceSecondary";
   static const String isFavorite = "isFavorite";
   static const String id = "id";
   static const String storedChainHeight = "storedChainHeight";

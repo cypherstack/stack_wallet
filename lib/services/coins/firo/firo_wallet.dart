@@ -2459,6 +2459,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         blockedTotal: 0,
         pendingSpendable: unconfirmedLelantusBalance + balance.total,
       );
+      await updateCachedBalanceSecondary(walletId, _balancePrivate!);
       // _balance = Balance(
       //   coin: coin,
       //   total: utxos.satoshiBalance,
@@ -3660,6 +3661,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         blockedTotal: satoshiBalanceBlocked,
         pendingSpendable: satoshiBalancePending,
       );
+      await updateCachedBalance(walletId, _balance!);
     } catch (e, s) {
       Logging.instance
           .log("Output fetch unsuccessful: $e\n$s", level: LogLevel.Error);
@@ -4843,10 +4845,11 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   @override
-  Balance get balance => _balance!;
+  Balance get balance => _balance ??= getCachedBalance(walletId, coin);
   Balance? _balance;
 
-  Balance get balancePrivate => _balancePrivate!;
+  Balance get balancePrivate =>
+      _balancePrivate ??= getCachedBalanceSecondary(walletId, coin);
   Balance? _balancePrivate;
 
   @override
