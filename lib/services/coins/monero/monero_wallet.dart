@@ -50,12 +50,13 @@ import 'package:stackwallet/utilities/stack_file_system.dart';
 const int MINIMUM_CONFIRMATIONS = 10;
 
 class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
-  final String _walletId;
-  final Coin _coin;
-  final SecureStorageInterface _secureStorage;
-  final Prefs _prefs;
+  late final String _walletId;
+  late final Coin _coin;
+  late final SecureStorageInterface _secureStorage;
+  late final Prefs _prefs;
 
-  String _walletName;
+  late String _walletName;
+
   bool _shouldAutoSync = false;
   bool _isConnected = false;
   bool _hasCalledExit = false;
@@ -81,30 +82,25 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     required Coin coin,
     required SecureStorageInterface secureStorage,
     Prefs? prefs,
-  })  : _walletId = walletId,
-        _walletName = walletName,
-        _coin = coin,
-        _secureStorage = secureStorage,
-        _prefs = prefs ?? Prefs.instance;
-
-  @override
-  bool get isFavorite {
-    try {
-      return DB.instance.get<dynamic>(boxName: walletId, key: "isFavorite")
-          as bool;
-    } catch (e, s) {
-      Logging.instance.log(
-          "isFavorite fetch failed (returning false by default): $e\n$s",
-          level: LogLevel.Error);
-      return false;
-    }
+  }) {
+    _walletId = walletId;
+    _walletName = walletName;
+    _coin = coin;
+    _secureStorage = secureStorage;
+    _prefs = prefs ?? Prefs.instance;
+    initCache(walletId, coin);
   }
 
   @override
   set isFavorite(bool markFavorite) {
-    DB.instance.put<dynamic>(
-        boxName: walletId, key: "isFavorite", value: markFavorite);
+    _isFavorite = markFavorite;
+    updateCachedIsFavorite(markFavorite);
   }
+
+  @override
+  bool get isFavorite => _isFavorite ??= getCachedIsFavorite();
+
+  bool? _isFavorite;
 
   @override
   bool get shouldAutoSync => _shouldAutoSync;
@@ -260,7 +256,7 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
       level: LogLevel.Info,
     );
 
-    if ((DB.instance.get<dynamic>(boxName: walletId, key: "id")) == null) {
+    if (getCachedId() == null) {
       throw Exception(
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
@@ -382,10 +378,10 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         node: Node(uri: "$host:${node.port}", type: WalletType.monero));
     await walletBase!.startSync();
     await DB.instance
-        .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
+        .put<dynamic>(boxName: walletId, key: DBKeys.id, value: _walletId);
 
     await DB.instance
-        .put<dynamic>(boxName: walletId, key: "isFavorite", value: false);
+        .put<dynamic>(boxName: walletId, key: DBKeys.isFavorite, value: false);
 
     // Generate and add addresses to relevant arrays
     final initialReceivingAddress = await _generateAddressForChain(0, 0);
@@ -593,11 +589,10 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         // walletBase!.onNewTransaction = onNewTransaction;
         // walletBase!.syncStatusChanged = syncStatusChanged;
 
-        await DB.instance
-            .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
-
-        await DB.instance
-            .put<dynamic>(boxName: walletId, key: "isFavorite", value: false);
+        await Future.wait([
+          updateCachedId(walletId),
+          updateCachedIsFavorite(false),
+        ]);
       } catch (e, s) {
         debugPrint(e.toString());
         debugPrint(s.toString());
@@ -734,7 +729,7 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
       blockedTotal: 0,
       pendingSpendable: total - available,
     );
-    await updateCachedBalance(walletId, _balance!);
+    await updateCachedBalance(_balance!);
   }
 
   Future<int> get _availableBalance async {
@@ -1215,7 +1210,7 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
   int get storedChainHeight => throw UnimplementedError();
 
   @override
-  Balance get balance => _balance ??= getCachedBalance(walletId, coin);
+  Balance get balance => _balance ??= getCachedBalance();
   Balance? _balance;
 
   @override

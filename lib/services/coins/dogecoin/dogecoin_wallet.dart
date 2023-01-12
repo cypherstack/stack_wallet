@@ -13,7 +13,6 @@ import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
-import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
@@ -131,7 +130,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
   final _prefs = Prefs.instance;
 
   Timer? timer;
-  late Coin _coin;
+  late final Coin _coin;
 
   late final TransactionNotificationTracker txTracker;
 
@@ -212,25 +211,18 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<int> get chainHeight async {
     try {
       final result = await _electrumXClient.getBlockHeadTip();
-      return result["height"] as int;
+      final height = result["height"] as int;
+      await updateCachedChainHeight(height);
+      return height;
     } catch (e, s) {
       Logging.instance.log("Exception caught in chainHeight: $e\n$s",
           level: LogLevel.Error);
-      return -1;
+      return storedChainHeight;
     }
   }
 
   @override
-  int get storedChainHeight {
-    final storedHeight = DB.instance
-        .get<dynamic>(boxName: walletId, key: "storedChainHeight") as int?;
-    return storedHeight ?? 0;
-  }
-
-  Future<void> updateStoredChainHeight({required int newHeight}) async {
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: "storedChainHeight", value: newHeight);
-  }
+  int get storedChainHeight => getCachedChainHeight();
 
   DerivePathType addressType({required String address}) {
     Uint8List? decodeBase58;
@@ -535,10 +527,10 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       await _updateUTXOs();
 
-      await DB.instance
-          .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
-      await DB.instance
-          .put<dynamic>(boxName: walletId, key: "isFavorite", value: false);
+      await Future.wait([
+        updateCachedId(walletId),
+        updateCachedIsFavorite(false),
+      ]);
 
       longMutex = false;
     } catch (e, s) {
@@ -758,11 +750,6 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
           .log("cached height: $storedHeight", level: LogLevel.Info);
 
       if (currentHeight != storedHeight) {
-        if (currentHeight != -1) {
-          // -1 failed to fetch current height
-          unawaited(updateStoredChainHeight(newHeight: currentHeight));
-        }
-
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.2, walletId));
         await checkChangeAddressForTransactions();
 
@@ -980,7 +967,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     Logging.instance
         .log("Generating new ${coin.prettyName} wallet.", level: LogLevel.Info);
 
-    if ((DB.instance.get<dynamic>(boxName: walletId, key: "id")) != null) {
+    if (getCachedId() != null) {
       throw Exception(
           "Attempted to initialize a new wallet using an existing wallet ID!");
     }
@@ -992,10 +979,10 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
           level: LogLevel.Fatal);
       rethrow;
     }
+
     await Future.wait([
-      DB.instance.put<dynamic>(boxName: walletId, key: "id", value: _walletId),
-      DB.instance
-          .put<dynamic>(boxName: walletId, key: "isFavorite", value: false),
+      updateCachedId(walletId),
+      updateCachedIsFavorite(false),
     ]);
   }
 
@@ -1004,7 +991,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     Logging.instance.log("Opening existing ${coin.prettyName} wallet.",
         level: LogLevel.Info);
 
-    if ((DB.instance.get<dynamic>(boxName: walletId, key: "id")) == null) {
+    if (getCachedId() == null) {
       throw Exception(
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
@@ -1067,7 +1054,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   String get walletId => _walletId;
-  late String _walletId;
+  late final String _walletId;
 
   @override
   String get walletName => _walletName;
@@ -1103,6 +1090,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     _electrumXClient = client;
     _cachedElectrumXClient = cachedClient;
     _secureStore = secureStore;
+    initCache(walletId, coin);
   }
 
   @override
@@ -1552,7 +1540,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
         blockedTotal: satoshiBalanceBlocked,
         pendingSpendable: satoshiBalancePending,
       );
-      await updateCachedBalance(walletId, _balance!);
+      await updateCachedBalance(_balance!);
     } catch (e, s) {
       Logging.instance
           .log("Output fetch unsuccessful: $e\n$s", level: LogLevel.Error);
@@ -1560,7 +1548,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   @override
-  Balance get balance => _balance ??= getCachedBalance(walletId, coin);
+  Balance get balance => _balance ??= getCachedBalance();
   Balance? _balance;
 
   // /// Takes in a list of UtxoObjects and adds a name (dependent on object index within list)
@@ -2436,7 +2424,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     await _cachedElectrumXClient.clearSharedTransactionCache(coin: coin);
 
     // back up data
-    await _rescanBackup();
+    // await _rescanBackup();
 
     try {
       final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
@@ -2465,7 +2453,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       );
 
       // restore from backup
-      await _rescanRestore();
+      // await _rescanRestore();
 
       longMutex = false;
       Logging.instance.log("Exception rethrown from fullRescan(): $e\n$s",
@@ -2474,158 +2462,150 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     }
   }
 
-  Future<void> _rescanRestore() async {
-    Logging.instance.log("starting rescan restore", level: LogLevel.Info);
-
-    // restore from backup
-    // p2pkh
-    final tempReceivingAddressesP2PKH = DB.instance
-        .get<dynamic>(boxName: walletId, key: 'receivingAddressesP2PKH_BACKUP');
-    final tempChangeAddressesP2PKH = DB.instance
-        .get<dynamic>(boxName: walletId, key: 'changeAddressesP2PKH_BACKUP');
-    final tempReceivingIndexP2PKH = DB.instance
-        .get<dynamic>(boxName: walletId, key: 'receivingIndexP2PKH_BACKUP');
-    final tempChangeIndexP2PKH = DB.instance
-        .get<dynamic>(boxName: walletId, key: 'changeIndexP2PKH_BACKUP');
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'receivingAddressesP2PKH',
-        value: tempReceivingAddressesP2PKH);
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'changeAddressesP2PKH',
-        value: tempChangeAddressesP2PKH);
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'receivingIndexP2PKH',
-        value: tempReceivingIndexP2PKH);
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'changeIndexP2PKH',
-        value: tempChangeIndexP2PKH);
-    await DB.instance.delete<dynamic>(
-        key: 'receivingAddressesP2PKH_BACKUP', boxName: walletId);
-    await DB.instance
-        .delete<dynamic>(key: 'changeAddressesP2PKH_BACKUP', boxName: walletId);
-    await DB.instance
-        .delete<dynamic>(key: 'receivingIndexP2PKH_BACKUP', boxName: walletId);
-    await DB.instance
-        .delete<dynamic>(key: 'changeIndexP2PKH_BACKUP', boxName: walletId);
-
-    // P2PKH derivations
-    final p2pkhReceiveDerivationsString = await _secureStore.read(
-        key: "${walletId}_receiveDerivationsP2PKH_BACKUP");
-    final p2pkhChangeDerivationsString = await _secureStore.read(
-        key: "${walletId}_changeDerivationsP2PKH_BACKUP");
-
-    await _secureStore.write(
-        key: "${walletId}_receiveDerivationsP2PKH",
-        value: p2pkhReceiveDerivationsString);
-    await _secureStore.write(
-        key: "${walletId}_changeDerivationsP2PKH",
-        value: p2pkhChangeDerivationsString);
-
-    await _secureStore.delete(
-        key: "${walletId}_receiveDerivationsP2PKH_BACKUP");
-    await _secureStore.delete(key: "${walletId}_changeDerivationsP2PKH_BACKUP");
-
-    // UTXOs
-    final utxoData = DB.instance
-        .get<dynamic>(boxName: walletId, key: 'latest_utxo_model_BACKUP');
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: 'latest_utxo_model', value: utxoData);
-    await DB.instance
-        .delete<dynamic>(key: 'latest_utxo_model_BACKUP', boxName: walletId);
-
-    Logging.instance.log("rescan restore  complete", level: LogLevel.Info);
-  }
-
-  Future<void> _rescanBackup() async {
-    Logging.instance.log("starting rescan backup", level: LogLevel.Info);
-
-    // backup current and clear data
-    // p2pkh
-    final tempReceivingAddressesP2PKH = DB.instance
-        .get<dynamic>(boxName: walletId, key: 'receivingAddressesP2PKH');
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'receivingAddressesP2PKH_BACKUP',
-        value: tempReceivingAddressesP2PKH);
-    await DB.instance
-        .delete<dynamic>(key: 'receivingAddressesP2PKH', boxName: walletId);
-
-    final tempChangeAddressesP2PKH = DB.instance
-        .get<dynamic>(boxName: walletId, key: 'changeAddressesP2PKH');
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'changeAddressesP2PKH_BACKUP',
-        value: tempChangeAddressesP2PKH);
-    await DB.instance
-        .delete<dynamic>(key: 'changeAddressesP2PKH', boxName: walletId);
-
-    final tempReceivingIndexP2PKH =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'receivingIndexP2PKH');
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'receivingIndexP2PKH_BACKUP',
-        value: tempReceivingIndexP2PKH);
-    await DB.instance
-        .delete<dynamic>(key: 'receivingIndexP2PKH', boxName: walletId);
-
-    final tempChangeIndexP2PKH =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'changeIndexP2PKH');
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'changeIndexP2PKH_BACKUP',
-        value: tempChangeIndexP2PKH);
-    await DB.instance
-        .delete<dynamic>(key: 'changeIndexP2PKH', boxName: walletId);
-
-    // P2PKH derivations
-    final p2pkhReceiveDerivationsString =
-        await _secureStore.read(key: "${walletId}_receiveDerivationsP2PKH");
-    final p2pkhChangeDerivationsString =
-        await _secureStore.read(key: "${walletId}_changeDerivationsP2PKH");
-
-    await _secureStore.write(
-        key: "${walletId}_receiveDerivationsP2PKH_BACKUP",
-        value: p2pkhReceiveDerivationsString);
-    await _secureStore.write(
-        key: "${walletId}_changeDerivationsP2PKH_BACKUP",
-        value: p2pkhChangeDerivationsString);
-
-    await _secureStore.delete(key: "${walletId}_receiveDerivationsP2PKH");
-    await _secureStore.delete(key: "${walletId}_changeDerivationsP2PKH");
-
-    // UTXOs
-    final utxoData =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'latest_utxo_model');
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: 'latest_utxo_model_BACKUP', value: utxoData);
-    await DB.instance
-        .delete<dynamic>(key: 'latest_utxo_model', boxName: walletId);
-
-    Logging.instance.log("rescan backup complete", level: LogLevel.Info);
-  }
+  // Future<void> _rescanRestore() async {
+  //   Logging.instance.log("starting rescan restore", level: LogLevel.Info);
+  //
+  //   // restore from backup
+  //   // p2pkh
+  //   final tempReceivingAddressesP2PKH = DB.instance
+  //       .get<dynamic>(boxName: walletId, key: 'receivingAddressesP2PKH_BACKUP');
+  //   final tempChangeAddressesP2PKH = DB.instance
+  //       .get<dynamic>(boxName: walletId, key: 'changeAddressesP2PKH_BACKUP');
+  //   final tempReceivingIndexP2PKH = DB.instance
+  //       .get<dynamic>(boxName: walletId, key: 'receivingIndexP2PKH_BACKUP');
+  //   final tempChangeIndexP2PKH = DB.instance
+  //       .get<dynamic>(boxName: walletId, key: 'changeIndexP2PKH_BACKUP');
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId,
+  //       key: 'receivingAddressesP2PKH',
+  //       value: tempReceivingAddressesP2PKH);
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId,
+  //       key: 'changeAddressesP2PKH',
+  //       value: tempChangeAddressesP2PKH);
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId,
+  //       key: 'receivingIndexP2PKH',
+  //       value: tempReceivingIndexP2PKH);
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId,
+  //       key: 'changeIndexP2PKH',
+  //       value: tempChangeIndexP2PKH);
+  //   await DB.instance.delete<dynamic>(
+  //       key: 'receivingAddressesP2PKH_BACKUP', boxName: walletId);
+  //   await DB.instance
+  //       .delete<dynamic>(key: 'changeAddressesP2PKH_BACKUP', boxName: walletId);
+  //   await DB.instance
+  //       .delete<dynamic>(key: 'receivingIndexP2PKH_BACKUP', boxName: walletId);
+  //   await DB.instance
+  //       .delete<dynamic>(key: 'changeIndexP2PKH_BACKUP', boxName: walletId);
+  //
+  //   // P2PKH derivations
+  //   final p2pkhReceiveDerivationsString = await _secureStore.read(
+  //       key: "${walletId}_receiveDerivationsP2PKH_BACKUP");
+  //   final p2pkhChangeDerivationsString = await _secureStore.read(
+  //       key: "${walletId}_changeDerivationsP2PKH_BACKUP");
+  //
+  //   await _secureStore.write(
+  //       key: "${walletId}_receiveDerivationsP2PKH",
+  //       value: p2pkhReceiveDerivationsString);
+  //   await _secureStore.write(
+  //       key: "${walletId}_changeDerivationsP2PKH",
+  //       value: p2pkhChangeDerivationsString);
+  //
+  //   await _secureStore.delete(
+  //       key: "${walletId}_receiveDerivationsP2PKH_BACKUP");
+  //   await _secureStore.delete(key: "${walletId}_changeDerivationsP2PKH_BACKUP");
+  //
+  //   // UTXOs
+  //   final utxoData = DB.instance
+  //       .get<dynamic>(boxName: walletId, key: 'latest_utxo_model_BACKUP');
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId, key: 'latest_utxo_model', value: utxoData);
+  //   await DB.instance
+  //       .delete<dynamic>(key: 'latest_utxo_model_BACKUP', boxName: walletId);
+  //
+  //   Logging.instance.log("rescan restore  complete", level: LogLevel.Info);
+  // }
+  //
+  // Future<void> _rescanBackup() async {
+  //   Logging.instance.log("starting rescan backup", level: LogLevel.Info);
+  //
+  //   // backup current and clear data
+  //   // p2pkh
+  //   final tempReceivingAddressesP2PKH = DB.instance
+  //       .get<dynamic>(boxName: walletId, key: 'receivingAddressesP2PKH');
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId,
+  //       key: 'receivingAddressesP2PKH_BACKUP',
+  //       value: tempReceivingAddressesP2PKH);
+  //   await DB.instance
+  //       .delete<dynamic>(key: 'receivingAddressesP2PKH', boxName: walletId);
+  //
+  //   final tempChangeAddressesP2PKH = DB.instance
+  //       .get<dynamic>(boxName: walletId, key: 'changeAddressesP2PKH');
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId,
+  //       key: 'changeAddressesP2PKH_BACKUP',
+  //       value: tempChangeAddressesP2PKH);
+  //   await DB.instance
+  //       .delete<dynamic>(key: 'changeAddressesP2PKH', boxName: walletId);
+  //
+  //   final tempReceivingIndexP2PKH =
+  //       DB.instance.get<dynamic>(boxName: walletId, key: 'receivingIndexP2PKH');
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId,
+  //       key: 'receivingIndexP2PKH_BACKUP',
+  //       value: tempReceivingIndexP2PKH);
+  //   await DB.instance
+  //       .delete<dynamic>(key: 'receivingIndexP2PKH', boxName: walletId);
+  //
+  //   final tempChangeIndexP2PKH =
+  //       DB.instance.get<dynamic>(boxName: walletId, key: 'changeIndexP2PKH');
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId,
+  //       key: 'changeIndexP2PKH_BACKUP',
+  //       value: tempChangeIndexP2PKH);
+  //   await DB.instance
+  //       .delete<dynamic>(key: 'changeIndexP2PKH', boxName: walletId);
+  //
+  //   // P2PKH derivations
+  //   final p2pkhReceiveDerivationsString =
+  //       await _secureStore.read(key: "${walletId}_receiveDerivationsP2PKH");
+  //   final p2pkhChangeDerivationsString =
+  //       await _secureStore.read(key: "${walletId}_changeDerivationsP2PKH");
+  //
+  //   await _secureStore.write(
+  //       key: "${walletId}_receiveDerivationsP2PKH_BACKUP",
+  //       value: p2pkhReceiveDerivationsString);
+  //   await _secureStore.write(
+  //       key: "${walletId}_changeDerivationsP2PKH_BACKUP",
+  //       value: p2pkhChangeDerivationsString);
+  //
+  //   await _secureStore.delete(key: "${walletId}_receiveDerivationsP2PKH");
+  //   await _secureStore.delete(key: "${walletId}_changeDerivationsP2PKH");
+  //
+  //   // UTXOs
+  //   final utxoData =
+  //       DB.instance.get<dynamic>(boxName: walletId, key: 'latest_utxo_model');
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId, key: 'latest_utxo_model_BACKUP', value: utxoData);
+  //   await DB.instance
+  //       .delete<dynamic>(key: 'latest_utxo_model', boxName: walletId);
+  //
+  //   Logging.instance.log("rescan backup complete", level: LogLevel.Info);
+  // }
 
   @override
   set isFavorite(bool markFavorite) {
-    DB.instance.put<dynamic>(
-        boxName: walletId, key: "isFavorite", value: markFavorite);
+    _isFavorite = markFavorite;
+    updateCachedIsFavorite(markFavorite);
   }
 
   @override
-  bool get isFavorite {
-    try {
-      return DB.instance.get<dynamic>(boxName: walletId, key: "isFavorite")
-          as bool;
-    } catch (e, s) {
-      Logging.instance.log(
-          "isFavorite fetch failed (returning false by default): $e\n$s",
-          level: LogLevel.Error);
-      return false;
-    }
-  }
+  bool get isFavorite => _isFavorite ??= getCachedIsFavorite();
+
+  bool? _isFavorite;
 
   @override
   bool get isRefreshing => refreshMutex;

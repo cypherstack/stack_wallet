@@ -13,7 +13,6 @@ import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
-import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/address/address.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
@@ -133,7 +132,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
   final _prefs = Prefs.instance;
 
   Timer? timer;
-  late Coin _coin;
+  late final Coin _coin;
 
   late final TransactionNotificationTracker txTracker;
 
@@ -213,25 +212,18 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<int> get chainHeight async {
     try {
       final result = await _electrumXClient.getBlockHeadTip();
-      return result["height"] as int;
+      final height = result["height"] as int;
+      await updateCachedChainHeight(height);
+      return height;
     } catch (e, s) {
       Logging.instance.log("Exception caught in chainHeight: $e\n$s",
           level: LogLevel.Error);
-      return -1;
+      return storedChainHeight;
     }
   }
 
   @override
-  int get storedChainHeight {
-    final storedHeight = DB.instance
-        .get<dynamic>(boxName: walletId, key: DBKeys.storedChainHeight) as int?;
-    return storedHeight ?? 0;
-  }
-
-  Future<void> updateStoredChainHeight({required int newHeight}) async {
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: DBKeys.storedChainHeight, value: newHeight);
-  }
+  int get storedChainHeight => getCachedChainHeight();
 
   DerivePathType addressType({required String address}) {
     Uint8List? decodeBase58;
@@ -621,10 +613,10 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       await _updateUTXOs();
 
-      await DB.instance
-          .put<dynamic>(boxName: walletId, key: DBKeys.id, value: _walletId);
-      await DB.instance.put<dynamic>(
-          boxName: walletId, key: DBKeys.isFavorite, value: false);
+      await Future.wait([
+        updateCachedId(walletId),
+        updateCachedIsFavorite(false),
+      ]);
 
       longMutex = false;
     } catch (e, s) {
@@ -853,11 +845,6 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
           .log("cached height: $storedHeight", level: LogLevel.Info);
 
       if (currentHeight != storedHeight) {
-        if (currentHeight != -1) {
-          // -1 failed to fetch current height
-          await updateStoredChainHeight(newHeight: currentHeight);
-        }
-
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.2, walletId));
         await _checkChangeAddressForTransactions();
 
@@ -1075,7 +1062,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
     Logging.instance
         .log("Generating new ${coin.prettyName} wallet.", level: LogLevel.Info);
 
-    if ((DB.instance.get<dynamic>(boxName: walletId, key: DBKeys.id)) != null) {
+    if (getCachedId() != null) {
       throw Exception(
           "Attempted to initialize a new wallet using an existing wallet ID!");
     }
@@ -1088,10 +1075,8 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       rethrow;
     }
     await Future.wait([
-      DB.instance
-          .put<dynamic>(boxName: walletId, key: DBKeys.id, value: _walletId),
-      DB.instance.put<dynamic>(
-          boxName: walletId, key: DBKeys.isFavorite, value: false),
+      updateCachedId(walletId),
+      updateCachedIsFavorite(false),
     ]);
   }
 
@@ -1100,7 +1085,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
     Logging.instance.log("Opening existing ${coin.prettyName} wallet.",
         level: LogLevel.Info);
 
-    if ((DB.instance.get<dynamic>(boxName: walletId, key: DBKeys.id)) == null) {
+    if (getCachedId() == null) {
       throw Exception(
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
@@ -1190,7 +1175,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   String get walletId => _walletId;
-  late String _walletId;
+  late final String _walletId;
 
   @override
   String get walletName => _walletName;
@@ -1226,6 +1211,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
     _electrumXClient = client;
     _cachedElectrumXClient = cachedClient;
     _secureStore = secureStore;
+    initCache(walletId, coin);
   }
 
   @override
@@ -1675,7 +1661,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
         blockedTotal: satoshiBalanceBlocked,
         pendingSpendable: satoshiBalancePending,
       );
-      await updateCachedBalance(walletId, _balance!);
+      await updateCachedBalance(_balance!);
     } catch (e, s) {
       Logging.instance
           .log("Output fetch unsuccessful: $e\n$s", level: LogLevel.Error);
@@ -1683,7 +1669,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   @override
-  Balance get balance => _balance ??= getCachedBalance(walletId, coin);
+  Balance get balance => _balance ??= getCachedBalance();
   Balance? _balance;
 
   Future<int> getTxCount({required String address}) async {
@@ -2825,22 +2811,14 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   set isFavorite(bool markFavorite) {
-    DB.instance.put<dynamic>(
-        boxName: walletId, key: DBKeys.isFavorite, value: markFavorite);
+    _isFavorite = markFavorite;
+    updateCachedIsFavorite(markFavorite);
   }
 
   @override
-  bool get isFavorite {
-    try {
-      return DB.instance.get<dynamic>(boxName: walletId, key: DBKeys.isFavorite)
-          as bool;
-    } catch (e, s) {
-      Logging.instance.log(
-          "isFavorite fetch failed (returning false by default): $e\n$s",
-          level: LogLevel.Error);
-      return false;
-    }
-  }
+  bool get isFavorite => _isFavorite ??= getCachedIsFavorite();
+
+  bool? _isFavorite;
 
   @override
   bool get isRefreshing => refreshMutex;
