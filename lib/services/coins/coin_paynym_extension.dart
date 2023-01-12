@@ -6,13 +6,11 @@ import 'package:bip47/src/util.dart';
 import 'package:bitcoindart/bitcoindart.dart' as btc_dart;
 import 'package:bitcoindart/src/utils/constants/op.dart' as op;
 import 'package:bitcoindart/src/utils/script.dart' as bscript;
-import 'package:dart_numerics/dart_numerics.dart';
 import 'package:decimal/decimal.dart';
+import 'package:isar/isar.dart';
 import 'package:pointycastle/digests/sha256.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/models/models.dart' as models;
-import 'package:stackwallet/models/paymint/utxo_model.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -133,24 +131,21 @@ extension PayNym on DogecoinWallet {
   }
 
   /// return the notification tx sent from my wallet if it exists
-  Future<models.Transaction?> hasSentNotificationTx(PaymentCode pCode) async {
-    final txData = await transactionData;
-
-    for (final tx in txData.getAllTransactions().values) {
-      if (tx.address == pCode.notificationAddress()) {
-        return tx;
-      }
-    }
-
-    return null;
+  Future<Transaction?> hasSentNotificationTx(PaymentCode pCode) async {
+    final tx = await isar.transactions
+        .filter()
+        .addressEqualTo(pCode.notificationAddress())
+        .findFirst();
+    return tx;
   }
 
   void preparePaymentCodeSend(PaymentCode pCode) async {
     final notifTx = await hasSentNotificationTx(pCode);
+    final currentHeight = await chainHeight;
 
     if (notifTx == null) {
       throw PaynymSendException("No notification transaction sent to $pCode");
-    } else if (!notifTx.confirmedStatus) {
+    } else if (!notifTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)) {
       throw PaynymSendException(
           "Notification transaction sent to $pCode has not confirmed yet");
     } else {
@@ -233,17 +228,19 @@ extension PayNym on DogecoinWallet {
     required int selectedTxFeeRate,
     required String targetPaymentCodeString,
     int additionalOutputs = 0,
-    List<UtxoObject>? utxos,
+    List<UTXO>? utxos,
   }) async {
     const amountToSend = DUST_LIMIT;
-    final List<UtxoObject> availableOutputs = utxos ?? outputsList;
-    final List<UtxoObject> spendableOutputs = [];
+    final List<UTXO> availableOutputs = utxos ?? await this.utxos;
+    final List<UTXO> spendableOutputs = [];
     int spendableSatoshiValue = 0;
 
     // Build list of spendable outputs and totaling their satoshi amount
     for (var i = 0; i < availableOutputs.length; i++) {
-      if (availableOutputs[i].blocked == false &&
-          availableOutputs[i].status.confirmed == true) {
+      if (availableOutputs[i].isBlocked == false &&
+          availableOutputs[i]
+                  .isConfirmed(await chainHeight, MINIMUM_CONFIRMATIONS) ==
+              true) {
         spendableOutputs.add(availableOutputs[i]);
         spendableSatoshiValue += availableOutputs[i].value;
       }
@@ -260,12 +257,11 @@ extension PayNym on DogecoinWallet {
     }
 
     // sort spendable by age (oldest first)
-    spendableOutputs.sort(
-        (a, b) => b.status.confirmations.compareTo(a.status.confirmations));
+    spendableOutputs.sort((a, b) => b.blockTime!.compareTo(a.blockTime!));
 
     int satoshisBeingUsed = 0;
     int outputsBeingUsed = 0;
-    List<UtxoObject> utxoObjectsToUse = [];
+    List<UTXO> utxoObjectsToUse = [];
 
     for (int i = 0;
         satoshisBeingUsed < amountToSend && i < spendableOutputs.length;
@@ -406,7 +402,7 @@ extension PayNym on DogecoinWallet {
   // equal to its vSize
   Future<Tuple2<String, int>> _createNotificationTx({
     required String targetPaymentCodeString,
-    required List<UtxoObject> utxosToUse,
+    required List<UTXO> utxosToUse,
     required Map<String, dynamic> utxoSigningData,
     required int change,
   }) async {
@@ -458,8 +454,7 @@ extension PayNym on DogecoinWallet {
     if (change > 0) {
       // generate new change address if current change address has been used
       await checkChangeAddressForTransactions();
-      final String changeAddress =
-          await getCurrentAddressForChain(1, DerivePathType.bip44);
+      final String changeAddress = await currentChangeAddress;
       txb.addOutput(changeAddress, change);
     }
 
@@ -723,10 +718,10 @@ Future<Transaction> parseTransaction(
     tx.outputs.add(output);
   }
 
-  tx.height = txData["height"] as int? ?? int64MaxValue;
+  tx.height = txData["height"] as int?;
 
   //TODO: change these for epic (or other coins that need it)
-  tx.cancelled = false;
+  tx.isCancelled = false;
   tx.slateId = null;
   tx.otherData = null;
 
