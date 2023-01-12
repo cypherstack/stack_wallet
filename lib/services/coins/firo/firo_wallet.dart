@@ -3,24 +3,23 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:bitcoindart/bitcoindart.dart';
 import 'package:decimal/decimal.dart';
-import 'package:devicelocale/devicelocale.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart';
+import 'package:isar/isar.dart';
 import 'package:lelantus/lelantus.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/models/balance.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/lelantus_coin.dart';
 import 'package:stackwallet/models/lelantus_fee_data.dart';
-import 'package:stackwallet/models/models.dart' as models;
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/models/paymint/utxo_model.dart';
+import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
@@ -29,7 +28,6 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
-import 'package:stackwallet/services/price.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -41,6 +39,7 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
@@ -369,8 +368,9 @@ Future<Map<String, dynamic>> isolateRestore(
 }
 
 Future<Map<dynamic, dynamic>> staticProcessRestore(
-  models.TransactionData data,
+  List<isar_models.Transaction> txns,
   Map<dynamic, dynamic> result,
+  int currentHeight,
 ) async {
   List<dynamic>? _l = result['_lelantus_coins'] as List?;
   final List<Map<dynamic, LelantusCoin>> lelantusCoins = [];
@@ -379,19 +379,30 @@ Future<Map<dynamic, dynamic>> staticProcessRestore(
   }
 
   // Edit the receive transactions with the mint fees.
-  Map<String, models.Transaction> editedTransactions =
-      <String, models.Transaction>{};
+  Map<String, isar_models.Transaction> editedTransactions =
+      <String, isar_models.Transaction>{};
   for (var item in lelantusCoins) {
     item.forEach((key, value) {
       String txid = value.txId;
-      var tx = data.findTransaction(txid);
+      isar_models.Transaction? tx;
+      try {
+        tx = txns.firstWhere((e) => e.txid == txid);
+      } catch (_) {
+        tx = null;
+      }
+
       if (tx == null) {
         // This is a jmint.
         return;
       }
-      List<models.Transaction> inputs = [];
+      List<isar_models.Transaction> inputs = [];
       for (var element in tx.inputs) {
-        var input = data.findTransaction(element.txid);
+        isar_models.Transaction? input;
+        try {
+          input = txns.firstWhere((e) => e.txid == element.txid);
+        } catch (_) {
+          input = null;
+        }
         if (input != null) {
           inputs.add(input);
         }
@@ -401,35 +412,32 @@ Future<Map<dynamic, dynamic>> staticProcessRestore(
         return;
       }
 
-      int mintfee = tx.fees;
-      int sharedfee = mintfee ~/ inputs.length;
+      int mintFee = tx.fee;
+      int sharedFee = mintFee ~/ inputs.length;
       for (var element in inputs) {
-        editedTransactions[element.txid] = models.Transaction(
-          txid: element.txid,
-          confirmedStatus: element.confirmedStatus,
-          timestamp: element.timestamp,
-          txType: element.txType,
-          amount: element.amount,
-          aliens: element.aliens,
-          worthNow: element.worthNow,
-          worthAtBlockTimestamp: element.worthAtBlockTimestamp,
-          fees: sharedfee,
-          inputSize: element.inputSize,
-          outputSize: element.outputSize,
-          inputs: element.inputs,
-          outputs: element.outputs,
-          address: element.address,
-          height: element.height,
-          confirmations: element.confirmations,
-          subType: "mint",
-          otherData: txid,
-        );
+        editedTransactions[element.txid] = isar_models.Transaction()
+          ..txid = element.txid
+          ..timestamp = element.timestamp
+          ..type = element.type
+          ..amount = element.amount
+          ..fee = sharedFee
+          ..inputs.addAll(element.inputs)
+          ..outputs.addAll(element.outputs)
+          ..address = element.address
+          ..height = element.height
+          ..subType = isar_models.TransactionSubType.mint
+          ..otherData = txid
+          ..isLelantus = true
+          ..isCancelled = false;
       }
     });
   }
   // Logging.instance.log(editedTransactions, addToDebugMessagesDB: false);
 
-  Map<String, models.Transaction> transactionMap = data.getAllTransactions();
+  Map<String, isar_models.Transaction> transactionMap = {};
+  for (final e in txns) {
+    transactionMap[e.txid] = e;
+  }
   // Logging.instance.log(transactionMap, addToDebugMessagesDB: false);
 
   editedTransactions.forEach((key, value) {
@@ -438,7 +446,8 @@ Future<Map<dynamic, dynamic>> staticProcessRestore(
 
   transactionMap.removeWhere((key, value) =>
       lelantusCoins.any((element) => element.containsKey(key)) ||
-      (value.height == -1 && !value.confirmedStatus));
+      ((value.height == -1 || value.height == null) &&
+          !value.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)));
 
   result['newTxMap'] = transactionMap;
   return result;
@@ -798,169 +807,106 @@ class FiroWallet extends CoinServiceAPI {
   @override
   Coin get coin => _coin;
 
-  // @override
-  // String get coinName =>
-  //     networkType == BasicNetworkType.main ? "Firo" : "tFiro";
-  //
-  // @override
-  // String get coinTicker =>
-  //     networkType == BasicNetworkType.main ? "FIRO" : "tFIRO";
-
   @override
   Future<List<String>> get mnemonic => _getMnemonicList();
-
-  // index 0 and 1 for the funds available to spend.
-  // index 2 and 3 for all the funds in the wallet (including the undependable ones)
-  @override
-  Future<Decimal> get availableBalance async {
-    final balances = await this.balances;
-    return balances[0];
-  }
-
-  // index 0 and 1 for the funds available to spend.
-  // index 2 and 3 for all the funds in the wallet (including the undependable ones)
-  @override
-  Future<Decimal> get pendingBalance async {
-    final balances = await this.balances;
-    return balances[2] - balances[0];
-  }
-
-  // index 0 and 1 for the funds available to spend.
-  // index 2 and 3 for all the funds in the wallet (including the undependable ones)
-  @override
-  Future<Decimal> get totalBalance async {
-    if (!isActive) {
-      final totalBalance = DB.instance
-          .get<dynamic>(boxName: walletId, key: 'totalBalance') as String?;
-      if (totalBalance == null) {
-        final balances = await this.balances;
-        return balances[2];
-      } else {
-        return Decimal.parse(totalBalance);
-        // the following caused a crash as it seems totalBalance here
-        // is a string. Gotta love dynamics
-        // return Format.satoshisToAmount(totalBalance);
-      }
-    }
-    final balances = await this.balances;
-    return balances[2];
-  }
-
-  /// return spendable balance minus the maximum tx fee
-  @override
-  Future<Decimal> get balanceMinusMaxFee async {
-    final balances = await this.balances;
-    final maxFee = await this.maxFee;
-    return balances[0] - Format.satoshisToAmount(maxFee, coin: coin);
-  }
-
-  @override
-  Future<models.TransactionData> get transactionData => lelantusTransactionData;
 
   @override
   bool validateAddress(String address) {
     return Address.validateAddress(address, _network);
   }
 
-  /// Holds final balances, all utxos under control
-  Future<UtxoData>? _utxoData;
-  Future<UtxoData> get utxoData => _utxoData ??= _fetchUtxoData();
-
-  @override
-  Future<List<UtxoObject>> get unspentOutputs async =>
-      (await utxoData).unspentOutputArray;
-
   /// Holds wallet transaction data
-  Future<models.TransactionData>? _transactionData;
-  Future<models.TransactionData> get _txnData =>
-      _transactionData ??= _fetchTransactionData();
+  Future<List<isar_models.Transaction>> get _txnData => isar.transactions
+      .filter()
+      .isLelantusIsNull()
+      .or()
+      .isLelantusEqualTo(false)
+      .findAll();
+  // _transactionData ??= _refreshTransactions();
 
-  models.TransactionData? cachedTxData;
+  // models.TransactionData? cachedTxData;
 
   // hack to add tx to txData before refresh completes
   // required based on current app architecture where we don't properly store
   // transactions locally in a good way
   @override
   Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
-    final currentPrice = await firoPrice;
-    final locale =
-        Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
-    final String worthNow = Format.localizedStringAsFixed(
-        value:
-            ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
-                    Decimal.fromInt(Constants.satsPerCoin(coin)))
-                .toDecimal(scaleOnInfinitePrecision: 2),
-        decimalPlaces: 2,
-        locale: locale!);
-
-    final tx = models.Transaction(
-      txid: txData["txid"] as String,
-      confirmedStatus: false,
-      timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      txType: "Sent",
-      amount: txData["recipientAmt"] as int,
-      worthNow: worthNow,
-      worthAtBlockTimestamp: worthNow,
-      fees: txData["fee"] as int,
-      inputSize: 0,
-      outputSize: 0,
-      inputs: [],
-      outputs: [],
-      address: txData["address"] as String,
-      height: -1,
-      confirmations: 0,
-    );
-
-    if (cachedTxData == null) {
-      final data = await _fetchTransactionData();
-      _transactionData = Future(() => data);
-    }
-
-    final transactions = cachedTxData!.getAllTransactions();
-    transactions[tx.txid] = tx;
-    cachedTxData = models.TransactionData.fromMap(transactions);
-    _transactionData = Future(() => cachedTxData!);
+    // final currentPrice = await firoPrice;
+    // final locale =
+    //     Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
+    // final String worthNow = Format.localizedStringAsFixed(
+    //     value:
+    //         ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
+    //                 Decimal.fromInt(Constants.satsPerCoin(coin)))
+    //             .toDecimal(scaleOnInfinitePrecision: 2),
+    //     decimalPlaces: 2,
+    //     locale: locale!);
+    //
+    // final tx = models.Transaction(
+    //   txid: txData["txid"] as String,
+    //   confirmedStatus: false,
+    //   timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    //   txType: "Sent",
+    //   amount: txData["recipientAmt"] as int,
+    //   worthNow: worthNow,
+    //   worthAtBlockTimestamp: worthNow,
+    //   fees: txData["fee"] as int,
+    //   inputSize: 0,
+    //   outputSize: 0,
+    //   inputs: [],
+    //   outputs: [],
+    //   address: txData["address"] as String,
+    //   height: -1,
+    //   confirmations: 0,
+    // );
+    //
+    // if (cachedTxData == null) {
+    //   final data = await _fetchTransactionData();
+    //   _transactionData = Future(() => data);
+    // }
+    //
+    // final transactions = cachedTxData!.getAllTransactions();
+    // transactions[tx.txid] = tx;
+    // cachedTxData = models.TransactionData.fromMap(transactions);
+    // _transactionData = Future(() => cachedTxData!);
   }
 
   /// Holds wallet lelantus transaction data
-  Future<models.TransactionData>? _lelantusTransactionData;
-  Future<models.TransactionData> get lelantusTransactionData =>
-      _lelantusTransactionData ??= _getLelantusTransactionData();
+  Future<List<isar_models.Transaction>> get lelantusTransactionData =>
+      isar.transactions.filter().isLelantusEqualTo(true).findAll();
+  // _lelantusTransactionData ??= _getLelantusTransactionData();
 
   /// Holds the max fee that can be sent
   Future<int>? _maxFee;
   @override
   Future<int> get maxFee => _maxFee ??= _fetchMaxFee();
 
-  /// Holds the current balance data
-  Future<List<Decimal>>? _balances;
-  Future<List<Decimal>> get balances => _balances ??= _getFullBalance();
-
-  /// Holds all outputs for wallet, used for displaying utxos in app security view
-  List<UtxoObject> _outputsList = [];
-
-  Future<Decimal> get firoPrice async {
-    final data =
-        await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
-    if (coin == Coin.firoTestNet) {
-      return data[Coin.firo]!.item1;
-    }
-    return data[coin]!.item1;
-  }
-
-  // currently isn't used but required due to abstract parent class
   Future<FeeObject>? _feeObject;
   @override
   Future<FeeObject> get fees => _feeObject ??= _getFees();
 
-  /// Holds updated receiving address
-  Future<String>? _currentReceivingAddress;
   @override
-  Future<String> get currentReceivingAddress =>
-      _currentReceivingAddress ??= _getCurrentAddressForChain(0);
+  Future<String> get currentReceivingAddress async =>
+      (await _currentReceivingAddress).value;
 
-  // @override
-  // Future<String> get currentLegacyReceivingAddress => null;
+  Future<isar_models.Address> get _currentReceivingAddress async =>
+      (await isar.addresses
+          .filter()
+          .typeEqualTo(isar_models.AddressType.p2pkh)
+          .subTypeEqualTo(isar_models.AddressSubType.receiving)
+          .sortByDerivationIndexDesc()
+          .findFirst())!;
+
+  Future<String> get currentChangeAddress async =>
+      (await _currentChangeAddress).value;
+
+  Future<isar_models.Address> get _currentChangeAddress async =>
+      (await isar.addresses
+          .filter()
+          .typeEqualTo(isar_models.AddressType.p2pkh)
+          .subTypeEqualTo(isar_models.AddressSubType.change)
+          .sortByDerivationIndexDesc()
+          .findFirst())!;
 
   late String _walletName;
   @override
@@ -974,11 +920,6 @@ class FiroWallet extends CoinServiceAPI {
   late String _walletId;
   @override
   String get walletId => _walletId;
-
-  Future<List<String>>? _allOwnAddresses;
-  @override
-  Future<List<String>> get allOwnAddresses =>
-      _allOwnAddresses ??= _fetchAllOwnAddresses();
 
   @override
   Future<bool> testNetworkConnection() async {
@@ -1058,8 +999,8 @@ class FiroWallet extends CoinServiceAPI {
 
         // check for send all
         bool isSendAll = false;
-        final balance = Format.decimalAmountToSatoshis(
-            await availablePublicBalance(), coin);
+        final balance =
+            Format.decimalAmountToSatoshis(availablePublicBalance(), coin);
         if (satoshiAmount == balance) {
           isSendAll = true;
         }
@@ -1145,7 +1086,7 @@ class FiroWallet extends CoinServiceAPI {
       // check for send all
       bool isSendAll = false;
       final balance =
-          Format.decimalAmountToSatoshis(await availablePrivateBalance(), coin);
+          Format.decimalAmountToSatoshis(availablePrivateBalance(), coin);
       if (satoshiAmount == balance) {
         // print("is send all");
         isSendAll = true;
@@ -1191,12 +1132,14 @@ class FiroWallet extends CoinServiceAPI {
         // temporarily update apdate available balance until a full refresh is done
 
         // TODO: something here causes an exception to be thrown giving user false info that the tx failed
-        Decimal sendTotal =
-            Format.satoshisToAmount(txData["value"] as int, coin: coin);
-        sendTotal += Decimal.parse(txData["fees"].toString());
-        final bals = await balances;
-        bals[0] -= sendTotal;
-        _balances = Future(() => bals);
+        // Decimal sendTotal =
+        //     Format.satoshisToAmount(txData["value"] as int, coin: coin);
+        // sendTotal += Decimal.parse(txData["fees"].toString());
+
+        // TODO: is this needed?
+        // final bals = await balances;
+        // bals[0] -= sendTotal;
+        // _balances = Future(() => bals);
 
         return txid;
       } catch (e, s) {
@@ -1213,52 +1156,52 @@ class FiroWallet extends CoinServiceAPI {
     }
   }
 
-  /// returns txid on successful send
-  ///
-  /// can throw
-  @override
-  Future<String> send({
-    required String toAddress,
-    required int amount,
-    Map<String, String> args = const {},
-  }) async {
-    try {
-      dynamic txHexOrError =
-          await _createJoinSplitTransaction(amount, toAddress, false);
-      Logging.instance.log("txHexOrError $txHexOrError", level: LogLevel.Error);
-      if (txHexOrError is int) {
-        // Here, we assume that transaction crafting returned an error
-        switch (txHexOrError) {
-          case 1:
-            throw Exception("Insufficient balance!");
-          default:
-            throw Exception("Error Creating Transaction!");
-        }
-      } else {
-        if (await _submitLelantusToNetwork(
-            txHexOrError as Map<String, dynamic>)) {
-          final txid = txHexOrError["txid"] as String;
-
-          // temporarily update apdate available balance until a full refresh is done
-          Decimal sendTotal =
-              Format.satoshisToAmount(txHexOrError["value"] as int, coin: coin);
-          sendTotal += Decimal.parse(txHexOrError["fees"].toString());
-          final bals = await balances;
-          bals[0] -= sendTotal;
-          _balances = Future(() => bals);
-
-          return txid;
-        } else {
-          //TODO provide more info
-          throw Exception("Transaction failed.");
-        }
-      }
-    } catch (e, s) {
-      Logging.instance.log("Exception rethrown in firo send(): $e\n$s",
-          level: LogLevel.Error);
-      rethrow;
-    }
-  }
+  // /// returns txid on successful send
+  // ///
+  // /// can throw
+  // @override
+  // Future<String> send({
+  //   required String toAddress,
+  //   required int amount,
+  //   Map<String, String> args = const {},
+  // }) async {
+  //   try {
+  //     dynamic txHexOrError =
+  //         await _createJoinSplitTransaction(amount, toAddress, false);
+  //     Logging.instance.log("txHexOrError $txHexOrError", level: LogLevel.Error);
+  //     if (txHexOrError is int) {
+  //       // Here, we assume that transaction crafting returned an error
+  //       switch (txHexOrError) {
+  //         case 1:
+  //           throw Exception("Insufficient balance!");
+  //         default:
+  //           throw Exception("Error Creating Transaction!");
+  //       }
+  //     } else {
+  //       if (await _submitLelantusToNetwork(
+  //           txHexOrError as Map<String, dynamic>)) {
+  //         final txid = txHexOrError["txid"] as String;
+  //
+  //         // temporarily update apdate available balance until a full refresh is done
+  //         Decimal sendTotal =
+  //             Format.satoshisToAmount(txHexOrError["value"] as int, coin: coin);
+  //         sendTotal += Decimal.parse(txHexOrError["fees"].toString());
+  //         final bals = await balances;
+  //         bals[0] -= sendTotal;
+  //         _balances = Future(() => bals);
+  //
+  //         return txid;
+  //       } else {
+  //         //TODO provide more info
+  //         throw Exception("Transaction failed.");
+  //       }
+  //     }
+  //   } catch (e, s) {
+  //     Logging.instance.log("Exception rethrown in firo send(): $e\n$s",
+  //         level: LogLevel.Error);
+  //     rethrow;
+  //   }
+  // }
 
   Future<List<String>> _getMnemonicList() async {
     final mnemonicString =
@@ -1278,7 +1221,7 @@ class FiroWallet extends CoinServiceAPI {
 
   late SecureStorageInterface _secureStore;
 
-  late PriceAPI _priceAPI;
+  late Isar isar;
 
   late TransactionNotificationTracker txTracker;
 
@@ -1290,7 +1233,6 @@ class FiroWallet extends CoinServiceAPI {
     required ElectrumX client,
     required CachedElectrumX cachedClient,
     required TransactionNotificationTracker tracker,
-    PriceAPI? priceAPI,
     required SecureStorageInterface secureStore,
   }) {
     txTracker = tracker;
@@ -1299,8 +1241,6 @@ class FiroWallet extends CoinServiceAPI {
     _coin = coin;
     _electrumXClient = client;
     _cachedElectrumXClient = cachedClient;
-
-    _priceAPI = priceAPI ?? PriceAPI(Client());
     _secureStore = secureStore;
 
     Logging.instance.log("$walletName isolates length: ${isolates.length}",
@@ -1326,26 +1266,28 @@ class FiroWallet extends CoinServiceAPI {
     String _recipientAddress,
     bool isSendAll, {
     int additionalOutputs = 0,
-    List<UtxoObject>? utxos,
+    List<isar_models.UTXO>? utxos,
   }) async {
     Logging.instance
         .log("Starting coinSelection ----------", level: LogLevel.Info);
-    final List<UtxoObject> availableOutputs = utxos ?? _outputsList;
-    final List<UtxoObject> spendableOutputs = [];
+    final List<isar_models.UTXO> availableOutputs = utxos ?? await this.utxos;
+    final currentChainHeight = await chainHeight;
+    final List<isar_models.UTXO> spendableOutputs = [];
     int spendableSatoshiValue = 0;
 
     // Build list of spendable outputs and totaling their satoshi amount
     for (var i = 0; i < availableOutputs.length; i++) {
-      if (availableOutputs[i].blocked == false &&
-          availableOutputs[i].status.confirmed == true) {
+      if (availableOutputs[i].isBlocked == false &&
+          availableOutputs[i]
+                  .isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS) ==
+              true) {
         spendableOutputs.add(availableOutputs[i]);
         spendableSatoshiValue += availableOutputs[i].value;
       }
     }
 
     // sort spendable by age (oldest first)
-    spendableOutputs.sort(
-        (a, b) => b.status.confirmations.compareTo(a.status.confirmations));
+    spendableOutputs.sort((a, b) => b.blockTime!.compareTo(a.blockTime!));
 
     Logging.instance.log("spendableOutputs.length: ${spendableOutputs.length}",
         level: LogLevel.Info);
@@ -1372,7 +1314,7 @@ class FiroWallet extends CoinServiceAPI {
     // Possible situation right here
     int satoshisBeingUsed = 0;
     int inputsBeingConsumed = 0;
-    List<UtxoObject> utxoObjectsToUse = [];
+    List<isar_models.UTXO> utxoObjectsToUse = [];
 
     for (var i = 0;
         satoshisBeingUsed <= satoshiAmountToSend && i < spendableOutputs.length;
@@ -1671,7 +1613,7 @@ class FiroWallet extends CoinServiceAPI {
   }
 
   Future<Map<String, dynamic>> fetchBuildTxData(
-    List<UtxoObject> utxosToUse,
+    List<isar_models.UTXO> utxosToUse,
   ) async {
     // return data
     Map<String, dynamic> results = {};
@@ -1792,7 +1734,7 @@ class FiroWallet extends CoinServiceAPI {
 
   /// Builds and signs a transaction
   Future<Map<String, dynamic>> buildTransaction({
-    required List<UtxoObject> utxosToUse,
+    required List<isar_models.UTXO> utxosToUse,
     required Map<String, dynamic> utxoSigningData,
     required List<String> recipients,
     required List<int> satoshiAmounts,
@@ -1890,11 +1832,25 @@ class FiroWallet extends CoinServiceAPI {
 
     await Future.wait([
       DB.instance.put<dynamic>(boxName: walletId, key: "id", value: _walletId),
-      _getLelantusTransactionData().then((lelantusTxData) =>
-          _lelantusTransactionData = Future(() => lelantusTxData)),
       DB.instance
           .put<dynamic>(boxName: walletId, key: "isFavorite", value: false),
     ]);
+  }
+
+  Future<void> _isarInit() async {
+    isar = await Isar.open(
+      [
+        isar_models.TransactionSchema,
+        isar_models.TransactionNoteSchema,
+        isar_models.InputSchema,
+        isar_models.OutputSchema,
+        isar_models.UTXOSchema,
+        isar_models.AddressSchema,
+      ],
+      directory: (await StackFileSystem.applicationIsarDirectory()).path,
+      inspector: false,
+      name: walletId,
+    );
   }
 
   @override
@@ -1909,12 +1865,7 @@ class FiroWallet extends CoinServiceAPI {
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
     await _prefs.init();
-    final data =
-        DB.instance.get<dynamic>(boxName: walletId, key: "latest_tx_model")
-            as models.TransactionData?;
-    if (data != null) {
-      _transactionData = Future(() => data);
-    }
+    await _isarInit();
   }
 
   Future<bool> refreshIfThereIsNewData() async {
@@ -1943,12 +1894,15 @@ class FiroWallet extends CoinServiceAPI {
         }
       }
       if (!needsRefresh) {
-        var allOwnAddresses = await this.allOwnAddresses;
-        List<Map<String, dynamic>> allTxs =
-            await _fetchHistory(allOwnAddresses);
-        models.TransactionData txData = await _txnData;
+        final allOwnAddresses = await _fetchAllOwnAddresses();
+        List<Map<String, dynamic>> allTxs = await _fetchHistory(
+            allOwnAddresses.map((e) => e.value).toList(growable: false));
         for (Map<String, dynamic> transaction in allTxs) {
-          if (txData.findTransaction(transaction['tx_hash'] as String) ==
+          final txid = transaction['tx_hash'] as String;
+          if ((await isar.transactions
+                  .filter()
+                  .txidMatches(txid)
+                  .findFirst()) ==
               null) {
             Logging.instance.log(
                 " txid not found in address history already ${transaction['tx_hash']}",
@@ -1967,71 +1921,88 @@ class FiroWallet extends CoinServiceAPI {
     }
   }
 
-  Future<void> getAllTxsToWatch(
-    models.TransactionData txData,
-    models.TransactionData lTxData,
-  ) async {
+  Future<void> getAllTxsToWatch() async {
     if (_hasCalledExit) return;
     Logging.instance.log("$walletName periodic", level: LogLevel.Info);
-    List<models.Transaction> unconfirmedTxnsToNotifyPending = [];
-    List<models.Transaction> unconfirmedTxnsToNotifyConfirmed = [];
+    List<isar_models.Transaction> unconfirmedTxnsToNotifyPending = [];
+    List<isar_models.Transaction> unconfirmedTxnsToNotifyConfirmed = [];
 
-    for (models.TransactionChunk chunk in txData.txChunks) {
-      for (models.Transaction tx in chunk.transactions) {
-        models.Transaction? lTx = lTxData.findTransaction(tx.txid);
+    final currentChainHeight = await chainHeight;
 
-        if (tx.confirmedStatus) {
-          if (txTracker.wasNotifiedPending(tx.txid) &&
-              !txTracker.wasNotifiedConfirmed(tx.txid)) {
-            // get all transactions that were notified as pending but not as confirmed
-            unconfirmedTxnsToNotifyConfirmed.add(tx);
-          }
-          if (lTx != null &&
-              (lTx.inputs.isEmpty || lTx.inputs[0].txid.isEmpty) &&
-              lTx.confirmedStatus == false &&
-              tx.txType == "Received") {
-            // If this is a received that is past 1 or more confirmations and has not been minted,
-            if (!txTracker.wasNotifiedPending(tx.txid)) {
-              unconfirmedTxnsToNotifyPending.add(tx);
-            }
-          }
-        } else {
+    final txTxns = await isar.transactions
+        .filter()
+        .isLelantusIsNull()
+        .or()
+        .isLelantusEqualTo(false)
+        .findAll();
+    final ltxTxns =
+        await isar.transactions.filter().isLelantusEqualTo(true).findAll();
+
+    for (isar_models.Transaction tx in txTxns) {
+      isar_models.Transaction? lTx;
+      try {
+        lTx = ltxTxns.firstWhere((e) => e.txid == tx.txid);
+      } catch (_) {
+        lTx = null;
+      }
+
+      if (tx.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
+        if (txTracker.wasNotifiedPending(tx.txid) &&
+            !txTracker.wasNotifiedConfirmed(tx.txid)) {
+          // get all transactions that were notified as pending but not as confirmed
+          unconfirmedTxnsToNotifyConfirmed.add(tx);
+        }
+        if (lTx != null &&
+            (lTx.inputs.isEmpty || lTx.inputs.first.txid.isEmpty) &&
+            lTx.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS) ==
+                false &&
+            tx.type == isar_models.TransactionType.incoming) {
+          // If this is a received that is past 1 or more confirmations and has not been minted,
           if (!txTracker.wasNotifiedPending(tx.txid)) {
-            // get all transactions that were not notified as pending yet
             unconfirmedTxnsToNotifyPending.add(tx);
           }
         }
-      }
-    }
-
-    for (models.TransactionChunk chunk in txData.txChunks) {
-      for (models.Transaction tx in chunk.transactions) {
-        if (!tx.confirmedStatus && tx.inputs[0].txid.isNotEmpty) {
-          // Get all normal txs that are at 0 confirmations
-          unconfirmedTxnsToNotifyPending
-              .removeWhere((e) => e.txid == tx.inputs[0].txid);
-          Logging.instance.log("removed tx: ${tx.txid}", level: LogLevel.Info);
+      } else {
+        if (!txTracker.wasNotifiedPending(tx.txid)) {
+          // get all transactions that were not notified as pending yet
+          unconfirmedTxnsToNotifyPending.add(tx);
         }
       }
     }
-    for (models.TransactionChunk chunk in lTxData.txChunks) {
-      for (models.Transaction lTX in chunk.transactions) {
-        models.Transaction? tx = txData.findTransaction(lTX.txid);
-        if (tx == null) {
-          // if this is a ltx transaction that is unconfirmed and not represented in the normal transaction set.
-          if (!lTX.confirmedStatus) {
-            if (!txTracker.wasNotifiedPending(lTX.txid)) {
-              unconfirmedTxnsToNotifyPending.add(lTX);
-            }
-          } else {
-            if (txTracker.wasNotifiedPending(lTX.txid) &&
-                !txTracker.wasNotifiedConfirmed(lTX.txid)) {
-              unconfirmedTxnsToNotifyConfirmed.add(lTX);
-            }
+
+    for (isar_models.Transaction tx in txTxns) {
+      if (!tx.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS) &&
+          tx.inputs.first.txid.isNotEmpty) {
+        // Get all normal txs that are at 0 confirmations
+        unconfirmedTxnsToNotifyPending
+            .removeWhere((e) => e.txid == tx.inputs.first.txid);
+        Logging.instance.log("removed tx: ${tx.txid}", level: LogLevel.Info);
+      }
+    }
+
+    for (isar_models.Transaction lTX in ltxTxns) {
+      isar_models.Transaction? tx;
+      try {
+        tx = ltxTxns.firstWhere((e) => e.txid == lTX.txid);
+      } catch (_) {
+        tx = null;
+      }
+
+      if (tx == null) {
+        // if this is a ltx transaction that is unconfirmed and not represented in the normal transaction set.
+        if (!lTX.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
+          if (!txTracker.wasNotifiedPending(lTX.txid)) {
+            unconfirmedTxnsToNotifyPending.add(lTX);
+          }
+        } else {
+          if (txTracker.wasNotifiedPending(lTX.txid) &&
+              !txTracker.wasNotifiedConfirmed(lTX.txid)) {
+            unconfirmedTxnsToNotifyConfirmed.add(lTX);
           }
         }
       }
     }
+
     Logging.instance.log(
         "unconfirmedTxnsToNotifyPending $unconfirmedTxnsToNotifyPending",
         level: LogLevel.Info);
@@ -2040,8 +2011,10 @@ class FiroWallet extends CoinServiceAPI {
         level: LogLevel.Info);
 
     for (final tx in unconfirmedTxnsToNotifyPending) {
-      switch (tx.txType) {
-        case "Received":
+      final confirmations = tx.getConfirmations(currentChainHeight);
+
+      switch (tx.type) {
+        case isar_models.TransactionType.incoming:
           unawaited(
             NotificationApi.showNotification(
               title: "Incoming transaction",
@@ -2049,28 +2022,29 @@ class FiroWallet extends CoinServiceAPI {
               walletId: walletId,
               iconAssetName: Assets.svg.iconFor(coin: coin),
               date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
-              shouldWatchForUpdates: tx.confirmations < MINIMUM_CONFIRMATIONS,
+              shouldWatchForUpdates: confirmations < MINIMUM_CONFIRMATIONS,
               coinName: coin.name,
               txid: tx.txid,
-              confirmations: tx.confirmations,
+              confirmations: confirmations,
               requiredConfirmations: MINIMUM_CONFIRMATIONS,
             ),
           );
           await txTracker.addNotifiedPending(tx.txid);
           break;
-        case "Sent":
+        case isar_models.TransactionType.outgoing:
           unawaited(
             NotificationApi.showNotification(
-              title:
-                  tx.subType == "mint" ? "Anonymizing" : "Outgoing transaction",
+              title: tx.subType == isar_models.TransactionSubType.mint
+                  ? "Anonymizing"
+                  : "Outgoing transaction",
               body: walletName,
               walletId: walletId,
               iconAssetName: Assets.svg.iconFor(coin: coin),
               date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
-              shouldWatchForUpdates: tx.confirmations < MINIMUM_CONFIRMATIONS,
+              shouldWatchForUpdates: confirmations < MINIMUM_CONFIRMATIONS,
               coinName: coin.name,
               txid: tx.txid,
-              confirmations: tx.confirmations,
+              confirmations: confirmations,
               requiredConfirmations: MINIMUM_CONFIRMATIONS,
             ),
           );
@@ -2082,7 +2056,7 @@ class FiroWallet extends CoinServiceAPI {
     }
 
     for (final tx in unconfirmedTxnsToNotifyConfirmed) {
-      if (tx.txType == "Received") {
+      if (tx.type == isar_models.TransactionType.incoming) {
         unawaited(
           NotificationApi.showNotification(
             title: "Incoming transaction confirmed",
@@ -2095,10 +2069,12 @@ class FiroWallet extends CoinServiceAPI {
           ),
         );
         await txTracker.addNotifiedConfirmed(tx.txid);
-      } else if (tx.txType == "Sent" && tx.subType == "join") {
+      } else if (tx.type == isar_models.TransactionType.outgoing &&
+          tx.subType == isar_models.TransactionSubType.join) {
         unawaited(
           NotificationApi.showNotification(
-            title: tx.subType == "mint"
+            title: tx.subType ==
+                    isar_models.TransactionSubType.mint // redundant check?
                 ? "Anonymized"
                 : "Outgoing transaction confirmed",
             body: walletName,
@@ -2150,19 +2126,6 @@ class FiroWallet extends CoinServiceAPI {
         key: '${_walletId}_mnemonic',
         value: bip39.generateMnemonic(strength: 256));
 
-    // Set relevant indexes
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: 'receivingIndex', value: 0);
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: 'changeIndex', value: 0);
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: 'mintIndex', value: 0);
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'blocked_tx_hashes',
-        value: [
-          "0xdefault"
-        ]); // A list of transaction hashes to represent frozen utxos in wallet
     // initialize address book entries
     await DB.instance.put<dynamic>(
         boxName: walletId,
@@ -2174,9 +2137,15 @@ class FiroWallet extends CoinServiceAPI {
     // Generate and add addresses to relevant arrays
     final initialReceivingAddress = await _generateAddressForChain(0, 0);
     final initialChangeAddress = await _generateAddressForChain(1, 0);
-    await addToAddressesArrayForChain(initialReceivingAddress, 0);
-    await addToAddressesArrayForChain(initialChangeAddress, 1);
-    _currentReceivingAddress = Future(() => initialReceivingAddress);
+
+    await _isarInit();
+
+    await isar.writeTxn(() async {
+      await isar.addresses.putAll([
+        initialReceivingAddress,
+        initialChangeAddress,
+      ]);
+    });
   }
 
   bool refreshMutex = false;
@@ -2220,19 +2189,17 @@ class FiroWallet extends CoinServiceAPI {
       await checkReceivingAddressForTransactions();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.1, walletId));
 
-      final newUtxoData = _fetchUtxoData();
+      await _refreshUTXOs();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.2, walletId));
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.25, walletId));
 
-      final newTxData = _fetchTransactionData();
+      await _refreshTransactions();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.35, walletId));
 
       final feeObj = _getFees();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.50, walletId));
 
-      _utxoData = Future(() => newUtxoData);
-      _transactionData = Future(() => newTxData);
       _feeObject = Future(() => feeObj);
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.60, walletId));
 
@@ -2244,17 +2211,13 @@ class FiroWallet extends CoinServiceAPI {
       await _refreshLelantusData();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.80, walletId));
 
-      // await autoMint();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.90, walletId));
 
-      var balance = await _getFullBalance();
-      _balances = Future(() => balance);
+      await _refreshBalance();
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.95, walletId));
 
-      var txData = (await _txnData);
-      var lTxData = (await lelantusTransactionData);
-      await getAllTxsToWatch(txData, lTxData);
+      await getAllTxsToWatch();
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(1.0, walletId));
 
@@ -2301,7 +2264,7 @@ class FiroWallet extends CoinServiceAPI {
   }
 
   Future<int> _fetchMaxFee() async {
-    final balance = await availableBalance;
+    final balance = availablePrivateBalance();
     int spendAmount = (balance * Decimal.fromInt(Constants.satsPerCoin(coin)))
         .toBigInt()
         .toInt();
@@ -2364,8 +2327,9 @@ class FiroWallet extends CoinServiceAPI {
     }
     final jindexes =
         DB.instance.get<dynamic>(boxName: walletId, key: 'jindex') as List?;
-    final data = await _txnData;
-    final lelantusData = await lelantusTransactionData;
+    final transactions = await _txnData;
+    final lelantusTransactionsd = await lelantusTransactionData;
+
     List<LelantusCoin> coins = [];
 
     List<LelantusCoin> lelantusCoinsList =
@@ -2373,6 +2337,9 @@ class FiroWallet extends CoinServiceAPI {
       previousValue.add(element.values.first);
       return previousValue;
     });
+
+    final currentChainHeight = await chainHeight;
+
     for (int i = 0; i < lelantusCoinsList.length; i++) {
       // Logging.instance.log("lelantusCoinsList[$i]: ${lelantusCoinsList[i]}");
       final txn = await cachedElectrumXClient.getTransaction(
@@ -2383,17 +2350,27 @@ class FiroWallet extends CoinServiceAPI {
       final confirmations = txn["confirmations"];
       bool isUnconfirmed = confirmations is int && confirmations < 1;
       if (!jindexes!.contains(lelantusCoinsList[i].index) &&
-          data.findTransaction(lelantusCoinsList[i].txId) == null) {
+          transactions
+              .where((e) => e.txid == lelantusCoinsList[i].txId)
+              .isEmpty) {
         isUnconfirmed = true;
       }
-      if ((data.findTransaction(lelantusCoinsList[i].txId) != null &&
-              !data
-                  .findTransaction(lelantusCoinsList[i].txId)!
-                  .confirmedStatus) ||
-          (lelantusData.findTransaction(lelantusCoinsList[i].txId) != null &&
-              !lelantusData
-                  .findTransaction(lelantusCoinsList[i].txId)!
-                  .confirmedStatus)) {
+
+      // TODO: optimize the following
+      if ((transactions
+                  .where((e) => e.txid == lelantusCoinsList[i].txId)
+                  .isNotEmpty &&
+              !transactions
+                  .where((e) => e.txid == lelantusCoinsList[i].txId)
+                  .first
+                  .isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) ||
+          (lelantusTransactionsd
+                  .where((e) => e.txid == lelantusCoinsList[i].txId)
+                  .isNotEmpty &&
+              !lelantusTransactionsd
+                  .where((e) => e.txid == lelantusCoinsList[i].txId)
+                  .first
+                  .isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS))) {
         continue;
       }
       if (!lelantusCoinsList[i].isUsed &&
@@ -2407,18 +2384,19 @@ class FiroWallet extends CoinServiceAPI {
 
   // index 0 and 1 for the funds available to spend.
   // index 2 and 3 for all the funds in the wallet (including the undependable ones)
-  Future<List<Decimal>> _getFullBalance() async {
+  // Future<List<Decimal>> _refreshBalance() async {
+  Future<void> _refreshBalance() async {
     try {
+      final utxosUpdateFuture = _refreshUTXOs();
       final List<Map<dynamic, LelantusCoin>> lelantusCoins =
           getLelantusCoinMap();
       if (lelantusCoins.isNotEmpty) {
         lelantusCoins.removeWhere((element) =>
             element.values.any((elementCoin) => elementCoin.value == 0));
       }
-      final utxos = await utxoData;
-      final Decimal price = await firoPrice;
       final data = await _txnData;
       final lData = await lelantusTransactionData;
+      final currentChainHeight = await chainHeight;
       final jindexes =
           DB.instance.get<dynamic>(boxName: walletId, key: 'jindex') as List?;
       int intLelantusBalance = 0;
@@ -2426,9 +2404,20 @@ class FiroWallet extends CoinServiceAPI {
 
       for (var element in lelantusCoins) {
         element.forEach((key, value) {
-          final tx = data.findTransaction(value.txId);
-          models.Transaction? ltx;
-          ltx = lData.findTransaction(value.txId);
+          isar_models.Transaction? tx;
+          try {
+            tx == data.firstWhere((e) => e.txid == value.txId);
+          } catch (_) {
+            tx = null;
+          }
+
+          isar_models.Transaction? ltx;
+          try {
+            ltx = lData.firstWhere((e) => e.txid == value.txId);
+          } catch (_) {
+            ltx = null;
+          }
+
           // Logging.instance.log("$value $tx $ltx");
           if (!jindexes!.contains(value.index) && tx == null) {
             // This coin is not confirmed and may be replaced
@@ -2436,53 +2425,77 @@ class FiroWallet extends CoinServiceAPI {
               tx == null &&
               !value.isUsed &&
               ltx != null &&
-              !ltx.confirmedStatus) {
+              !ltx.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
             unconfirmedLelantusBalance += value.value;
           } else if (jindexes.contains(value.index) && !value.isUsed) {
             intLelantusBalance += value.value;
           } else if (!value.isUsed &&
-              (tx == null ? true : tx.confirmedStatus != false)) {
+              (tx == null
+                  ? true
+                  : tx.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS) !=
+                      false)) {
             intLelantusBalance += value.value;
-          } else if (tx != null && tx.confirmedStatus == false) {
+          } else if (tx != null &&
+              tx.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS) ==
+                  false) {
             unconfirmedLelantusBalance += value.value;
           }
         });
       }
 
-      final int utxosIntValue = utxos.satoshiBalance;
-      final Decimal utxosValue =
-          Format.satoshisToAmount(utxosIntValue, coin: coin);
+      // final int utxosIntValue = utxos.satoshiBalance;
+      // final Decimal utxosValue =
+      //     Format.satoshisToAmount(utxosIntValue, coin: coin);
 
-      List<Decimal> balances = List.empty(growable: true);
+      // List<Decimal> balances = List.empty(growable: true);
+      //
+      // Decimal lelantusBalance =
+      //     Format.satoshisToAmount(intLelantusBalance, coin: coin);
 
-      Decimal lelantusBalance =
-          Format.satoshisToAmount(intLelantusBalance, coin: coin);
+      // balances.add(lelantusBalance);   0
+      //
+      // balances.add(lelantusBalance * price);  1
 
-      balances.add(lelantusBalance);
+      // Decimal _unconfirmedLelantusBalance =
+      //     Format.satoshisToAmount(unconfirmedLelantusBalance, coin: coin);
 
-      balances.add(lelantusBalance * price);
+      // balances.add(lelantusBalance + utxosValue + _unconfirmedLelantusBalance);  2
+      //
+      // balances.add(
+      //     (lelantusBalance + utxosValue + _unconfirmedLelantusBalance) * price);  3
 
-      Decimal _unconfirmedLelantusBalance =
-          Format.satoshisToAmount(unconfirmedLelantusBalance, coin: coin);
+      // int availableSats =
+      //     utxos.satoshiBalance - utxos.satoshiBalanceUnconfirmed;
+      // if (availableSats < 0) {
+      //   availableSats = 0;
+      // }
+      // balances.add(Format.satoshisToAmount(availableSats, coin: coin));  4
 
-      balances.add(lelantusBalance + utxosValue + _unconfirmedLelantusBalance);
+      // wait for updated uxtos to get updated public balance
+      await utxosUpdateFuture;
 
-      balances.add(
-          (lelantusBalance + utxosValue + _unconfirmedLelantusBalance) * price);
+      // todo: shared total between private and public balances?
+      _balancePrivate = Balance(
+        coin: coin,
+        total: intLelantusBalance + unconfirmedLelantusBalance + balance.total,
+        spendable: intLelantusBalance,
+        blockedTotal: 0,
+        pendingSpendable: unconfirmedLelantusBalance + balance.total,
+      );
+      // _balance = Balance(
+      //   coin: coin,
+      //   total: utxos.satoshiBalance,
+      //   spendable: availableSats,
+      //   blockedTotal: 0,
+      //   pendingSpendable: utxos.satoshiBalanceUnconfirmed,
+      // );
 
-      int availableSats =
-          utxos.satoshiBalance - utxos.satoshiBalanceUnconfirmed;
-      if (availableSats < 0) {
-        availableSats = 0;
-      }
-      balances.add(Format.satoshisToAmount(availableSats, coin: coin));
-
-      Logging.instance.log("balances $balances", level: LogLevel.Info);
-      await DB.instance.put<dynamic>(
-          boxName: walletId,
-          key: 'totalBalance',
-          value: balances[2].toString());
-      return balances;
+      // Logging.instance.log("balances $balances", level: LogLevel.Info);
+      // await DB.instance.put<dynamic>(
+      //     boxName: walletId,
+      //     key: 'totalBalance',
+      //     value: balances[2].toString());
+      // return balances;
     } catch (e, s) {
       Logging.instance.log("Exception rethrown in getFullBalance(): $e\n$s",
           level: LogLevel.Error);
@@ -2509,15 +2522,19 @@ class FiroWallet extends CoinServiceAPI {
 
   /// Returns the mint transaction hex to mint all of the available funds.
   Future<Map<String, dynamic>> _mintSelection() async {
-    final List<UtxoObject> availableOutputs = _outputsList;
-    final List<UtxoObject?> spendableOutputs = [];
+    final currentChainHeight = await chainHeight;
+    final List<isar_models.UTXO> availableOutputs = await utxos;
+    final List<isar_models.UTXO?> spendableOutputs = [];
 
     // Build list of spendable outputs and totaling their satoshi amount
     for (var i = 0; i < availableOutputs.length; i++) {
-      if (availableOutputs[i].blocked == false &&
-          availableOutputs[i].status.confirmed == true &&
+      if (availableOutputs[i].isBlocked == false &&
+          availableOutputs[i]
+                  .isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS) ==
+              true &&
           !(availableOutputs[i].isCoinbase &&
-              availableOutputs[i].status.confirmations <= 101)) {
+              availableOutputs[i].getConfirmations(currentChainHeight) <=
+                  101)) {
         spendableOutputs.add(availableOutputs[i]);
       }
     }
@@ -2528,8 +2545,7 @@ class FiroWallet extends CoinServiceAPI {
           element.values.any((elementCoin) => elementCoin.value == 0));
     }
     final data = await _txnData;
-    final dataMap = data.getAllTransactions();
-    dataMap.forEach((key, value) {
+    for (final value in data) {
       if (value.inputs.isNotEmpty) {
         for (var element in value.inputs) {
           if (lelantusCoins
@@ -2543,7 +2559,7 @@ class FiroWallet extends CoinServiceAPI {
           }
         }
       }
-    });
+    }
 
     // If there is no Utxos to mint then stop the function.
     if (spendableOutputs.isEmpty) {
@@ -2553,7 +2569,7 @@ class FiroWallet extends CoinServiceAPI {
     }
 
     int satoshisBeingUsed = 0;
-    List<UtxoObject> utxoObjectsToUse = [];
+    List<isar_models.UTXO> utxoObjectsToUse = [];
 
     for (var i = 0; i < spendableOutputs.length; i++) {
       final spendable = spendableOutputs[i];
@@ -2568,19 +2584,19 @@ class FiroWallet extends CoinServiceAPI {
     var tmpTx = await buildMintTransaction(
         utxoObjectsToUse, satoshisBeingUsed, mintsWithoutFee);
 
-    int vsize = (tmpTx['transaction'] as Transaction).virtualSize();
-    final Decimal dvsize = Decimal.fromInt(vsize);
+    int vSize = (tmpTx['transaction'] as Transaction).virtualSize();
+    final Decimal dvSize = Decimal.fromInt(vSize);
 
     final feesObject = await fees;
 
     final Decimal fastFee =
         Format.satoshisToAmount(feesObject.fast, coin: coin);
     int firoFee =
-        (dvsize * fastFee * Decimal.fromInt(100000)).toDouble().ceil();
-    // int firoFee = (vsize * feesObject.fast * (1 / 1000.0) * 100000000).ceil();
+        (dvSize * fastFee * Decimal.fromInt(100000)).toDouble().ceil();
+    // int firoFee = (vSize * feesObject.fast * (1 / 1000.0) * 100000000).ceil();
 
-    if (firoFee < vsize) {
-      firoFee = vsize + 1;
+    if (firoFee < vSize) {
+      firoFee = vSize + 1;
     }
     firoFee = firoFee + 10;
     int satoshiAmountToSend = satoshisBeingUsed - firoFee;
@@ -2635,8 +2651,10 @@ class FiroWallet extends CoinServiceAPI {
   }
 
   /// Builds and signs a transaction
-  Future<Map<String, dynamic>> buildMintTransaction(List<UtxoObject> utxosToUse,
-      int satoshisPerRecipient, List<Map<String, dynamic>> mintsMap) async {
+  Future<Map<String, dynamic>> buildMintTransaction(
+      List<isar_models.UTXO> utxosToUse,
+      int satoshisPerRecipient,
+      List<Map<String, dynamic>> mintsMap) async {
     //todo: check if print needed
     // debugPrint(utxosToUse.toString());
     List<String> addressesToDerive = [];
@@ -2754,11 +2772,10 @@ class FiroWallet extends CoinServiceAPI {
     var txHex = incomplete.toHex();
     int fee = amount - incomplete.outs[0].value!;
 
-    var price = await firoPrice;
     var builtHex = txb.build();
     // return builtHex;
-    final locale =
-        Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
+    // final locale =
+    //     Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
     return {
       "transaction": builtHex,
       "txid": txId,
@@ -2770,30 +2787,23 @@ class FiroWallet extends CoinServiceAPI {
       "txType": "Sent",
       "confirmed_status": false,
       "amount": Format.satoshisToAmount(amount, coin: coin).toDouble(),
-      "worthNow": Format.localizedStringAsFixed(
-          value: ((Decimal.fromInt(amount) * price) /
-                  Decimal.fromInt(Constants.satsPerCoin(coin)))
-              .toDecimal(scaleOnInfinitePrecision: 2),
-          decimalPlaces: 2,
-          locale: locale!),
       "timestamp": DateTime.now().millisecondsSinceEpoch ~/ 1000,
       "subType": "mint",
       "mintsMap": mintsMap,
     };
   }
 
-  Future<models.TransactionData> _refreshLelantusData() async {
+  Future<void> _refreshLelantusData() async {
     final List<Map<dynamic, LelantusCoin>> lelantusCoins = getLelantusCoinMap();
     final jindexes =
         DB.instance.get<dynamic>(boxName: walletId, key: 'jindex') as List?;
 
     // Get all joinsplit transaction ids
-    final lelantusTxData = await lelantusTransactionData;
 
-    final listLelantusTxData = lelantusTxData.getAllTransactions();
+    final listLelantusTxData = await lelantusTransactionData;
     List<String> joinsplits = [];
-    for (final tx in listLelantusTxData.values) {
-      if (tx.subType == "join") {
+    for (final tx in listLelantusTxData) {
+      if (tx.subType == isar_models.TransactionSubType.join) {
         joinsplits.add(tx.txid);
       }
     }
@@ -2809,32 +2819,43 @@ class FiroWallet extends CoinServiceAPI {
       }
     }
 
-    final currentPrice = await firoPrice;
     // Grab the most recent information on all the joinsplits
 
-    final locale =
-        Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
-    final updatedJSplit = await getJMintTransactions(cachedElectrumXClient,
-        joinsplits, _prefs.currency, coin, currentPrice, locale!);
+    final updatedJSplit = await getJMintTransactions(
+      cachedElectrumXClient,
+      joinsplits,
+      coin,
+    );
+
+    final currentChainHeight = await chainHeight;
 
     // update all of joinsplits that are now confirmed.
     for (final tx in updatedJSplit) {
-      final currentTx = listLelantusTxData[tx.txid];
+      isar_models.Transaction? currentTx;
+
+      try {
+        currentTx = listLelantusTxData.firstWhere((e) => e.txid == tx.txid);
+      } catch (_) {
+        currentTx = null;
+      }
+
       if (currentTx == null) {
         // this send was accidentally not included in the list
-        listLelantusTxData[tx.txid] = tx;
+        tx.isLelantus = true;
+        listLelantusTxData.add(tx);
         continue;
       }
-      if (currentTx.confirmedStatus != tx.confirmedStatus) {
-        listLelantusTxData[tx.txid] = tx;
+      if (currentTx.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS) !=
+          tx.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
+        listLelantusTxData.removeWhere((e) => e.txid == tx.txid);
+        tx.isLelantus = true;
+        listLelantusTxData.add(tx);
       }
     }
 
-    final txData = await _txnData;
-
     // Logging.instance.log(txData.txChunks);
-    final listTxData = txData.getAllTransactions();
-    listTxData.forEach((key, value) {
+    final listTxData = await _txnData;
+    for (final value in listTxData) {
       // ignore change addresses
       // bool hasAtLeastOneReceive = false;
       // int howManyReceiveInputs = 0;
@@ -2849,23 +2870,32 @@ class FiroWallet extends CoinServiceAPI {
       //   }
       // }
 
-      if (value.txType == "Received" && value.subType != "mint") {
+      if (value.type == isar_models.TransactionType.incoming &&
+          value.subType != isar_models.TransactionSubType.mint) {
         // Every receive other than a mint should be shown. Mints will be collected and shown from the send side
-        listLelantusTxData[value.txid] = value;
-      } else if (value.txType == "Sent") {
+        listLelantusTxData.removeWhere((e) => e.txid == value.txid);
+        value.isLelantus = true;
+        listLelantusTxData.add(value);
+      } else if (value.type == isar_models.TransactionType.outgoing) {
         // all sends should be shown, mints will be displayed correctly in the ui
-        listLelantusTxData[value.txid] = value;
+        listLelantusTxData.removeWhere((e) => e.txid == value.txid);
+        value.isLelantus = true;
+        listLelantusTxData.add(value);
       }
-    });
+    }
 
-    // update the _lelantusTransactionData
-    final models.TransactionData newTxData =
-        models.TransactionData.fromMap(listLelantusTxData);
-    // Logging.instance.log(newTxData.txChunks);
-    _lelantusTransactionData = Future(() => newTxData);
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: 'latest_lelantus_tx_model', value: newTxData);
-    return newTxData;
+    // TODO: optimize this whole lelantus process
+    await isar.writeTxn(
+        () async => isar.transactions.putAllByTxid(listLelantusTxData));
+
+    // // update the _lelantusTransactionData
+    // final models.TransactionData newTxData =
+    //     models.TransactionData.fromMap(listLelantusTxData);
+    // // Logging.instance.log(newTxData.txChunks);
+    // _lelantusTransactionData = Future(() => newTxData);
+    // await DB.instance.put<dynamic>(
+    //     boxName: walletId, key: 'latest_lelantus_tx_model', value: newTxData);
+    // return newTxData;
   }
 
   Future<String> _getMintHex(int amount, int index) async {
@@ -2955,21 +2985,42 @@ class FiroWallet extends CoinServiceAPI {
             boxName: walletId, key: '_lelantus_coins', value: coins);
 
         // add the send transaction
-        models.TransactionData data = await lelantusTransactionData;
-        Map<String, models.Transaction> transactions =
-            data.getAllTransactions();
-        transactions[transactionInfo['txid'] as String] =
-            models.Transaction.fromLelantusJson(transactionInfo);
-        final models.TransactionData newTxData =
-            models.TransactionData.fromMap(transactions);
-        await DB.instance.put<dynamic>(
-            boxName: walletId,
-            key: 'latest_lelantus_tx_model',
-            value: newTxData);
-        final ldata = DB.instance.get<dynamic>(
-            boxName: walletId,
-            key: 'latest_lelantus_tx_model') as models.TransactionData;
-        _lelantusTransactionData = Future(() => ldata);
+        final transaction = isar_models.Transaction()
+          ..txid = transactionInfo['txid'] as String
+          ..timestamp = transactionInfo['timestamp'] as int? ??
+              (DateTime.now().millisecondsSinceEpoch ~/ 1000)
+          ..type = transactionInfo['txType'] == "Received"
+              ? isar_models.TransactionType.incoming
+              : isar_models.TransactionType.outgoing
+          ..amount = Format.decimalAmountToSatoshis(
+              Decimal.parse(transactionInfo["amount"].toString()), coin)
+          ..fee = Format.decimalAmountToSatoshis(
+              Decimal.parse(transactionInfo["fees"].toString()), coin)
+          ..address = transactionInfo["address"] as String
+          ..height = transactionInfo["height"] as int?
+          ..subType = transactionInfo["subType"] == "mint"
+              ? isar_models.TransactionSubType.mint
+              : transactionInfo["subType"] == "join"
+                  ? isar_models.TransactionSubType.join
+                  : isar_models.TransactionSubType.none
+          ..otherData = transactionInfo["otherData"] as String?
+          ..isLelantus = true
+          ..isCancelled = false;
+
+        await isar.writeTxn(() async {
+          await isar.transactions.put(transaction);
+        });
+
+        // final models.TransactionData newTxData =
+        //     models.TransactionData.fromMap(transactions);
+        // await DB.instance.put<dynamic>(
+        //     boxName: walletId,
+        //     key: 'latest_lelantus_tx_model',
+        //     value: newTxData);
+        // final ldata = DB.instance.get<dynamic>(
+        //     boxName: walletId,
+        //     key: 'latest_lelantus_tx_model') as models.TransactionData;
+        // _lelantusTransactionData = Future(() => ldata);
       } else {
         // This is a mint
         Logging.instance.log("this is a mint", level: LogLevel.Info);
@@ -3075,25 +3126,28 @@ class FiroWallet extends CoinServiceAPI {
 
   Future<void> checkReceivingAddressForTransactions() async {
     try {
-      final String currentExternalAddr = await _getCurrentAddressForChain(0);
-      final int numtxs =
-          await _getReceivedTxCount(address: currentExternalAddr);
+      final currentReceiving = await _currentReceivingAddress;
+
+      final int txCount =
+          await _getReceivedTxCount(address: currentReceiving.value);
       Logging.instance.log(
-          'Number of txs for current receiving: $currentExternalAddr: $numtxs',
+          'Number of txs for current receiving address $currentReceiving: $txCount',
           level: LogLevel.Info);
 
-      if (numtxs >= 1) {
-        await incrementAddressIndexForChain(
-            0); // First increment the receiving index
-        final newReceivingIndex =
-            DB.instance.get<dynamic>(boxName: walletId, key: 'receivingIndex')
-                as int; // Check the new receiving index
-        final newReceivingAddress = await _generateAddressForChain(0,
-            newReceivingIndex); // Use new index to derive a new receiving address
-        await addToAddressesArrayForChain(newReceivingAddress,
-            0); // Add that new receiving address to the array of receiving addresses
-        _currentReceivingAddress = Future(() =>
-            newReceivingAddress); // Set the new receiving address that the service
+      if (txCount >= 1) {
+        // First increment the receiving index
+        final newReceivingIndex = currentReceiving.derivationIndex + 1;
+
+        // Use new index to derive a new receiving address
+        final newReceivingAddress = await _generateAddressForChain(
+          0,
+          newReceivingIndex,
+        );
+
+        // Add that new receiving address
+        await isar.writeTxn(() async {
+          await isar.addresses.put(newReceivingAddress);
+        });
       }
     } on SocketException catch (se, s) {
       Logging.instance.log(
@@ -3110,23 +3164,27 @@ class FiroWallet extends CoinServiceAPI {
 
   Future<void> checkChangeAddressForTransactions() async {
     try {
-      final String currentExternalAddr = await _getCurrentAddressForChain(1);
-      final int numtxs =
-          await _getReceivedTxCount(address: currentExternalAddr);
+      final currentChange = await _currentChangeAddress;
+      final int txCount =
+          await _getReceivedTxCount(address: currentChange.value);
       Logging.instance.log(
-          'Number of txs for current change address: $currentExternalAddr: $numtxs',
+          'Number of txs for current change address: $currentChange: $txCount',
           level: LogLevel.Info);
 
-      if (numtxs >= 1) {
-        await incrementAddressIndexForChain(
-            0); // First increment the change index
-        final newReceivingIndex =
-            DB.instance.get<dynamic>(boxName: walletId, key: 'changeIndex')
-                as int; // Check the new change index
-        final newReceivingAddress = await _generateAddressForChain(0,
-            newReceivingIndex); // Use new index to derive a new change address
-        await addToAddressesArrayForChain(newReceivingAddress,
-            0); // Add that new receiving address to the array of change addresses
+      if (txCount >= 1) {
+        // First increment the change index
+        final newChangeIndex = currentChange.derivationIndex + 1;
+
+        // Use new index to derive a new change address
+        final newChangeAddress = await _generateAddressForChain(
+          1,
+          newChangeIndex,
+        );
+
+        // Add that new change address
+        await isar.writeTxn(() async {
+          await isar.addresses.put(newChangeAddress);
+        });
       }
     } on SocketException catch (se, s) {
       Logging.instance.log(
@@ -3141,21 +3199,27 @@ class FiroWallet extends CoinServiceAPI {
     }
   }
 
-  Future<List<String>> _fetchAllOwnAddresses() async {
-    final List<String> allAddresses = [];
-    final receivingAddresses =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'receivingAddresses')
-            as List<dynamic>;
-    final changeAddresses =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'changeAddresses')
-            as List<dynamic>;
-
-    for (var i = 0; i < receivingAddresses.length; i++) {
-      allAddresses.add(receivingAddresses[i] as String);
-    }
-    for (var i = 0; i < changeAddresses.length; i++) {
-      allAddresses.add(changeAddresses[i] as String);
-    }
+  Future<List<isar_models.Address>> _fetchAllOwnAddresses() async {
+    final allAddresses = await isar.addresses
+        .filter()
+        .subTypeEqualTo(isar_models.AddressSubType.receiving)
+        .or()
+        .subTypeEqualTo(isar_models.AddressSubType.change)
+        .findAll();
+    // final List<String> allAddresses = [];
+    // final receivingAddresses =
+    //     DB.instance.get<dynamic>(boxName: walletId, key: 'receivingAddresses')
+    //         as List<dynamic>;
+    // final changeAddresses =
+    //     DB.instance.get<dynamic>(boxName: walletId, key: 'changeAddresses')
+    //         as List<dynamic>;
+    //
+    // for (var i = 0; i < receivingAddresses.length; i++) {
+    //   allAddresses.add(receivingAddresses[i] as String);
+    // }
+    // for (var i = 0; i < changeAddresses.length; i++) {
+    //   allAddresses.add(changeAddresses[i] as String);
+    // }
     return allAddresses;
   }
 
@@ -3204,298 +3268,326 @@ class FiroWallet extends CoinServiceAPI {
     }
   }
 
-  Future<models.TransactionData> _fetchTransactionData() async {
-    final changeAddresses =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'changeAddresses')
-            as List<dynamic>;
-    final List<String> allAddresses = await _fetchAllOwnAddresses();
-    // Logging.instance.log("receiving addresses: $receivingAddresses");
-    // Logging.instance.log("change addresses: $changeAddresses");
+  Future<void> _refreshTransactions() async {
+    // final changeAddresses =
+    //     DB.instance.get<dynamic>(boxName: walletId, key: 'changeAddresses')
+    //         as List<dynamic>;
+    // final List<String> allAddresses = await _fetchAllOwnAddresses();
+    // // Logging.instance.log("receiving addresses: $receivingAddresses");
+    // // Logging.instance.log("change addresses: $changeAddresses");
+    //
+    // List<Map<String, dynamic>> allTxHashes = await _fetchHistory(allAddresses);
+    //
+    // final cachedTransactions =
+    //     DB.instance.get<dynamic>(boxName: walletId, key: 'latest_tx_model')
+    //         as models.TransactionData?;
+    // int latestTxnBlockHeight =
+    //     DB.instance.get<dynamic>(boxName: walletId, key: "storedTxnDataHeight")
+    //             as int? ??
+    //         0;
+    //
+    // final unconfirmedCachedTransactions =
+    //     cachedTransactions?.getAllTransactions() ?? {};
+    // unconfirmedCachedTransactions
+    //     .removeWhere((key, value) => value.confirmedStatus);
+    //
+    // if (cachedTransactions != null) {
+    //   for (final tx in allTxHashes.toList(growable: false)) {
+    //     final txHeight = tx["height"] as int;
+    //     if (txHeight > 0 &&
+    //         txHeight < latestTxnBlockHeight - MINIMUM_CONFIRMATIONS) {
+    //       if (unconfirmedCachedTransactions[tx["tx_hash"] as String] == null) {
+    //         allTxHashes.remove(tx);
+    //       }
+    //     }
+    //   }
+    // }
+    //
+    // List<String> hashes = [];
+    // for (var element in allTxHashes) {
+    //   hashes.add(element['tx_hash'] as String);
+    // }
+    final List<isar_models.Address> allAddresses =
+        await _fetchAllOwnAddresses();
 
-    List<Map<String, dynamic>> allTxHashes = await _fetchHistory(allAddresses);
+    final List<Map<String, dynamic>> allTxHashes =
+        await _fetchHistory(allAddresses.map((e) => e.value).toList());
 
-    final cachedTransactions =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'latest_tx_model')
-            as models.TransactionData?;
-    int latestTxnBlockHeight =
-        DB.instance.get<dynamic>(boxName: walletId, key: "storedTxnDataHeight")
-                as int? ??
-            0;
+    List<String> hashes =
+        allTxHashes.map((e) => e['tx_hash'] as String).toList(growable: false);
 
-    final unconfirmedCachedTransactions =
-        cachedTransactions?.getAllTransactions() ?? {};
-    unconfirmedCachedTransactions
-        .removeWhere((key, value) => value.confirmedStatus);
-
-    if (cachedTransactions != null) {
-      for (final tx in allTxHashes.toList(growable: false)) {
-        final txHeight = tx["height"] as int;
-        if (txHeight > 0 &&
-            txHeight < latestTxnBlockHeight - MINIMUM_CONFIRMATIONS) {
-          if (unconfirmedCachedTransactions[tx["tx_hash"] as String] == null) {
-            allTxHashes.remove(tx);
-          }
-        }
-      }
-    }
-
-    List<String> hashes = [];
-    for (var element in allTxHashes) {
-      hashes.add(element['tx_hash'] as String);
-    }
     List<Map<String, dynamic>> allTransactions = await fastFetch(hashes);
 
     Logging.instance.log("allTransactions length: ${allTransactions.length}",
         level: LogLevel.Info);
 
-    // sort thing stuff
-    final currentPrice = await firoPrice;
-    final List<Map<String, dynamic>> midSortedArray = [];
-
-    final locale =
-        Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
-
-    Logging.instance.log("refresh the txs", level: LogLevel.Info);
+    // // sort thing stuff
+    // final currentPrice = await firoPrice;
+    // final List<Map<String, dynamic>> midSortedArray = [];
+    //
+    // final locale =
+    //     Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
+    //
+    // Logging.instance.log("refresh the txs", level: LogLevel.Info);
     for (final txObject in allTransactions) {
-      // Logging.instance.log(txObject);
-      List<String> sendersArray = [];
-      List<String> recipientsArray = [];
+      // // Logging.instance.log(txObject);
+      // List<String> sendersArray = [];
+      // List<String> recipientsArray = [];
+      //
+      // // Usually only has value when txType = 'Send'
+      // int inputAmtSentFromWallet = 0;
+      // // Usually has value regardless of txType due to change addresses
+      // int outputAmtAddressedToWallet = 0;
+      //
+      // Map<String, dynamic> midSortedTx = {};
+      // List<dynamic> aliens = [];
+      //
+      // for (final input in txObject["vin"] as List) {
+      //   final address = input["address"] as String?;
+      //   if (address != null) {
+      //     sendersArray.add(address);
+      //   }
+      // }
+      //
+      // // Logging.instance.log("sendersArray: $sendersArray");
+      //
+      // for (final output in txObject["vout"] as List) {
+      //   final addresses = output["scriptPubKey"]["addresses"] as List?;
+      //   if (addresses != null && addresses.isNotEmpty) {
+      //     recipientsArray.add(addresses[0] as String);
+      //   }
+      // }
+      // // Logging.instance.log("recipientsArray: $recipientsArray");
+      //
+      // final foundInSenders =
+      //     allAddresses.any((element) => sendersArray.contains(element));
+      // // Logging.instance.log("foundInSenders: $foundInSenders");
+      //
+      // String outAddress = "";
+      //
+      // int fees = 0;
+      //
+      // // If txType = Sent, then calculate inputAmtSentFromWallet, calculate who received how much in aliens array (check outputs)
+      // if (foundInSenders) {
+      //   int outAmount = 0;
+      //   int inAmount = 0;
+      //   bool nFeesUsed = false;
+      //
+      //   for (final input in txObject["vin"] as List) {
+      //     final nFees = input["nFees"];
+      //     if (nFees != null) {
+      //       nFeesUsed = true;
+      //       fees = (Decimal.parse(nFees.toString()) *
+      //               Decimal.fromInt(Constants.satsPerCoin(coin)))
+      //           .toBigInt()
+      //           .toInt();
+      //     }
+      //     final address = input["address"];
+      //     final value = input["valueSat"];
+      //     if (address != null && value != null) {
+      //       if (allAddresses.contains(address)) {
+      //         inputAmtSentFromWallet += value as int;
+      //       }
+      //     }
+      //
+      //     if (value != null) {
+      //       inAmount += value as int;
+      //     }
+      //   }
+      //
+      //   for (final output in txObject["vout"] as List) {
+      //     final addresses = output["scriptPubKey"]["addresses"] as List?;
+      //     final value = output["value"];
+      //     if (addresses != null && addresses.isNotEmpty) {
+      //       final address = addresses[0] as String;
+      //       if (value != null) {
+      //         if (changeAddresses.contains(address)) {
+      //           inputAmtSentFromWallet -= (Decimal.parse(value.toString()) *
+      //                   Decimal.fromInt(Constants.satsPerCoin(coin)))
+      //               .toBigInt()
+      //               .toInt();
+      //         } else {
+      //           outAddress = address;
+      //         }
+      //       }
+      //     }
+      //     if (value != null) {
+      //       outAmount += (Decimal.parse(value.toString()) *
+      //               Decimal.fromInt(Constants.satsPerCoin(coin)))
+      //           .toBigInt()
+      //           .toInt();
+      //     }
+      //   }
+      //
+      //   fees = nFeesUsed ? fees : inAmount - outAmount;
+      //   inputAmtSentFromWallet -= inAmount - outAmount;
+      // } else {
+      //   for (final input in txObject["vin"] as List) {
+      //     final nFees = input["nFees"];
+      //     if (nFees != null) {
+      //       fees += (Decimal.parse(nFees.toString()) *
+      //               Decimal.fromInt(Constants.satsPerCoin(coin)))
+      //           .toBigInt()
+      //           .toInt();
+      //     }
+      //   }
+      //
+      //   for (final output in txObject["vout"] as List) {
+      //     final addresses = output["scriptPubKey"]["addresses"] as List?;
+      //     if (addresses != null && addresses.isNotEmpty) {
+      //       final address = addresses[0] as String;
+      //       final value = output["value"];
+      //       // Logging.instance.log(address + value.toString());
+      //
+      //       if (allAddresses.contains(address)) {
+      //         outputAmtAddressedToWallet += (Decimal.parse(value.toString()) *
+      //                 Decimal.fromInt(Constants.satsPerCoin(coin)))
+      //             .toBigInt()
+      //             .toInt();
+      //         outAddress = address;
+      //       }
+      //     }
+      //   }
+      // }
+      //
+      // final int confirms = txObject["confirmations"] as int? ?? 0;
+      //
+      // // create final tx map
+      // midSortedTx["txid"] = txObject["txid"];
+      // midSortedTx["confirmed_status"] = confirms >= MINIMUM_CONFIRMATIONS;
+      // midSortedTx["confirmations"] = confirms;
+      // midSortedTx["timestamp"] = txObject["blocktime"] ??
+      //     (DateTime.now().millisecondsSinceEpoch ~/ 1000);
+      // if (foundInSenders) {
+      //   midSortedTx["txType"] = "Sent";
+      //   midSortedTx["amount"] = inputAmtSentFromWallet;
+      //   final String worthNow = Format.localizedStringAsFixed(
+      //       value: ((currentPrice * Decimal.fromInt(inputAmtSentFromWallet)) /
+      //               Decimal.fromInt(Constants.satsPerCoin(coin)))
+      //           .toDecimal(scaleOnInfinitePrecision: 2),
+      //       decimalPlaces: 2,
+      //       locale: locale!);
+      //   midSortedTx["worthNow"] = worthNow;
+      //   midSortedTx["worthAtBlockTimestamp"] = worthNow;
+      //   if (txObject["vout"][0]["scriptPubKey"]["type"] == "lelantusmint") {
+      //     midSortedTx["subType"] = "mint";
+      //   }
+      // } else {
+      //   midSortedTx["txType"] = "Received";
+      //   midSortedTx["amount"] = outputAmtAddressedToWallet;
+      //   final worthNow = Format.localizedStringAsFixed(
+      //       value:
+      //           ((currentPrice * Decimal.fromInt(outputAmtAddressedToWallet)) /
+      //                   Decimal.fromInt(Constants.satsPerCoin(coin)))
+      //               .toDecimal(scaleOnInfinitePrecision: 2),
+      //       decimalPlaces: 2,
+      //       locale: locale!);
+      //   midSortedTx["worthNow"] = worthNow;
+      //   midSortedTx["worthAtBlockTimestamp"] = worthNow;
+      // }
+      // midSortedTx["aliens"] = aliens;
+      // midSortedTx["fees"] = fees;
+      // midSortedTx["address"] = outAddress;
+      // midSortedTx["inputSize"] = txObject["vin"].length;
+      // midSortedTx["outputSize"] = txObject["vout"].length;
+      // midSortedTx["inputs"] = txObject["vin"];
+      // midSortedTx["outputs"] = txObject["vout"];
+      //
+      // final int height = txObject["height"] as int? ?? 0;
+      // midSortedTx["height"] = height;
+      //
+      // if (height >= latestTxnBlockHeight) {
+      //   latestTxnBlockHeight = height;
+      // }
+      //
+      // midSortedArray.add(midSortedTx);
 
-      // Usually only has value when txType = 'Send'
-      int inputAmtSentFromWallet = 0;
-      // Usually has value regardless of txType due to change addresses
-      int outputAmtAddressedToWallet = 0;
+      final txn = await parseTransaction(
+        txObject,
+        cachedElectrumXClient,
+        allAddresses,
+        coin,
+        MINIMUM_CONFIRMATIONS,
+      );
 
-      Map<String, dynamic> midSortedTx = {};
-      List<dynamic> aliens = [];
-
-      for (final input in txObject["vin"] as List) {
-        final address = input["address"] as String?;
-        if (address != null) {
-          sendersArray.add(address);
-        }
-      }
-
-      // Logging.instance.log("sendersArray: $sendersArray");
-
-      for (final output in txObject["vout"] as List) {
-        final addresses = output["scriptPubKey"]["addresses"] as List?;
-        if (addresses != null && addresses.isNotEmpty) {
-          recipientsArray.add(addresses[0] as String);
-        }
-      }
-      // Logging.instance.log("recipientsArray: $recipientsArray");
-
-      final foundInSenders =
-          allAddresses.any((element) => sendersArray.contains(element));
-      // Logging.instance.log("foundInSenders: $foundInSenders");
-
-      String outAddress = "";
-
-      int fees = 0;
-
-      // If txType = Sent, then calculate inputAmtSentFromWallet, calculate who received how much in aliens array (check outputs)
-      if (foundInSenders) {
-        int outAmount = 0;
-        int inAmount = 0;
-        bool nFeesUsed = false;
-
-        for (final input in txObject["vin"] as List) {
-          final nFees = input["nFees"];
-          if (nFees != null) {
-            nFeesUsed = true;
-            fees = (Decimal.parse(nFees.toString()) *
-                    Decimal.fromInt(Constants.satsPerCoin(coin)))
-                .toBigInt()
-                .toInt();
-          }
-          final address = input["address"];
-          final value = input["valueSat"];
-          if (address != null && value != null) {
-            if (allAddresses.contains(address)) {
-              inputAmtSentFromWallet += value as int;
-            }
-          }
-
-          if (value != null) {
-            inAmount += value as int;
-          }
-        }
-
-        for (final output in txObject["vout"] as List) {
-          final addresses = output["scriptPubKey"]["addresses"] as List?;
-          final value = output["value"];
-          if (addresses != null && addresses.isNotEmpty) {
-            final address = addresses[0] as String;
-            if (value != null) {
-              if (changeAddresses.contains(address)) {
-                inputAmtSentFromWallet -= (Decimal.parse(value.toString()) *
-                        Decimal.fromInt(Constants.satsPerCoin(coin)))
-                    .toBigInt()
-                    .toInt();
-              } else {
-                outAddress = address;
-              }
-            }
-          }
-          if (value != null) {
-            outAmount += (Decimal.parse(value.toString()) *
-                    Decimal.fromInt(Constants.satsPerCoin(coin)))
-                .toBigInt()
-                .toInt();
-          }
-        }
-
-        fees = nFeesUsed ? fees : inAmount - outAmount;
-        inputAmtSentFromWallet -= inAmount - outAmount;
-      } else {
-        for (final input in txObject["vin"] as List) {
-          final nFees = input["nFees"];
-          if (nFees != null) {
-            fees += (Decimal.parse(nFees.toString()) *
-                    Decimal.fromInt(Constants.satsPerCoin(coin)))
-                .toBigInt()
-                .toInt();
-          }
-        }
-
-        for (final output in txObject["vout"] as List) {
-          final addresses = output["scriptPubKey"]["addresses"] as List?;
-          if (addresses != null && addresses.isNotEmpty) {
-            final address = addresses[0] as String;
-            final value = output["value"];
-            // Logging.instance.log(address + value.toString());
-
-            if (allAddresses.contains(address)) {
-              outputAmtAddressedToWallet += (Decimal.parse(value.toString()) *
-                      Decimal.fromInt(Constants.satsPerCoin(coin)))
-                  .toBigInt()
-                  .toInt();
-              outAddress = address;
-            }
-          }
-        }
-      }
-
-      final int confirms = txObject["confirmations"] as int? ?? 0;
-
-      // create final tx map
-      midSortedTx["txid"] = txObject["txid"];
-      midSortedTx["confirmed_status"] = confirms >= MINIMUM_CONFIRMATIONS;
-      midSortedTx["confirmations"] = confirms;
-      midSortedTx["timestamp"] = txObject["blocktime"] ??
-          (DateTime.now().millisecondsSinceEpoch ~/ 1000);
-      if (foundInSenders) {
-        midSortedTx["txType"] = "Sent";
-        midSortedTx["amount"] = inputAmtSentFromWallet;
-        final String worthNow = Format.localizedStringAsFixed(
-            value: ((currentPrice * Decimal.fromInt(inputAmtSentFromWallet)) /
-                    Decimal.fromInt(Constants.satsPerCoin(coin)))
-                .toDecimal(scaleOnInfinitePrecision: 2),
-            decimalPlaces: 2,
-            locale: locale!);
-        midSortedTx["worthNow"] = worthNow;
-        midSortedTx["worthAtBlockTimestamp"] = worthNow;
-        if (txObject["vout"][0]["scriptPubKey"]["type"] == "lelantusmint") {
-          midSortedTx["subType"] = "mint";
-        }
-      } else {
-        midSortedTx["txType"] = "Received";
-        midSortedTx["amount"] = outputAmtAddressedToWallet;
-        final worthNow = Format.localizedStringAsFixed(
-            value:
-                ((currentPrice * Decimal.fromInt(outputAmtAddressedToWallet)) /
-                        Decimal.fromInt(Constants.satsPerCoin(coin)))
-                    .toDecimal(scaleOnInfinitePrecision: 2),
-            decimalPlaces: 2,
-            locale: locale!);
-        midSortedTx["worthNow"] = worthNow;
-        midSortedTx["worthAtBlockTimestamp"] = worthNow;
-      }
-      midSortedTx["aliens"] = aliens;
-      midSortedTx["fees"] = fees;
-      midSortedTx["address"] = outAddress;
-      midSortedTx["inputSize"] = txObject["vin"].length;
-      midSortedTx["outputSize"] = txObject["vout"].length;
-      midSortedTx["inputs"] = txObject["vin"];
-      midSortedTx["outputs"] = txObject["vout"];
-
-      final int height = txObject["height"] as int? ?? 0;
-      midSortedTx["height"] = height;
-
-      if (height >= latestTxnBlockHeight) {
-        latestTxnBlockHeight = height;
-      }
-
-      midSortedArray.add(midSortedTx);
+      // final tx = await isar.transactions
+      //     .filter()
+      //     .txidMatches(midSortedTx.txid)
+      //     .findFirst();
+      // // we don't need to check this but it saves a write tx instead of overwriting the transaction in Isar
+      // if (tx == null) {
+      await isar.writeTxn(() async {
+        await isar.transactions.put(txn);
+      });
+      // }
     }
-
-    // sort by date  ----  //TODO not sure if needed
-    // shouldn't be any issues with a null timestamp but I got one at some point?
-    midSortedArray.sort((a, b) {
-      final aT = a["timestamp"];
-      final bT = b["timestamp"];
-
-      if (aT == null && bT == null) {
-        return 0;
-      } else if (aT == null) {
-        return -1;
-      } else if (bT == null) {
-        return 1;
-      } else {
-        return (bT as int) - (aT as int);
-      }
-    });
-
-    // buildDateTimeChunks
-    final Map<String, dynamic> result = {"dateTimeChunks": <dynamic>[]};
-    final dateArray = <dynamic>[];
-
-    for (int i = 0; i < midSortedArray.length; i++) {
-      final txObject = midSortedArray[i];
-      final date =
-          models.extractDateFromTimestamp(txObject["timestamp"] as int);
-      final txTimeArray = [txObject["timestamp"], date];
-
-      if (dateArray.contains(txTimeArray[1])) {
-        result["dateTimeChunks"].forEach((dynamic chunk) {
-          if (models.extractDateFromTimestamp(chunk["timestamp"] as int) ==
-              txTimeArray[1]) {
-            if (chunk["transactions"] == null) {
-              chunk["transactions"] = <Map<String, dynamic>>[];
-            }
-            chunk["transactions"].add(txObject);
-          }
-        });
-      } else {
-        dateArray.add(txTimeArray[1]);
-        final chunk = {
-          "timestamp": txTimeArray[0],
-          "transactions": [txObject],
-        };
-        result["dateTimeChunks"].add(chunk);
-      }
-    }
-
-    final transactionsMap = cachedTransactions?.getAllTransactions() ?? {};
-    transactionsMap
-        .addAll(models.TransactionData.fromJson(result).getAllTransactions());
-
-    final txModel = models.TransactionData.fromMap(transactionsMap);
-
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'storedTxnDataHeight',
-        value: latestTxnBlockHeight);
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: 'latest_tx_model', value: txModel);
-
-    cachedTxData = txModel;
-    return txModel;
+    //
+    // // sort by date  ----  //TODO not sure if needed
+    // // shouldn't be any issues with a null timestamp but I got one at some point?
+    // midSortedArray.sort((a, b) {
+    //   final aT = a["timestamp"];
+    //   final bT = b["timestamp"];
+    //
+    //   if (aT == null && bT == null) {
+    //     return 0;
+    //   } else if (aT == null) {
+    //     return -1;
+    //   } else if (bT == null) {
+    //     return 1;
+    //   } else {
+    //     return (bT as int) - (aT as int);
+    //   }
+    // });
+    //
+    // // buildDateTimeChunks
+    // final Map<String, dynamic> result = {"dateTimeChunks": <dynamic>[]};
+    // final dateArray = <dynamic>[];
+    //
+    // for (int i = 0; i < midSortedArray.length; i++) {
+    //   final txObject = midSortedArray[i];
+    //   final date =
+    //       models.extractDateFromTimestamp(txObject["timestamp"] as int);
+    //   final txTimeArray = [txObject["timestamp"], date];
+    //
+    //   if (dateArray.contains(txTimeArray[1])) {
+    //     result["dateTimeChunks"].forEach((dynamic chunk) {
+    //       if (models.extractDateFromTimestamp(chunk["timestamp"] as int) ==
+    //           txTimeArray[1]) {
+    //         if (chunk["transactions"] == null) {
+    //           chunk["transactions"] = <Map<String, dynamic>>[];
+    //         }
+    //         chunk["transactions"].add(txObject);
+    //       }
+    //     });
+    //   } else {
+    //     dateArray.add(txTimeArray[1]);
+    //     final chunk = {
+    //       "timestamp": txTimeArray[0],
+    //       "transactions": [txObject],
+    //     };
+    //     result["dateTimeChunks"].add(chunk);
+    //   }
+    // }
+    //
+    // final transactionsMap = cachedTransactions?.getAllTransactions() ?? {};
+    // transactionsMap
+    //     .addAll(models.TransactionData.fromJson(result).getAllTransactions());
+    //
+    // final txModel = models.TransactionData.fromMap(transactionsMap);
+    //
+    // await DB.instance.put<dynamic>(
+    //     boxName: walletId,
+    //     key: 'storedTxnDataHeight',
+    //     value: latestTxnBlockHeight);
+    // await DB.instance.put<dynamic>(
+    //     boxName: walletId, key: 'latest_tx_model', value: txModel);
+    //
+    // cachedTxData = txModel;
+    // return txModel;
   }
 
-  Future<UtxoData> _fetchUtxoData() async {
-    final List<String> allAddresses = await _fetchAllOwnAddresses();
+  Future<void> _refreshUTXOs() async {
+    final allAddresses = await _fetchAllOwnAddresses();
 
     try {
       final fetchedUtxoList = <List<Map<String, dynamic>>>[];
@@ -3508,7 +3600,7 @@ class FiroWallet extends CoinServiceAPI {
           batches[batchNumber] = {};
         }
         final scripthash =
-            AddressUtils.convertToScriptHash(allAddresses[i], _network);
+            AddressUtils.convertToScriptHash(allAddresses[i].value, _network);
         batches[batchNumber]!.addAll({
           scripthash: [scripthash]
         });
@@ -3526,137 +3618,92 @@ class FiroWallet extends CoinServiceAPI {
           }
         }
       }
-      final priceData =
-          await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
-      Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
-      final List<Map<String, dynamic>> outputArray = [];
-      int satoshiBalance = 0;
+
+      final currentChainHeight = await chainHeight;
+
+      final List<isar_models.UTXO> outputArray = [];
+      int satoshiBalanceTotal = 0;
       int satoshiBalancePending = 0;
+      int satoshiBalanceSpendable = 0;
+      int satoshiBalanceBlocked = 0;
 
       for (int i = 0; i < fetchedUtxoList.length; i++) {
         for (int j = 0; j < fetchedUtxoList[i].length; j++) {
-          int value = fetchedUtxoList[i][j]["value"] as int;
-          satoshiBalance += value;
-
           final txn = await cachedElectrumXClient.getTransaction(
             txHash: fetchedUtxoList[i][j]["tx_hash"] as String,
             verbose: true,
             coin: coin,
           );
 
-          final Map<String, dynamic> utxo = {};
-          final int confirmations = txn["confirmations"] as int? ?? 0;
-          final bool confirmed = confirmations >= MINIMUM_CONFIRMATIONS;
-          if (!confirmed) {
-            satoshiBalancePending += value;
+          final utxo = isar_models.UTXO();
+
+          utxo.txid = txn["txid"] as String;
+          utxo.vout = fetchedUtxoList[i][j]["tx_pos"] as int;
+          utxo.value = fetchedUtxoList[i][j]["value"] as int;
+          utxo.name = "";
+
+          // todo check here if we should mark as blocked
+          utxo.isBlocked = false;
+          utxo.blockedReason = null;
+
+          utxo.isCoinbase = txn["is_coinbase"] as bool? ?? false;
+          utxo.blockHash = txn["blockhash"] as String?;
+          utxo.blockHeight = fetchedUtxoList[i][j]["height"] as int?;
+          utxo.blockTime = txn["blocktime"] as int?;
+
+          satoshiBalanceTotal += utxo.value;
+
+          if (utxo.isBlocked) {
+            satoshiBalanceBlocked += utxo.value;
+          } else {
+            if (utxo.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
+              satoshiBalanceSpendable += utxo.value;
+            } else {
+              satoshiBalancePending += utxo.value;
+            }
           }
 
-          utxo["txid"] = txn["txid"];
-          utxo["vout"] = fetchedUtxoList[i][j]["tx_pos"];
-          utxo["value"] = value;
-
-          utxo["status"] = <String, dynamic>{};
-          utxo["status"]["confirmed"] = confirmed;
-          utxo["status"]["confirmations"] = confirmations;
-          utxo["status"]["confirmed"] =
-              txn["confirmations"] == null ? false : txn["confirmations"] > 0;
-
-          utxo["status"]["block_height"] = fetchedUtxoList[i][j]["height"];
-          utxo["status"]["block_hash"] = txn["blockhash"];
-          utxo["status"]["block_time"] = txn["blocktime"];
-
-          final fiatValue = ((Decimal.fromInt(value) * currentPrice) /
-                  Decimal.fromInt(Constants.satsPerCoin(coin)))
-              .toDecimal(scaleOnInfinitePrecision: 2);
-          utxo["rawWorth"] = fiatValue;
-          utxo["fiatWorth"] = fiatValue.toString();
-          utxo["is_coinbase"] = txn['vin'][0]['coinbase'] != null;
           outputArray.add(utxo);
         }
       }
 
-      Decimal currencyBalanceRaw =
-          ((Decimal.fromInt(satoshiBalance) * currentPrice) /
-                  Decimal.fromInt(Constants.satsPerCoin(coin)))
-              .toDecimal(scaleOnInfinitePrecision: 2);
-
-      final Map<String, dynamic> result = {
-        "total_user_currency": currencyBalanceRaw.toString(),
-        "total_sats": satoshiBalance,
-        "total_btc": (Decimal.fromInt(satoshiBalance) /
-                Decimal.fromInt(Constants.satsPerCoin(coin)))
-            .toDecimal(
-                scaleOnInfinitePrecision: Constants.decimalPlacesForCoin(coin))
-            .toString(),
-        "outputArray": outputArray,
-        "unconfirmed": satoshiBalancePending,
-      };
-
-      final dataModel = UtxoData.fromJson(result);
-
-      final List<UtxoObject> allOutputs = dataModel.unspentOutputArray;
       Logging.instance
-          .log('Outputs fetched: $allOutputs', level: LogLevel.Info);
-      await _sortOutputs(allOutputs);
-      await DB.instance.put<dynamic>(
-          boxName: walletId, key: 'latest_utxo_model', value: dataModel);
-      // await DB.instance.put<dynamic>(
-      //     boxName: walletId,
-      //     key: 'totalBalance',
-      //     value: dataModel.satoshiBalance);
-      return dataModel;
+          .log('Outputs fetched: $outputArray', level: LogLevel.Info);
+
+      await isar.writeTxn(() async {
+        await isar.utxos.clear();
+        await isar.utxos.putAll(outputArray);
+      });
+
+      // finally update public balance
+      _balance = Balance(
+        coin: coin,
+        total: satoshiBalanceTotal,
+        spendable: satoshiBalanceSpendable,
+        blockedTotal: satoshiBalanceBlocked,
+        pendingSpendable: satoshiBalancePending,
+      );
     } catch (e, s) {
       Logging.instance
           .log("Output fetch unsuccessful: $e\n$s", level: LogLevel.Error);
-      final latestTxModel =
-          DB.instance.get<dynamic>(boxName: walletId, key: 'latest_utxo_model')
-              as models.UtxoData?;
-
-      if (latestTxModel == null) {
-        final emptyModel = {
-          "total_user_currency": "0.00",
-          "total_sats": 0,
-          "total_btc": "0",
-          "outputArray": <dynamic>[]
-        };
-        return UtxoData.fromJson(emptyModel);
-      } else {
-        Logging.instance
-            .log("Old output model located", level: LogLevel.Warning);
-        return latestTxModel;
-      }
-    }
-  }
-
-  Future<models.TransactionData> _getLelantusTransactionData() async {
-    final latestModel = DB.instance.get<dynamic>(
-        boxName: walletId,
-        key: 'latest_lelantus_tx_model') as models.TransactionData?;
-
-    if (latestModel == null) {
-      final emptyModel = {"dateTimeChunks": <dynamic>[]};
-      return models.TransactionData.fromJson(emptyModel);
-    } else {
-      Logging.instance
-          .log("Old transaction model located", level: LogLevel.Warning);
-      return latestModel;
     }
   }
 
   /// Returns the latest receiving/change (external/internal) address for the wallet depending on [chain]
   /// [chain] - Use 0 for receiving (external), 1 for change (internal). Should not be any other value!
   Future<String> _getCurrentAddressForChain(int chain) async {
-    if (chain == 0) {
-      final externalChainArray = (DB.instance.get<dynamic>(
-          boxName: walletId, key: 'receivingAddresses')) as List<dynamic>;
-      return externalChainArray.last as String;
-    } else {
-      // Here, we assume that chain == 1
-      final internalChainArray =
-          (DB.instance.get<dynamic>(boxName: walletId, key: 'changeAddresses'))
-              as List<dynamic>;
-      return internalChainArray.last as String;
-    }
+    final subType = chain == 0 // Here, we assume that chain == 1 if it isn't 0
+        ? isar_models.AddressSubType.receiving
+        : isar_models.AddressSubType.change;
+
+    isar_models.Address? address = await isar.addresses
+        .filter()
+        .typeEqualTo(isar_models.AddressType.p2pkh)
+        .subTypeEqualTo(subType)
+        .sortByDerivationIndexDesc()
+        .findFirst();
+
+    return address!.value;
   }
 
   Future<void> fillAddresses(String suppliedMnemonic,
@@ -3723,7 +3770,8 @@ class FiroWallet extends CoinServiceAPI {
   /// Generates a new internal or external chain address for the wallet using a BIP84 derivation path.
   /// [chain] - Use 0 for receiving (external), 1 for change (internal). Should not be any other value!
   /// [index] - This can be any integer >= 0
-  Future<String> _generateAddressForChain(int chain, int index) async {
+  Future<isar_models.Address> _generateAddressForChain(
+      int chain, int index) async {
     // final wallet = await Hive.openBox(this._walletId);
     final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
     Map<String, dynamic>? derivations;
@@ -3747,104 +3795,72 @@ class FiroWallet extends CoinServiceAPI {
             level: LogLevel.Info);
         return _generateAddressForChain(chain, index);
       }
-      return derivations["$index"]['address'] as String;
+      return isar_models.Address()
+        ..value = derivations["$index"]['address'] as String
+        ..publicKey = Format.stringToUint8List(
+            derivations["$index"]['publicKey'] as String)
+        ..subType = chain == 0
+            ? isar_models.AddressSubType.receiving
+            : isar_models.AddressSubType.change
+        ..type = isar_models.AddressType.p2pkh
+        ..derivationIndex = index;
     } else {
       final node = await compute(
           getBip32NodeWrapper, Tuple4(chain, index, mnemonic!, _network));
-      return P2PKH(network: _network, data: PaymentData(pubkey: node.publicKey))
-          .data
-          .address!;
+      final address =
+          P2PKH(network: _network, data: PaymentData(pubkey: node.publicKey))
+              .data
+              .address!;
+
+      return isar_models.Address()
+        ..value = address
+        ..publicKey = node.publicKey
+        ..subType = chain == 0
+            ? isar_models.AddressSubType.receiving
+            : isar_models.AddressSubType.change
+        ..type = isar_models.AddressType.p2pkh
+        ..derivationIndex = index;
     }
   }
 
-  /// Increases the index for either the internal or external chain, depending on [chain].
-  /// [chain] - Use 0 for receiving (external), 1 for change (internal). Should not be any other value!
-  Future<void> incrementAddressIndexForChain(int chain) async {
-    if (chain == 0) {
-      final newIndex =
-          DB.instance.get<dynamic>(boxName: walletId, key: 'receivingIndex') +
-              1;
-      await DB.instance.put<dynamic>(
-          boxName: walletId, key: 'receivingIndex', value: newIndex);
-    } else {
-      // Here we assume chain == 1 since it can only be either 0 or 1
-      final newIndex =
-          DB.instance.get<dynamic>(boxName: walletId, key: 'changeIndex') + 1;
-      await DB.instance
-          .put<dynamic>(boxName: walletId, key: 'changeIndex', value: newIndex);
-    }
-  }
-
-  /// Adds [address] to the relevant chain's address array, which is determined by [chain].
-  /// [address] - Expects a standard native segwit address
-  /// [chain] - Use 0 for receiving (external), 1 for change (internal). Should not be any other value!
-  Future<void> addToAddressesArrayForChain(String address, int chain) async {
-    String chainArray = '';
-    if (chain == 0) {
-      chainArray = 'receivingAddresses';
-    } else {
-      chainArray = 'changeAddresses';
-    }
-
-    final addressArray =
-        DB.instance.get<dynamic>(boxName: walletId, key: chainArray);
-    if (addressArray == null) {
-      Logging.instance.log(
-          'Attempting to add the following to array for chain $chain:${[
-            address
-          ]}',
-          level: LogLevel.Info);
-      await DB.instance
-          .put<dynamic>(boxName: walletId, key: chainArray, value: [address]);
-    } else {
-      // Make a deep copy of the existing list
-      final List<String> newArray = [];
-      addressArray
-          .forEach((dynamic _address) => newArray.add(_address as String));
-      newArray.add(address); // Add the address passed into the method
-      await DB.instance
-          .put<dynamic>(boxName: walletId, key: chainArray, value: newArray);
-    }
-  }
-
-  /// Takes in a list of UtxoObjects and adds a name (dependent on object index within list)
-  /// and checks for the txid associated with the utxo being blocked and marks it accordingly.
-  /// Now also checks for output labeling.
-  Future<void> _sortOutputs(List<UtxoObject> utxos) async {
-    final blockedHashArray =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'blocked_tx_hashes')
-            as List<dynamic>?;
-    final List<String> lst = [];
-    if (blockedHashArray != null) {
-      for (var hash in blockedHashArray) {
-        lst.add(hash as String);
-      }
-    }
-    final labels =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'labels') as Map? ??
-            {};
-
-    _outputsList = [];
-
-    for (var i = 0; i < utxos.length; i++) {
-      if (labels[utxos[i].txid] != null) {
-        utxos[i].txName = labels[utxos[i].txid] as String? ?? "";
-      } else {
-        utxos[i].txName = 'Output #$i';
-      }
-
-      if (utxos[i].status.confirmed == false) {
-        _outputsList.add(utxos[i]);
-      } else {
-        if (lst.contains(utxos[i].txid)) {
-          utxos[i].blocked = true;
-          _outputsList.add(utxos[i]);
-        } else if (!lst.contains(utxos[i].txid)) {
-          _outputsList.add(utxos[i]);
-        }
-      }
-    }
-  }
+  // /// Takes in a list of isar_models.UTXOs and adds a name (dependent on object index within list)
+  // /// and checks for the txid associated with the utxo being blocked and marks it accordingly.
+  // /// Now also checks for output labeling.
+  // Future<void> _sortOutputs(List<isar_models.UTXO> utxos) async {
+  //   final blockedHashArray =
+  //       DB.instance.get<dynamic>(boxName: walletId, key: 'blocked_tx_hashes')
+  //           as List<dynamic>?;
+  //   final List<String> lst = [];
+  //   if (blockedHashArray != null) {
+  //     for (var hash in blockedHashArray) {
+  //       lst.add(hash as String);
+  //     }
+  //   }
+  //   final labels =
+  //       DB.instance.get<dynamic>(boxName: walletId, key: 'labels') as Map? ??
+  //           {};
+  //
+  //   _outputsList = [];
+  //
+  //   for (var i = 0; i < utxos.length; i++) {
+  //     if (labels[utxos[i].txid] != null) {
+  //       utxos[i].txName = labels[utxos[i].txid] as String? ?? "";
+  //     } else {
+  //       utxos[i].txName = 'Output #$i';
+  //     }
+  //
+  //     if (utxos[i].status.confirmed == false) {
+  //       _outputsList.add(utxos[i]);
+  //     } else {
+  //       if (lst.contains(utxos[i].txid)) {
+  //         utxos[i].blocked = true;
+  //         _outputsList.add(utxos[i]);
+  //       } else if (!lst.contains(utxos[i].txid)) {
+  //         _outputsList.add(utxos[i]);
+  //       }
+  //     }
+  //   }
+  // }
 
   @override
   Future<void> fullRescan(
@@ -4134,9 +4150,11 @@ class FiroWallet extends CoinServiceAPI {
   }
 
   Future<void> _makeDerivations(
-      String suppliedMnemonic, int maxUnusedAddressGap) async {
-    List<String> receivingAddressArray = [];
-    List<String> changeAddressArray = [];
+    String suppliedMnemonic,
+    int maxUnusedAddressGap,
+  ) async {
+    List<isar_models.Address> receivingAddressArray = [];
+    List<isar_models.Address> changeAddressArray = [];
 
     int receivingIndex = -1;
     int changeIndex = -1;
@@ -4188,7 +4206,14 @@ class FiroWallet extends CoinServiceAPI {
           int numTxs = await futureNumTxs;
           if (numTxs >= 1) {
             receivingIndex = i;
-            receivingAddressArray.add(address);
+            final addr = isar_models.Address()
+              ..value = address
+              ..type = isar_models.AddressType.p2pkh
+              ..subType = isar_models.AddressSubType.receiving
+              ..derivationIndex = i
+              ..publicKey = Format.stringToUint8List(
+                  receiveDerivation['publicKey'] as String);
+            receivingAddressArray.add(addr);
           } else if (numTxs == 0) {
             receivingGapCounter += 1;
           }
@@ -4205,7 +4230,14 @@ class FiroWallet extends CoinServiceAPI {
           int numTxs = await _futureNumTxs;
           if (numTxs >= 1) {
             changeIndex = i;
-            changeAddressArray.add(_address);
+            final addr = isar_models.Address()
+              ..value = address
+              ..type = isar_models.AddressType.p2pkh
+              ..subType = isar_models.AddressSubType.change
+              ..derivationIndex = i
+              ..publicKey = Format.stringToUint8List(
+                  changeDerivation['publicKey'] as String);
+            changeAddressArray.add(addr);
           } else if (numTxs == 0) {
             changeGapCounter += 1;
           }
@@ -4221,31 +4253,23 @@ class FiroWallet extends CoinServiceAPI {
     // If restoring a wallet that never received any funds, then set receivingArray manually
     // If we didn't do this, it'd store an empty array
     if (receivingIndex == -1) {
-      final String receivingAddress = await _generateAddressForChain(0, 0);
+      final receivingAddress = await _generateAddressForChain(0, 0);
       receivingAddressArray.add(receivingAddress);
     }
 
     // If restoring a wallet that never sent any funds with change, then set changeArray
     // manually. If we didn't do this, it'd store an empty array.
     if (changeIndex == -1) {
-      final String changeAddress = await _generateAddressForChain(1, 0);
+      final changeAddress = await _generateAddressForChain(1, 0);
       changeAddressArray.add(changeAddress);
     }
 
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'receivingAddresses',
-        value: receivingAddressArray);
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: 'changeAddresses', value: changeAddressArray);
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'receivingIndex',
-        value: receivingIndex == -1 ? 0 : receivingIndex);
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'changeIndex',
-        value: changeIndex == -1 ? 0 : changeIndex);
+    await isar.writeTxn(() async {
+      await isar.addresses.putAll([
+        ...receivingAddressArray,
+        ...changeAddressArray,
+      ]);
+    });
   }
 
   /// Recovers wallet from [suppliedMnemonic]. Expects a valid mnemonic.
@@ -4255,6 +4279,8 @@ class FiroWallet extends CoinServiceAPI {
     Logging.instance
         .log("PROCESSORS ${Platform.numberOfProcessors}", level: LogLevel.Info);
     try {
+      await _isarInit();
+
       final latestSetId = await getLatestSetId();
       final setDataMap = getSetDataMap(latestSetId);
       final usedSerialNumbers = getUsedCoinSerials();
@@ -4283,8 +4309,6 @@ class FiroWallet extends CoinServiceAPI {
       dynamic usedSerialNumbers) async {
     final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
     final dataFuture = _txnData;
-    final String currency = _prefs.currency;
-    final Decimal currentPrice = await firoPrice;
 
     ReceivePort receivePort = await getIsolate({
       "function": "restore",
@@ -4307,7 +4331,10 @@ class FiroWallet extends CoinServiceAPI {
     stop(receivePort);
 
     final message = await staticProcessRestore(
-        (await dataFuture), result as Map<dynamic, dynamic>);
+      (await dataFuture),
+      result as Map<dynamic, dynamic>,
+      await chainHeight,
+    );
 
     await DB.instance.put<dynamic>(
         boxName: walletId, key: 'mintIndex', value: message['mintIndex']);
@@ -4319,28 +4346,30 @@ class FiroWallet extends CoinServiceAPI {
         boxName: walletId, key: 'jindex', value: message['jindex']);
 
     final transactionMap =
-        message["newTxMap"] as Map<String, models.Transaction>;
+        message["newTxMap"] as Map<String, isar_models.Transaction>;
 
     // Create the joinsplit transactions.
     final spendTxs = await getJMintTransactions(
-        _cachedElectrumXClient,
-        message["spendTxIds"] as List<String>,
-        currency,
-        coin,
-        currentPrice,
-        (Platform.isWindows ? "en_US" : await Devicelocale.currentLocale)!);
+      _cachedElectrumXClient,
+      message["spendTxIds"] as List<String>,
+      coin,
+    );
     Logging.instance.log(spendTxs, level: LogLevel.Info);
     for (var element in spendTxs) {
       transactionMap[element.txid] = element;
     }
 
-    final models.TransactionData newTxData =
-        models.TransactionData.fromMap(transactionMap);
+    await isar.writeTxn(() async {
+      await isar.transactions.putAllByTxid(transactionMap.values.toList());
+    });
 
-    _lelantusTransactionData = Future(() => newTxData);
-
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: 'latest_lelantus_tx_model', value: newTxData);
+    // final models.TransactionData newTxData =
+    //     models.TransactionData.fromMap(transactionMap);
+    //
+    // _lelantusTransactionData = Future(() => newTxData);
+    //
+    // await DB.instance.put<dynamic>(
+    //     boxName: walletId, key: 'latest_lelantus_tx_model', value: newTxData);
   }
 
   Future<List<Map<String, dynamic>>> fetchAnonymitySets() async {
@@ -4373,14 +4402,14 @@ class FiroWallet extends CoinServiceAPI {
 
   Future<dynamic> _createJoinSplitTransaction(
       int spendAmount, String address, bool subtractFeeFromAmount) async {
-    final price = await firoPrice;
+    // final price = await firoPrice;
     final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
     final index = DB.instance.get<dynamic>(boxName: walletId, key: 'mintIndex');
     final lelantusEntry = await _getLelantusEntry();
     final anonymitySets = await fetchAnonymitySets();
     final locktime = await getBlockHead(electrumXClient);
-    final locale =
-        Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
+    // final locale =
+    //     Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
 
     ReceivePort receivePort = await getIsolate({
       "function": "createJoinSplit",
@@ -4389,13 +4418,13 @@ class FiroWallet extends CoinServiceAPI {
       "subtractFeeFromAmount": subtractFeeFromAmount,
       "mnemonic": mnemonic,
       "index": index,
-      "price": price,
+      // "price": price,
       "lelantusEntries": lelantusEntry,
       "locktime": locktime,
       "coin": coin,
       "network": _network,
       "_anonymity_sets": anonymitySets,
-      "locale": locale,
+      // "locale": locale,
     });
     var message = await receivePort.first;
     if (message is String) {
@@ -4549,7 +4578,7 @@ class FiroWallet extends CoinServiceAPI {
     int spendAmount,
   ) async {
     var lelantusEntry = await _getLelantusEntry();
-    final balance = await availableBalance;
+    final balance = availablePrivateBalance();
     int spendAmount = (balance * Decimal.fromInt(Constants.satsPerCoin(coin)))
         .toBigInt()
         .toInt();
@@ -4612,22 +4641,23 @@ class FiroWallet extends CoinServiceAPI {
   }
 
   Future<int> estimateFeeForPublic(int satoshiAmount, int feeRate) async {
-    final available =
-        Format.decimalAmountToSatoshis(await availablePublicBalance(), coin);
+    final available = balance.spendable;
 
     if (available == satoshiAmount) {
-      return satoshiAmount - sweepAllEstimate(feeRate);
+      return satoshiAmount - (await sweepAllEstimate(feeRate));
     } else if (satoshiAmount <= 0 || satoshiAmount > available) {
       return roughFeeEstimate(1, 2, feeRate);
     }
 
     int runningBalance = 0;
     int inputCount = 0;
-    for (final output in _outputsList) {
-      runningBalance += output.value;
-      inputCount++;
-      if (runningBalance > satoshiAmount) {
-        break;
+    for (final output in (await utxos)) {
+      if (!output.isBlocked) {
+        runningBalance += output.value;
+        inputCount++;
+        if (runningBalance > satoshiAmount) {
+          break;
+        }
       }
     }
 
@@ -4659,11 +4689,12 @@ class FiroWallet extends CoinServiceAPI {
         (feeRatePerKB / 1000).ceil();
   }
 
-  int sweepAllEstimate(int feeRate) {
+  Future<int> sweepAllEstimate(int feeRate) async {
     int available = 0;
     int inputCount = 0;
-    for (final output in _outputsList) {
-      if (output.status.confirmed) {
+    for (final output in (await utxos)) {
+      if (!output.isBlocked &&
+          output.isConfirmed(storedChainHeight, MINIMUM_CONFIRMATIONS)) {
         available += output.value;
         inputCount++;
       }
@@ -4718,16 +4749,16 @@ class FiroWallet extends CoinServiceAPI {
     return allTransactions;
   }
 
-  Future<List<models.Transaction>> getJMintTransactions(
+  Future<List<isar_models.Transaction>> getJMintTransactions(
     CachedElectrumX cachedClient,
     List<String> transactions,
-    String currency,
+    // String currency,
     Coin coin,
-    Decimal currentPrice,
-    String locale,
+    // Decimal currentPrice,
+    // String locale,
   ) async {
     try {
-      List<models.Transaction> txs = [];
+      List<isar_models.Transaction> txs = [];
       List<Map<String, dynamic>> allTransactions =
           await fastFetch(transactions);
 
@@ -4735,35 +4766,31 @@ class FiroWallet extends CoinServiceAPI {
         try {
           final tx = allTransactions[i];
 
-          tx["confirmed_status"] =
-              tx["confirmations"] != null && tx["confirmations"] as int > 0;
-          tx["timestamp"] = tx["time"];
-          tx["txType"] = "Sent";
-
           var sendIndex = 1;
           if (tx["vout"][0]["value"] != null &&
               Decimal.parse(tx["vout"][0]["value"].toString()) > Decimal.zero) {
             sendIndex = 0;
           }
           tx["amount"] = tx["vout"][sendIndex]["value"];
-
           tx["address"] = tx["vout"][sendIndex]["scriptPubKey"]["addresses"][0];
-
           tx["fees"] = tx["vin"][0]["nFees"];
-          tx["inputSize"] = tx["vin"].length;
-          tx["outputSize"] = tx["vout"].length;
 
-          final decimalAmount = Decimal.parse(tx["amount"].toString());
+          final txn = isar_models.Transaction()
+            ..isLelantus = true
+            ..txid = tx["txid"] as String
+            ..timestamp = tx["time"] as int? ??
+                (DateTime.now().millisecondsSinceEpoch ~/ 1000)
+            ..type = isar_models.TransactionType.outgoing
+            ..subType = isar_models.TransactionSubType.join
+            ..fee = Format.decimalAmountToSatoshis(
+                Decimal.parse(tx["fees"].toString()), coin)
+            ..address = tx["address"] as String
+            ..amount = Format.decimalAmountToSatoshis(
+                Decimal.parse(tx["amount"].toString()), coin)
+            ..isCancelled = false
+            ..height = tx["height"] as int?;
 
-          tx["worthNow"] = Format.localizedStringAsFixed(
-            value: currentPrice * decimalAmount,
-            locale: locale,
-            decimalPlaces: 2,
-          );
-          tx["worthAtBlockTimestamp"] = tx["worthNow"];
-
-          tx["subType"] = "join";
-          txs.add(models.Transaction.fromLelantusJson(tx));
+          txs.add(txn);
         } catch (e, s) {
           Logging.instance.log(
               "Exception caught in getJMintTransactions(): $e\n$s",
@@ -4783,17 +4810,20 @@ class FiroWallet extends CoinServiceAPI {
   @override
   Future<bool> generateNewAddress() async {
     try {
-      await incrementAddressIndexForChain(
-          0); // First increment the receiving index
-      final newReceivingIndex =
-          DB.instance.get<dynamic>(boxName: walletId, key: 'receivingIndex')
-              as int; // Check the new receiving index
-      final newReceivingAddress = await _generateAddressForChain(0,
-          newReceivingIndex); // Use new index to derive a new receiving address
-      await addToAddressesArrayForChain(newReceivingAddress,
-          0); // Add that new receiving address to the array of receiving addresses
-      _currentReceivingAddress = Future(() =>
-          newReceivingAddress); // Set the new receiving address that the service
+      final currentReceiving = await _currentReceivingAddress;
+
+      final newReceivingIndex = currentReceiving.derivationIndex + 1;
+
+      // Use new index to derive a new receiving address
+      final newReceivingAddress = await _generateAddressForChain(
+        0,
+        newReceivingIndex,
+      );
+
+      // Add that new receiving address
+      await isar.writeTxn(() async {
+        await isar.addresses.put(newReceivingAddress);
+      });
 
       return true;
     } catch (e, s) {
@@ -4804,15 +4834,50 @@ class FiroWallet extends CoinServiceAPI {
     }
   }
 
-  Future<Decimal> availablePrivateBalance() async {
-    return (await balances)[0];
+  Decimal availablePrivateBalance() {
+    return balancePrivate.getSpendable();
   }
 
-  Future<Decimal> availablePublicBalance() async {
-    return (await balances)[4];
+  Decimal availablePublicBalance() {
+    return balance.getSpendable();
+  }
+
+  Future<int> get chainHeight async {
+    try {
+      final result = await _electrumXClient.getBlockHeadTip();
+      return result["height"] as int;
+    } catch (e, s) {
+      Logging.instance.log("Exception caught in chainHeight: $e\n$s",
+          level: LogLevel.Error);
+      return -1;
+    }
   }
 
   @override
-  // TODO: implement storedChainHeight
-  int get storedChainHeight => throw UnimplementedError();
+  int get storedChainHeight {
+    final storedHeight = DB.instance
+        .get<dynamic>(boxName: walletId, key: "storedChainHeight") as int?;
+    return storedHeight ?? 0;
+  }
+
+  Future<void> updateStoredChainHeight({required int newHeight}) async {
+    await DB.instance.put<dynamic>(
+        boxName: walletId, key: "storedChainHeight", value: newHeight);
+  }
+
+  @override
+  Balance get balance => _balance!;
+  Balance? _balance;
+
+  Balance get balancePrivate => _balancePrivate!;
+  Balance? _balancePrivate;
+
+  @override
+  // TODO: implement utxos
+  Future<List<isar_models.UTXO>> get utxos => isar.utxos.where().findAll();
+
+  @override
+  // TODO: implement transactions
+  Future<List<isar_models.Transaction>> get transactions =>
+      isar.transactions.where().findAll();
 }
