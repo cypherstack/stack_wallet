@@ -13,7 +13,6 @@ import 'package:isar/isar.dart';
 import 'package:lelantus/lelantus.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
-import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/lelantus_coin.dart';
@@ -43,6 +42,8 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
+
+import '../../mixins/firo_hive.dart';
 
 const DUST_LIMIT = 1000;
 const MINIMUM_CONFIRMATIONS = 1;
@@ -746,14 +747,14 @@ Future<void> _setTestnetWrapper(bool isTestnet) async {
 }
 
 /// Handles a single instance of a firo wallet
-class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
+class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
   static const integrationTestFlag =
       bool.fromEnvironment("IS_INTEGRATION_TEST");
 
   final _prefs = Prefs.instance;
 
   Timer? timer;
-  late Coin _coin;
+  late final Coin _coin;
 
   bool _shouldAutoSync = false;
 
@@ -788,22 +789,14 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   set isFavorite(bool markFavorite) {
-    DB.instance.put<dynamic>(
-        boxName: walletId, key: "isFavorite", value: markFavorite);
+    _isFavorite = markFavorite;
+    updateCachedIsFavorite(markFavorite);
   }
 
   @override
-  bool get isFavorite {
-    try {
-      return DB.instance.get<dynamic>(boxName: walletId, key: "isFavorite")
-          as bool;
-    } catch (e, s) {
-      Logging.instance.log(
-          "isFavorite fetch failed (returning false by default): $e\n$s",
-          level: LogLevel.Error);
-      return false;
-    }
-  }
+  bool get isFavorite => _isFavorite ??= getCachedIsFavorite();
+
+  bool? _isFavorite;
 
   @override
   Coin get coin => _coin;
@@ -918,7 +911,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
   set walletName(String newName) => _walletName = newName;
 
   /// unique wallet id
-  late String _walletId;
+  late final String _walletId;
   @override
   String get walletId => _walletId;
 
@@ -1241,6 +1234,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     _electrumXClient = client;
     _cachedElectrumXClient = cachedClient;
     _secureStore = secureStore;
+    initCache(walletId, coin);
+    initFiroHive(walletId);
 
     Logging.instance.log("$walletName isolates length: ${isolates.length}",
         level: LogLevel.Info);
@@ -1815,7 +1810,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     Logging.instance
         .log("Generating new ${coin.prettyName} wallet.", level: LogLevel.Info);
 
-    if (DB.instance.get<dynamic>(boxName: walletId, key: "id") != null) {
+    if (getCachedId() != null) {
       throw Exception(
           "Attempted to initialize a new wallet using an existing wallet ID!");
     }
@@ -1830,9 +1825,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     }
 
     await Future.wait([
-      DB.instance.put<dynamic>(boxName: walletId, key: "id", value: _walletId),
-      DB.instance
-          .put<dynamic>(boxName: walletId, key: "isFavorite", value: false),
+      updateCachedId(walletId),
+      updateCachedIsFavorite(false),
     ]);
   }
 
@@ -1842,8 +1836,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         "Opening existing $_walletId ${coin.prettyName} wallet.",
         level: LogLevel.Info);
 
-    if ((DB.instance.get<dynamic>(boxName: walletId, key: "id") as String?) ==
-        null) {
+    if (getCachedId() == null) {
       throw Exception(
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
@@ -2109,8 +2102,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         key: '${_walletId}_mnemonic',
         value: bip39.generateMnemonic(strength: 256));
 
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: 'jindex', value: <dynamic>[]);
+    await firoUpdateJIndex(<dynamic>[]);
     // Generate and add addresses to relevant arrays
     final initialReceivingAddress = await _generateAddressForChain(0, 0);
     final initialChangeAddress = await _generateAddressForChain(1, 0);
@@ -2287,8 +2279,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   List<Map<dynamic, LelantusCoin>> getLelantusCoinMap() {
-    final _l = DB.instance
-        .get<dynamic>(boxName: walletId, key: '_lelantus_coins') as List?;
+    final _l = firoGetLelantusCoins();
     final List<Map<dynamic, LelantusCoin>> lelantusCoins = [];
     for (var el in _l ?? []) {
       lelantusCoins.add({el.keys.first: el.values.first as LelantusCoin});
@@ -2302,8 +2293,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
       lelantusCoins.removeWhere((element) =>
           element.values.any((elementCoin) => elementCoin.value == 0));
     }
-    final jindexes =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'jindex') as List?;
+    final jindexes = firoGetJIndex();
     final transactions = await _txnData;
     final lelantusTransactionsd = await lelantusTransactionData;
 
@@ -2374,8 +2364,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
       final data = await _txnData;
       final lData = await lelantusTransactionData;
       final currentChainHeight = await chainHeight;
-      final jindexes =
-          DB.instance.get<dynamic>(boxName: walletId, key: 'jindex') as List?;
+      final jindexes = firoGetJIndex();
       int intLelantusBalance = 0;
       int unconfirmedLelantusBalance = 0;
 
@@ -2459,7 +2448,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         blockedTotal: 0,
         pendingSpendable: unconfirmedLelantusBalance + balance.total,
       );
-      await updateCachedBalanceSecondary(walletId, _balancePrivate!);
+      await updateCachedBalanceSecondary(_balancePrivate!);
       // _balance = Balance(
       //   coin: coin,
       //   total: utxos.satoshiBalance,
@@ -2593,8 +2582,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     var tmpTotal = total;
     var index = 0;
     var mints = <Map<String, dynamic>>[];
-    final nextFreeMintIndex =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'mintIndex') as int;
+    final nextFreeMintIndex = firoGetMintIndex()!;
     while (tmpTotal > 0) {
       final mintValue = min(tmpTotal, MINT_LIMIT);
       final mint = await _getMintHex(
@@ -2727,8 +2715,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
       amount += utxosToUse[i].value;
     }
 
-    final index =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'mintIndex') as int;
+    final index = firoGetMintIndex()!;
     Logging.instance.log("index of mint $index", level: LogLevel.Info);
 
     for (var mintsElement in mintsMap) {
@@ -2773,8 +2760,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Future<void> _refreshLelantusData() async {
     final List<Map<dynamic, LelantusCoin>> lelantusCoins = getLelantusCoinMap();
-    final jindexes =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'jindex') as List?;
+    final jindexes = firoGetJIndex();
 
     // Get all joinsplit transaction ids
 
@@ -2912,8 +2898,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         "_submitLelantusToNetwork txid: ${transactionInfo['txid']}",
         level: LogLevel.Info);
     if (txid == transactionInfo['txid']) {
-      final index =
-          DB.instance.get<dynamic>(boxName: walletId, key: 'mintIndex') as int?;
+      final index = firoGetMintIndex();
       final List<Map<dynamic, LelantusCoin>> lelantusCoins =
           getLelantusCoinMap();
       List<Map<dynamic, LelantusCoin>> coins;
@@ -2951,16 +2936,12 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
             false);
         if (jmint.value > 0) {
           coins.add({jmint.txId: jmint});
-          final jindexes = DB.instance
-              .get<dynamic>(boxName: walletId, key: 'jindex') as List?;
-          jindexes!.add(index);
-          await DB.instance
-              .put<dynamic>(boxName: walletId, key: 'jindex', value: jindexes);
-          await DB.instance.put<dynamic>(
-              boxName: walletId, key: 'mintIndex', value: index + 1);
+          final jindexes = firoGetJIndex()!;
+          jindexes.add(index);
+          await firoUpdateJIndex(jindexes);
+          await firoUpdateMintIndex(index + 1);
         }
-        await DB.instance.put<dynamic>(
-            boxName: walletId, key: '_lelantus_coins', value: coins);
+        await firoUpdateLelantusCoins(coins);
 
         // add the send transaction
         final transaction = isar_models.Transaction()
@@ -3017,13 +2998,11 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
           );
           if (mint.value > 0) {
             coins.add({mint.txId: mint});
-            await DB.instance.put<dynamic>(
-                boxName: walletId, key: 'mintIndex', value: index + 1);
+            await firoUpdateMintIndex(index + 1);
           }
         }
         // Logging.instance.log(coins);
-        await DB.instance.put<dynamic>(
-            boxName: walletId, key: '_lelantus_coins', value: coins);
+        await firoUpdateLelantusCoins(coins);
       }
       return true;
     } else {
@@ -3661,7 +3640,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         blockedTotal: satoshiBalanceBlocked,
         pendingSpendable: satoshiBalancePending,
       );
-      await updateCachedBalance(walletId, _balance!);
+      await updateCachedBalance(_balance!);
     } catch (e, s) {
       Logging.instance
           .log("Output fetch unsuccessful: $e\n$s", level: LogLevel.Error);
@@ -3865,7 +3844,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     await _cachedElectrumXClient.clearSharedTransactionCache(coin: coin);
 
     // back up data
-    await _rescanBackup();
+    // await _rescanBackup();
 
     try {
       final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
@@ -3890,7 +3869,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
       );
 
       // restore from backup
-      await _rescanRestore();
+      // await _rescanRestore();
 
       longMutex = false;
       Logging.instance.log("Exception rethrown from fullRescan(): $e\n$s",
@@ -3899,150 +3878,150 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     }
   }
 
-  Future<void> _rescanBackup() async {
-    Logging.instance.log("starting rescan backup", level: LogLevel.Info);
-
-    // backup current and clear data
-    final tempReceivingAddresses =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'receivingAddresses');
-    await DB.instance.delete<dynamic>(
-      key: 'receivingAddresses',
-      boxName: walletId,
-    );
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'receivingAddresses_BACKUP',
-        value: tempReceivingAddresses);
-
-    final tempChangeAddresses =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'changeAddresses');
-    await DB.instance.delete<dynamic>(
-      key: 'changeAddresses',
-      boxName: walletId,
-    );
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'changeAddresses_BACKUP',
-        value: tempChangeAddresses);
-
-    final tempReceivingIndex =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'receivingIndex');
-    await DB.instance.delete<dynamic>(
-      key: 'receivingIndex',
-      boxName: walletId,
-    );
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'receivingIndex_BACKUP',
-        value: tempReceivingIndex);
-
-    final tempChangeIndex =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'changeIndex');
-    await DB.instance.delete<dynamic>(
-      key: 'changeIndex',
-      boxName: walletId,
-    );
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: 'changeIndex_BACKUP', value: tempChangeIndex);
-
-    final receiveDerivationsString =
-        await _secureStore.read(key: "${walletId}_receiveDerivations");
-    final changeDerivationsString =
-        await _secureStore.read(key: "${walletId}_changeDerivations");
-
-    await _secureStore.write(
-        key: "${walletId}_receiveDerivations_BACKUP",
-        value: receiveDerivationsString);
-    await _secureStore.write(
-        key: "${walletId}_changeDerivations_BACKUP",
-        value: changeDerivationsString);
-
-    await _secureStore.write(
-        key: "${walletId}_receiveDerivations", value: null);
-    await _secureStore.write(key: "${walletId}_changeDerivations", value: null);
-
-    // back up but no need to delete
-    final tempMintIndex =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'mintIndex');
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: 'mintIndex_BACKUP', value: tempMintIndex);
-
-    final tempLelantusCoins =
-        DB.instance.get<dynamic>(boxName: walletId, key: '_lelantus_coins');
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: '_lelantus_coins_BACKUP',
-        value: tempLelantusCoins);
-
-    final tempJIndex =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'jindex');
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: 'jindex_BACKUP', value: tempJIndex);
-
-    final tempLelantusTxModel = DB.instance
-        .get<dynamic>(boxName: walletId, key: 'latest_lelantus_tx_model');
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'latest_lelantus_tx_model_BACKUP',
-        value: tempLelantusTxModel);
-
-    Logging.instance.log("rescan backup complete", level: LogLevel.Info);
-  }
-
-  Future<void> _rescanRestore() async {
-    Logging.instance.log("starting rescan restore", level: LogLevel.Info);
-
-    // restore from backup
-    final tempReceivingAddresses = DB.instance
-        .get<dynamic>(boxName: walletId, key: 'receivingAddresses_BACKUP');
-    final tempChangeAddresses = DB.instance
-        .get<dynamic>(boxName: walletId, key: 'changeAddresses_BACKUP');
-    final tempReceivingIndex = DB.instance
-        .get<dynamic>(boxName: walletId, key: 'receivingIndex_BACKUP');
-    final tempChangeIndex =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'changeIndex_BACKUP');
-    final tempMintIndex =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'mintIndex_BACKUP');
-    final tempLelantusCoins = DB.instance
-        .get<dynamic>(boxName: walletId, key: '_lelantus_coins_BACKUP');
-    final tempJIndex =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'jindex_BACKUP');
-    final tempLelantusTxModel = DB.instance.get<dynamic>(
-        boxName: walletId, key: 'latest_lelantus_tx_model_BACKUP');
-
-    final receiveDerivationsString =
-        await _secureStore.read(key: "${walletId}_receiveDerivations_BACKUP");
-    final changeDerivationsString =
-        await _secureStore.read(key: "${walletId}_changeDerivations_BACKUP");
-
-    await _secureStore.write(
-        key: "${walletId}_receiveDerivations", value: receiveDerivationsString);
-    await _secureStore.write(
-        key: "${walletId}_changeDerivations", value: changeDerivationsString);
-
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'receivingAddresses',
-        value: tempReceivingAddresses);
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: 'changeAddresses', value: tempChangeAddresses);
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: 'receivingIndex', value: tempReceivingIndex);
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: 'changeIndex', value: tempChangeIndex);
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: 'mintIndex', value: tempMintIndex);
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: '_lelantus_coins', value: tempLelantusCoins);
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: 'jindex', value: tempJIndex);
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'latest_lelantus_tx_model',
-        value: tempLelantusTxModel);
-
-    Logging.instance.log("rescan restore  complete", level: LogLevel.Info);
-  }
+  // Future<void> _rescanBackup() async {
+  //   Logging.instance.log("starting rescan backup", level: LogLevel.Info);
+  //
+  //   // backup current and clear data
+  //   final tempReceivingAddresses =
+  //       DB.instance.get<dynamic>(boxName: walletId, key: 'receivingAddresses');
+  //   await DB.instance.delete<dynamic>(
+  //     key: 'receivingAddresses',
+  //     boxName: walletId,
+  //   );
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId,
+  //       key: 'receivingAddresses_BACKUP',
+  //       value: tempReceivingAddresses);
+  //
+  //   final tempChangeAddresses =
+  //       DB.instance.get<dynamic>(boxName: walletId, key: 'changeAddresses');
+  //   await DB.instance.delete<dynamic>(
+  //     key: 'changeAddresses',
+  //     boxName: walletId,
+  //   );
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId,
+  //       key: 'changeAddresses_BACKUP',
+  //       value: tempChangeAddresses);
+  //
+  //   final tempReceivingIndex =
+  //       DB.instance.get<dynamic>(boxName: walletId, key: 'receivingIndex');
+  //   await DB.instance.delete<dynamic>(
+  //     key: 'receivingIndex',
+  //     boxName: walletId,
+  //   );
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId,
+  //       key: 'receivingIndex_BACKUP',
+  //       value: tempReceivingIndex);
+  //
+  //   final tempChangeIndex =
+  //       DB.instance.get<dynamic>(boxName: walletId, key: 'changeIndex');
+  //   await DB.instance.delete<dynamic>(
+  //     key: 'changeIndex',
+  //     boxName: walletId,
+  //   );
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId, key: 'changeIndex_BACKUP', value: tempChangeIndex);
+  //
+  //   final receiveDerivationsString =
+  //       await _secureStore.read(key: "${walletId}_receiveDerivations");
+  //   final changeDerivationsString =
+  //       await _secureStore.read(key: "${walletId}_changeDerivations");
+  //
+  //   await _secureStore.write(
+  //       key: "${walletId}_receiveDerivations_BACKUP",
+  //       value: receiveDerivationsString);
+  //   await _secureStore.write(
+  //       key: "${walletId}_changeDerivations_BACKUP",
+  //       value: changeDerivationsString);
+  //
+  //   await _secureStore.write(
+  //       key: "${walletId}_receiveDerivations", value: null);
+  //   await _secureStore.write(key: "${walletId}_changeDerivations", value: null);
+  //
+  //   // back up but no need to delete
+  //   final tempMintIndex =
+  //       DB.instance.get<dynamic>(boxName: walletId, key: 'mintIndex');
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId, key: 'mintIndex_BACKUP', value: tempMintIndex);
+  //
+  //   final tempLelantusCoins =
+  //       DB.instance.get<dynamic>(boxName: walletId, key: '_lelantus_coins');
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId,
+  //       key: '_lelantus_coins_BACKUP',
+  //       value: tempLelantusCoins);
+  //
+  //   final tempJIndex =
+  //       DB.instance.get<dynamic>(boxName: walletId, key: 'jindex');
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId, key: 'jindex_BACKUP', value: tempJIndex);
+  //
+  //   final tempLelantusTxModel = DB.instance
+  //       .get<dynamic>(boxName: walletId, key: 'latest_lelantus_tx_model');
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId,
+  //       key: 'latest_lelantus_tx_model_BACKUP',
+  //       value: tempLelantusTxModel);
+  //
+  //   Logging.instance.log("rescan backup complete", level: LogLevel.Info);
+  // }
+  //
+  // Future<void> _rescanRestore() async {
+  //   Logging.instance.log("starting rescan restore", level: LogLevel.Info);
+  //
+  //   // restore from backup
+  //   final tempReceivingAddresses = DB.instance
+  //       .get<dynamic>(boxName: walletId, key: 'receivingAddresses_BACKUP');
+  //   final tempChangeAddresses = DB.instance
+  //       .get<dynamic>(boxName: walletId, key: 'changeAddresses_BACKUP');
+  //   final tempReceivingIndex = DB.instance
+  //       .get<dynamic>(boxName: walletId, key: 'receivingIndex_BACKUP');
+  //   final tempChangeIndex =
+  //       DB.instance.get<dynamic>(boxName: walletId, key: 'changeIndex_BACKUP');
+  //   final tempMintIndex =
+  //       DB.instance.get<dynamic>(boxName: walletId, key: 'mintIndex_BACKUP');
+  //   final tempLelantusCoins = DB.instance
+  //       .get<dynamic>(boxName: walletId, key: '_lelantus_coins_BACKUP');
+  //   final tempJIndex =
+  //       DB.instance.get<dynamic>(boxName: walletId, key: 'jindex_BACKUP');
+  //   final tempLelantusTxModel = DB.instance.get<dynamic>(
+  //       boxName: walletId, key: 'latest_lelantus_tx_model_BACKUP');
+  //
+  //   final receiveDerivationsString =
+  //       await _secureStore.read(key: "${walletId}_receiveDerivations_BACKUP");
+  //   final changeDerivationsString =
+  //       await _secureStore.read(key: "${walletId}_changeDerivations_BACKUP");
+  //
+  //   await _secureStore.write(
+  //       key: "${walletId}_receiveDerivations", value: receiveDerivationsString);
+  //   await _secureStore.write(
+  //       key: "${walletId}_changeDerivations", value: changeDerivationsString);
+  //
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId,
+  //       key: 'receivingAddresses',
+  //       value: tempReceivingAddresses);
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId, key: 'changeAddresses', value: tempChangeAddresses);
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId, key: 'receivingIndex', value: tempReceivingIndex);
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId, key: 'changeIndex', value: tempChangeIndex);
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId, key: 'mintIndex', value: tempMintIndex);
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId, key: '_lelantus_coins', value: tempLelantusCoins);
+  //   await DB.instance
+  //       .put<dynamic>(boxName: walletId, key: 'jindex', value: tempJIndex);
+  //   await DB.instance.put<dynamic>(
+  //       boxName: walletId,
+  //       key: 'latest_lelantus_tx_model',
+  //       value: tempLelantusTxModel);
+  //
+  //   Logging.instance.log("rescan restore  complete", level: LogLevel.Info);
+  // }
 
   /// wrapper for _recoverWalletFromBIP32SeedPhrase()
   @override
@@ -4266,10 +4245,10 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
       final makeDerivations =
           _makeDerivations(suppliedMnemonic, maxUnusedAddressGap);
 
-      await DB.instance
-          .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
-      await DB.instance
-          .put<dynamic>(boxName: walletId, key: "isFavorite", value: false);
+      await Future.wait([
+        updateCachedId(walletId),
+        updateCachedIsFavorite(false),
+      ]);
 
       await Future.wait([usedSerialNumbers, setDataMap, makeDerivations]);
 
@@ -4315,14 +4294,11 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
       await chainHeight,
     );
 
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: 'mintIndex', value: message['mintIndex']);
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: '_lelantus_coins',
-        value: message['_lelantus_coins']);
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: 'jindex', value: message['jindex']);
+    await Future.wait([
+      firoUpdateMintIndex(message['mintIndex'] as int),
+      firoUpdateLelantusCoins(message['_lelantus_coins'] as List),
+      firoUpdateJIndex(message['jindex'] as List),
+    ]);
 
     final transactionMap =
         message["newTxMap"] as Map<String, isar_models.Transaction>;
@@ -4341,14 +4317,6 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     await isar.writeTxn(() async {
       await isar.transactions.putAllByTxid(transactionMap.values.toList());
     });
-
-    // final models.TransactionData newTxData =
-    //     models.TransactionData.fromMap(transactionMap);
-    //
-    // _lelantusTransactionData = Future(() => newTxData);
-    //
-    // await DB.instance.put<dynamic>(
-    //     boxName: walletId, key: 'latest_lelantus_tx_model', value: newTxData);
   }
 
   Future<List<Map<String, dynamic>>> fetchAnonymitySets() async {
@@ -4383,7 +4351,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
       int spendAmount, String address, bool subtractFeeFromAmount) async {
     // final price = await firoPrice;
     final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
-    final index = DB.instance.get<dynamic>(boxName: walletId, key: 'mintIndex');
+    final index = firoGetMintIndex();
     final lelantusEntry = await _getLelantusEntry();
     final anonymitySets = await fetchAnonymitySets();
     final locktime = await getBlockHead(electrumXClient);
@@ -4824,32 +4792,24 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<int> get chainHeight async {
     try {
       final result = await _electrumXClient.getBlockHeadTip();
-      return result["height"] as int;
+      final height = result["height"] as int;
+      await updateCachedChainHeight(height);
+      return height;
     } catch (e, s) {
       Logging.instance.log("Exception caught in chainHeight: $e\n$s",
           level: LogLevel.Error);
-      return -1;
+      return storedChainHeight;
     }
   }
 
   @override
-  int get storedChainHeight {
-    final storedHeight = DB.instance
-        .get<dynamic>(boxName: walletId, key: "storedChainHeight") as int?;
-    return storedHeight ?? 0;
-  }
-
-  Future<void> updateStoredChainHeight({required int newHeight}) async {
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: "storedChainHeight", value: newHeight);
-  }
+  int get storedChainHeight => getCachedChainHeight();
 
   @override
-  Balance get balance => _balance ??= getCachedBalance(walletId, coin);
+  Balance get balance => _balance ??= getCachedBalance();
   Balance? _balance;
 
-  Balance get balancePrivate =>
-      _balancePrivate ??= getCachedBalanceSecondary(walletId, coin);
+  Balance get balancePrivate => _balancePrivate ??= getCachedBalanceSecondary();
   Balance? _balancePrivate;
 
   @override
