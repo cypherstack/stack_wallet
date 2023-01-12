@@ -140,10 +140,22 @@ class SimplexAPI {
   // }
 
   dynamic /*Future<BuyResponse<List<Fiat>>>*/ getSupported() async {
+    // example for quote courtesy of @danrmiller
+    // curl -H "Content-Type: application/json" -d '{"digital_currency": "BTC", "fiat_currency": "USD", "requested_currency": "USD", "requested_amount": 100}' http://sandbox-api.stackwallet.com/quote=
     final uri = _buildUri("/quote", {});
 
+    // curl --request GET \
+    //      --url https://sandbox.test-simplexcc.com/v2/supported_crypto_currencies \
+    //      --header 'accept: application/json'
+
     try {
-      final jsonArray = await _makeGetRequest(uri);
+      final body = {
+        "digital_currency": "BTC",
+        "fiat_currency": "USD",
+        "requested_currency": "USD",
+        "requested_amount": 100
+      };
+      final jsonArray = await _makePostRequest(uri, body);
 
       print(jsonArray);
       return null;
