@@ -14,6 +14,7 @@ import 'package:stackwallet/services/price.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/prefs.dart';
@@ -72,7 +73,7 @@ class AddressTransaction {
 
 class GasTracker {
   final int code;
-  final String data;
+  final Map<String, dynamic> data;
 
   const GasTracker({
     required this.code,
@@ -82,13 +83,14 @@ class GasTracker {
   factory GasTracker.fromJson(Map<String, dynamic> json) {
     return GasTracker(
       code: json['code'] as int,
-      data: json['data'] as String,
+      data: json['data'] as Map<String, dynamic>,
     );
   }
 }
 
 class EthereumWallet extends CoinServiceAPI {
   NodeModel? _ethNode;
+  final _gasLimit = 21000;
 
   @override
   set isFavorite(bool markFavorite) {
@@ -197,14 +199,17 @@ class EthereumWallet extends CoinServiceAPI {
     final gasPrice = await _client.getGasPrice();
     final int chainId = await _client.getNetworkId();
 
+    print("GAS PRICE IS $gasPrice");
+    print("AMOUNT TO SEND IS ${txData['fee']}");
+
     final amount = txData['recipientAmt'];
     final decimalAmount =
         Format.satoshisToAmount(amount as int, coin: Coin.ethereum);
     final bigIntAmount = amountToBigInt(decimalAmount.toDouble());
     final tx = Transaction.Transaction(
         to: EthereumAddress.fromHex(txData['address'] as String),
-        gasPrice: gasPrice,
-        maxGas: 21000,
+        gasPrice: EtherAmount.fromUnitAndValue(EtherUnit.gwei, txData['fee']),
+        maxGas: _gasLimit,
         value: EtherAmount.inWei(bigIntAmount));
     final transaction =
         await _client.sendTransaction(_credentials, tx, chainId: chainId);
@@ -228,10 +233,14 @@ class EthereumWallet extends CoinServiceAPI {
 
   @override
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
-    print("CALLING ESTIMATE FEE");
-    // TODO: implement estimateFeeFor
-    // throw UnimplementedError();
-    return 1;
+    final gweiAmount = feeRate / (pow(10, 9));
+    final fee = _gasLimit * gweiAmount;
+
+    //Convert gwei to ETH
+    final feeInWei = fee * (pow(10, 9));
+    final ethAmount = feeInWei / (pow(10, 18));
+    return Format.decimalAmountToSatoshis(
+        Decimal.parse(ethAmount.toString()), coin);
   }
 
   @override
@@ -248,16 +257,14 @@ class EthereumWallet extends CoinServiceAPI {
 
   Future<FeeObject> _getFees() async {
     GasTracker fees = await getGasOracle();
-    if (fees.code == 200) {
-      print("FEES IS ${fees.data}");
-    }
+    final feesMap = fees.data;
     return FeeObject(
-        numberOfBlocksFast: 10,
-        numberOfBlocksAverage: 10,
-        numberOfBlocksSlow: 10,
-        fast: 1,
-        medium: 1,
-        slow: 1);
+        numberOfBlocksFast: 3,
+        numberOfBlocksAverage: 3,
+        numberOfBlocksSlow: 1,
+        fast: feesMap['fast'] as int,
+        medium: feesMap['standard'] as int,
+        slow: feesMap['slow'] as int);
   }
 
   Future<GasTracker> getGasOracle() async {
@@ -410,12 +417,29 @@ class EthereumWallet extends CoinServiceAPI {
       {required String address,
       required int satoshiAmount,
       Map<String, dynamic>? args}) async {
+    print("CALLING PREPARE SEND");
+    print(args);
+    final feeRateType = args?["feeRate"];
+    int fee = 0;
+    final feeObject = await fees;
+    switch (feeRateType) {
+      case FeeRateType.fast:
+        fee = feeObject.fast;
+        break;
+      case FeeRateType.average:
+        fee = feeObject.medium;
+        break;
+      case FeeRateType.slow:
+        fee = feeObject.slow;
+        break;
+    }
+    final feeEstimate = await estimateFeeFor(satoshiAmount, fee);
+    print("FEE ESTIMATE IS $feeEstimate");
+
     final gasPrice = await _client.getGasPrice();
 
     Map<String, dynamic> txData = {
-      "fee": Format.decimalAmountToSatoshis(
-          Decimal.parse(gasPrice.getValueInUnit(EtherUnit.ether).toString()),
-          coin),
+      "fee": feeEstimate,
       "address": address,
       "recipientAmt": satoshiAmount,
     };
