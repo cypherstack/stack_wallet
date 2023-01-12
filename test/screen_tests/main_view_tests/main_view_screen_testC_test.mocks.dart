@@ -6,13 +6,14 @@
 import 'dart:async' as _i6;
 import 'dart:ui' as _i8;
 
-import 'package:decimal/decimal.dart' as _i4;
 import 'package:mockito/mockito.dart' as _i1;
+import 'package:stackwallet/models/balance.dart' as _i4;
+import 'package:stackwallet/models/isar/models/isar_models.dart' as _i10;
 import 'package:stackwallet/models/models.dart' as _i3;
 import 'package:stackwallet/services/coins/coin_service.dart' as _i2;
 import 'package:stackwallet/services/coins/manager.dart' as _i9;
-import 'package:stackwallet/services/locale_service.dart' as _i11;
-import 'package:stackwallet/services/notes_service.dart' as _i10;
+import 'package:stackwallet/services/locale_service.dart' as _i12;
+import 'package:stackwallet/services/notes_service.dart' as _i11;
 import 'package:stackwallet/services/wallets_service.dart' as _i5;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i7;
 
@@ -48,19 +49,8 @@ class _FakeFeeObject_1 extends _i1.SmartFake implements _i3.FeeObject {
         );
 }
 
-class _FakeDecimal_2 extends _i1.SmartFake implements _i4.Decimal {
-  _FakeDecimal_2(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
-class _FakeTransactionData_3 extends _i1.SmartFake
-    implements _i3.TransactionData {
-  _FakeTransactionData_3(
+class _FakeBalance_2 extends _i1.SmartFake implements _i4.Balance {
+  _FakeBalance_2(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -376,72 +366,24 @@ class MockManager extends _i1.Mock implements _i9.Manager {
         returnValue: _i6.Future<String>.value(''),
       ) as _i6.Future<String>);
   @override
-  _i6.Future<_i4.Decimal> get availableBalance => (super.noSuchMethod(
-        Invocation.getter(#availableBalance),
-        returnValue: _i6.Future<_i4.Decimal>.value(_FakeDecimal_2(
+  _i4.Balance get balance => (super.noSuchMethod(
+        Invocation.getter(#balance),
+        returnValue: _FakeBalance_2(
           this,
-          Invocation.getter(#availableBalance),
-        )),
-      ) as _i6.Future<_i4.Decimal>);
-  @override
-  _i4.Decimal get cachedAvailableBalance => (super.noSuchMethod(
-        Invocation.getter(#cachedAvailableBalance),
-        returnValue: _FakeDecimal_2(
-          this,
-          Invocation.getter(#cachedAvailableBalance),
+          Invocation.getter(#balance),
         ),
-      ) as _i4.Decimal);
+      ) as _i4.Balance);
   @override
-  _i6.Future<_i4.Decimal> get pendingBalance => (super.noSuchMethod(
-        Invocation.getter(#pendingBalance),
-        returnValue: _i6.Future<_i4.Decimal>.value(_FakeDecimal_2(
-          this,
-          Invocation.getter(#pendingBalance),
-        )),
-      ) as _i6.Future<_i4.Decimal>);
-  @override
-  _i6.Future<_i4.Decimal> get balanceMinusMaxFee => (super.noSuchMethod(
-        Invocation.getter(#balanceMinusMaxFee),
-        returnValue: _i6.Future<_i4.Decimal>.value(_FakeDecimal_2(
-          this,
-          Invocation.getter(#balanceMinusMaxFee),
-        )),
-      ) as _i6.Future<_i4.Decimal>);
-  @override
-  _i6.Future<_i4.Decimal> get totalBalance => (super.noSuchMethod(
-        Invocation.getter(#totalBalance),
-        returnValue: _i6.Future<_i4.Decimal>.value(_FakeDecimal_2(
-          this,
-          Invocation.getter(#totalBalance),
-        )),
-      ) as _i6.Future<_i4.Decimal>);
-  @override
-  _i4.Decimal get cachedTotalBalance => (super.noSuchMethod(
-        Invocation.getter(#cachedTotalBalance),
-        returnValue: _FakeDecimal_2(
-          this,
-          Invocation.getter(#cachedTotalBalance),
-        ),
-      ) as _i4.Decimal);
-  @override
-  _i6.Future<List<String>> get allOwnAddresses => (super.noSuchMethod(
-        Invocation.getter(#allOwnAddresses),
-        returnValue: _i6.Future<List<String>>.value(<String>[]),
-      ) as _i6.Future<List<String>>);
-  @override
-  _i6.Future<_i3.TransactionData> get transactionData => (super.noSuchMethod(
-        Invocation.getter(#transactionData),
+  _i6.Future<List<_i10.Transaction>> get transactions => (super.noSuchMethod(
+        Invocation.getter(#transactions),
         returnValue:
-            _i6.Future<_i3.TransactionData>.value(_FakeTransactionData_3(
-          this,
-          Invocation.getter(#transactionData),
-        )),
-      ) as _i6.Future<_i3.TransactionData>);
+            _i6.Future<List<_i10.Transaction>>.value(<_i10.Transaction>[]),
+      ) as _i6.Future<List<_i10.Transaction>>);
   @override
-  _i6.Future<List<_i3.UtxoObject>> get unspentOutputs => (super.noSuchMethod(
-        Invocation.getter(#unspentOutputs),
-        returnValue: _i6.Future<List<_i3.UtxoObject>>.value(<_i3.UtxoObject>[]),
-      ) as _i6.Future<List<_i3.UtxoObject>>);
+  _i6.Future<List<_i10.UTXO>> get utxos => (super.noSuchMethod(
+        Invocation.getter(#utxos),
+        returnValue: _i6.Future<List<_i10.UTXO>>.value(<_i10.UTXO>[]),
+      ) as _i6.Future<List<_i10.UTXO>>);
   @override
   set walletName(String? newName) => super.noSuchMethod(
         Invocation.setter(
@@ -523,24 +465,6 @@ class MockManager extends _i1.Mock implements _i9.Manager {
           #confirmSend,
           [],
           {#txData: txData},
-        ),
-        returnValue: _i6.Future<String>.value(''),
-      ) as _i6.Future<String>);
-  @override
-  _i6.Future<String> send({
-    required String? toAddress,
-    required int? amount,
-    Map<String, String>? args = const {},
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #send,
-          [],
-          {
-            #toAddress: toAddress,
-            #amount: amount,
-            #args: args,
-          },
         ),
         returnValue: _i6.Future<String>.value(''),
       ) as _i6.Future<String>);
@@ -634,14 +558,6 @@ class MockManager extends _i1.Mock implements _i9.Manager {
         returnValueForMissingStub: _i6.Future<void>.value(),
       ) as _i6.Future<void>);
   @override
-  _i6.Future<bool> isOwnAddress(String? address) => (super.noSuchMethod(
-        Invocation.method(
-          #isOwnAddress,
-          [address],
-        ),
-        returnValue: _i6.Future<bool>.value(false),
-      ) as _i6.Future<bool>);
-  @override
   _i6.Future<int> estimateFeeFor(
     int? satoshiAmount,
     int? feeRate,
@@ -693,7 +609,7 @@ class MockManager extends _i1.Mock implements _i9.Manager {
 /// A class which mocks [NotesService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockNotesService extends _i1.Mock implements _i10.NotesService {
+class MockNotesService extends _i1.Mock implements _i11.NotesService {
   @override
   String get walletId => (super.noSuchMethod(
         Invocation.getter(#walletId),
@@ -795,7 +711,7 @@ class MockNotesService extends _i1.Mock implements _i10.NotesService {
 /// A class which mocks [LocaleService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockLocaleService extends _i1.Mock implements _i11.LocaleService {
+class MockLocaleService extends _i1.Mock implements _i12.LocaleService {
   @override
   String get locale => (super.noSuchMethod(
         Invocation.getter(#locale),
