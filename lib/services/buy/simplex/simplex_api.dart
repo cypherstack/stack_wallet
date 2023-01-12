@@ -141,23 +141,28 @@ class SimplexAPI {
 
   dynamic /*Future<BuyResponse<List<Fiat>>>*/ getSupported() async {
     // example for quote courtesy of @danrmiller
-    // curl -H "Content-Type: application/json" -d '{"digital_currency": "BTC", "fiat_currency": "USD", "requested_currency": "USD", "requested_amount": 100}' http://sandbox-api.stackwallet.com/quote=
-    final uri = _buildUri("/quote", {});
-
+    // curl -H "Content-Type: application/json" -d '{"digital_currency": "BTC", "fiat_currency": "USD", "requested_currency": "USD", "requested_amount": 100}' http://sandbox-api.stackwallet.com/quote
+    // official docs reference eg
     // curl --request GET \
     //      --url https://sandbox.test-simplexcc.com/v2/supported_crypto_currencies \
     //      --header 'accept: application/json'
 
     try {
-      final body = {
-        "digital_currency": "BTC",
-        "fiat_currency": "USD",
-        "requested_currency": "USD",
-        "requested_amount": 100
+      Map<String, String> headers = {
+        'Content-Type': 'application/json',
       };
-      final jsonArray = await _makePostRequest(uri, body);
+      String data =
+          '{"digital_currency": "BTC", "fiat_currency": "USD", "requested_currency": "USD", "requested_amount": 100}';
+      Uri url = Uri.parse('http://sandbox-api.stackwallet.com/quote');
 
-      print(jsonArray);
+      var res = await http.post(url, headers: headers, body: data);
+
+      if (res.statusCode != 200) {
+        throw Exception(
+            'getAvailableCurrencies exception: statusCode= ${res.statusCode}');
+      }
+
+      print(res.body);
       return null;
 
       // return await compute(_parseAvailableCurrenciesJson, jsonArray as List);
