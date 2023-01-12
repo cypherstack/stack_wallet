@@ -25,6 +25,7 @@ import 'package:stackwallet/services/event_bus/events/global/updated_in_backgrou
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
+import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
@@ -38,7 +39,6 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
@@ -127,7 +127,7 @@ bip32.BIP32 getBip32RootWrapper(Tuple2<String, NetworkType> args) {
   return getBip32Root(args.item1, args.item2);
 }
 
-class BitcoinCashWallet extends CoinServiceAPI with WalletCache {
+class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
   static const integrationTestFlag =
       bool.fromEnvironment("IS_INTEGRATION_TEST");
   final _prefs = Prefs.instance;
@@ -187,7 +187,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache {
     timer?.cancel();
     timer = null;
     stopNetworkAlivePinging();
-    await isar.close();
+    await isarClose();
   }
 
   bool _hasCalledExit = false;
@@ -610,7 +610,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache {
         p2shChangeAddressArray.add(address);
       }
 
-      await _isarInit();
+      await isarInit(walletId);
 
       await isar.writeTxn(() async {
         await isar.addresses.putAll(p2pkhReceiveAddressArray);
@@ -1095,22 +1095,6 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache {
     ]);
   }
 
-  Future<void> _isarInit() async {
-    isar = await Isar.open(
-      [
-        isar_models.TransactionSchema,
-        isar_models.TransactionNoteSchema,
-        isar_models.InputSchema,
-        isar_models.OutputSchema,
-        isar_models.UTXOSchema,
-        isar_models.AddressSchema,
-      ],
-      directory: (await StackFileSystem.applicationIsarDirectory()).path,
-      inspector: false,
-      name: walletId,
-    );
-  }
-
   @override
   Future<void> initializeExisting() async {
     Logging.instance.log("Opening existing ${coin.prettyName} wallet.",
@@ -1128,7 +1112,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache {
     }
 
     await _prefs.init();
-    await _isarInit();
+    await isarInit(walletId);
   }
 
   // hack to add tx to txData before refresh completes
@@ -1231,8 +1215,6 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache {
   CachedElectrumX get cachedElectrumXClient => _cachedElectrumXClient;
 
   late SecureStorageInterface _secureStore;
-
-  late Isar isar;
 
   BitcoinCashWallet({
     required String walletId,
@@ -1408,7 +1390,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache {
       _generateAddressForChain(1, 0, DerivePathType.bip49),
     ]);
 
-    await _isarInit();
+    await isarInit(walletId);
 
     await isar.writeTxn(() async {
       await isar.addresses.putAll(initialAddresses);

@@ -26,6 +26,8 @@ import 'package:stackwallet/services/event_bus/events/global/refresh_percent_cha
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/mixins/wallet_cache.dart';
+import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
@@ -39,7 +41,6 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
@@ -745,7 +746,7 @@ Future<void> _setTestnetWrapper(bool isTestnet) async {
 }
 
 /// Handles a single instance of a firo wallet
-class FiroWallet extends CoinServiceAPI {
+class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB {
   static const integrationTestFlag =
       bool.fromEnvironment("IS_INTEGRATION_TEST");
 
@@ -1220,8 +1221,6 @@ class FiroWallet extends CoinServiceAPI {
   CachedElectrumX get cachedElectrumXClient => _cachedElectrumXClient;
 
   late SecureStorageInterface _secureStore;
-
-  late Isar isar;
 
   late TransactionNotificationTracker txTracker;
 
@@ -1837,22 +1836,6 @@ class FiroWallet extends CoinServiceAPI {
     ]);
   }
 
-  Future<void> _isarInit() async {
-    isar = await Isar.open(
-      [
-        isar_models.TransactionSchema,
-        isar_models.TransactionNoteSchema,
-        isar_models.InputSchema,
-        isar_models.OutputSchema,
-        isar_models.UTXOSchema,
-        isar_models.AddressSchema,
-      ],
-      directory: (await StackFileSystem.applicationIsarDirectory()).path,
-      inspector: false,
-      name: walletId,
-    );
-  }
-
   @override
   Future<void> initializeExisting() async {
     Logging.instance.log(
@@ -1865,7 +1848,7 @@ class FiroWallet extends CoinServiceAPI {
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
     await _prefs.init();
-    await _isarInit();
+    await isarInit(walletId);
   }
 
   Future<bool> refreshIfThereIsNewData() async {
@@ -2138,7 +2121,7 @@ class FiroWallet extends CoinServiceAPI {
     final initialReceivingAddress = await _generateAddressForChain(0, 0);
     final initialChangeAddress = await _generateAddressForChain(1, 0);
 
-    await _isarInit();
+    await isarInit(walletId);
 
     await isar.writeTxn(() async {
       await isar.addresses.putAll([
@@ -4279,7 +4262,7 @@ class FiroWallet extends CoinServiceAPI {
     Logging.instance
         .log("PROCESSORS ${Platform.numberOfProcessors}", level: LogLevel.Info);
     try {
-      await _isarInit();
+      await isarInit(walletId);
 
       final latestSetId = await getLatestSetId();
       final setDataMap = getSetDataMap(latestSetId);

@@ -23,6 +23,8 @@ import 'package:stackwallet/services/event_bus/events/global/refresh_percent_cha
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/mixins/wallet_cache.dart';
+import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
@@ -515,7 +517,7 @@ Future<dynamic> deleteSlate(
   }
 }
 
-class EpicCashWallet extends CoinServiceAPI {
+class EpicCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
   static const integrationTestFlag =
       bool.fromEnvironment("IS_INTEGRATION_TEST");
   final m = Mutex();
@@ -524,8 +526,6 @@ class EpicCashWallet extends CoinServiceAPI {
   final _prefs = Prefs.instance;
 
   NodeModel? _epicNode;
-
-  late Isar isar;
 
   EpicCashWallet(
       {required String walletId,
@@ -956,22 +956,6 @@ class EpicCashWallet extends CoinServiceAPI {
     return;
   }
 
-  Future<void> _isarInit() async {
-    isar = await Isar.open(
-      [
-        isar_models.TransactionSchema,
-        isar_models.TransactionNoteSchema,
-        isar_models.InputSchema,
-        isar_models.OutputSchema,
-        isar_models.UTXOSchema,
-        isar_models.AddressSchema,
-      ],
-      directory: (await StackFileSystem.applicationIsarDirectory()).path,
-      inspector: false,
-      name: walletId,
-    );
-  }
-
   @override
   Future<void> initializeExisting() async {
     Logging.instance.log("Opening existing ${coin.prettyName} wallet",
@@ -991,7 +975,7 @@ class EpicCashWallet extends CoinServiceAPI {
     }
     await _prefs.init();
     await updateNode(false);
-    await _isarInit();
+    await isarInit(walletId);
     await _refreshBalance();
     // TODO: is there anything else that should be set up here whenever this wallet is first loaded again?
   }
@@ -1090,7 +1074,7 @@ class EpicCashWallet extends CoinServiceAPI {
     await DB.instance
         .put<dynamic>(boxName: walletId, key: "isFavorite", value: false);
 
-    await _isarInit();
+    await isarInit(walletId);
   }
 
   bool refreshMutex = false;

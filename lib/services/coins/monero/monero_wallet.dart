@@ -34,6 +34,8 @@ import 'package:stackwallet/services/event_bus/events/global/refresh_percent_cha
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/mixins/wallet_cache.dart';
+import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
@@ -47,13 +49,11 @@ import 'package:stackwallet/utilities/stack_file_system.dart';
 
 const int MINIMUM_CONFIRMATIONS = 10;
 
-class MoneroWallet extends CoinServiceAPI {
+class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
   final String _walletId;
   final Coin _coin;
   final SecureStorageInterface _secureStorage;
   final Prefs _prefs;
-
-  late Isar isar;
 
   String _walletName;
   bool _shouldAutoSync = false;
@@ -86,22 +86,6 @@ class MoneroWallet extends CoinServiceAPI {
         _coin = coin,
         _secureStorage = secureStorage,
         _prefs = prefs ?? Prefs.instance;
-
-  Future<void> _isarInit() async {
-    isar = await Isar.open(
-      [
-        isar_models.TransactionSchema,
-        isar_models.TransactionNoteSchema,
-        isar_models.InputSchema,
-        isar_models.OutputSchema,
-        isar_models.UTXOSchema,
-        isar_models.AddressSchema,
-      ],
-      directory: (await StackFileSystem.applicationIsarDirectory()).path,
-      inspector: false,
-      name: walletId,
-    );
-  }
 
   @override
   bool get isFavorite {
@@ -222,7 +206,7 @@ class MoneroWallet extends CoinServiceAPI {
       _autoSaveTimer?.cancel();
       await walletBase?.save(prioritySave: true);
       walletBase?.close();
-      await isar.close();
+      await isarClose();
     }
   }
 
@@ -286,7 +270,7 @@ class MoneroWallet extends CoinServiceAPI {
     keysStorage = KeyService(_secureStorage);
 
     await _prefs.init();
-    await _isarInit();
+    await isarInit(walletId);
     // final data =
     //     DB.instance.get<dynamic>(boxName: walletId, key: "latest_tx_model")
     //         as TransactionData?;
@@ -421,7 +405,7 @@ class MoneroWallet extends CoinServiceAPI {
     // Generate and add addresses to relevant arrays
     final initialReceivingAddress = await _generateAddressForChain(0, 0);
     // final initialChangeAddress = await _generateAddressForChain(1, 0);
-    await _isarInit();
+    await isarInit(walletId);
 
     await isar.writeTxn(() async {
       await isar.addresses.put(initialReceivingAddress);

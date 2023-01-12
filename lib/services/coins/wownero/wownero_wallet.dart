@@ -36,6 +36,8 @@ import 'package:stackwallet/services/event_bus/events/global/refresh_percent_cha
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/mixins/wallet_cache.dart';
+import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
@@ -49,13 +51,11 @@ import 'package:stackwallet/utilities/stack_file_system.dart';
 
 const int MINIMUM_CONFIRMATIONS = 10;
 
-class WowneroWallet extends CoinServiceAPI {
+class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
   final String _walletId;
   final Coin _coin;
   final SecureStorageInterface _secureStorage;
   final Prefs _prefs;
-
-  late Isar isar;
 
   String _walletName;
   bool _shouldAutoSync = false;
@@ -88,22 +88,6 @@ class WowneroWallet extends CoinServiceAPI {
         _coin = coin,
         _secureStorage = secureStorage,
         _prefs = prefs ?? Prefs.instance;
-
-  Future<void> _isarInit() async {
-    isar = await Isar.open(
-      [
-        isar_models.TransactionSchema,
-        isar_models.TransactionNoteSchema,
-        isar_models.InputSchema,
-        isar_models.OutputSchema,
-        isar_models.UTXOSchema,
-        isar_models.AddressSchema,
-      ],
-      directory: (await StackFileSystem.applicationIsarDirectory()).path,
-      inspector: false,
-      name: walletId,
-    );
-  }
 
   @override
   bool get isFavorite {
@@ -245,7 +229,7 @@ class WowneroWallet extends CoinServiceAPI {
       _autoSaveTimer?.cancel();
       await walletBase?.save(prioritySave: true);
       walletBase?.close();
-      await isar.close();
+      await isarClose();
     }
   }
 
@@ -310,13 +294,7 @@ class WowneroWallet extends CoinServiceAPI {
     keysStorage = KeyService(_secureStorage);
 
     await _prefs.init();
-    await _isarInit();
-    // final data =
-    // DB.instance.get<dynamic>(boxName: walletId, key: "latest_tx_model")
-    // as TransactionData?;
-    // if (data != null) {
-    //   _transactionData = Future(() => data);
-    // }
+    await isarInit(walletId);
 
     String? password;
     try {
@@ -331,16 +309,6 @@ class WowneroWallet extends CoinServiceAPI {
       "Opened existing ${coin.prettyName} wallet $walletName",
       level: LogLevel.Info,
     );
-    // Wallet already exists, triggers for a returning user
-    //
-    // String indexKey = "receivingIndex";
-    // final curIndex =
-    //     await DB.instance.get<dynamic>(boxName: walletId, key: indexKey) as int;
-    // // Use new index to derive a new receiving address
-    // final newReceivingAddress = await _generateAddressForChain(0, curIndex);
-    // Logging.instance.log(
-    //     "wownero address in init existing: $newReceivingAddress",
-    //     level: LogLevel.Info);
   }
 
   @override
@@ -436,7 +404,7 @@ class WowneroWallet extends CoinServiceAPI {
     // Generate and add addresses to relevant arrays
     final initialReceivingAddress = await _generateAddressForChain(0, 0);
     // final initialChangeAddress = await _generateAddressForChain(1, 0);
-    await _isarInit();
+    await isarInit(walletId);
 
     await isar.writeTxn(() async {
       await isar.addresses.put(initialReceivingAddress);
