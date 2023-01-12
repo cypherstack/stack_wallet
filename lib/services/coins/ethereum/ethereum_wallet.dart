@@ -71,21 +71,18 @@ class AddressTransaction {
 }
 
 class GasTracker {
-  final String status;
-  final String message;
-  final List<dynamic> result;
+  final int code;
+  final String data;
 
   const GasTracker({
-    required this.status,
-    required this.message,
-    required this.result,
+    required this.code,
+    required this.data,
   });
 
   factory GasTracker.fromJson(Map<String, dynamic> json) {
     return GasTracker(
-      status: json['status'] as String,
-      message: json['message'] as String,
-      result: json['result'] as List<dynamic>,
+      code: json['code'] as int,
+      data: json['data'] as String,
     );
   }
 }
@@ -250,8 +247,10 @@ class EthereumWallet extends CoinServiceAPI {
   Future<FeeObject>? _feeObject;
 
   Future<FeeObject> _getFees() async {
-    String feesEndPoint =
-        "https://api.etherscan.io/api?module=gastracker&action=gasoracle&apikey=5JJW1UH269SV6ZPC78ZZI7H4QVV1A1TQDH";
+    GasTracker fees = await getGasOracle();
+    if (fees.code == 200) {
+      print("FEES IS ${fees.data}");
+    }
     return FeeObject(
         numberOfBlocksFast: 10,
         numberOfBlocksAverage: 10,
@@ -259,6 +258,18 @@ class EthereumWallet extends CoinServiceAPI {
         fast: 1,
         medium: 1,
         slow: 1);
+  }
+
+  Future<GasTracker> getGasOracle() async {
+    final response =
+        await get(Uri.parse("https://beaconcha.in/api/v1/execution/gasnow"));
+
+    if (response.statusCode == 200) {
+      return GasTracker.fromJson(
+          json.decode(response.body) as Map<String, dynamic>);
+    } else {
+      throw Exception('Failed to load gas oracle');
+    }
   }
 
   @override
