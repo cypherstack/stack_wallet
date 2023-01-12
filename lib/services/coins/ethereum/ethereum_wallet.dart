@@ -191,24 +191,24 @@ class EthereumWallet extends CoinServiceAPI {
   }
 
   @override
-  // TODO: implement balanceMinusMaxFee
-  Future<Decimal> get balanceMinusMaxFee => throw UnimplementedError();
+  Future<Decimal> get balanceMinusMaxFee async =>
+      (await availableBalance) -
+      (Decimal.fromInt((await maxFee)) /
+              Decimal.fromInt(Constants.satsPerCoin(coin)))
+          .toDecimal();
 
   @override
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
-    final gasPrice = await _client.getGasPrice();
     final int chainId = await _client.getNetworkId();
-
-    print("GAS PRICE IS $gasPrice");
-    print("AMOUNT TO SEND IS ${txData['fee']}");
-
     final amount = txData['recipientAmt'];
     final decimalAmount =
         Format.satoshisToAmount(amount as int, coin: Coin.ethereum);
     final bigIntAmount = amountToBigInt(decimalAmount.toDouble());
+
     final tx = Transaction.Transaction(
         to: EthereumAddress.fromHex(txData['address'] as String),
-        gasPrice: EtherAmount.fromUnitAndValue(EtherUnit.gwei, txData['fee']),
+        gasPrice:
+            EtherAmount.fromUnitAndValue(EtherUnit.wei, txData['feeInWei']),
         maxGas: _gasLimit,
         value: EtherAmount.inWei(bigIntAmount));
     final transaction =
@@ -259,9 +259,9 @@ class EthereumWallet extends CoinServiceAPI {
     GasTracker fees = await getGasOracle();
     final feesMap = fees.data;
     return FeeObject(
-        numberOfBlocksFast: 3,
+        numberOfBlocksFast: 1,
         numberOfBlocksAverage: 3,
-        numberOfBlocksSlow: 1,
+        numberOfBlocksSlow: 3,
         fast: feesMap['fast'] as int,
         medium: feesMap['standard'] as int,
         slow: feesMap['slow'] as int);
@@ -279,6 +279,7 @@ class EthereumWallet extends CoinServiceAPI {
     }
   }
 
+  //Full rescan is not needed for ETH since we have a balance
   @override
   Future<void> fullRescan(
       int maxUnusedAddressGap, int maxNumberOfIndexesToCheck) {
@@ -327,7 +328,6 @@ class EthereumWallet extends CoinServiceAPI {
     await _prefs.init();
     final String mnemonic = bip39.generateMnemonic(strength: 256);
     _credentials = EthPrivateKey.fromHex(StringToHex.toHexString(mnemonic));
-
     await _secureStore.write(key: '${_walletId}_mnemonic', value: mnemonic);
 
     //Store credentials in secure store
@@ -367,8 +367,11 @@ class EthereumWallet extends CoinServiceAPI {
   bool refreshMutex = false;
 
   @override
-  // TODO: implement maxFee
-  Future<int> get maxFee => throw UnimplementedError();
+  Future<int> get maxFee async {
+    final fee = (await fees).fast;
+    final feeEstimate = await estimateFeeFor(0, fee);
+    return feeEstimate;
+  }
 
   @override
   Future<List<String>> get mnemonic => _getMnemonicList();
@@ -407,18 +410,14 @@ class EthereumWallet extends CoinServiceAPI {
   }
 
   @override
-  // TODO: implement pendingBalance
+  // TODO: implement pendingBalance - Not needed since we don't use UTXOs to get a balance
   Future<Decimal> get pendingBalance => throw UnimplementedError();
-
-  // Future<Decimal> transactionFee(int satoshiAmount) {}
 
   @override
   Future<Map<String, dynamic>> prepareSend(
       {required String address,
       required int satoshiAmount,
       Map<String, dynamic>? args}) async {
-    print("CALLING PREPARE SEND");
-    print(args);
     final feeRateType = args?["feeRate"];
     int fee = 0;
     final feeObject = await fees;
@@ -433,13 +432,12 @@ class EthereumWallet extends CoinServiceAPI {
         fee = feeObject.slow;
         break;
     }
-    final feeEstimate = await estimateFeeFor(satoshiAmount, fee);
-    print("FEE ESTIMATE IS $feeEstimate");
 
-    final gasPrice = await _client.getGasPrice();
+    final feeEstimate = await estimateFeeFor(satoshiAmount, fee);
 
     Map<String, dynamic> txData = {
       "fee": feeEstimate,
+      "feeInWei": fee,
       "address": address,
       "recipientAmt": satoshiAmount,
     };
@@ -682,8 +680,6 @@ class EthereumWallet extends CoinServiceAPI {
         await Future.wait([
           newTxData,
           feeObj,
-
-          /// TODO - GET fee object
           allTxsToWatch,
         ]);
         GlobalEventBus.instance
@@ -769,7 +765,6 @@ class EthereumWallet extends CoinServiceAPI {
   }
 
   @override
-  // TODO: Check difference between total and available balance for eth
   Future<Decimal> get totalBalance async {
     EtherAmount ethBalance = await _client.getBalance(_credentials.address);
     return Decimal.parse(ethBalance.getValueInUnit(EtherUnit.ether).toString());
@@ -783,7 +778,7 @@ class EthereumWallet extends CoinServiceAPI {
   TransactionData? cachedTxData;
 
   @override
-  // TODO: implement unspentOutputs
+  // TODO: implement unspentOutputs - NOT NEEDED, ETH DOES NOT USE UTXOs
   Future<List<UtxoObject>> get unspentOutputs => throw UnimplementedError();
 
   @override
