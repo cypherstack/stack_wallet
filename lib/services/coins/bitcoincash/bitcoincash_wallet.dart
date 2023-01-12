@@ -1100,12 +1100,6 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
     Logging.instance.log("Opening existing ${coin.prettyName} wallet.",
         level: LogLevel.Info);
 
-    print("=============================================================");
-    for (final k in DB.instance.keys<dynamic>(boxName: walletId)) {
-      print("$k");
-    }
-    print("=============================================================");
-
     if ((DB.instance.get<dynamic>(boxName: walletId, key: DBKeys.id)) == null) {
       throw Exception(
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
