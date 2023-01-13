@@ -31,6 +31,7 @@ class UTXO {
   late int? blockTime;
 
   int getConfirmations(int currentChainHeight) {
+    if (blockTime == null || blockHash == null) return 0;
     if (blockHeight == null) return 0;
     return max(0, currentChainHeight - blockHeight!);
   }
