@@ -5,7 +5,6 @@ import 'package:bip39/bip39.dart' as bip39;
 import 'package:decimal/decimal.dart';
 import 'package:devicelocale/devicelocale.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
-import 'package:flutter/foundation.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart';
@@ -37,16 +36,11 @@ import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/services/notifications_api.dart';
-
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
-
 import 'package:stackwallet/services/node_service.dart';
-
 import 'package:stackwallet/utilities/default_nodes.dart';
 
 const int MINIMUM_CONFIRMATIONS = 5;
-const int DUST_LIMIT = 294;
-
 const String GENESIS_HASH_MAINNET =
     "0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa";
 
@@ -91,6 +85,8 @@ class GasTracker {
 class EthereumWallet extends CoinServiceAPI {
   NodeModel? _ethNode;
   final _gasLimit = 21000;
+  final _blockExplorer = "https://eth-goerli.blockscout.com/api?";
+  final _gasTrackerUrl = "https://beaconcha.in/api/v1/execution/gasnow";
 
   @override
   set isFavorite(bool markFavorite) {
@@ -120,10 +116,16 @@ class EthereumWallet extends CoinServiceAPI {
   final _prefs = Prefs.instance;
   bool longMutex = false;
 
-  final _client = Web3Client(
-      "https://goerli.infura.io/v3/22677300bf774e49a458b73313ee56ba", Client());
+  Future<NodeModel> getCurrentNode() async {
+    return NodeService(secureStorageInterface: _secureStore)
+            .getPrimaryNodeFor(coin: coin) ??
+        DefaultNodes.getNodeFor(coin);
+  }
 
-  final _blockExplorer = "https://eth-goerli.blockscout.com/api?";
+  Future<Web3Client> getEthClient() async {
+    final node = await getCurrentNode();
+    return Web3Client(node.host, Client());
+  }
 
   late EthPrivateKey _credentials;
 
@@ -186,7 +188,8 @@ class EthereumWallet extends CoinServiceAPI {
 
   @override
   Future<Decimal> get availableBalance async {
-    EtherAmount ethBalance = await _client.getBalance(_credentials.address);
+    Web3Client client = await getEthClient();
+    EtherAmount ethBalance = await client.getBalance(_credentials.address);
     return Decimal.parse(ethBalance.getValueInUnit(EtherUnit.ether).toString());
   }
 
@@ -199,7 +202,8 @@ class EthereumWallet extends CoinServiceAPI {
 
   @override
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
-    final int chainId = await _client.getNetworkId();
+    Web3Client client = await getEthClient();
+    final int chainId = await client.getNetworkId();
     final amount = txData['recipientAmt'];
     final decimalAmount =
         Format.satoshisToAmount(amount as int, coin: Coin.ethereum);
@@ -212,7 +216,7 @@ class EthereumWallet extends CoinServiceAPI {
         maxGas: _gasLimit,
         value: EtherAmount.inWei(bigIntAmount));
     final transaction =
-        await _client.sendTransaction(_credentials, tx, chainId: chainId);
+        await client.sendTransaction(_credentials, tx, chainId: chainId);
 
     return transaction;
   }
@@ -268,8 +272,7 @@ class EthereumWallet extends CoinServiceAPI {
   }
 
   Future<GasTracker> getGasOracle() async {
-    final response =
-        await get(Uri.parse("https://beaconcha.in/api/v1/execution/gasnow"));
+    final response = await get(Uri.parse(_gasTrackerUrl));
 
     if (response.statusCode == 200) {
       return GasTracker.fromJson(
@@ -377,8 +380,9 @@ class EthereumWallet extends CoinServiceAPI {
   Future<List<String>> get mnemonic => _getMnemonicList();
 
   Future<int> get chainHeight async {
+    Web3Client client = await getEthClient();
     try {
-      final result = await _client.getBlockNumber();
+      final result = await client.getBlockNumber();
 
       return result;
     } catch (e, s) {
@@ -499,6 +503,7 @@ class EthereumWallet extends CoinServiceAPI {
   }
 
   Future<bool> refreshIfThereIsNewData() async {
+    Web3Client client = await getEthClient();
     if (longMutex) return false;
     if (_hasCalledExit) return false;
     final currentChainHeight = await chainHeight;
@@ -514,7 +519,7 @@ class EthereumWallet extends CoinServiceAPI {
       }
 
       for (String txid in txnsToCheck) {
-        final txn = await _client.getTransactionByHash(txid);
+        final txn = await client.getTransactionByHash(txid);
         final int txBlockNumber = txn.blockNumber.blockNum;
 
         final int txConfirmations = currentChainHeight - txBlockNumber;
@@ -524,22 +529,23 @@ class EthereumWallet extends CoinServiceAPI {
           break;
         }
       }
-      // if (!needsRefresh) {
-      //   var allOwnAddresses = await _fetchAllOwnAddresses();
-      //   List<Map<String, dynamic>> allTxs =
-      //       await _fetchHistory(allOwnAddresses);
-      //   final txData = await transactionData;
-      //   for (Map<String, dynamic> transaction in allTxs) {
-      //     if (txData.findTransaction(transaction['tx_hash'] as String) ==
-      //         null) {
-      //       Logging.instance.log(
-      //           " txid not found in address history already ${transaction['tx_hash']}",
-      //           level: LogLevel.Info);
-      //       needsRefresh = true;
-      //       break;
-      //     }
-      //   }
-      // }
+      if (!needsRefresh) {
+        var allOwnAddresses = await _fetchAllOwnAddresses();
+        AddressTransaction addressTransactions =
+            await fetchAddressTransactions(allOwnAddresses.elementAt(0));
+        final txData = await transactionData;
+        if (addressTransactions.message == "OK") {
+          final allTxs = addressTransactions.result;
+          allTxs.forEach((element) {
+            if (txData.findTransaction(element["hash"] as String) == null) {
+              Logging.instance.log(
+                  " txid not found in address history already ${element["hash"]}",
+                  level: LogLevel.Info);
+              needsRefresh = true;
+            }
+          });
+        }
+      }
       return needsRefresh;
     } catch (e, s) {
       Logging.instance.log(
@@ -644,8 +650,6 @@ class EthereumWallet extends CoinServiceAPI {
       refreshMutex = true;
     }
 
-    // final blockNumber = await _client.getBlockNumber();
-
     try {
       GlobalEventBus.instance.fire(
         WalletSyncStatusChangedEvent(
@@ -709,22 +713,19 @@ class EthereumWallet extends CoinServiceAPI {
         ),
       );
 
-      // if (shouldAutoSync) {
-      //   timer ??= Timer.periodic(const Duration(seconds: 30), (timer) async {
-      //     Logging.instance.log(
-      //         "Periodic refresh check for $walletId $walletName in object instance: $hashCode",
-      //         level: LogLevel.Info);
-      //     // chain height check currently broken
-      //     // if ((await chainHeight) != (await storedChainHeight)) {
-      //     if (await refreshIfThereIsNewData()) {
-      //       await refresh();
-      //       GlobalEventBus.instance.fire(UpdatedInBackgroundEvent(
-      //           "New data found in $walletId $walletName in background!",
-      //           walletId));
-      //     }
-      //     // }
-      //   });
-      // }
+      if (shouldAutoSync) {
+        timer ??= Timer.periodic(const Duration(seconds: 30), (timer) async {
+          Logging.instance.log(
+              "Periodic refresh check for $walletId $walletName in object instance: $hashCode",
+              level: LogLevel.Info);
+          if (await refreshIfThereIsNewData()) {
+            await refresh();
+            GlobalEventBus.instance.fire(UpdatedInBackgroundEvent(
+                "New data found in $walletId $walletName in background!",
+                walletId));
+          }
+        });
+      }
     } catch (error, strace) {
       refreshMutex = false;
       GlobalEventBus.instance.fire(
@@ -758,8 +759,9 @@ class EthereumWallet extends CoinServiceAPI {
 
   @override
   Future<bool> testNetworkConnection() async {
+    Web3Client client = await getEthClient();
     try {
-      final result = await _client.isListeningForNetwork();
+      final result = await client.isListeningForNetwork();
       return result;
     } catch (_) {
       return false;
@@ -780,7 +782,8 @@ class EthereumWallet extends CoinServiceAPI {
 
   @override
   Future<Decimal> get totalBalance async {
-    EtherAmount ethBalance = await _client.getBalance(_credentials.address);
+    Web3Client client = await getEthClient();
+    EtherAmount ethBalance = await client.getBalance(_credentials.address);
     return Decimal.parse(ethBalance.getValueInUnit(EtherUnit.ether).toString());
   }
 
@@ -887,7 +890,6 @@ class EthereumWallet extends CoinServiceAPI {
       final allTxs = txs.result;
       allTxs.forEach((element) {
         Map<String, dynamic> midSortedTx = {};
-
         // create final tx map
         midSortedTx["txid"] = element["hash"];
         int confirmations = int.parse(element['confirmations'].toString());
