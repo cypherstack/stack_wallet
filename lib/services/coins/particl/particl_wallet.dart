@@ -430,7 +430,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
           // reset counter
           gapCounter = 0;
           // add info to derivations
-          derivations[node["address"] as String] = {
+          derivations[address.value] = {
             "pubKey": Format.uint8listToString(
                 (node["node"] as bip32.BIP32).publicKey),
             "wif": (node["node"] as bip32.BIP32).toWIF(),
