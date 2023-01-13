@@ -166,6 +166,7 @@ const _AddresssubTypeEnumValueMap = {
   'paynymNotification': 2,
   'paynymSend': 3,
   'paynymReceive': 4,
+  'nonWallet': 5,
 };
 const _AddresssubTypeValueEnumMap = {
   0: AddressSubType.receiving,
@@ -173,18 +174,21 @@ const _AddresssubTypeValueEnumMap = {
   2: AddressSubType.paynymNotification,
   3: AddressSubType.paynymSend,
   4: AddressSubType.paynymReceive,
+  5: AddressSubType.nonWallet,
 };
 const _AddresstypeEnumValueMap = {
   'p2pkh': 0,
   'p2sh': 1,
   'p2wpkh': 2,
   'cryptonote': 3,
+  'nonWallet': 4,
 };
 const _AddresstypeValueEnumMap = {
   0: AddressType.p2pkh,
   1: AddressType.p2sh,
   2: AddressType.p2wpkh,
   3: AddressType.cryptonote,
+  4: AddressType.nonWallet,
 };
 
 Id _addressGetId(Address object) {

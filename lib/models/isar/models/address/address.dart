@@ -53,6 +53,7 @@ enum AddressType {
   p2sh,
   p2wpkh,
   cryptonote,
+  nonWallet,
 }
 
 enum AddressSubType {
@@ -61,4 +62,5 @@ enum AddressSubType {
   paynymNotification,
   paynymSend,
   paynymReceive,
+  nonWallet,
 }
