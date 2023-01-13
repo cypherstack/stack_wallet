@@ -127,13 +127,6 @@ const TransactionSchema = CollectionSchema(
       name: r'outputs',
       target: r'Output',
       single: false,
-    ),
-    r'note': LinkSchema(
-      id: -7669541085246698630,
-      name: r'note',
-      target: r'TransactionNote',
-      single: true,
-      linkName: r'transaction',
     )
   },
   embeddedSchemas: {},
@@ -276,7 +269,7 @@ Id _transactionGetId(Transaction object) {
 }
 
 List<IsarLinkBase<dynamic>> _transactionGetLinks(Transaction object) {
-  return [object.address, object.inputs, object.outputs, object.note];
+  return [object.address, object.inputs, object.outputs];
 }
 
 void _transactionAttach(
@@ -285,7 +278,6 @@ void _transactionAttach(
   object.address.attach(col, col.isar.collection<Address>(), r'address', id);
   object.inputs.attach(col, col.isar.collection<Input>(), r'inputs', id);
   object.outputs.attach(col, col.isar.collection<Output>(), r'outputs', id);
-  object.note.attach(col, col.isar.collection<TransactionNote>(), r'note', id);
 }
 
 extension TransactionByIndex on IsarCollection<Transaction> {
@@ -1575,19 +1567,6 @@ extension TransactionQueryLinks
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(
           r'outputs', lower, includeLower, upper, includeUpper);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> note(
-      FilterQuery<TransactionNote> q) {
-    return QueryBuilder.apply(this, (query) {
-      return query.link(q, r'note');
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> noteIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'note', 0, true, 0, true);
     });
   }
 }

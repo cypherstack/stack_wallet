@@ -17,8 +17,13 @@ const TransactionNoteSchema = CollectionSchema(
   name: r'TransactionNote',
   id: 5128348263878806765,
   properties: {
-    r'value': PropertySchema(
+    r'txid': PropertySchema(
       id: 0,
+      name: r'txid',
+      type: IsarType.string,
+    ),
+    r'value': PropertySchema(
+      id: 1,
       name: r'value',
       type: IsarType.string,
     )
@@ -28,15 +33,22 @@ const TransactionNoteSchema = CollectionSchema(
   deserialize: _transactionNoteDeserialize,
   deserializeProp: _transactionNoteDeserializeProp,
   idName: r'id',
-  indexes: {},
-  links: {
-    r'transaction': LinkSchema(
-      id: -2827073548125040615,
-      name: r'transaction',
-      target: r'Transaction',
-      single: true,
+  indexes: {
+    r'txid': IndexSchema(
+      id: 7339874292043634331,
+      name: r'txid',
+      unique: true,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'txid',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
     )
   },
+  links: {},
   embeddedSchemas: {},
   getId: _transactionNoteGetId,
   getLinks: _transactionNoteGetLinks,
@@ -50,6 +62,7 @@ int _transactionNoteEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.txid.length * 3;
   bytesCount += 3 + object.value.length * 3;
   return bytesCount;
 }
@@ -60,7 +73,8 @@ void _transactionNoteSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.value);
+  writer.writeString(offsets[0], object.txid);
+  writer.writeString(offsets[1], object.value);
 }
 
 TransactionNote _transactionNoteDeserialize(
@@ -71,7 +85,8 @@ TransactionNote _transactionNoteDeserialize(
 ) {
   final object = TransactionNote();
   object.id = id;
-  object.value = reader.readString(offsets[0]);
+  object.txid = reader.readString(offsets[0]);
+  object.value = reader.readString(offsets[1]);
   return object;
 }
 
@@ -84,6 +99,8 @@ P _transactionNoteDeserializeProp<P>(
   switch (propertyId) {
     case 0:
       return (reader.readString(offset)) as P;
+    case 1:
+      return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -94,14 +111,67 @@ Id _transactionNoteGetId(TransactionNote object) {
 }
 
 List<IsarLinkBase<dynamic>> _transactionNoteGetLinks(TransactionNote object) {
-  return [object.transaction];
+  return [];
 }
 
 void _transactionNoteAttach(
     IsarCollection<dynamic> col, Id id, TransactionNote object) {
   object.id = id;
-  object.transaction
-      .attach(col, col.isar.collection<Transaction>(), r'transaction', id);
+}
+
+extension TransactionNoteByIndex on IsarCollection<TransactionNote> {
+  Future<TransactionNote?> getByTxid(String txid) {
+    return getByIndex(r'txid', [txid]);
+  }
+
+  TransactionNote? getByTxidSync(String txid) {
+    return getByIndexSync(r'txid', [txid]);
+  }
+
+  Future<bool> deleteByTxid(String txid) {
+    return deleteByIndex(r'txid', [txid]);
+  }
+
+  bool deleteByTxidSync(String txid) {
+    return deleteByIndexSync(r'txid', [txid]);
+  }
+
+  Future<List<TransactionNote?>> getAllByTxid(List<String> txidValues) {
+    final values = txidValues.map((e) => [e]).toList();
+    return getAllByIndex(r'txid', values);
+  }
+
+  List<TransactionNote?> getAllByTxidSync(List<String> txidValues) {
+    final values = txidValues.map((e) => [e]).toList();
+    return getAllByIndexSync(r'txid', values);
+  }
+
+  Future<int> deleteAllByTxid(List<String> txidValues) {
+    final values = txidValues.map((e) => [e]).toList();
+    return deleteAllByIndex(r'txid', values);
+  }
+
+  int deleteAllByTxidSync(List<String> txidValues) {
+    final values = txidValues.map((e) => [e]).toList();
+    return deleteAllByIndexSync(r'txid', values);
+  }
+
+  Future<Id> putByTxid(TransactionNote object) {
+    return putByIndex(r'txid', object);
+  }
+
+  Id putByTxidSync(TransactionNote object, {bool saveLinks = true}) {
+    return putByIndexSync(r'txid', object, saveLinks: saveLinks);
+  }
+
+  Future<List<Id>> putAllByTxid(List<TransactionNote> objects) {
+    return putAllByIndex(r'txid', objects);
+  }
+
+  List<Id> putAllByTxidSync(List<TransactionNote> objects,
+      {bool saveLinks = true}) {
+    return putAllByIndexSync(r'txid', objects, saveLinks: saveLinks);
+  }
 }
 
 extension TransactionNoteQueryWhereSort
@@ -182,6 +252,51 @@ extension TransactionNoteQueryWhere
       ));
     });
   }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterWhereClause> txidEqualTo(
+      String txid) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'txid',
+        value: [txid],
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterWhereClause>
+      txidNotEqualTo(String txid) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid',
+              lower: [],
+              upper: [txid],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid',
+              lower: [txid],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid',
+              lower: [txid],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid',
+              lower: [],
+              upper: [txid],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
 }
 
 extension TransactionNoteQueryFilter
@@ -238,6 +353,142 @@ extension TransactionNoteQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterFilterCondition>
+      txidEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'txid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterFilterCondition>
+      txidGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'txid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterFilterCondition>
+      txidLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'txid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterFilterCondition>
+      txidBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'txid',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterFilterCondition>
+      txidStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'txid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterFilterCondition>
+      txidEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'txid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterFilterCondition>
+      txidContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'txid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterFilterCondition>
+      txidMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'txid',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterFilterCondition>
+      txidIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'txid',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterFilterCondition>
+      txidIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'txid',
+        value: '',
       ));
     });
   }
@@ -383,24 +634,23 @@ extension TransactionNoteQueryObject
     on QueryBuilder<TransactionNote, TransactionNote, QFilterCondition> {}
 
 extension TransactionNoteQueryLinks
-    on QueryBuilder<TransactionNote, TransactionNote, QFilterCondition> {
-  QueryBuilder<TransactionNote, TransactionNote, QAfterFilterCondition>
-      transaction(FilterQuery<Transaction> q) {
-    return QueryBuilder.apply(this, (query) {
-      return query.link(q, r'transaction');
-    });
-  }
-
-  QueryBuilder<TransactionNote, TransactionNote, QAfterFilterCondition>
-      transactionIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'transaction', 0, true, 0, true);
-    });
-  }
-}
+    on QueryBuilder<TransactionNote, TransactionNote, QFilterCondition> {}
 
 extension TransactionNoteQuerySortBy
     on QueryBuilder<TransactionNote, TransactionNote, QSortBy> {
+  QueryBuilder<TransactionNote, TransactionNote, QAfterSortBy> sortByTxid() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'txid', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterSortBy>
+      sortByTxidDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'txid', Sort.desc);
+    });
+  }
+
   QueryBuilder<TransactionNote, TransactionNote, QAfterSortBy> sortByValue() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'value', Sort.asc);
@@ -429,6 +679,19 @@ extension TransactionNoteQuerySortThenBy
     });
   }
 
+  QueryBuilder<TransactionNote, TransactionNote, QAfterSortBy> thenByTxid() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'txid', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterSortBy>
+      thenByTxidDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'txid', Sort.desc);
+    });
+  }
+
   QueryBuilder<TransactionNote, TransactionNote, QAfterSortBy> thenByValue() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'value', Sort.asc);
@@ -445,6 +708,13 @@ extension TransactionNoteQuerySortThenBy
 
 extension TransactionNoteQueryWhereDistinct
     on QueryBuilder<TransactionNote, TransactionNote, QDistinct> {
+  QueryBuilder<TransactionNote, TransactionNote, QDistinct> distinctByTxid(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'txid', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<TransactionNote, TransactionNote, QDistinct> distinctByValue(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -458,6 +728,12 @@ extension TransactionNoteQueryProperty
   QueryBuilder<TransactionNote, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<TransactionNote, String, QQueryOperations> txidProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'txid');
     });
   }
 
