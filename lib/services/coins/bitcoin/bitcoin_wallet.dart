@@ -892,8 +892,8 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       Logging.instance
           .log("chain height: $currentHeight", level: LogLevel.Info);
-      Logging.instance
-          .log("cached height: $storedHeight", level: LogLevel.Info);
+      // Logging.instance
+      //     .log("cached height: $storedHeight", level: LogLevel.Info);
 
       if (currentHeight != storedHeight) {
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.2, walletId));
