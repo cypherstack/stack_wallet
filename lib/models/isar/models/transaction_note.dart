@@ -7,7 +7,8 @@ part 'transaction_note.g.dart';
 class TransactionNote {
   Id id = Isar.autoIncrement;
 
-  late String value;
+  @Index(unique: true)
+  late String txid;
 
-  final transaction = IsarLink<Transaction>();
+  late String value;
 }

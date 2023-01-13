@@ -2085,14 +2085,6 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       for (final data in txnsData) {
         final tx = data.item1;
 
-        final prevTx =
-            await isar.transactions.where().txidEqualTo(tx.txid).findFirst();
-
-        if (prevTx != null) {
-          tx.note.value = prevTx.note.value;
-          await isar.transactions.delete(prevTx.id);
-        }
-
         // save transaction
         await isar.transactions.put(tx);
 
@@ -2111,7 +2103,6 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
         }
 
         await tx.address.save();
-        await tx.note.save();
       }
     });
   }
