@@ -17,7 +17,7 @@ import 'package:stackwallet/models/isar/models/isar_models.dart' as _i19;
 import 'package:stackwallet/models/paymint/fee_object_model.dart' as _i8;
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart' as _i18;
 import 'package:stackwallet/services/coins/manager.dart' as _i6;
-import 'package:stackwallet/services/locale_service.dart' as _i20;
+import 'package:stackwallet/services/locale_service.dart' as _i21;
 import 'package:stackwallet/services/node_service.dart' as _i3;
 import 'package:stackwallet/services/transaction_notification_tracker.dart'
     as _i7;
@@ -25,6 +25,7 @@ import 'package:stackwallet/services/wallets.dart' as _i13;
 import 'package:stackwallet/services/wallets_service.dart' as _i2;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i14;
 import 'package:stackwallet/utilities/prefs.dart' as _i16;
+import 'package:tuple/tuple.dart' as _i20;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -1118,12 +1119,26 @@ class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
         ),
         returnValue: _i15.Future<bool>.value(false),
       ) as _i15.Future<bool>);
+  @override
+  _i15.Future<void> addNewTransactionData(
+          List<
+                  _i20.Tuple4<_i19.Transaction, List<_i19.Output>,
+                      List<_i19.Input>, _i19.Address?>>?
+              transactionsData) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #addNewTransactionData,
+          [transactionsData],
+        ),
+        returnValue: _i15.Future<void>.value(),
+        returnValueForMissingStub: _i15.Future<void>.value(),
+      ) as _i15.Future<void>);
 }
 
 /// A class which mocks [LocaleService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockLocaleService extends _i1.Mock implements _i20.LocaleService {
+class MockLocaleService extends _i1.Mock implements _i21.LocaleService {
   MockLocaleService() {
     _i1.throwOnMissingStub(this);
   }
