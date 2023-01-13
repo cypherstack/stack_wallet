@@ -32,8 +32,8 @@ class UTXO {
 
   int getConfirmations(int currentChainHeight) {
     if (blockTime == null || blockHash == null) return 0;
-    if (blockHeight == null) return 0;
-    return max(0, currentChainHeight - blockHeight!);
+    if (blockHeight == null || blockHeight! <= 0) return 0;
+    return max(0, currentChainHeight - (blockHeight! - 1));
   }
 
   bool isConfirmed(int currentChainHeight, int minimumConfirms) {
