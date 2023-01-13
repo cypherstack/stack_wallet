@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:typed_data';
 
 import 'package:bip47/bip47.dart';
@@ -562,15 +561,14 @@ extension PayNym on DogecoinWallet {
   }
 }
 
-Future<Tuple3<Transaction, List<Output>, List<Input>>> parseTransaction(
+Future<Tuple4<Transaction, List<Output>, List<Input>, Address>>
+    parseTransaction(
   Map<String, dynamic> txData,
   dynamic electrumxClient,
   List<Address> myAddresses,
   Coin coin,
   int minConfirms,
 ) async {
-  final transactionAddress = txData["address"] as Address;
-
   Set<String> receivingAddresses = myAddresses
       .where((e) => e.subType == AddressSubType.receiving)
       .map((e) => e.value)
@@ -672,19 +670,32 @@ Future<Tuple3<Transaction, List<Output>, List<Input>>> parseTransaction(
   tx.timestamp = txData["blocktime"] as int? ??
       (DateTime.now().millisecondsSinceEpoch ~/ 1000);
 
-  // this should be the address we used to originally fetch the tx so we should
-  // be able to easily figure out if the tx is a send or receive
-  tx.address.value = transactionAddress;
+  // this is the address initially used to fetch the txid
+  Address transactionAddress = txData["address"] as Address;
 
   if (mySentFromAddresses.isNotEmpty && myReceivedOnAddresses.isNotEmpty) {
     // tx is sent to self
     tx.type = TransactionType.sentToSelf;
+
+    // should be 0
     tx.amount =
         amountSentFromWallet - amountReceivedInWallet - fee - changeAmount;
   } else if (mySentFromAddresses.isNotEmpty) {
     // outgoing tx
     tx.type = TransactionType.outgoing;
     tx.amount = amountSentFromWallet - changeAmount - fee;
+
+    final possible =
+        outputAddresses.difference(myChangeReceivedOnAddresses).first;
+
+    if (transactionAddress.value != possible) {
+      transactionAddress = Address()
+        ..value = possible
+        ..derivationIndex = -1
+        ..subType = AddressSubType.nonWallet
+        ..type = AddressType.nonWallet
+        ..publicKey = [];
+    }
   } else {
     // incoming tx
     tx.type = TransactionType.incoming;
@@ -695,11 +706,6 @@ Future<Tuple3<Transaction, List<Output>, List<Input>>> parseTransaction(
   tx.subType = TransactionSubType.none;
 
   tx.fee = fee;
-
-  log("transactionAddress: $transactionAddress");
-  log("mySentFromAddresses: $mySentFromAddresses");
-  log("myReceivedOnAddresses: $myReceivedOnAddresses");
-  log("myChangeReceivedOnAddresses: $myChangeReceivedOnAddresses");
 
   List<Output> outs = [];
   List<Input> ins = [];
@@ -740,5 +746,5 @@ Future<Tuple3<Transaction, List<Output>, List<Input>>> parseTransaction(
   tx.otherData = null;
   tx.isLelantus = null;
 
-  return Tuple3(tx, outs, ins);
+  return Tuple4(tx, outs, ins, transactionAddress);
 }
