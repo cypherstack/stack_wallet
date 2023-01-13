@@ -56,16 +56,18 @@ mixin WalletDB {
         }
 
         if (data.item4 != null) {
+          final address = await isar.addresses
+              .where()
+              .valueEqualTo(data.item4!.value)
+              .findFirst();
+
           // check if address exists in db and add if it does not
-          if (await isar.addresses
-                  .where()
-                  .valueEqualTo(data.item4!.value)
-                  .findFirst() ==
-              null) {
+          if (address == null) {
             await isar.addresses.put(data.item4!);
           }
+
           // link and save address
-          tx.address.value = data.item4;
+          tx.address.value = address ?? data.item4!;
           await tx.address.save();
         }
       }
