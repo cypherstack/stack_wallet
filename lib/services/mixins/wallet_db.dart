@@ -22,7 +22,7 @@ mixin WalletDB {
         AddressSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
-      inspector: false,
+      inspector: true,
       name: walletId,
     );
     return true;

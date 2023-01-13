@@ -425,7 +425,7 @@ Future<Map<dynamic, dynamic>> staticProcessRestore(
           ..fee = sharedFee
           ..inputs.addAll(element.inputs)
           ..outputs.addAll(element.outputs)
-          ..address = element.address
+          ..address.value = element.address.value
           ..height = element.height
           ..subType = isar_models.TransactionSubType.mint
           ..otherData = txid
@@ -2955,7 +2955,10 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
               Decimal.parse(transactionInfo["amount"].toString()), coin)
           ..fee = Format.decimalAmountToSatoshis(
               Decimal.parse(transactionInfo["fees"].toString()), coin)
-          ..address = transactionInfo["address"] as String
+          ..address.value = await isar.addresses
+              .filter()
+              .valueEqualTo(transactionInfo["address"] as String)
+              .findFirst()
           ..height = transactionInfo["height"] as int?
           ..subType = transactionInfo["subType"] == "mint"
               ? isar_models.TransactionSubType.mint
@@ -4731,7 +4734,10 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
             ..subType = isar_models.TransactionSubType.join
             ..fee = Format.decimalAmountToSatoshis(
                 Decimal.parse(tx["fees"].toString()), coin)
-            ..address = tx["address"] as String
+            ..address.value = await isar.addresses
+                .filter()
+                .valueEqualTo(tx["address"] as String)
+                .findFirst()
             ..amount = Format.decimalAmountToSatoshis(
                 Decimal.parse(tx["amount"].toString()), coin)
             ..isCancelled = false

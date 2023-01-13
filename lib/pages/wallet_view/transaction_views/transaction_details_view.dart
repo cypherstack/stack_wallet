@@ -610,13 +610,15 @@ class _TransactionDetailsViewState
                                                   TransactionType.incoming
                                               ? FutureBuilder(
                                                   future: fetchContactNameFor(
-                                                      _transaction.address),
+                                                      _transaction.address
+                                                          .value!.value),
                                                   builder: (builderContext,
                                                       AsyncSnapshot<String>
                                                           snapshot) {
                                                     String
                                                         addressOrContactName =
-                                                        _transaction.address;
+                                                        _transaction.address
+                                                            .value!.value;
                                                     if (snapshot.connectionState ==
                                                             ConnectionState
                                                                 .done &&
@@ -644,7 +646,8 @@ class _TransactionDetailsViewState
                                                   },
                                                 )
                                               : SelectableText(
-                                                  _transaction.address,
+                                                  _transaction
+                                                      .address.value!.value,
                                                   style: isDesktop
                                                       ? STextStyles
                                                               .desktopTextExtraExtraSmall(
@@ -665,7 +668,7 @@ class _TransactionDetailsViewState
                                     ),
                                     if (isDesktop)
                                       IconCopyButton(
-                                        data: _transaction.address,
+                                        data: _transaction.address.value!.value,
                                       ),
                                   ],
                                 ),

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:typed_data';
 
 import 'package:bip47/bip47.dart';
@@ -669,6 +670,10 @@ Future<Transaction> parseTransaction(
   tx.timestamp = txData["blocktime"] as int? ??
       (DateTime.now().millisecondsSinceEpoch ~/ 1000);
 
+  // this should be the address we used to originally fetch the tx so we should
+  // be able to easily figure out if the tx is a send or receive
+  tx.address.value = txData["address"] as Address;
+
   if (mySentFromAddresses.isNotEmpty && myReceivedOnAddresses.isNotEmpty) {
     // tx is sent to self
     tx.type = TransactionType.sentToSelf;
@@ -688,7 +693,11 @@ Future<Transaction> parseTransaction(
   tx.subType = TransactionSubType.none;
 
   tx.fee = fee;
-  tx.address = txData["address"] as String;
+
+  log("tx.address: ${tx.address}");
+  log("mySentFromAddresses: $mySentFromAddresses");
+  log("myReceivedOnAddresses: $myReceivedOnAddresses");
+  log("myChangeReceivedOnAddresses: $myChangeReceivedOnAddresses");
 
   for (final json in txData["vin"] as List) {
     bool isCoinBase = json['coinbase'] != null;

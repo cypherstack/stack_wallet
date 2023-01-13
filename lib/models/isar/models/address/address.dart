@@ -1,5 +1,6 @@
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/address/crypto_currency_address.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
 
 part 'address.g.dart';
@@ -12,7 +13,7 @@ class AddressException extends SWException {
 class Address extends CryptoCurrencyAddress {
   Id id = Isar.autoIncrement;
 
-  @Index(unique: true, replace: true)
+  @Index(unique: true)
   late String value;
 
   late List<byte> publicKey;
@@ -25,6 +26,8 @@ class Address extends CryptoCurrencyAddress {
 
   @enumerated
   late AddressSubType subType;
+
+  final transaction = IsarLink<Transaction>();
 
   int derivationChain() {
     if (subType == AddressSubType.receiving) {

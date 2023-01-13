@@ -868,15 +868,21 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         if (tx.value.direction == TransactionDirection.incoming) {
           final addressInfo = tx.value.additionalInfo;
 
-          txn.address = walletBase?.getTransactionAddress(
-                addressInfo!['accountIndex'] as int,
-                addressInfo['addressIndex'] as int,
-              ) ??
-              "";
+          final addressString = walletBase?.getTransactionAddress(
+            addressInfo!['accountIndex'] as int,
+            addressInfo['addressIndex'] as int,
+          );
+
+          if (addressString != null) {
+            txn.address.value = await isar.addresses
+                .filter()
+                .valueEqualTo(addressString)
+                .findFirst();
+          }
 
           txn.type = isar_models.TransactionType.incoming;
         } else {
-          txn.address = "";
+          // txn.address = "";
           txn.type = isar_models.TransactionType.outgoing;
         }
 

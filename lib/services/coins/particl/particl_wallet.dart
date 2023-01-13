@@ -2015,7 +2015,10 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
       // Logging.instance.log("TRANSACTION: ${jsonEncode(tx)}");
       // TODO fix this for sent to self transactions?
       if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
-        tx["address"] = txHash["address"];
+        tx["address"] = await isar.addresses
+            .filter()
+            .valueEqualTo(txHash["address"] as String)
+            .findFirst();
         tx["height"] = txHash["height"];
         allTransactions.add(tx);
       }
@@ -2150,7 +2153,10 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
                 inputAmtSentFromWallet -= _value;
               } else {
                 // change address from 'sent from' to the 'sent to' address
-                txObject["address"] = address;
+                txObject["address"] = await isar.addresses
+                    .filter()
+                    .valueEqualTo(address)
+                    .findFirst();
               }
             } catch (s) {
               Logging.instance.log(s.toString(), level: LogLevel.Warning);
@@ -2263,7 +2269,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
       tx.subType = isar_models.TransactionSubType.none;
 
       tx.fee = fee;
-      tx.address = midSortedTx["address"] as String;
+      tx.address.value = midSortedTx["address"] as isar_models.Address?;
 
       for (final json in midSortedTx["vin"] as List) {
         bool isCoinBase = json['coinbase'] != null;

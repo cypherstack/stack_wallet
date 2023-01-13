@@ -2041,9 +2041,10 @@ class EpicCashWallet extends CoinServiceAPI
       txn.timestamp = (dt.millisecondsSinceEpoch ~/ 1000);
       txn.amount = amt;
       txn.fee = (tx["fee"] == null) ? 0 : int.parse(tx["fee"] as String);
-      txn.address =
-          ""; // for this when you send a transaction you will just need to save in a hashmap in hive with the key being the txid, and the value being the address it was sent to. then you can look this value up right here in your hashmap.
-      txn.address = address;
+      // txn.address =
+      //     ""; // for this when you send a transaction you will just need to save in a hashmap in hive with the key being the txid, and the value being the address it was sent to. then you can look this value up right here in your hashmap.
+      txn.address.value =
+          await isar.addresses.filter().valueEqualTo(address).findFirst();
       txn.height = txHeight;
 
       //

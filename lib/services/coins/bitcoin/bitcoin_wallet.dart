@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:bech32/bech32.dart';
@@ -2011,78 +2012,39 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     final List<isar_models.Address> allAddresses =
         await _fetchAllOwnAddresses();
 
-    // final changeAddresses = DB.instance.get<dynamic>(
-    //     boxName: walletId, key: 'changeAddressesP2WPKH') as List<dynamic>;
-    // final changeAddressesP2PKH =
-    //     DB.instance.get<dynamic>(boxName: walletId, key: 'changeAddressesP2PKH')
-    //         as List<dynamic>;
-    // final changeAddressesP2SH =
-    //     DB.instance.get<dynamic>(boxName: walletId, key: 'changeAddressesP2SH')
-    //         as List<dynamic>;
-    //
-    // for (var i = 0; i < changeAddressesP2PKH.length; i++) {
-    //   changeAddresses.add(changeAddressesP2PKH[i] as String);
-    // }
-    // for (var i = 0; i < changeAddressesP2SH.length; i++) {
-    //   changeAddresses.add(changeAddressesP2SH[i] as String);
-    // }
+    final receivingAddresses = allAddresses
+        .where((e) => e.subType == isar_models.AddressSubType.receiving);
+    final changeAddresses = allAddresses
+        .where((e) => e.subType == isar_models.AddressSubType.change);
 
-    final List<Map<String, dynamic>> allTxHashes =
-        await _fetchHistory(allAddresses.map((e) => e.value).toList());
+    final List<Map<String, dynamic>> allReceivingTxHashes =
+        await _fetchHistory(receivingAddresses.map((e) => e.value).toList());
 
-    // final cachedTransactions =
-    //     DB.instance.get<dynamic>(boxName: walletId, key: 'latest_tx_model')
-    //         as TransactionData?;
-    // int latestTxnBlockHeight =
-    //     DB.instance.get<dynamic>(boxName: walletId, key: "storedTxnDataHeight")
-    //             as int? ??
-    //         0;
-
-    // final unconfirmedCachedTransactions =
-    //     cachedTransactions?.getAllTransactions() ?? {};
-    // unconfirmedCachedTransactions
-    //     .removeWhere((key, value) => value.confirmedStatus);
-    //
-    // if (cachedTransactions != null) {
-    //   for (final tx in allTxHashes.toList(growable: false)) {
-    //     final txHeight = tx["height"] as int;
-    //     if (txHeight > 0 &&
-    //         txHeight < latestTxnBlockHeight - MINIMUM_CONFIRMATIONS) {
-    //       if (unconfirmedCachedTransactions[tx["tx_hash"] as String] == null) {
-    //         allTxHashes.remove(tx);
-    //       }
-    //     }
-    //   }
-    // }
-    //
+    // // prefetch/cache
     // Set<String> hashes = {};
-    // for (var element in allTxHashes) {
+    // for (var element in allReceivingTxHashes) {
     //   hashes.add(element['tx_hash'] as String);
     // }
-    List<String> hashes =
-        allTxHashes.map((e) => e['tx_hash'] as String).toList(growable: false);
-    await fastFetch(hashes.toList());
+    // await fastFetch(hashes.toList());
+
     List<Map<String, dynamic>> allTransactions = [];
 
-    for (final txHash in allTxHashes) {
+    for (final txHash in allReceivingTxHashes) {
       final tx = await cachedElectrumXClient.getTransaction(
         txHash: txHash["tx_hash"] as String,
         verbose: true,
         coin: coin,
       );
 
-      if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
-        tx["address"] = txHash["address"];
-        tx["height"] = txHash["height"];
-        allTransactions.add(tx);
-      }
+      // if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
+      tx["address"] = await isar.addresses
+          .filter()
+          .valueEqualTo(txHash["address"] as String)
+          .findFirst();
+      tx["height"] = txHash["height"];
+      allTransactions.add(tx);
+      // }
     }
-
-    // Logging.instance.log("addAddresses: $allAddresses", level: LogLevel.Info);
-    // Logging.instance.log("allTxHashes: $allTxHashes", level: LogLevel.Info);
-
-    // Logging.instance.log("allTransactions length: ${allTransactions.length}",
-    //     level: LogLevel.Info);
 
     Set<String> vHashes = {};
     for (final txObject in allTransactions) {
@@ -2094,7 +2056,14 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     }
     await fastFetch(vHashes.toList());
 
+    final List<isar_models.Transaction> txns = [];
+
     for (final txObject in allTransactions) {
+      final pretty = const JsonEncoder.withIndent("    ").convert(txObject);
+
+      print("=========================================================");
+      log(pretty);
+
       final txn = await parseTransaction(
         txObject,
         cachedElectrumXClient,
@@ -2103,260 +2072,11 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
         MINIMUM_CONFIRMATIONS,
       );
 
-      // final tx = await isar.transactions
-      //     .filter()
-      //     .txidMatches(midSortedTx.txid)
-      //     .findFirst();
-      // // we don't need to check this but it saves a write tx instead of overwriting the transaction in Isar
-      // if (tx == null) {
-      await isar.writeTxn(() async {
-        await isar.transactions.put(txn);
-      });
-      // }
-
-      // List<String> sendersArray = [];
-      // List<String> recipientsArray = [];
-      //
-      // // Usually only has value when txType = 'Send'
-      // int inputAmtSentFromWallet = 0;
-      // // Usually has value regardless of txType due to change addresses
-      // int outputAmtAddressedToWallet = 0;
-      // int fee = 0;
-      //
-      // Map<String, dynamic> midSortedTx = {};
-      //
-      // for (int i = 0; i < (txObject["vin"] as List).length; i++) {
-      //   final input = txObject["vin"]![i] as Map;
-      //   final prevTxid = input["txid"] as String;
-      //   final prevOut = input["vout"] as int;
-      //
-      //   final tx = await _cachedElectrumXClient.getTransaction(
-      //     txHash: prevTxid,
-      //     coin: coin,
-      //   );
-      //
-      //   for (final out in tx["vout"] as List) {
-      //     if (prevOut == out["n"]) {
-      //       final address = out["scriptPubKey"]["address"] as String?;
-      //       if (address != null) {
-      //         sendersArray.add(address);
-      //       }
-      //     }
-      //   }
-      // }
-      //
-      // Logging.instance.log("sendersArray: $sendersArray", level: LogLevel.Info);
-      //
-      // for (final output in txObject["vout"] as List) {
-      //   final address = output["scriptPubKey"]["address"] as String?;
-      //   if (address != null) {
-      //     recipientsArray.add(address);
-      //   }
-      // }
-      //
-      // Logging.instance
-      //     .log("recipientsArray: $recipientsArray", level: LogLevel.Info);
-      //
-      // final foundInSenders =
-      //     allAddresses.any((element) => sendersArray.contains(element));
-      // Logging.instance
-      //     .log("foundInSenders: $foundInSenders", level: LogLevel.Info);
-      //
-      // // If txType = Sent, then calculate inputAmtSentFromWallet
-      // if (foundInSenders) {
-      //   int totalInput = 0;
-      //   for (int i = 0; i < (txObject["vin"] as List).length; i++) {
-      //     final input = txObject["vin"]![i] as Map;
-      //     final prevTxid = input["txid"] as String;
-      //     final prevOut = input["vout"] as int;
-      //     final tx = await _cachedElectrumXClient.getTransaction(
-      //       txHash: prevTxid,
-      //       coin: coin,
-      //     );
-      //
-      //     for (final out in tx["vout"] as List) {
-      //       if (prevOut == out["n"]) {
-      //         inputAmtSentFromWallet +=
-      //             (Decimal.parse(out["value"]!.toString()) *
-      //                     Decimal.fromInt(Constants.satsPerCoin(coin)))
-      //                 .toBigInt()
-      //                 .toInt();
-      //       }
-      //     }
-      //   }
-      //   totalInput = inputAmtSentFromWallet;
-      //   int totalOutput = 0;
-      //
-      //   for (final output in txObject["vout"] as List) {
-      //     final String address = output["scriptPubKey"]!["address"] as String;
-      //     final value = output["value"]!;
-      //     final _value = (Decimal.parse(value.toString()) *
-      //             Decimal.fromInt(Constants.satsPerCoin(coin)))
-      //         .toBigInt()
-      //         .toInt();
-      //     totalOutput += _value;
-      //     if (changeAddresses.contains(address)) {
-      //       inputAmtSentFromWallet -= _value;
-      //     } else {
-      //       // change address from 'sent from' to the 'sent to' address
-      //       txObject["address"] = address;
-      //     }
-      //   }
-      //   // calculate transaction fee
-      //   fee = totalInput - totalOutput;
-      //   // subtract fee from sent to calculate correct value of sent tx
-      //   inputAmtSentFromWallet -= fee;
-      // } else {
-      //   // counters for fee calculation
-      //   int totalOut = 0;
-      //   int totalIn = 0;
-      //
-      //   // add up received tx value
-      //   for (final output in txObject["vout"] as List) {
-      //     final address = output["scriptPubKey"]["address"];
-      //     if (address != null) {
-      //       final value = (Decimal.parse(output["value"].toString()) *
-      //               Decimal.fromInt(Constants.satsPerCoin(coin)))
-      //           .toBigInt()
-      //           .toInt();
-      //       totalOut += value;
-      //       if (allAddresses.contains(address)) {
-      //         outputAmtAddressedToWallet += value;
-      //       }
-      //     }
-      //   }
-      //
-      //   // calculate fee for received tx
-      //   for (int i = 0; i < (txObject["vin"] as List).length; i++) {
-      //     final input = txObject["vin"][i] as Map;
-      //     final prevTxid = input["txid"] as String;
-      //     final prevOut = input["vout"] as int;
-      //     final tx = await _cachedElectrumXClient.getTransaction(
-      //       txHash: prevTxid,
-      //       coin: coin,
-      //     );
-      //
-      //     for (final out in tx["vout"] as List) {
-      //       if (prevOut == out["n"]) {
-      //         totalIn += (Decimal.parse(out["value"].toString()) *
-      //                 Decimal.fromInt(Constants.satsPerCoin(coin)))
-      //             .toBigInt()
-      //             .toInt();
-      //       }
-      //     }
-      //   }
-      //   fee = totalIn - totalOut;
-      // }
-      //
-      // // create final tx map
-      // midSortedTx["txid"] = txObject["txid"];
-      // midSortedTx["confirmed_status"] = (txObject["confirmations"] != null) &&
-      //     (txObject["confirmations"] as int >= MINIMUM_CONFIRMATIONS);
-      // midSortedTx["confirmations"] = txObject["confirmations"] ?? 0;
-      // midSortedTx["timestamp"] = txObject["blocktime"] ??
-      //     (DateTime.now().millisecondsSinceEpoch ~/ 1000);
-      //
-      // if (foundInSenders) {
-      //   midSortedTx["txType"] = "Sent";
-      //   midSortedTx["amount"] = inputAmtSentFromWallet;
-      //   final String worthNow =
-      //       ((currentPrice * Decimal.fromInt(inputAmtSentFromWallet)) /
-      //               Decimal.fromInt(Constants.satsPerCoin(coin)))
-      //           .toDecimal(scaleOnInfinitePrecision: 2)
-      //           .toStringAsFixed(2);
-      //   midSortedTx["worthNow"] = worthNow;
-      //   midSortedTx["worthAtBlockTimestamp"] = worthNow;
-      // } else {
-      //   midSortedTx["txType"] = "Received";
-      //   midSortedTx["amount"] = outputAmtAddressedToWallet;
-      //   final worthNow =
-      //       ((currentPrice * Decimal.fromInt(outputAmtAddressedToWallet)) /
-      //               Decimal.fromInt(Constants.satsPerCoin(coin)))
-      //           .toDecimal(scaleOnInfinitePrecision: 2)
-      //           .toStringAsFixed(2);
-      //   midSortedTx["worthNow"] = worthNow;
-      // }
-      // midSortedTx["aliens"] = <dynamic>[];
-      // midSortedTx["fees"] = fee;
-      // midSortedTx["address"] = txObject["address"];
-      // midSortedTx["inputSize"] = txObject["vin"].length;
-      // midSortedTx["outputSize"] = txObject["vout"].length;
-      // midSortedTx["inputs"] = txObject["vin"];
-      // midSortedTx["outputs"] = txObject["vout"];
-      //
-      // final int height = txObject["height"] as int;
-      // midSortedTx["height"] = height;
-      //
-      // if (height >= latestTxnBlockHeight) {
-      //   latestTxnBlockHeight = height;
-      // }
-      //
-      // midSortedArray.add(midSortedTx);
+      txns.add(txn);
     }
-
-    // // sort by date  ----  //TODO not sure if needed
-    // // shouldn't be any issues with a null timestamp but I got one at some point?
-    // midSortedArray
-    //     .sort((a, b) => (b["timestamp"] as int) - (a["timestamp"] as int));
-    // // {
-    // //   final aT = a["timestamp"];
-    // //   final bT = b["timestamp"];
-    // //
-    // //   if (aT == null && bT == null) {
-    // //     return 0;
-    // //   } else if (aT == null) {
-    // //     return -1;
-    // //   } else if (bT == null) {
-    // //     return 1;
-    // //   } else {
-    // //     return bT - aT;
-    // //   }
-    // // });
-    //
-    // // buildDateTimeChunks
-    // final Map<String, dynamic> result = {"dateTimeChunks": <dynamic>[]};
-    // final dateArray = <dynamic>[];
-    //
-    // for (int i = 0; i < midSortedArray.length; i++) {
-    //   final txObject = midSortedArray[i];
-    //   final date = extractDateFromTimestamp(txObject["timestamp"] as int);
-    //   final txTimeArray = [txObject["timestamp"], date];
-    //
-    //   if (dateArray.contains(txTimeArray[1])) {
-    //     result["dateTimeChunks"].forEach((dynamic chunk) {
-    //       if (extractDateFromTimestamp(chunk["timestamp"] as int) ==
-    //           txTimeArray[1]) {
-    //         if (chunk["transactions"] == null) {
-    //           chunk["transactions"] = <Map<String, dynamic>>[];
-    //         }
-    //         chunk["transactions"].add(txObject);
-    //       }
-    //     });
-    //   } else {
-    //     dateArray.add(txTimeArray[1]);
-    //     final chunk = {
-    //       "timestamp": txTimeArray[0],
-    //       "transactions": [txObject],
-    //     };
-    //     result["dateTimeChunks"].add(chunk);
-    //   }
-    // }
-    //
-    // final transactionsMap = cachedTransactions?.getAllTransactions() ?? {};
-    // transactionsMap
-    //     .addAll(TransactionData.fromJson(result).getAllTransactions());
-    //
-    // final txModel = TransactionData.fromMap(transactionsMap);
-    //
-    // await DB.instance.put<dynamic>(
-    //     boxName: walletId,
-    //     key: 'storedTxnDataHeight',
-    //     value: latestTxnBlockHeight);
-    // await DB.instance.put<dynamic>(
-    //     boxName: walletId, key: 'latest_tx_model', value: txModel);
-    //
-    // cachedTxData = txModel;
-    // return txModel;
+    await isar.writeTxn(() async {
+      await isar.transactions.putAll(txns);
+    });
   }
 
   int estimateTxFee({required int vSize, required int feeRatePerKB}) {
@@ -3016,6 +2736,11 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
     // back up data
     // await _rescanBackup();
+
+    await isar.writeTxn(() async {
+      await isar.transactions.clear();
+      await isar.addresses.clear();
+    });
 
     try {
       final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');

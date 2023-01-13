@@ -1949,7 +1949,10 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       // Logging.instance.log("TRANSACTION: ${jsonEncode(tx)}");
       if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
-        tx["address"] = txHash["address"];
+        tx["address"] = await isar.addresses
+            .filter()
+            .valueEqualTo(txHash["address"] as String)
+            .findFirst();
         tx["height"] = txHash["height"];
         allTransactions.add(tx);
       }
@@ -2076,7 +2079,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       tx.subType = isar_models.TransactionSubType.none;
 
       tx.fee = fee;
-      tx.address = txData["address"] as String;
+      tx.address.value = txData["address"] as isar_models.Address;
 
       for (final json in txData["vin"] as List) {
         bool isCoinBase = json['coinbase'] != null;

@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:isar/isar.dart';
+import 'package:stackwallet/models/isar/models/address/address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/input.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/output.dart';
 import 'package:stackwallet/models/isar/models/transaction_note.dart';
@@ -11,7 +12,7 @@ part 'transaction.g.dart';
 class Transaction {
   Id id = Isar.autoIncrement;
 
-  @Index(unique: true, replace: true)
+  @Index(unique: true)
   late String txid;
 
   @Index()
@@ -30,8 +31,6 @@ class Transaction {
 
   late int fee;
 
-  late String address;
-
   late int? height;
 
   late bool isCancelled;
@@ -41,6 +40,9 @@ class Transaction {
   late String? slateId;
 
   late String? otherData;
+
+  @Backlink(to: "transaction")
+  final address = IsarLink<Address>();
 
   final inputs = IsarLinks<Input>();
 

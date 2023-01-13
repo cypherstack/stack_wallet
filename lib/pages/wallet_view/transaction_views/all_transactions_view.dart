@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/contact.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/models/transaction_filter.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_search_filter_view.dart';
+import 'package:stackwallet/providers/blockchain/dogecoin/current_height_provider.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
@@ -32,9 +34,6 @@ import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 import 'package:stackwallet/widgets/transaction_card.dart';
 import 'package:tuple/tuple.dart';
-
-import '../../../models/isar/models/blockchain_data/transaction.dart';
-import '../../../providers/blockchain/dogecoin/current_height_provider.dart';
 
 class AllTransactionsView extends ConsumerStatefulWidget {
   const AllTransactionsView({
@@ -137,7 +136,8 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
         .isNotEmpty;
 
     // check if address contains
-    contains |= tx.address.toLowerCase().contains(keyword);
+    contains |=
+        tx.address.value?.value.toLowerCase().contains(keyword) ?? false;
 
     // check if note contains
     contains |= notes[tx.txid] != null &&
