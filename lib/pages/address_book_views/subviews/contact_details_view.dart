@@ -62,7 +62,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
       final transactions = await manager.db.transactions
           .filter()
           .anyOf(contact.addresses.map((e) => e.address),
-              (q, String e) => q.addressEqualTo(e))
+              (q, String e) => q.address((q) => q.valueEqualTo(e)))
           .sortByTimestampDesc()
           .findAll();
 

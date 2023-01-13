@@ -135,7 +135,7 @@ extension PayNym on DogecoinWallet {
   Future<Transaction?> hasSentNotificationTx(PaymentCode pCode) async {
     final tx = await isar.transactions
         .filter()
-        .addressEqualTo(pCode.notificationAddress())
+        .address((q) => q.valueEqualTo(pCode.notificationAddress()))
         .findFirst();
     return tx;
   }
