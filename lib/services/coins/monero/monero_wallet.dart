@@ -46,6 +46,7 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
+import 'package:tuple/tuple.dart';
 
 const int MINIMUM_CONFIRMATIONS = 10;
 
@@ -848,7 +849,9 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     //
     // final Set<String> cachedTxids = Set<String>.from(txidsList);
 
-    final List<isar_models.Transaction> txns = [];
+    final List<
+        Tuple4<isar_models.Transaction, List<isar_models.Output>,
+            List<isar_models.Input>, isar_models.Address?>> txnsData = [];
 
     if (transactions != null) {
       for (var tx in transactions.entries) {
@@ -865,6 +868,7 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         txn.txid = tx.value.id;
         txn.timestamp = (tx.value.date.millisecondsSinceEpoch ~/ 1000);
 
+        isar_models.Address? address;
         if (tx.value.direction == TransactionDirection.incoming) {
           final addressInfo = tx.value.additionalInfo;
 
@@ -874,7 +878,7 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
           );
 
           if (addressString != null) {
-            txn.address.value = await isar.addresses
+            address = await isar.addresses
                 .filter()
                 .valueEqualTo(addressString)
                 .findFirst();
@@ -899,67 +903,11 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         txn.slateId = null;
         txn.otherData = null;
 
-        txns.add(txn);
+        txnsData.add(Tuple4(txn, [], [], address));
       }
     }
 
-    await isar.writeTxn(() async {
-      await isar.transactions.putAll(txns);
-    });
-
-    // // sort by date  ----
-    // midSortedArray
-    //     .sort((a, b) => (b["timestamp"] as int) - (a["timestamp"] as int));
-    // Logging.instance.log(midSortedArray, level: LogLevel.Info);
-    //
-    // // buildDateTimeChunks
-    // final Map<String, dynamic> result = {"dateTimeChunks": <dynamic>[]};
-    // final dateArray = <dynamic>[];
-    //
-    // for (int i = 0; i < midSortedArray.length; i++) {
-    //   final txObject = midSortedArray[i];
-    //   final date = extractDateFromTimestamp(txObject["timestamp"] as int);
-    //   final txTimeArray = [txObject["timestamp"], date];
-    //
-    //   if (dateArray.contains(txTimeArray[1])) {
-    //     result["dateTimeChunks"].forEach((dynamic chunk) {
-    //       if (extractDateFromTimestamp(chunk["timestamp"] as int) ==
-    //           txTimeArray[1]) {
-    //         if (chunk["transactions"] == null) {
-    //           chunk["transactions"] = <Map<String, dynamic>>[];
-    //         }
-    //         chunk["transactions"].add(txObject);
-    //       }
-    //     });
-    //   } else {
-    //     dateArray.add(txTimeArray[1]);
-    //     final chunk = {
-    //       "timestamp": txTimeArray[0],
-    //       "transactions": [txObject],
-    //     };
-    //     result["dateTimeChunks"].add(chunk);
-    //   }
-    // }
-    //
-    // // final transactionsMap = cachedTransactions?.getAllTransactions() ?? {};
-    // final Map<String, Transaction> transactionsMap = {};
-    // transactionsMap
-    //     .addAll(TransactionData.fromJson(result).getAllTransactions());
-    //
-    // final txModel = TransactionData.fromMap(transactionsMap);
-    //
-    // // await DB.instance.put<dynamic>(
-    // //     boxName: walletId,
-    // //     key: 'storedTxnDataHeight',
-    // //     value: latestTxnBlockHeight);
-    // // await DB.instance.put<dynamic>(
-    // //     boxName: walletId, key: 'latest_tx_model', value: txModel);
-    // // await DB.instance.put<dynamic>(
-    // //     boxName: walletId,
-    // //     key: 'cachedTxids',
-    // //     value: cachedTxids.toList(growable: false));
-    //
-    // return txModel;
+    await addNewTransactionData(txnsData);
   }
 
   Future<String> _pathForWalletDir({

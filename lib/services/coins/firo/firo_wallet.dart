@@ -3228,241 +3228,58 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
     }
   }
 
+  bool _duplicateTxCheck(
+      List<Map<String, dynamic>> allTransactions, String txid) {
+    for (int i = 0; i < allTransactions.length; i++) {
+      if (allTransactions[i]["txid"] == txid) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   Future<void> _refreshTransactions() async {
-    // final changeAddresses =
-    //     DB.instance.get<dynamic>(boxName: walletId, key: 'changeAddresses')
-    //         as List<dynamic>;
-    // final List<String> allAddresses = await _fetchAllOwnAddresses();
-    // // Logging.instance.log("receiving addresses: $receivingAddresses");
-    // // Logging.instance.log("change addresses: $changeAddresses");
-    //
-    // List<Map<String, dynamic>> allTxHashes = await _fetchHistory(allAddresses);
-    //
-    // final cachedTransactions =
-    //     DB.instance.get<dynamic>(boxName: walletId, key: 'latest_tx_model')
-    //         as models.TransactionData?;
-    // int latestTxnBlockHeight =
-    //     DB.instance.get<dynamic>(boxName: walletId, key: "storedTxnDataHeight")
-    //             as int? ??
-    //         0;
-    //
-    // final unconfirmedCachedTransactions =
-    //     cachedTransactions?.getAllTransactions() ?? {};
-    // unconfirmedCachedTransactions
-    //     .removeWhere((key, value) => value.confirmedStatus);
-    //
-    // if (cachedTransactions != null) {
-    //   for (final tx in allTxHashes.toList(growable: false)) {
-    //     final txHeight = tx["height"] as int;
-    //     if (txHeight > 0 &&
-    //         txHeight < latestTxnBlockHeight - MINIMUM_CONFIRMATIONS) {
-    //       if (unconfirmedCachedTransactions[tx["tx_hash"] as String] == null) {
-    //         allTxHashes.remove(tx);
-    //       }
-    //     }
-    //   }
-    // }
-    //
-    // List<String> hashes = [];
-    // for (var element in allTxHashes) {
-    //   hashes.add(element['tx_hash'] as String);
-    // }
     final List<isar_models.Address> allAddresses =
         await _fetchAllOwnAddresses();
 
     final List<Map<String, dynamic>> allTxHashes =
         await _fetchHistory(allAddresses.map((e) => e.value).toList());
 
-    List<String> hashes =
-        allTxHashes.map((e) => e['tx_hash'] as String).toList(growable: false);
+    List<Map<String, dynamic>> allTransactions = [];
 
-    List<Map<String, dynamic>> allTransactions = await fastFetch(hashes);
+    final currentHeight = await chainHeight;
 
-    Logging.instance.log("allTransactions length: ${allTransactions.length}",
-        level: LogLevel.Info);
+    for (final txHash in allTxHashes) {
+      final storedTx = await isar.transactions
+          .where()
+          .txidEqualTo(txHash["tx_hash"] as String)
+          .findFirst();
 
-    // // sort thing stuff
-    // final currentPrice = await firoPrice;
-    // final List<Map<String, dynamic>> midSortedArray = [];
-    //
-    // final locale =
-    //     Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
-    //
-    // Logging.instance.log("refresh the txs", level: LogLevel.Info);
+      if (storedTx == null ||
+          !storedTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)) {
+        final tx = await cachedElectrumXClient.getTransaction(
+          txHash: txHash["tx_hash"] as String,
+          verbose: true,
+          coin: coin,
+        );
+
+        if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
+          tx["address"] = await isar.addresses
+              .filter()
+              .valueEqualTo(txHash["address"] as String)
+              .findFirst();
+          tx["height"] = txHash["height"];
+          allTransactions.add(tx);
+        }
+      }
+    }
+
+    final List<
+        Tuple4<isar_models.Transaction, List<isar_models.Output>,
+            List<isar_models.Input>, isar_models.Address?>> txnsData = [];
+
     for (final txObject in allTransactions) {
-      // // Logging.instance.log(txObject);
-      // List<String> sendersArray = [];
-      // List<String> recipientsArray = [];
-      //
-      // // Usually only has value when txType = 'Send'
-      // int inputAmtSentFromWallet = 0;
-      // // Usually has value regardless of txType due to change addresses
-      // int outputAmtAddressedToWallet = 0;
-      //
-      // Map<String, dynamic> midSortedTx = {};
-      // List<dynamic> aliens = [];
-      //
-      // for (final input in txObject["vin"] as List) {
-      //   final address = input["address"] as String?;
-      //   if (address != null) {
-      //     sendersArray.add(address);
-      //   }
-      // }
-      //
-      // // Logging.instance.log("sendersArray: $sendersArray");
-      //
-      // for (final output in txObject["vout"] as List) {
-      //   final addresses = output["scriptPubKey"]["addresses"] as List?;
-      //   if (addresses != null && addresses.isNotEmpty) {
-      //     recipientsArray.add(addresses[0] as String);
-      //   }
-      // }
-      // // Logging.instance.log("recipientsArray: $recipientsArray");
-      //
-      // final foundInSenders =
-      //     allAddresses.any((element) => sendersArray.contains(element));
-      // // Logging.instance.log("foundInSenders: $foundInSenders");
-      //
-      // String outAddress = "";
-      //
-      // int fees = 0;
-      //
-      // // If txType = Sent, then calculate inputAmtSentFromWallet, calculate who received how much in aliens array (check outputs)
-      // if (foundInSenders) {
-      //   int outAmount = 0;
-      //   int inAmount = 0;
-      //   bool nFeesUsed = false;
-      //
-      //   for (final input in txObject["vin"] as List) {
-      //     final nFees = input["nFees"];
-      //     if (nFees != null) {
-      //       nFeesUsed = true;
-      //       fees = (Decimal.parse(nFees.toString()) *
-      //               Decimal.fromInt(Constants.satsPerCoin(coin)))
-      //           .toBigInt()
-      //           .toInt();
-      //     }
-      //     final address = input["address"];
-      //     final value = input["valueSat"];
-      //     if (address != null && value != null) {
-      //       if (allAddresses.contains(address)) {
-      //         inputAmtSentFromWallet += value as int;
-      //       }
-      //     }
-      //
-      //     if (value != null) {
-      //       inAmount += value as int;
-      //     }
-      //   }
-      //
-      //   for (final output in txObject["vout"] as List) {
-      //     final addresses = output["scriptPubKey"]["addresses"] as List?;
-      //     final value = output["value"];
-      //     if (addresses != null && addresses.isNotEmpty) {
-      //       final address = addresses[0] as String;
-      //       if (value != null) {
-      //         if (changeAddresses.contains(address)) {
-      //           inputAmtSentFromWallet -= (Decimal.parse(value.toString()) *
-      //                   Decimal.fromInt(Constants.satsPerCoin(coin)))
-      //               .toBigInt()
-      //               .toInt();
-      //         } else {
-      //           outAddress = address;
-      //         }
-      //       }
-      //     }
-      //     if (value != null) {
-      //       outAmount += (Decimal.parse(value.toString()) *
-      //               Decimal.fromInt(Constants.satsPerCoin(coin)))
-      //           .toBigInt()
-      //           .toInt();
-      //     }
-      //   }
-      //
-      //   fees = nFeesUsed ? fees : inAmount - outAmount;
-      //   inputAmtSentFromWallet -= inAmount - outAmount;
-      // } else {
-      //   for (final input in txObject["vin"] as List) {
-      //     final nFees = input["nFees"];
-      //     if (nFees != null) {
-      //       fees += (Decimal.parse(nFees.toString()) *
-      //               Decimal.fromInt(Constants.satsPerCoin(coin)))
-      //           .toBigInt()
-      //           .toInt();
-      //     }
-      //   }
-      //
-      //   for (final output in txObject["vout"] as List) {
-      //     final addresses = output["scriptPubKey"]["addresses"] as List?;
-      //     if (addresses != null && addresses.isNotEmpty) {
-      //       final address = addresses[0] as String;
-      //       final value = output["value"];
-      //       // Logging.instance.log(address + value.toString());
-      //
-      //       if (allAddresses.contains(address)) {
-      //         outputAmtAddressedToWallet += (Decimal.parse(value.toString()) *
-      //                 Decimal.fromInt(Constants.satsPerCoin(coin)))
-      //             .toBigInt()
-      //             .toInt();
-      //         outAddress = address;
-      //       }
-      //     }
-      //   }
-      // }
-      //
-      // final int confirms = txObject["confirmations"] as int? ?? 0;
-      //
-      // // create final tx map
-      // midSortedTx["txid"] = txObject["txid"];
-      // midSortedTx["confirmed_status"] = confirms >= MINIMUM_CONFIRMATIONS;
-      // midSortedTx["confirmations"] = confirms;
-      // midSortedTx["timestamp"] = txObject["blocktime"] ??
-      //     (DateTime.now().millisecondsSinceEpoch ~/ 1000);
-      // if (foundInSenders) {
-      //   midSortedTx["txType"] = "Sent";
-      //   midSortedTx["amount"] = inputAmtSentFromWallet;
-      //   final String worthNow = Format.localizedStringAsFixed(
-      //       value: ((currentPrice * Decimal.fromInt(inputAmtSentFromWallet)) /
-      //               Decimal.fromInt(Constants.satsPerCoin(coin)))
-      //           .toDecimal(scaleOnInfinitePrecision: 2),
-      //       decimalPlaces: 2,
-      //       locale: locale!);
-      //   midSortedTx["worthNow"] = worthNow;
-      //   midSortedTx["worthAtBlockTimestamp"] = worthNow;
-      //   if (txObject["vout"][0]["scriptPubKey"]["type"] == "lelantusmint") {
-      //     midSortedTx["subType"] = "mint";
-      //   }
-      // } else {
-      //   midSortedTx["txType"] = "Received";
-      //   midSortedTx["amount"] = outputAmtAddressedToWallet;
-      //   final worthNow = Format.localizedStringAsFixed(
-      //       value:
-      //           ((currentPrice * Decimal.fromInt(outputAmtAddressedToWallet)) /
-      //                   Decimal.fromInt(Constants.satsPerCoin(coin)))
-      //               .toDecimal(scaleOnInfinitePrecision: 2),
-      //       decimalPlaces: 2,
-      //       locale: locale!);
-      //   midSortedTx["worthNow"] = worthNow;
-      //   midSortedTx["worthAtBlockTimestamp"] = worthNow;
-      // }
-      // midSortedTx["aliens"] = aliens;
-      // midSortedTx["fees"] = fees;
-      // midSortedTx["address"] = outAddress;
-      // midSortedTx["inputSize"] = txObject["vin"].length;
-      // midSortedTx["outputSize"] = txObject["vout"].length;
-      // midSortedTx["inputs"] = txObject["vin"];
-      // midSortedTx["outputs"] = txObject["vout"];
-      //
-      // final int height = txObject["height"] as int? ?? 0;
-      // midSortedTx["height"] = height;
-      //
-      // if (height >= latestTxnBlockHeight) {
-      //   latestTxnBlockHeight = height;
-      // }
-      //
-      // midSortedArray.add(midSortedTx);
-
-      final txn = await parseTransaction(
+      final data = await parseTransaction(
         txObject,
         cachedElectrumXClient,
         allAddresses,
@@ -3470,80 +3287,10 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
         MINIMUM_CONFIRMATIONS,
       );
 
-      // final tx = await isar.transactions
-      //     .filter()
-      //     .txidMatches(midSortedTx.txid)
-      //     .findFirst();
-      // // we don't need to check this but it saves a write tx instead of overwriting the transaction in Isar
-      // if (tx == null) {
-      await isar.writeTxn(() async {
-        await isar.transactions.put(txn.item1);
-      });
-      // }
+      txnsData.add(data);
     }
-    //
-    // // sort by date  ----  //TODO not sure if needed
-    // // shouldn't be any issues with a null timestamp but I got one at some point?
-    // midSortedArray.sort((a, b) {
-    //   final aT = a["timestamp"];
-    //   final bT = b["timestamp"];
-    //
-    //   if (aT == null && bT == null) {
-    //     return 0;
-    //   } else if (aT == null) {
-    //     return -1;
-    //   } else if (bT == null) {
-    //     return 1;
-    //   } else {
-    //     return (bT as int) - (aT as int);
-    //   }
-    // });
-    //
-    // // buildDateTimeChunks
-    // final Map<String, dynamic> result = {"dateTimeChunks": <dynamic>[]};
-    // final dateArray = <dynamic>[];
-    //
-    // for (int i = 0; i < midSortedArray.length; i++) {
-    //   final txObject = midSortedArray[i];
-    //   final date =
-    //       models.extractDateFromTimestamp(txObject["timestamp"] as int);
-    //   final txTimeArray = [txObject["timestamp"], date];
-    //
-    //   if (dateArray.contains(txTimeArray[1])) {
-    //     result["dateTimeChunks"].forEach((dynamic chunk) {
-    //       if (models.extractDateFromTimestamp(chunk["timestamp"] as int) ==
-    //           txTimeArray[1]) {
-    //         if (chunk["transactions"] == null) {
-    //           chunk["transactions"] = <Map<String, dynamic>>[];
-    //         }
-    //         chunk["transactions"].add(txObject);
-    //       }
-    //     });
-    //   } else {
-    //     dateArray.add(txTimeArray[1]);
-    //     final chunk = {
-    //       "timestamp": txTimeArray[0],
-    //       "transactions": [txObject],
-    //     };
-    //     result["dateTimeChunks"].add(chunk);
-    //   }
-    // }
-    //
-    // final transactionsMap = cachedTransactions?.getAllTransactions() ?? {};
-    // transactionsMap
-    //     .addAll(models.TransactionData.fromJson(result).getAllTransactions());
-    //
-    // final txModel = models.TransactionData.fromMap(transactionsMap);
-    //
-    // await DB.instance.put<dynamic>(
-    //     boxName: walletId,
-    //     key: 'storedTxnDataHeight',
-    //     value: latestTxnBlockHeight);
-    // await DB.instance.put<dynamic>(
-    //     boxName: walletId, key: 'latest_tx_model', value: txModel);
-    //
-    // cachedTxData = txModel;
-    // return txModel;
+
+    await addNewTransactionData(txnsData);
   }
 
   Future<void> _refreshUTXOs() async {

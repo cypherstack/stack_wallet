@@ -1962,9 +1962,6 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<void> _refreshTransactions() async {
     final allAddresses = await _fetchAllOwnAddresses();
 
-    // final changeAddresses = DB.instance.get<dynamic>(
-    //     boxName: walletId, key: 'changeAddressesP2WPKH') as List<dynamic>;
-
     List<String> changeAddresses = allAddresses
         .where((e) => e.subType == isar_models.AddressSubType.change)
         .map((e) => e.value)
@@ -1973,54 +1970,38 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
     final List<Map<String, dynamic>> allTxHashes = await _fetchHistory(
         allAddresses.map((e) => e.value).toList(growable: false));
 
-    // final cachedTransactions =
-    //     DB.instance.get<dynamic>(boxName: walletId, key: 'latest_tx_model')
-    //         as TransactionData?;
-    // int latestTxnBlockHeight =
-    //     DB.instance.get<dynamic>(boxName: walletId, key: "storedTxnDataHeight")
-    //             as int? ??
-    //         0;
-    //
-    // final unconfirmedCachedTransactions =
-    //     cachedTransactions?.getAllTransactions() ?? {};
-    // unconfirmedCachedTransactions
-    //     .removeWhere((key, value) => value.confirmedStatus);
-    //
-    // if (cachedTransactions != null) {
-    //   for (final tx in allTxHashes.toList(growable: false)) {
-    //     final txHeight = tx["height"] as int;
-    //     if (txHeight > 0 &&
-    //         txHeight < latestTxnBlockHeight - MINIMUM_CONFIRMATIONS) {
-    //       if (unconfirmedCachedTransactions[tx["tx_hash"] as String] == null) {
-    //         allTxHashes.remove(tx);
-    //       }
-    //     }
-    //   }
-    // }
-
     Set<String> hashes = {};
     for (var element in allTxHashes) {
       hashes.add(element['tx_hash'] as String);
     }
     await fastFetch(hashes.toList());
     List<Map<String, dynamic>> allTransactions = [];
+    final currentHeight = await chainHeight;
 
     for (final txHash in allTxHashes) {
-      final tx = await cachedElectrumXClient.getTransaction(
-        txHash: txHash["tx_hash"] as String,
-        verbose: true,
-        coin: coin,
-      );
+      final storedTx = await isar.transactions
+          .where()
+          .txidEqualTo(txHash["tx_hash"] as String)
+          .findFirst();
 
-      // Logging.instance.log("TRANSACTION: ${jsonEncode(tx)}");
-      // TODO fix this for sent to self transactions?
-      if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
-        tx["address"] = await isar.addresses
-            .filter()
-            .valueEqualTo(txHash["address"] as String)
-            .findFirst();
-        tx["height"] = txHash["height"];
-        allTransactions.add(tx);
+      if (storedTx == null ||
+          !storedTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)) {
+        final tx = await cachedElectrumXClient.getTransaction(
+          txHash: txHash["tx_hash"] as String,
+          verbose: true,
+          coin: coin,
+        );
+
+        // Logging.instance.log("TRANSACTION: ${jsonEncode(tx)}");
+        // TODO fix this for sent to self transactions?
+        if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
+          tx["address"] = await isar.addresses
+              .filter()
+              .valueEqualTo(txHash["address"] as String)
+              .findFirst();
+          tx["height"] = txHash["height"];
+          allTransactions.add(tx);
+        }
       }
     }
 
@@ -2044,7 +2025,9 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
     }
     await fastFetch(vHashes.toList());
 
-    final List<isar_models.Transaction> txns = [];
+    final List<
+        Tuple4<isar_models.Transaction, List<isar_models.Output>,
+            List<isar_models.Input>, isar_models.Address?>> txns = [];
 
     for (final txObject in allTransactions) {
       List<String> sendersArray = [];
@@ -2269,7 +2252,11 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
       tx.subType = isar_models.TransactionSubType.none;
 
       tx.fee = fee;
-      tx.address.value = midSortedTx["address"] as isar_models.Address?;
+      isar_models.Address? transactionAddress =
+          midSortedTx["address"] as isar_models.Address?;
+
+      List<isar_models.Input> inputs = [];
+      List<isar_models.Output> outputs = [];
 
       for (final json in midSortedTx["vin"] as List) {
         bool isCoinBase = json['coinbase'] != null;
@@ -2282,7 +2269,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
             isCoinBase ? isCoinBase : json['is_coinbase'] as bool?;
         input.sequence = json['sequence'] as int?;
         input.innerRedeemScriptAsm = json['innerRedeemscriptAsm'] as String?;
-        tx.inputs.add(input);
+        inputs.add(input);
       }
 
       for (final json in midSortedTx["vout"] as List) {
@@ -2298,7 +2285,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
           Decimal.tryParse(json["value"].toString()) ?? Decimal.zero,
           coin,
         );
-        tx.outputs.add(output);
+        outputs.add(output);
       }
 
       tx.height = height;
@@ -2307,76 +2294,10 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
       tx.slateId = null;
       tx.otherData = null;
 
-      txns.add(tx);
+      txns.add(Tuple4(tx, outputs, inputs, transactionAddress));
     }
 
-    await isar.writeTxn(() async {
-      await isar.transactions.putAll(txns);
-    });
-
-    //
-    // // sort by date  ----  //TODO not sure if needed
-    // // shouldn't be any issues with a null timestamp but I got one at some point?
-    // midSortedArray
-    //     .sort((a, b) => (b["timestamp"] as int) - (a["timestamp"] as int));
-    // // {
-    // //   final aT = a["timestamp"];
-    // //   final bT = b["timestamp"];
-    // //
-    // //   if (aT == null && bT == null) {
-    // //     return 0;
-    // //   } else if (aT == null) {
-    // //     return -1;
-    // //   } else if (bT == null) {
-    // //     return 1;
-    // //   } else {
-    // //     return bT - aT;
-    // //   }
-    // // });
-    //
-    // // buildDateTimeChunks
-    // final Map<String, dynamic> result = {"dateTimeChunks": <dynamic>[]};
-    // final dateArray = <dynamic>[];
-    //
-    // for (int i = 0; i < midSortedArray.length; i++) {
-    //   final txObject = midSortedArray[i];
-    //   final date = extractDateFromTimestamp(txObject["timestamp"] as int);
-    //   final txTimeArray = [txObject["timestamp"], date];
-    //
-    //   if (dateArray.contains(txTimeArray[1])) {
-    //     result["dateTimeChunks"].forEach((dynamic chunk) {
-    //       if (extractDateFromTimestamp(chunk["timestamp"] as int) ==
-    //           txTimeArray[1]) {
-    //         if (chunk["transactions"] == null) {
-    //           chunk["transactions"] = <Map<String, dynamic>>[];
-    //         }
-    //         chunk["transactions"].add(txObject);
-    //       }
-    //     });
-    //   } else {
-    //     dateArray.add(txTimeArray[1]);
-    //     final chunk = {
-    //       "timestamp": txTimeArray[0],
-    //       "transactions": [txObject],
-    //     };
-    //     result["dateTimeChunks"].add(chunk);
-    //   }
-    // }
-    //
-    // final transactionsMap = cachedTransactions?.getAllTransactions() ?? {};
-    // transactionsMap
-    //     .addAll(TransactionData.fromJson(result).getAllTransactions());
-    //
-    // final txModel = TransactionData.fromMap(transactionsMap);
-    //
-    // await DB.instance.put<dynamic>(
-    //     boxName: walletId,
-    //     key: 'storedTxnDataHeight',
-    //     value: latestTxnBlockHeight);
-    // await DB.instance.put<dynamic>(
-    //     boxName: walletId, key: 'latest_tx_model', value: txModel);
-    //
-    // return txModel;
+    await addNewTransactionData(txns);
   }
 
   int estimateTxFee({required int vSize, required int feeRatePerKB}) {

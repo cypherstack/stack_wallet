@@ -1940,21 +1940,31 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
     List<Map<String, dynamic>> allTransactions = [];
 
-    for (final txHash in allTxHashes) {
-      final tx = await cachedElectrumXClient.getTransaction(
-        txHash: txHash["tx_hash"] as String,
-        verbose: true,
-        coin: coin,
-      );
+    final currentHeight = await chainHeight;
 
-      // Logging.instance.log("TRANSACTION: ${jsonEncode(tx)}");
-      if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
-        tx["address"] = await isar.addresses
-            .filter()
-            .valueEqualTo(txHash["address"] as String)
-            .findFirst();
-        tx["height"] = txHash["height"];
-        allTransactions.add(tx);
+    for (final txHash in allTxHashes) {
+      final storedTx = await isar.transactions
+          .where()
+          .txidEqualTo(txHash["tx_hash"] as String)
+          .findFirst();
+
+      if (storedTx == null ||
+          !storedTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)) {
+        final tx = await cachedElectrumXClient.getTransaction(
+          txHash: txHash["tx_hash"] as String,
+          verbose: true,
+          coin: coin,
+        );
+
+        // Logging.instance.log("TRANSACTION: ${jsonEncode(tx)}");
+        if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
+          tx["address"] = await isar.addresses
+              .filter()
+              .valueEqualTo(txHash["address"] as String)
+              .findFirst();
+          tx["height"] = txHash["height"];
+          allTransactions.add(tx);
+        }
       }
     }
     //
@@ -1964,7 +1974,9 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
     // Logging.instance.log("allTransactions length: ${allTransactions.length}",
     //     level: LogLevel.Info);
 
-    final List<isar_models.Transaction> txns = [];
+    final List<
+        Tuple4<isar_models.Transaction, List<isar_models.Output>,
+            List<isar_models.Input>, isar_models.Address?>> txns = [];
 
     for (final txData in allTransactions) {
       Set<String> inputAddresses = {};
@@ -2060,6 +2072,10 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       tx.timestamp = txData["blocktime"] as int? ??
           (DateTime.now().millisecondsSinceEpoch ~/ 1000);
 
+      // this is the address initially used to fetch the txid
+      isar_models.Address transactionAddress =
+          txData["address"] as isar_models.Address;
+
       if (mySentFromAddresses.isNotEmpty && myReceivedOnAddresses.isNotEmpty) {
         // tx is sent to self
         tx.type = isar_models.TransactionType.sentToSelf;
@@ -2069,6 +2085,17 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
         // outgoing tx
         tx.type = isar_models.TransactionType.outgoing;
         tx.amount = amountSentFromWallet - changeAmount - fee;
+        final possible =
+            outputAddresses.difference(myChangeReceivedOnAddresses).first;
+
+        if (transactionAddress.value != possible) {
+          transactionAddress = isar_models.Address()
+            ..value = possible
+            ..derivationIndex = -1
+            ..subType = AddressSubType.nonWallet
+            ..type = AddressType.nonWallet
+            ..publicKey = [];
+        }
       } else {
         // incoming tx
         tx.type = isar_models.TransactionType.incoming;
@@ -2079,7 +2106,9 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       tx.subType = isar_models.TransactionSubType.none;
 
       tx.fee = fee;
-      tx.address.value = txData["address"] as isar_models.Address;
+
+      List<isar_models.Input> inputs = [];
+      List<isar_models.Output> outputs = [];
 
       for (final json in txData["vin"] as List) {
         bool isCoinBase = json['coinbase'] != null;
@@ -2092,7 +2121,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
             isCoinBase ? isCoinBase : json['is_coinbase'] as bool?;
         input.sequence = json['sequence'] as int?;
         input.innerRedeemScriptAsm = json['innerRedeemscriptAsm'] as String?;
-        tx.inputs.add(input);
+        inputs.add(input);
       }
 
       for (final json in txData["vout"] as List) {
@@ -2107,7 +2136,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
           Decimal.parse(json["value"].toString()),
           coin,
         );
-        tx.outputs.add(output);
+        outputs.add(output);
       }
 
       tx.height = txData["height"] as int?;
@@ -2116,12 +2145,10 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       tx.slateId = null;
       tx.otherData = null;
 
-      txns.add(tx);
+      txns.add(Tuple4(tx, outputs, inputs, transactionAddress));
     }
 
-    await isar.writeTxn(() async {
-      await isar.transactions.putAll(txns);
-    });
+    await addNewTransactionData(txns);
   }
 
   int estimateTxFee({required int vSize, required int feeRatePerKB}) {

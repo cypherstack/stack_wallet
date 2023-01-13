@@ -2064,7 +2064,7 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
     final List<
         Tuple4<isar_models.Transaction, List<isar_models.Output>,
-            List<isar_models.Input>, isar_models.Address>> txnsData = [];
+            List<isar_models.Input>, isar_models.Address?>> txnsData = [];
 
     for (final txObject in allTransactions) {
       final data = await parseTransaction(
@@ -2077,40 +2077,7 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       txnsData.add(data);
     }
-    await isar.writeTxn(() async {
-      for (final data in txnsData) {
-        final tx = data.item1;
-
-        // save transaction
-        await isar.transactions.put(tx);
-
-        // link and save outputs
-        if (data.item2.isNotEmpty) {
-          await isar.outputs.putAll(data.item2);
-          tx.outputs.addAll(data.item2);
-          await tx.outputs.save();
-        }
-
-        // link and save inputs
-        if (data.item3.isNotEmpty) {
-          await isar.inputs.putAll(data.item3);
-          tx.inputs.addAll(data.item3);
-          await tx.inputs.save();
-        }
-
-        // check if address exists in db and add if it does not
-        if (await isar.addresses
-                .where()
-                .valueEqualTo(data.item4.value)
-                .findFirst() ==
-            null) {
-          await isar.addresses.put(data.item4);
-        }
-        // link and save address
-        tx.address.value = data.item4;
-        await tx.address.save();
-      }
-    });
+    await addNewTransactionData(txnsData);
   }
 
   int estimateTxFee({required int vSize, required int feeRatePerKB}) {

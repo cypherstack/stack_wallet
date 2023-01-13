@@ -1846,18 +1846,27 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
     await fastFetch(hashes);
     List<Map<String, dynamic>> allTransactions = [];
+    final currentHeight = await chainHeight;
 
     for (final txHash in allTxHashes) {
-      final tx = await cachedElectrumXClient.getTransaction(
-        txHash: txHash["tx_hash"] as String,
-        verbose: true,
-        coin: coin,
-      );
+      final storedTx = await isar.transactions
+          .where()
+          .txidEqualTo(txHash["tx_hash"] as String)
+          .findFirst();
 
-      if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
-        tx["address"] = txHash["address"];
-        tx["height"] = txHash["height"];
-        allTransactions.add(tx);
+      if (storedTx == null ||
+          !storedTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)) {
+        final tx = await cachedElectrumXClient.getTransaction(
+          txHash: txHash["tx_hash"] as String,
+          verbose: true,
+          coin: coin,
+        );
+
+        if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
+          tx["address"] = txHash["address"];
+          tx["height"] = txHash["height"];
+          allTransactions.add(tx);
+        }
       }
     }
 
@@ -1871,6 +1880,10 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     }
     await fastFetch(vHashes.toList());
 
+    final List<
+        Tuple4<isar_models.Transaction, List<isar_models.Output>,
+            List<isar_models.Input>, isar_models.Address?>> txns = [];
+
     for (final txObject in allTransactions) {
       final txn = await parseTransaction(
         txObject,
@@ -1880,17 +1893,10 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
         MINIMUM_CONFIRMATIONS,
       );
 
-      // final tx = await isar.transactions
-      //     .filter()
-      //     .txidMatches(midSortedTx.txid)
-      //     .findFirst();
-      // // we don't need to check this but it saves a write tx instead of overwriting the transaction in Isar
-      // if (tx == null) {
-      await isar.writeTxn(() async {
-        await isar.transactions.put(txn.item1);
-      });
-      // }
+      txns.add(txn);
     }
+
+    await addNewTransactionData(txns);
   }
 
   int estimateTxFee({required int vSize, required int feeRatePerKB}) {

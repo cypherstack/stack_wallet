@@ -1,6 +1,7 @@
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
+import 'package:tuple/tuple.dart';
 
 mixin WalletDB {
   Isar? _isar;
@@ -29,4 +30,45 @@ mixin WalletDB {
   }
 
   Future<bool> isarClose() async => await _isar?.close() ?? false;
+
+  Future<void> addNewTransactionData(
+      List<Tuple4<Transaction, List<Output>, List<Input>, Address?>>
+          transactionsData) async {
+    await isar.writeTxn(() async {
+      for (final data in transactionsData) {
+        final tx = data.item1;
+
+        // save transaction
+        await isar.transactions.put(tx);
+
+        // link and save outputs
+        if (data.item2.isNotEmpty) {
+          await isar.outputs.putAll(data.item2);
+          tx.outputs.addAll(data.item2);
+          await tx.outputs.save();
+        }
+
+        // link and save inputs
+        if (data.item3.isNotEmpty) {
+          await isar.inputs.putAll(data.item3);
+          tx.inputs.addAll(data.item3);
+          await tx.inputs.save();
+        }
+
+        if (data.item4 != null) {
+          // check if address exists in db and add if it does not
+          if (await isar.addresses
+                  .where()
+                  .valueEqualTo(data.item4!.value)
+                  .findFirst() ==
+              null) {
+            await isar.addresses.put(data.item4!);
+          }
+          // link and save address
+          tx.address.value = data.item4;
+          await tx.address.save();
+        }
+      }
+    });
+  }
 }
