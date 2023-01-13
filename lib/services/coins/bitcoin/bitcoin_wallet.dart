@@ -2011,7 +2011,7 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     final List<isar_models.Address> allAddresses =
         await _fetchAllOwnAddresses();
 
-    final Set<Map<String, dynamic>> allReceivingTxHashes =
+    final Set<Map<String, dynamic>> allTxHashes =
         (await _fetchHistory(allAddresses.map((e) => e.value).toList()))
             .toSet();
 
@@ -2026,7 +2026,7 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
     final currentHeight = await chainHeight;
 
-    for (final txHash in allReceivingTxHashes) {
+    for (final txHash in allTxHashes) {
       final storedTx = await isar.transactions
           .where()
           .txidEqualTo(txHash["tx_hash"] as String)
