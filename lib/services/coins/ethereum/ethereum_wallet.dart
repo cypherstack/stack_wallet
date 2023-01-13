@@ -434,6 +434,20 @@ class EthereumWallet extends CoinServiceAPI {
     }
 
     final feeEstimate = await estimateFeeFor(satoshiAmount, fee);
+    print("FEE ESTIMATE IS $feeEstimate");
+    print("AMOUNT TO SEND IS $satoshiAmount");
+
+    bool isSendAll = false;
+    final balance =
+        Format.decimalAmountToSatoshis(await availableBalance, coin);
+    if (satoshiAmount == balance) {
+      isSendAll = true;
+    }
+
+    if (isSendAll) {
+      //Subtract fee amount from send amount
+      satoshiAmount -= feeEstimate;
+    }
 
     Map<String, dynamic> txData = {
       "fee": feeEstimate,
@@ -868,6 +882,7 @@ class EthereumWallet extends CoinServiceAPI {
     final List<Map<String, dynamic>> midSortedArray = [];
 
     AddressTransaction txs = await fetchAddressTransactions(thisAddress);
+
     if (txs.message == "OK") {
       final allTxs = txs.result;
       allTxs.forEach((element) {
