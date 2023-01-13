@@ -8,13 +8,13 @@ import 'dart:ui' as _i18;
 
 import 'package:flutter/foundation.dart' as _i4;
 import 'package:flutter_riverpod/flutter_riverpod.dart' as _i5;
-import 'package:isar/isar.dart' as _i8;
+import 'package:isar/isar.dart' as _i12;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i11;
-import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i10;
-import 'package:stackwallet/models/balance.dart' as _i12;
+import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i10;
+import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i9;
+import 'package:stackwallet/models/balance.dart' as _i11;
 import 'package:stackwallet/models/isar/models/isar_models.dart' as _i20;
-import 'package:stackwallet/models/paymint/fee_object_model.dart' as _i9;
+import 'package:stackwallet/models/paymint/fee_object_model.dart' as _i8;
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart' as _i19;
 import 'package:stackwallet/services/coins/coin_service.dart' as _i13;
 import 'package:stackwallet/services/coins/manager.dart' as _i6;
@@ -90,8 +90,8 @@ class _FakeTransactionNotificationTracker_4 extends _i1.SmartFake
         );
 }
 
-class _FakeIsar_5 extends _i1.SmartFake implements _i8.Isar {
-  _FakeIsar_5(
+class _FakeFeeObject_5 extends _i1.SmartFake implements _i8.FeeObject {
+  _FakeFeeObject_5(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -100,8 +100,8 @@ class _FakeIsar_5 extends _i1.SmartFake implements _i8.Isar {
         );
 }
 
-class _FakeFeeObject_6 extends _i1.SmartFake implements _i9.FeeObject {
-  _FakeFeeObject_6(
+class _FakeElectrumX_6 extends _i1.SmartFake implements _i9.ElectrumX {
+  _FakeElectrumX_6(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -110,8 +110,9 @@ class _FakeFeeObject_6 extends _i1.SmartFake implements _i9.FeeObject {
         );
 }
 
-class _FakeElectrumX_7 extends _i1.SmartFake implements _i10.ElectrumX {
-  _FakeElectrumX_7(
+class _FakeCachedElectrumX_7 extends _i1.SmartFake
+    implements _i10.CachedElectrumX {
+  _FakeCachedElectrumX_7(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -120,9 +121,8 @@ class _FakeElectrumX_7 extends _i1.SmartFake implements _i10.ElectrumX {
         );
 }
 
-class _FakeCachedElectrumX_8 extends _i1.SmartFake
-    implements _i11.CachedElectrumX {
-  _FakeCachedElectrumX_8(
+class _FakeBalance_8 extends _i1.SmartFake implements _i11.Balance {
+  _FakeBalance_8(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -131,8 +131,8 @@ class _FakeCachedElectrumX_8 extends _i1.SmartFake
         );
 }
 
-class _FakeBalance_9 extends _i1.SmartFake implements _i12.Balance {
-  _FakeBalance_9(
+class _FakeIsar_9 extends _i1.SmartFake implements _i12.Isar {
+  _FakeIsar_9(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -141,8 +141,7 @@ class _FakeBalance_9 extends _i1.SmartFake implements _i12.Balance {
         );
 }
 
-class _FakeElectrumXNode_10 extends _i1.SmartFake
-    implements _i10.ElectrumXNode {
+class _FakeElectrumXNode_10 extends _i1.SmartFake implements _i9.ElectrumXNode {
   _FakeElectrumXNode_10(
     Object parent,
     Invocation parentInvocation,
@@ -654,22 +653,6 @@ class MockBitcoinWallet extends _i1.Mock implements _i19.BitcoinWallet {
         returnValueForMissingStub: null,
       );
   @override
-  _i8.Isar get isar => (super.noSuchMethod(
-        Invocation.getter(#isar),
-        returnValue: _FakeIsar_5(
-          this,
-          Invocation.getter(#isar),
-        ),
-      ) as _i8.Isar);
-  @override
-  set isar(_i8.Isar? _isar) => super.noSuchMethod(
-        Invocation.setter(
-          #isar,
-          _isar,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
   bool get isActive => (super.noSuchMethod(
         Invocation.getter(#isActive),
         returnValue: false,
@@ -727,13 +710,13 @@ class MockBitcoinWallet extends _i1.Mock implements _i19.BitcoinWallet {
         returnValue: false,
       ) as bool);
   @override
-  _i16.Future<_i9.FeeObject> get fees => (super.noSuchMethod(
+  _i16.Future<_i8.FeeObject> get fees => (super.noSuchMethod(
         Invocation.getter(#fees),
-        returnValue: _i16.Future<_i9.FeeObject>.value(_FakeFeeObject_6(
+        returnValue: _i16.Future<_i8.FeeObject>.value(_FakeFeeObject_5(
           this,
           Invocation.getter(#fees),
         )),
-      ) as _i16.Future<_i9.FeeObject>);
+      ) as _i16.Future<_i8.FeeObject>);
   @override
   _i16.Future<int> get maxFee => (super.noSuchMethod(
         Invocation.getter(#maxFee),
@@ -796,29 +779,37 @@ class MockBitcoinWallet extends _i1.Mock implements _i19.BitcoinWallet {
         returnValueForMissingStub: null,
       );
   @override
-  _i10.ElectrumX get electrumXClient => (super.noSuchMethod(
+  _i9.ElectrumX get electrumXClient => (super.noSuchMethod(
         Invocation.getter(#electrumXClient),
-        returnValue: _FakeElectrumX_7(
+        returnValue: _FakeElectrumX_6(
           this,
           Invocation.getter(#electrumXClient),
         ),
-      ) as _i10.ElectrumX);
+      ) as _i9.ElectrumX);
   @override
-  _i11.CachedElectrumX get cachedElectrumXClient => (super.noSuchMethod(
+  _i10.CachedElectrumX get cachedElectrumXClient => (super.noSuchMethod(
         Invocation.getter(#cachedElectrumXClient),
-        returnValue: _FakeCachedElectrumX_8(
+        returnValue: _FakeCachedElectrumX_7(
           this,
           Invocation.getter(#cachedElectrumXClient),
         ),
-      ) as _i11.CachedElectrumX);
+      ) as _i10.CachedElectrumX);
   @override
-  _i12.Balance get balance => (super.noSuchMethod(
+  _i11.Balance get balance => (super.noSuchMethod(
         Invocation.getter(#balance),
-        returnValue: _FakeBalance_9(
+        returnValue: _FakeBalance_8(
           this,
           Invocation.getter(#balance),
         ),
-      ) as _i12.Balance);
+      ) as _i11.Balance);
+  @override
+  _i12.Isar get isarInstance => (super.noSuchMethod(
+        Invocation.getter(#isarInstance),
+        returnValue: _FakeIsar_9(
+          this,
+          Invocation.getter(#isarInstance),
+        ),
+      ) as _i12.Isar);
   @override
   set onIsActiveWalletChanged(void Function(bool)? _onIsActiveWalletChanged) =>
       super.noSuchMethod(
@@ -829,21 +820,18 @@ class MockBitcoinWallet extends _i1.Mock implements _i19.BitcoinWallet {
         returnValueForMissingStub: null,
       );
   @override
+  _i12.Isar get isar => (super.noSuchMethod(
+        Invocation.getter(#isar),
+        returnValue: _FakeIsar_9(
+          this,
+          Invocation.getter(#isar),
+        ),
+      ) as _i12.Isar);
+  @override
   _i16.Future<void> exit() => (super.noSuchMethod(
         Invocation.method(
           #exit,
           [],
-        ),
-        returnValue: _i16.Future<void>.value(),
-        returnValueForMissingStub: _i16.Future<void>.value(),
-      ) as _i16.Future<void>);
-  @override
-  _i16.Future<void> updateStoredChainHeight({required int? newHeight}) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #updateStoredChainHeight,
-          [],
-          {#newHeight: newHeight},
         ),
         returnValue: _i16.Future<void>.value(),
         returnValueForMissingStub: _i16.Future<void>.value(),
@@ -1014,20 +1002,19 @@ class MockBitcoinWallet extends _i1.Mock implements _i19.BitcoinWallet {
         returnValueForMissingStub: _i16.Future<void>.value(),
       ) as _i16.Future<void>);
   @override
-  _i16.Future<_i10.ElectrumXNode> getCurrentNode() => (super.noSuchMethod(
+  _i16.Future<_i9.ElectrumXNode> getCurrentNode() => (super.noSuchMethod(
         Invocation.method(
           #getCurrentNode,
           [],
         ),
-        returnValue:
-            _i16.Future<_i10.ElectrumXNode>.value(_FakeElectrumXNode_10(
+        returnValue: _i16.Future<_i9.ElectrumXNode>.value(_FakeElectrumXNode_10(
           this,
           Invocation.method(
             #getCurrentNode,
             [],
           ),
         )),
-      ) as _i16.Future<_i10.ElectrumXNode>);
+      ) as _i16.Future<_i9.ElectrumXNode>);
   @override
   _i16.Future<void> addDerivation({
     required int? chain,
@@ -1245,6 +1232,129 @@ class MockBitcoinWallet extends _i1.Mock implements _i19.BitcoinWallet {
         ),
         returnValue: _i16.Future<bool>.value(false),
       ) as _i16.Future<bool>);
+  @override
+  void initCache(
+    String? walletId,
+    _i15.Coin? coin,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #initCache,
+          [
+            walletId,
+            coin,
+          ],
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i16.Future<void> updateCachedId(String? id) => (super.noSuchMethod(
+        Invocation.method(
+          #updateCachedId,
+          [id],
+        ),
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
+  @override
+  int getCachedChainHeight() => (super.noSuchMethod(
+        Invocation.method(
+          #getCachedChainHeight,
+          [],
+        ),
+        returnValue: 0,
+      ) as int);
+  @override
+  _i16.Future<void> updateCachedChainHeight(int? height) => (super.noSuchMethod(
+        Invocation.method(
+          #updateCachedChainHeight,
+          [height],
+        ),
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
+  @override
+  bool getCachedIsFavorite() => (super.noSuchMethod(
+        Invocation.method(
+          #getCachedIsFavorite,
+          [],
+        ),
+        returnValue: false,
+      ) as bool);
+  @override
+  _i16.Future<void> updateCachedIsFavorite(bool? isFavorite) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateCachedIsFavorite,
+          [isFavorite],
+        ),
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
+  @override
+  _i11.Balance getCachedBalance() => (super.noSuchMethod(
+        Invocation.method(
+          #getCachedBalance,
+          [],
+        ),
+        returnValue: _FakeBalance_8(
+          this,
+          Invocation.method(
+            #getCachedBalance,
+            [],
+          ),
+        ),
+      ) as _i11.Balance);
+  @override
+  _i16.Future<void> updateCachedBalance(_i11.Balance? balance) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateCachedBalance,
+          [balance],
+        ),
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
+  @override
+  _i11.Balance getCachedBalanceSecondary() => (super.noSuchMethod(
+        Invocation.method(
+          #getCachedBalanceSecondary,
+          [],
+        ),
+        returnValue: _FakeBalance_8(
+          this,
+          Invocation.method(
+            #getCachedBalanceSecondary,
+            [],
+          ),
+        ),
+      ) as _i11.Balance);
+  @override
+  _i16.Future<void> updateCachedBalanceSecondary(_i11.Balance? balance) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateCachedBalanceSecondary,
+          [balance],
+        ),
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
+  @override
+  _i16.Future<bool> isarInit(String? walletId) => (super.noSuchMethod(
+        Invocation.method(
+          #isarInit,
+          [walletId],
+        ),
+        returnValue: _i16.Future<bool>.value(false),
+      ) as _i16.Future<bool>);
+  @override
+  _i16.Future<bool> isarClose() => (super.noSuchMethod(
+        Invocation.method(
+          #isarClose,
+          [],
+        ),
+        returnValue: _i16.Future<bool>.value(false),
+      ) as _i16.Future<bool>);
 }
 
 /// A class which mocks [Manager].
@@ -1314,13 +1424,13 @@ class MockManager extends _i1.Mock implements _i6.Manager {
         returnValueForMissingStub: null,
       );
   @override
-  _i16.Future<_i9.FeeObject> get fees => (super.noSuchMethod(
+  _i16.Future<_i8.FeeObject> get fees => (super.noSuchMethod(
         Invocation.getter(#fees),
-        returnValue: _i16.Future<_i9.FeeObject>.value(_FakeFeeObject_6(
+        returnValue: _i16.Future<_i8.FeeObject>.value(_FakeFeeObject_5(
           this,
           Invocation.getter(#fees),
         )),
-      ) as _i16.Future<_i9.FeeObject>);
+      ) as _i16.Future<_i8.FeeObject>);
   @override
   _i16.Future<int> get maxFee => (super.noSuchMethod(
         Invocation.getter(#maxFee),
@@ -1332,13 +1442,13 @@ class MockManager extends _i1.Mock implements _i6.Manager {
         returnValue: _i16.Future<String>.value(''),
       ) as _i16.Future<String>);
   @override
-  _i12.Balance get balance => (super.noSuchMethod(
+  _i11.Balance get balance => (super.noSuchMethod(
         Invocation.getter(#balance),
-        returnValue: _FakeBalance_9(
+        returnValue: _FakeBalance_8(
           this,
           Invocation.getter(#balance),
         ),
-      ) as _i12.Balance);
+      ) as _i11.Balance);
   @override
   _i16.Future<List<_i20.Transaction>> get transactions => (super.noSuchMethod(
         Invocation.getter(#transactions),
@@ -1383,6 +1493,14 @@ class MockManager extends _i1.Mock implements _i6.Manager {
         Invocation.getter(#currentHeight),
         returnValue: 0,
       ) as int);
+  @override
+  _i12.Isar get db => (super.noSuchMethod(
+        Invocation.getter(#db),
+        returnValue: _FakeIsar_9(
+          this,
+          Invocation.getter(#db),
+        ),
+      ) as _i12.Isar);
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
@@ -1622,13 +1740,13 @@ class MockCoinServiceAPI extends _i1.Mock implements _i13.CoinServiceAPI {
         returnValueForMissingStub: null,
       );
   @override
-  _i16.Future<_i9.FeeObject> get fees => (super.noSuchMethod(
+  _i16.Future<_i8.FeeObject> get fees => (super.noSuchMethod(
         Invocation.getter(#fees),
-        returnValue: _i16.Future<_i9.FeeObject>.value(_FakeFeeObject_6(
+        returnValue: _i16.Future<_i8.FeeObject>.value(_FakeFeeObject_5(
           this,
           Invocation.getter(#fees),
         )),
-      ) as _i16.Future<_i9.FeeObject>);
+      ) as _i16.Future<_i8.FeeObject>);
   @override
   _i16.Future<int> get maxFee => (super.noSuchMethod(
         Invocation.getter(#maxFee),
@@ -1640,13 +1758,13 @@ class MockCoinServiceAPI extends _i1.Mock implements _i13.CoinServiceAPI {
         returnValue: _i16.Future<String>.value(''),
       ) as _i16.Future<String>);
   @override
-  _i12.Balance get balance => (super.noSuchMethod(
+  _i11.Balance get balance => (super.noSuchMethod(
         Invocation.getter(#balance),
-        returnValue: _FakeBalance_9(
+        returnValue: _FakeBalance_8(
           this,
           Invocation.getter(#balance),
         ),
-      ) as _i12.Balance);
+      ) as _i11.Balance);
   @override
   _i16.Future<List<_i20.Transaction>> get transactions => (super.noSuchMethod(
         Invocation.getter(#transactions),
@@ -1696,6 +1814,14 @@ class MockCoinServiceAPI extends _i1.Mock implements _i13.CoinServiceAPI {
         Invocation.getter(#storedChainHeight),
         returnValue: 0,
       ) as int);
+  @override
+  _i12.Isar get isarInstance => (super.noSuchMethod(
+        Invocation.getter(#isarInstance),
+        returnValue: _FakeIsar_9(
+          this,
+          Invocation.getter(#isarInstance),
+        ),
+      ) as _i12.Isar);
   @override
   _i16.Future<Map<String, dynamic>> prepareSend({
     required String? address,

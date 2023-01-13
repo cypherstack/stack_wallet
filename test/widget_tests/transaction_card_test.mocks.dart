@@ -538,6 +538,14 @@ class MockManager extends _i1.Mock implements _i6.Manager {
         returnValue: 0,
       ) as int);
   @override
+  _i10.Isar get db => (super.noSuchMethod(
+        Invocation.getter(#db),
+        returnValue: _FakeIsar_7(
+          this,
+          Invocation.getter(#db),
+        ),
+      ) as _i10.Isar);
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
@@ -855,6 +863,14 @@ class MockCoinServiceAPI extends _i1.Mock implements _i7.CoinServiceAPI {
         returnValue: 0,
       ) as int);
   @override
+  _i10.Isar get isarInstance => (super.noSuchMethod(
+        Invocation.getter(#isarInstance),
+        returnValue: _FakeIsar_7(
+          this,
+          Invocation.getter(#isarInstance),
+        ),
+      ) as _i10.Isar);
+  @override
   _i18.Future<Map<String, dynamic>> prepareSend({
     required String? address,
     required int? satoshiAmount,
@@ -1029,22 +1045,6 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
         Invocation.setter(
           #timer,
           _timer,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  _i10.Isar get isar => (super.noSuchMethod(
-        Invocation.getter(#isar),
-        returnValue: _FakeIsar_7(
-          this,
-          Invocation.getter(#isar),
-        ),
-      ) as _i10.Isar);
-  @override
-  set isar(_i10.Isar? _isar) => super.noSuchMethod(
-        Invocation.setter(
-          #isar,
-          _isar,
         ),
         returnValueForMissingStub: null,
       );
@@ -1257,6 +1257,14 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
             _i18.Future<List<_i21.Transaction>>.value(<_i21.Transaction>[]),
       ) as _i18.Future<List<_i21.Transaction>>);
   @override
+  _i10.Isar get isarInstance => (super.noSuchMethod(
+        Invocation.getter(#isarInstance),
+        returnValue: _FakeIsar_7(
+          this,
+          Invocation.getter(#isarInstance),
+        ),
+      ) as _i10.Isar);
+  @override
   set onIsActiveWalletChanged(void Function(bool)? _onIsActiveWalletChanged) =>
       super.noSuchMethod(
         Invocation.setter(
@@ -1265,6 +1273,14 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
         ),
         returnValueForMissingStub: null,
       );
+  @override
+  _i10.Isar get isar => (super.noSuchMethod(
+        Invocation.getter(#isar),
+        returnValue: _FakeIsar_7(
+          this,
+          Invocation.getter(#isar),
+        ),
+      ) as _i10.Isar);
   @override
   bool validateAddress(String? address) => (super.noSuchMethod(
         Invocation.method(
@@ -1799,12 +1815,161 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
         ),
       ) as _i14.Decimal);
   @override
-  _i18.Future<void> updateStoredChainHeight({required int? newHeight}) =>
+  void initCache(
+    String? walletId,
+    _i17.Coin? coin,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #initCache,
+          [
+            walletId,
+            coin,
+          ],
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i18.Future<void> updateCachedId(String? id) => (super.noSuchMethod(
+        Invocation.method(
+          #updateCachedId,
+          [id],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+  @override
+  int getCachedChainHeight() => (super.noSuchMethod(
+        Invocation.method(
+          #getCachedChainHeight,
+          [],
+        ),
+        returnValue: 0,
+      ) as int);
+  @override
+  _i18.Future<void> updateCachedChainHeight(int? height) => (super.noSuchMethod(
+        Invocation.method(
+          #updateCachedChainHeight,
+          [height],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+  @override
+  bool getCachedIsFavorite() => (super.noSuchMethod(
+        Invocation.method(
+          #getCachedIsFavorite,
+          [],
+        ),
+        returnValue: false,
+      ) as bool);
+  @override
+  _i18.Future<void> updateCachedIsFavorite(bool? isFavorite) =>
       (super.noSuchMethod(
         Invocation.method(
-          #updateStoredChainHeight,
+          #updateCachedIsFavorite,
+          [isFavorite],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+  @override
+  _i9.Balance getCachedBalance() => (super.noSuchMethod(
+        Invocation.method(
+          #getCachedBalance,
           [],
-          {#newHeight: newHeight},
+        ),
+        returnValue: _FakeBalance_6(
+          this,
+          Invocation.method(
+            #getCachedBalance,
+            [],
+          ),
+        ),
+      ) as _i9.Balance);
+  @override
+  _i18.Future<void> updateCachedBalance(_i9.Balance? balance) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateCachedBalance,
+          [balance],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+  @override
+  _i9.Balance getCachedBalanceSecondary() => (super.noSuchMethod(
+        Invocation.method(
+          #getCachedBalanceSecondary,
+          [],
+        ),
+        returnValue: _FakeBalance_6(
+          this,
+          Invocation.method(
+            #getCachedBalanceSecondary,
+            [],
+          ),
+        ),
+      ) as _i9.Balance);
+  @override
+  _i18.Future<void> updateCachedBalanceSecondary(_i9.Balance? balance) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateCachedBalanceSecondary,
+          [balance],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+  @override
+  _i18.Future<bool> isarInit(String? walletId) => (super.noSuchMethod(
+        Invocation.method(
+          #isarInit,
+          [walletId],
+        ),
+        returnValue: _i18.Future<bool>.value(false),
+      ) as _i18.Future<bool>);
+  @override
+  _i18.Future<bool> isarClose() => (super.noSuchMethod(
+        Invocation.method(
+          #isarClose,
+          [],
+        ),
+        returnValue: _i18.Future<bool>.value(false),
+      ) as _i18.Future<bool>);
+  @override
+  void initFiroHive(String? walletId) => super.noSuchMethod(
+        Invocation.method(
+          #initFiroHive,
+          [walletId],
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i18.Future<void> firoUpdateJIndex(List<dynamic>? jIndex) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #firoUpdateJIndex,
+          [jIndex],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+  @override
+  _i18.Future<void> firoUpdateLelantusCoins(List<dynamic>? lelantusCoins) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #firoUpdateLelantusCoins,
+          [lelantusCoins],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+  @override
+  _i18.Future<void> firoUpdateMintIndex(int? mintIndex) => (super.noSuchMethod(
+        Invocation.method(
+          #firoUpdateMintIndex,
+          [mintIndex],
         ),
         returnValue: _i18.Future<void>.value(),
         returnValueForMissingStub: _i18.Future<void>.value(),

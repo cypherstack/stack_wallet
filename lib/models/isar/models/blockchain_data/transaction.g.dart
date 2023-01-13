@@ -17,64 +17,59 @@ const TransactionSchema = CollectionSchema(
   name: r'Transaction',
   id: 5320225499417954855,
   properties: {
-    r'address': PropertySchema(
-      id: 0,
-      name: r'address',
-      type: IsarType.string,
-    ),
     r'amount': PropertySchema(
-      id: 1,
+      id: 0,
       name: r'amount',
       type: IsarType.long,
     ),
     r'fee': PropertySchema(
-      id: 2,
+      id: 1,
       name: r'fee',
       type: IsarType.long,
     ),
     r'height': PropertySchema(
-      id: 3,
+      id: 2,
       name: r'height',
       type: IsarType.long,
     ),
     r'isCancelled': PropertySchema(
-      id: 4,
+      id: 3,
       name: r'isCancelled',
       type: IsarType.bool,
     ),
     r'isLelantus': PropertySchema(
-      id: 5,
+      id: 4,
       name: r'isLelantus',
       type: IsarType.bool,
     ),
     r'otherData': PropertySchema(
-      id: 6,
+      id: 5,
       name: r'otherData',
       type: IsarType.string,
     ),
     r'slateId': PropertySchema(
-      id: 7,
+      id: 6,
       name: r'slateId',
       type: IsarType.string,
     ),
     r'subType': PropertySchema(
-      id: 8,
+      id: 7,
       name: r'subType',
       type: IsarType.byte,
       enumMap: _TransactionsubTypeEnumValueMap,
     ),
     r'timestamp': PropertySchema(
-      id: 9,
+      id: 8,
       name: r'timestamp',
       type: IsarType.long,
     ),
     r'txid': PropertySchema(
-      id: 10,
+      id: 9,
       name: r'txid',
       type: IsarType.string,
     ),
     r'type': PropertySchema(
-      id: 11,
+      id: 10,
       name: r'type',
       type: IsarType.byte,
       enumMap: _TransactiontypeEnumValueMap,
@@ -90,7 +85,7 @@ const TransactionSchema = CollectionSchema(
       id: 7339874292043634331,
       name: r'txid',
       unique: true,
-      replace: true,
+      replace: false,
       properties: [
         IndexPropertySchema(
           name: r'txid',
@@ -114,6 +109,13 @@ const TransactionSchema = CollectionSchema(
     )
   },
   links: {
+    r'address': LinkSchema(
+      id: 2468609240108930288,
+      name: r'address',
+      target: r'Address',
+      single: true,
+      linkName: r'transaction',
+    ),
     r'inputs': LinkSchema(
       id: 4634425919890543640,
       name: r'inputs',
@@ -147,7 +149,6 @@ int _transactionEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  bytesCount += 3 + object.address.length * 3;
   {
     final value = object.otherData;
     if (value != null) {
@@ -170,18 +171,17 @@ void _transactionSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.address);
-  writer.writeLong(offsets[1], object.amount);
-  writer.writeLong(offsets[2], object.fee);
-  writer.writeLong(offsets[3], object.height);
-  writer.writeBool(offsets[4], object.isCancelled);
-  writer.writeBool(offsets[5], object.isLelantus);
-  writer.writeString(offsets[6], object.otherData);
-  writer.writeString(offsets[7], object.slateId);
-  writer.writeByte(offsets[8], object.subType.index);
-  writer.writeLong(offsets[9], object.timestamp);
-  writer.writeString(offsets[10], object.txid);
-  writer.writeByte(offsets[11], object.type.index);
+  writer.writeLong(offsets[0], object.amount);
+  writer.writeLong(offsets[1], object.fee);
+  writer.writeLong(offsets[2], object.height);
+  writer.writeBool(offsets[3], object.isCancelled);
+  writer.writeBool(offsets[4], object.isLelantus);
+  writer.writeString(offsets[5], object.otherData);
+  writer.writeString(offsets[6], object.slateId);
+  writer.writeByte(offsets[7], object.subType.index);
+  writer.writeLong(offsets[8], object.timestamp);
+  writer.writeString(offsets[9], object.txid);
+  writer.writeByte(offsets[10], object.type.index);
 }
 
 Transaction _transactionDeserialize(
@@ -191,22 +191,21 @@ Transaction _transactionDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Transaction();
-  object.address = reader.readString(offsets[0]);
-  object.amount = reader.readLong(offsets[1]);
-  object.fee = reader.readLong(offsets[2]);
-  object.height = reader.readLongOrNull(offsets[3]);
+  object.amount = reader.readLong(offsets[0]);
+  object.fee = reader.readLong(offsets[1]);
+  object.height = reader.readLongOrNull(offsets[2]);
   object.id = id;
-  object.isCancelled = reader.readBool(offsets[4]);
-  object.isLelantus = reader.readBoolOrNull(offsets[5]);
-  object.otherData = reader.readStringOrNull(offsets[6]);
-  object.slateId = reader.readStringOrNull(offsets[7]);
+  object.isCancelled = reader.readBool(offsets[3]);
+  object.isLelantus = reader.readBoolOrNull(offsets[4]);
+  object.otherData = reader.readStringOrNull(offsets[5]);
+  object.slateId = reader.readStringOrNull(offsets[6]);
   object.subType =
-      _TransactionsubTypeValueEnumMap[reader.readByteOrNull(offsets[8])] ??
+      _TransactionsubTypeValueEnumMap[reader.readByteOrNull(offsets[7])] ??
           TransactionSubType.none;
-  object.timestamp = reader.readLong(offsets[9]);
-  object.txid = reader.readString(offsets[10]);
+  object.timestamp = reader.readLong(offsets[8]);
+  object.txid = reader.readString(offsets[9]);
   object.type =
-      _TransactiontypeValueEnumMap[reader.readByteOrNull(offsets[11])] ??
+      _TransactiontypeValueEnumMap[reader.readByteOrNull(offsets[10])] ??
           TransactionType.outgoing;
   return object;
 }
@@ -219,29 +218,27 @@ P _transactionDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 1:
       return (reader.readLong(offset)) as P;
     case 2:
-      return (reader.readLong(offset)) as P;
-    case 3:
       return (reader.readLongOrNull(offset)) as P;
-    case 4:
+    case 3:
       return (reader.readBool(offset)) as P;
-    case 5:
+    case 4:
       return (reader.readBoolOrNull(offset)) as P;
+    case 5:
+      return (reader.readStringOrNull(offset)) as P;
     case 6:
       return (reader.readStringOrNull(offset)) as P;
     case 7:
-      return (reader.readStringOrNull(offset)) as P;
-    case 8:
       return (_TransactionsubTypeValueEnumMap[reader.readByteOrNull(offset)] ??
           TransactionSubType.none) as P;
-    case 9:
+    case 8:
       return (reader.readLong(offset)) as P;
-    case 10:
+    case 9:
       return (reader.readString(offset)) as P;
-    case 11:
+    case 10:
       return (_TransactiontypeValueEnumMap[reader.readByteOrNull(offset)] ??
           TransactionType.outgoing) as P;
     default:
@@ -279,12 +276,13 @@ Id _transactionGetId(Transaction object) {
 }
 
 List<IsarLinkBase<dynamic>> _transactionGetLinks(Transaction object) {
-  return [object.inputs, object.outputs, object.note];
+  return [object.address, object.inputs, object.outputs, object.note];
 }
 
 void _transactionAttach(
     IsarCollection<dynamic> col, Id id, Transaction object) {
   object.id = id;
+  object.address.attach(col, col.isar.collection<Address>(), r'address', id);
   object.inputs.attach(col, col.isar.collection<Input>(), r'inputs', id);
   object.outputs.attach(col, col.isar.collection<Output>(), r'outputs', id);
   object.note.attach(col, col.isar.collection<TransactionNote>(), r'note', id);
@@ -569,140 +567,6 @@ extension TransactionQueryWhere
 
 extension TransactionQueryFilter
     on QueryBuilder<Transaction, Transaction, QFilterCondition> {
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> addressEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'address',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      addressGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'address',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> addressLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'address',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> addressBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'address',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      addressStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'address',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> addressEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'address',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> addressContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'address',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> addressMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'address',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      addressIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'address',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      addressIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'address',
-        value: '',
-      ));
-    });
-  }
-
   QueryBuilder<Transaction, Transaction, QAfterFilterCondition> amountEqualTo(
       int value) {
     return QueryBuilder.apply(this, (query) {
@@ -1578,6 +1442,20 @@ extension TransactionQueryObject
 
 extension TransactionQueryLinks
     on QueryBuilder<Transaction, Transaction, QFilterCondition> {
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> address(
+      FilterQuery<Address> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.link(q, r'address');
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      addressIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'address', 0, true, 0, true);
+    });
+  }
+
   QueryBuilder<Transaction, Transaction, QAfterFilterCondition> inputs(
       FilterQuery<Input> q) {
     return QueryBuilder.apply(this, (query) {
@@ -1716,18 +1594,6 @@ extension TransactionQueryLinks
 
 extension TransactionQuerySortBy
     on QueryBuilder<Transaction, Transaction, QSortBy> {
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByAddress() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'address', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByAddressDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'address', Sort.desc);
-    });
-  }
-
   QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByAmount() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'amount', Sort.asc);
@@ -1863,18 +1729,6 @@ extension TransactionQuerySortBy
 
 extension TransactionQuerySortThenBy
     on QueryBuilder<Transaction, Transaction, QSortThenBy> {
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByAddress() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'address', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByAddressDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'address', Sort.desc);
-    });
-  }
-
   QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByAmount() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'amount', Sort.asc);
@@ -2022,13 +1876,6 @@ extension TransactionQuerySortThenBy
 
 extension TransactionQueryWhereDistinct
     on QueryBuilder<Transaction, Transaction, QDistinct> {
-  QueryBuilder<Transaction, Transaction, QDistinct> distinctByAddress(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'address', caseSensitive: caseSensitive);
-    });
-  }
-
   QueryBuilder<Transaction, Transaction, QDistinct> distinctByAmount() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'amount');
@@ -2104,12 +1951,6 @@ extension TransactionQueryProperty
   QueryBuilder<Transaction, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
-    });
-  }
-
-  QueryBuilder<Transaction, String, QQueryOperations> addressProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'address');
     });
   }
 

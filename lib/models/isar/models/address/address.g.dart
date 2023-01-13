@@ -55,7 +55,7 @@ const AddressSchema = CollectionSchema(
       id: -8658876004265234192,
       name: r'value',
       unique: true,
-      replace: true,
+      replace: false,
       properties: [
         IndexPropertySchema(
           name: r'value',
@@ -78,7 +78,14 @@ const AddressSchema = CollectionSchema(
       ],
     )
   },
-  links: {},
+  links: {
+    r'transaction': LinkSchema(
+      id: -7782495619063243587,
+      name: r'transaction',
+      target: r'Transaction',
+      single: true,
+    )
+  },
   embeddedSchemas: {},
   getId: _addressGetId,
   getLinks: _addressGetLinks,
@@ -185,11 +192,13 @@ Id _addressGetId(Address object) {
 }
 
 List<IsarLinkBase<dynamic>> _addressGetLinks(Address object) {
-  return [];
+  return [object.transaction];
 }
 
 void _addressAttach(IsarCollection<dynamic> col, Id id, Address object) {
   object.id = id;
+  object.transaction
+      .attach(col, col.isar.collection<Transaction>(), r'transaction', id);
 }
 
 extension AddressByIndex on IsarCollection<Address> {
@@ -952,7 +961,20 @@ extension AddressQueryObject
     on QueryBuilder<Address, Address, QFilterCondition> {}
 
 extension AddressQueryLinks
-    on QueryBuilder<Address, Address, QFilterCondition> {}
+    on QueryBuilder<Address, Address, QFilterCondition> {
+  QueryBuilder<Address, Address, QAfterFilterCondition> transaction(
+      FilterQuery<Transaction> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.link(q, r'transaction');
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> transactionIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'transaction', 0, true, 0, true);
+    });
+  }
+}
 
 extension AddressQuerySortBy on QueryBuilder<Address, Address, QSortBy> {
   QueryBuilder<Address, Address, QAfterSortBy> sortByDerivationIndex() {
