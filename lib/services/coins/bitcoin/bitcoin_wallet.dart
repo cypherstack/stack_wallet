@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:bech32/bech32.dart';
@@ -1998,15 +1997,15 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     }
   }
 
-  // bool _duplicateTxCheck(
-  //     List<Map<String, dynamic>> allTransactions, String txid) {
-  //   for (int i = 0; i < allTransactions.length; i++) {
-  //     if (allTransactions[i]["txid"] == txid) {
-  //       return true;
-  //     }
-  //   }
-  //   return false;
-  // }
+  bool _duplicateTxCheck(
+      List<Map<String, dynamic>> allTransactions, String txid) {
+    for (int i = 0; i < allTransactions.length; i++) {
+      if (allTransactions[i]["txid"] == txid) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   Future<void> _refreshTransactions() async {
     final List<isar_models.Address> allAddresses =
@@ -2041,14 +2040,14 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
           coin: coin,
         );
 
-        // if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
-        tx["address"] = await isar.addresses
-            .filter()
-            .valueEqualTo(txHash["address"] as String)
-            .findFirst();
-        tx["height"] = txHash["height"];
-        allTransactions.add(tx);
-        // }
+        if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
+          tx["address"] = await isar.addresses
+              .filter()
+              .valueEqualTo(txHash["address"] as String)
+              .findFirst();
+          tx["height"] = txHash["height"];
+          allTransactions.add(tx);
+        }
       }
     }
 
@@ -2064,13 +2063,10 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     // await fastFetch(vHashes.toList());
 
     final List<
-        Tuple3<isar_models.Transaction, List<isar_models.Output>,
-            List<isar_models.Input>>> txnsData = [];
+        Tuple4<isar_models.Transaction, List<isar_models.Output>,
+            List<isar_models.Input>, isar_models.Address>> txnsData = [];
 
     for (final txObject in allTransactions) {
-      print("=========================================================");
-      log(txObject.toString());
-
       final data = await parseTransaction(
         txObject,
         cachedElectrumXClient,
@@ -2102,6 +2098,16 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
           await tx.inputs.save();
         }
 
+        // check if address exists in db and add if it does not
+        if (await isar.addresses
+                .where()
+                .valueEqualTo(data.item4.value)
+                .findFirst() ==
+            null) {
+          await isar.addresses.put(data.item4);
+        }
+        // link and save address
+        tx.address.value = data.item4;
         await tx.address.save();
       }
     });
