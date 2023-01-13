@@ -1,6 +1,7 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/buy/response_objects/crypto.dart';
 import 'package:stackwallet/models/buy/response_objects/fiat.dart';
 import 'package:stackwallet/models/buy/response_objects/pair.dart';
@@ -8,6 +9,7 @@ import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dar
 import 'package:stackwallet/pages/buy_view/sub_widgets/fiat_crypto_toggle.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/fiat_selection_view.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -15,6 +17,7 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/textfields/buy_textfield.dart';
 
@@ -43,6 +46,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   final FocusNode _cryptoFocusNode = FocusNode();
 
   bool buyWithFiat = true;
+  bool _hovering1 = false;
+  bool _hovering2 = false;
 
   void fiatFieldOnChanged(String value) async {
     if (_fiatFocusNode.hasFocus) {
@@ -80,6 +85,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
 
   void selectCrypto() async {
     final fromTicker = ref.read(buyFormStateProvider).fromTicker ?? "-";
+    final supportedCoins = ref.watch(addWalletSelectedCoinStateProvider);
     // ref.read(estimatedRateExchangeFormProvider).from?.ticker ?? "-";
 
     // if (walletInitiated &&
@@ -488,30 +494,91 @@ class _BuyFormState extends ConsumerState<BuyForm> {
         SizedBox(
           height: isDesktop ? 10 : 4,
         ),
-        BuyTextField(
-          controller: _cryptoController,
-          focusNode: _cryptoFocusNode,
-          textStyle: STextStyles.smallMed14(context).copyWith(
-            color: Theme.of(context).extension<StackColors>()!.textDark,
+
+        // textStyle: STextStyles.smallMed14(context).copyWith(
+        //   color: Theme.of(context).extension<StackColors>()!.textDark,
+        // ),
+        // buttonColor:
+        // Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
+        // borderRadius: Constants.size.circularBorderRadius,
+        // background:
+        // Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
+
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          onEnter: (_) => setState(() => _hovering1 = true),
+          onExit: (_) => setState(() => _hovering1 = false),
+          child: GestureDetector(
+            onTap: () {
+              selectCrypto();
+            },
+            child: RoundedContainer(
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
+              color: _hovering1
+                  ? Theme.of(context)
+                      .extension<StackColors>()!
+                      .highlight
+                      .withOpacity(_hovering1 ? 0.3 : 0)
+                  : Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(children: <Widget>[
+                  SvgPicture.asset(
+                    Assets.svg.iconFor(
+                      coin: coinFromTickerCaseInsensitive("BTC"),
+                    ),
+                    height: 18,
+                    width: 18,
+                  ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  Expanded(
+                      child: Text(
+                    "BTC",
+                    style: STextStyles.largeMedium14(context),
+                  )),
+                  SvgPicture.asset(
+                    Assets.svg.chevronDown,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonTextSecondaryDisabled,
+                    width: 10,
+                    height: 5,
+                  ),
+                ]),
+              ),
+            ),
           ),
-          buttonColor:
-              Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
-          borderRadius: Constants.size.circularBorderRadius,
-          background:
-              Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
-          onTap: () {
-            if (_cryptoController.text == "-") {
-              _cryptoController.text = "";
-            }
-          },
-          onChanged: cryptoFieldOnChanged,
-          onButtonTap: selectCrypto,
-          isWalletCoin: isWalletCoin(coin, true),
-          image: _fetchIconUrlFromTicker(ref
-              .watch(buyFormStateProvider.select((value) => value.fromTicker))),
-          ticker: ref
-              .watch(buyFormStateProvider.select((value) => value.fromTicker)),
         ),
+
+        // BuyTextField(
+        //   //BuyCurrencySelect(
+        //   controller: _cryptoController,
+        //   focusNode: _cryptoFocusNode,
+        //   textStyle: STextStyles.smallMed14(context).copyWith(
+        //     color: Theme.of(context).extension<StackColors>()!.textDark,
+        //   ),
+        //   buttonColor:
+        //       Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
+        //   borderRadius: Constants.size.circularBorderRadius,
+        //   background:
+        //       Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
+        //   onTap: () {
+        //     if (_cryptoController.text == "-") {
+        //       _cryptoController.text = "";
+        //     }
+        //   },
+        //   onChanged: cryptoFieldOnChanged,
+        //   onButtonTap: selectCrypto,
+        //   isWalletCoin: isWalletCoin(coin, true),
+        //   image: _fetchIconUrlFromTicker(ref
+        //       .watch(buyFormStateProvider.select((value) => value.fromTicker))),
+        //   ticker: ref
+        //       .watch(buyFormStateProvider.select((value) => value.fromTicker)),
+        // ),
         SizedBox(
           height: isDesktop ? 20 : 12,
         ),
@@ -530,32 +597,95 @@ class _BuyFormState extends ConsumerState<BuyForm> {
         SizedBox(
           height: isDesktop ? 10 : 4,
         ),
-        BuyTextField(
-          controller: _fiatController,
-          focusNode: _fiatFocusNode,
-          textStyle: STextStyles.smallMed14(context).copyWith(
-            color: Theme.of(context).extension<StackColors>()!.textDark,
+
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          onEnter: (_) => setState(() => _hovering2 = true),
+          onExit: (_) => setState(() => _hovering2 = false),
+          child: GestureDetector(
+            onTap: () {
+              selectFiat();
+            },
+            child: RoundedContainer(
+              padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 6),
+              color: _hovering2
+                  ? Theme.of(context)
+                      .extension<StackColors>()!
+                      .highlight
+                      .withOpacity(_hovering2 ? 0.3 : 0)
+                  : Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(children: <Widget>[
+                  RoundedContainer(
+                    radiusMultiplier: 0.5,
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+                    color:
+                        Theme.of(context).extension<StackColors>()!.highlight,
+                    child: Text(
+                      "\$",
+                      style: STextStyles.itemSubtitle12(context),
+                    ),
+                  ),
+                  // SvgPicture.asset(
+                  //   Assets.svg.iconFor(
+                  //     coin: coinFromTickerCaseInsensitive("BTC"),
+                  //   ),
+                  //   height: 18,
+                  //   width: 18,
+                  // ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  Expanded(
+                      child: Text(
+                    "USD",
+                    style: STextStyles.largeMedium14(context),
+                  )),
+                  SvgPicture.asset(
+                    Assets.svg.chevronDown,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonTextSecondaryDisabled,
+                    width: 10,
+                    height: 5,
+                  ),
+                ]),
+              ),
+            ),
           ),
-          buttonColor:
-              Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
-          borderRadius: Constants.size.circularBorderRadius,
-          background:
-              Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
-          onTap: () {
-            if (_fiatController.text == "-") {
-              _fiatController.text = "";
-            }
-          },
-          onChanged: fiatFieldOnChanged,
-          onButtonTap: selectFiat,
-          isWalletCoin: isWalletCoin(coin, true),
-          image: _fetchIconUrlFromTicker(ref
-              .watch(buyFormStateProvider.select((value) => value.fromTicker))),
-          ticker: ref
-              .watch(buyFormStateProvider.select((value) => value.fromTicker)),
         ),
+
+        // BuyTextField(
+        //   //)BuyCurrencySelect(
+        //   controller: _fiatController,
+        //   focusNode: _fiatFocusNode,
+        //   textStyle: STextStyles.smallMed14(context).copyWith(
+        //     color: Theme.of(context).extension<StackColors>()!.textDark,
+        //   ),
+        //   buttonColor:
+        //       Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
+        //   borderRadius: Constants.size.circularBorderRadius,
+        //   background:
+        //       Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
+        //   onTap: () {
+        //     if (_fiatController.text == "-") {
+        //       _fiatController.text = "";
+        //     }
+        //   },
+        //   onChanged: fiatFieldOnChanged,
+        //   onButtonTap: selectFiat,
+        //   isWalletCoin: isWalletCoin(coin, true),
+        //   image: _fetchIconUrlFromTicker(ref
+        //       .watch(buyFormStateProvider.select((value) => value.fromTicker))),
+        //   ticker: ref
+        //       .watch(buyFormStateProvider.select((value) => value.fromTicker)),
+        // ),
         SizedBox(
-          height: isDesktop ? 20 : 12,
+          height: isDesktop ? 10 : 4,
         ),
         Row(
           crossAxisAlignment: CrossAxisAlignment.end,

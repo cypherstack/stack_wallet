@@ -31,7 +31,7 @@ class BuyDataLoadingService {
     if (response['supportedCryptos'] != null) {
       print(response['supportedCryptos']);
       ref
-          .read(availableSimplexCurrenciesProvider)
+          .read(supportedSimplexCurrenciesProvider)
           .updateSupportedCryptos(response['supportedCryptos']!);
     } else {
       error = true;
@@ -43,7 +43,7 @@ class BuyDataLoadingService {
     if (response['supportedFiats'] != null) {
       print(response['supportedFiats']);
       ref
-          .read(availableSimplexCurrenciesProvider)
+          .read(supportedSimplexCurrenciesProvider)
           .updateSupportedFiats(response['supportedFiats']!);
     } else {
       error = true;

@@ -2,7 +2,7 @@
 // import 'package:stackwallet/models/buy/response_objects/fiat.dart';
 // import 'package:stackwallet/models/buy/response_objects/pair.dart';
 
-class SimplexAvailableCurrencies {
+class SimplexSupportedCurrencies {
   dynamic supportedCryptos = [];
   dynamic supportedFiats = [];
 
