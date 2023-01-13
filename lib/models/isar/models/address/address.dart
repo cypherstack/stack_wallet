@@ -27,7 +27,7 @@ class Address extends CryptoCurrencyAddress {
   @enumerated
   late AddressSubType subType;
 
-  final transaction = IsarLink<Transaction>();
+  final transaction = IsarLinks<Transaction>();
 
   int derivationChain() {
     if (subType == AddressSubType.receiving) {

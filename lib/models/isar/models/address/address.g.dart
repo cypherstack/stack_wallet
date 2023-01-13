@@ -83,7 +83,7 @@ const AddressSchema = CollectionSchema(
       id: -7782495619063243587,
       name: r'transaction',
       target: r'Transaction',
-      single: true,
+      single: false,
     )
   },
   embeddedSchemas: {},
@@ -973,9 +973,56 @@ extension AddressQueryLinks
     });
   }
 
-  QueryBuilder<Address, Address, QAfterFilterCondition> transactionIsNull() {
+  QueryBuilder<Address, Address, QAfterFilterCondition>
+      transactionLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'transaction', length, true, length, true);
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> transactionIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(r'transaction', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition>
+      transactionIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'transaction', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition>
+      transactionLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'transaction', 0, true, length, include);
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition>
+      transactionLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'transaction', length, include, 999999, true);
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition>
+      transactionLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(
+          r'transaction', lower, includeLower, upper, includeUpper);
     });
   }
 }
