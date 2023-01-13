@@ -17,6 +17,7 @@ import 'package:epicpay/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:epicpay/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:epicpay/widgets/icon_widgets/x_icon.dart';
 import 'package:epicpay/widgets/rounded_container.dart';
+import 'package:epicpay/widgets/stack_dialog.dart';
 import 'package:epicpay/widgets/textfield_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -357,15 +358,51 @@ class _SendViewState extends ConsumerState<SendView> {
                         PrimaryButton(
                           label: "NEXT",
                           enabled: _addressToggleFlag,
-                          onPressed: () {
-                            Navigator.of(context).pushNamed(
-                              SendAmountView.routeName,
-                              arguments: Tuple3(
-                                ref.read(walletProvider)!.walletId,
-                                _address!,
-                                Coin.epicCash,
-                              ),
-                            );
+                          onPressed: () async {
+                            final bool isAddress = await ref
+                                .read(walletProvider)
+                                ?.isOwnAddress(_address!) as bool;
+
+                            isAddress
+                                ? await showDialog<dynamic>(
+                                    context: context,
+                                    useSafeArea: false,
+                                    barrierDismissible: true,
+                                    builder: (context) {
+                                      return StackDialog(
+                                        title: "Transaction failed",
+                                        message:
+                                            "Sending to self is currently disabled",
+                                        rightButton: TextButton(
+                                          style: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .getSecondaryEnabledButtonColor(
+                                                  context),
+                                          child: Text(
+                                            "Ok",
+                                            style:
+                                                STextStyles.buttonText(context)
+                                                    .copyWith(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .accentColorDark,
+                                            ),
+                                          ),
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : Navigator.of(context).pushNamed(
+                                    SendAmountView.routeName,
+                                    arguments: Tuple3(
+                                      ref.read(walletProvider)!.walletId,
+                                      _address!,
+                                      Coin.epicCash,
+                                    ),
+                                  );
                             debugPrint(_address!);
                           },
                         ),
