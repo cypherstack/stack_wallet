@@ -562,13 +562,15 @@ extension PayNym on DogecoinWallet {
   }
 }
 
-Future<Transaction> parseTransaction(
+Future<Tuple3<Transaction, List<Output>, List<Input>>> parseTransaction(
   Map<String, dynamic> txData,
   dynamic electrumxClient,
   List<Address> myAddresses,
   Coin coin,
   int minConfirms,
 ) async {
+  final transactionAddress = txData["address"] as Address;
+
   Set<String> receivingAddresses = myAddresses
       .where((e) => e.subType == AddressSubType.receiving)
       .map((e) => e.value)
@@ -672,7 +674,7 @@ Future<Transaction> parseTransaction(
 
   // this should be the address we used to originally fetch the tx so we should
   // be able to easily figure out if the tx is a send or receive
-  tx.address.value = txData["address"] as Address;
+  tx.address.value = transactionAddress;
 
   if (mySentFromAddresses.isNotEmpty && myReceivedOnAddresses.isNotEmpty) {
     // tx is sent to self
@@ -694,10 +696,13 @@ Future<Transaction> parseTransaction(
 
   tx.fee = fee;
 
-  log("tx.address: ${tx.address}");
+  log("transactionAddress: $transactionAddress");
   log("mySentFromAddresses: $mySentFromAddresses");
   log("myReceivedOnAddresses: $myReceivedOnAddresses");
   log("myChangeReceivedOnAddresses: $myChangeReceivedOnAddresses");
+
+  List<Output> outs = [];
+  List<Input> ins = [];
 
   for (final json in txData["vin"] as List) {
     bool isCoinBase = json['coinbase'] != null;
@@ -709,7 +714,7 @@ Future<Transaction> parseTransaction(
     input.isCoinbase = isCoinBase ? isCoinBase : json['is_coinbase'] as bool?;
     input.sequence = json['sequence'] as int?;
     input.innerRedeemScriptAsm = json['innerRedeemscriptAsm'] as String?;
-    tx.inputs.add(input);
+    ins.add(input);
   }
 
   for (final json in txData["vout"] as List) {
@@ -724,7 +729,7 @@ Future<Transaction> parseTransaction(
       Decimal.parse(json["value"].toString()),
       coin,
     );
-    tx.outputs.add(output);
+    outs.add(output);
   }
 
   tx.height = txData["height"] as int?;
@@ -735,5 +740,5 @@ Future<Transaction> parseTransaction(
   tx.otherData = null;
   tx.isLelantus = null;
 
-  return tx;
+  return Tuple3(tx, outs, ins);
 }

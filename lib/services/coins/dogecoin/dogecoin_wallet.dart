@@ -1887,7 +1887,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       // // we don't need to check this but it saves a write tx instead of overwriting the transaction in Isar
       // if (tx == null) {
       await isar.writeTxn(() async {
-        await isar.transactions.put(txn);
+        await isar.transactions.put(txn.item1);
       });
       // }
     }
