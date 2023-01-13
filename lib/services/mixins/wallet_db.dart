@@ -38,6 +38,13 @@ mixin WalletDB {
       for (final data in transactionsData) {
         final tx = data.item1;
 
+        final potentiallyUnconfirmedTx =
+            await isar.transactions.where().txidEqualTo(tx.txid).findFirst();
+        if (potentiallyUnconfirmedTx != null) {
+          // update use id to replace tx
+          tx.id = potentiallyUnconfirmedTx.id;
+          await isar.transactions.delete(potentiallyUnconfirmedTx.id);
+        }
         // save transaction
         await isar.transactions.put(tx);
 
