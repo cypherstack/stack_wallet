@@ -215,6 +215,15 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     int maxUnusedAddressGap,
     int maxNumberOfIndexesToCheck,
   ) async {
+    // clear blockchain info
+    await isar.writeTxn(() async {
+      await isar.transactions.clear();
+      await isar.inputs.clear();
+      await isar.outputs.clear();
+      await isar.utxos.clear();
+      await isar.addresses.clear();
+    });
+
     var restoreHeight = walletBase?.walletInfo.restoreHeight;
     highestPercentCached = 0;
     await walletBase?.rescan(height: restoreHeight);

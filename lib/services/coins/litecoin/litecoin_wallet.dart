@@ -2823,6 +2823,15 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     // back up data
     // await _rescanBackup();
 
+    // clear blockchain info
+    await isar.writeTxn(() async {
+      await isar.transactions.clear();
+      await isar.inputs.clear();
+      await isar.outputs.clear();
+      await isar.utxos.clear();
+      await isar.addresses.clear();
+    });
+
     try {
       final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
       await _recoverWalletFromBIP32SeedPhrase(

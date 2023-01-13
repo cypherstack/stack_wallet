@@ -904,6 +904,15 @@ class EpicCashWallet extends CoinServiceAPI
         ),
       );
 
+      // clear blockchain info
+      await isar.writeTxn(() async {
+        await isar.transactions.clear();
+        await isar.inputs.clear();
+        await isar.outputs.clear();
+        await isar.utxos.clear();
+        await isar.addresses.clear();
+      });
+
       await epicUpdateLastScannedBlock(await getRestoreHeight());
 
       if (!await startScans()) {

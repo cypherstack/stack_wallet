@@ -1992,8 +1992,6 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
           coin: coin,
         );
 
-        // Logging.instance.log("TRANSACTION: ${jsonEncode(tx)}");
-        // TODO fix this for sent to self transactions?
         if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
           tx["address"] = await isar.addresses
               .filter()
@@ -2897,6 +2895,15 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
     // back up data
     // await _rescanBackup();
+
+    // clear blockchain info
+    await isar.writeTxn(() async {
+      await isar.transactions.clear();
+      await isar.inputs.clear();
+      await isar.outputs.clear();
+      await isar.utxos.clear();
+      await isar.addresses.clear();
+    });
 
     try {
       final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
