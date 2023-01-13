@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/buy/response_objects/crypto.dart';
 import 'package:stackwallet/models/buy/response_objects/fiat.dart';
-import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/fiat_crypto_toggle.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/fiat_selection_view.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -77,30 +76,6 @@ class _BuyFormState extends ConsumerState<BuyForm> {
         coins: coins,
         onSelected: (from) =>
             ref.read(buyFormStateProvider).updateFrom(from, true));
-
-    // unawaited(
-    //   showDialog<void>(
-    //     context: context,
-    //     barrierDismissible: false,
-    //     builder: (_) => WillPopScope(
-    //       onWillPop: () async => false,
-    //       child: Container(
-    //         color: Theme.of(context)
-    //             .extension<StackColors>()!
-    //             .overlay
-    //             .withOpacity(0.6),
-    //         child: const CustomLoadingOverlay(
-    //           message: "Updating exchange rate",
-    //           eventBus: null,
-    //         ),
-    //       ),
-    //     ),
-    //   ),
-    // );
-
-    await Future<void>.delayed(const Duration(milliseconds: 300));
-
-    Navigator.of(context, rootNavigator: true).pop();
   }
 
   Future<void> _showFloatingCryptoSelectionSheet({
@@ -127,7 +102,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             left: 32,
                           ),
                           child: Text(
-                            "Choose a crypto to buy",
+                            "Choose a fiat currency with which to pay",
                             style: STextStyles.desktopH3(context),
                           ),
                         ),
@@ -149,8 +124,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                 borderColor: Theme.of(context)
                                     .extension<StackColors>()!
                                     .background,
-                                child: CryptoSelectionView(
-                                  coins: coins,
+                                child: FiatSelectionView(
+                                  fiats: coins,
                                 ),
                               ),
                             ),
@@ -164,13 +139,13 @@ class _BuyFormState extends ConsumerState<BuyForm> {
             })
         : await Navigator.of(context).push(
             MaterialPageRoute<dynamic>(
-              builder: (_) => CryptoSelectionView(
-                coins: coins,
+              builder: (_) => FiatSelectionView(
+                fiats: coins,
               ),
             ),
           );
 
-    if (mounted && result is Crypto) {
+    if (mounted && result is Fiat) {
       onSelected(result);
     }
   }
@@ -193,7 +168,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     _cryptoFocusNode.unfocus();
 
     final result = isDesktop
-        ? await showDialog<Crypto?>(
+        ? await showDialog<Fiat?>(
             context: context,
             builder: (context) {
               return DesktopDialog(
