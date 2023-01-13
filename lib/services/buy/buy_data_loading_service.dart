@@ -16,10 +16,9 @@ class BuyDataLoadingService {
   }
 
   Future<void> _loadSimplexCurrencies(WidgetRef ref) async {
-    // if (ref
-    //         .read(changeNowEstimatedInitialLoadStatusStateProvider.state)
-    //         .state ==
-    //     ChangeNowLoadStatus.loading) {
+    bool error = false;
+    // if (ref.read(simplexLoadStatusStateProvider.state).state ==
+    //     SimplexLoadStatus.loading) {
     //   // already in progress so just
     //   return;
     // }
@@ -27,65 +26,38 @@ class BuyDataLoadingService {
     ref.read(simplexLoadStatusStateProvider.state).state =
         SimplexLoadStatus.loading;
 
-    print(11);
-
     final response = await SimplexAPI.instance.getSupported();
 
-    return;
-    // if (response.value != null) {
-    //   ref
-    //       .read(availableChangeNowCurrenciesProvider)
-    //       .updateCurrencies(response.value!);
-    //
-    //   if (response2.value != null) {
-    //     ref
-    //         .read(availableChangeNowCurrenciesProvider)
-    //         .updateFloatingPairs(response2.value!);
-    //
-    //     String fromTicker = "btc";
-    //     String toTicker = "xmr";
-    //
-    //     if (coin != null) {
-    //       fromTicker = coin.ticker.toLowerCase();
-    //     }
-    //
-    //     if (response.value!.length > 1) {
-    //       if (ref.read(buyFormStateProvider).from == null) {
-    //         if (response.value!
-    //             .where((e) => e.ticker == fromTicker)
-    //             .isNotEmpty) {
-    //           await ref.read(buyFormStateProvider).updateFrom(
-    //               response.value!.firstWhere((e) => e.ticker == fromTicker),
-    //               false);
-    //         }
-    //       }
-    //       if (ref.read(buyFormStateProvider).to == null) {
-    //         if (response.value!.where((e) => e.ticker == toTicker).isNotEmpty) {
-    //           await ref.read(buyFormStateProvider).updateTo(
-    //               response.value!.firstWhere((e) => e.ticker == toTicker),
-    //               false);
-    //         }
-    //       }
-    //     }
-    //   } else {
-    //     Logging.instance.log(
-    //         "Failed to load changeNOW available floating rate pairs: ${response2.exception?.errorMessage}",
-    //         level: LogLevel.Error);
-    //     ref.read(changeNowEstimatedInitialLoadStatusStateProvider.state).state =
-    //         ChangeNowLoadStatus.failed;
-    //     return;
-    //   }
-    // } else {
-    //   Logging.instance.log(
-    //       "Failed to load changeNOW currencies: ${response.exception?.errorMessage}",
-    //       level: LogLevel.Error);
-    //   await Future<void>.delayed(const Duration(seconds: 3));
-    //   ref.read(changeNowEstimatedInitialLoadStatusStateProvider.state).state =
-    //       ChangeNowLoadStatus.failed;
-    //   return;
-    // }
-    //
-    // ref.read(changeNowEstimatedInitialLoadStatusStateProvider.state).state =
-    //     ChangeNowLoadStatus.success;
+    if (response['supportedCryptos'] != null) {
+      print(response['supportedCryptos']);
+      ref
+          .read(availableSimplexCurrenciesProvider)
+          .updateSupportedCryptos(response['supportedCryptos']!);
+    } else {
+      error = true;
+      Logging.instance.log(
+        "_loadSimplexCurrencies: $response",
+        level: LogLevel.Warning,
+      );
+    }
+    if (response['supportedFiats'] != null) {
+      print(response['supportedFiats']);
+      ref
+          .read(availableSimplexCurrenciesProvider)
+          .updateSupportedFiats(response['supportedFiats']!);
+    } else {
+      error = true;
+      Logging.instance.log(
+        "_loadSimplexCurrencies: $response",
+        level: LogLevel.Warning,
+      );
+    }
+
+    if (error) {
+      // _loadSimplexCurrencies() again?
+    } else {
+      ref.read(changeNowEstimatedInitialLoadStatusStateProvider.state).state =
+          ChangeNowLoadStatus.success;
+    }
   }
 }

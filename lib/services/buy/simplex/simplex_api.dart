@@ -26,53 +26,53 @@ class SimplexAPI {
     return Uri.https(authority, path, params);
   }
 
-  Future<dynamic> _makeGetRequest(Uri uri) async {
-    final client = this.client ?? http.Client();
-    int code = -1;
-    try {
-      final response = await client.get(
-        uri,
-      );
-
-      code = response.statusCode;
-
-      final parsed = jsonDecode(response.body);
-
-      return parsed;
-    } catch (e, s) {
-      Logging.instance.log(
-        "_makeRequest($uri) HTTP:$code threw: $e\n$s",
-        level: LogLevel.Error,
-      );
-      rethrow;
-    }
-  }
-
-  Future<dynamic> _makePostRequest(
-    Uri uri,
-    Map<String, dynamic> body,
-  ) async {
-    final client = this.client ?? http.Client();
-    try {
-      final response = await client.post(
-        uri,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
-      );
-
-      if (response.statusCode == 200) {
-        final parsed = jsonDecode(response.body);
-        return parsed;
-      }
-
-      throw Exception("response: ${response.body}");
-    } catch (e, s) {
-      Logging.instance
-          .log("_makeRequest($uri) threw: $e\n$s", level: LogLevel.Error);
-      rethrow;
-    }
-  }
-
+  // Future<dynamic> _makeGetRequest(Uri uri) async {
+  //   final client = this.client ?? http.Client();
+  //   int code = -1;
+  //   try {
+  //     final response = await client.get(
+  //       uri,
+  //     );
+  //
+  //     code = response.statusCode;
+  //
+  //     final parsed = jsonDecode(response.body);
+  //
+  //     return parsed;
+  //   } catch (e, s) {
+  //     Logging.instance.log(
+  //       "_makeRequest($uri) HTTP:$code threw: $e\n$s",
+  //       level: LogLevel.Error,
+  //     );
+  //     rethrow;
+  //   }
+  // }
+  //
+  // Future<dynamic> _makePostRequest(
+  //   Uri uri,
+  //   Map<String, dynamic> body,
+  // ) async {
+  //   final client = this.client ?? http.Client();
+  //   try {
+  //     final response = await client.post(
+  //       uri,
+  //       headers: {'Content-Type': 'application/json'},
+  //       body: jsonEncode(body),
+  //     );
+  //
+  //     if (response.statusCode == 200) {
+  //       final parsed = jsonDecode(response.body);
+  //       return parsed;
+  //     }
+  //
+  //     throw Exception("response: ${response.body}");
+  //   } catch (e, s) {
+  //     Logging.instance
+  //         .log("_makeRequest($uri) threw: $e\n$s", level: LogLevel.Error);
+  //     rethrow;
+  //   }
+  // }
+  //
   // Future<ExchangeResponse<Trade>> createNewExchange({
   //   required bool isFixedRate,
   //   required String currencyFrom,
@@ -163,10 +163,7 @@ class SimplexAPI {
             'getAvailableCurrencies exception: statusCode= ${res.statusCode}');
       }
 
-      print(res.body);
       dynamic jsonArray = jsonDecode(res.body);
-
-      print(jsonArray);
 
       return await compute(_parseSupported, jsonArray);
     } catch (e, s) {
@@ -181,25 +178,30 @@ class SimplexAPI {
     }
   }
 
-  BuyResponse<List<Fiat>> _parseSupported(dynamic jsonArray) {
+  dynamic /*BuyResponse<List<Fiat>>*/ _parseSupported(dynamic jsonArray) {
     try {
       List<Fiat> cryptos = [];
       List<Fiat> fiats = [];
 
-      for (final json in jsonArray) {
-      dynamic supportedCryptos =
+      var supportedCryptos =
           jsonArray['result']['supported_digital_currencies'];
-      print(supportedCryptos);
-          return BuyResponse(
-              exception: BuyException("Failed to serialize $json",
-                  BuyExceptionType.serializeResponseError));
-      dynamic supportedFiats = jsonArray['result']['supported_fiat_currencies'];
-      print(supportedFiats);
+      // for (final ticker in supportedCryptos as List) {
+      //   cryptos.add(Fiat.fromString(ticker as String));
+      // }
+      var supportedFiats = jsonArray['result']['supported_fiat_currencies'];
+      // for (final ticker in supportedFiats as List) {
+      //   fiats.add(Fiat.fromString(ticker as String));
+      // }
 
-      return BuyResponse(value: cryptos);
+      var supported = {
+        'supportedCryptos': supportedCryptos,
+        'supportedFiats': supportedFiats
+      };
+
+      return supported;
     } catch (e, s) {
-      Logging.instance.log("_parseAvailableCurrenciesJson exception: $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance
+          .log("_parseSupported exception: $e\n$s", level: LogLevel.Error);
       return BuyResponse(
         exception: BuyException(
           e.toString(),
