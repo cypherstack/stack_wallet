@@ -2029,21 +2029,31 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
     List<Map<String, dynamic>> allTransactions = [];
 
-    for (final txHash in allReceivingTxHashes) {
-      final tx = await cachedElectrumXClient.getTransaction(
-        txHash: txHash["tx_hash"] as String,
-        verbose: true,
-        coin: coin,
-      );
+    final currentHeight = await chainHeight;
 
-      // if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
-      tx["address"] = await isar.addresses
-          .filter()
-          .valueEqualTo(txHash["address"] as String)
+    for (final txHash in allReceivingTxHashes) {
+      final storedTx = await isar.transactions
+          .where()
+          .txidEqualTo(txHash["tx_hash"] as String)
           .findFirst();
-      tx["height"] = txHash["height"];
-      allTransactions.add(tx);
-      // }
+
+      if (storedTx == null ||
+          !storedTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)) {
+        final tx = await cachedElectrumXClient.getTransaction(
+          txHash: txHash["tx_hash"] as String,
+          verbose: true,
+          coin: coin,
+        );
+
+        // if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
+        tx["address"] = await isar.addresses
+            .filter()
+            .valueEqualTo(txHash["address"] as String)
+            .findFirst();
+        tx["height"] = txHash["height"];
+        allTransactions.add(tx);
+        // }
+      }
     }
 
     Set<String> vHashes = {};
@@ -2059,10 +2069,8 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     final List<isar_models.Transaction> txns = [];
 
     for (final txObject in allTransactions) {
-      final pretty = const JsonEncoder.withIndent("    ").convert(txObject);
-
       print("=========================================================");
-      log(pretty);
+      log(txObject.toString());
 
       final txn = await parseTransaction(
         txObject,
@@ -2075,6 +2083,8 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       txns.add(txn);
     }
     await isar.writeTxn(() async {
+      await isar.transactions
+          .deleteAllByTxid(txns.map((e) => e.txid).toList(growable: false));
       await isar.transactions.putAll(txns);
     });
   }
