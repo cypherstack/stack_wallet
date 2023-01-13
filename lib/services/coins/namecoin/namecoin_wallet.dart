@@ -2103,7 +2103,10 @@ class NamecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
         // Logging.instance.log("TRANSACTION: ${jsonEncode(tx)}");
         if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
-          tx["address"] = txHash["address"];
+          tx["address"] = await isar.addresses
+              .filter()
+              .valueEqualTo(txHash["address"] as String)
+              .findFirst();
           tx["height"] = txHash["height"];
           allTransactions.add(tx);
         }
