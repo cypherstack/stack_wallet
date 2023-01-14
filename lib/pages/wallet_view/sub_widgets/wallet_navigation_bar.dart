@@ -195,16 +195,18 @@ class WalletNavigationBar extends StatelessWidget {
                   ),
                 ),
               ),
-            const SizedBox(
-              width: 12,
-            ),
-            // TODO: Do not delete this code.
-            // only temporarily disabled
-            Spacer(
-              flex: 2,
-            ),
-            GestureDetector(
-              onTap: onBuyPressed,
+            RawMaterialButton(
+              constraints: const BoxConstraints(
+                minWidth: 66,
+              ),
+              onPressed: onExchangePressed,
+              splashColor:
+                  Theme.of(context).extension<StackColors>()!.highlight,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                  height / 2.0,
+                ),
+              ),
               child: Container(
                 color: Colors.transparent,
                 child: Padding(
@@ -212,24 +214,29 @@ class WalletNavigationBar extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Spacer(),
+                      const Spacer(),
                       SvgPicture.asset(
+                        // Assets.svg.exchange(context),
+                        // TODO change icon
                         Assets.svg.buyDesktop,
                         width: 24,
                         height: 24,
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 4,
                       ),
                       Text(
                         "Buy",
                         style: STextStyles.buttonSmall(context),
                       ),
-                      Spacer(),
+                      const Spacer(),
                     ],
                   ),
                 ),
               ),
+            ),
+            const SizedBox(
+              width: 12,
             ),
           ],
         ),
