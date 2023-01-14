@@ -104,6 +104,16 @@ class _HomeViewState extends ConsumerState<HomeView> {
   //   }
   // }
 
+  bool _lock = false;
+
+  Future<void> _animateToPage(int index) async {
+    await _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.decelerate,
+    );
+  }
+
   @override
   void initState() {
     _pageController = PageController();
@@ -315,38 +325,31 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   builder: (_, _ref, __) {
                     _ref.listen(homeViewPageIndexStateProvider,
                         (previous, next) {
-                      if (next is int) {
+                      if (next is int && next >= 0 && next <= 2) {
                         if (next == 1) {
                           _exchangeDataLoadingService.loadAll(ref);
                         }
                         // if (next == 2) {
                         //   _buyDataLoadingService.loadAll(ref);
                         // }
-                        if (next >= 0 && next <= 2) {
-                          _pageController.animateToPage(
-                            next,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.decelerate,
-                          );
-                        }
+
+                        _lock = true;
+                        _animateToPage(next).then((value) => _lock = false);
                       }
                     });
                     return PageView(
                       controller: _pageController,
                       children: _children,
                       onPageChanged: (pageIndex) {
-                        ref.read(homeViewPageIndexStateProvider.state).state =
-                            pageIndex;
+                        if (!_lock) {
+                          ref.read(homeViewPageIndexStateProvider.state).state =
+                              pageIndex;
+                        }
                       },
                     );
                   },
                 ),
               ),
-              // Expanded(
-              //   child: HomeStack(
-              //     children: _children,
-              //   ),
-              // ),
             ],
           ),
         ),
