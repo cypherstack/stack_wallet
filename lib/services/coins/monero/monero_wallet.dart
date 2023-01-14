@@ -909,6 +909,7 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         txn.height = txHeight;
 
         txn.isCancelled = false;
+        txn.isLelantus = null;
         txn.slateId = null;
         txn.otherData = null;
 
