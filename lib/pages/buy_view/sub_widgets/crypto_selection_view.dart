@@ -174,88 +174,6 @@ class _CryptoSelectionViewState extends State<CryptoSelectionView> {
             height: 10,
           ),
           Text(
-            "Popular coins",
-            style: STextStyles.smallMed12(context),
-          ),
-          const SizedBox(
-            height: 12,
-          ),
-          Flexible(
-            child: Builder(builder: (context) {
-              final items = _coins
-                  .where((e) => Coin.values
-                      .where((coin) =>
-                          coin.ticker.toLowerCase() == e.ticker.toLowerCase())
-                      .isNotEmpty)
-                  .toList(growable: false);
-
-              return RoundedWhiteContainer(
-                padding: const EdgeInsets.all(0),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  primary: isDesktop ? false : null,
-                  itemCount: items.length,
-                  itemBuilder: (builderContext, index) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).pop(items[index]);
-                        },
-                        child: RoundedWhiteContainer(
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: SvgPicture.network(
-                                  items[index].image,
-                                  width: 24,
-                                  height: 24,
-                                  placeholderBuilder: (_) =>
-                                      const LoadingIndicator(),
-                                ),
-                              ),
-                              const SizedBox(
-                                width: 10,
-                              ),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      items[index].name,
-                                      style: STextStyles.largeMedium14(context),
-                                    ),
-                                    const SizedBox(
-                                      height: 2,
-                                    ),
-                                    Text(
-                                      items[index].ticker.toUpperCase(),
-                                      style: STextStyles.smallMed12(context)
-                                          .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textSubtitle1,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              );
-            }),
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          Text(
             "All coins",
             style: STextStyles.smallMed12(context),
           ),
@@ -282,13 +200,15 @@ class _CryptoSelectionViewState extends State<CryptoSelectionView> {
                             SizedBox(
                               width: 24,
                               height: 24,
-                              child: SvgPicture.network(
-                                _coins[index].image,
-                                width: 24,
-                                height: 24,
-                                placeholderBuilder: (_) =>
-                                    const LoadingIndicator(),
-                              ),
+                              child: _coins[index].image.isNotEmpty
+                                  ? SvgPicture.network(
+                                      _coins[index].image,
+                                      width: 24,
+                                      height: 24,
+                                      placeholderBuilder: (_) =>
+                                          const LoadingIndicator(),
+                                    )
+                                  : null,
                             ),
                             const SizedBox(
                               width: 10,

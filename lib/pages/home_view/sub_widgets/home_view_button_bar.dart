@@ -124,7 +124,7 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
             ),
           ),
         ),
-        SizedBox(
+        const SizedBox(
           width: 8,
         ),
         Expanded(
