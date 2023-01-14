@@ -20,6 +20,7 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
@@ -74,9 +75,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
         ref.watch(supportedSimplexCurrenciesProvider).supportedCryptos;
 
     await _showFloatingCryptoSelectionSheet(
-        coins: supportedCoins,
-        onSelected: (from) =>
-            ref.read(buyFormStateProvider).updateFrom(from, true));
+        coins: supportedCoins, onSelected: (_) {});
   }
 
   Future<void> _showFloatingCryptoSelectionSheet({
@@ -156,9 +155,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
         ref.watch(supportedSimplexCurrenciesProvider).supportedFiats;
 
     await _showFloatingFiatSelectionSheet(
-        fiats: supportedFiats,
-        onSelected: (from) =>
-            ref.read(buyFormStateProvider).updateFrom(from, true));
+        fiats: supportedFiats, onSelected: (_) {});
   }
 
   Future<void> _showFloatingFiatSelectionSheet({
@@ -236,46 +233,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   String? _fetchIconUrlFromTicker(String? ticker) {
     if (ticker == null) return null;
 
-    // Iterable<Crypto> possibleCurrencies;
-    //
-    // switch (ref.read(currentExchangeNameStateProvider.state).state) {
-    //   case ChangeNowExchange.exchangeName:
-    //     possibleCurrencies = ref
-    //         .read(availableChangeNowCurrenciesProvider)
-    //         .coins
-    //         .where((e) => e.ticker.toUpperCase() == ticker.toUpperCase());
-    //     break;
-    //   default:
-    //     possibleCurrencies = [];
-    // }
-    //
-    // for (final Crypto in possibleCurrencies) {
-    //   if (Crypto.image.isNotEmpty) {
-    //     return Crypto.image;
-    //   }
-    // }
-
     return null;
-  }
-
-  bool isWalletCoin(Coin? coin, bool isSend) {
-    if (coin == null) {
-      return false;
-    }
-
-    String? ticker;
-
-    if (isSend) {
-      ticker = ref.read(buyFormStateProvider).fromTicker;
-    } else {
-      ticker = ref.read(buyFormStateProvider).toTicker;
-    }
-
-    if (ticker == null) {
-      return false;
-    }
-
-    return coin.ticker.toUpperCase() == ticker.toUpperCase();
   }
 
   @override
@@ -760,31 +718,18 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 ),
               ),
             ),
-            // BuyTextField(
-            //   //)BuyCurrencySelect(
-            //   controller: _fiatController,
-            //   focusNode: _fiatFocusNode,
-            //   textStyle: STextStyles.smallMed14(context).copyWith(
-            //     color: Theme.of(context).extension<StackColors>()!.textDark,
-            //   ),
-            //   buttonColor:
-            //       Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
-            //   borderRadius: Constants.size.circularBorderRadius,
-            //   background:
-            //       Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
-            //   onTap: () {
-            //     if (_fiatController.text == "-") {
-            //       _fiatController.text = "";
-            //     }
-            //   },
-            //   onChanged: fiatFieldOnChanged,
-            //   onButtonTap: selectFiat,
-            //   isWalletCoin: isWalletCoin(coin, true),
-            //   image: _fetchIconUrlFromTicker(ref
-            //       .watch(buyFormStateProvider.select((value) => value.fromTicker))),
-            //   ticker: ref
-            //       .watch(buyFormStateProvider.select((value) => value.fromTicker)),
-            // ),
+            SizedBox(
+              height: isDesktop ? 20 : 12,
+            ),
+            PrimaryButton(
+              buttonHeight: isDesktop ? ButtonHeight.l : null,
+              enabled: ref.watch(exchangeFormStateProvider
+                  .select((value) => value.canExchange)),
+              onPressed: () {
+                // TODO implement buy confirmation dialog
+              },
+              label: "Exchange",
+            )
           ],
         ));
   }
