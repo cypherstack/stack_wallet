@@ -11,17 +11,17 @@ class BuyView extends StatefulWidget {
 class _BuyViewState extends State<BuyView> {
   @override
   Widget build(BuildContext context) {
-    //todo: check if print needed
-    // debugPrint("BUILD: BuyView");
+    debugPrint("BUILD: $runtimeType");
 
-    return SafeArea(
-        child: Padding(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 16,
+    return const SafeArea(
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+        ),
+        child: BuyForm(),
       ),
-      child: BuyForm(),
-    ));
+    );
   }
 }
