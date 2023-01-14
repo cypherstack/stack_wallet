@@ -293,9 +293,9 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         if (Constants.enableExchange) {
           unawaited(ExchangeDataLoadingService().loadAll(ref));
         }
-        if (Constants.enableBuy) {
-          unawaited(BuyDataLoadingService().loadAll(ref));
-        }
+        // if (Constants.enableBuy) {
+        //   unawaited(BuyDataLoadingService().loadAll(ref));
+        // }
       }
 
       if (ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled) {

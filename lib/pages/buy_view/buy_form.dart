@@ -7,7 +7,6 @@ import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dar
 import 'package:stackwallet/pages/buy_view/sub_widgets/fiat_crypto_toggle.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/fiat_selection_view.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/buy/buy_data_loading_service.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
@@ -247,10 +246,10 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     coins = ref.read(supportedSimplexCurrenciesProvider).supportedCryptos;
     fiats = ref.read(supportedSimplexCurrenciesProvider).supportedFiats;
 
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      BuyDataLoadingService().loadAll(
-          ref); // Why does this need to be called here?  Shouldn't it already be called by main.dart?
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+    //   BuyDataLoadingService().loadAll(
+    //       ref); // Why does this need to be called here?  Shouldn't it already be called by main.dart?
+    // });
 
     // TODO set initial crypto to open wallet if a wallet is open
 
