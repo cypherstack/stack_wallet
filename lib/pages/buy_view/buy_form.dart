@@ -72,7 +72,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
 
   void selectCrypto() async {
     final supportedCoins =
-        ref.watch(supportedSimplexCurrenciesProvider).supportedCryptos;
+        ref.read(supportedSimplexCurrenciesProvider).supportedCryptos;
 
     await _showFloatingCryptoSelectionSheet(
         coins: supportedCoins, onSelected: (_) {});
@@ -152,7 +152,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
 
   void selectFiat() async {
     final supportedFiats =
-        ref.watch(supportedSimplexCurrenciesProvider).supportedFiats;
+        ref.read(supportedSimplexCurrenciesProvider).supportedFiats;
 
     await _showFloatingFiatSelectionSheet(
         fiats: supportedFiats, onSelected: (_) {});
