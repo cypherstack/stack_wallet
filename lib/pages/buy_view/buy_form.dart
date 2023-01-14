@@ -264,6 +264,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     buyWithFiat = ref.watch(
         prefsChangeNotifierProvider.select((value) => value.buyWithFiat));
 
+    BuyDataLoadingService().loadAll(
+        ref); // Why does this need to be called here?  Shouldn't it already be called by main.dart?
+
     return Container(
         width:
             458, // TODO test that this displays well on mobile or else put in a ternary or something else appropriate to switch here
@@ -286,7 +289,6 @@ class _BuyFormState extends ConsumerState<BuyForm> {
               onExit: (_) => setState(() => _hovering1 = false),
               child: GestureDetector(
                 onTap: () {
-                  BuyDataLoadingService().loadAll(ref);
                   selectCrypto();
                 },
                 child: RoundedContainer(
