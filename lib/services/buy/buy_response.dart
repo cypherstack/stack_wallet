@@ -12,8 +12,8 @@ class BuyException implements Exception {
 }
 
 class BuyResponse<T> {
-  late final T? value;
-  late final BuyException? exception;
+  final T? value;
+  final BuyException? exception;
 
   BuyResponse({this.value, this.exception});
 

@@ -28,10 +28,10 @@ class BuyDataLoadingService {
 
     final response = await SimplexAPI.instance.getSupported();
 
-    if (response['supportedCryptos'] != null) {
+    if (response.value != null) {
       ref
           .read(supportedSimplexCurrenciesProvider)
-          .updateSupportedCryptos(response['supportedCryptos']);
+          .updateSupportedCryptos(response.value!.item1);
     } else {
       error = true;
       Logging.instance.log(
@@ -40,10 +40,10 @@ class BuyDataLoadingService {
       );
     }
 
-    if (response['supportedFiats'] != null) {
+    if (response.value != null) {
       ref
           .read(supportedSimplexCurrenciesProvider)
-          .updateSupportedFiats(response['supportedFiats']);
+          .updateSupportedFiats(response.value!.item2);
     } else {
       error = true;
       Logging.instance.log(

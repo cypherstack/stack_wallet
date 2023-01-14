@@ -11,6 +11,7 @@ import 'package:stackwallet/models/buy/response_objects/fiat.dart';
 // import 'package:stackwallet/models/buy/response_objects/crypto.dart';
 import 'package:stackwallet/services/buy/buy_response.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:tuple/tuple.dart';
 
 class SimplexAPI {
   static const String scheme = "https";
@@ -141,7 +142,7 @@ class SimplexAPI {
   //   }
   // }
 
-  dynamic /*Future<BuyResponse<List<Fiat>>>*/ getSupported() async {
+  Future<BuyResponse<Tuple2<List<Crypto>, List<Fiat>>>> getSupported() async {
     // example for quote courtesy of @danrmiller
     // curl -H "Content-Type: application/json" -d '{"digital_currency": "BTC", "fiat_currency": "USD", "requested_currency": "USD", "requested_amount": 100}' http://sandbox-api.stackwallet.com/quote
     // official docs reference eg
@@ -164,7 +165,7 @@ class SimplexAPI {
             'getAvailableCurrencies exception: statusCode= ${res.statusCode}');
       }
 
-      dynamic jsonArray = jsonDecode(res.body);
+      final jsonArray = jsonDecode(res.body);
 
       return await compute(_parseSupported, jsonArray);
     } catch (e, s) {
@@ -179,7 +180,8 @@ class SimplexAPI {
     }
   }
 
-  dynamic /*BuyResponse<List<Fiat>>*/ _parseSupported(dynamic jsonArray) {
+  BuyResponse<Tuple2<List<Crypto>, List<Fiat>>> _parseSupported(
+      dynamic jsonArray) {
     try {
       List<Crypto> cryptos = [];
       List<Fiat> fiats = [];
@@ -204,9 +206,7 @@ class SimplexAPI {
         }));
       }
 
-      var supported = {'supportedCryptos': cryptos, 'supportedFiats': fiats};
-
-      return supported;
+      return BuyResponse(value: Tuple2(cryptos, fiats));
     } catch (e, s) {
       Logging.instance
           .log("_parseSupported exception: $e\n$s", level: LogLevel.Error);
