@@ -190,8 +190,8 @@ class SimplexAPI {
       for (final ticker in supportedCryptos as List) {
         cryptos.add(Crypto.fromJson({
           'ticker': ticker as String,
-          'name': ticker as String,
-          'image': ticker as String,
+          'name': ticker,
+          'image': "",
         }));
       }
       var supportedFiats = jsonArray['result']['supported_fiat_currencies'];
@@ -199,8 +199,8 @@ class SimplexAPI {
       for (final ticker in supportedFiats as List) {
         fiats.add(Fiat.fromJson({
           'ticker': ticker as String,
-          'name': ticker as String,
-          'image': ticker as String,
+          'name': ticker,
+          'image': "",
         }));
       }
 
