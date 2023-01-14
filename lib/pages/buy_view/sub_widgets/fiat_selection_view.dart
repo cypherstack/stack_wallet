@@ -256,7 +256,7 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
             height: 20,
           ),
           Text(
-            "All fiats",
+            "All fiat currencies",
             style: STextStyles.smallMed12(context),
           ),
           const SizedBox(
