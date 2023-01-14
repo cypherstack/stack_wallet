@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/buy/response_objects/crypto.dart';
 import 'package:stackwallet/models/buy/response_objects/fiat.dart';
+import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/fiat_crypto_toggle.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/fiat_selection_view.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/services/buy/buy_data_loading_service.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
@@ -26,7 +28,6 @@ import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
-import 'package:stackwallet/widgets/textfields/buy_textfield.dart';
 
 class BuyForm extends ConsumerStatefulWidget {
   const BuyForm({
@@ -47,14 +48,16 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   late final BarcodeScannerInterface scanner;
 
   late final TextEditingController _receiveAddressController;
-  late final TextEditingController _fiatController;
-  late final TextEditingController _cryptoController;
+  late final TextEditingController _buyAmountController;
   final FocusNode _receiveAddressFocusNode = FocusNode();
   final FocusNode _fiatFocusNode = FocusNode();
   final FocusNode _cryptoFocusNode = FocusNode();
+  final FocusNode _buyAmountFocusNode = FocusNode();
 
   final isDesktop = Util.isDesktop;
 
+  List<Crypto>? coins;
+  List<Fiat>? fiats;
   String? _address;
 
   bool buyWithFiat = true;
@@ -67,13 +70,11 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   void cryptoFieldOnChanged(String value) async {}
 
   void selectCrypto() async {
-    final fromTicker = ref.read(buyFormStateProvider).fromTicker ?? "-";
-    final supportedCoins = ref.watch(supportedSimplexCurrenciesProvider);
-
-    List<Crypto> coins = [];
+    final supportedCoins =
+        ref.watch(supportedSimplexCurrenciesProvider).supportedCryptos;
 
     await _showFloatingCryptoSelectionSheet(
-        coins: coins,
+        coins: supportedCoins,
         onSelected: (from) =>
             ref.read(buyFormStateProvider).updateFrom(from, true));
   }
@@ -102,7 +103,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             left: 32,
                           ),
                           child: Text(
-                            "Choose a fiat currency with which to pay",
+                            "Choose a crypto to buy",
                             style: STextStyles.desktopH3(context),
                           ),
                         ),
@@ -124,8 +125,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                 borderColor: Theme.of(context)
                                     .extension<StackColors>()!
                                     .background,
-                                child: FiatSelectionView(
-                                  fiats: coins,
+                                child: CryptoSelectionView(
+                                  coins: coins,
                                 ),
                               ),
                             ),
@@ -139,23 +140,23 @@ class _BuyFormState extends ConsumerState<BuyForm> {
             })
         : await Navigator.of(context).push(
             MaterialPageRoute<dynamic>(
-              builder: (_) => FiatSelectionView(
-                fiats: coins,
+              builder: (_) => CryptoSelectionView(
+                coins: coins,
               ),
             ),
           );
 
-    if (mounted && result is Fiat) {
+    if (mounted && result is Crypto) {
       onSelected(result);
     }
   }
 
   void selectFiat() async {
-    List<Fiat> fiats;
-    fiats = [];
+    final supportedFiats =
+        ref.watch(supportedSimplexCurrenciesProvider).supportedFiats;
 
     await _showFloatingFiatSelectionSheet(
-        fiats: fiats,
+        fiats: supportedFiats,
         onSelected: (from) =>
             ref.read(buyFormStateProvider).updateFrom(from, true));
   }
@@ -279,12 +280,14 @@ class _BuyFormState extends ConsumerState<BuyForm> {
 
   @override
   void initState() {
-    _fiatController = TextEditingController();
-    _cryptoController = TextEditingController();
     _receiveAddressController = TextEditingController();
+    _buyAmountController = TextEditingController();
 
     clipboard = widget.clipboard;
     scanner = widget.scanner;
+
+    coins = ref.read(supportedSimplexCurrenciesProvider).supportedCryptos;
+    fiats = ref.read(supportedSimplexCurrenciesProvider).supportedFiats;
 
     // TODO set initial crypto to open wallet if a wallet is open
 
@@ -325,6 +328,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
               onExit: (_) => setState(() => _hovering1 = false),
               child: GestureDetector(
                 onTap: () {
+                  BuyDataLoadingService().loadAll(ref);
                   selectCrypto();
                 },
                 child: RoundedContainer(
@@ -474,32 +478,57 @@ class _BuyFormState extends ConsumerState<BuyForm> {
             SizedBox(
               height: isDesktop ? 10 : 4,
             ),
-            BuyTextField(
-              controller: _fiatController,
-              focusNode: _fiatFocusNode,
-              textStyle: STextStyles.smallMed14(context).copyWith(
+            TextField(
+              autocorrect: Util.isDesktop ? false : true,
+              enableSuggestions: Util.isDesktop ? false : true,
+              style: STextStyles.smallMed14(context).copyWith(
                 color: Theme.of(context).extension<StackColors>()!.textDark,
               ),
-              buttonColor: Theme.of(context)
-                  .extension<StackColors>()!
-                  .buttonBackSecondary,
-              borderRadius: Constants.size.circularBorderRadius,
-              background: Theme.of(context)
-                  .extension<StackColors>()!
-                  .textFieldDefaultBG,
-              onTap: () {
-                if (_fiatController.text == "-") {
-                  _fiatController.text = "";
-                }
-              },
-              onChanged: fiatFieldOnChanged,
-              onButtonTap: selectFiat,
-              // isWalletCoin: isWalletCoin(coin, true),
-              isWalletCoin: false,
-              // image: _fetchIconUrlFromTicker(ref
-              //     .watch(buyFormStateProvider.select((value) => value.fromTicker))),
-              // ticker: ref
-              //     .watch(buyFormStateProvider.select((value) => value.fromTicker)),
+              key: const Key("amountInputFieldCryptoTextFieldKey"),
+              controller: _buyAmountController,
+              focusNode: _buyAmountFocusNode,
+              keyboardType: Util.isDesktop
+                  ? null
+                  : const TextInputType.numberWithOptions(
+                      signed: false,
+                      decimal: true,
+                    ),
+              textAlign: TextAlign.right,
+              inputFormatters: [
+                // TODO reactivate formatter
+                // regex to validate a crypto amount with 8 decimal places
+                // TextInputFormatter.withFunction((oldValue, newValue) =>
+                //     RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
+                //             .hasMatch(newValue.text)
+                //         ? newValue
+                //         : oldValue),
+              ],
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.only(
+                  top: 22,
+                  right: 12,
+                  bottom: 22,
+                ),
+                hintText: "0",
+                hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultText,
+                ),
+                prefixIcon: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Text(
+                      "BTC",
+                      style: STextStyles.smallMed14(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorDark),
+                    ),
+                  ),
+                ),
+              ),
             ),
             SizedBox(
               height: isDesktop ? 20 : 12,

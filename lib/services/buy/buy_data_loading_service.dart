@@ -29,10 +29,9 @@ class BuyDataLoadingService {
     final response = await SimplexAPI.instance.getSupported();
 
     if (response['supportedCryptos'] != null) {
-      print(response['supportedCryptos']);
       ref
           .read(supportedSimplexCurrenciesProvider)
-          .updateSupportedCryptos(response['supportedCryptos']!);
+          .updateSupportedCryptos(response['supportedCryptos']);
     } else {
       error = true;
       Logging.instance.log(
@@ -40,11 +39,11 @@ class BuyDataLoadingService {
         level: LogLevel.Warning,
       );
     }
+
     if (response['supportedFiats'] != null) {
-      print(response['supportedFiats']);
       ref
           .read(supportedSimplexCurrenciesProvider)
-          .updateSupportedFiats(response['supportedFiats']!);
+          .updateSupportedFiats(response['supportedFiats']);
     } else {
       error = true;
       Logging.instance.log(
@@ -56,8 +55,8 @@ class BuyDataLoadingService {
     if (error) {
       // _loadSimplexCurrencies() again?
     } else {
-      ref.read(changeNowEstimatedInitialLoadStatusStateProvider.state).state =
-          ChangeNowLoadStatus.success;
+      ref.read(simplexLoadStatusStateProvider.state).state =
+          SimplexLoadStatus.success;
     }
   }
 }

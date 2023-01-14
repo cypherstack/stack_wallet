@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:stackwallet/models/buy/response_objects/crypto.dart';
 // import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
 // import 'package:stackwallet/models/exchange/response_objects/pair.dart';
 // import 'package:stackwallet/models/exchange/response_objects/range.dart';
@@ -180,23 +181,30 @@ class SimplexAPI {
 
   dynamic /*BuyResponse<List<Fiat>>*/ _parseSupported(dynamic jsonArray) {
     try {
-      List<Fiat> cryptos = [];
+      List<Crypto> cryptos = [];
       List<Fiat> fiats = [];
 
       var supportedCryptos =
           jsonArray['result']['supported_digital_currencies'];
-      // for (final ticker in supportedCryptos as List) {
-      //   cryptos.add(Fiat.fromString(ticker as String));
-      // }
+      // TODO map List<String> supportedCryptos to List<Crypto>
+      for (final ticker in supportedCryptos as List) {
+        cryptos.add(Crypto.fromJson({
+          'ticker': ticker as String,
+          'name': ticker as String,
+          'image': ticker as String,
+        }));
+      }
       var supportedFiats = jsonArray['result']['supported_fiat_currencies'];
-      // for (final ticker in supportedFiats as List) {
-      //   fiats.add(Fiat.fromString(ticker as String));
-      // }
+      // TODO map List<String> supportedFiats to List<Fiat>
+      for (final ticker in supportedFiats as List) {
+        fiats.add(Fiat.fromJson({
+          'ticker': ticker as String,
+          'name': ticker as String,
+          'image': ticker as String,
+        }));
+      }
 
-      var supported = {
-        'supportedCryptos': supportedCryptos,
-        'supportedFiats': supportedFiats
-      };
+      var supported = {'supportedCryptos': cryptos, 'supportedFiats': fiats};
 
       return supported;
     } catch (e, s) {
