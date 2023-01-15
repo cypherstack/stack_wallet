@@ -1,12 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/buy/response_objects/crypto.dart';
 import 'package:stackwallet/models/buy/response_objects/fiat.dart';
+import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/fiat_crypto_toggle.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/fiat_selection_view.dart';
+import 'package:stackwallet/pages/exchange_view/choose_from_stack_view.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/services/buy/simplex/simplex_api.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
@@ -17,6 +23,8 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -60,6 +68,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   List<Fiat>? fiats;
   String? _address;
 
+  Fiat? selectedFiat;
+  Crypto? selectedCrypto;
+
   bool buyWithFiat = true;
   bool _addressToggleFlag = false;
   bool _hovering1 = false;
@@ -70,11 +81,35 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   void cryptoFieldOnChanged(String value) async {}
 
   void selectCrypto() async {
-    final supportedCoins =
-        ref.read(supportedSimplexCurrenciesProvider).supportedCryptos;
+    if (ref.read(supportedSimplexCurrenciesProvider).supportedCryptos.isEmpty) {
+      bool shouldPop = false;
+      unawaited(
+        showDialog(
+          context: context,
+          builder: (context) => WillPopScope(
+            child: const CustomLoadingOverlay(
+              message: "Loading currency data",
+              eventBus: null,
+            ),
+            onWillPop: () async => shouldPop,
+          ),
+        ),
+      );
+      await _loadSimplexCurrencies();
+      shouldPop = true;
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    }
 
     await _showFloatingCryptoSelectionSheet(
-        coins: supportedCoins, onSelected: (_) {});
+      coins: ref.read(supportedSimplexCurrenciesProvider).supportedCryptos,
+      onSelected: (crypto) {
+        setState(() {
+          selectedCrypto = crypto;
+        });
+      },
+    );
   }
 
   Future<void> _showFloatingCryptoSelectionSheet({
@@ -149,12 +184,54 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     }
   }
 
-  void selectFiat() async {
-    final supportedFiats =
-        ref.read(supportedSimplexCurrenciesProvider).supportedFiats;
+  Future<void> selectFiat() async {
+    if (ref.read(supportedSimplexCurrenciesProvider).supportedFiats.isEmpty) {
+      bool shouldPop = false;
+      unawaited(
+        showDialog(
+          context: context,
+          builder: (context) => WillPopScope(
+            child: const CustomLoadingOverlay(
+              message: "Loading currency data",
+              eventBus: null,
+            ),
+            onWillPop: () async => shouldPop,
+          ),
+        ),
+      );
+      await _loadSimplexCurrencies();
+      shouldPop = true;
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    }
 
     await _showFloatingFiatSelectionSheet(
-        fiats: supportedFiats, onSelected: (_) {});
+      fiats: ref.read(supportedSimplexCurrenciesProvider).supportedFiats,
+      onSelected: (fiat) {
+        setState(() {
+          selectedFiat = fiat;
+        });
+      },
+    );
+  }
+
+  Future<void> _loadSimplexCurrencies() async {
+    final response = await SimplexAPI.instance.getSupported();
+
+    if (response.value != null) {
+      ref
+          .read(supportedSimplexCurrenciesProvider)
+          .updateSupportedCryptos(response.value!.item1);
+      ref
+          .read(supportedSimplexCurrenciesProvider)
+          .updateSupportedFiats(response.value!.item2);
+    } else {
+      Logging.instance.log(
+        "_loadSimplexCurrencies: $response",
+        level: LogLevel.Warning,
+      );
+    }
   }
 
   Future<void> _showFloatingFiatSelectionSheet({
@@ -235,6 +312,17 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     return null;
   }
 
+  bool isStackCoin(String? ticker) {
+    if (ticker == null) return false;
+
+    try {
+      coinFromTickerCaseInsensitive(ticker);
+      return true;
+    } on ArgumentError catch (_) {
+      return false;
+    }
+  }
+
   @override
   void initState() {
     _receiveAddressController = TextEditingController();
@@ -245,11 +333,6 @@ class _BuyFormState extends ConsumerState<BuyForm> {
 
     coins = ref.read(supportedSimplexCurrenciesProvider).supportedCryptos;
     fiats = ref.read(supportedSimplexCurrenciesProvider).supportedFiats;
-
-    // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-    //   BuyDataLoadingService().loadAll(
-    //       ref); // Why does this need to be called here?  Shouldn't it already be called by main.dart?
-    // });
 
     // TODO set initial crypto to open wallet if a wallet is open
 
@@ -499,6 +582,39 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                   color: Theme.of(context).extension<StackColors>()!.textDark3,
                 ),
               ),
+              if (isStackCoin(selectedCrypto?.ticker))
+                BlueTextButton(
+                  text: "Choose from stack",
+                  onTap: () {
+                    try {
+                      final coin = coinFromTickerCaseInsensitive(
+                        selectedCrypto!.ticker,
+                      );
+                      Navigator.of(context)
+                          .pushNamed(
+                        ChooseFromStackView.routeName,
+                        arguments: coin,
+                      )
+                          .then((value) async {
+                        if (value is String) {
+                          final manager = ref
+                              .read(walletsChangeNotifierProvider)
+                              .getManager(value);
+
+                          // _toController.text = manager.walletName;
+                          // model.recipientAddress =
+                          //     await manager.currentReceivingAddress;
+                          _receiveAddressController.text =
+                              await manager.currentReceivingAddress;
+
+                          setState(() {});
+                        }
+                      });
+                    } catch (e, s) {
+                      Logging.instance.log("$e\n$s", level: LogLevel.Info);
+                    }
+                  },
+                ),
             ],
           ),
           SizedBox(
@@ -569,27 +685,25 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                 key: const Key(
                                     "buyViewPasteAddressFieldButtonKey"),
                                 onTap: () async {
-                                  print(
-                                      "TODO paste; Error: 'ClipboardData' isn't a type.");
-                                  // final ClipboardData? data = await clipboard
-                                  //     .getData(Clipboard.kTextPlain);
-                                  // if (data?.text != null &&
-                                  //     data!.text!.isNotEmpty) {
-                                  //   String content = data.text!.trim();
-                                  //   if (content.contains("\n")) {
-                                  //     content = content.substring(
-                                  //         0, content.indexOf("\n"));
-                                  //   }
-                                  //
-                                  //   _receiveAddressController.text = content;
-                                  //   _address = content;
-                                  //
-                                  //   setState(() {
-                                  //     _addressToggleFlag =
-                                  //         _receiveAddressController
-                                  //             .text.isNotEmpty;
-                                  //   });
-                                  // }
+                                  final ClipboardData? data = await clipboard
+                                      .getData(Clipboard.kTextPlain);
+                                  if (data?.text != null &&
+                                      data!.text!.isNotEmpty) {
+                                    String content = data.text!.trim();
+                                    if (content.contains("\n")) {
+                                      content = content.substring(
+                                          0, content.indexOf("\n"));
+                                    }
+
+                                    _receiveAddressController.text = content;
+                                    _address = content;
+
+                                    setState(() {
+                                      _addressToggleFlag =
+                                          _receiveAddressController
+                                              .text.isNotEmpty;
+                                    });
+                                  }
                                 },
                                 child: _receiveAddressController.text.isEmpty
                                     ? const ClipboardIcon()
@@ -599,11 +713,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                           TextFieldIconButton(
                             key: const Key("buyViewAddressBookButtonKey"),
                             onTap: () {
-                              print('TODO tapped buyViewAddressBookButtonKey');
-                              // Navigator.of(context).pushNamed(
-                              //   AddressBookView.routeName,
-                              //   arguments: widget.coin,
-                              // );
+                              Navigator.of(context).pushNamed(
+                                AddressBookView.routeName,
+                              );
                             },
                             child: const AddressBookIcon(),
                           ),
@@ -613,11 +725,6 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             key: const Key("buyViewScanQrButtonKey"),
                             onTap: () async {
                               try {
-                                // ref
-                                //     .read(
-                                //         shouldShowLockscreenOnResumeStateProvider
-                                //             .state)
-                                //     .state = false;
                                 if (FocusScope.of(context).hasFocus) {
                                   FocusScope.of(context).unfocus();
                                   await Future<void>.delayed(
@@ -637,76 +744,40 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                     "qrResult parsed: $results",
                                     level: LogLevel.Info);
 
-                                print('TODO implement QR scanning');
-                                // if (results.isNotEmpty &&
-                                //     results["scheme"] == coin.uriScheme) {
-                                //   // auto fill address
-                                //   _address = results["address"] ?? "";
-                                //   sendToController.text = _address!;
-                                //
-                                //   // autofill notes field
-                                //   if (results["message"] != null) {
-                                //     noteController.text = results["message"]!;
-                                //   } else if (results["label"] != null) {
-                                //     noteController.text = results["label"]!;
-                                //   }
-                                //
-                                //   // autofill amount field
-                                //   if (results["amount"] != null) {
-                                //     final amount =
-                                //         Decimal.parse(results["amount"]!);
-                                //     cryptoAmountController.text =
-                                //         Format.localizedStringAsFixed(
-                                //       value: amount,
-                                //       locale: ref
-                                //           .read(
-                                //               localeServiceChangeNotifierProvider)
-                                //           .locale,
-                                //       decimalPlaces:
-                                //           Constants.decimalPlacesForCoin(
-                                //               coin),
-                                //     );
-                                //     amount.toString();
-                                //     _amountToSend = amount;
-                                //   }
-                                //
-                                //   _updatePreviewButtonState(
-                                //       _address, _amountToSend);
-                                //   setState(() {
-                                //     _addressToggleFlag =
-                                //         sendToController.text.isNotEmpty;
-                                //   });
-                                //
-                                //   // now check for non standard encoded basic address
-                                // } else if (ref
-                                //     .read(walletsChangeNotifierProvider)
-                                //     .getManager(walletId)
-                                //     .validateAddress(qrResult.rawContent)) {
-                                //   _address = qrResult.rawContent;
-                                //   sendToController.text = _address ?? "";
-                                //
-                                //   _updatePreviewButtonState(
-                                //       _address, _amountToSend);
-                                //   setState(() {
-                                //     _addressToggleFlag =
-                                //         sendToController.text.isNotEmpty;
-                                //   });
-                                // }
-                              } /*on PlatformException*/ catch (e, s) {
-                                // ref
-                                //     .read(
-                                //         shouldShowLockscreenOnResumeStateProvider
-                                //             .state)
-                                //     .state = true;
+                                if (results.isNotEmpty) {
+                                  // auto fill address
+                                  _address = results["address"] ?? "";
+                                  _receiveAddressController.text = _address!;
+
+                                  setState(() {
+                                    _addressToggleFlag =
+                                        _receiveAddressController
+                                            .text.isNotEmpty;
+                                  });
+
+                                  // now check for non standard encoded basic address
+                                } else {
+                                  _address = qrResult.rawContent;
+                                  _receiveAddressController.text =
+                                      _address ?? "";
+
+                                  setState(() {
+                                    _addressToggleFlag =
+                                        _receiveAddressController
+                                            .text.isNotEmpty;
+                                  });
+                                }
+                              } on PlatformException catch (e, s) {
                                 // here we ignore the exception caused by not giving permission
                                 // to use the camera to scan a qr code
                                 Logging.instance.log(
-                                    "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
-                                    level: LogLevel.Warning);
+                                  "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
+                                  level: LogLevel.Warning,
+                                );
                               }
                             },
                             child: const QrCodeIcon(),
-                          )
+                          ),
                       ],
                     ),
                   ),
@@ -722,9 +793,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
             enabled: ref.watch(
                 exchangeFormStateProvider.select((value) => value.canExchange)),
             onPressed: () {
-              // TODO implement buy confirmation dialog
+              // preview buy quote
             },
-            label: "Exchange",
+            label: "Preview quote",
           )
         ],
       ),
