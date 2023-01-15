@@ -23,6 +23,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -351,352 +352,438 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     buyWithFiat = ref.watch(
         prefsChangeNotifierProvider.select((value) => value.buyWithFiat));
 
-    return SizedBox(
-      width:
-          458, // TODO test that this displays well on mobile or else put in a ternary or something else appropriate to switch here
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            "I want to buy",
-            style: STextStyles.itemSubtitle(context).copyWith(
-              color: Theme.of(context).extension<StackColors>()!.textDark3,
+    return ConditionalParent(
+      condition: isDesktop,
+      builder: (child) => SizedBox(
+        width: 458,
+        child: child,
+      ),
+      child: ConditionalParent(
+        condition: !isDesktop,
+        builder: (child) => LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight,
+              ),
+              child: IntrinsicHeight(
+                child: child,
+              ),
             ),
           ),
-          SizedBox(
-            height: isDesktop ? 10 : 4,
-          ),
-          MouseRegion(
-            cursor: SystemMouseCursors.click,
-            onEnter: (_) => setState(() => _hovering1 = true),
-            onExit: (_) => setState(() => _hovering1 = false),
-            child: GestureDetector(
-              onTap: () {
-                selectCrypto();
-              },
-              child: RoundedContainer(
-                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
-                color: _hovering1
-                    ? Theme.of(context)
-                        .extension<StackColors>()!
-                        .highlight
-                        .withOpacity(_hovering1 ? 0.3 : 0)
-                    : Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultBG,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(children: <Widget>[
-                    SvgPicture.asset(
-                      Assets.svg.iconFor(
-                        coin: coinFromTickerCaseInsensitive("BTC"),
-                      ),
-                      height: 18,
-                      width: 18,
-                    ),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    Expanded(
-                        child: Text(
-                      "BTC",
-                      style: STextStyles.largeMedium14(context),
-                    )),
-                    SvgPicture.asset(
-                      Assets.svg.chevronDown,
-                      color: Theme.of(context)
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              "I want to buy",
+              style: STextStyles.itemSubtitle(context).copyWith(
+                color: Theme.of(context).extension<StackColors>()!.textDark3,
+              ),
+            ),
+            SizedBox(
+              height: isDesktop ? 10 : 4,
+            ),
+            MouseRegion(
+              cursor: SystemMouseCursors.click,
+              onEnter: (_) => setState(() => _hovering1 = true),
+              onExit: (_) => setState(() => _hovering1 = false),
+              child: GestureDetector(
+                onTap: () {
+                  selectCrypto();
+                },
+                child: RoundedContainer(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
+                  color: _hovering1
+                      ? Theme.of(context)
                           .extension<StackColors>()!
-                          .buttonTextSecondaryDisabled,
-                      width: 10,
-                      height: 5,
-                    ),
-                  ]),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(
-            height: isDesktop ? 20 : 12,
-          ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "I want to pay with",
-                style: STextStyles.itemSubtitle(context).copyWith(
-                  color: Theme.of(context).extension<StackColors>()!.textDark3,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(
-            height: isDesktop ? 10 : 4,
-          ),
-
-          MouseRegion(
-            cursor: SystemMouseCursors.click,
-            onEnter: (_) => setState(() => _hovering2 = true),
-            onExit: (_) => setState(() => _hovering2 = false),
-            child: GestureDetector(
-              onTap: () {
-                selectFiat();
-              },
-              child: RoundedContainer(
-                padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 6),
-                color: _hovering2
-                    ? Theme.of(context)
-                        .extension<StackColors>()!
-                        .highlight
-                        .withOpacity(_hovering2 ? 0.3 : 0)
-                    : Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultBG,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(children: <Widget>[
-                    RoundedContainer(
-                      radiusMultiplier: 0.5,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 2, horizontal: 4),
-                      color:
-                          Theme.of(context).extension<StackColors>()!.highlight,
-                      child: Text(
-                        "\$",
-                        style: STextStyles.itemSubtitle12(context),
-                      ),
-                    ),
-                    // SvgPicture.asset(
-                    //   Assets.svg.iconFor(
-                    //     coin: coinFromTickerCaseInsensitive("BTC"),
-                    //   ),
-                    //   height: 18,
-                    //   width: 18,
-                    // ),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    Expanded(
-                        child: Text(
-                      "USD",
-                      style: STextStyles.largeMedium14(context),
-                    )),
-                    SvgPicture.asset(
-                      Assets.svg.chevronDown,
-                      color: Theme.of(context)
+                          .highlight
+                          .withOpacity(_hovering1 ? 0.3 : 0)
+                      : Theme.of(context)
                           .extension<StackColors>()!
-                          .buttonTextSecondaryDisabled,
-                      width: 10,
-                      height: 5,
-                    ),
-                  ]),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(
-            height: isDesktop ? 10 : 4,
-          ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                buyWithFiat ? "Enter amount" : "Enter crypto amount",
-                style: STextStyles.itemSubtitle(context).copyWith(
-                  color: Theme.of(context).extension<StackColors>()!.textDark3,
-                ),
-              ),
-              const FiatCryptoToggle(),
-            ],
-          ),
-          // // these reads should be watch
-          // if (ref.watch(buyFormStateProvider).fromAmount != null &&
-          //     ref.watch(buyFormStateProvider).fromAmount != Decimal.zero)
-          SizedBox(
-            height: isDesktop ? 10 : 4,
-          ),
-          TextField(
-            autocorrect: Util.isDesktop ? false : true,
-            enableSuggestions: Util.isDesktop ? false : true,
-            style: STextStyles.smallMed14(context).copyWith(
-              color: Theme.of(context).extension<StackColors>()!.textDark,
-            ),
-            key: const Key("amountInputFieldCryptoTextFieldKey"),
-            controller: _buyAmountController,
-            focusNode: _buyAmountFocusNode,
-            keyboardType: Util.isDesktop
-                ? null
-                : const TextInputType.numberWithOptions(
-                    signed: false,
-                    decimal: true,
-                  ),
-            textAlign: TextAlign.right,
-            inputFormatters: [
-              // TODO reactivate formatter
-              // regex to validate a crypto amount with 8 decimal places
-              // TextInputFormatter.withFunction((oldValue, newValue) =>
-              //     RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-              //             .hasMatch(newValue.text)
-              //         ? newValue
-              //         : oldValue),
-            ],
-            decoration: InputDecoration(
-              contentPadding: const EdgeInsets.only(
-                top: 22,
-                right: 12,
-                bottom: 22,
-              ),
-              hintText: "0",
-              hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultText,
-              ),
-              prefixIcon: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Text(
-                    "BTC",
-                    style: STextStyles.smallMed14(context).copyWith(
+                          .textFieldDefaultBG,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(children: <Widget>[
+                      SvgPicture.asset(
+                        Assets.svg.iconFor(
+                          coin: coinFromTickerCaseInsensitive("BTC"),
+                        ),
+                        height: 18,
+                        width: 18,
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      Expanded(
+                          child: Text(
+                        "BTC",
+                        style: STextStyles.largeMedium14(context),
+                      )),
+                      SvgPicture.asset(
+                        Assets.svg.chevronDown,
                         color: Theme.of(context)
                             .extension<StackColors>()!
-                            .accentColorDark),
+                            .buttonTextSecondaryDisabled,
+                        width: 10,
+                        height: 5,
+                      ),
+                    ]),
                   ),
                 ),
               ),
             ),
-          ),
-          SizedBox(
-            height: isDesktop ? 20 : 12,
-          ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Enter receiving address",
-                style: STextStyles.itemSubtitle(context).copyWith(
-                  color: Theme.of(context).extension<StackColors>()!.textDark3,
-                ),
-              ),
-              if (isStackCoin(selectedCrypto?.ticker))
-                BlueTextButton(
-                  text: "Choose from stack",
-                  onTap: () {
-                    try {
-                      final coin = coinFromTickerCaseInsensitive(
-                        selectedCrypto!.ticker,
-                      );
-                      Navigator.of(context)
-                          .pushNamed(
-                        ChooseFromStackView.routeName,
-                        arguments: coin,
-                      )
-                          .then((value) async {
-                        if (value is String) {
-                          final manager = ref
-                              .read(walletsChangeNotifierProvider)
-                              .getManager(value);
-
-                          // _toController.text = manager.walletName;
-                          // model.recipientAddress =
-                          //     await manager.currentReceivingAddress;
-                          _receiveAddressController.text =
-                              await manager.currentReceivingAddress;
-
-                          setState(() {});
-                        }
-                      });
-                    } catch (e, s) {
-                      Logging.instance.log("$e\n$s", level: LogLevel.Info);
-                    }
-                  },
-                ),
-            ],
-          ),
-          SizedBox(
-            height: isDesktop ? 10 : 4,
-          ),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
+            SizedBox(
+              height: isDesktop ? 20 : 12,
             ),
-            child: TextField(
-              key: const Key("buyViewReceiveAddressFieldKey"),
-              controller: _receiveAddressController,
-              readOnly: false,
-              autocorrect: false,
-              enableSuggestions: false,
-              // inputFormatters: <TextInputFormatter>[
-              //   FilteringTextInputFormatter.allow(
-              //       RegExp("[a-zA-Z0-9]{34}")),
-              // ],
-              toolbarOptions: const ToolbarOptions(
-                copy: false,
-                cut: false,
-                paste: true,
-                selectAll: false,
-              ),
-              onChanged: (newValue) {
-                _address = newValue;
-                setState(() {
-                  _addressToggleFlag = newValue.isNotEmpty;
-                });
-              },
-              focusNode: _receiveAddressFocusNode,
-              style: STextStyles.field(context),
-              decoration: standardInputDecoration(
-                /*"Enter ${coin.ticker} address",*/
-                "Enter address",
-                _receiveAddressFocusNode,
-                context,
-              ).copyWith(
-                contentPadding: const EdgeInsets.only(
-                  left: 16,
-                  top: 6,
-                  bottom: 8,
-                  right: 5,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "I want to pay with",
+                  style: STextStyles.itemSubtitle(context).copyWith(
+                    color:
+                        Theme.of(context).extension<StackColors>()!.textDark3,
+                  ),
                 ),
-                suffixIcon: Padding(
-                  padding: _receiveAddressController.text.isEmpty
-                      ? const EdgeInsets.only(right: 8)
-                      : const EdgeInsets.only(right: 0),
-                  child: UnconstrainedBox(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _addressToggleFlag
-                            ? TextFieldIconButton(
-                                key: const Key(
-                                    "buyViewClearAddressFieldButtonKey"),
-                                onTap: () {
-                                  _receiveAddressController.text = "";
-                                  // _receiveAddress = "";
-                                  setState(() {
-                                    _addressToggleFlag = false;
-                                  });
-                                },
-                                child: const XIcon(),
-                              )
-                            : TextFieldIconButton(
-                                key: const Key(
-                                    "buyViewPasteAddressFieldButtonKey"),
-                                onTap: () async {
-                                  final ClipboardData? data = await clipboard
-                                      .getData(Clipboard.kTextPlain);
-                                  if (data?.text != null &&
-                                      data!.text!.isNotEmpty) {
-                                    String content = data.text!.trim();
-                                    if (content.contains("\n")) {
-                                      content = content.substring(
-                                          0, content.indexOf("\n"));
-                                    }
+              ],
+            ),
+            SizedBox(
+              height: isDesktop ? 10 : 4,
+            ),
 
-                                    _receiveAddressController.text = content;
-                                    _address = content;
+            MouseRegion(
+              cursor: SystemMouseCursors.click,
+              onEnter: (_) => setState(() => _hovering2 = true),
+              onExit: (_) => setState(() => _hovering2 = false),
+              child: GestureDetector(
+                onTap: () {
+                  selectFiat();
+                },
+                child: RoundedContainer(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 3, horizontal: 6),
+                  color: _hovering2
+                      ? Theme.of(context)
+                          .extension<StackColors>()!
+                          .highlight
+                          .withOpacity(_hovering2 ? 0.3 : 0)
+                      : Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultBG,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(children: <Widget>[
+                      RoundedContainer(
+                        radiusMultiplier: 0.5,
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 2, horizontal: 4),
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .highlight,
+                        child: Text(
+                          "\$",
+                          style: STextStyles.itemSubtitle12(context),
+                        ),
+                      ),
+                      // SvgPicture.asset(
+                      //   Assets.svg.iconFor(
+                      //     coin: coinFromTickerCaseInsensitive("BTC"),
+                      //   ),
+                      //   height: 18,
+                      //   width: 18,
+                      // ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      Expanded(
+                          child: Text(
+                        "USD",
+                        style: STextStyles.largeMedium14(context),
+                      )),
+                      SvgPicture.asset(
+                        Assets.svg.chevronDown,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .buttonTextSecondaryDisabled,
+                        width: 10,
+                        height: 5,
+                      ),
+                    ]),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(
+              height: isDesktop ? 10 : 4,
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  buyWithFiat ? "Enter amount" : "Enter crypto amount",
+                  style: STextStyles.itemSubtitle(context).copyWith(
+                    color:
+                        Theme.of(context).extension<StackColors>()!.textDark3,
+                  ),
+                ),
+                const FiatCryptoToggle(),
+              ],
+            ),
+            // // these reads should be watch
+            // if (ref.watch(buyFormStateProvider).fromAmount != null &&
+            //     ref.watch(buyFormStateProvider).fromAmount != Decimal.zero)
+            SizedBox(
+              height: isDesktop ? 10 : 4,
+            ),
+            TextField(
+              autocorrect: Util.isDesktop ? false : true,
+              enableSuggestions: Util.isDesktop ? false : true,
+              style: STextStyles.smallMed14(context).copyWith(
+                color: Theme.of(context).extension<StackColors>()!.textDark,
+              ),
+              key: const Key("amountInputFieldCryptoTextFieldKey"),
+              controller: _buyAmountController,
+              focusNode: _buyAmountFocusNode,
+              keyboardType: Util.isDesktop
+                  ? null
+                  : const TextInputType.numberWithOptions(
+                      signed: false,
+                      decimal: true,
+                    ),
+              textAlign: TextAlign.right,
+              inputFormatters: [
+                // TODO reactivate formatter
+                // regex to validate a crypto amount with 8 decimal places
+                // TextInputFormatter.withFunction((oldValue, newValue) =>
+                //     RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
+                //             .hasMatch(newValue.text)
+                //         ? newValue
+                //         : oldValue),
+              ],
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.only(
+                  top: 22,
+                  right: 12,
+                  bottom: 22,
+                ),
+                hintText: "0",
+                hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultText,
+                ),
+                prefixIcon: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Text(
+                      "BTC",
+                      style: STextStyles.smallMed14(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorDark),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(
+              height: isDesktop ? 20 : 12,
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Enter receiving address",
+                  style: STextStyles.itemSubtitle(context).copyWith(
+                    color:
+                        Theme.of(context).extension<StackColors>()!.textDark3,
+                  ),
+                ),
+                if (isStackCoin(selectedCrypto?.ticker))
+                  BlueTextButton(
+                    text: "Choose from stack",
+                    onTap: () {
+                      try {
+                        final coin = coinFromTickerCaseInsensitive(
+                          selectedCrypto!.ticker,
+                        );
+                        Navigator.of(context)
+                            .pushNamed(
+                          ChooseFromStackView.routeName,
+                          arguments: coin,
+                        )
+                            .then((value) async {
+                          if (value is String) {
+                            final manager = ref
+                                .read(walletsChangeNotifierProvider)
+                                .getManager(value);
+
+                            // _toController.text = manager.walletName;
+                            // model.recipientAddress =
+                            //     await manager.currentReceivingAddress;
+                            _receiveAddressController.text =
+                                await manager.currentReceivingAddress;
+
+                            setState(() {});
+                          }
+                        });
+                      } catch (e, s) {
+                        Logging.instance.log("$e\n$s", level: LogLevel.Info);
+                      }
+                    },
+                  ),
+              ],
+            ),
+            SizedBox(
+              height: isDesktop ? 10 : 4,
+            ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(
+                Constants.size.circularBorderRadius,
+              ),
+              child: TextField(
+                key: const Key("buyViewReceiveAddressFieldKey"),
+                controller: _receiveAddressController,
+                readOnly: false,
+                autocorrect: false,
+                enableSuggestions: false,
+                // inputFormatters: <TextInputFormatter>[
+                //   FilteringTextInputFormatter.allow(
+                //       RegExp("[a-zA-Z0-9]{34}")),
+                // ],
+                toolbarOptions: const ToolbarOptions(
+                  copy: false,
+                  cut: false,
+                  paste: true,
+                  selectAll: false,
+                ),
+                onChanged: (newValue) {
+                  _address = newValue;
+                  setState(() {
+                    _addressToggleFlag = newValue.isNotEmpty;
+                  });
+                },
+                focusNode: _receiveAddressFocusNode,
+                style: STextStyles.field(context),
+                decoration: standardInputDecoration(
+                  /*"Enter ${coin.ticker} address",*/
+                  "Enter address",
+                  _receiveAddressFocusNode,
+                  context,
+                ).copyWith(
+                  contentPadding: const EdgeInsets.only(
+                    left: 16,
+                    top: 6,
+                    bottom: 8,
+                    right: 5,
+                  ),
+                  suffixIcon: Padding(
+                    padding: _receiveAddressController.text.isEmpty
+                        ? const EdgeInsets.only(right: 8)
+                        : const EdgeInsets.only(right: 0),
+                    child: UnconstrainedBox(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _addressToggleFlag
+                              ? TextFieldIconButton(
+                                  key: const Key(
+                                      "buyViewClearAddressFieldButtonKey"),
+                                  onTap: () {
+                                    _receiveAddressController.text = "";
+                                    // _receiveAddress = "";
+                                    setState(() {
+                                      _addressToggleFlag = false;
+                                    });
+                                  },
+                                  child: const XIcon(),
+                                )
+                              : TextFieldIconButton(
+                                  key: const Key(
+                                      "buyViewPasteAddressFieldButtonKey"),
+                                  onTap: () async {
+                                    final ClipboardData? data = await clipboard
+                                        .getData(Clipboard.kTextPlain);
+                                    if (data?.text != null &&
+                                        data!.text!.isNotEmpty) {
+                                      String content = data.text!.trim();
+                                      if (content.contains("\n")) {
+                                        content = content.substring(
+                                            0, content.indexOf("\n"));
+                                      }
+
+                                      _receiveAddressController.text = content;
+                                      _address = content;
+
+                                      setState(() {
+                                        _addressToggleFlag =
+                                            _receiveAddressController
+                                                .text.isNotEmpty;
+                                      });
+                                    }
+                                  },
+                                  child: _receiveAddressController.text.isEmpty
+                                      ? const ClipboardIcon()
+                                      : const XIcon(),
+                                ),
+                          if (_receiveAddressController.text.isEmpty)
+                            TextFieldIconButton(
+                              key: const Key("buyViewAddressBookButtonKey"),
+                              onTap: () {
+                                Navigator.of(context).pushNamed(
+                                  AddressBookView.routeName,
+                                );
+                              },
+                              child: const AddressBookIcon(),
+                            ),
+                          if (_receiveAddressController.text.isEmpty &&
+                              !isDesktop)
+                            TextFieldIconButton(
+                              key: const Key("buyViewScanQrButtonKey"),
+                              onTap: () async {
+                                try {
+                                  if (FocusScope.of(context).hasFocus) {
+                                    FocusScope.of(context).unfocus();
+                                    await Future<void>.delayed(
+                                        const Duration(milliseconds: 75));
+                                  }
+
+                                  final qrResult = await scanner.scan();
+
+                                  Logging.instance.log(
+                                      "qrResult content: ${qrResult.rawContent}",
+                                      level: LogLevel.Info);
+
+                                  final results = AddressUtils.parseUri(
+                                      qrResult.rawContent);
+
+                                  Logging.instance.log(
+                                      "qrResult parsed: $results",
+                                      level: LogLevel.Info);
+
+                                  if (results.isNotEmpty) {
+                                    // auto fill address
+                                    _address = results["address"] ?? "";
+                                    _receiveAddressController.text = _address!;
+
+                                    setState(() {
+                                      _addressToggleFlag =
+                                          _receiveAddressController
+                                              .text.isNotEmpty;
+                                    });
+
+                                    // now check for non standard encoded basic address
+                                  } else {
+                                    _address = qrResult.rawContent;
+                                    _receiveAddressController.text =
+                                        _address ?? "";
 
                                     setState(() {
                                       _addressToggleFlag =
@@ -704,100 +791,38 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                               .text.isNotEmpty;
                                     });
                                   }
-                                },
-                                child: _receiveAddressController.text.isEmpty
-                                    ? const ClipboardIcon()
-                                    : const XIcon(),
-                              ),
-                        if (_receiveAddressController.text.isEmpty)
-                          TextFieldIconButton(
-                            key: const Key("buyViewAddressBookButtonKey"),
-                            onTap: () {
-                              Navigator.of(context).pushNamed(
-                                AddressBookView.routeName,
-                              );
-                            },
-                            child: const AddressBookIcon(),
-                          ),
-                        if (_receiveAddressController.text.isEmpty &&
-                            !isDesktop)
-                          TextFieldIconButton(
-                            key: const Key("buyViewScanQrButtonKey"),
-                            onTap: () async {
-                              try {
-                                if (FocusScope.of(context).hasFocus) {
-                                  FocusScope.of(context).unfocus();
-                                  await Future<void>.delayed(
-                                      const Duration(milliseconds: 75));
+                                } on PlatformException catch (e, s) {
+                                  // here we ignore the exception caused by not giving permission
+                                  // to use the camera to scan a qr code
+                                  Logging.instance.log(
+                                    "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
+                                    level: LogLevel.Warning,
+                                  );
                                 }
-
-                                final qrResult = await scanner.scan();
-
-                                Logging.instance.log(
-                                    "qrResult content: ${qrResult.rawContent}",
-                                    level: LogLevel.Info);
-
-                                final results =
-                                    AddressUtils.parseUri(qrResult.rawContent);
-
-                                Logging.instance.log(
-                                    "qrResult parsed: $results",
-                                    level: LogLevel.Info);
-
-                                if (results.isNotEmpty) {
-                                  // auto fill address
-                                  _address = results["address"] ?? "";
-                                  _receiveAddressController.text = _address!;
-
-                                  setState(() {
-                                    _addressToggleFlag =
-                                        _receiveAddressController
-                                            .text.isNotEmpty;
-                                  });
-
-                                  // now check for non standard encoded basic address
-                                } else {
-                                  _address = qrResult.rawContent;
-                                  _receiveAddressController.text =
-                                      _address ?? "";
-
-                                  setState(() {
-                                    _addressToggleFlag =
-                                        _receiveAddressController
-                                            .text.isNotEmpty;
-                                  });
-                                }
-                              } on PlatformException catch (e, s) {
-                                // here we ignore the exception caused by not giving permission
-                                // to use the camera to scan a qr code
-                                Logging.instance.log(
-                                  "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
-                                  level: LogLevel.Warning,
-                                );
-                              }
-                            },
-                            child: const QrCodeIcon(),
-                          ),
-                      ],
+                              },
+                              child: const QrCodeIcon(),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-          SizedBox(
-            height: isDesktop ? 20 : 12,
-          ),
-          PrimaryButton(
-            buttonHeight: isDesktop ? ButtonHeight.l : null,
-            enabled: ref.watch(
-                exchangeFormStateProvider.select((value) => value.canExchange)),
-            onPressed: () {
-              // preview buy quote
-            },
-            label: "Preview quote",
-          )
-        ],
+            SizedBox(
+              height: isDesktop ? 20 : 12,
+            ),
+            PrimaryButton(
+              buttonHeight: isDesktop ? ButtonHeight.l : null,
+              enabled: ref.watch(exchangeFormStateProvider
+                  .select((value) => value.canExchange)),
+              onPressed: () {
+                // preview buy quote
+              },
+              label: "Preview quote",
+            )
+          ],
+        ),
       ),
     );
   }
