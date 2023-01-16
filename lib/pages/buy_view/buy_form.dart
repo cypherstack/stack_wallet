@@ -563,7 +563,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                       signed: false,
                       decimal: true,
                     ),
-              textAlign: TextAlign.right,
+              textAlign: TextAlign.left,
               inputFormatters: [
                 // regex to validate a crypto amount with 8 decimal places or
                 // 2 if fiat
@@ -582,9 +582,13 @@ class _BuyFormState extends ConsumerState<BuyForm> {
               ],
               decoration: InputDecoration(
                 contentPadding: const EdgeInsets.only(
-                  top: 22,
-                  right: 12,
-                  bottom: 22,
+                  // top: 22,
+                  // right: 12,
+                  // bottom: 22,
+                  left: 0,
+                  top: 8,
+                  bottom: 10,
+                  right: 5,
                 ),
                 hintText: "0",
                 hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
@@ -604,6 +608,47 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                           color: Theme.of(context)
                               .extension<StackColors>()!
                               .accentColorDark),
+                    ),
+                  ),
+                ),
+                suffixIcon: Padding(
+                  padding: const EdgeInsets.all(0),
+                  child: UnconstrainedBox(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buyAmountController.text.isNotEmpty
+                            ? TextFieldIconButton(
+                                key: const Key(
+                                    "buyViewClearAddressFieldButtonKey"),
+                                onTap: () {
+                                  _buyAmountController.text = "";
+                                  // _receiveAddress = "";
+                                  setState(() {});
+                                },
+                                child: const XIcon(),
+                              )
+                            : TextFieldIconButton(
+                                key: const Key(
+                                    "buyViewPasteAddressFieldButtonKey"),
+                                onTap: () async {
+                                  final ClipboardData? data = await clipboard
+                                      .getData(Clipboard.kTextPlain);
+
+                                  final amountString =
+                                      Decimal.tryParse(data?.text ?? "");
+                                  if (amountString != null) {
+                                    _buyAmountController.text =
+                                        amountString.toString();
+
+                                    setState(() {});
+                                  }
+                                },
+                                child: _buyAmountController.text.isEmpty
+                                    ? const ClipboardIcon()
+                                    : const XIcon(),
+                              ),
+                      ],
                     ),
                   ),
                 ),
@@ -690,8 +735,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 focusNode: _receiveAddressFocusNode,
                 style: STextStyles.field(context),
                 decoration: standardInputDecoration(
-                  /*"Enter ${coin.ticker} address",*/
-                  "Enter address",
+                  "Enter ${selectedCrypto?.ticker} address",
                   _receiveAddressFocusNode,
                   context,
                 ).copyWith(
