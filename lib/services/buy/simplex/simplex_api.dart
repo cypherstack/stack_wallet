@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:stackwallet/models/buy/response_objects/crypto.dart';
@@ -8,6 +9,7 @@ import 'package:stackwallet/models/buy/response_objects/crypto.dart';
 // import 'package:stackwallet/models/exchange/response_objects/range.dart';
 // import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/buy/response_objects/fiat.dart';
+import 'package:stackwallet/models/buy/response_objects/quote.dart';
 // import 'package:stackwallet/models/buy/response_objects/crypto.dart';
 import 'package:stackwallet/services/buy/buy_response.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -105,309 +107,80 @@ class SimplexAPI {
     }
   }
 
-  // Future<ExchangeResponse<SPCurrency>> getCurrency({
-  //   required String symbol,
-  //   String? apiKey,
-  // }) async {
-  //   final uri = _buildUri(
-  //     "/get_currency",
-  //     {
-  //       "api_key": apiKey ?? kSimplexApiKey,
-  //       "symbol": symbol,
-  //     },
-  //   );
+  Future<BuyResponse<SimplexQuote>> getQuote(SimplexQuote quote) async {
+    // example for quote courtesy of @danrmiller
+    // curl -H "Content-Type: application/json" -d '{"digital_currency": "BTC", "fiat_currency": "USD", "requested_currency": "USD", "requested_amount": 100}' http://sandbox-api.stackwallet.com/quote
+    // official docs reference eg
+    // curl --request GET \
+    //      --url https://sandbox.test-simplexcc.com/v2/supported_crypto_currencies \
+    //      --header 'accept: application/json'
+
+    try {
+      Map<String, String> headers = {
+        'Content-Type': 'application/json',
+      };
+      String data =
+          '{"digital_currency": "${quote.crypto.ticker.toUpperCase()}", "fiat_currency": "${quote.fiat.ticker.toUpperCase()}", "requested_currency": "USD", "requested_amount": ${quote.youPayFiatPrice}}';
+      Uri url = Uri.parse('http://sandbox-api.stackwallet.com/quote');
+
+      var res = await http.post(url, headers: headers, body: data);
+
+      if (res.statusCode != 200) {
+        throw Exception(
+            'getAvailableCurrencies exception: statusCode= ${res.statusCode}');
+      }
+
+      final jsonArray = jsonDecode(res.body);
+
+      return await compute(_parseQuote, jsonArray);
+    } catch (e, s) {
+      Logging.instance.log("getAvailableCurrencies exception: $e\n$s",
+          level: LogLevel.Error);
+      return BuyResponse(
+        exception: BuyException(
+          e.toString(),
+          BuyExceptionType.generic,
+        ),
+      );
+    }
+  }
+
+  BuyResponse<SimplexQuote> _parseQuote(dynamic jsonArray) {
+    try {
+      String fiatPrice = "${jsonArray['result']['fiat_money']['total_amount']}";
+      String cryptoAmount = "${jsonArray['result']['digital_money']['amount']}";
+
+      final quote = SimplexQuote(
+        crypto: Crypto.fromJson({
+          'ticker': jsonArray['result']['digital_money'][
+              'currency'], // // TODO a Crypto.fromTicker here, requiring enums there?
+          'name': 'Bitcoin',
+          'image': ''
+        }),
+        fiat: Fiat.fromJson({
+          'ticker': jsonArray['result']['fiat_money'][
+              'currency'], // // TODO a Fiat.fromTicker here, requiring enums there?
+          'name': 'Bitcoin',
+          'image': ''
+        }),
+        youPayFiatPrice: Decimal.parse(fiatPrice),
+        youReceiveCryptoAmount: Decimal.parse(cryptoAmount),
+        purchaseId: jsonArray['result']['quote_id'] as String,
+        receivingAddress: '',
+      );
   //
   //   try {
-  //     final jsonObject = await _makeGetRequest(uri);
-  //
-  //     return ExchangeResponse(
-  //         value: SPCurrency.fromJson(
-  //             Map<String, dynamic>.from(jsonObject as Map)));
-  //   } catch (e, s) {
-  //     Logging.instance
-  //         .log("getCurrency exception: $e\n$s", level: LogLevel.Error);
-  //     return ExchangeResponse(
-  //       exception: ExchangeException(
-  //         e.toString(),
-  //         ExchangeExceptionType.generic,
-  //       ),
-  //     );
-  //   }
-  // }
-  //
-  // /// returns a map where the key currency symbol is a valid pair with any of
-  // /// the symbols in its value list
-  // Future<ExchangeResponse<List<Pair>>> getAllPairs({
-  //   required bool isFixedRate,
-  //   String? apiKey,
-  // }) async {
-  //   final uri = _buildUri(
-  //     "/get_all_pairs",
-  //     {
-  //       "api_key": apiKey ?? kSimplexApiKey,
-  //       "fixed": isFixedRate.toString(),
-  //     },
-  //   );
-  //
-  //   try {
-  //     final jsonObject = await _makeGetRequest(uri);
-  //     final result = await compute(
-  //       _parseAvailablePairsJson,
-  //       Tuple2(jsonObject as Map, isFixedRate),
-  //     );
-  //     return result;
-  //   } catch (e, s) {
-  //     Logging.instance
-  //         .log("getAllPairs exception: $e\n$s", level: LogLevel.Error);
-  //     return ExchangeResponse(
-  //       exception: ExchangeException(
-  //         e.toString(),
-  //         ExchangeExceptionType.generic,
-  //       ),
-  //     );
-  //   }
-  // }
-  //
-  // ExchangeResponse<List<Pair>> _parseAvailablePairsJson(
-  //   Tuple2<Map<dynamic, dynamic>, bool> args,
-  // ) {
-  //   try {
-  //     List<Pair> pairs = [];
-  //
-  //     for (final entry in args.item1.entries) {
-  //       try {
-  //         final from = entry.key as String;
-  //         for (final to in entry.value as List) {
-  //           pairs.add(
-  //             Pair(
-  //               from: from,
-  //               fromNetwork: "",
-  //               to: to as String,
-  //               toNetwork: "",
-  //               fixedRate: args.item2,
-  //               floatingRate: !args.item2,
-  //             ),
-  //           );
-  //         }
-  //       } catch (_) {
-  //         return ExchangeResponse(
-  //             exception: ExchangeException("Failed to serialize $json",
-  //                 ExchangeExceptionType.serializeResponseError));
-  //       }
-  //     }
-  //
-  //     return ExchangeResponse(value: pairs);
-  //   } catch (e, s) {
-  //     Logging.instance.log("_parseAvailableCurrenciesJson exception: $e\n$s",
-  //         level: LogLevel.Error);
-  //     return ExchangeResponse(
-  //       exception: ExchangeException(
-  //         e.toString(),
-  //         ExchangeExceptionType.generic,
-  //       ),
-  //     );
-  //   }
-  // }
-  //
-  // /// returns the estimated amount as a string
-  // Future<ExchangeResponse<String>> getEstimated({
-  //   required bool isFixedRate,
-  //   required String currencyFrom,
-  //   required String currencyTo,
-  //   required String amount,
-  //   String? apiKey,
-  // }) async {
-  //   final uri = _buildUri(
-  //     "/get_estimated",
-  //     {
-  //       "api_key": apiKey ?? kSimplexApiKey,
-  //       "fixed": isFixedRate.toString(),
-  //       "currency_from": currencyFrom,
-  //       "currency_to": currencyTo,
-  //       "amount": amount,
-  //     },
-  //   );
-  //
-  //   try {
-  //     final jsonObject = await _makeGetRequest(uri);
-  //
-  //     return ExchangeResponse(value: jsonObject as String);
-  //   } catch (e, s) {
-  //     Logging.instance
-  //         .log("getEstimated exception: $e\n$s", level: LogLevel.Error);
-  //     return ExchangeResponse(
-  //       exception: ExchangeException(
-  //         e.toString(),
-  //         ExchangeExceptionType.generic,
-  //       ),
-  //     );
-  //   }
-  // }
-  //
-  // /// returns the exchange for the given id
-  // Future<ExchangeResponse<Trade>> getExchange({
-  //   required String exchangeId,
-  //   String? apiKey,
-  //   Trade? oldTrade,
-  // }) async {
-  //   final uri = _buildUri(
-  //     "/get_exchange",
-  //     {
-  //       "api_key": apiKey ?? kSimplexApiKey,
-  //       "id": exchangeId,
-  //     },
-  //   );
-  //
-  //   try {
-  //     final jsonObject = await _makeGetRequest(uri);
-  //
-  //     final json = Map<String, dynamic>.from(jsonObject as Map);
-  //     final ts = DateTime.parse(json["timestamp"] as String);
-  //     final trade = Trade(
-  //       uuid: oldTrade?.uuid ?? const Uuid().v1(),
-  //       tradeId: json["id"] as String,
-  //       rateType: json["type"] as String,
-  //       direction: "direct",
-  //       timestamp: ts,
-  //       updatedAt: DateTime.tryParse(json["updated_at"] as String? ?? "") ?? ts,
-  //       payInCurrency: json["currency_from"] as String,
-  //       payInAmount: json["amount_from"] as String,
-  //       payInAddress: json["address_from"] as String,
-  //       payInNetwork: "",
-  //       payInExtraId: json["extra_id_from"] as String? ?? "",
-  //       payInTxid: json["tx_from"] as String? ?? "",
-  //       payOutCurrency: json["currency_to"] as String,
-  //       payOutAmount: json["amount_to"] as String,
-  //       payOutAddress: json["address_to"] as String,
-  //       payOutNetwork: "",
-  //       payOutExtraId: json["extra_id_to"] as String? ?? "",
-  //       payOutTxid: json["tx_to"] as String? ?? "",
-  //       refundAddress: json["user_refund_address"] as String,
-  //       refundExtraId: json["user_refund_extra_id"] as String,
-  //       status: json["status"] as String,
-  //       exchangeName: SimplexExchange.exchangeName,
-  //     );
-  //
-  //     return ExchangeResponse(value: trade);
-  //   } catch (e, s) {
-  //     Logging.instance
-  //         .log("getExchange exception: $e\n$s", level: LogLevel.Error);
-  //     return ExchangeResponse(
-  //       exception: ExchangeException(
-  //         e.toString(),
-  //         ExchangeExceptionType.generic,
-  //       ),
-  //     );
-  //   }
-  // }
-  //
-  // /// returns the minimal exchange amount
-  // Future<ExchangeResponse<Range>> getRange({
-  //   required bool isFixedRate,
-  //   required String currencyFrom,
-  //   required String currencyTo,
-  //   String? apiKey,
-  // }) async {
-  //   final uri = _buildUri(
-  //     "/get_ranges",
-  //     {
-  //       "api_key": apiKey ?? kSimplexApiKey,
-  //       "fixed": isFixedRate.toString(),
-  //       "currency_from": currencyFrom,
-  //       "currency_to": currencyTo,
-  //     },
-  //   );
-  //
-  //   try {
-  //     final jsonObject = await _makeGetRequest(uri);
-  //
-  //     final json = Map<String, dynamic>.from(jsonObject as Map);
-  //     return ExchangeResponse(
-  //       value: Range(
-  //         max: Decimal.tryParse(json["max"] as String? ?? ""),
-  //         min: Decimal.tryParse(json["min"] as String? ?? ""),
-  //       ),
-  //     );
-  //   } catch (e, s) {
-  //     Logging.instance.log("getRange exception: $e\n$s", level: LogLevel.Error);
-  //     return ExchangeResponse(
-  //       exception: ExchangeException(
-  //         e.toString(),
-  //         ExchangeExceptionType.generic,
-  //       ),
-  //     );
-  //   }
-  // }
-  //
-  // Future<ExchangeResponse<List<FixedRateMarket>>> getFixedRateMarketInfo({
-  //   String? apiKey,
-  // }) async {
-  //   final uri = _buildUri(
-  //     "/get_market_info",
-  //     null,
-  //     // {
-  //     //   "api_key": apiKey ?? kSimplexApiKey,
-  //     //   "fixed": isFixedRate.toString(),
-  //     //   "currency_from": currencyFrom,
-  //     //   "currency_to": currencyTo,
-  //     // },
-  //   );
-  //
-  //   try {
-  //     final jsonArray = await _makeGetRequest(uri);
-  //
-  //     try {
-  //       final result = await compute(
-  //         _parseFixedRateMarketsJson,
-  //         jsonArray as List,
-  //       );
-  //       return result;
-  //     } catch (e, s) {
-  //       Logging.instance.log("getAvailableFixedRateMarkets exception: $e\n$s",
-  //           level: LogLevel.Error);
-  //       return ExchangeResponse(
-  //         exception: ExchangeException(
-  //           "Error: $jsonArray",
-  //           ExchangeExceptionType.serializeResponseError,
-  //         ),
-  //       );
-  //     }
-  //   } catch (e, s) {
-  //     Logging.instance.log("getAvailableFixedRateMarkets exception: $e\n$s",
-  //         level: LogLevel.Error);
-  //     return ExchangeResponse(
-  //       exception: ExchangeException(
-  //         e.toString(),
-  //         ExchangeExceptionType.generic,
-  //       ),
-  //     );
-  //   }
-  // }
-  //
-  // ExchangeResponse<List<FixedRateMarket>> _parseFixedRateMarketsJson(
-  //     List<dynamic> jsonArray) {
-  //   try {
-  //     final List<FixedRateMarket> markets = [];
-  //     for (final json in jsonArray) {
-  //       try {
-  //         final map = Map<String, dynamic>.from(json as Map);
-  //         markets.add(FixedRateMarket(
-  //           from: map["currency_from"] as String,
-  //           to: map["currency_to"] as String,
-  //           min: Decimal.parse(map["min"] as String),
-  //           max: Decimal.parse(map["max"] as String),
-  //           rate: Decimal.parse(map["rate"] as String),
-  //           minerFee: null,
-  //         ));
-  //       } catch (_) {
-  //         return ExchangeResponse(
-  //             exception: ExchangeException("Failed to serialize $json",
-  //                 ExchangeExceptionType.serializeResponseError));
-  //       }
-  //     }
-  //     return ExchangeResponse(value: markets);
-  //   } catch (_) {
-  //     rethrow;
-  //   }
-  // }
+
+      return BuyResponse(value: quote);
+    } catch (e, s) {
+      Logging.instance
+          .log("_parseSupported exception: $e\n$s", level: LogLevel.Error);
+      return BuyResponse(
+        exception: BuyException(
+          e.toString(),
+          BuyExceptionType.generic,
+        ),
+      );
+    }
+  }
 }

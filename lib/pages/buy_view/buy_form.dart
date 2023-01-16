@@ -73,7 +73,15 @@ class _BuyFormState extends ConsumerState<BuyForm> {
 
   Fiat? selectedFiat;
   Crypto? selectedCrypto;
-  SimplexQuote? quote;
+  SimplexQuote quote = SimplexQuote(
+    crypto: Crypto.fromJson({'ticker': 'BTC', 'name': 'Bitcoin', 'image': ''}),
+    fiat: Fiat.fromJson(
+        {'ticker': 'USD', 'name': 'United States Dollar', 'image': ''}),
+    youPayFiatPrice: Decimal.parse("100"),
+    youReceiveCryptoAmount: Decimal.parse("1.0238917"),
+    purchaseId: "someID",
+    receivingAddress: '',
+  ); // TODO enum this or something
 
   bool buyWithFiat = true;
   bool _addressToggleFlag = false;
@@ -323,26 +331,41 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     }
   }
 
-  Future<void> previewQuote() async {
+  Future<void> previewQuote(SimplexQuote quote) async {
     // if (ref.read(simplexProvider).estimate.isEmpty) {
-    //   bool shouldPop = false;
-    //   unawaited(
-    //     showDialog(
-    //       context: context,
-    //       builder: (context) => WillPopScope(
-    //         child: const CustomLoadingOverlay(
-    //           message: "Loading quote data",
-    //           eventBus: null,
-    //         ),
-    //         onWillPop: () async => shouldPop,
-    //       ),
-    //     ),
-    //   );
-    //   await _loadQuote();
-    //   shouldPop = true;
-    //   if (mounted) {
-    //     Navigator.of(context).pop();
-    //   }
+    // if (ref.read(simplexProvider).quote.purchaseId == "someID") {
+    //   print('okokok');
+    //   // TODO make a better way of detecting a default SimplexQuote
+    bool shouldPop = false;
+    unawaited(
+      showDialog(
+        context: context,
+        builder: (context) => WillPopScope(
+          child: const CustomLoadingOverlay(
+            message: "Loading quote data",
+            eventBus: null,
+          ),
+          onWillPop: () async => shouldPop,
+        ),
+      ),
+    );
+
+    quote = SimplexQuote(
+      crypto: selectedCrypto!,
+      fiat: selectedFiat!,
+      youPayFiatPrice: Decimal.parse(_buyAmountController.text),
+      youReceiveCryptoAmount: Decimal.parse("1.021312"), // Ternary for this
+      purchaseId: "Someid",
+      receivingAddress: _receiveAddressController.text,
+    );
+
+    print(quote.purchaseId);
+
+    await _loadQuote(quote);
+    shouldPop = true;
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
     // }
 
     await _showFloatingBuyQuotePreviewSheet(
@@ -354,6 +377,21 @@ class _BuyFormState extends ConsumerState<BuyForm> {
         // TODO launch URL
       },
     );
+  }
+
+  Future<void> _loadQuote(SimplexQuote quote) async {
+    final response = await SimplexAPI.instance.getQuote(quote);
+
+    if (response.value != null) {
+      print('eeehehehh');
+      print(response.value);
+      ref.read(simplexProvider).updateQuote(response.value!);
+    } else {
+      Logging.instance.log(
+        "_loadQuote: $response",
+        level: LogLevel.Warning,
+      );
+    }
   }
 
   Future<void> _showFloatingBuyQuotePreviewSheet({
@@ -438,7 +476,18 @@ class _BuyFormState extends ConsumerState<BuyForm> {
 
     coins = ref.read(simplexProvider).supportedCryptos;
     fiats = ref.read(simplexProvider).supportedFiats;
-    quote = ref.read(simplexProvider).quote;
+    // quote = ref.read(simplexProvider).quote;
+
+    quote = SimplexQuote(
+      crypto:
+          Crypto.fromJson({'ticker': 'BTC', 'name': 'Bitcoin', 'image': ''}),
+      fiat: Fiat.fromJson(
+          {'ticker': 'USD', 'name': 'United States Dollar', 'image': ''}),
+      youPayFiatPrice: Decimal.parse("100"),
+      youReceiveCryptoAmount: Decimal.parse("1.0238917"),
+      purchaseId: "someID",
+      receivingAddress: '',
+    ); // TODO enum this or something
 
     // TODO set initial crypto to open wallet if a wallet is open
 
@@ -983,6 +1032,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
               child: GestureDetector(
                   onTap: () {
                     previewQuote();
+                    previewQuote(quote);
                   },
                   child: PrimaryButton(
                     buttonHeight: isDesktop ? ButtonHeight.l : null,
@@ -990,6 +1040,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                         _buyAmountController.text.isNotEmpty,
                     onPressed: () {
                       previewQuote();
+                      previewQuote(quote);
                     },
                     label: "Preview quote",
                   )),
