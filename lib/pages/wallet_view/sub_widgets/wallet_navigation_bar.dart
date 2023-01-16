@@ -11,6 +11,7 @@ class WalletNavigationBar extends StatelessWidget {
     required this.onSendPressed,
     required this.onExchangePressed,
     required this.onBuyPressed,
+    required this.onTokensPressed,
     required this.height,
     required this.enableExchange,
   }) : super(key: key);
@@ -19,6 +20,7 @@ class WalletNavigationBar extends StatelessWidget {
   final VoidCallback onSendPressed;
   final VoidCallback onExchangePressed;
   final VoidCallback onBuyPressed;
+  final VoidCallback onTokensPressed;
   final double height;
   final bool enableExchange;
 
@@ -231,6 +233,44 @@ class WalletNavigationBar extends StatelessWidget {
             //     ),
             //   ),
             // ),
+            RawMaterialButton(
+              constraints: const BoxConstraints(
+                minWidth: 66,
+              ),
+              onPressed: onTokensPressed,
+              splashColor:
+                  Theme.of(context).extension<StackColors>()!.highlight,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                  height / 2.0,
+                ),
+              ),
+              child: Container(
+                color: Colors.transparent,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Spacer(),
+                      SvgPicture.asset(
+                        Assets.svg.tokens,
+                        width: 24,
+                        height: 24,
+                      ),
+                      const SizedBox(
+                        height: 4,
+                      ),
+                      Text(
+                        "Tokens",
+                        style: STextStyles.buttonSmall(context),
+                      ),
+                      const Spacer(),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),

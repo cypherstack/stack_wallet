@@ -14,6 +14,7 @@ import 'package:stackwallet/pages/receive_view/receive_view.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_view.dart';
+import 'package:stackwallet/pages/token_view/my_tokens_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_navigation_bar.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_summary.dart';
@@ -776,6 +777,12 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                         );
                                       },
                                       onBuyPressed: () {},
+                                      onTokensPressed: () {
+                                        Navigator.of(context).pushNamed(
+                                          MyTokensView.routeName,
+                                          arguments: walletId,
+                                        );
+                                      },
                                     ),
                                   ),
                                 ),
