@@ -2849,8 +2849,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
     }
 
     // TODO: optimize this whole lelantus process
-    await isar.writeTxn(
-        () async => isar.transactions.putAllByTxid(listLelantusTxData));
+    await isar
+        .writeTxn(() async => isar.transactions.putAll(listLelantusTxData));
 
     // // update the _lelantusTransactionData
     // final models.TransactionData newTxData =
@@ -4074,7 +4074,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
     }
 
     await isar.writeTxn(() async {
-      await isar.transactions.putAllByTxid(transactionMap.values.toList());
+      await isar.transactions.putAll(transactionMap.values.toList());
     });
   }
 
