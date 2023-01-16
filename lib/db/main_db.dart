@@ -110,13 +110,17 @@ class MainDB {
 
   //
   Future<void> deleteWalletBlockchainData(String walletId) async {
+    final transactionCount = await getTransactions(walletId).count();
+    final addressCount = await getAddresses(walletId).count();
+    final utxoCount = await getUTXOs(walletId).count();
+    final inputCount = await getInputs(walletId).count();
+    final outputCount = await getOutputs(walletId).count();
+
     await isar.writeTxn(() async {
       const paginateLimit = 50;
 
       // transactions
-      for (int i = 0;
-          i < getTransactions(walletId).countSync();
-          i += paginateLimit) {
+      for (int i = 0; i < transactionCount; i += paginateLimit) {
         final txns = await getTransactions(walletId)
             .offset(i)
             .limit(paginateLimit)
@@ -126,9 +130,7 @@ class MainDB {
       }
 
       // addresses
-      for (int i = 0;
-          i < getAddresses(walletId).countSync();
-          i += paginateLimit) {
+      for (int i = 0; i < addressCount; i += paginateLimit) {
         final addresses = await getAddresses(walletId)
             .offset(i)
             .limit(paginateLimit)
@@ -138,7 +140,7 @@ class MainDB {
       }
 
       // utxos
-      for (int i = 0; i < getUTXOs(walletId).countSync(); i += paginateLimit) {
+      for (int i = 0; i < utxoCount; i += paginateLimit) {
         final utxos =
             await getUTXOs(walletId).offset(i).limit(paginateLimit).findAll();
         await isar.utxos
@@ -146,7 +148,7 @@ class MainDB {
       }
 
       // inputs
-      for (int i = 0; i < getInputs(walletId).countSync(); i += paginateLimit) {
+      for (int i = 0; i < inputCount; i += paginateLimit) {
         final inputs =
             await getInputs(walletId).offset(i).limit(paginateLimit).findAll();
         await isar.inputs
@@ -154,9 +156,7 @@ class MainDB {
       }
 
       // outputs
-      for (int i = 0;
-          i < getOutputs(walletId).countSync();
-          i += paginateLimit) {
+      for (int i = 0; i < outputCount; i += paginateLimit) {
         final outputs =
             await getOutputs(walletId).offset(i).limit(paginateLimit).findAll();
         await isar.outputs
