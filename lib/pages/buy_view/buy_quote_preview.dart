@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
+import 'package:stackwallet/pages/buy_view/sub_widgets/buy_warning_popup.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -28,8 +29,13 @@ class BuyQuotePreviewView extends StatefulWidget {
 class _BuyQuotePreviewViewState extends State<BuyQuotePreviewView> {
   final isDesktop = Util.isDesktop;
 
-  Future<void> _buy() async {
-    // do buy/redirect to simplex page
+  Future<void> _buyWarning() async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) => BuyWarningPopup(
+        ticker: widget.quote.crypto.ticker.toUpperCase(),
+      ),
+    );
   }
 
   @override
@@ -177,7 +183,10 @@ class _BuyQuotePreviewViewState extends State<BuyQuotePreviewView> {
                 ),
                 SizedBox(
                   width: 64,
-                  child: SvgPicture.asset(Assets.buy.simplexLogo),
+                  height: 32,
+                  child: SvgPicture.asset(
+                    Assets.buy.simplexLogo,
+                  ),
                 ),
               ],
             ),
@@ -188,7 +197,7 @@ class _BuyQuotePreviewViewState extends State<BuyQuotePreviewView> {
           const Spacer(),
           PrimaryButton(
             label: "Buy",
-            onPressed: _buy,
+            onPressed: _buyWarning,
           )
         ],
       ),
