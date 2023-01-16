@@ -989,23 +989,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                     enabled: _receiveAddressController.text.isNotEmpty &&
                         _buyAmountController.text.isNotEmpty,
                     onPressed: () {
-                      previewQuote(); // ??
-
-                      // // preview buy quote
-                      // // TODO: show loading while fetching quote
-                      // final quote = SimplexQuote(
-                      //   crypto: selectedCrypto!,
-                      //   fiat: selectedFiat!,
-                      //   youPayFiatPrice: Decimal.parse("100"),
-                      //   youReceiveCryptoAmount: Decimal.parse("1.0238917"),
-                      //   purchaseId: "someID",
-                      //   receivingAddress: _receiveAddressController.text,
-                      // );
-                      //
-                      // Navigator.of(context).pushNamed(
-                      //   BuyQuotePreviewView.routeName,
-                      //   arguments: quote,
-                      // );
+                      previewQuote();
                     },
                     label: "Preview quote",
                   )),
