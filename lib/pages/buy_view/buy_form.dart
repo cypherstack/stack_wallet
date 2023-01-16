@@ -380,7 +380,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             left: 32,
                           ),
                           child: Text(
-                            "Choose a fiat with which to pay",
+                            "Preview quote",
                             style: STextStyles.desktopH3(context),
                           ),
                         ),
