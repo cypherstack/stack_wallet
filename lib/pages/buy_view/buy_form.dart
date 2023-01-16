@@ -73,6 +73,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
 
   Fiat? selectedFiat;
   Crypto? selectedCrypto;
+  SimplexQuote? quote;
 
   bool buyWithFiat = true;
   bool _addressToggleFlag = false;
@@ -322,6 +323,111 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     }
   }
 
+  Future<void> previewQuote() async {
+    // if (ref.read(simplexProvider).estimate.isEmpty) {
+    //   bool shouldPop = false;
+    //   unawaited(
+    //     showDialog(
+    //       context: context,
+    //       builder: (context) => WillPopScope(
+    //         child: const CustomLoadingOverlay(
+    //           message: "Loading quote data",
+    //           eventBus: null,
+    //         ),
+    //         onWillPop: () async => shouldPop,
+    //       ),
+    //     ),
+    //   );
+    //   await _loadQuote();
+    //   shouldPop = true;
+    //   if (mounted) {
+    //     Navigator.of(context).pop();
+    //   }
+    // }
+
+    await _showFloatingBuyQuotePreviewSheet(
+      quote: ref.read(simplexProvider).quote,
+      onSelected: (quote) {
+        // setState(() {
+        //   selectedFiat = fiat;
+        // });
+        // TODO launch URL
+      },
+    );
+  }
+
+  Future<void> _showFloatingBuyQuotePreviewSheet({
+    required SimplexQuote quote,
+    required void Function(SimplexQuote) onSelected,
+  }) async {
+    _fiatFocusNode.unfocus();
+    _cryptoFocusNode.unfocus();
+
+    final result = isDesktop
+        ? await showDialog<Fiat?>(
+            context: context,
+            builder: (context) {
+              return DesktopDialog(
+                maxHeight: 700,
+                maxWidth: 580,
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            left: 32,
+                          ),
+                          child: Text(
+                            "Choose a fiat with which to pay",
+                            style: STextStyles.desktopH3(context),
+                          ),
+                        ),
+                        const DesktopDialogCloseButton(),
+                      ],
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          left: 32,
+                          right: 32,
+                          bottom: 32,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: RoundedWhiteContainer(
+                                padding: const EdgeInsets.all(16),
+                                borderColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
+                                child: BuyQuotePreviewView(
+                                  quote: quote,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            })
+        : await Navigator.of(context).push(
+            MaterialPageRoute<dynamic>(
+              builder: (_) => BuyQuotePreviewView(
+                quote: quote,
+              ),
+            ),
+          );
+
+    if (mounted && result is SimplexQuote) {
+      onSelected(result);
+    }
+  }
+
   @override
   void initState() {
     _receiveAddressController = TextEditingController();
@@ -332,6 +438,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
 
     coins = ref.read(simplexProvider).supportedCryptos;
     fiats = ref.read(simplexProvider).supportedFiats;
+    quote = ref.read(simplexProvider).quote;
 
     // TODO set initial crypto to open wallet if a wallet is open
 
@@ -869,29 +976,40 @@ class _BuyFormState extends ConsumerState<BuyForm> {
             SizedBox(
               height: isDesktop ? 20 : 12,
             ),
-            PrimaryButton(
-              buttonHeight: isDesktop ? ButtonHeight.l : null,
-              enabled: _receiveAddressController.text.isNotEmpty &&
-                  _buyAmountController.text.isNotEmpty,
-              onPressed: () {
-                // preview buy quote
-                // TODO: show loading while fetching quote
-                final quote = SimplexQuote(
-                  crypto: selectedCrypto!,
-                  fiat: selectedFiat!,
-                  youPayFiatPrice: Decimal.parse("100"),
-                  youReceiveCryptoAmount: Decimal.parse("1.0238917"),
-                  purchaseId: "someID",
-                  receivingAddress: _receiveAddressController.text,
-                );
+            MouseRegion(
+              cursor: SystemMouseCursors.click,
+              onEnter: (_) => setState(() => _hovering1 = true),
+              onExit: (_) => setState(() => _hovering1 = false),
+              child: GestureDetector(
+                  onTap: () {
+                    previewQuote();
+                  },
+                  child: PrimaryButton(
+                    buttonHeight: isDesktop ? ButtonHeight.l : null,
+                    enabled: _receiveAddressController.text.isNotEmpty &&
+                        _buyAmountController.text.isNotEmpty,
+                    onPressed: () {
+                      previewQuote(); // ??
 
-                Navigator.of(context).pushNamed(
-                  BuyQuotePreviewView.routeName,
-                  arguments: quote,
-                );
-              },
-              label: "Preview quote",
-            )
+                      // // preview buy quote
+                      // // TODO: show loading while fetching quote
+                      // final quote = SimplexQuote(
+                      //   crypto: selectedCrypto!,
+                      //   fiat: selectedFiat!,
+                      //   youPayFiatPrice: Decimal.parse("100"),
+                      //   youReceiveCryptoAmount: Decimal.parse("1.0238917"),
+                      //   purchaseId: "someID",
+                      //   receivingAddress: _receiveAddressController.text,
+                      // );
+                      //
+                      // Navigator.of(context).pushNamed(
+                      //   BuyQuotePreviewView.routeName,
+                      //   arguments: quote,
+                      // );
+                    },
+                    label: "Preview quote",
+                  )),
+            ),
           ],
         ),
       ),
