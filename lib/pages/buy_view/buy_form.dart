@@ -488,6 +488,11 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       receivingAddress: '',
     ); // TODO enum this or something
 
+    // TODO set defaults better; should probably explicitly enumerate the coins & fiats used and pull the specific ones we need rather than generating them as defaults here
+    selectedFiat = Fiat.fromJson({'ticker': 'USD', 'name': 'USD', 'image': ''});
+    selectedCrypto =
+        Crypto.fromJson({'ticker': 'BTC', 'name': 'Bitcoin', 'image': ''});
+
     // TODO set initial crypto to open wallet if a wallet is open
 
     super.initState();
