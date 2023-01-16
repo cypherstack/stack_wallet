@@ -1,12 +1,15 @@
 import 'dart:async';
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/buy/response_objects/crypto.dart';
 import 'package:stackwallet/models/buy/response_objects/fiat.dart';
+import 'package:stackwallet/models/buy/response_objects/quote.dart';
 import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
+import 'package:stackwallet/pages/buy_view/buy_quote_preview.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/fiat_crypto_toggle.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/fiat_selection_view.dart';
@@ -814,10 +817,24 @@ class _BuyFormState extends ConsumerState<BuyForm> {
             ),
             PrimaryButton(
               buttonHeight: isDesktop ? ButtonHeight.l : null,
-              enabled: ref.watch(exchangeFormStateProvider
-                  .select((value) => value.canExchange)),
+              enabled: _receiveAddressController.text.isNotEmpty &&
+                  _buyAmountController.text.isNotEmpty,
               onPressed: () {
                 // preview buy quote
+                // TODO: show loading while fetching quote
+                final quote = SimplexQuote(
+                  crypto: selectedCrypto!,
+                  fiat: selectedFiat!,
+                  youPayFiatPrice: Decimal.parse("100"),
+                  youReceiveCryptoAmount: Decimal.parse("1.0238917"),
+                  purchaseId: "someID",
+                  receivingAddress: _receiveAddressController.text,
+                );
+
+                Navigator.of(context).pushNamed(
+                  BuyQuotePreviewView.routeName,
+                  arguments: quote,
+                );
               },
               label: "Preview quote",
             )

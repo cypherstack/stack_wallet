@@ -31,7 +31,12 @@ class _EXCHANGE {
 class _BUY {
   const _BUY();
 
+  // TODO: switch this to something like
+  // String buy(BuildContext context) =>
+  //       "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/buy.svg";
   String get buy => "assets/svg/light/buy-coins-icon.svg";
+
+  String get simplexLogo => "assets/svg/buy/Simplex-Nuvei-Logo.svg";
 }
 
 class _SVG {

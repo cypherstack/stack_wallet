@@ -384,6 +384,9 @@ flutter:
     - assets/svg/oceanBreeze/buy-coins-icon.svg
     - assets/svg/oceanBreeze/bg.svg
 
+    # buy
+    - assets/svg/buy/Simplex-Nuvei-Logo.svg
+
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
   # For details regarding adding assets from package dependencies, see
