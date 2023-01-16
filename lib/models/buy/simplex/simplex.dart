@@ -1,8 +1,10 @@
+import 'package:decimal/decimal.dart';
 import 'package:stackwallet/models/buy/response_objects/crypto.dart';
 import 'package:stackwallet/models/buy/response_objects/fiat.dart';
+import 'package:stackwallet/models/buy/response_objects/quote.dart';
 // import 'package:stackwallet/models/buy/response_objects/pair.dart';
 
-class SimplexSupportedCurrencies {
+class Simplex {
   List<Crypto> supportedCryptos = [];
   List<Fiat> supportedFiats = [];
 

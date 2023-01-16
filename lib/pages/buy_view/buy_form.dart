@@ -84,7 +84,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   void cryptoFieldOnChanged(String value) async {}
 
   void selectCrypto() async {
-    if (ref.read(supportedSimplexCurrenciesProvider).supportedCryptos.isEmpty) {
+    if (ref.read(simplexProvider).supportedCryptos.isEmpty) {
       bool shouldPop = false;
       unawaited(
         showDialog(
@@ -106,7 +106,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     }
 
     await _showFloatingCryptoSelectionSheet(
-      coins: ref.read(supportedSimplexCurrenciesProvider).supportedCryptos,
+      coins: ref.read(simplexProvider).supportedCryptos,
       onSelected: (crypto) {
         setState(() {
           selectedCrypto = crypto;
@@ -188,7 +188,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   }
 
   Future<void> selectFiat() async {
-    if (ref.read(supportedSimplexCurrenciesProvider).supportedFiats.isEmpty) {
+    if (ref.read(simplexProvider).supportedFiats.isEmpty) {
       bool shouldPop = false;
       unawaited(
         showDialog(
@@ -210,7 +210,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     }
 
     await _showFloatingFiatSelectionSheet(
-      fiats: ref.read(supportedSimplexCurrenciesProvider).supportedFiats,
+      fiats: ref.read(simplexProvider).supportedFiats,
       onSelected: (fiat) {
         setState(() {
           selectedFiat = fiat;
@@ -223,12 +223,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     final response = await SimplexAPI.instance.getSupported();
 
     if (response.value != null) {
-      ref
-          .read(supportedSimplexCurrenciesProvider)
-          .updateSupportedCryptos(response.value!.item1);
-      ref
-          .read(supportedSimplexCurrenciesProvider)
-          .updateSupportedFiats(response.value!.item2);
+      ref.read(simplexProvider).updateSupportedCryptos(response.value!.item1);
+      ref.read(simplexProvider).updateSupportedFiats(response.value!.item2);
     } else {
       Logging.instance.log(
         "_loadSimplexCurrencies: $response",
@@ -334,8 +330,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     clipboard = widget.clipboard;
     scanner = widget.scanner;
 
-    coins = ref.read(supportedSimplexCurrenciesProvider).supportedCryptos;
-    fiats = ref.read(supportedSimplexCurrenciesProvider).supportedFiats;
+    coins = ref.read(simplexProvider).supportedCryptos;
+    fiats = ref.read(simplexProvider).supportedFiats;
 
     // TODO set initial crypto to open wallet if a wallet is open
 
