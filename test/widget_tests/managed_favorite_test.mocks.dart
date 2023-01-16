@@ -9,6 +9,7 @@ import 'dart:ui' as _i19;
 import 'package:flutter/foundation.dart' as _i4;
 import 'package:flutter_riverpod/flutter_riverpod.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
+import 'package:stackwallet/db/main_db.dart' as _i12;
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i10;
 import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i9;
 import 'package:stackwallet/models/balance.dart' as _i11;
@@ -19,7 +20,6 @@ import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart' as _i20;
 import 'package:stackwallet/services/coins/coin_service.dart' as _i14;
 import 'package:stackwallet/services/coins/manager.dart' as _i6;
 import 'package:stackwallet/services/locale_service.dart' as _i23;
-import 'package:stackwallet/services/mixins/wallet_db.dart' as _i12;
 import 'package:stackwallet/services/node_service.dart' as _i3;
 import 'package:stackwallet/services/transaction_notification_tracker.dart'
     as _i7;
@@ -136,8 +136,8 @@ class _FakeBalance_8 extends _i1.SmartFake implements _i11.Balance {
         );
 }
 
-class _FakeIDB_9 extends _i1.SmartFake implements _i12.IDB {
-  _FakeIDB_9(
+class _FakeMainDB_9 extends _i1.SmartFake implements _i12.MainDB {
+  _FakeMainDB_9(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -828,13 +828,13 @@ class MockBitcoinWallet extends _i1.Mock implements _i20.BitcoinWallet {
         returnValueForMissingStub: null,
       );
   @override
-  _i12.IDB get db => (super.noSuchMethod(
+  _i12.MainDB get db => (super.noSuchMethod(
         Invocation.getter(#db),
-        returnValue: _FakeIDB_9(
+        returnValue: _FakeMainDB_9(
           this,
           Invocation.getter(#db),
         ),
-      ) as _i12.IDB);
+      ) as _i12.MainDB);
   @override
   _i17.Future<void> exit() => (super.noSuchMethod(
         Invocation.method(

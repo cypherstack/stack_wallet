@@ -10,6 +10,7 @@ import 'package:decimal/decimal.dart' as _i14;
 import 'package:flutter/foundation.dart' as _i4;
 import 'package:flutter_riverpod/flutter_riverpod.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
+import 'package:stackwallet/db/main_db.dart' as _i13;
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i12;
 import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i11;
 import 'package:stackwallet/models/balance.dart' as _i9;
@@ -21,7 +22,6 @@ import 'package:stackwallet/services/coins/coin_service.dart' as _i7;
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as _i22;
 import 'package:stackwallet/services/coins/manager.dart' as _i6;
 import 'package:stackwallet/services/locale_service.dart' as _i23;
-import 'package:stackwallet/services/mixins/wallet_db.dart' as _i13;
 import 'package:stackwallet/services/node_service.dart' as _i3;
 import 'package:stackwallet/services/notes_service.dart' as _i28;
 import 'package:stackwallet/services/price_service.dart' as _i27;
@@ -151,8 +151,8 @@ class _FakeCachedElectrumX_9 extends _i1.SmartFake
         );
 }
 
-class _FakeIDB_10 extends _i1.SmartFake implements _i13.IDB {
-  _FakeIDB_10(
+class _FakeMainDB_10 extends _i1.SmartFake implements _i13.MainDB {
+  _FakeMainDB_10(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -1250,13 +1250,13 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
         returnValueForMissingStub: null,
       );
   @override
-  _i13.IDB get db => (super.noSuchMethod(
+  _i13.MainDB get db => (super.noSuchMethod(
         Invocation.getter(#db),
-        returnValue: _FakeIDB_10(
+        returnValue: _FakeMainDB_10(
           this,
           Invocation.getter(#db),
         ),
-      ) as _i13.IDB);
+      ) as _i13.MainDB);
   @override
   bool validateAddress(String? address) => (super.noSuchMethod(
         Invocation.method(

@@ -7,6 +7,7 @@ import 'dart:async' as _i10;
 
 import 'package:decimal/decimal.dart' as _i8;
 import 'package:mockito/mockito.dart' as _i1;
+import 'package:stackwallet/db/main_db.dart' as _i7;
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i5;
 import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i4;
 import 'package:stackwallet/models/balance.dart' as _i6;
@@ -14,7 +15,6 @@ import 'package:stackwallet/models/isar/models/isar_models.dart' as _i12;
 import 'package:stackwallet/models/lelantus_coin.dart' as _i13;
 import 'package:stackwallet/models/paymint/fee_object_model.dart' as _i3;
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as _i9;
-import 'package:stackwallet/services/mixins/wallet_db.dart' as _i7;
 import 'package:stackwallet/services/transaction_notification_tracker.dart'
     as _i2;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i11;
@@ -83,8 +83,8 @@ class _FakeBalance_4 extends _i1.SmartFake implements _i6.Balance {
         );
 }
 
-class _FakeIDB_5 extends _i1.SmartFake implements _i7.IDB {
-  _FakeIDB_5(
+class _FakeMainDB_5 extends _i1.SmartFake implements _i7.MainDB {
+  _FakeMainDB_5(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -337,13 +337,13 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
         returnValueForMissingStub: null,
       );
   @override
-  _i7.IDB get db => (super.noSuchMethod(
+  _i7.MainDB get db => (super.noSuchMethod(
         Invocation.getter(#db),
-        returnValue: _FakeIDB_5(
+        returnValue: _FakeMainDB_5(
           this,
           Invocation.getter(#db),
         ),
-      ) as _i7.IDB);
+      ) as _i7.MainDB);
   @override
   bool validateAddress(String? address) => (super.noSuchMethod(
         Invocation.method(
