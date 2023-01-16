@@ -1055,6 +1055,7 @@ class EpicCashWallet extends CoinServiceAPI
     await Future.wait([
       epicUpdateRestoreHeight(bufferedCreateHeight),
       updateCachedIsFavorite(false),
+      updateCachedId(walletId),
       epicUpdateReceivingIndex(0),
       epicUpdateChangeIndex(0),
     ]);
