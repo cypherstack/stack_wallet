@@ -151,16 +151,17 @@ Input _inputDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = Input();
+  final object = Input(
+    innerRedeemScriptAsm: reader.readStringOrNull(offsets[0]),
+    isCoinbase: reader.readBoolOrNull(offsets[1]),
+    scriptSig: reader.readStringOrNull(offsets[2]),
+    scriptSigAsm: reader.readStringOrNull(offsets[3]),
+    sequence: reader.readLongOrNull(offsets[4]),
+    txid: reader.readString(offsets[5]),
+    vout: reader.readLong(offsets[6]),
+    walletId: reader.readString(offsets[7]),
+  );
   object.id = id;
-  object.innerRedeemScriptAsm = reader.readStringOrNull(offsets[0]);
-  object.isCoinbase = reader.readBoolOrNull(offsets[1]);
-  object.scriptSig = reader.readStringOrNull(offsets[2]);
-  object.scriptSigAsm = reader.readStringOrNull(offsets[3]);
-  object.sequence = reader.readLongOrNull(offsets[4]);
-  object.txid = reader.readString(offsets[5]);
-  object.vout = reader.readLong(offsets[6]);
-  object.walletId = reader.readString(offsets[7]);
   return object;
 }
 

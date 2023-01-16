@@ -11,6 +11,15 @@ class AddressException extends SWException {
 
 @Collection(accessor: "addresses")
 class Address extends CryptoCurrencyAddress {
+  Address({
+    required this.walletId,
+    required this.value,
+    required this.publicKey,
+    required this.derivationIndex,
+    required this.type,
+    required this.subType,
+  });
+
   Id id = Isar.autoIncrement;
 
   @Index()
@@ -56,6 +65,7 @@ enum AddressType {
   p2sh,
   p2wpkh,
   cryptonote,
+  mimbleWimble,
   nonWallet,
 }
 
@@ -65,5 +75,6 @@ enum AddressSubType {
   paynymNotification,
   paynymSend,
   paynymReceive,
+  unknown,
   nonWallet,
 }

@@ -387,15 +387,16 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
             throw Exception("No Path type $type exists");
         }
 
-        final address = isar_models.Address()
-          ..walletId = walletId
-          ..subType = chain == 0
+        final address = isar_models.Address(
+          walletId: walletId,
+          value: addressString,
+          publicKey: node.publicKey,
+          type: addrType,
+          derivationIndex: index + j,
+          subType: chain == 0
               ? isar_models.AddressSubType.receiving
-              : isar_models.AddressSubType.change
-          ..type = addrType
-          ..publicKey = node.publicKey
-          ..value = addressString
-          ..derivationIndex = index + j;
+              : isar_models.AddressSubType.change,
+        );
 
         receivingNodes.addAll({
           "${_id}_$j": {
@@ -1424,15 +1425,16 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       derivePathType: derivePathType,
     );
 
-    return isar_models.Address()
-      ..walletId = walletId
-      ..derivationIndex = index
-      ..value = address
-      ..publicKey = node.publicKey
-      ..type = addrType
-      ..subType = chain == 0
+    return isar_models.Address(
+      walletId: walletId,
+      value: address,
+      publicKey: node.publicKey,
+      type: addrType,
+      derivationIndex: index,
+      subType: chain == 0
           ? isar_models.AddressSubType.receiving
-          : isar_models.AddressSubType.change;
+          : isar_models.AddressSubType.change,
+    );
   }
 
   /// Returns the latest receiving/change (external/internal) address for the wallet depending on [chain]
@@ -1615,21 +1617,20 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
             coin: coin,
           );
 
-          final utxo = isar_models.UTXO()..walletId = walletId;
-
-          utxo.txid = txn["txid"] as String;
-          utxo.vout = fetchedUtxoList[i][j]["tx_pos"] as int;
-          utxo.value = fetchedUtxoList[i][j]["value"] as int;
-          utxo.name = "";
-
           // todo check here if we should mark as blocked
-          utxo.isBlocked = false;
-          utxo.blockedReason = null;
-
-          utxo.isCoinbase = txn["is_coinbase"] as bool? ?? false;
-          utxo.blockHash = txn["blockhash"] as String?;
-          utxo.blockHeight = fetchedUtxoList[i][j]["height"] as int?;
-          utxo.blockTime = txn["blocktime"] as int?;
+          final utxo = isar_models.UTXO(
+            walletId: walletId,
+            txid: txn["txid"] as String,
+            vout: fetchedUtxoList[i][j]["tx_pos"] as int,
+            value: fetchedUtxoList[i][j]["value"] as int,
+            name: "",
+            isBlocked: false,
+            blockedReason: null,
+            isCoinbase: txn["is_coinbase"] as bool? ?? false,
+            blockHash: txn["blockhash"] as String?,
+            blockHeight: fetchedUtxoList[i][j]["height"] as int?,
+            blockTime: txn["blocktime"] as int?,
+          );
 
           satoshiBalanceTotal += utxo.value;
 
@@ -2068,84 +2069,90 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       final fee = totalInputValue - totalOutputValue;
 
-      final tx = isar_models.Transaction()..walletId = walletId;
-      tx.txid = txData["txid"] as String;
-      tx.timestamp = txData["blocktime"] as int? ??
-          (DateTime.now().millisecondsSinceEpoch ~/ 1000);
-
       // this is the address initially used to fetch the txid
       isar_models.Address transactionAddress =
           txData["address"] as isar_models.Address;
 
+      isar_models.TransactionType type;
+      int amount;
       if (mySentFromAddresses.isNotEmpty && myReceivedOnAddresses.isNotEmpty) {
         // tx is sent to self
-        tx.type = isar_models.TransactionType.sentToSelf;
-        tx.amount =
+        type = isar_models.TransactionType.sentToSelf;
+        amount =
             amountSentFromWallet - amountReceivedInWallet - fee - changeAmount;
       } else if (mySentFromAddresses.isNotEmpty) {
         // outgoing tx
-        tx.type = isar_models.TransactionType.outgoing;
-        tx.amount = amountSentFromWallet - changeAmount - fee;
+        type = isar_models.TransactionType.outgoing;
+        amount = amountSentFromWallet - changeAmount - fee;
         final possible =
             outputAddresses.difference(myChangeReceivedOnAddresses).first;
 
         if (transactionAddress.value != possible) {
-          transactionAddress = isar_models.Address()
-            ..walletId = walletId
-            ..value = possible
-            ..derivationIndex = -1
-            ..subType = AddressSubType.nonWallet
-            ..type = AddressType.nonWallet
-            ..publicKey = [];
+          transactionAddress = isar_models.Address(
+            walletId: walletId,
+            value: possible,
+            publicKey: [],
+            type: AddressType.nonWallet,
+            derivationIndex: -1,
+            subType: AddressSubType.nonWallet,
+          );
         }
       } else {
         // incoming tx
-        tx.type = isar_models.TransactionType.incoming;
-        tx.amount = amountReceivedInWallet;
+        type = isar_models.TransactionType.incoming;
+        amount = amountReceivedInWallet;
       }
 
-      // TODO: other subtypes
-      tx.subType = isar_models.TransactionSubType.none;
-
-      tx.fee = fee;
+      final tx = isar_models.Transaction(
+        walletId: walletId,
+        txid: txData["txid"] as String,
+        timestamp: txData["blocktime"] as int? ??
+            (DateTime.now().millisecondsSinceEpoch ~/ 1000),
+        type: type,
+        subType: isar_models.TransactionSubType.none,
+        amount: amount,
+        fee: fee,
+        height: txData["height"] as int?,
+        isCancelled: false,
+        isLelantus: false,
+        slateId: null,
+        otherData: null,
+      );
 
       List<isar_models.Input> inputs = [];
       List<isar_models.Output> outputs = [];
 
       for (final json in txData["vin"] as List) {
         bool isCoinBase = json['coinbase'] != null;
-        final input = isar_models.Input();
-        input.txid = json['txid'] as String;
-        input.vout = json['vout'] as int? ?? -1;
-        input.scriptSig = json['scriptSig']?['hex'] as String?;
-        input.scriptSigAsm = json['scriptSig']?['asm'] as String?;
-        input.isCoinbase =
-            isCoinBase ? isCoinBase : json['is_coinbase'] as bool?;
-        input.sequence = json['sequence'] as int?;
-        input.innerRedeemScriptAsm = json['innerRedeemscriptAsm'] as String?;
+        final input = isar_models.Input(
+          walletId: walletId,
+          txid: json['txid'] as String,
+          vout: json['vout'] as int? ?? -1,
+          scriptSig: json['scriptSig']?['hex'] as String?,
+          scriptSigAsm: json['scriptSig']?['asm'] as String?,
+          isCoinbase: isCoinBase ? isCoinBase : json['is_coinbase'] as bool?,
+          sequence: json['sequence'] as int?,
+          innerRedeemScriptAsm: json['innerRedeemscriptAsm'] as String?,
+        );
         inputs.add(input);
       }
 
       for (final json in txData["vout"] as List) {
-        final output = isar_models.Output();
-        output.scriptPubKey = json['scriptPubKey']?['hex'] as String?;
-        output.scriptPubKeyAsm = json['scriptPubKey']?['asm'] as String?;
-        output.scriptPubKeyType = json['scriptPubKey']?['type'] as String?;
-        output.scriptPubKeyAddress =
-            json["scriptPubKey"]?["addresses"]?[0] as String? ??
-                json['scriptPubKey']['type'] as String;
-        output.value = Format.decimalAmountToSatoshis(
-          Decimal.parse(json["value"].toString()),
-          coin,
+        final output = isar_models.Output(
+          walletId: walletId,
+          scriptPubKey: json['scriptPubKey']?['hex'] as String?,
+          scriptPubKeyAsm: json['scriptPubKey']?['asm'] as String?,
+          scriptPubKeyType: json['scriptPubKey']?['type'] as String?,
+          scriptPubKeyAddress:
+              json["scriptPubKey"]?["addresses"]?[0] as String? ??
+                  json['scriptPubKey']['type'] as String,
+          value: Format.decimalAmountToSatoshis(
+            Decimal.parse(json["value"].toString()),
+            coin,
+          ),
         );
         outputs.add(output);
       }
-
-      tx.height = txData["height"] as int?;
-
-      tx.isCancelled = false;
-      tx.slateId = null;
-      tx.otherData = null;
 
       txns.add(Tuple4(tx, outputs, inputs, transactionAddress));
     }

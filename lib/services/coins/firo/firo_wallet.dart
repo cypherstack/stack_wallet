@@ -417,20 +417,23 @@ Future<Map<dynamic, dynamic>> staticProcessRestore(
       int mintFee = tx.fee;
       int sharedFee = mintFee ~/ inputs.length;
       for (var element in inputs) {
-        editedTransactions[element.txid] = isar_models.Transaction()
-          ..txid = element.txid
-          ..timestamp = element.timestamp
-          ..type = element.type
-          ..amount = element.amount
-          ..fee = sharedFee
+        editedTransactions[element.txid] = isar_models.Transaction(
+          walletId: element.walletId,
+          txid: element.txid,
+          timestamp: element.timestamp,
+          type: element.type,
+          subType: isar_models.TransactionSubType.mint,
+          amount: element.amount,
+          fee: sharedFee,
+          height: element.height,
+          isCancelled: false,
+          isLelantus: true,
+          slateId: null,
+          otherData: txid,
+        )
           ..inputs.addAll(element.inputs)
           ..outputs.addAll(element.outputs)
-          ..address.value = element.address.value
-          ..height = element.height
-          ..subType = isar_models.TransactionSubType.mint
-          ..otherData = txid
-          ..isLelantus = true
-          ..isCancelled = false;
+          ..address.value = element.address.value;
       }
     });
   }
@@ -2947,31 +2950,39 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
         await firoUpdateLelantusCoins(coins);
 
         // add the send transaction
-        final transaction = isar_models.Transaction()
-          ..txid = transactionInfo['txid'] as String
-          ..timestamp = transactionInfo['timestamp'] as int? ??
-              (DateTime.now().millisecondsSinceEpoch ~/ 1000)
-          ..type = transactionInfo['txType'] == "Received"
+        final transaction = isar_models.Transaction(
+          walletId: walletId,
+          txid: transactionInfo['txid'] as String,
+          timestamp: transactionInfo['timestamp'] as int? ??
+              (DateTime.now().millisecondsSinceEpoch ~/ 1000),
+          type: transactionInfo['txType'] == "Received"
               ? isar_models.TransactionType.incoming
-              : isar_models.TransactionType.outgoing
-          ..amount = Format.decimalAmountToSatoshis(
-              Decimal.parse(transactionInfo["amount"].toString()), coin)
-          ..fee = Format.decimalAmountToSatoshis(
-              Decimal.parse(transactionInfo["fees"].toString()), coin)
-          ..address.value = await db
-              .getAddresses(walletId)
-              .filter()
-              .valueEqualTo(transactionInfo["address"] as String)
-              .findFirst()
-          ..height = transactionInfo["height"] as int?
-          ..subType = transactionInfo["subType"] == "mint"
+              : isar_models.TransactionType.outgoing,
+          subType: transactionInfo["subType"] == "mint"
               ? isar_models.TransactionSubType.mint
               : transactionInfo["subType"] == "join"
                   ? isar_models.TransactionSubType.join
-                  : isar_models.TransactionSubType.none
-          ..otherData = transactionInfo["otherData"] as String?
-          ..isLelantus = true
-          ..isCancelled = false;
+                  : isar_models.TransactionSubType.none,
+          amount: Format.decimalAmountToSatoshis(
+            Decimal.parse(transactionInfo["amount"].toString()),
+            coin,
+          ),
+          fee: Format.decimalAmountToSatoshis(
+            Decimal.parse(transactionInfo["fees"].toString()),
+            coin,
+          ),
+          height: transactionInfo["height"] as int?,
+          isCancelled: false,
+          isLelantus: true,
+          slateId: null,
+          otherData: transactionInfo["otherData"] as String?,
+        );
+
+        transaction.address.value = await db
+            .getAddresses(walletId)
+            .filter()
+            .valueEqualTo(transactionInfo["address"] as String)
+            .findFirst();
 
         await db.putTransaction(transaction);
 
@@ -3344,21 +3355,20 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
             coin: coin,
           );
 
-          final utxo = isar_models.UTXO();
-
-          utxo.txid = txn["txid"] as String;
-          utxo.vout = fetchedUtxoList[i][j]["tx_pos"] as int;
-          utxo.value = fetchedUtxoList[i][j]["value"] as int;
-          utxo.name = "";
-
           // todo check here if we should mark as blocked
-          utxo.isBlocked = false;
-          utxo.blockedReason = null;
-
-          utxo.isCoinbase = txn["is_coinbase"] as bool? ?? false;
-          utxo.blockHash = txn["blockhash"] as String?;
-          utxo.blockHeight = fetchedUtxoList[i][j]["height"] as int?;
-          utxo.blockTime = txn["blocktime"] as int?;
+          final utxo = isar_models.UTXO(
+            walletId: walletId,
+            txid: txn["txid"] as String,
+            vout: fetchedUtxoList[i][j]["tx_pos"] as int,
+            value: fetchedUtxoList[i][j]["value"] as int,
+            name: "",
+            isBlocked: false,
+            blockedReason: null,
+            isCoinbase: txn["is_coinbase"] as bool? ?? false,
+            blockHash: txn["blockhash"] as String?,
+            blockHeight: fetchedUtxoList[i][j]["height"] as int?,
+            blockTime: txn["blocktime"] as int?,
+          );
 
           satoshiBalanceTotal += utxo.value;
 
@@ -3507,15 +3517,17 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
             level: LogLevel.Info);
         return _generateAddressForChain(chain, index);
       }
-      return isar_models.Address()
-        ..value = derivations["$index"]['address'] as String
-        ..publicKey = Format.stringToUint8List(
-            derivations["$index"]['publicKey'] as String)
-        ..subType = chain == 0
+      return isar_models.Address(
+        walletId: walletId,
+        value: derivations["$index"]['address'] as String,
+        publicKey: Format.stringToUint8List(
+            derivations["$index"]['publicKey'] as String),
+        type: isar_models.AddressType.p2pkh,
+        derivationIndex: index,
+        subType: chain == 0
             ? isar_models.AddressSubType.receiving
-            : isar_models.AddressSubType.change
-        ..type = isar_models.AddressType.p2pkh
-        ..derivationIndex = index;
+            : isar_models.AddressSubType.change,
+      );
     } else {
       final node = await compute(
           getBip32NodeWrapper, Tuple4(chain, index, mnemonic!, _network));
@@ -3524,14 +3536,16 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
               .data
               .address!;
 
-      return isar_models.Address()
-        ..value = address
-        ..publicKey = node.publicKey
-        ..subType = chain == 0
+      return isar_models.Address(
+        walletId: walletId,
+        value: address,
+        publicKey: node.publicKey,
+        type: isar_models.AddressType.p2pkh,
+        derivationIndex: index,
+        subType: chain == 0
             ? isar_models.AddressSubType.receiving
-            : isar_models.AddressSubType.change
-        ..type = isar_models.AddressType.p2pkh
-        ..derivationIndex = index;
+            : isar_models.AddressSubType.change,
+      );
     }
   }
 
@@ -3921,13 +3935,15 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           int numTxs = await futureNumTxs;
           if (numTxs >= 1) {
             receivingIndex = i;
-            final addr = isar_models.Address()
-              ..value = address
-              ..type = isar_models.AddressType.p2pkh
-              ..subType = isar_models.AddressSubType.receiving
-              ..derivationIndex = i
-              ..publicKey = Format.stringToUint8List(
-                  receiveDerivation['publicKey'] as String);
+            final addr = isar_models.Address(
+              walletId: walletId,
+              value: address,
+              publicKey: Format.stringToUint8List(
+                  receiveDerivation['publicKey'] as String),
+              type: isar_models.AddressType.p2pkh,
+              derivationIndex: i,
+              subType: isar_models.AddressSubType.receiving,
+            );
             receivingAddressArray.add(addr);
           } else if (numTxs == 0) {
             receivingGapCounter += 1;
@@ -3945,13 +3961,15 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           int numTxs = await _futureNumTxs;
           if (numTxs >= 1) {
             changeIndex = i;
-            final addr = isar_models.Address()
-              ..value = address
-              ..type = isar_models.AddressType.p2pkh
-              ..subType = isar_models.AddressSubType.change
-              ..derivationIndex = i
-              ..publicKey = Format.stringToUint8List(
-                  changeDerivation['publicKey'] as String);
+            final addr = isar_models.Address(
+              walletId: walletId,
+              value: address,
+              publicKey: Format.stringToUint8List(
+                  changeDerivation['publicKey'] as String),
+              type: isar_models.AddressType.p2pkh,
+              derivationIndex: i,
+              subType: isar_models.AddressSubType.change,
+            );
             changeAddressArray.add(addr);
           } else if (numTxs == 0) {
             changeGapCounter += 1;
@@ -4475,24 +4493,33 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           tx["address"] = tx["vout"][sendIndex]["scriptPubKey"]["addresses"][0];
           tx["fees"] = tx["vin"][0]["nFees"];
 
-          final txn = isar_models.Transaction()
-            ..isLelantus = true
-            ..txid = tx["txid"] as String
-            ..timestamp = tx["time"] as int? ??
-                (DateTime.now().millisecondsSinceEpoch ~/ 1000)
-            ..type = isar_models.TransactionType.outgoing
-            ..subType = isar_models.TransactionSubType.join
-            ..fee = Format.decimalAmountToSatoshis(
-                Decimal.parse(tx["fees"].toString()), coin)
-            ..address.value = await db
-                .getAddresses(walletId)
-                .filter()
-                .valueEqualTo(tx["address"] as String)
-                .findFirst()
-            ..amount = Format.decimalAmountToSatoshis(
-                Decimal.parse(tx["amount"].toString()), coin)
-            ..isCancelled = false
-            ..height = tx["height"] as int?;
+          final txn = isar_models.Transaction(
+            walletId: walletId,
+            txid: tx["txid"] as String,
+            timestamp: tx["time"] as int? ??
+                (DateTime.now().millisecondsSinceEpoch ~/ 1000),
+            type: isar_models.TransactionType.outgoing,
+            subType: isar_models.TransactionSubType.join,
+            amount: Format.decimalAmountToSatoshis(
+              Decimal.parse(tx["amount"].toString()),
+              coin,
+            ),
+            fee: Format.decimalAmountToSatoshis(
+              Decimal.parse(tx["fees"].toString()),
+              coin,
+            ),
+            height: tx["height"] as int?,
+            isCancelled: false,
+            isLelantus: true,
+            slateId: null,
+            otherData: null,
+          );
+
+          txn.address.value = await db
+              .getAddresses(walletId)
+              .filter()
+              .valueEqualTo(tx["address"] as String)
+              .findFirst();
 
           txs.add(txn);
         } catch (e, s) {

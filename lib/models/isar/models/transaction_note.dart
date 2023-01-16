@@ -4,6 +4,12 @@ part 'transaction_note.g.dart';
 
 @Collection()
 class TransactionNote {
+  TransactionNote({
+    required this.walletId,
+    required this.txid,
+    required this.value,
+  });
+
   Id id = Isar.autoIncrement;
 
   @Index()

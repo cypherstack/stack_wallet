@@ -181,19 +181,20 @@ UTXO _uTXODeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = UTXO();
-  object.blockHash = reader.readStringOrNull(offsets[0]);
-  object.blockHeight = reader.readLongOrNull(offsets[1]);
-  object.blockTime = reader.readLongOrNull(offsets[2]);
-  object.blockedReason = reader.readStringOrNull(offsets[3]);
+  final object = UTXO(
+    blockHash: reader.readStringOrNull(offsets[0]),
+    blockHeight: reader.readLongOrNull(offsets[1]),
+    blockTime: reader.readLongOrNull(offsets[2]),
+    blockedReason: reader.readStringOrNull(offsets[3]),
+    isBlocked: reader.readBool(offsets[4]),
+    isCoinbase: reader.readBool(offsets[5]),
+    name: reader.readString(offsets[6]),
+    txid: reader.readString(offsets[7]),
+    value: reader.readLong(offsets[8]),
+    vout: reader.readLong(offsets[9]),
+    walletId: reader.readString(offsets[10]),
+  );
   object.id = id;
-  object.isBlocked = reader.readBool(offsets[4]);
-  object.isCoinbase = reader.readBool(offsets[5]);
-  object.name = reader.readString(offsets[6]);
-  object.txid = reader.readString(offsets[7]);
-  object.value = reader.readLong(offsets[8]);
-  object.vout = reader.readLong(offsets[9]);
-  object.walletId = reader.readString(offsets[10]);
   return object;
 }
 

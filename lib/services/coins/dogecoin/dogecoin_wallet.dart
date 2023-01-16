@@ -354,15 +354,16 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
                     data: PaymentData(pubkey: node.publicKey), network: network)
                 .data
                 .address!;
-            address = isar_models.Address()
-              ..walletId = walletId
-              ..subType = chain == 0
+            address = isar_models.Address(
+              walletId: walletId,
+              value: addressString,
+              publicKey: node.publicKey,
+              type: isar_models.AddressType.p2pkh,
+              derivationIndex: index + j,
+              subType: chain == 0
                   ? isar_models.AddressSubType.receiving
-                  : isar_models.AddressSubType.change
-              ..type = isar_models.AddressType.p2pkh
-              ..publicKey = node.publicKey
-              ..value = addressString
-              ..derivationIndex = index + j;
+                  : isar_models.AddressSubType.change,
+            );
             break;
           default:
             throw Exception("No Path type $type exists");
@@ -1278,16 +1279,16 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       wif: node.toWIF(),
       derivePathType: derivePathType,
     );
-
-    return isar_models.Address()
-      ..walletId = walletId
-      ..derivationIndex = index
-      ..value = address
-      ..publicKey = node.publicKey
-      ..type = isar_models.AddressType.p2pkh
-      ..subType = chain == 0
+    return isar_models.Address(
+      walletId: walletId,
+      value: address,
+      publicKey: node.publicKey,
+      type: isar_models.AddressType.p2pkh,
+      derivationIndex: index,
+      subType: chain == 0
           ? isar_models.AddressSubType.receiving
-          : isar_models.AddressSubType.change;
+          : isar_models.AddressSubType.change,
+    );
   }
 
   /// Returns the latest receiving/change (external/internal) address for the wallet depending on [chain]
@@ -1494,21 +1495,20 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
             coin: coin,
           );
 
-          final utxo = isar_models.UTXO()..walletId = walletId;
-
-          utxo.txid = txn["txid"] as String;
-          utxo.vout = fetchedUtxoList[i][j]["tx_pos"] as int;
-          utxo.value = fetchedUtxoList[i][j]["value"] as int;
-          utxo.name = "";
-
           // todo check here if we should mark as blocked
-          utxo.isBlocked = false;
-          utxo.blockedReason = null;
-
-          utxo.isCoinbase = txn["is_coinbase"] as bool? ?? false;
-          utxo.blockHash = txn["blockhash"] as String?;
-          utxo.blockHeight = fetchedUtxoList[i][j]["height"] as int?;
-          utxo.blockTime = txn["blocktime"] as int?;
+          final utxo = isar_models.UTXO(
+            walletId: walletId,
+            txid: txn["txid"] as String,
+            vout: fetchedUtxoList[i][j]["tx_pos"] as int,
+            value: fetchedUtxoList[i][j]["value"] as int,
+            name: "",
+            isBlocked: false,
+            blockedReason: null,
+            isCoinbase: txn["is_coinbase"] as bool? ?? false,
+            blockHash: txn["blockhash"] as String?,
+            blockHeight: fetchedUtxoList[i][j]["height"] as int?,
+            blockTime: txn["blocktime"] as int?,
+          );
 
           satoshiBalanceTotal += utxo.value;
 

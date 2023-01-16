@@ -392,14 +392,16 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
             throw Exception("No Path type $type exists");
         }
 
-        final address = isar_models.Address()
-          ..subType = chain == 0
+        final address = isar_models.Address(
+          walletId: walletId,
+          subType: chain == 0
               ? isar_models.AddressSubType.receiving
-              : isar_models.AddressSubType.change
-          ..type = addrType
-          ..publicKey = node.publicKey
-          ..value = addressString
-          ..derivationIndex = index + j;
+              : isar_models.AddressSubType.change,
+          type: addrType,
+          publicKey: node.publicKey,
+          value: addressString,
+          derivationIndex: index + j,
+        );
 
         receivingNodes.addAll({
           "${_id}_$j": {
@@ -1407,14 +1409,16 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
       derivePathType: derivePathType,
     );
 
-    return isar_models.Address()
-      ..derivationIndex = index
-      ..value = address
-      ..publicKey = node.publicKey
-      ..type = addrType
-      ..subType = chain == 0
+    return isar_models.Address(
+      walletId: walletId,
+      derivationIndex: index,
+      value: address,
+      publicKey: node.publicKey,
+      type: addrType,
+      subType: chain == 0
           ? isar_models.AddressSubType.receiving
-          : isar_models.AddressSubType.change;
+          : isar_models.AddressSubType.change,
+    );
   }
 
   /// Returns the latest receiving/change (external/internal) address for the wallet depending on [chain]
@@ -1597,21 +1601,20 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
             coin: coin,
           );
 
-          final utxo = isar_models.UTXO();
-
-          utxo.txid = txn["txid"] as String;
-          utxo.vout = fetchedUtxoList[i][j]["tx_pos"] as int;
-          utxo.value = fetchedUtxoList[i][j]["value"] as int;
-          utxo.name = "";
-
           // todo check here if we should mark as blocked
-          utxo.isBlocked = false;
-          utxo.blockedReason = null;
-
-          utxo.isCoinbase = txn["is_coinbase"] as bool? ?? false;
-          utxo.blockHash = txn["blockhash"] as String?;
-          utxo.blockHeight = fetchedUtxoList[i][j]["height"] as int?;
-          utxo.blockTime = txn["blocktime"] as int?;
+          final utxo = isar_models.UTXO(
+            walletId: walletId,
+            txid: txn["txid"] as String,
+            vout: fetchedUtxoList[i][j]["tx_pos"] as int,
+            value: fetchedUtxoList[i][j]["value"] as int,
+            name: "",
+            isBlocked: false,
+            blockedReason: null,
+            isCoinbase: txn["is_coinbase"] as bool? ?? false,
+            blockHash: txn["blockhash"] as String?,
+            blockHeight: fetchedUtxoList[i][j]["height"] as int?,
+            blockTime: txn["blocktime"] as int?,
+          );
 
           satoshiBalanceTotal += utxo.value;
 
@@ -2231,25 +2234,32 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
       midSortedTx["inputs"] = txObject["vin"];
       midSortedTx["outputs"] = txObject["vout"];
 
-      final int height = txObject["height"] as int;
-
       // midSortedArray.add(midSortedTx);
-      final tx = isar_models.Transaction();
-      tx.txid = midSortedTx["txid"] as String;
-      tx.timestamp = midSortedTx["timestamp"] as int;
-
+      isar_models.TransactionType type;
+      int amount;
       if (foundInSenders) {
-        tx.type = isar_models.TransactionType.outgoing;
-        tx.amount = inputAmtSentFromWallet;
+        type = isar_models.TransactionType.outgoing;
+        amount = inputAmtSentFromWallet;
       } else {
-        tx.type = isar_models.TransactionType.incoming;
-        tx.amount = outputAmtAddressedToWallet;
+        type = isar_models.TransactionType.incoming;
+        amount = outputAmtAddressedToWallet;
       }
 
-      // TODO: other subtypes
-      tx.subType = isar_models.TransactionSubType.none;
+      final tx = isar_models.Transaction(
+        walletId: walletId,
+        txid: midSortedTx["txid"] as String,
+        timestamp: midSortedTx["timestamp"] as int,
+        type: type,
+        subType: isar_models.TransactionSubType.none,
+        amount: amount,
+        fee: fee,
+        height: txObject["height"] as int,
+        isCancelled: false,
+        isLelantus: false,
+        slateId: null,
+        otherData: null,
+      );
 
-      tx.fee = fee;
       isar_models.Address? transactionAddress =
           midSortedTx["address"] as isar_models.Address?;
 
@@ -2258,39 +2268,36 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       for (final json in midSortedTx["vin"] as List) {
         bool isCoinBase = json['coinbase'] != null;
-        final input = isar_models.Input();
-        input.txid = json['txid'] as String? ?? "";
-        input.vout = json['vout'] as int? ?? -1;
-        input.scriptSig = json['scriptSig']?['hex'] as String?;
-        input.scriptSigAsm = json['scriptSig']?['asm'] as String?;
-        input.isCoinbase =
-            isCoinBase ? isCoinBase : json['is_coinbase'] as bool?;
-        input.sequence = json['sequence'] as int?;
-        input.innerRedeemScriptAsm = json['innerRedeemscriptAsm'] as String?;
+        final input = isar_models.Input(
+          walletId: walletId,
+          txid: json['txid'] as String,
+          vout: json['vout'] as int? ?? -1,
+          scriptSig: json['scriptSig']?['hex'] as String?,
+          scriptSigAsm: json['scriptSig']?['asm'] as String?,
+          isCoinbase: isCoinBase ? isCoinBase : json['is_coinbase'] as bool?,
+          sequence: json['sequence'] as int?,
+          innerRedeemScriptAsm: json['innerRedeemscriptAsm'] as String?,
+        );
         inputs.add(input);
       }
 
       for (final json in midSortedTx["vout"] as List) {
-        final output = isar_models.Output();
-        output.scriptPubKey = json['scriptPubKey']?['hex'] as String?;
-        output.scriptPubKeyAsm = json['scriptPubKey']?['asm'] as String?;
-        output.scriptPubKeyType = json['scriptPubKey']?['type'] as String?;
-        output.scriptPubKeyAddress =
-            json["scriptPubKey"]?["addresses"]?[0] as String? ??
-                json['scriptPubKey']?['type'] as String? ??
-                "";
-        output.value = Format.decimalAmountToSatoshis(
-          Decimal.tryParse(json["value"].toString()) ?? Decimal.zero,
-          coin,
+        final output = isar_models.Output(
+          walletId: walletId,
+          scriptPubKey: json['scriptPubKey']?['hex'] as String?,
+          scriptPubKeyAsm: json['scriptPubKey']?['asm'] as String?,
+          scriptPubKeyType: json['scriptPubKey']?['type'] as String?,
+          scriptPubKeyAddress:
+              json["scriptPubKey"]?["addresses"]?[0] as String? ??
+                  json['scriptPubKey']['type'] as String? ??
+                  "",
+          value: Format.decimalAmountToSatoshis(
+            Decimal.parse(json["value"].toString()),
+            coin,
+          ),
         );
         outputs.add(output);
       }
-
-      tx.height = height;
-
-      tx.isCancelled = false;
-      tx.slateId = null;
-      tx.otherData = null;
 
       txns.add(Tuple4(tx, outputs, inputs, transactionAddress));
     }

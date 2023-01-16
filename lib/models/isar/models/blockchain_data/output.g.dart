@@ -133,14 +133,15 @@ Output _outputDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = Output();
+  final object = Output(
+    scriptPubKey: reader.readStringOrNull(offsets[0]),
+    scriptPubKeyAddress: reader.readString(offsets[1]),
+    scriptPubKeyAsm: reader.readStringOrNull(offsets[2]),
+    scriptPubKeyType: reader.readStringOrNull(offsets[3]),
+    value: reader.readLong(offsets[4]),
+    walletId: reader.readString(offsets[5]),
+  );
   object.id = id;
-  object.scriptPubKey = reader.readStringOrNull(offsets[0]);
-  object.scriptPubKeyAddress = reader.readString(offsets[1]);
-  object.scriptPubKeyAsm = reader.readStringOrNull(offsets[2]);
-  object.scriptPubKeyType = reader.readStringOrNull(offsets[3]);
-  object.value = reader.readLong(offsets[4]);
-  object.walletId = reader.readString(offsets[5]);
   return object;
 }
 

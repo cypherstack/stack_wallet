@@ -419,14 +419,16 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
             throw Exception("No Path type $type exists");
         }
 
-        final address = isar_models.Address()
-          ..subType = chain == 0
+        final address = isar_models.Address(
+          walletId: walletId,
+          value: addressString,
+          publicKey: node.publicKey,
+          type: addrType,
+          derivationIndex: index + j,
+          subType: chain == 0
               ? isar_models.AddressSubType.receiving
-              : isar_models.AddressSubType.change
-          ..type = addrType
-          ..publicKey = node.publicKey
-          ..value = addressString
-          ..derivationIndex = index + j;
+              : isar_models.AddressSubType.change,
+        );
 
         receivingNodes.addAll({
           "${_id}_$j": {
@@ -1533,14 +1535,16 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       derivePathType: derivePathType,
     );
 
-    return isar_models.Address()
-      ..derivationIndex = index
-      ..value = address
-      ..publicKey = node.publicKey
-      ..type = addrType
-      ..subType = chain == 0
+    return isar_models.Address(
+      walletId: walletId,
+      value: address,
+      publicKey: node.publicKey,
+      type: addrType,
+      derivationIndex: index,
+      subType: chain == 0
           ? isar_models.AddressSubType.receiving
-          : isar_models.AddressSubType.change;
+          : isar_models.AddressSubType.change,
+    );
   }
 
   /// Returns the latest receiving/change (external/internal) address for the wallet depending on [chain]
@@ -1728,21 +1732,20 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
             coin: coin,
           );
 
-          final utxo = isar_models.UTXO();
-
-          utxo.txid = txn["txid"] as String;
-          utxo.vout = fetchedUtxoList[i][j]["tx_pos"] as int;
-          utxo.value = fetchedUtxoList[i][j]["value"] as int;
-          utxo.name = "";
-
           // todo check here if we should mark as blocked
-          utxo.isBlocked = false;
-          utxo.blockedReason = null;
-
-          utxo.isCoinbase = txn["is_coinbase"] as bool? ?? false;
-          utxo.blockHash = txn["blockhash"] as String?;
-          utxo.blockHeight = fetchedUtxoList[i][j]["height"] as int?;
-          utxo.blockTime = txn["blocktime"] as int?;
+          final utxo = isar_models.UTXO(
+            walletId: walletId,
+            txid: txn["txid"] as String,
+            vout: fetchedUtxoList[i][j]["tx_pos"] as int,
+            value: fetchedUtxoList[i][j]["value"] as int,
+            name: "",
+            isBlocked: false,
+            blockedReason: null,
+            isCoinbase: txn["is_coinbase"] as bool? ?? false,
+            blockHash: txn["blockhash"] as String?,
+            blockHeight: fetchedUtxoList[i][j]["height"] as int?,
+            blockTime: txn["blocktime"] as int?,
+          );
 
           satoshiBalanceTotal += utxo.value;
 

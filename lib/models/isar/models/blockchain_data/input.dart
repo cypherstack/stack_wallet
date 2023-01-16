@@ -6,6 +6,17 @@ part 'input.g.dart';
 
 @Collection()
 class Input {
+  Input({
+    required this.walletId,
+    required this.txid,
+    required this.vout,
+    required this.scriptSig,
+    required this.scriptSigAsm,
+    required this.isCoinbase,
+    required this.sequence,
+    required this.innerRedeemScriptAsm,
+  });
+
   Id id = Isar.autoIncrement;
 
   @Index()

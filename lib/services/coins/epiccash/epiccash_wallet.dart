@@ -2025,30 +2025,31 @@ class EpicCashWallet extends CoinServiceAPI
 
       DateTime dt = DateTime.parse(tx["creation_ts"] as String);
 
-      final txn = isar_models.Transaction();
-      txn.type = (tx["tx_type"] == "TxReceived" ||
-              tx["tx_type"] == "TxReceivedCancelled")
-          ? isar_models.TransactionType.incoming
-          : isar_models.TransactionType.outgoing;
-
       String? slateId = tx['tx_slate_id'] as String?;
-      String? address = slatesToCommits[slateId]
+      String address = slatesToCommits[slateId]
               ?[tx["tx_type"] == "TxReceived" ? "from" : "to"] as String? ??
           "";
       String? commitId = slatesToCommits[slateId]?['commitId'] as String?;
-      Logging.instance.log(
-          "commitId: $commitId, slateId: $slateId, id: ${tx["id"]}",
-          level: LogLevel.Info);
 
-      bool isCancelled = tx["tx_type"] == "TxSentCancelled" ||
-          tx["tx_type"] == "TxReceivedCancelled";
+      final txn = isar_models.Transaction(
+        walletId: walletId,
+        txid: commitId ?? tx["id"].toString(),
+        timestamp: (dt.millisecondsSinceEpoch ~/ 1000),
+        type: (tx["tx_type"] == "TxReceived" ||
+                tx["tx_type"] == "TxReceivedCancelled")
+            ? isar_models.TransactionType.incoming
+            : isar_models.TransactionType.outgoing,
+        subType: isar_models.TransactionSubType.none,
+        amount: amt,
+        fee: (tx["fee"] == null) ? 0 : int.parse(tx["fee"] as String),
+        height: txHeight,
+        isCancelled: tx["tx_type"] == "TxSentCancelled" ||
+            tx["tx_type"] == "TxReceivedCancelled",
+        isLelantus: false,
+        slateId: slateId,
+        otherData: tx["id"].toString(),
+      );
 
-      txn.slateId = slateId;
-      txn.isCancelled = isCancelled;
-      txn.txid = commitId ?? tx["id"].toString();
-      txn.timestamp = (dt.millisecondsSinceEpoch ~/ 1000);
-      txn.amount = amt;
-      txn.fee = (tx["fee"] == null) ? 0 : int.parse(tx["fee"] as String);
       // txn.address =
       //     ""; // for this when you send a transaction you will just need to save in a hashmap in hive with the key being the txid, and the value being the address it was sent to. then you can look this value up right here in your hashmap.
       txn.address.value = await db
@@ -2056,7 +2057,6 @@ class EpicCashWallet extends CoinServiceAPI
           .filter()
           .valueEqualTo(address)
           .findFirst();
-      txn.height = txHeight;
 
       //
       // midSortedTx["inputSize"] = tx["num_inputs"];
@@ -2067,8 +2067,6 @@ class EpicCashWallet extends CoinServiceAPI
 
       // key id not used afaik?
       // midSortedTx["key_id"] = tx["parent_key_id"];
-
-      txn.otherData = tx["id"].toString();
 
       // if (txHeight >= latestTxnBlockHeight) {
       //   latestTxnBlockHeight = txHeight;

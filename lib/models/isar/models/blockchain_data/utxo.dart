@@ -6,6 +6,20 @@ part 'utxo.g.dart';
 
 @Collection(accessor: "utxos")
 class UTXO {
+  UTXO({
+    required this.walletId,
+    required this.txid,
+    required this.vout,
+    required this.value,
+    required this.name,
+    required this.isBlocked,
+    required this.blockedReason,
+    required this.isCoinbase,
+    required this.blockHash,
+    required this.blockHeight,
+    required this.blockTime,
+  });
+
   Id id = Isar.autoIncrement;
 
   @Index()

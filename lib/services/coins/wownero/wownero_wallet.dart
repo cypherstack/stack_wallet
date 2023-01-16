@@ -816,14 +816,16 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     //
     String address = walletBase!.getTransactionAddress(chain, index);
 
-    return isar_models.Address()
-      ..derivationIndex = index
-      ..value = address
-      ..publicKey = []
-      ..type = isar_models.AddressType.cryptonote
-      ..subType = chain == 0
+    return isar_models.Address(
+      walletId: walletId,
+      derivationIndex: index,
+      value: address,
+      publicKey: [],
+      type: isar_models.AddressType.cryptonote,
+      subType: chain == 0
           ? isar_models.AddressSubType.receiving
-          : isar_models.AddressSubType.change;
+          : isar_models.AddressSubType.change,
+    );
   }
 
   Future<FeeObject> _getFees() async {
@@ -930,12 +932,8 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         // midSortedTx["outputs"] = <dynamic>[];
         // midSortedArray.add(midSortedTx);
 
-        final int txHeight = tx.value.height ?? 0;
-        final txn = isar_models.Transaction();
-        txn.txid = tx.value.id;
-        txn.timestamp = (tx.value.date.millisecondsSinceEpoch ~/ 1000);
-
         isar_models.Address? address;
+        isar_models.TransactionType type;
         if (tx.value.direction == TransactionDirection.incoming) {
           final addressInfo = tx.value.additionalInfo;
 
@@ -952,25 +950,26 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
                 .findFirst();
           }
 
-          txn.type = isar_models.TransactionType.incoming;
+          type = isar_models.TransactionType.incoming;
         } else {
           // txn.address = "";
-          txn.type = isar_models.TransactionType.outgoing;
+          type = isar_models.TransactionType.outgoing;
         }
 
-        txn.amount = tx.value.amount ?? 0;
-
-        // TODO: other subtypes
-        txn.subType = isar_models.TransactionSubType.none;
-
-        txn.fee = tx.value.fee ?? 0;
-
-        txn.height = txHeight;
-
-        txn.isCancelled = false;
-        txn.isLelantus = null;
-        txn.slateId = null;
-        txn.otherData = null;
+        final txn = isar_models.Transaction(
+          walletId: walletId,
+          txid: tx.value.id,
+          timestamp: (tx.value.date.millisecondsSinceEpoch ~/ 1000),
+          type: type,
+          subType: isar_models.TransactionSubType.none,
+          amount: tx.value.amount ?? 0,
+          fee: tx.value.fee ?? 0,
+          height: tx.value.height,
+          isCancelled: false,
+          isLelantus: false,
+          slateId: null,
+          otherData: null,
+        );
 
         txnsData.add(Tuple4(txn, [], [], address));
       }

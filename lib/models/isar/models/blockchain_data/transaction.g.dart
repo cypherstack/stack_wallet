@@ -208,24 +208,24 @@ Transaction _transactionDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = Transaction();
-  object.amount = reader.readLong(offsets[0]);
-  object.fee = reader.readLong(offsets[1]);
-  object.height = reader.readLongOrNull(offsets[2]);
+  final object = Transaction(
+    amount: reader.readLong(offsets[0]),
+    fee: reader.readLong(offsets[1]),
+    height: reader.readLongOrNull(offsets[2]),
+    isCancelled: reader.readBool(offsets[3]),
+    isLelantus: reader.readBoolOrNull(offsets[4]),
+    otherData: reader.readStringOrNull(offsets[5]),
+    slateId: reader.readStringOrNull(offsets[6]),
+    subType:
+        _TransactionsubTypeValueEnumMap[reader.readByteOrNull(offsets[7])] ??
+            TransactionSubType.none,
+    timestamp: reader.readLong(offsets[8]),
+    txid: reader.readString(offsets[9]),
+    type: _TransactiontypeValueEnumMap[reader.readByteOrNull(offsets[10])] ??
+        TransactionType.outgoing,
+    walletId: reader.readString(offsets[11]),
+  );
   object.id = id;
-  object.isCancelled = reader.readBool(offsets[3]);
-  object.isLelantus = reader.readBoolOrNull(offsets[4]);
-  object.otherData = reader.readStringOrNull(offsets[5]);
-  object.slateId = reader.readStringOrNull(offsets[6]);
-  object.subType =
-      _TransactionsubTypeValueEnumMap[reader.readByteOrNull(offsets[7])] ??
-          TransactionSubType.none;
-  object.timestamp = reader.readLong(offsets[8]);
-  object.txid = reader.readString(offsets[9]);
-  object.type =
-      _TransactiontypeValueEnumMap[reader.readByteOrNull(offsets[10])] ??
-          TransactionType.outgoing;
-  object.walletId = reader.readString(offsets[11]);
   return object;
 }
 

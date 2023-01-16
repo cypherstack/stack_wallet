@@ -5,6 +5,15 @@ part 'output.g.dart';
 
 @Collection()
 class Output {
+  Output({
+    required this.walletId,
+    required this.scriptPubKey,
+    required this.scriptPubKeyAsm,
+    required this.scriptPubKeyType,
+    required this.scriptPubKeyAddress,
+    required this.value,
+  });
+
   Id id = Isar.autoIncrement;
 
   @Index()

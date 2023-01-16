@@ -667,87 +667,90 @@ Future<Tuple4<Transaction, List<Output>, List<Input>, Address>>
 
   final fee = totalInputValue - totalOutputValue;
 
-  final tx = Transaction()..walletId = walletId;
-  tx.txid = txData["txid"] as String;
-  tx.timestamp = txData["blocktime"] as int? ??
-      (DateTime.now().millisecondsSinceEpoch ~/ 1000);
-
   // this is the address initially used to fetch the txid
   Address transactionAddress = txData["address"] as Address;
 
+  TransactionType type;
+  int amount;
   if (mySentFromAddresses.isNotEmpty && myReceivedOnAddresses.isNotEmpty) {
     // tx is sent to self
-    tx.type = TransactionType.sentToSelf;
+    type = TransactionType.sentToSelf;
 
     // should be 0
-    tx.amount =
-        amountSentFromWallet - amountReceivedInWallet - fee - changeAmount;
+    amount = amountSentFromWallet - amountReceivedInWallet - fee - changeAmount;
   } else if (mySentFromAddresses.isNotEmpty) {
     // outgoing tx
-    tx.type = TransactionType.outgoing;
-    tx.amount = amountSentFromWallet - changeAmount - fee;
+    type = TransactionType.outgoing;
+    amount = amountSentFromWallet - changeAmount - fee;
 
     final possible =
         outputAddresses.difference(myChangeReceivedOnAddresses).first;
 
     if (transactionAddress.value != possible) {
-      transactionAddress = Address()
-        ..walletId = walletId
-        ..value = possible
-        ..derivationIndex = -1
-        ..subType = AddressSubType.nonWallet
-        ..type = AddressType.nonWallet
-        ..publicKey = [];
+      transactionAddress = Address(
+        walletId: walletId,
+        value: possible,
+        derivationIndex: -1,
+        subType: AddressSubType.nonWallet,
+        type: AddressType.nonWallet,
+        publicKey: [],
+      );
     }
   } else {
     // incoming tx
-    tx.type = TransactionType.incoming;
-    tx.amount = amountReceivedInWallet;
+    type = TransactionType.incoming;
+    amount = amountReceivedInWallet;
   }
 
-  // TODO: other subtypes
-  tx.subType = TransactionSubType.none;
-
-  tx.fee = fee;
+  final tx = Transaction(
+    walletId: walletId,
+    txid: txData["txid"] as String,
+    timestamp: txData["blocktime"] as int? ??
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000),
+    type: type,
+    subType: TransactionSubType.none,
+    amount: amount,
+    fee: fee,
+    height: txData["height"] as int?,
+    isCancelled: false,
+    isLelantus: false,
+    slateId: null,
+    otherData: null,
+  );
 
   List<Output> outs = [];
   List<Input> ins = [];
 
   for (final json in txData["vin"] as List) {
     bool isCoinBase = json['coinbase'] != null;
-    final input = Input()..walletId = walletId;
-    input.txid = json['txid'] as String;
-    input.vout = json['vout'] as int? ?? -1;
-    input.scriptSig = json['scriptSig']?['hex'] as String?;
-    input.scriptSigAsm = json['scriptSig']?['asm'] as String?;
-    input.isCoinbase = isCoinBase ? isCoinBase : json['is_coinbase'] as bool?;
-    input.sequence = json['sequence'] as int?;
-    input.innerRedeemScriptAsm = json['innerRedeemscriptAsm'] as String?;
+    final input = Input(
+      walletId: walletId,
+      txid: json['txid'] as String,
+      vout: json['vout'] as int? ?? -1,
+      scriptSig: json['scriptSig']?['hex'] as String?,
+      scriptSigAsm: json['scriptSig']?['asm'] as String?,
+      isCoinbase: isCoinBase ? isCoinBase : json['is_coinbase'] as bool?,
+      sequence: json['sequence'] as int?,
+      innerRedeemScriptAsm: json['innerRedeemscriptAsm'] as String?,
+    );
     ins.add(input);
   }
 
   for (final json in txData["vout"] as List) {
-    final output = Output()..walletId = walletId;
-    output.scriptPubKey = json['scriptPubKey']?['hex'] as String?;
-    output.scriptPubKeyAsm = json['scriptPubKey']?['asm'] as String?;
-    output.scriptPubKeyType = json['scriptPubKey']?['type'] as String?;
-    output.scriptPubKeyAddress =
-        json["scriptPubKey"]?["addresses"]?[0] as String? ??
-            json['scriptPubKey']['type'] as String;
-    output.value = Format.decimalAmountToSatoshis(
-      Decimal.parse(json["value"].toString()),
-      coin,
+    final output = Output(
+      walletId: walletId,
+      scriptPubKey: json['scriptPubKey']?['hex'] as String?,
+      scriptPubKeyAsm: json['scriptPubKey']?['asm'] as String?,
+      scriptPubKeyType: json['scriptPubKey']?['type'] as String?,
+      scriptPubKeyAddress: json["scriptPubKey"]?["addresses"]?[0] as String? ??
+          json['scriptPubKey']['type'] as String,
+      value: Format.decimalAmountToSatoshis(
+        Decimal.parse(json["value"].toString()),
+        coin,
+      ),
     );
     outs.add(output);
   }
-
-  tx.height = txData["height"] as int?;
-
-  //TODO: change these for epic (or other coins that need it)
-  tx.isCancelled = false;
-  tx.slateId = null;
-  tx.otherData = null;
-  tx.isLelantus = null;
 
   return Tuple4(tx, outs, ins, transactionAddress);
 }

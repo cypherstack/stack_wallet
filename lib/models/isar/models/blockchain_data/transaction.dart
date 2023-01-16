@@ -9,6 +9,21 @@ part 'transaction.g.dart';
 
 @Collection()
 class Transaction {
+  Transaction({
+    required this.walletId,
+    required this.txid,
+    required this.timestamp,
+    required this.type,
+    required this.subType,
+    required this.amount,
+    required this.fee,
+    required this.height,
+    required this.isCancelled,
+    required this.isLelantus,
+    required this.slateId,
+    required this.otherData,
+  });
+
   Id id = Isar.autoIncrement;
 
   @Index()

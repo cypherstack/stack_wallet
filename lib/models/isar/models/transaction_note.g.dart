@@ -108,11 +108,12 @@ TransactionNote _transactionNoteDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = TransactionNote();
+  final object = TransactionNote(
+    txid: reader.readString(offsets[0]),
+    value: reader.readString(offsets[1]),
+    walletId: reader.readString(offsets[2]),
+  );
   object.id = id;
-  object.txid = reader.readString(offsets[0]);
-  object.value = reader.readString(offsets[1]);
-  object.walletId = reader.readString(offsets[2]);
   return object;
 }
 

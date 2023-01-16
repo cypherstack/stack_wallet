@@ -148,17 +148,17 @@ Address _addressDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = Address();
-  object.derivationIndex = reader.readLong(offsets[0]);
+  final object = Address(
+    derivationIndex: reader.readLong(offsets[0]),
+    publicKey: reader.readByteList(offsets[1]) ?? [],
+    subType: _AddresssubTypeValueEnumMap[reader.readByteOrNull(offsets[2])] ??
+        AddressSubType.receiving,
+    type: _AddresstypeValueEnumMap[reader.readByteOrNull(offsets[3])] ??
+        AddressType.p2pkh,
+    value: reader.readString(offsets[4]),
+    walletId: reader.readString(offsets[5]),
+  );
   object.id = id;
-  object.publicKey = reader.readByteList(offsets[1]) ?? [];
-  object.subType =
-      _AddresssubTypeValueEnumMap[reader.readByteOrNull(offsets[2])] ??
-          AddressSubType.receiving;
-  object.type = _AddresstypeValueEnumMap[reader.readByteOrNull(offsets[3])] ??
-      AddressType.p2pkh;
-  object.value = reader.readString(offsets[4]);
-  object.walletId = reader.readString(offsets[5]);
   return object;
 }
 
@@ -194,7 +194,8 @@ const _AddresssubTypeEnumValueMap = {
   'paynymNotification': 2,
   'paynymSend': 3,
   'paynymReceive': 4,
-  'nonWallet': 5,
+  'unknown': 5,
+  'nonWallet': 6,
 };
 const _AddresssubTypeValueEnumMap = {
   0: AddressSubType.receiving,
@@ -202,21 +203,24 @@ const _AddresssubTypeValueEnumMap = {
   2: AddressSubType.paynymNotification,
   3: AddressSubType.paynymSend,
   4: AddressSubType.paynymReceive,
-  5: AddressSubType.nonWallet,
+  5: AddressSubType.unknown,
+  6: AddressSubType.nonWallet,
 };
 const _AddresstypeEnumValueMap = {
   'p2pkh': 0,
   'p2sh': 1,
   'p2wpkh': 2,
   'cryptonote': 3,
-  'nonWallet': 4,
+  'mimbleWimble': 4,
+  'nonWallet': 5,
 };
 const _AddresstypeValueEnumMap = {
   0: AddressType.p2pkh,
   1: AddressType.p2sh,
   2: AddressType.p2wpkh,
   3: AddressType.cryptonote,
-  4: AddressType.nonWallet,
+  4: AddressType.mimbleWimble,
+  5: AddressType.nonWallet,
 };
 
 Id _addressGetId(Address object) {
