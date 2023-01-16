@@ -11,7 +11,6 @@ import 'package:stackwallet/models/buy/response_objects/quote.dart';
 import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
 import 'package:stackwallet/pages/buy_view/buy_quote_preview.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dart';
-import 'package:stackwallet/pages/buy_view/sub_widgets/fiat_crypto_toggle.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/fiat_selection_view.dart';
 import 'package:stackwallet/pages/exchange_view/choose_from_stack_view.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -352,9 +351,6 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    buyWithFiat = ref.watch(
-        prefsChangeNotifierProvider.select((value) => value.buyWithFiat));
-
     return ConditionalParent(
       condition: isDesktop,
       builder: (child) => SizedBox(
@@ -409,31 +405,34 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                           .textFieldDefaultBG,
                   child: Padding(
                     padding: const EdgeInsets.all(12),
-                    child: Row(children: <Widget>[
-                      SvgPicture.asset(
-                        Assets.svg.iconFor(
-                          coin: coinFromTickerCaseInsensitive("BTC"),
+                    child: Row(
+                      children: <Widget>[
+                        SvgPicture.asset(
+                          Assets.svg.iconFor(
+                            coin: coinFromTickerCaseInsensitive("BTC"),
+                          ),
+                          height: 18,
+                          width: 18,
                         ),
-                        height: 18,
-                        width: 18,
-                      ),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      Expanded(
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        Expanded(
                           child: Text(
-                        "BTC",
-                        style: STextStyles.largeMedium14(context),
-                      )),
-                      SvgPicture.asset(
-                        Assets.svg.chevronDown,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .buttonTextSecondaryDisabled,
-                        width: 10,
-                        height: 5,
-                      ),
-                    ]),
+                            selectedCrypto?.ticker ?? "ERR",
+                            style: STextStyles.largeMedium14(context),
+                          ),
+                        ),
+                        SvgPicture.asset(
+                          Assets.svg.chevronDown,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonTextSecondaryDisabled,
+                          width: 10,
+                          height: 5,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -457,7 +456,6 @@ class _BuyFormState extends ConsumerState<BuyForm> {
             SizedBox(
               height: isDesktop ? 10 : 4,
             ),
-
             MouseRegion(
               cursor: SystemMouseCursors.click,
               onEnter: (_) => setState(() => _hovering2 = true),
@@ -479,43 +477,46 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                           .textFieldDefaultBG,
                   child: Padding(
                     padding: const EdgeInsets.all(12),
-                    child: Row(children: <Widget>[
-                      RoundedContainer(
-                        radiusMultiplier: 0.5,
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 2, horizontal: 4),
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .highlight,
-                        child: Text(
-                          "\$",
-                          style: STextStyles.itemSubtitle12(context),
-                        ),
-                      ),
-                      // SvgPicture.asset(
-                      //   Assets.svg.iconFor(
-                      //     coin: coinFromTickerCaseInsensitive("BTC"),
-                      //   ),
-                      //   height: 18,
-                      //   width: 18,
-                      // ),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      Expanded(
+                    child: Row(
+                      children: <Widget>[
+                        RoundedContainer(
+                          radiusMultiplier: 0.5,
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 2, horizontal: 4),
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .highlight,
                           child: Text(
-                        "USD",
-                        style: STextStyles.largeMedium14(context),
-                      )),
-                      SvgPicture.asset(
-                        Assets.svg.chevronDown,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .buttonTextSecondaryDisabled,
-                        width: 10,
-                        height: 5,
-                      ),
-                    ]),
+                            "\$",
+                            style: STextStyles.itemSubtitle12(context),
+                          ),
+                        ),
+                        // SvgPicture.asset(
+                        //   Assets.svg.iconFor(
+                        //     coin: coinFromTickerCaseInsensitive("BTC"),
+                        //   ),
+                        //   height: 18,
+                        //   width: 18,
+                        // ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        Expanded(
+                          child: Text(
+                            selectedFiat?.ticker ?? "ERR",
+                            style: STextStyles.largeMedium14(context),
+                          ),
+                        ),
+                        SvgPicture.asset(
+                          Assets.svg.chevronDown,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonTextSecondaryDisabled,
+                          width: 10,
+                          height: 5,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -534,12 +535,16 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                         Theme.of(context).extension<StackColors>()!.textDark3,
                   ),
                 ),
-                const FiatCryptoToggle(),
+                BlueTextButton(
+                  text: buyWithFiat ? "Use crypto amount" : "Use fiat amount",
+                  onTap: () {
+                    setState(() {
+                      buyWithFiat = !buyWithFiat;
+                    });
+                  },
+                )
               ],
             ),
-            // // these reads should be watch
-            // if (ref.watch(buyFormStateProvider).fromAmount != null &&
-            //     ref.watch(buyFormStateProvider).fromAmount != Decimal.zero)
             SizedBox(
               height: isDesktop ? 10 : 4,
             ),
@@ -560,13 +565,20 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                     ),
               textAlign: TextAlign.right,
               inputFormatters: [
-                // TODO reactivate formatter
-                // regex to validate a crypto amount with 8 decimal places
-                // TextInputFormatter.withFunction((oldValue, newValue) =>
-                //     RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-                //             .hasMatch(newValue.text)
-                //         ? newValue
-                //         : oldValue),
+                // regex to validate a crypto amount with 8 decimal places or
+                // 2 if fiat
+                TextInputFormatter.withFunction(
+                  (oldValue, newValue) {
+                    final regexString = buyWithFiat
+                        ? r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$'
+                        : r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$';
+
+                    // return RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
+                    return RegExp(regexString).hasMatch(newValue.text)
+                        ? newValue
+                        : oldValue;
+                  },
+                ),
               ],
               decoration: InputDecoration(
                 contentPadding: const EdgeInsets.only(
@@ -585,7 +597,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Text(
-                      "BTC",
+                      buyWithFiat
+                          ? selectedFiat?.ticker ?? "ERR"
+                          : selectedCrypto?.ticker ?? "ERR",
                       style: STextStyles.smallMed14(context).copyWith(
                           color: Theme.of(context)
                               .extension<StackColors>()!

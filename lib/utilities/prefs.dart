@@ -38,7 +38,6 @@ class Prefs extends ChangeNotifier {
       _startupWalletId = await _getStartupWalletId();
       _externalCalls = await _getHasExternalCalls();
       _familiarity = await _getHasFamiliarity();
-      _buyWithFiat = await _getBuyWithFiat();
 
       _initialized = true;
     }
@@ -349,25 +348,6 @@ class Prefs extends ChangeNotifier {
     return await DB.instance.get<dynamic>(
             boxName: DB.boxNamePrefs, key: "familiarity") as int? ??
         0;
-  }
-
-  // buy with fiat (default) or crypto
-  bool _buyWithFiat = true;
-  bool get buyWithFiat => _buyWithFiat;
-
-  set buyWithFiat(bool buyWithFiat) {
-    if (this.buyWithFiat != buyWithFiat) {
-      DB.instance.put<dynamic>(
-          boxName: DB.boxNamePrefs, key: "buyWithFiat", value: buyWithFiat);
-      _buyWithFiat = buyWithFiat;
-      notifyListeners();
-    }
-  }
-
-  Future<bool> _getBuyWithFiat() async {
-    return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "buyWithFiat") as bool? ??
-        true;
   }
 
   // show testnet coins
