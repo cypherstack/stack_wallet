@@ -132,7 +132,8 @@ extension PayNym on DogecoinWallet {
 
   /// return the notification tx sent from my wallet if it exists
   Future<Transaction?> hasSentNotificationTx(PaymentCode pCode) async {
-    final tx = await isar.transactions
+    final tx = await db
+        .getTransactions(walletId)
         .filter()
         .address((q) => q.valueEqualTo(pCode.notificationAddress()))
         .findFirst();
@@ -568,6 +569,7 @@ Future<Tuple4<Transaction, List<Output>, List<Input>, Address>>
   List<Address> myAddresses,
   Coin coin,
   int minConfirms,
+  String walletId,
 ) async {
   Set<String> receivingAddresses = myAddresses
       .where((e) => e.subType == AddressSubType.receiving)
@@ -665,7 +667,7 @@ Future<Tuple4<Transaction, List<Output>, List<Input>, Address>>
 
   final fee = totalInputValue - totalOutputValue;
 
-  final tx = Transaction();
+  final tx = Transaction()..walletId = walletId;
   tx.txid = txData["txid"] as String;
   tx.timestamp = txData["blocktime"] as int? ??
       (DateTime.now().millisecondsSinceEpoch ~/ 1000);
@@ -690,6 +692,7 @@ Future<Tuple4<Transaction, List<Output>, List<Input>, Address>>
 
     if (transactionAddress.value != possible) {
       transactionAddress = Address()
+        ..walletId = walletId
         ..value = possible
         ..derivationIndex = -1
         ..subType = AddressSubType.nonWallet
@@ -712,7 +715,7 @@ Future<Tuple4<Transaction, List<Output>, List<Input>, Address>>
 
   for (final json in txData["vin"] as List) {
     bool isCoinBase = json['coinbase'] != null;
-    final input = Input();
+    final input = Input()..walletId = walletId;
     input.txid = json['txid'] as String;
     input.vout = json['vout'] as int? ?? -1;
     input.scriptSig = json['scriptSig']?['hex'] as String?;
@@ -724,7 +727,7 @@ Future<Tuple4<Transaction, List<Output>, List<Input>, Address>>
   }
 
   for (final json in txData["vout"] as List) {
-    final output = Output();
+    final output = Output()..walletId = walletId;
     output.scriptPubKey = json['scriptPubKey']?['hex'] as String?;
     output.scriptPubKeyAsm = json['scriptPubKey']?['asm'] as String?;
     output.scriptPubKeyType = json['scriptPubKey']?['type'] as String?;

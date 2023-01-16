@@ -11,7 +11,10 @@ part 'transaction.g.dart';
 class Transaction {
   Id id = Isar.autoIncrement;
 
-  @Index(unique: true)
+  @Index()
+  late String walletId;
+
+  @Index(unique: true, composite: [CompositeIndex("walletId")])
   late String txid;
 
   @Index()

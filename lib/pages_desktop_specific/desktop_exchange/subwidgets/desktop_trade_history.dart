@@ -19,6 +19,8 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/trade_card.dart';
 
+import '../../../db/main_db.dart';
+
 class DesktopTradeHistory extends ConsumerStatefulWidget {
   const DesktopTradeHistory({Key? key}) : super(key: key);
 
@@ -128,7 +130,8 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
                         //todo: check if print needed
                         // debugPrint("name: ${manager.walletName}");
 
-                        final tx = await manager.db.transactions
+                        final tx = await MainDB.instance
+                            .getTransactions(walletIds.first)
                             .filter()
                             .txidEqualTo(txid)
                             .findFirst();

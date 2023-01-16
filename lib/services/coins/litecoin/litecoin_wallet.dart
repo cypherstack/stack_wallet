@@ -174,34 +174,34 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Coin get coin => _coin;
 
   @override
-  Future<List<isar_models.UTXO>> get utxos => isar.utxos.where().findAll();
+  Future<List<isar_models.UTXO>> get utxos => db.getUTXOs(walletId).findAll();
 
   @override
   Future<List<isar_models.Transaction>> get transactions =>
-      isar.transactions.where().sortByTimestampDesc().findAll();
+      db.getTransactions(walletId).sortByTimestampDesc().findAll();
 
   @override
   Future<String> get currentReceivingAddress async =>
       (await _currentReceivingAddress).value;
 
-  Future<isar_models.Address> get _currentReceivingAddress async =>
-      (await isar.addresses
-          .filter()
-          .typeEqualTo(isar_models.AddressType.p2wpkh)
-          .subTypeEqualTo(isar_models.AddressSubType.receiving)
-          .sortByDerivationIndexDesc()
-          .findFirst())!;
+  Future<isar_models.Address> get _currentReceivingAddress async => (await db
+      .getAddresses(walletId)
+      .filter()
+      .typeEqualTo(isar_models.AddressType.p2wpkh)
+      .subTypeEqualTo(isar_models.AddressSubType.receiving)
+      .sortByDerivationIndexDesc()
+      .findFirst())!;
 
   Future<String> get currentChangeAddress async =>
       (await _currentChangeAddress).value;
 
-  Future<isar_models.Address> get _currentChangeAddress async =>
-      (await isar.addresses
-          .filter()
-          .typeEqualTo(isar_models.AddressType.p2wpkh)
-          .subTypeEqualTo(isar_models.AddressSubType.change)
-          .sortByDerivationIndexDesc()
-          .findFirst())!;
+  Future<isar_models.Address> get _currentChangeAddress async => (await db
+      .getAddresses(walletId)
+      .filter()
+      .typeEqualTo(isar_models.AddressType.p2wpkh)
+      .subTypeEqualTo(isar_models.AddressSubType.change)
+      .sortByDerivationIndexDesc()
+      .findFirst())!;
 
   @override
   Future<void> exit() async {
@@ -209,7 +209,6 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     timer?.cancel();
     timer = null;
     stopNetworkAlivePinging();
-    await isarClose();
   }
 
   bool _hasCalledExit = false;
@@ -678,14 +677,14 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       await isarInit(walletId);
 
-      await isar.writeTxn(() async {
-        await isar.addresses.putAll(p2wpkhReceiveAddressArray);
-        await isar.addresses.putAll(p2wpkhChangeAddressArray);
-        await isar.addresses.putAll(p2pkhReceiveAddressArray);
-        await isar.addresses.putAll(p2pkhChangeAddressArray);
-        await isar.addresses.putAll(p2shReceiveAddressArray);
-        await isar.addresses.putAll(p2shChangeAddressArray);
-      });
+      await db.putAddresses([
+        ...p2wpkhReceiveAddressArray,
+        ...p2wpkhChangeAddressArray,
+        ...p2pkhReceiveAddressArray,
+        ...p2pkhChangeAddressArray,
+        ...p2shReceiveAddressArray,
+        ...p2shChangeAddressArray,
+      ]);
 
       await _updateUTXOs();
 
@@ -736,7 +735,8 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
             allOwnAddresses.map((e) => e.value).toList(growable: false));
         for (Map<String, dynamic> transaction in allTxs) {
           final txid = transaction['tx_hash'] as String;
-          if ((await isar.transactions
+          if ((await db
+                  .getTransactions(walletId)
                   .filter()
                   .txidMatches(txid)
                   .findFirst()) ==
@@ -765,13 +765,13 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
     final currentChainHeight = await chainHeight;
 
-    final txCount = await isar.transactions.count();
+    final txCount = await db.getTransactions(walletId).count();
 
     const paginateLimit = 50;
 
     for (int i = 0; i < txCount; i += paginateLimit) {
-      final transactions = await isar.transactions
-          .where()
+      final transactions = await db
+          .getTransactions(walletId)
           .offset(i)
           .limit(paginateLimit)
           .findAll();
@@ -1330,7 +1330,8 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   Future<List<isar_models.Address>> _fetchAllOwnAddresses() async {
-    final allAddresses = await isar.addresses
+    final allAddresses = await db
+        .getAddresses(walletId)
         .filter()
         .subTypeEqualTo(isar_models.AddressSubType.receiving)
         .or()
@@ -1468,9 +1469,7 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
     await isarInit(walletId);
 
-    await isar.writeTxn(() async {
-      await isar.addresses.putAll(initialAddresses);
-    });
+    await db.putAddresses(initialAddresses);
 
     Logging.instance.log("_generateNewWalletFinished", level: LogLevel.Info);
   }
@@ -1568,7 +1567,8 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
         type = isar_models.AddressType.p2wpkh;
         break;
     }
-    address = await isar.addresses
+    address = await db
+        .getAddresses(walletId)
         .filter()
         .typeEqualTo(type)
         .subTypeEqualTo(subType)
@@ -1763,9 +1763,10 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       Logging.instance
           .log('Outputs fetched: $outputArray', level: LogLevel.Info);
 
-      await isar.writeTxn(() async {
-        await isar.utxos.clear();
-        await isar.utxos.putAll(outputArray);
+      // TODO move this out of here and into IDB
+      await db.isar.writeTxn(() async {
+        await db.isar.utxos.clear();
+        await db.isar.utxos.putAll(outputArray);
       });
 
       // finally update balance
@@ -1882,9 +1883,7 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
             0, newReceivingIndex, DerivePathType.bip84);
 
         // Add that new receiving address
-        await isar.writeTxn(() async {
-          await isar.addresses.put(newReceivingAddress);
-        });
+        await db.putAddress(newReceivingAddress);
       }
     } catch (e, s) {
       Logging.instance.log(
@@ -1911,9 +1910,7 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
             1, newChangeIndex, DerivePathType.bip84);
 
         // Add that new change address
-        await isar.writeTxn(() async {
-          await isar.addresses.put(newChangeAddress);
-        });
+        await db.putAddress(newChangeAddress);
       }
     } on SocketException catch (se, s) {
       Logging.instance.log(
@@ -2107,8 +2104,9 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     final currentHeight = await chainHeight;
 
     for (final txHash in allTxHashes) {
-      final storedTx = await isar.transactions
-          .where()
+      final storedTx = await db
+          .getTransactions(walletId)
+          .filter()
           .txidEqualTo(txHash["tx_hash"] as String)
           .findFirst();
 
@@ -2122,7 +2120,8 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
         // Logging.instance.log("TRANSACTION: ${jsonEncode(tx)}");
         if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
-          tx["address"] = await isar.addresses
+          tx["address"] = await db
+              .getAddresses(walletId)
               .filter()
               .valueEqualTo(txHash["address"] as String)
               .findFirst();
@@ -2154,11 +2153,12 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
         allAddresses,
         coin,
         MINIMUM_CONFIRMATIONS,
+        walletId,
       );
 
       txnsData.add(data);
     }
-    await addNewTransactionData(txnsData);
+    await addNewTransactionData(txnsData, walletId);
   }
 
   int estimateTxFee({required int vSize, required int feeRatePerKB}) {
@@ -2824,13 +2824,7 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     // await _rescanBackup();
 
     // clear blockchain info
-    await isar.writeTxn(() async {
-      await isar.transactions.clear();
-      await isar.inputs.clear();
-      await isar.outputs.clear();
-      await isar.utxos.clear();
-      await isar.addresses.clear();
-    });
+    await db.deleteWalletBlockchainData(walletId);
 
     try {
       final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
@@ -3292,9 +3286,7 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
           0, newReceivingIndex, DerivePathType.bip84);
 
       // Add that new receiving address
-      await isar.writeTxn(() async {
-        await isar.addresses.put(newReceivingAddress);
-      });
+      await db.putAddress(newReceivingAddress);
 
       return true;
     } catch (e, s) {
@@ -3304,9 +3296,6 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       return false;
     }
   }
-
-  @override
-  Isar get isarInstance => isar;
 }
 
 final litecoin = NetworkType(

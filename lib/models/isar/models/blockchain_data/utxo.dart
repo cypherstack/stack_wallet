@@ -8,7 +8,10 @@ part 'utxo.g.dart';
 class UTXO {
   Id id = Isar.autoIncrement;
 
-  @Index(unique: true, replace: true)
+  @Index()
+  late String walletId;
+
+  @Index(unique: true, replace: true, composite: [CompositeIndex("walletId")])
   late String txid;
 
   late int vout;

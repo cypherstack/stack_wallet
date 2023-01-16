@@ -14,6 +14,8 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/trade_card.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../db/main_db.dart';
+
 class ExchangeView extends ConsumerStatefulWidget {
   const ExchangeView({Key? key}) : super(key: key);
 
@@ -131,7 +133,8 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                 //todo: check if print needed
                                 // debugPrint("name: ${manager.walletName}");
 
-                                final tx = await manager.db.transactions
+                                final tx = await MainDB.instance
+                                    .getTransactions(walletIds.first)
                                     .filter()
                                     .txidEqualTo(txid)
                                     .findFirst();

@@ -810,7 +810,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
   }
 
   /// Holds wallet transaction data
-  Future<List<isar_models.Transaction>> get _txnData => isar.transactions
+  Future<List<isar_models.Transaction>> get _txnData => db
+      .getTransactions(walletId)
       .filter()
       .isLelantusIsNull()
       .or()
@@ -867,7 +868,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
 
   /// Holds wallet lelantus transaction data
   Future<List<isar_models.Transaction>> get lelantusTransactionData =>
-      isar.transactions.filter().isLelantusEqualTo(true).findAll();
+      db.getTransactions(walletId).filter().isLelantusEqualTo(true).findAll();
   // _lelantusTransactionData ??= _getLelantusTransactionData();
 
   /// Holds the max fee that can be sent
@@ -883,24 +884,24 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
   Future<String> get currentReceivingAddress async =>
       (await _currentReceivingAddress).value;
 
-  Future<isar_models.Address> get _currentReceivingAddress async =>
-      (await isar.addresses
-          .filter()
-          .typeEqualTo(isar_models.AddressType.p2pkh)
-          .subTypeEqualTo(isar_models.AddressSubType.receiving)
-          .sortByDerivationIndexDesc()
-          .findFirst())!;
+  Future<isar_models.Address> get _currentReceivingAddress async => (await db
+      .getAddresses(walletId)
+      .filter()
+      .typeEqualTo(isar_models.AddressType.p2pkh)
+      .subTypeEqualTo(isar_models.AddressSubType.receiving)
+      .sortByDerivationIndexDesc()
+      .findFirst())!;
 
   Future<String> get currentChangeAddress async =>
       (await _currentChangeAddress).value;
 
-  Future<isar_models.Address> get _currentChangeAddress async =>
-      (await isar.addresses
-          .filter()
-          .typeEqualTo(isar_models.AddressType.p2pkh)
-          .subTypeEqualTo(isar_models.AddressSubType.change)
-          .sortByDerivationIndexDesc()
-          .findFirst())!;
+  Future<isar_models.Address> get _currentChangeAddress async => (await db
+      .getAddresses(walletId)
+      .filter()
+      .typeEqualTo(isar_models.AddressType.p2pkh)
+      .subTypeEqualTo(isar_models.AddressSubType.change)
+      .sortByDerivationIndexDesc()
+      .findFirst())!;
 
   late String _walletName;
   @override
@@ -1875,7 +1876,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
             allOwnAddresses.map((e) => e.value).toList(growable: false));
         for (Map<String, dynamic> transaction in allTxs) {
           final txid = transaction['tx_hash'] as String;
-          if ((await isar.transactions
+          if ((await db
+                  .getTransactions(walletId)
                   .filter()
                   .txidMatches(txid)
                   .findFirst()) ==
@@ -1905,14 +1907,18 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
 
     final currentChainHeight = await chainHeight;
 
-    final txTxns = await isar.transactions
+    final txTxns = await db
+        .getTransactions(walletId)
         .filter()
         .isLelantusIsNull()
         .or()
         .isLelantusEqualTo(false)
         .findAll();
-    final ltxTxns =
-        await isar.transactions.filter().isLelantusEqualTo(true).findAll();
+    final ltxTxns = await db
+        .getTransactions(walletId)
+        .filter()
+        .isLelantusEqualTo(true)
+        .findAll();
 
     for (isar_models.Transaction tx in txTxns) {
       isar_models.Transaction? lTx;
@@ -2109,12 +2115,10 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
 
     await isarInit(walletId);
 
-    await isar.writeTxn(() async {
-      await isar.addresses.putAll([
-        initialReceivingAddress,
-        initialChangeAddress,
-      ]);
-    });
+    await db.putAddresses([
+      initialReceivingAddress,
+      initialChangeAddress,
+    ]);
   }
 
   bool refreshMutex = false;
@@ -2849,8 +2853,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
     }
 
     // TODO: optimize this whole lelantus process
-    await isar
-        .writeTxn(() async => isar.transactions.putAll(listLelantusTxData));
+    await db.putTransactions(listLelantusTxData);
 
     // // update the _lelantusTransactionData
     // final models.TransactionData newTxData =
@@ -2955,7 +2958,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
               Decimal.parse(transactionInfo["amount"].toString()), coin)
           ..fee = Format.decimalAmountToSatoshis(
               Decimal.parse(transactionInfo["fees"].toString()), coin)
-          ..address.value = await isar.addresses
+          ..address.value = await db
+              .getAddresses(walletId)
               .filter()
               .valueEqualTo(transactionInfo["address"] as String)
               .findFirst()
@@ -2969,9 +2973,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           ..isLelantus = true
           ..isCancelled = false;
 
-        await isar.writeTxn(() async {
-          await isar.transactions.put(transaction);
-        });
+        await db.putTransaction(transaction);
 
         // final models.TransactionData newTxData =
         //     models.TransactionData.fromMap(transactions);
@@ -3105,9 +3107,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
         );
 
         // Add that new receiving address
-        await isar.writeTxn(() async {
-          await isar.addresses.put(newReceivingAddress);
-        });
+        await db.putAddress(newReceivingAddress);
       }
     } on SocketException catch (se, s) {
       Logging.instance.log(
@@ -3142,9 +3142,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
         );
 
         // Add that new change address
-        await isar.writeTxn(() async {
-          await isar.addresses.put(newChangeAddress);
-        });
+        await db.putAddress(newChangeAddress);
       }
     } on SocketException catch (se, s) {
       Logging.instance.log(
@@ -3160,7 +3158,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
   }
 
   Future<List<isar_models.Address>> _fetchAllOwnAddresses() async {
-    final allAddresses = await isar.addresses
+    final allAddresses = await db
+        .getAddresses(walletId)
         .filter()
         .subTypeEqualTo(isar_models.AddressSubType.receiving)
         .or()
@@ -3250,8 +3249,9 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
     final currentHeight = await chainHeight;
 
     for (final txHash in allTxHashes) {
-      final storedTx = await isar.transactions
-          .where()
+      final storedTx = await db
+          .getTransactions(walletId)
+          .filter()
           .txidEqualTo(txHash["tx_hash"] as String)
           .findFirst();
 
@@ -3264,7 +3264,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
         );
 
         if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
-          tx["address"] = await isar.addresses
+          tx["address"] = await db
+              .getAddresses(walletId)
               .filter()
               .valueEqualTo(txHash["address"] as String)
               .findFirst();
@@ -3285,12 +3286,13 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
         allAddresses,
         coin,
         MINIMUM_CONFIRMATIONS,
+        walletId,
       );
 
       txnsData.add(data);
     }
 
-    await addNewTransactionData(txnsData);
+    await addNewTransactionData(txnsData, walletId);
   }
 
   Future<void> _refreshUTXOs() async {
@@ -3377,9 +3379,10 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       Logging.instance
           .log('Outputs fetched: $outputArray', level: LogLevel.Info);
 
-      await isar.writeTxn(() async {
-        await isar.utxos.clear();
-        await isar.utxos.putAll(outputArray);
+      // TODO move this out of here and into IDB
+      await db.isar.writeTxn(() async {
+        await db.isar.utxos.clear();
+        await db.isar.utxos.putAll(outputArray);
       });
 
       // finally update public balance
@@ -3404,7 +3407,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
         ? isar_models.AddressSubType.receiving
         : isar_models.AddressSubType.change;
 
-    isar_models.Address? address = await isar.addresses
+    isar_models.Address? address = await db
+        .getAddresses(walletId)
         .filter()
         .typeEqualTo(isar_models.AddressType.p2pkh)
         .subTypeEqualTo(subType)
@@ -3597,13 +3601,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
     // await _rescanBackup();
 
     // clear blockchain info
-    await isar.writeTxn(() async {
-      await isar.transactions.clear();
-      await isar.inputs.clear();
-      await isar.outputs.clear();
-      await isar.utxos.clear();
-      await isar.addresses.clear();
-    });
+    await db.deleteWalletBlockchainData(walletId);
 
     try {
       final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
@@ -3981,12 +3979,10 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       changeAddressArray.add(changeAddress);
     }
 
-    await isar.writeTxn(() async {
-      await isar.addresses.putAll([
-        ...receivingAddressArray,
-        ...changeAddressArray,
-      ]);
-    });
+    await db.putAddresses([
+      ...receivingAddressArray,
+      ...changeAddressArray,
+    ]);
   }
 
   /// Recovers wallet from [suppliedMnemonic]. Expects a valid mnemonic.
@@ -4073,9 +4069,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       transactionMap[element.txid] = element;
     }
 
-    await isar.writeTxn(() async {
-      await isar.transactions.putAll(transactionMap.values.toList());
-    });
+    await db.putTransactions(transactionMap.values.toList());
   }
 
   Future<List<Map<String, dynamic>>> fetchAnonymitySets() async {
@@ -4490,7 +4484,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
             ..subType = isar_models.TransactionSubType.join
             ..fee = Format.decimalAmountToSatoshis(
                 Decimal.parse(tx["fees"].toString()), coin)
-            ..address.value = await isar.addresses
+            ..address.value = await db
+                .getAddresses(walletId)
                 .filter()
                 .valueEqualTo(tx["address"] as String)
                 .findFirst()
@@ -4530,9 +4525,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       );
 
       // Add that new receiving address
-      await isar.writeTxn(() async {
-        await isar.addresses.put(newReceivingAddress);
-      });
+      await db.putAddress(newReceivingAddress);
 
       return true;
     } catch (e, s) {
@@ -4575,12 +4568,9 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
   Balance? _balancePrivate;
 
   @override
-  Future<List<isar_models.UTXO>> get utxos => isar.utxos.where().findAll();
+  Future<List<isar_models.UTXO>> get utxos => db.getUTXOs(walletId).findAll();
 
   @override
   Future<List<isar_models.Transaction>> get transactions =>
-      isar.transactions.where().findAll();
-
-  @override
-  Isar get isarInstance => isar;
+      db.getTransactions(walletId).findAll();
 }

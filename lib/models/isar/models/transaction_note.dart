@@ -1,5 +1,4 @@
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 
 part 'transaction_note.g.dart';
 
@@ -7,7 +6,10 @@ part 'transaction_note.g.dart';
 class TransactionNote {
   Id id = Isar.autoIncrement;
 
-  @Index(unique: true)
+  @Index()
+  late String walletId;
+
+  @Index(unique: true, composite: [CompositeIndex("walletId")])
   late String txid;
 
   late String value;

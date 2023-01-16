@@ -41,6 +41,11 @@ const OutputSchema = CollectionSchema(
       id: 4,
       name: r'value',
       type: IsarType.long,
+    ),
+    r'walletId': PropertySchema(
+      id: 5,
+      name: r'walletId',
+      type: IsarType.string,
     )
   },
   estimateSize: _outputEstimateSize,
@@ -48,7 +53,21 @@ const OutputSchema = CollectionSchema(
   deserialize: _outputDeserialize,
   deserializeProp: _outputDeserializeProp,
   idName: r'id',
-  indexes: {},
+  indexes: {
+    r'walletId': IndexSchema(
+      id: -1783113319798776304,
+      name: r'walletId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'walletId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    )
+  },
   links: {
     r'transaction': LinkSchema(
       id: -2089310750171432135,
@@ -90,6 +109,7 @@ int _outputEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
+  bytesCount += 3 + object.walletId.length * 3;
   return bytesCount;
 }
 
@@ -104,6 +124,7 @@ void _outputSerialize(
   writer.writeString(offsets[2], object.scriptPubKeyAsm);
   writer.writeString(offsets[3], object.scriptPubKeyType);
   writer.writeLong(offsets[4], object.value);
+  writer.writeString(offsets[5], object.walletId);
 }
 
 Output _outputDeserialize(
@@ -119,6 +140,7 @@ Output _outputDeserialize(
   object.scriptPubKeyAsm = reader.readStringOrNull(offsets[2]);
   object.scriptPubKeyType = reader.readStringOrNull(offsets[3]);
   object.value = reader.readLong(offsets[4]);
+  object.walletId = reader.readString(offsets[5]);
   return object;
 }
 
@@ -139,6 +161,8 @@ P _outputDeserializeProp<P>(
       return (reader.readStringOrNull(offset)) as P;
     case 4:
       return (reader.readLong(offset)) as P;
+    case 5:
+      return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -229,6 +253,51 @@ extension OutputQueryWhere on QueryBuilder<Output, Output, QWhereClause> {
         upper: upperId,
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<Output, Output, QAfterWhereClause> walletIdEqualTo(
+      String walletId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'walletId',
+        value: [walletId],
+      ));
+    });
+  }
+
+  QueryBuilder<Output, Output, QAfterWhereClause> walletIdNotEqualTo(
+      String walletId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'walletId',
+              lower: [],
+              upper: [walletId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'walletId',
+              lower: [walletId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'walletId',
+              lower: [walletId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'walletId',
+              lower: [],
+              upper: [walletId],
+              includeUpper: false,
+            ));
+      }
     });
   }
 }
@@ -919,6 +988,136 @@ extension OutputQueryFilter on QueryBuilder<Output, Output, QFilterCondition> {
       ));
     });
   }
+
+  QueryBuilder<Output, Output, QAfterFilterCondition> walletIdEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'walletId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Output, Output, QAfterFilterCondition> walletIdGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'walletId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Output, Output, QAfterFilterCondition> walletIdLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'walletId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Output, Output, QAfterFilterCondition> walletIdBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'walletId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Output, Output, QAfterFilterCondition> walletIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'walletId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Output, Output, QAfterFilterCondition> walletIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'walletId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Output, Output, QAfterFilterCondition> walletIdContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'walletId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Output, Output, QAfterFilterCondition> walletIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'walletId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Output, Output, QAfterFilterCondition> walletIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'walletId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Output, Output, QAfterFilterCondition> walletIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'walletId',
+        value: '',
+      ));
+    });
+  }
 }
 
 extension OutputQueryObject on QueryBuilder<Output, Output, QFilterCondition> {}
@@ -998,6 +1197,18 @@ extension OutputQuerySortBy on QueryBuilder<Output, Output, QSortBy> {
       return query.addSortBy(r'value', Sort.desc);
     });
   }
+
+  QueryBuilder<Output, Output, QAfterSortBy> sortByWalletId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'walletId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Output, Output, QAfterSortBy> sortByWalletIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'walletId', Sort.desc);
+    });
+  }
 }
 
 extension OutputQuerySortThenBy on QueryBuilder<Output, Output, QSortThenBy> {
@@ -1072,6 +1283,18 @@ extension OutputQuerySortThenBy on QueryBuilder<Output, Output, QSortThenBy> {
       return query.addSortBy(r'value', Sort.desc);
     });
   }
+
+  QueryBuilder<Output, Output, QAfterSortBy> thenByWalletId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'walletId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Output, Output, QAfterSortBy> thenByWalletIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'walletId', Sort.desc);
+    });
+  }
 }
 
 extension OutputQueryWhereDistinct on QueryBuilder<Output, Output, QDistinct> {
@@ -1111,6 +1334,13 @@ extension OutputQueryWhereDistinct on QueryBuilder<Output, Output, QDistinct> {
       return query.addDistinctBy(r'value');
     });
   }
+
+  QueryBuilder<Output, Output, QDistinct> distinctByWalletId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'walletId', caseSensitive: caseSensitive);
+    });
+  }
 }
 
 extension OutputQueryProperty on QueryBuilder<Output, Output, QQueryProperty> {
@@ -1147,6 +1377,12 @@ extension OutputQueryProperty on QueryBuilder<Output, Output, QQueryProperty> {
   QueryBuilder<Output, int, QQueryOperations> valueProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'value');
+    });
+  }
+
+  QueryBuilder<Output, String, QQueryOperations> walletIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'walletId');
     });
   }
 }

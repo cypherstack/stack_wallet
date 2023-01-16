@@ -905,13 +905,7 @@ class EpicCashWallet extends CoinServiceAPI
       );
 
       // clear blockchain info
-      await isar.writeTxn(() async {
-        await isar.transactions.clear();
-        await isar.inputs.clear();
-        await isar.outputs.clear();
-        await isar.utxos.clear();
-        await isar.addresses.clear();
-      });
+      await db.deleteWalletBlockchainData(walletId);
 
       await epicUpdateLastScannedBlock(await getRestoreHeight());
 
@@ -1761,8 +1755,11 @@ class EpicCashWallet extends CoinServiceAPI
 
         try {
           await cancelPendingTransaction(txSlateId);
-          final tx =
-              await isar.transactions.where().txidEqualTo(commitId).findFirst();
+          final tx = await db
+              .getTransactions(walletId)
+              .filter()
+              .txidEqualTo(commitId)
+              .findFirst();
           if ((tx?.isCancelled ?? false) == true) {
             await deleteCancels(receiveAddressFromMap, signature, txSlateId);
           }
@@ -2054,8 +2051,11 @@ class EpicCashWallet extends CoinServiceAPI
       txn.fee = (tx["fee"] == null) ? 0 : int.parse(tx["fee"] as String);
       // txn.address =
       //     ""; // for this when you send a transaction you will just need to save in a hashmap in hive with the key being the txid, and the value being the address it was sent to. then you can look this value up right here in your hashmap.
-      txn.address.value =
-          await isar.addresses.filter().valueEqualTo(address).findFirst();
+      txn.address.value = await db
+          .getAddresses(walletId)
+          .filter()
+          .valueEqualTo(address)
+          .findFirst();
       txn.height = txHeight;
 
       //
@@ -2080,8 +2080,7 @@ class EpicCashWallet extends CoinServiceAPI
       // Logging.instance.log("cmap: $cachedMap", level: LogLevel.Info);
     }
 
-    await isar
-        .writeTxn(() async => await isar.transactions.putAll(midSortedArray));
+    await db.putTransactions(midSortedArray);
 
     // midSortedArray
     //     .sort((a, b) => (b["timestamp"] as int) - (a["timestamp"] as int));
@@ -2246,8 +2245,5 @@ class EpicCashWallet extends CoinServiceAPI
 
   @override
   Future<List<isar_models.Transaction>> get transactions =>
-      isar.transactions.where().findAll();
-
-  @override
-  Isar get isarInstance => isar;
+      db.getTransactions(walletId).findAll();
 }

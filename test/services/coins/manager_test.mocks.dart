@@ -6,7 +6,6 @@
 import 'dart:async' as _i10;
 
 import 'package:decimal/decimal.dart' as _i8;
-import 'package:isar/isar.dart' as _i7;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i5;
 import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i4;
@@ -15,6 +14,7 @@ import 'package:stackwallet/models/isar/models/isar_models.dart' as _i12;
 import 'package:stackwallet/models/lelantus_coin.dart' as _i13;
 import 'package:stackwallet/models/paymint/fee_object_model.dart' as _i3;
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as _i9;
+import 'package:stackwallet/services/mixins/wallet_db.dart' as _i7;
 import 'package:stackwallet/services/transaction_notification_tracker.dart'
     as _i2;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i11;
@@ -83,8 +83,8 @@ class _FakeBalance_4 extends _i1.SmartFake implements _i6.Balance {
         );
 }
 
-class _FakeIsar_5 extends _i1.SmartFake implements _i7.Isar {
-  _FakeIsar_5(
+class _FakeIDB_5 extends _i1.SmartFake implements _i7.IDB {
+  _FakeIDB_5(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -328,14 +328,6 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
             _i10.Future<List<_i12.Transaction>>.value(<_i12.Transaction>[]),
       ) as _i10.Future<List<_i12.Transaction>>);
   @override
-  _i7.Isar get isarInstance => (super.noSuchMethod(
-        Invocation.getter(#isarInstance),
-        returnValue: _FakeIsar_5(
-          this,
-          Invocation.getter(#isarInstance),
-        ),
-      ) as _i7.Isar);
-  @override
   set onIsActiveWalletChanged(void Function(bool)? _onIsActiveWalletChanged) =>
       super.noSuchMethod(
         Invocation.setter(
@@ -345,13 +337,13 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
         returnValueForMissingStub: null,
       );
   @override
-  _i7.Isar get isar => (super.noSuchMethod(
-        Invocation.getter(#isar),
-        returnValue: _FakeIsar_5(
+  _i7.IDB get db => (super.noSuchMethod(
+        Invocation.getter(#db),
+        returnValue: _FakeIDB_5(
           this,
-          Invocation.getter(#isar),
+          Invocation.getter(#db),
         ),
-      ) as _i7.Isar);
+      ) as _i7.IDB);
   @override
   bool validateAddress(String? address) => (super.noSuchMethod(
         Invocation.method(
@@ -993,31 +985,29 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
         returnValueForMissingStub: _i10.Future<void>.value(),
       ) as _i10.Future<void>);
   @override
-  _i10.Future<bool> isarInit(String? walletId) => (super.noSuchMethod(
+  _i10.Future<void> isarInit(String? walletId) => (super.noSuchMethod(
         Invocation.method(
           #isarInit,
           [walletId],
         ),
-        returnValue: _i10.Future<bool>.value(false),
-      ) as _i10.Future<bool>);
-  @override
-  _i10.Future<bool> isarClose() => (super.noSuchMethod(
-        Invocation.method(
-          #isarClose,
-          [],
-        ),
-        returnValue: _i10.Future<bool>.value(false),
-      ) as _i10.Future<bool>);
+        returnValue: _i10.Future<void>.value(),
+        returnValueForMissingStub: _i10.Future<void>.value(),
+      ) as _i10.Future<void>);
   @override
   _i10.Future<void> addNewTransactionData(
-          List<
-                  _i14.Tuple4<_i12.Transaction, List<_i12.Output>,
-                      List<_i12.Input>, _i12.Address?>>?
-              transactionsData) =>
+    List<
+            _i14.Tuple4<_i12.Transaction, List<_i12.Output>, List<_i12.Input>,
+                _i12.Address?>>?
+        transactionsData,
+    String? walletId,
+  ) =>
       (super.noSuchMethod(
         Invocation.method(
           #addNewTransactionData,
-          [transactionsData],
+          [
+            transactionsData,
+            walletId,
+          ],
         ),
         returnValue: _i10.Future<void>.value(),
         returnValueForMissingStub: _i10.Future<void>.value(),

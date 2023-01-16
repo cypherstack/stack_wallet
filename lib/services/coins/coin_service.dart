@@ -1,4 +1,3 @@
-import 'package:isar/isar.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/balance.dart';
@@ -295,6 +294,4 @@ abstract class CoinServiceAPI {
   Future<void> updateSentCachedTxData(Map<String, dynamic> txData);
 
   int get storedChainHeight;
-
-  Isar get isarInstance;
 }

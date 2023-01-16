@@ -26,6 +26,11 @@ const TransactionNoteSchema = CollectionSchema(
       id: 1,
       name: r'value',
       type: IsarType.string,
+    ),
+    r'walletId': PropertySchema(
+      id: 2,
+      name: r'walletId',
+      type: IsarType.string,
     )
   },
   estimateSize: _transactionNoteEstimateSize,
@@ -34,14 +39,32 @@ const TransactionNoteSchema = CollectionSchema(
   deserializeProp: _transactionNoteDeserializeProp,
   idName: r'id',
   indexes: {
-    r'txid': IndexSchema(
-      id: 7339874292043634331,
-      name: r'txid',
+    r'walletId': IndexSchema(
+      id: -1783113319798776304,
+      name: r'walletId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'walletId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
+    r'txid_walletId': IndexSchema(
+      id: -2771771174176035985,
+      name: r'txid_walletId',
       unique: true,
       replace: false,
       properties: [
         IndexPropertySchema(
           name: r'txid',
+          type: IndexType.hash,
+          caseSensitive: true,
+        ),
+        IndexPropertySchema(
+          name: r'walletId',
           type: IndexType.hash,
           caseSensitive: true,
         )
@@ -64,6 +87,7 @@ int _transactionNoteEstimateSize(
   var bytesCount = offsets.last;
   bytesCount += 3 + object.txid.length * 3;
   bytesCount += 3 + object.value.length * 3;
+  bytesCount += 3 + object.walletId.length * 3;
   return bytesCount;
 }
 
@@ -75,6 +99,7 @@ void _transactionNoteSerialize(
 ) {
   writer.writeString(offsets[0], object.txid);
   writer.writeString(offsets[1], object.value);
+  writer.writeString(offsets[2], object.walletId);
 }
 
 TransactionNote _transactionNoteDeserialize(
@@ -87,6 +112,7 @@ TransactionNote _transactionNoteDeserialize(
   object.id = id;
   object.txid = reader.readString(offsets[0]);
   object.value = reader.readString(offsets[1]);
+  object.walletId = reader.readString(offsets[2]);
   return object;
 }
 
@@ -100,6 +126,8 @@ P _transactionNoteDeserializeProp<P>(
     case 0:
       return (reader.readString(offset)) as P;
     case 1:
+      return (reader.readString(offset)) as P;
+    case 2:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -120,57 +148,89 @@ void _transactionNoteAttach(
 }
 
 extension TransactionNoteByIndex on IsarCollection<TransactionNote> {
-  Future<TransactionNote?> getByTxid(String txid) {
-    return getByIndex(r'txid', [txid]);
+  Future<TransactionNote?> getByTxidWalletId(String txid, String walletId) {
+    return getByIndex(r'txid_walletId', [txid, walletId]);
   }
 
-  TransactionNote? getByTxidSync(String txid) {
-    return getByIndexSync(r'txid', [txid]);
+  TransactionNote? getByTxidWalletIdSync(String txid, String walletId) {
+    return getByIndexSync(r'txid_walletId', [txid, walletId]);
   }
 
-  Future<bool> deleteByTxid(String txid) {
-    return deleteByIndex(r'txid', [txid]);
+  Future<bool> deleteByTxidWalletId(String txid, String walletId) {
+    return deleteByIndex(r'txid_walletId', [txid, walletId]);
   }
 
-  bool deleteByTxidSync(String txid) {
-    return deleteByIndexSync(r'txid', [txid]);
+  bool deleteByTxidWalletIdSync(String txid, String walletId) {
+    return deleteByIndexSync(r'txid_walletId', [txid, walletId]);
   }
 
-  Future<List<TransactionNote?>> getAllByTxid(List<String> txidValues) {
-    final values = txidValues.map((e) => [e]).toList();
-    return getAllByIndex(r'txid', values);
+  Future<List<TransactionNote?>> getAllByTxidWalletId(
+      List<String> txidValues, List<String> walletIdValues) {
+    final len = txidValues.length;
+    assert(walletIdValues.length == len,
+        'All index values must have the same length');
+    final values = <List<dynamic>>[];
+    for (var i = 0; i < len; i++) {
+      values.add([txidValues[i], walletIdValues[i]]);
+    }
+
+    return getAllByIndex(r'txid_walletId', values);
   }
 
-  List<TransactionNote?> getAllByTxidSync(List<String> txidValues) {
-    final values = txidValues.map((e) => [e]).toList();
-    return getAllByIndexSync(r'txid', values);
+  List<TransactionNote?> getAllByTxidWalletIdSync(
+      List<String> txidValues, List<String> walletIdValues) {
+    final len = txidValues.length;
+    assert(walletIdValues.length == len,
+        'All index values must have the same length');
+    final values = <List<dynamic>>[];
+    for (var i = 0; i < len; i++) {
+      values.add([txidValues[i], walletIdValues[i]]);
+    }
+
+    return getAllByIndexSync(r'txid_walletId', values);
   }
 
-  Future<int> deleteAllByTxid(List<String> txidValues) {
-    final values = txidValues.map((e) => [e]).toList();
-    return deleteAllByIndex(r'txid', values);
+  Future<int> deleteAllByTxidWalletId(
+      List<String> txidValues, List<String> walletIdValues) {
+    final len = txidValues.length;
+    assert(walletIdValues.length == len,
+        'All index values must have the same length');
+    final values = <List<dynamic>>[];
+    for (var i = 0; i < len; i++) {
+      values.add([txidValues[i], walletIdValues[i]]);
+    }
+
+    return deleteAllByIndex(r'txid_walletId', values);
   }
 
-  int deleteAllByTxidSync(List<String> txidValues) {
-    final values = txidValues.map((e) => [e]).toList();
-    return deleteAllByIndexSync(r'txid', values);
+  int deleteAllByTxidWalletIdSync(
+      List<String> txidValues, List<String> walletIdValues) {
+    final len = txidValues.length;
+    assert(walletIdValues.length == len,
+        'All index values must have the same length');
+    final values = <List<dynamic>>[];
+    for (var i = 0; i < len; i++) {
+      values.add([txidValues[i], walletIdValues[i]]);
+    }
+
+    return deleteAllByIndexSync(r'txid_walletId', values);
   }
 
-  Future<Id> putByTxid(TransactionNote object) {
-    return putByIndex(r'txid', object);
+  Future<Id> putByTxidWalletId(TransactionNote object) {
+    return putByIndex(r'txid_walletId', object);
   }
 
-  Id putByTxidSync(TransactionNote object, {bool saveLinks = true}) {
-    return putByIndexSync(r'txid', object, saveLinks: saveLinks);
+  Id putByTxidWalletIdSync(TransactionNote object, {bool saveLinks = true}) {
+    return putByIndexSync(r'txid_walletId', object, saveLinks: saveLinks);
   }
 
-  Future<List<Id>> putAllByTxid(List<TransactionNote> objects) {
-    return putAllByIndex(r'txid', objects);
+  Future<List<Id>> putAllByTxidWalletId(List<TransactionNote> objects) {
+    return putAllByIndex(r'txid_walletId', objects);
   }
 
-  List<Id> putAllByTxidSync(List<TransactionNote> objects,
+  List<Id> putAllByTxidWalletIdSync(List<TransactionNote> objects,
       {bool saveLinks = true}) {
-    return putAllByIndexSync(r'txid', objects, saveLinks: saveLinks);
+    return putAllByIndexSync(r'txid_walletId', objects, saveLinks: saveLinks);
   }
 }
 
@@ -253,29 +313,74 @@ extension TransactionNoteQueryWhere
     });
   }
 
-  QueryBuilder<TransactionNote, TransactionNote, QAfterWhereClause> txidEqualTo(
-      String txid) {
+  QueryBuilder<TransactionNote, TransactionNote, QAfterWhereClause>
+      walletIdEqualTo(String walletId) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'txid',
+        indexName: r'walletId',
+        value: [walletId],
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterWhereClause>
+      walletIdNotEqualTo(String walletId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'walletId',
+              lower: [],
+              upper: [walletId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'walletId',
+              lower: [walletId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'walletId',
+              lower: [walletId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'walletId',
+              lower: [],
+              upper: [walletId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterWhereClause>
+      txidEqualToAnyWalletId(String txid) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'txid_walletId',
         value: [txid],
       ));
     });
   }
 
   QueryBuilder<TransactionNote, TransactionNote, QAfterWhereClause>
-      txidNotEqualTo(String txid) {
+      txidNotEqualToAnyWalletId(String txid) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid',
+              indexName: r'txid_walletId',
               lower: [],
               upper: [txid],
               includeUpper: false,
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid',
+              indexName: r'txid_walletId',
               lower: [txid],
               includeLower: false,
               upper: [],
@@ -283,15 +388,60 @@ extension TransactionNoteQueryWhere
       } else {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid',
+              indexName: r'txid_walletId',
               lower: [txid],
               includeLower: false,
               upper: [],
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid',
+              indexName: r'txid_walletId',
               lower: [],
               upper: [txid],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterWhereClause>
+      txidWalletIdEqualTo(String txid, String walletId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'txid_walletId',
+        value: [txid, walletId],
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterWhereClause>
+      txidEqualToWalletIdNotEqualTo(String txid, String walletId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid_walletId',
+              lower: [txid],
+              upper: [txid, walletId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid_walletId',
+              lower: [txid, walletId],
+              includeLower: false,
+              upper: [txid],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid_walletId',
+              lower: [txid, walletId],
+              includeLower: false,
+              upper: [txid],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid_walletId',
+              lower: [txid],
+              upper: [txid, walletId],
               includeUpper: false,
             ));
       }
@@ -628,6 +778,142 @@ extension TransactionNoteQueryFilter
       ));
     });
   }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterFilterCondition>
+      walletIdEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'walletId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterFilterCondition>
+      walletIdGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'walletId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterFilterCondition>
+      walletIdLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'walletId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterFilterCondition>
+      walletIdBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'walletId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterFilterCondition>
+      walletIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'walletId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterFilterCondition>
+      walletIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'walletId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterFilterCondition>
+      walletIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'walletId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterFilterCondition>
+      walletIdMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'walletId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterFilterCondition>
+      walletIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'walletId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterFilterCondition>
+      walletIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'walletId',
+        value: '',
+      ));
+    });
+  }
 }
 
 extension TransactionNoteQueryObject
@@ -661,6 +947,20 @@ extension TransactionNoteQuerySortBy
       sortByValueDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'value', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterSortBy>
+      sortByWalletId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'walletId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterSortBy>
+      sortByWalletIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'walletId', Sort.desc);
     });
   }
 }
@@ -704,6 +1004,20 @@ extension TransactionNoteQuerySortThenBy
       return query.addSortBy(r'value', Sort.desc);
     });
   }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterSortBy>
+      thenByWalletId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'walletId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QAfterSortBy>
+      thenByWalletIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'walletId', Sort.desc);
+    });
+  }
 }
 
 extension TransactionNoteQueryWhereDistinct
@@ -719,6 +1033,13 @@ extension TransactionNoteQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'value', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TransactionNote, TransactionNote, QDistinct> distinctByWalletId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'walletId', caseSensitive: caseSensitive);
     });
   }
 }
@@ -740,6 +1061,12 @@ extension TransactionNoteQueryProperty
   QueryBuilder<TransactionNote, String, QQueryOperations> valueProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'value');
+    });
+  }
+
+  QueryBuilder<TransactionNote, String, QQueryOperations> walletIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'walletId');
     });
   }
 }

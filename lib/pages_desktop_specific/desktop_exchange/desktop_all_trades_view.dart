@@ -29,6 +29,8 @@ import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../db/main_db.dart';
+
 class DesktopAllTradesView extends ConsumerStatefulWidget {
   const DesktopAllTradesView({Key? key}) : super(key: key);
 
@@ -350,7 +352,8 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
             //todo: check if print needed
             // debugPrint("name: ${manager.walletName}");
 
-            final tx = await manager.db.transactions
+            final tx = await MainDB.instance
+                .getTransactions(walletIds.first)
                 .filter()
                 .txidEqualTo(txid)
                 .findFirst();

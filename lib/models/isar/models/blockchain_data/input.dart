@@ -8,6 +8,9 @@ part 'input.g.dart';
 class Input {
   Id id = Isar.autoIncrement;
 
+  @Index()
+  late String walletId;
+
   late String txid;
 
   late int vout;

@@ -43,6 +43,11 @@ const AddressSchema = CollectionSchema(
       id: 4,
       name: r'value',
       type: IsarType.string,
+    ),
+    r'walletId': PropertySchema(
+      id: 5,
+      name: r'walletId',
+      type: IsarType.string,
     )
   },
   estimateSize: _addressEstimateSize,
@@ -51,14 +56,32 @@ const AddressSchema = CollectionSchema(
   deserializeProp: _addressDeserializeProp,
   idName: r'id',
   indexes: {
-    r'value': IndexSchema(
-      id: -8658876004265234192,
-      name: r'value',
+    r'walletId': IndexSchema(
+      id: -1783113319798776304,
+      name: r'walletId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'walletId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
+    r'value_walletId': IndexSchema(
+      id: -7332188919457190704,
+      name: r'value_walletId',
       unique: true,
       replace: false,
       properties: [
         IndexPropertySchema(
           name: r'value',
+          type: IndexType.hash,
+          caseSensitive: true,
+        ),
+        IndexPropertySchema(
+          name: r'walletId',
           type: IndexType.hash,
           caseSensitive: true,
         )
@@ -101,6 +124,7 @@ int _addressEstimateSize(
   var bytesCount = offsets.last;
   bytesCount += 3 + object.publicKey.length;
   bytesCount += 3 + object.value.length * 3;
+  bytesCount += 3 + object.walletId.length * 3;
   return bytesCount;
 }
 
@@ -115,6 +139,7 @@ void _addressSerialize(
   writer.writeByte(offsets[2], object.subType.index);
   writer.writeByte(offsets[3], object.type.index);
   writer.writeString(offsets[4], object.value);
+  writer.writeString(offsets[5], object.walletId);
 }
 
 Address _addressDeserialize(
@@ -133,6 +158,7 @@ Address _addressDeserialize(
   object.type = _AddresstypeValueEnumMap[reader.readByteOrNull(offsets[3])] ??
       AddressType.p2pkh;
   object.value = reader.readString(offsets[4]);
+  object.walletId = reader.readString(offsets[5]);
   return object;
 }
 
@@ -154,6 +180,8 @@ P _addressDeserializeProp<P>(
       return (_AddresstypeValueEnumMap[reader.readByteOrNull(offset)] ??
           AddressType.p2pkh) as P;
     case 4:
+      return (reader.readString(offset)) as P;
+    case 5:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -206,56 +234,89 @@ void _addressAttach(IsarCollection<dynamic> col, Id id, Address object) {
 }
 
 extension AddressByIndex on IsarCollection<Address> {
-  Future<Address?> getByValue(String value) {
-    return getByIndex(r'value', [value]);
+  Future<Address?> getByValueWalletId(String value, String walletId) {
+    return getByIndex(r'value_walletId', [value, walletId]);
   }
 
-  Address? getByValueSync(String value) {
-    return getByIndexSync(r'value', [value]);
+  Address? getByValueWalletIdSync(String value, String walletId) {
+    return getByIndexSync(r'value_walletId', [value, walletId]);
   }
 
-  Future<bool> deleteByValue(String value) {
-    return deleteByIndex(r'value', [value]);
+  Future<bool> deleteByValueWalletId(String value, String walletId) {
+    return deleteByIndex(r'value_walletId', [value, walletId]);
   }
 
-  bool deleteByValueSync(String value) {
-    return deleteByIndexSync(r'value', [value]);
+  bool deleteByValueWalletIdSync(String value, String walletId) {
+    return deleteByIndexSync(r'value_walletId', [value, walletId]);
   }
 
-  Future<List<Address?>> getAllByValue(List<String> valueValues) {
-    final values = valueValues.map((e) => [e]).toList();
-    return getAllByIndex(r'value', values);
+  Future<List<Address?>> getAllByValueWalletId(
+      List<String> valueValues, List<String> walletIdValues) {
+    final len = valueValues.length;
+    assert(walletIdValues.length == len,
+        'All index values must have the same length');
+    final values = <List<dynamic>>[];
+    for (var i = 0; i < len; i++) {
+      values.add([valueValues[i], walletIdValues[i]]);
+    }
+
+    return getAllByIndex(r'value_walletId', values);
   }
 
-  List<Address?> getAllByValueSync(List<String> valueValues) {
-    final values = valueValues.map((e) => [e]).toList();
-    return getAllByIndexSync(r'value', values);
+  List<Address?> getAllByValueWalletIdSync(
+      List<String> valueValues, List<String> walletIdValues) {
+    final len = valueValues.length;
+    assert(walletIdValues.length == len,
+        'All index values must have the same length');
+    final values = <List<dynamic>>[];
+    for (var i = 0; i < len; i++) {
+      values.add([valueValues[i], walletIdValues[i]]);
+    }
+
+    return getAllByIndexSync(r'value_walletId', values);
   }
 
-  Future<int> deleteAllByValue(List<String> valueValues) {
-    final values = valueValues.map((e) => [e]).toList();
-    return deleteAllByIndex(r'value', values);
+  Future<int> deleteAllByValueWalletId(
+      List<String> valueValues, List<String> walletIdValues) {
+    final len = valueValues.length;
+    assert(walletIdValues.length == len,
+        'All index values must have the same length');
+    final values = <List<dynamic>>[];
+    for (var i = 0; i < len; i++) {
+      values.add([valueValues[i], walletIdValues[i]]);
+    }
+
+    return deleteAllByIndex(r'value_walletId', values);
   }
 
-  int deleteAllByValueSync(List<String> valueValues) {
-    final values = valueValues.map((e) => [e]).toList();
-    return deleteAllByIndexSync(r'value', values);
+  int deleteAllByValueWalletIdSync(
+      List<String> valueValues, List<String> walletIdValues) {
+    final len = valueValues.length;
+    assert(walletIdValues.length == len,
+        'All index values must have the same length');
+    final values = <List<dynamic>>[];
+    for (var i = 0; i < len; i++) {
+      values.add([valueValues[i], walletIdValues[i]]);
+    }
+
+    return deleteAllByIndexSync(r'value_walletId', values);
   }
 
-  Future<Id> putByValue(Address object) {
-    return putByIndex(r'value', object);
+  Future<Id> putByValueWalletId(Address object) {
+    return putByIndex(r'value_walletId', object);
   }
 
-  Id putByValueSync(Address object, {bool saveLinks = true}) {
-    return putByIndexSync(r'value', object, saveLinks: saveLinks);
+  Id putByValueWalletIdSync(Address object, {bool saveLinks = true}) {
+    return putByIndexSync(r'value_walletId', object, saveLinks: saveLinks);
   }
 
-  Future<List<Id>> putAllByValue(List<Address> objects) {
-    return putAllByIndex(r'value', objects);
+  Future<List<Id>> putAllByValueWalletId(List<Address> objects) {
+    return putAllByIndex(r'value_walletId', objects);
   }
 
-  List<Id> putAllByValueSync(List<Address> objects, {bool saveLinks = true}) {
-    return putAllByIndexSync(r'value', objects, saveLinks: saveLinks);
+  List<Id> putAllByValueWalletIdSync(List<Address> objects,
+      {bool saveLinks = true}) {
+    return putAllByIndexSync(r'value_walletId', objects, saveLinks: saveLinks);
   }
 }
 
@@ -341,28 +402,74 @@ extension AddressQueryWhere on QueryBuilder<Address, Address, QWhereClause> {
     });
   }
 
-  QueryBuilder<Address, Address, QAfterWhereClause> valueEqualTo(String value) {
+  QueryBuilder<Address, Address, QAfterWhereClause> walletIdEqualTo(
+      String walletId) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'value',
+        indexName: r'walletId',
+        value: [walletId],
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterWhereClause> walletIdNotEqualTo(
+      String walletId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'walletId',
+              lower: [],
+              upper: [walletId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'walletId',
+              lower: [walletId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'walletId',
+              lower: [walletId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'walletId',
+              lower: [],
+              upper: [walletId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterWhereClause> valueEqualToAnyWalletId(
+      String value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'value_walletId',
         value: [value],
       ));
     });
   }
 
-  QueryBuilder<Address, Address, QAfterWhereClause> valueNotEqualTo(
+  QueryBuilder<Address, Address, QAfterWhereClause> valueNotEqualToAnyWalletId(
       String value) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'value',
+              indexName: r'value_walletId',
               lower: [],
               upper: [value],
               includeUpper: false,
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'value',
+              indexName: r'value_walletId',
               lower: [value],
               includeLower: false,
               upper: [],
@@ -370,15 +477,60 @@ extension AddressQueryWhere on QueryBuilder<Address, Address, QWhereClause> {
       } else {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'value',
+              indexName: r'value_walletId',
               lower: [value],
               includeLower: false,
               upper: [],
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'value',
+              indexName: r'value_walletId',
               lower: [],
               upper: [value],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterWhereClause> valueWalletIdEqualTo(
+      String value, String walletId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'value_walletId',
+        value: [value, walletId],
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterWhereClause>
+      valueEqualToWalletIdNotEqualTo(String value, String walletId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'value_walletId',
+              lower: [value],
+              upper: [value, walletId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'value_walletId',
+              lower: [value, walletId],
+              includeLower: false,
+              upper: [value],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'value_walletId',
+              lower: [value, walletId],
+              includeLower: false,
+              upper: [value],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'value_walletId',
+              lower: [value],
+              upper: [value, walletId],
               includeUpper: false,
             ));
       }
@@ -959,6 +1111,136 @@ extension AddressQueryFilter
       ));
     });
   }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> walletIdEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'walletId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> walletIdGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'walletId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> walletIdLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'walletId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> walletIdBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'walletId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> walletIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'walletId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> walletIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'walletId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> walletIdContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'walletId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> walletIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'walletId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> walletIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'walletId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> walletIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'walletId',
+        value: '',
+      ));
+    });
+  }
 }
 
 extension AddressQueryObject
@@ -1075,6 +1357,18 @@ extension AddressQuerySortBy on QueryBuilder<Address, Address, QSortBy> {
       return query.addSortBy(r'value', Sort.desc);
     });
   }
+
+  QueryBuilder<Address, Address, QAfterSortBy> sortByWalletId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'walletId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterSortBy> sortByWalletIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'walletId', Sort.desc);
+    });
+  }
 }
 
 extension AddressQuerySortThenBy
@@ -1138,6 +1432,18 @@ extension AddressQuerySortThenBy
       return query.addSortBy(r'value', Sort.desc);
     });
   }
+
+  QueryBuilder<Address, Address, QAfterSortBy> thenByWalletId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'walletId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterSortBy> thenByWalletIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'walletId', Sort.desc);
+    });
+  }
 }
 
 extension AddressQueryWhereDistinct
@@ -1170,6 +1476,13 @@ extension AddressQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'value', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Address, Address, QDistinct> distinctByWalletId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'walletId', caseSensitive: caseSensitive);
     });
   }
 }
@@ -1209,6 +1522,12 @@ extension AddressQueryProperty
   QueryBuilder<Address, String, QQueryOperations> valueProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'value');
+    });
+  }
+
+  QueryBuilder<Address, String, QQueryOperations> walletIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'walletId');
     });
   }
 }

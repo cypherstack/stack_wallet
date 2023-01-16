@@ -73,7 +73,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Timer? _autoSaveTimer;
 
   Future<isar_models.Address?> get _currentReceivingAddress =>
-      isar.addresses.where().sortByDerivationIndexDesc().findFirst();
+      db.getAddresses(walletId).sortByDerivationIndexDesc().findFirst();
   Future<FeeObject>? _feeObject;
 
   Mutex prepareSendMutex = Mutex();
@@ -226,7 +226,6 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
       _autoSaveTimer?.cancel();
       await walletBase?.save(prioritySave: true);
       walletBase?.close();
-      await isarClose();
     }
   }
 
@@ -239,13 +238,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     int maxNumberOfIndexesToCheck,
   ) async {
     // clear blockchain info
-    await isar.writeTxn(() async {
-      await isar.transactions.clear();
-      await isar.inputs.clear();
-      await isar.outputs.clear();
-      await isar.utxos.clear();
-      await isar.addresses.clear();
-    });
+    await db.deleteWalletBlockchainData(walletId);
 
     var restoreHeight = walletBase?.walletInfo.restoreHeight;
     highestPercentCached = 0;
@@ -266,9 +259,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
       );
 
       // Add that new receiving address
-      await isar.writeTxn(() async {
-        await isar.addresses.put(newReceivingAddress);
-      });
+      await db.putAddress(newReceivingAddress);
 
       return true;
     } catch (e, s) {
@@ -406,9 +397,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     // final initialChangeAddress = await _generateAddressForChain(1, 0);
     await isarInit(walletId);
 
-    await isar.writeTxn(() async {
-      await isar.addresses.put(initialReceivingAddress);
-    });
+    await db.putAddress(initialReceivingAddress);
 
     walletBase?.close();
 
@@ -956,7 +945,8 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
           );
 
           if (addressString != null) {
-            address = await isar.addresses
+            address = await db
+                .getAddresses(walletId)
                 .filter()
                 .valueEqualTo(addressString)
                 .findFirst();
@@ -986,7 +976,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
       }
     }
 
-    await addNewTransactionData(txnsData);
+    await addNewTransactionData(txnsData, walletId);
   }
 
   Future<String> _pathForWalletDir({
@@ -1055,7 +1045,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Future<void> _refreshTxData() async {
     await _refreshTransactions();
-    final count = await isar.transactions.count();
+    final count = await db.getTransactions(walletId).count();
 
     if (count > _txCount) {
       _txCount = count;
@@ -1211,9 +1201,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
             await _generateAddressForChain(0, newReceivingIndex);
 
         // Add that new receiving address
-        await isar.writeTxn(() async {
-          await isar.addresses.put(newReceivingAddress);
-        });
+        await db.putAddress(newReceivingAddress);
       }
     } on SocketException catch (se, s) {
       Logging.instance.log(
@@ -1248,12 +1236,9 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<List<isar_models.Transaction>> get transactions =>
-      isar.transactions.where().sortByTimestampDesc().findAll();
+      db.getTransactions(walletId).sortByTimestampDesc().findAll();
 
   @override
   // TODO: implement utxos
   Future<List<isar_models.UTXO>> get utxos => throw UnimplementedError();
-
-  @override
-  Isar get isarInstance => isar;
 }

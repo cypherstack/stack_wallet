@@ -27,6 +27,8 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/transaction_card.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../db/main_db.dart';
+
 class ContactDetailsView extends ConsumerStatefulWidget {
   const ContactDetailsView({
     Key? key,
@@ -59,7 +61,8 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
 
     List<Tuple2<String, Transaction>> result = [];
     for (final manager in managers) {
-      final transactions = await manager.db.transactions
+      final transactions = await MainDB.instance
+          .getTransactions(manager.walletId)
           .filter()
           .anyOf(contact.addresses.map((e) => e.address),
               (q, String e) => q.address((q) => q.valueEqualTo(e)))

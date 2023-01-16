@@ -63,6 +63,8 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:window_size/window_size.dart';
 
+import 'db/main_db.dart';
+
 final openedFromSWBFileStringStateProvider =
     StateProvider<String?>((ref) => null);
 
@@ -262,6 +264,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       if (!Util.isDesktop) {
         await loadShared();
       }
+
+      await MainDB.instance.isarInit();
 
       _notificationsService = ref.read(notificationsProvider);
       _nodeService = ref.read(nodeServiceChangeNotifierProvider);

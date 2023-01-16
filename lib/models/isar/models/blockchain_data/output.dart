@@ -7,6 +7,9 @@ part 'output.g.dart';
 class Output {
   Id id = Isar.autoIncrement;
 
+  @Index()
+  late String walletId;
+
   late String? scriptPubKey;
 
   late String? scriptPubKeyAsm;

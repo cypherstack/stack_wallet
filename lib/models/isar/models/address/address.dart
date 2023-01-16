@@ -13,7 +13,10 @@ class AddressException extends SWException {
 class Address extends CryptoCurrencyAddress {
   Id id = Isar.autoIncrement;
 
-  @Index(unique: true)
+  @Index()
+  late String walletId;
+
+  @Index(unique: true, composite: [CompositeIndex("walletId")])
   late String value;
 
   late List<byte> publicKey;
