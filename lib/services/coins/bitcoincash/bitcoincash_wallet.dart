@@ -373,6 +373,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
           case DerivePathType.bip44:
             addressString = P2PKH(data: data, network: _network).data.address!;
             addrType = isar_models.AddressType.p2pkh;
+            addressString = bitbox.Address.toCashAddress(addressString);
             break;
           case DerivePathType.bip49:
             addressString = P2SH(
@@ -1401,6 +1402,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       case DerivePathType.bip44:
         address = P2PKH(data: data, network: _network).data.address!;
         addrType = isar_models.AddressType.p2pkh;
+        address = bitbox.Address.toCashAddress(address);
         break;
       case DerivePathType.bip49:
         address = P2SH(
