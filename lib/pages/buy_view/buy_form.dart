@@ -350,16 +350,19 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       ),
     );
 
+    buyWithFiat;
     quote = SimplexQuote(
       crypto: selectedCrypto!,
       fiat: selectedFiat!,
-      youPayFiatPrice: Decimal.parse(_buyAmountController.text),
-      youReceiveCryptoAmount: Decimal.parse("1.021312"), // Ternary for this
-      purchaseId: "Someid",
+      youPayFiatPrice: buyWithFiat
+          ? Decimal.parse(_buyAmountController.text)
+          : Decimal.parse("100"), // dummy value
+      youReceiveCryptoAmount: buyWithFiat
+          ? Decimal.parse("0.000420282") // dummy value
+          : Decimal.parse(_buyAmountController.text), // Ternary for this
+      purchaseId: "purchaseId", // anything; we get an ID back
       receivingAddress: _receiveAddressController.text,
     );
-
-    print(quote.purchaseId);
 
     await _loadQuote(quote);
     shouldPop = true;

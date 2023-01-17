@@ -132,6 +132,8 @@ class SimplexAPI {
 
       final jsonArray = jsonDecode(res.body);
 
+      jsonArray['quote'] = quote; // Add and pass this on
+
       return await compute(_parseQuote, jsonArray);
     } catch (e, s) {
       Logging.instance.log("getAvailableCurrencies exception: $e\n$s",
@@ -150,28 +152,16 @@ class SimplexAPI {
       String fiatPrice = "${jsonArray['result']['fiat_money']['total_amount']}";
       String cryptoAmount = "${jsonArray['result']['digital_money']['amount']}";
 
-      final quote = SimplexQuote(
-        crypto: Crypto.fromJson({
-          'ticker': jsonArray['result']['digital_money'][
-              'currency'], // // TODO a Crypto.fromTicker here, requiring enums there?
-          'name': 'Bitcoin',
-          'image': ''
-        }),
-        fiat: Fiat.fromJson({
-          'ticker': jsonArray['result']['fiat_money'][
-              'currency'], // // TODO a Fiat.fromTicker here, requiring enums there?
-          'name': 'Bitcoin',
-          'image': ''
-        }),
-        youPayFiatPrice: Decimal.parse(fiatPrice),
-        youReceiveCryptoAmount: Decimal.parse(cryptoAmount),
-        purchaseId: jsonArray['result']['quote_id'] as String,
-        receivingAddress: '',
-      );
-  //
-  //   try {
+      SimplexQuote quote = jsonArray['quote'] as SimplexQuote;
+      final SimplexQuote _quote = SimplexQuote(
+          crypto: quote.crypto,
+          fiat: quote.fiat,
+          youPayFiatPrice: Decimal.parse(fiatPrice),
+          youReceiveCryptoAmount: Decimal.parse(cryptoAmount),
+          purchaseId: jsonArray['result']['quote_id'] as String,
+          receivingAddress: quote.receivingAddress);
 
-      return BuyResponse(value: quote);
+      return BuyResponse(value: _quote);
     } catch (e, s) {
       Logging.instance
           .log("_parseSupported exception: $e\n$s", level: LogLevel.Error);

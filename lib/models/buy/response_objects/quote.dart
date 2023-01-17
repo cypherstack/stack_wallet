@@ -8,11 +8,11 @@ class SimplexQuote {
   final Crypto crypto;
   final Fiat fiat;
 
-  final Decimal youPayFiatPrice;
-  final Decimal youReceiveCryptoAmount;
+  late final Decimal youPayFiatPrice;
+  late final Decimal youReceiveCryptoAmount;
 
-  final String purchaseId;
-  final String receivingAddress;
+  late final String purchaseId;
+  late final String receivingAddress;
 
   SimplexQuote({
     required this.crypto,
