@@ -126,8 +126,7 @@ class SimplexAPI {
       var res = await http.post(url, headers: headers, body: data);
 
       if (res.statusCode != 200) {
-        throw Exception(
-            'getAvailableCurrencies exception: statusCode= ${res.statusCode}');
+        throw Exception('getQuote exception: statusCode= ${res.statusCode}');
       }
 
       final jsonArray = jsonDecode(res.body);
@@ -136,8 +135,7 @@ class SimplexAPI {
 
       return await compute(_parseQuote, jsonArray);
     } catch (e, s) {
-      Logging.instance.log("getAvailableCurrencies exception: $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance.log("getQuote exception: $e\n$s", level: LogLevel.Error);
       return BuyResponse(
         exception: BuyException(
           e.toString(),
@@ -164,7 +162,7 @@ class SimplexAPI {
       return BuyResponse(value: _quote);
     } catch (e, s) {
       Logging.instance
-          .log("_parseSupported exception: $e\n$s", level: LogLevel.Error);
+          .log("_parseQuote exception: $e\n$s", level: LogLevel.Error);
       return BuyResponse(
         exception: BuyException(
           e.toString(),
