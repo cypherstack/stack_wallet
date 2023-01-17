@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
+import 'package:stackwallet/services/buy/simplex/simplex_api.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
@@ -13,6 +14,10 @@ class BuyWarningPopup extends StatelessWidget {
   }) : super(key: key);
 
   final SimplexQuote quote;
+
+  void newOrder(SimplexQuote quote) {
+    final response = SimplexAPI.instance.newOrder(quote);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +33,7 @@ class BuyWarningPopup extends StatelessWidget {
       rightButton: PrimaryButton(
         label: "Continue",
         onPressed: () async {
-          // todo open simplex page in external browser
+          SimplexAPI.instance.newOrder(quote);
         },
       ),
       icon: SizedBox(

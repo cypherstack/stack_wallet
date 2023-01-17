@@ -173,4 +173,37 @@ class SimplexAPI {
       );
     }
   }
+
+  void newOrder(SimplexQuote quote) async {
+    try {
+      // TODO launch URL which POSTs headers like https://integrations.simplex.com/docs/new-window-payment-form-submission-1
+
+      // Not working example so not helpful
+      // curl -H "Content-Type: application/json" -d '{"account_details": {"app_end_user_id": "asd"}, "transaction_details": {"digital_currency": "BTC", "fiat_currency": "USD", "requested_currency": "USD", "requested_amount": 101}}' http://sandbox-api.stackwallet.com/order
+      Map<String, String> headers = {
+        'Content-Type': 'application/json',
+      };
+      String data =
+          '{"account_details": {"app_end_user_id": "${quote.receivingAddress}"}, "transaction_details": {"digital_currency": "${quote.crypto.ticker.toUpperCase()}", "fiat_currency": "${quote.fiat.ticker.toUpperCase()}", "requested_currency": "USD", "requested_amount": ${quote.youPayFiatPrice}}}';
+      Uri url = Uri.parse('http://sandbox-api.stackwallet.com/order');
+
+      var res = await http.post(url, headers: headers, body: data);
+
+      if (res.statusCode != 200) {
+        throw Exception('newOrder exception: statusCode= ${res.statusCode}');
+      }
+
+      final jsonArray = jsonDecode(res.body);
+
+      return;
+    } catch (e, s) {
+      Logging.instance.log("newOrder exception: $e\n$s", level: LogLevel.Error);
+      return; /*BuyResponse(
+        exception: BuyException(
+          e.toString(),
+          BuyExceptionType.generic,
+        ),
+      );*/
+    }
+  }
 }
