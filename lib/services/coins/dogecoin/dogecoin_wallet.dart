@@ -2439,6 +2439,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
     // clear blockchain info
     await db.deleteWalletBlockchainData(walletId);
+    await _deleteDerivations();
 
     try {
       final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
@@ -2474,6 +2475,12 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
           level: LogLevel.Error);
       rethrow;
     }
+  }
+
+  Future<void> _deleteDerivations() async {
+    // P2PKH derivations
+    await _secureStore.delete(key: "${walletId}_receiveDerivationsP2PKH");
+    await _secureStore.delete(key: "${walletId}_changeDerivationsP2PKH");
   }
 
   // Future<void> _rescanRestore() async {

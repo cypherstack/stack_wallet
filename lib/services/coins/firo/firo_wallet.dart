@@ -3616,6 +3616,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
 
     // clear blockchain info
     await db.deleteWalletBlockchainData(walletId);
+    await _deleteDerivations();
 
     try {
       final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
@@ -3647,6 +3648,12 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           level: LogLevel.Error);
       rethrow;
     }
+  }
+
+  Future<void> _deleteDerivations() async {
+    // P2PKH derivations
+    await _secureStore.delete(key: "${walletId}_receiveDerivations");
+    await _secureStore.delete(key: "${walletId}_changeDerivations");
   }
 
   // Future<void> _rescanBackup() async {

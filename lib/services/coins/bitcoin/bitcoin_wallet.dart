@@ -2740,6 +2740,7 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     // await _rescanBackup();
 
     await db.deleteWalletBlockchainData(walletId);
+    await _deleteDerivations();
 
     try {
       final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
@@ -2891,6 +2892,20 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
   //
   //   Logging.instance.log("rescan backup complete", level: LogLevel.Info);
   // }
+
+  Future<void> _deleteDerivations() async {
+    // P2PKH derivations
+    await _secureStore.delete(key: "${walletId}_receiveDerivationsP2PKH");
+    await _secureStore.delete(key: "${walletId}_changeDerivationsP2PKH");
+
+    // P2SH derivations
+    await _secureStore.delete(key: "${walletId}_receiveDerivationsP2SH");
+    await _secureStore.delete(key: "${walletId}_changeDerivationsP2SH");
+
+    // P2WPKH derivations
+    await _secureStore.delete(key: "${walletId}_receiveDerivationsP2WPKH");
+    await _secureStore.delete(key: "${walletId}_changeDerivationsP2WPKH");
+  }
 
   bool isActive = false;
 
