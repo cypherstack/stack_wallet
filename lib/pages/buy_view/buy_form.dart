@@ -332,9 +332,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   }
 
   Future<void> previewQuote(SimplexQuote quote) async {
-    // if (ref.read(simplexProvider).estimate.isEmpty) {
     // if (ref.read(simplexProvider).quote.purchaseId == "someID") {
-    //   print('okokok');
     //   // TODO make a better way of detecting a default SimplexQuote
     bool shouldPop = false;
     unawaited(
@@ -386,8 +384,6 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     final response = await SimplexAPI.instance.getQuote(quote);
 
     if (response.value != null) {
-      print('eeehehehh');
-      print(response.value);
       ref.read(simplexProvider).updateQuote(response.value!);
     } else {
       Logging.instance.log(
@@ -1034,7 +1030,6 @@ class _BuyFormState extends ConsumerState<BuyForm> {
               onExit: (_) => setState(() => _hovering1 = false),
               child: GestureDetector(
                   onTap: () {
-                    previewQuote();
                     previewQuote(quote);
                   },
                   child: PrimaryButton(
@@ -1042,7 +1037,6 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                     enabled: _receiveAddressController.text.isNotEmpty &&
                         _buyAmountController.text.isNotEmpty,
                     onPressed: () {
-                      previewQuote();
                       previewQuote(quote);
                     },
                     label: "Preview quote",
