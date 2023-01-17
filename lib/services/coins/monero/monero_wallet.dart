@@ -163,7 +163,8 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<String> get currentReceivingAddress async =>
-      (await _currentReceivingAddress)!.value;
+      (await _currentReceivingAddress)?.value ??
+      (await _generateAddressForChain(0, 0)).value;
 
   @override
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
@@ -378,11 +379,11 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     await walletBase!.connectToNode(
         node: Node(uri: "$host:${node.port}", type: WalletType.monero));
     await walletBase!.startSync();
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: DBKeys.id, value: _walletId);
 
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: DBKeys.isFavorite, value: false);
+    await Future.wait([
+      updateCachedId(walletId),
+      updateCachedIsFavorite(false),
+    ]);
 
     // Generate and add addresses to relevant arrays
     final initialReceivingAddress = await _generateAddressForChain(0, 0);
@@ -1120,7 +1121,7 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       // Check the new receiving index
       final currentReceiving = await _currentReceivingAddress;
-      final curIndex = currentReceiving!.derivationIndex;
+      final curIndex = currentReceiving?.derivationIndex ?? -1;
 
       if (highestIndex >= curIndex) {
         // First increment the receiving index
