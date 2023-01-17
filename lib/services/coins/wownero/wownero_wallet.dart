@@ -165,7 +165,8 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<String> get currentReceivingAddress async =>
-      (await _currentReceivingAddress)!.value;
+      (await _currentReceivingAddress)?.value ??
+      (await _generateAddressForChain(0, 0)).value;
 
   @override
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
@@ -1189,7 +1190,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       // Check the new receiving index
       final currentReceiving = await _currentReceivingAddress;
-      final curIndex = currentReceiving!.derivationIndex;
+      final curIndex = currentReceiving?.derivationIndex ?? -1;
 
       if (highestIndex >= curIndex) {
         // First increment the receiving index
