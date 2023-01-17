@@ -85,13 +85,16 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
           children: [
             TransactionCard(
               // this may mess with combined firo transactions
-              key: Key(tx.toString()), //
+              key: Key(tx.txid + tx.type.name + tx.address.value.toString()), //
               transaction: tx,
               walletId: widget.walletId,
             ),
             TradeCard(
               // this may mess with combined firo transactions
-              key: Key(tx.toString() + trade.uuid), //
+              key: Key(tx.txid +
+                  tx.type.name +
+                  tx.address.value.toString() +
+                  trade.uuid), //
               trade: trade,
               onTap: () async {
                 if (Util.isDesktop) {
@@ -177,7 +180,7 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
         ),
         child: TransactionCard(
           // this may mess with combined firo transactions
-          key: Key(tx.toString()), //
+          key: Key(tx.txid + tx.type.name + tx.address.value.toString()), //
           transaction: tx,
           walletId: widget.walletId,
         ),
