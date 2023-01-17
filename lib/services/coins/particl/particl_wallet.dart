@@ -1994,11 +1994,11 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
         );
 
         if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
-          tx["address"] = await db
+          tx["address"] = (await db
               .getAddresses(walletId)
               .filter()
               .valueEqualTo(txHash["address"] as String)
-              .findFirst();
+              .findFirst())!;
           tx["height"] = txHash["height"];
           allTransactions.add(tx);
         }
@@ -2053,7 +2053,8 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
         for (final out in tx["vout"] as List) {
           if (prevOut == out["n"]) {
-            final address = out["scriptPubKey"]["addresses"][0] as String?;
+            final address = out["scriptPubKey"]?["address"] as String? ??
+                out["scriptPubKey"]?["addresses"]?[0] as String?;
             if (address != null) {
               sendersArray.add(address);
             }
@@ -2067,7 +2068,8 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
         // Particl has different tx types that need to be detected and handled here
         if (output.containsKey('scriptPubKey') as bool) {
           // Logging.instance.log("output is transparent", level: LogLevel.Info);
-          final address = output["scriptPubKey"]["addresses"][0] as String?;
+          final address = output["scriptPubKey"]?["address"] as String? ??
+              output["scriptPubKey"]?["addresses"]?[0] as String?;
           if (address != null) {
             recipientsArray.add(address);
           }
@@ -2137,10 +2139,18 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
               } else {
                 // change address from 'sent from' to the 'sent to' address
                 txObject["address"] = await db
-                    .getAddresses(walletId)
-                    .filter()
-                    .valueEqualTo(address)
-                    .findFirst();
+                        .getAddresses(walletId)
+                        .filter()
+                        .valueEqualTo(address)
+                        .findFirst() ??
+                    isar_models.Address(
+                      walletId: walletId,
+                      type: isar_models.AddressType.nonWallet,
+                      subType: isar_models.AddressSubType.nonWallet,
+                      value: address,
+                      publicKey: [],
+                      derivationIndex: -1,
+                    );
               }
             } catch (s) {
               Logging.instance.log(s.toString(), level: LogLevel.Warning);
@@ -2186,14 +2196,15 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
         // add up received tx value
         for (final output in txObject["vout"] as List) {
           try {
-            final address = output["scriptPubKey"]["addresses"][0];
+            final address = output["scriptPubKey"]?["address"] as String? ??
+                output["scriptPubKey"]?["addresses"]?[0] as String?;
             if (address != null) {
-              final value = (Decimal.parse(output["value"].toString()) *
+              final value = (Decimal.parse((output["value"] ?? 0).toString()) *
                       Decimal.fromInt(Constants.satsPerCoin(coin)))
                   .toBigInt()
                   .toInt();
               totalOut += value;
-              if (allAddresses.contains(address)) {
+              if (allAddresses.where((e) => e.value == address).isNotEmpty) {
                 outputAmtAddressedToWallet += value;
               }
             }
@@ -2214,7 +2225,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
           for (final out in tx["vout"] as List) {
             if (prevOut == out["n"]) {
-              totalIn += (Decimal.parse(out["value"].toString()) *
+              totalIn += (Decimal.parse((out["value"] ?? 0).toString()) *
                       Decimal.fromInt(Constants.satsPerCoin(coin)))
                   .toBigInt()
                   .toInt();
@@ -2260,13 +2271,13 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
         otherData: null,
       );
 
-      isar_models.Address? transactionAddress =
-          midSortedTx["address"] as isar_models.Address?;
+      isar_models.Address transactionAddress =
+          midSortedTx["address"] as isar_models.Address;
 
       List<isar_models.Input> inputs = [];
       List<isar_models.Output> outputs = [];
 
-      for (final json in midSortedTx["vin"] as List) {
+      for (final json in txObject["vin"] as List) {
         bool isCoinBase = json['coinbase'] != null;
         final input = isar_models.Input(
           walletId: walletId,
@@ -2281,7 +2292,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
         inputs.add(input);
       }
 
-      for (final json in midSortedTx["vout"] as List) {
+      for (final json in txObject["vout"] as List) {
         final output = isar_models.Output(
           walletId: walletId,
           scriptPubKey: json['scriptPubKey']?['hex'] as String?,
@@ -2289,10 +2300,10 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
           scriptPubKeyType: json['scriptPubKey']?['type'] as String?,
           scriptPubKeyAddress:
               json["scriptPubKey"]?["addresses"]?[0] as String? ??
-                  json['scriptPubKey']['type'] as String? ??
+                  json['scriptPubKey']?['type'] as String? ??
                   "",
           value: Format.decimalAmountToSatoshis(
-            Decimal.parse(json["value"].toString()),
+            Decimal.parse((json["value"] ?? 0).toString()),
             coin,
           ),
         );
