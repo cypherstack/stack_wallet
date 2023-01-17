@@ -33,7 +33,7 @@ class _BuyQuotePreviewViewState extends State<BuyQuotePreviewView> {
     await showDialog<void>(
       context: context,
       builder: (context) => BuyWarningPopup(
-        ticker: widget.quote.crypto.ticker.toUpperCase(),
+        quote: widget.quote,
       ),
     );
   }
