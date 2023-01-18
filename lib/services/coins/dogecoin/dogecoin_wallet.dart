@@ -1650,8 +1650,23 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
         final newReceivingAddress = await _generateAddressForChain(
             0, newReceivingIndex, DerivePathType.bip44);
 
-        // Add that new receiving address
-        await db.putAddress(newReceivingAddress);
+        final existing = await db
+            .getAddresses(walletId)
+            .filter()
+            .valueEqualTo(newReceivingAddress.value)
+            .findFirst();
+        if (existing == null) {
+          // Add that new change address
+          await db.putAddress(newReceivingAddress);
+        } else {
+          // we need to update the address
+          await db.updateAddress(existing, newReceivingAddress);
+
+          // since we updated an existing address there is a chance it has
+          // some tx history. To prevent address reuse we will call check again
+          // recursively
+          await _checkReceivingAddressForTransactions();
+        }
       }
     } on SocketException catch (se, s) {
       Logging.instance.log(
@@ -1682,8 +1697,23 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
         final newChangeAddress = await _generateAddressForChain(
             1, newChangeIndex, DerivePathType.bip44);
 
-        // Add that new change address
-        await db.putAddress(newChangeAddress);
+        final existing = await db
+            .getAddresses(walletId)
+            .filter()
+            .valueEqualTo(newChangeAddress.value)
+            .findFirst();
+        if (existing == null) {
+          // Add that new change address
+          await db.putAddress(newChangeAddress);
+        } else {
+          // we need to update the address
+          await db.updateAddress(existing, newChangeAddress);
+
+          // since we updated an existing address there is a chance it has
+          // some tx history. To prevent address reuse we will call check again
+          // recursively
+          await checkChangeAddressForTransactions();
+        }
       }
     } catch (e, s) {
       Logging.instance.log(

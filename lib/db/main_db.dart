@@ -42,6 +42,17 @@ class MainDB {
         await isar.addresses.putAll(addresses);
       });
 
+  Future<void> updateAddress(Address oldAddress, Address newAddress) =>
+      isar.writeTxn(() async {
+        newAddress.id = oldAddress.id;
+        await oldAddress.transaction.load();
+        final txns = oldAddress.transaction.toList();
+        await isar.addresses.delete(oldAddress.id);
+        await isar.addresses.put(newAddress);
+        newAddress.transaction.addAll(txns);
+        await newAddress.transaction.save();
+      });
+
   // transactions
   QueryBuilder<Transaction, Transaction, QAfterWhereClause> getTransactions(
           String walletId) =>

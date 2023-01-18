@@ -1131,8 +1131,23 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         final newReceivingAddress =
             await _generateAddressForChain(0, newReceivingIndex);
 
-        // Add that new receiving address
-        await db.putAddress(newReceivingAddress);
+        final existing = await db
+            .getAddresses(walletId)
+            .filter()
+            .valueEqualTo(newReceivingAddress.value)
+            .findFirst();
+        if (existing == null) {
+          // Add that new change address
+          await db.putAddress(newReceivingAddress);
+        } else {
+          // we need to update the address
+          await db.updateAddress(existing, newReceivingAddress);
+
+          // since we updated an existing address there is a chance it has
+          // some tx history. To prevent address reuse we will call check again
+          // recursively
+          await _checkReceivingAddressForTransactions();
+        }
       }
     } on SocketException catch (se, s) {
       Logging.instance.log(
