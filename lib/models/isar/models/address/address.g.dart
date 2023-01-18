@@ -22,30 +22,35 @@ const AddressSchema = CollectionSchema(
       name: r'derivationIndex',
       type: IsarType.long,
     ),
-    r'publicKey': PropertySchema(
+    r'otherData': PropertySchema(
       id: 1,
+      name: r'otherData',
+      type: IsarType.string,
+    ),
+    r'publicKey': PropertySchema(
+      id: 2,
       name: r'publicKey',
       type: IsarType.byteList,
     ),
     r'subType': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'subType',
       type: IsarType.byte,
       enumMap: _AddresssubTypeEnumValueMap,
     ),
     r'type': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'type',
       type: IsarType.byte,
       enumMap: _AddresstypeEnumValueMap,
     ),
     r'value': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'value',
       type: IsarType.string,
     ),
     r'walletId': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'walletId',
       type: IsarType.string,
     )
@@ -102,9 +107,9 @@ const AddressSchema = CollectionSchema(
     )
   },
   links: {
-    r'transaction': LinkSchema(
-      id: -7782495619063243587,
-      name: r'transaction',
+    r'transactions': LinkSchema(
+      id: -20231914767662480,
+      name: r'transactions',
       target: r'Transaction',
       single: false,
     )
@@ -122,6 +127,12 @@ int _addressEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.otherData;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.publicKey.length;
   bytesCount += 3 + object.value.length * 3;
   bytesCount += 3 + object.walletId.length * 3;
@@ -135,11 +146,12 @@ void _addressSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeLong(offsets[0], object.derivationIndex);
-  writer.writeByteList(offsets[1], object.publicKey);
-  writer.writeByte(offsets[2], object.subType.index);
-  writer.writeByte(offsets[3], object.type.index);
-  writer.writeString(offsets[4], object.value);
-  writer.writeString(offsets[5], object.walletId);
+  writer.writeString(offsets[1], object.otherData);
+  writer.writeByteList(offsets[2], object.publicKey);
+  writer.writeByte(offsets[3], object.subType.index);
+  writer.writeByte(offsets[4], object.type.index);
+  writer.writeString(offsets[5], object.value);
+  writer.writeString(offsets[6], object.walletId);
 }
 
 Address _addressDeserialize(
@@ -150,13 +162,14 @@ Address _addressDeserialize(
 ) {
   final object = Address(
     derivationIndex: reader.readLong(offsets[0]),
-    publicKey: reader.readByteList(offsets[1]) ?? [],
-    subType: _AddresssubTypeValueEnumMap[reader.readByteOrNull(offsets[2])] ??
+    otherData: reader.readStringOrNull(offsets[1]),
+    publicKey: reader.readByteList(offsets[2]) ?? [],
+    subType: _AddresssubTypeValueEnumMap[reader.readByteOrNull(offsets[3])] ??
         AddressSubType.receiving,
-    type: _AddresstypeValueEnumMap[reader.readByteOrNull(offsets[3])] ??
+    type: _AddresstypeValueEnumMap[reader.readByteOrNull(offsets[4])] ??
         AddressType.p2pkh,
-    value: reader.readString(offsets[4]),
-    walletId: reader.readString(offsets[5]),
+    value: reader.readString(offsets[5]),
+    walletId: reader.readString(offsets[6]),
   );
   object.id = id;
   return object;
@@ -172,16 +185,18 @@ P _addressDeserializeProp<P>(
     case 0:
       return (reader.readLong(offset)) as P;
     case 1:
-      return (reader.readByteList(offset) ?? []) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 2:
+      return (reader.readByteList(offset) ?? []) as P;
+    case 3:
       return (_AddresssubTypeValueEnumMap[reader.readByteOrNull(offset)] ??
           AddressSubType.receiving) as P;
-    case 3:
+    case 4:
       return (_AddresstypeValueEnumMap[reader.readByteOrNull(offset)] ??
           AddressType.p2pkh) as P;
-    case 4:
-      return (reader.readString(offset)) as P;
     case 5:
+      return (reader.readString(offset)) as P;
+    case 6:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -212,7 +227,8 @@ const _AddresstypeEnumValueMap = {
   'p2wpkh': 2,
   'cryptonote': 3,
   'mimbleWimble': 4,
-  'nonWallet': 5,
+  'unknown': 5,
+  'nonWallet': 6,
 };
 const _AddresstypeValueEnumMap = {
   0: AddressType.p2pkh,
@@ -220,7 +236,8 @@ const _AddresstypeValueEnumMap = {
   2: AddressType.p2wpkh,
   3: AddressType.cryptonote,
   4: AddressType.mimbleWimble,
-  5: AddressType.nonWallet,
+  5: AddressType.unknown,
+  6: AddressType.nonWallet,
 };
 
 Id _addressGetId(Address object) {
@@ -228,13 +245,13 @@ Id _addressGetId(Address object) {
 }
 
 List<IsarLinkBase<dynamic>> _addressGetLinks(Address object) {
-  return [object.transaction];
+  return [object.transactions];
 }
 
 void _addressAttach(IsarCollection<dynamic> col, Id id, Address object) {
   object.id = id;
-  object.transaction
-      .attach(col, col.isar.collection<Transaction>(), r'transaction', id);
+  object.transactions
+      .attach(col, col.isar.collection<Transaction>(), r'transactions', id);
 }
 
 extension AddressByIndex on IsarCollection<Address> {
@@ -736,6 +753,152 @@ extension AddressQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> otherDataIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'otherData',
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> otherDataIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'otherData',
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> otherDataEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'otherData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> otherDataGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'otherData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> otherDataLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'otherData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> otherDataBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'otherData',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> otherDataStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'otherData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> otherDataEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'otherData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> otherDataContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'otherData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> otherDataMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'otherData',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> otherDataIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'otherData',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> otherDataIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'otherData',
+        value: '',
       ));
     });
   }
@@ -1252,55 +1415,55 @@ extension AddressQueryObject
 
 extension AddressQueryLinks
     on QueryBuilder<Address, Address, QFilterCondition> {
-  QueryBuilder<Address, Address, QAfterFilterCondition> transaction(
+  QueryBuilder<Address, Address, QAfterFilterCondition> transactions(
       FilterQuery<Transaction> q) {
     return QueryBuilder.apply(this, (query) {
-      return query.link(q, r'transaction');
+      return query.link(q, r'transactions');
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition>
-      transactionLengthEqualTo(int length) {
+      transactionsLengthEqualTo(int length) {
     return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'transaction', length, true, length, true);
+      return query.linkLength(r'transactions', length, true, length, true);
     });
   }
 
-  QueryBuilder<Address, Address, QAfterFilterCondition> transactionIsEmpty() {
+  QueryBuilder<Address, Address, QAfterFilterCondition> transactionsIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'transaction', 0, true, 0, true);
-    });
-  }
-
-  QueryBuilder<Address, Address, QAfterFilterCondition>
-      transactionIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'transaction', 0, false, 999999, true);
+      return query.linkLength(r'transactions', 0, true, 0, true);
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition>
-      transactionLengthLessThan(
+      transactionsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'transactions', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition>
+      transactionsLengthLessThan(
     int length, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'transaction', 0, true, length, include);
+      return query.linkLength(r'transactions', 0, true, length, include);
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition>
-      transactionLengthGreaterThan(
+      transactionsLengthGreaterThan(
     int length, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'transaction', length, include, 999999, true);
+      return query.linkLength(r'transactions', length, include, 999999, true);
     });
   }
 
   QueryBuilder<Address, Address, QAfterFilterCondition>
-      transactionLengthBetween(
+      transactionsLengthBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -1308,7 +1471,7 @@ extension AddressQueryLinks
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(
-          r'transaction', lower, includeLower, upper, includeUpper);
+          r'transactions', lower, includeLower, upper, includeUpper);
     });
   }
 }
@@ -1323,6 +1486,18 @@ extension AddressQuerySortBy on QueryBuilder<Address, Address, QSortBy> {
   QueryBuilder<Address, Address, QAfterSortBy> sortByDerivationIndexDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'derivationIndex', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterSortBy> sortByOtherData() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'otherData', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterSortBy> sortByOtherDataDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'otherData', Sort.desc);
     });
   }
 
@@ -1401,6 +1576,18 @@ extension AddressQuerySortThenBy
     });
   }
 
+  QueryBuilder<Address, Address, QAfterSortBy> thenByOtherData() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'otherData', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterSortBy> thenByOtherDataDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'otherData', Sort.desc);
+    });
+  }
+
   QueryBuilder<Address, Address, QAfterSortBy> thenBySubType() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'subType', Sort.asc);
@@ -1458,6 +1645,13 @@ extension AddressQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Address, Address, QDistinct> distinctByOtherData(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'otherData', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Address, Address, QDistinct> distinctByPublicKey() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'publicKey');
@@ -1502,6 +1696,12 @@ extension AddressQueryProperty
   QueryBuilder<Address, int, QQueryOperations> derivationIndexProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'derivationIndex');
+    });
+  }
+
+  QueryBuilder<Address, String?, QQueryOperations> otherDataProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'otherData');
     });
   }
 

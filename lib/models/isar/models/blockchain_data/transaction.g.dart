@@ -133,11 +133,11 @@ const TransactionSchema = CollectionSchema(
   },
   links: {
     r'address': LinkSchema(
-      id: 2468609240108930288,
+      id: 7060979817661293320,
       name: r'address',
       target: r'Address',
       single: true,
-      linkName: r'transaction',
+      linkName: r'transactions',
     ),
     r'inputs': LinkSchema(
       id: 4634425919890543640,

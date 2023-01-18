@@ -1125,13 +1125,6 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
         returnValue: _i18.Future<List<String>>.value(<String>[]),
       ) as _i18.Future<List<String>>);
   @override
-  _i18.Future<List<_i21.Transaction>> get lelantusTransactionData =>
-      (super.noSuchMethod(
-        Invocation.getter(#lelantusTransactionData),
-        returnValue:
-            _i18.Future<List<_i21.Transaction>>.value(<_i21.Transaction>[]),
-      ) as _i18.Future<List<_i21.Transaction>>);
-  @override
   _i18.Future<int> get maxFee => (super.noSuchMethod(
         Invocation.getter(#maxFee),
         returnValue: _i18.Future<int>.value(0),
@@ -1737,7 +1730,7 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
             <Map<String, dynamic>>[]),
       ) as _i18.Future<List<Map<String, dynamic>>>);
   @override
-  _i18.Future<List<_i21.Transaction>> getJMintTransactions(
+  _i18.Future<Map<_i21.Address, _i21.Transaction>> getJMintTransactions(
     _i12.CachedElectrumX? cachedClient,
     List<String>? transactions,
     _i17.Coin? coin,
@@ -1751,9 +1744,9 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
             coin,
           ],
         ),
-        returnValue:
-            _i18.Future<List<_i21.Transaction>>.value(<_i21.Transaction>[]),
-      ) as _i18.Future<List<_i21.Transaction>>);
+        returnValue: _i18.Future<Map<_i21.Address, _i21.Transaction>>.value(
+            <_i21.Address, _i21.Transaction>{}),
+      ) as _i18.Future<Map<_i21.Address, _i21.Transaction>>);
   @override
   _i18.Future<bool> generateNewAddress() => (super.noSuchMethod(
         Invocation.method(
