@@ -31,7 +31,7 @@ class Address extends CryptoCurrencyAddress {
   late List<byte> publicKey;
 
   @Index()
-  late int derivationIndex;
+  late int derivationIndex; // -1 generally means unknown
 
   @enumerated
   late AddressType type;
@@ -66,6 +66,7 @@ enum AddressType {
   p2wpkh,
   cryptonote,
   mimbleWimble,
+  unknown,
   nonWallet,
 }
 
