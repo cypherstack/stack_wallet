@@ -657,8 +657,8 @@ class EpicCashWallet extends CoinServiceAPI
 
     int? currentReceivingIndex;
     for (int i = 0; i <= receivingIndex!; i++) {
-      final indexesAddress = await _getCurrentAddressForChain(i);
-      if (indexesAddress == sendersAddress) {
+      final indexesAddress = await _getReceivingAddressForIndex(i);
+      if (indexesAddress.value == sendersAddress) {
         currentReceivingIndex = i;
         break;
       }
@@ -829,32 +829,52 @@ class EpicCashWallet extends CoinServiceAPI
     }
   }
 
-  /// Returns the latest receiving/change (external/internal) address for the wallet depending on [chain]
-  /// and
-  /// [chain] - Use 0 for receiving (external), 1 for change (internal). Should not be any other value!
-  Future<String> _getCurrentAddressForChain(
-    int chain,
+  Future<isar_models.Address> _getReceivingAddressForIndex(
+    int index,
   ) async {
-    final wallet = await _secureStore.read(key: '${_walletId}_wallet');
-    final epicboxConfig =
-        await _secureStore.read(key: '${_walletId}_epicboxConfig');
+    isar_models.Address? address = await db
+        .getAddresses(walletId)
+        .filter()
+        .derivationIndexEqualTo(index)
+        .findFirst();
 
-    String? walletAddress;
-    await m.protect(() async {
-      walletAddress = await compute(
-        _initGetAddressInfoWrapper,
-        Tuple3(wallet!, chain, epicboxConfig!),
+    if (address == null) {
+      final wallet = await _secureStore.read(key: '${_walletId}_wallet');
+      final epicboxConfig =
+          await _secureStore.read(key: '${_walletId}_epicboxConfig');
+
+      String? walletAddress;
+      await m.protect(() async {
+        walletAddress = await compute(
+          _initGetAddressInfoWrapper,
+          Tuple3(wallet!, index, epicboxConfig!),
+        );
+      });
+      Logging.instance
+          .log("WALLET_ADDRESS_IS $walletAddress", level: LogLevel.Info);
+
+      address = isar_models.Address(
+        walletId: walletId,
+        value: walletAddress!,
+        derivationIndex: index,
+        type: isar_models.AddressType.mimbleWimble,
+        subType: isar_models.AddressSubType.receiving,
+        publicKey: [], // ??
       );
-    });
-    Logging.instance
-        .log("WALLET_ADDRESS_IS $walletAddress", level: LogLevel.Info);
-    return walletAddress!;
+
+      await db.putAddress(address);
+    }
+
+    return address;
   }
 
   @override
-  Future<String> get currentReceivingAddress =>
-      _currentReceivingAddress ??= _getCurrentAddressForChain(0);
-  Future<String>? _currentReceivingAddress;
+  Future<String> get currentReceivingAddress async =>
+      (await _currentReceivingAddress)?.value ??
+      (await _getReceivingAddressForIndex(0)).value;
+
+  Future<isar_models.Address?> get _currentReceivingAddress =>
+      db.getAddresses(walletId).sortByDerivationIndexDesc().findFirst();
 
   @override
   Future<void> exit() async {
@@ -1059,6 +1079,11 @@ class EpicCashWallet extends CoinServiceAPI
       epicUpdateReceivingIndex(0),
       epicUpdateChangeIndex(0),
     ]);
+
+    await isarInit(walletId);
+    final initialReceivingAddress = await _getReceivingAddressForIndex(0);
+
+    await db.putAddress(initialReceivingAddress);
   }
 
   bool refreshMutex = false;
@@ -1535,7 +1560,7 @@ class EpicCashWallet extends CoinServiceAPI
         receivingIndex != null && currentReceivingIndex <= receivingIndex;
         currentReceivingIndex++) {
       final currentAddress =
-          await _getCurrentAddressForChain(currentReceivingIndex);
+          await _getReceivingAddressForIndex(currentReceivingIndex);
       final wallet = await _secureStore.read(key: '${_walletId}_wallet');
       final epicboxConfig =
           await _secureStore.read(key: '${_walletId}_epicboxConfig');
@@ -1564,7 +1589,7 @@ class EpicCashWallet extends CoinServiceAPI
       Logging.instance
           .log(subscribeRequest['signature'], level: LogLevel.Info); //
       final unprocessedSlates = await getSlates(
-          currentAddress, subscribeRequest['signature'] as String);
+          currentAddress.value, subscribeRequest['signature'] as String);
       if (unprocessedSlates == null || unprocessedSlates is! List) {
         Logging.instance.log(
             "index $currentReceivingIndex at ${await currentReceivingAddress} does not have any slates",
@@ -1630,7 +1655,7 @@ class EpicCashWallet extends CoinServiceAPI
               if (response == "") {
                 Logging.instance.log("response: ${response.runtimeType}",
                     level: LogLevel.Info);
-                await deleteSlate(currentAddress,
+                await deleteSlate(currentAddress.value,
                     subscribeRequest['signature'] as String, slate as String);
               }
 
@@ -1639,7 +1664,7 @@ class EpicCashWallet extends CoinServiceAPI
                 //Already processed - to be deleted
                 Logging.instance
                     .log("DELETING_PROCESSED_SLATE", level: LogLevel.Info);
-                final slateDelete = await deleteSlate(currentAddress,
+                final slateDelete = await deleteSlate(currentAddress.value,
                     subscribeRequest['signature'] as String, slate as String);
                 Logging.instance.log("DELETE_SLATE_RESPONSE $slateDelete",
                     level: LogLevel.Info);
@@ -1659,7 +1684,7 @@ class EpicCashWallet extends CoinServiceAPI
                   final postSlateToServer =
                       await postSlate(slateSender, encryptedSlate);
 
-                  await deleteSlate(currentAddress,
+                  await deleteSlate(currentAddress.value,
                       subscribeRequest['signature'] as String, slate as String);
                   Logging.instance.log("POST_SLATE_RESPONSE $postSlateToServer",
                       level: LogLevel.Info);
@@ -1676,7 +1701,7 @@ class EpicCashWallet extends CoinServiceAPI
                   Logging.instance
                       .log("TX_SLATE_ID_IS $txSlateId", level: LogLevel.Info);
                   final postToNode = await postSlateToNode(wallet, txSlateId);
-                  await deleteSlate(currentAddress,
+                  await deleteSlate(currentAddress.value,
                       subscribeRequest['signature'] as String, slate as String);
                   Logging.instance.log("POST_SLATE_RESPONSE $postToNode",
                       level: LogLevel.Info);
@@ -1709,7 +1734,7 @@ class EpicCashWallet extends CoinServiceAPI
         receivingIndex != null && currentReceivingIndex <= receivingIndex;
         currentReceivingIndex++) {
       final receiveAddress =
-          await _getCurrentAddressForChain(currentReceivingIndex);
+          await _getReceivingAddressForIndex(currentReceivingIndex);
 
       dynamic subscribeRequest;
       await m.protect(() async {
@@ -1733,7 +1758,7 @@ class EpicCashWallet extends CoinServiceAPI
             level: LogLevel.Info);
       });
       String? signature = subscribeRequest['signature'] as String?;
-      final cancels = await getCancels(receiveAddress, signature!);
+      final cancels = await getCancels(receiveAddress.value, signature!);
 
       final slatesToCommits = await getSlatesToCommits();
       for (final cancel in cancels as List<dynamic>) {
@@ -1801,7 +1826,7 @@ class EpicCashWallet extends CoinServiceAPI
       }
 
       final int curAdd = await setCurrentIndex();
-      _currentReceivingAddress = _getCurrentAddressForChain(curAdd);
+      await _getReceivingAddressForIndex(curAdd);
 
       if (!await startScans()) {
         refreshMutex = false;
@@ -1990,7 +2015,9 @@ class EpicCashWallet extends CoinServiceAPI
     final String transactions = message['result'] as String;
     final jsonTransactions = json.decode(transactions) as List;
 
-    final List<isar_models.Transaction> midSortedArray = [];
+    final List<
+        Tuple4<isar_models.Transaction, List<isar_models.Output>,
+            List<isar_models.Input>, isar_models.Address?>> txnsData = [];
 
     // int latestTxnBlockHeight =
     //     DB.instance.get<dynamic>(boxName: walletId, key: "storedTxnDataHeight")
@@ -2000,9 +2027,8 @@ class EpicCashWallet extends CoinServiceAPI
 
     for (var tx in jsonTransactions) {
       Logging.instance.log("tx: $tx", level: LogLevel.Info);
-      final txHeight = tx["kernel_lookup_min_height"] as int? ?? 0;
       // // TODO: does "confirmed" mean finalized? If so please remove this todo
-      // final isConfirmed = tx["confirmed"] as bool;
+      final isConfirmed = tx["confirmed"] as bool;
       // // TODO: since we are now caching tx history in hive are we losing anything by skipping here?
       // // TODO: we can skip this filtering if it causes issues as the cache is later merged with updated data anyways
       // // this would just make processing and updating cache more efficient
@@ -2032,6 +2058,14 @@ class EpicCashWallet extends CoinServiceAPI
           "";
       String? commitId = slatesToCommits[slateId]?['commitId'] as String?;
 
+      int? height;
+
+      if (isConfirmed) {
+        height = tx["kernel_lookup_min_height"] as int? ?? 1;
+      } else {
+        height = null;
+      }
+
       final txn = isar_models.Transaction(
         walletId: walletId,
         txid: commitId ?? tx["id"].toString(),
@@ -2043,7 +2077,7 @@ class EpicCashWallet extends CoinServiceAPI
         subType: isar_models.TransactionSubType.none,
         amount: amt,
         fee: (tx["fee"] == null) ? 0 : int.parse(tx["fee"] as String),
-        height: txHeight,
+        height: height,
         isCancelled: tx["tx_type"] == "TxSentCancelled" ||
             tx["tx_type"] == "TxReceivedCancelled",
         isLelantus: false,
@@ -2053,12 +2087,11 @@ class EpicCashWallet extends CoinServiceAPI
 
       // txn.address =
       //     ""; // for this when you send a transaction you will just need to save in a hashmap in hive with the key being the txid, and the value being the address it was sent to. then you can look this value up right here in your hashmap.
-      txn.address.value = await db
+      isar_models.Address? transactionAddress = await db
           .getAddresses(walletId)
           .filter()
           .valueEqualTo(address)
           .findFirst();
-
       //
       // midSortedTx["inputSize"] = tx["num_inputs"];
       // midSortedTx["outputSize"] = tx["num_outputs"];
@@ -2073,13 +2106,13 @@ class EpicCashWallet extends CoinServiceAPI
       //   latestTxnBlockHeight = txHeight;
       // }
 
-      midSortedArray.add(txn);
+      txnsData.add(Tuple4(txn, [], [], transactionAddress));
       // cachedMap?.remove(tx["id"].toString());
       // cachedMap?.remove(commitId);
       // Logging.instance.log("cmap: $cachedMap", level: LogLevel.Info);
     }
 
-    await db.putTransactions(midSortedArray);
+    await addNewTransactionData(txnsData, walletId);
 
     // midSortedArray
     //     .sort((a, b) => (b["timestamp"] as int) - (a["timestamp"] as int));
