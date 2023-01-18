@@ -1152,9 +1152,13 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     final allAddresses = await db
         .getAddresses(walletId)
         .filter()
-        .subTypeEqualTo(isar_models.AddressSubType.receiving)
-        .or()
-        .subTypeEqualTo(isar_models.AddressSubType.change)
+        .not()
+        .typeEqualTo(isar_models.AddressType.nonWallet)
+        .and()
+        .group((q) => q
+            .subTypeEqualTo(isar_models.AddressSubType.receiving)
+            .or()
+            .subTypeEqualTo(isar_models.AddressSubType.change))
         .findAll();
     return allAddresses;
   }
