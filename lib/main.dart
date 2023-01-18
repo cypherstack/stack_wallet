@@ -157,7 +157,7 @@ void main() async {
 
   await Hive.openBox<dynamic>(DB.boxNameDBInfo);
 
-  // todo: db migrate stuff for desktop needs to be handled eventually
+  // Desktop migrate handled elsewhere (currently desktop_login_view.dart)
   if (!Util.isDesktop) {
     int dbVersion = DB.instance.get<dynamic>(
             boxName: DB.boxNameDBInfo, key: "hive_data_version") as int? ??
@@ -172,7 +172,7 @@ void main() async {
           ),
         );
       } catch (e, s) {
-        Logging.instance.log("Cannot migrate database\n$e $s",
+        Logging.instance.log("Cannot migrate mobile database\n$e $s",
             level: LogLevel.Error, printFullLength: true);
       }
     }
