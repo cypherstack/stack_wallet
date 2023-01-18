@@ -18,34 +18,37 @@ class UTXO {
     required this.blockHash,
     required this.blockHeight,
     required this.blockTime,
+    this.otherData,
   });
 
   Id id = Isar.autoIncrement;
 
   @Index()
-  late String walletId;
+  late final String walletId;
 
   @Index(unique: true, replace: true, composite: [CompositeIndex("walletId")])
-  late String txid;
+  late final String txid;
 
-  late int vout;
+  late final int vout;
 
-  late int value;
+  late final int value;
 
-  late String name;
+  late final String name;
 
   @Index()
-  late bool isBlocked;
+  late final bool isBlocked;
 
-  late String? blockedReason;
+  late final String? blockedReason;
 
-  late bool isCoinbase;
+  late final bool isCoinbase;
 
-  late String? blockHash;
+  late final String? blockHash;
 
-  late int? blockHeight;
+  late final int? blockHeight;
 
-  late int? blockTime;
+  late final int? blockTime;
+
+  late final String? otherData;
 
   int getConfirmations(int currentChainHeight) {
     if (blockTime == null || blockHash == null) return 0;
@@ -57,4 +60,20 @@ class UTXO {
     final confirmations = getConfirmations(currentChainHeight);
     return confirmations >= minimumConfirms;
   }
+
+  @override
+  String toString() => "{ "
+      "id: $id, "
+      "walletId: $walletId, "
+      "txid: $txid, "
+      "vout: $vout, "
+      "value: $value, "
+      "name: $name, "
+      "isBlocked: $isBlocked, "
+      "blockedReason: $blockedReason, "
+      "isCoinbase: $isCoinbase, "
+      "blockHash: $blockHash, "
+      "blockHeight: $blockHeight, "
+      "blockTime: $blockTime, "
+      "}";
 }

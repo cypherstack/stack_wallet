@@ -18,28 +18,31 @@ class Address extends CryptoCurrencyAddress {
     required this.derivationIndex,
     required this.type,
     required this.subType,
+    this.otherData,
   });
 
   Id id = Isar.autoIncrement;
 
   @Index()
-  late String walletId;
+  late final String walletId;
 
   @Index(unique: true, composite: [CompositeIndex("walletId")])
-  late String value;
+  late final String value;
 
-  late List<byte> publicKey;
+  late final List<byte> publicKey;
 
   @Index()
-  late int derivationIndex; // -1 generally means unknown
+  late final int derivationIndex; // -1 generally means unknown
 
   @enumerated
-  late AddressType type;
+  late final AddressType type;
 
   @enumerated
-  late AddressSubType subType;
+  late final AddressSubType subType;
 
-  final transaction = IsarLinks<Transaction>();
+  late final String? otherData;
+
+  final transactions = IsarLinks<Transaction>();
 
   int derivationChain() {
     if (subType == AddressSubType.receiving) {
@@ -57,7 +60,17 @@ class Address extends CryptoCurrencyAddress {
       subType == AddressSubType.paynymReceive;
 
   @override
-  String toString() => value;
+  String toString() => "{ "
+      "id: $id, "
+      "walletId: $walletId, "
+      "value: $value, "
+      "publicKey: $publicKey, "
+      "derivationIndex: $derivationIndex, "
+      "type: ${type.name}, "
+      "subType: ${subType.name}, "
+      "transactionsLength: ${transactions.length} "
+      "otherData: $otherData, "
+      "}";
 }
 
 enum AddressType {

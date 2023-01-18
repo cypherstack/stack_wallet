@@ -45,12 +45,12 @@ class MainDB {
   Future<void> updateAddress(Address oldAddress, Address newAddress) =>
       isar.writeTxn(() async {
         newAddress.id = oldAddress.id;
-        await oldAddress.transaction.load();
-        final txns = oldAddress.transaction.toList();
+        await oldAddress.transactions.load();
+        final txns = oldAddress.transactions.toList();
         await isar.addresses.delete(oldAddress.id);
         await isar.addresses.put(newAddress);
-        newAddress.transaction.addAll(txns);
-        await newAddress.transaction.save();
+        newAddress.transactions.addAll(txns);
+        await newAddress.transactions.save();
       });
 
   // transactions

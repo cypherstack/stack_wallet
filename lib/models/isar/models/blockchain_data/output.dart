@@ -17,17 +17,17 @@ class Output {
   Id id = Isar.autoIncrement;
 
   @Index()
-  late String walletId;
+  late final String walletId;
 
-  late String? scriptPubKey;
+  late final String? scriptPubKey;
 
-  late String? scriptPubKeyAsm;
+  late final String? scriptPubKeyAsm;
 
-  late String? scriptPubKeyType;
+  late final String? scriptPubKeyType;
 
-  late String scriptPubKeyAddress;
+  late final String scriptPubKeyAddress;
 
-  late int value;
+  late final int value;
 
   @Backlink(to: 'outputs')
   final transaction = IsarLink<Transaction>();

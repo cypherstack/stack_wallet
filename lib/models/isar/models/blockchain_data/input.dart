@@ -20,24 +20,24 @@ class Input {
   Id id = Isar.autoIncrement;
 
   @Index()
-  late String walletId;
+  late final String walletId;
 
-  late String txid;
+  late final String txid;
 
-  late int vout;
+  late final int vout;
 
-  late String? scriptSig;
+  late final String? scriptSig;
 
-  late String? scriptSigAsm;
+  late final String? scriptSigAsm;
 
   // TODO: find witness type // is it even used?
   // late List<dynamic>? witness;
 
-  late bool? isCoinbase;
+  late final bool? isCoinbase;
 
-  late int? sequence;
+  late final int? sequence;
 
-  late String? innerRedeemScriptAsm;
+  late final String? innerRedeemScriptAsm;
 
   final prevOut = IsarLink<Output>();
 

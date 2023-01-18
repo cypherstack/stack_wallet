@@ -27,38 +27,35 @@ class Transaction {
   Id id = Isar.autoIncrement;
 
   @Index()
-  late String walletId;
+  late final String walletId;
 
   @Index(unique: true, composite: [CompositeIndex("walletId")])
-  late String txid;
+  late final String txid;
 
   @Index()
-  late int timestamp;
+  late final int timestamp;
 
   @enumerated
-  late TransactionType type;
+  late final TransactionType type;
 
   @enumerated
-  late TransactionSubType subType;
+  late final TransactionSubType subType;
 
-  late int amount;
+  late final int amount;
 
-  // TODO: do we need this?
-  // late List<dynamic> aliens;
+  late final int fee;
 
-  late int fee;
+  late final int? height;
 
-  late int? height;
+  late final bool isCancelled;
 
-  late bool isCancelled;
+  late final bool? isLelantus;
 
-  late bool? isLelantus;
+  late final String? slateId;
 
-  late String? slateId;
+  late final String? otherData;
 
-  late String? otherData;
-
-  @Backlink(to: "transaction")
+  @Backlink(to: "transactions")
   final address = IsarLink<Address>();
 
   final inputs = IsarLinks<Input>();
@@ -74,6 +71,26 @@ class Transaction {
     final confirmations = getConfirmations(currentChainHeight);
     return confirmations >= minimumConfirms;
   }
+
+  @override
+  toString() => "{ "
+      "id: $id, "
+      "walletId: $walletId, "
+      "txid: $txid, "
+      "timestamp: $timestamp, "
+      "type: ${type.name}, "
+      "subType: ${subType.name}, "
+      "amount: $amount, "
+      "fee: $fee, "
+      "height: $height, "
+      "isCancelled: $isCancelled, "
+      "isLelantus: $isLelantus, "
+      "slateId: $slateId, "
+      "otherData: $otherData, "
+      "address: ${address.value}, "
+      "inputsLength: ${inputs.length}, "
+      "outputsLength: ${outputs.length}, "
+      "}";
 }
 
 // Used in Isar db and stored there as int indexes so adding/removing values
