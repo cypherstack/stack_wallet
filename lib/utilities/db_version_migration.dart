@@ -316,10 +316,8 @@ class DbVersionMigrator with WalletDB {
       final currentNewSet = newAddresses.map((e) => e.value).toSet();
 
       final p2pkhRcvAddresses = _v4GetAddressesFromList(
-          walletBox.get(receiveAddressesPrefix) as List<String>? ??
-              walletBox.get("${receiveAddressesPrefix}P2PKH")
-                  as List<String>? ??
-              [],
+          _getList(walletBox.get(receiveAddressesPrefix) ??
+              walletBox.get("${receiveAddressesPrefix}P2PKH")),
           isar_models.AddressType.p2pkh,
           isar_models.AddressSubType.receiving,
           walletId);
@@ -330,7 +328,7 @@ class DbVersionMigrator with WalletDB {
       }
 
       final p2shRcvAddresses = _v4GetAddressesFromList(
-          walletBox.get("${receiveAddressesPrefix}P2SH") as List<String>? ?? [],
+          _getList(walletBox.get("${receiveAddressesPrefix}P2SH")),
           isar_models.AddressType.p2sh,
           isar_models.AddressSubType.receiving,
           walletId);
@@ -341,8 +339,7 @@ class DbVersionMigrator with WalletDB {
       }
 
       final p2wpkhRcvAddresses = _v4GetAddressesFromList(
-          walletBox.get("${receiveAddressesPrefix}P2WPKH") as List<String>? ??
-              [],
+          _getList(walletBox.get("${receiveAddressesPrefix}P2WPKH")),
           isar_models.AddressType.p2wpkh,
           isar_models.AddressSubType.receiving,
           walletId);
@@ -353,9 +350,8 @@ class DbVersionMigrator with WalletDB {
       }
 
       final p2pkhCngAddresses = _v4GetAddressesFromList(
-          walletBox.get(changeAddressesPrefix) as List<String>? ??
-              walletBox.get("${changeAddressesPrefix}P2PKH") as List<String>? ??
-              [],
+          _getList(walletBox.get(changeAddressesPrefix) ??
+              walletBox.get("${changeAddressesPrefix}P2PKH")),
           isar_models.AddressType.p2wpkh,
           isar_models.AddressSubType.change,
           walletId);
@@ -366,7 +362,7 @@ class DbVersionMigrator with WalletDB {
       }
 
       final p2shCngAddresses = _v4GetAddressesFromList(
-          walletBox.get("${changeAddressesPrefix}P2SH") as List<String>? ?? [],
+          _getList(walletBox.get("${changeAddressesPrefix}P2SH")),
           isar_models.AddressType.p2wpkh,
           isar_models.AddressSubType.change,
           walletId);
@@ -377,8 +373,7 @@ class DbVersionMigrator with WalletDB {
       }
 
       final p2wpkhCngAddresses = _v4GetAddressesFromList(
-          walletBox.get("${changeAddressesPrefix}P2WPKH") as List<String>? ??
-              [],
+          _getList(walletBox.get("${changeAddressesPrefix}P2WPKH")),
           isar_models.AddressType.p2wpkh,
           isar_models.AddressSubType.change,
           walletId);
@@ -528,14 +523,16 @@ class DbVersionMigrator with WalletDB {
         Map<String, dynamic>.from(jsonDecode(derivationsString) as Map);
 
     for (final entry in derivations.entries) {
-      final addr = entry.key;
-      final pubKey = entry.value["pubKey"] as String;
+      final addr = entry.value["address"] as String? ?? entry.key;
+      final pubKey = entry.value["pubKey"] as String? ??
+          entry.value["publicKey"] as String;
+      final index = int.tryParse(entry.key) ?? -1;
 
       final address = isar_models.Address(
         walletId: walletId,
         value: addr,
         publicKey: Format.stringToUint8List(pubKey),
-        derivationIndex: -1,
+        derivationIndex: index,
         type: type,
         subType: subType,
       );
@@ -566,5 +563,10 @@ class DbVersionMigrator with WalletDB {
     }
 
     return addresses;
+  }
+
+  List<String> _getList(dynamic list) {
+    if (list == null) return [];
+    return List<String>.from(list as List);
   }
 }
