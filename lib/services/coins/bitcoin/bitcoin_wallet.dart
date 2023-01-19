@@ -26,7 +26,6 @@ import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
-import 'package:stackwallet/services/price.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -1249,7 +1248,6 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     required ElectrumX client,
     required CachedElectrumX cachedClient,
     required TransactionNotificationTracker tracker,
-    PriceAPI? priceAPI,
     required SecureStorageInterface secureStore,
   }) {
     txTracker = tracker;
