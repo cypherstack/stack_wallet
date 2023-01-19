@@ -136,7 +136,7 @@ abstract class DefaultNodes {
 
   //TODO - Update with correct node details for ETH
   static NodeModel get ethereum => NodeModel(
-        host: "https://goerli.infura.io/v3/22677300bf774e49a458b73313ee56ba",
+        host: "https://mainnet.infura.io/v3/22677300bf774e49a458b73313ee56ba",
         port: 1234,
         name: defaultName,
         id: _nodeId(Coin.ethereum),

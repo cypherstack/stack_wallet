@@ -85,7 +85,7 @@ class GasTracker {
 class EthereumWallet extends CoinServiceAPI {
   NodeModel? _ethNode;
   final _gasLimit = 21000;
-  final _blockExplorer = "https://eth-goerli.blockscout.com/api?";
+  final _blockExplorer = "https://blockscout.com/eth/mainnet/api?";
   final _gasTrackerUrl = "https://beaconcha.in/api/v1/execution/gasnow";
 
   @override
