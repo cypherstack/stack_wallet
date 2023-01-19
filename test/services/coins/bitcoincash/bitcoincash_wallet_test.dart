@@ -4,6 +4,7 @@ import 'package:hive/hive.dart';
 import 'package:hive_test/hive_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/hive/db.dart';
@@ -18,7 +19,12 @@ import 'bitcoincash_history_sample_data.dart';
 import 'bitcoincash_wallet_test.mocks.dart';
 import 'bitcoincash_wallet_test_parameters.dart';
 
-@GenerateMocks([ElectrumX, CachedElectrumX, TransactionNotificationTracker])
+@GenerateMocks([
+  ElectrumX,
+  CachedElectrumX,
+  TransactionNotificationTracker,
+  MainDB,
+])
 void main() async {
   group("bitcoincash constants", () {
     test("bitcoincash minimum confirmations", () async {
@@ -62,7 +68,7 @@ void main() async {
     MockCachedElectrumX? cachedClient;
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
-
+    late MockMainDB mockMainDB;
     BitcoinCashWallet? mainnetWallet;
 
     setUp(() {
@@ -70,6 +76,7 @@ void main() async {
       cachedClient = MockCachedElectrumX();
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
+      mockMainDB = MockMainDB();
 
       mainnetWallet = BitcoinCashWallet(
         walletId: "validateAddressMainNet",
@@ -79,6 +86,7 @@ void main() async {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
     });
 
@@ -190,7 +198,7 @@ void main() async {
 
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
-
+    late MockMainDB mockMainDB;
     BitcoinCashWallet? mainnetWallet;
 
     setUp(() {
@@ -199,6 +207,7 @@ void main() async {
 
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
+      mockMainDB = MockMainDB();
 
       mainnetWallet = BitcoinCashWallet(
         walletId: "validateAddressMainNet",
@@ -208,6 +217,7 @@ void main() async {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
     });
 
@@ -290,7 +300,7 @@ void main() async {
   group("testNetworkConnection", () {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
-
+    late MockMainDB mockMainDB;
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
@@ -302,6 +312,7 @@ void main() async {
 
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
+      mockMainDB = MockMainDB();
 
       bch = BitcoinCashWallet(
         walletId: "testNetworkConnection",
@@ -311,6 +322,7 @@ void main() async {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
     });
 
@@ -355,7 +367,7 @@ void main() async {
 
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
-
+    late MockMainDB mockMainDB;
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
@@ -367,6 +379,7 @@ void main() async {
 
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
+      mockMainDB = MockMainDB();
 
       bch = BitcoinCashWallet(
         walletId: testWalletId,
@@ -376,6 +389,7 @@ void main() async {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
     });
 
@@ -396,6 +410,7 @@ void main() async {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
       expect(bch?.coin, bchcoin);
       expect(secureStore.interactions, 0);
@@ -566,7 +581,7 @@ void main() async {
 
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
-
+    late MockMainDB mockMainDB;
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
@@ -586,6 +601,7 @@ void main() async {
 
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
+      mockMainDB = MockMainDB();
 
       bch = BitcoinCashWallet(
         walletId: testWalletId,
@@ -595,6 +611,7 @@ void main() async {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
     });
 
@@ -696,6 +713,7 @@ void main() async {
     //     tracker: tracker!,
     //
     //     secureStore: secureStore,
+    //     mockableOverride: mockMainDB,
     //   );
     //
     //   await Hive.openBox<dynamic>(testWalletId);
@@ -869,6 +887,7 @@ void main() async {
     // //     cachedClient: cachedClient!,
     // //
     // //     secureStore: secureStore,
+    //     mockableOverride: mockMainDB,
     // //   );
     // //
     // //   // init existing
@@ -920,6 +939,7 @@ void main() async {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
       when(client?.ping()).thenAnswer((_) async => true);
       when(client?.getServerFeatures()).thenAnswer((_) async => {
@@ -958,6 +978,7 @@ void main() async {
     //     tracker: tracker!,
     //
     //     secureStore: secureStore,
+    //     mockableOverride: mockMainDB,
     //   );
     //   when(client?.ping()).thenAnswer((_) async => true);
     //   when(client?.getServerFeatures()).thenAnswer((_) async => {
@@ -1062,6 +1083,7 @@ void main() async {
     // //     cachedClient: cachedClient!,
     // //
     // //     secureStore: secureStore,
+    //     mockableOverride: mockMainDB,
     // //   );
     // //   when(client?.ping()).thenAnswer((_) async => true);
     // //   when(client?.getServerFeatures()).thenAnswer((_) async => {
@@ -1125,6 +1147,7 @@ void main() async {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
       when(client?.ping()).thenAnswer((_) async => true);
       when(client?.getServerFeatures()).thenAnswer((_) async => {
@@ -1168,6 +1191,7 @@ void main() async {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
       when(client?.ping()).thenAnswer((_) async => true);
       when(client?.getServerFeatures()).thenAnswer((_) async => {
@@ -1506,6 +1530,7 @@ void main() async {
     //     cachedClient: cachedClient!,
     //
     //     secureStore: secureStore,
+    //     mockableOverride: mockMainDB,
     //   );
     //   final wallet = await Hive.openBox<dynamic> (testWalletId);
     //   await wallet.put('receivingAddressesP2PKH', []);
@@ -1635,6 +1660,7 @@ void main() async {
     //     cachedClient: cachedClient!,
     //
     //     secureStore: secureStore,
+    //     mockableOverride: mockMainDB,
     //   );
     //   final wallet = await Hive.openBox<dynamic> (testWalletId);
     //   await wallet.put('receivingAddressesP2PKH', []);
@@ -1768,6 +1794,7 @@ void main() async {
     //     tracker: tracker!,
     //
     //     secureStore: secureStore,
+    //     mockableOverride: mockMainDB,
     //   );
     //   final wallet = await Hive.openBox<dynamic> (testWalletId);
     //   await wallet.put('receivingAddressesP2PKH', []);
@@ -1820,6 +1847,7 @@ void main() async {
     // //     tracker: tracker!,
     // //
     // //     secureStore: secureStore,
+    //     mockableOverride: mockMainDB,
     // //   );
     // //   final wallet = await Hive.openBox<dynamic> (testWalletId);
     // //   await wallet.put('receivingAddressesP2PKH', []);
@@ -1939,6 +1967,7 @@ void main() async {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
       when(client?.getServerFeatures()).thenAnswer((_) async => {
             "hosts": <dynamic, dynamic>{},

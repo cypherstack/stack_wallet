@@ -4,6 +4,7 @@ import 'package:hive/hive.dart';
 import 'package:hive_test/hive_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
@@ -17,7 +18,12 @@ import 'particl_transaction_data_samples.dart';
 import 'particl_wallet_test.mocks.dart';
 import 'particl_wallet_test_parameters.dart';
 
-@GenerateMocks([ElectrumX, CachedElectrumX, TransactionNotificationTracker])
+@GenerateMocks([
+  ElectrumX,
+  CachedElectrumX,
+  TransactionNotificationTracker,
+  MainDB,
+])
 void main() {
   group("particl constants", () {
     test("particl minimum confirmations", () async {
@@ -99,6 +105,7 @@ void main() {
 
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
+    late MockMainDB mockMainDB;
 
     ParticlWallet?
         mainnetWallet; // TODO reimplement testnet, see 9baa30c1a40b422bb5f4746efc1220b52691ace6 and sneurlax/stack_wallet#ec399ade0aef1d9ab2dd78876a2d20819dae4ba0
@@ -109,6 +116,7 @@ void main() {
 
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
+      mockMainDB = MockMainDB();
 
       mainnetWallet = ParticlWallet(
         walletId: "validateAddressMainNet",
@@ -118,6 +126,7 @@ void main() {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
     });
 
@@ -216,6 +225,7 @@ void main() {
 
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
+    late MockMainDB mockMainDB;
 
     ParticlWallet? part;
 
@@ -225,6 +235,7 @@ void main() {
 
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
+      mockMainDB = MockMainDB();
 
       part = ParticlWallet(
         walletId: "testNetworkConnection",
@@ -234,6 +245,7 @@ void main() {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
     });
 
@@ -277,6 +289,7 @@ void main() {
 
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
+    late MockMainDB mockMainDB;
 
     ParticlWallet? part;
 
@@ -286,6 +299,7 @@ void main() {
 
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
+      mockMainDB = MockMainDB();
 
       part = ParticlWallet(
         walletId: testWalletId,
@@ -295,6 +309,7 @@ void main() {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
     });
 
@@ -314,6 +329,7 @@ void main() {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
       expect(Coin.particl, Coin.particl);
       expect(secureStore.interactions, 0);
@@ -478,6 +494,7 @@ void main() {
 
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
+    late MockMainDB mockMainDB;
 
     ParticlWallet? part;
 
@@ -495,6 +512,7 @@ void main() {
 
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
+      mockMainDB = MockMainDB();
 
       part = ParticlWallet(
         walletId: testWalletId,
@@ -504,6 +522,7 @@ void main() {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
     });
     //TODO - THis function definition has changed, possibly remove
@@ -1430,6 +1449,7 @@ void main() {
     // //     cachedClient: cachedClient,
     // //
     // //     secureStore: secureStore,
+    //     mockableOverride: mockMainDB,
     // //   );
     // //
     // //   // set node

@@ -5,6 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:hive_test/hive_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/hive/db.dart';
@@ -20,7 +21,12 @@ import 'bitcoin_transaction_data_samples.dart';
 import 'bitcoin_wallet_test.mocks.dart';
 import 'bitcoin_wallet_test_parameters.dart';
 
-@GenerateMocks([ElectrumX, CachedElectrumX, TransactionNotificationTracker])
+@GenerateMocks([
+  ElectrumX,
+  CachedElectrumX,
+  TransactionNotificationTracker,
+  MainDB,
+])
 void main() async {
   group("bitcoin constants", () {
     test("bitcoin minimum confirmations", () async {
@@ -100,7 +106,7 @@ void main() async {
     MockCachedElectrumX? cachedClient;
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
-
+    late MockMainDB mockMainDB;
     BitcoinWallet? testnetWallet;
 
     setUp(() {
@@ -108,6 +114,7 @@ void main() async {
       cachedClient = MockCachedElectrumX();
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
+      mockMainDB = MockMainDB();
 
       testnetWallet = BitcoinWallet(
         walletId: "validateAddressTestNet",
@@ -117,6 +124,7 @@ void main() async {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
     });
 
@@ -182,7 +190,7 @@ void main() async {
     MockCachedElectrumX? cachedClient;
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
-
+    late MockMainDB mockMainDB;
     BitcoinWallet? mainnetWallet;
 
     setUp(() {
@@ -190,6 +198,7 @@ void main() async {
       cachedClient = MockCachedElectrumX();
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
+      mockMainDB = MockMainDB();
 
       mainnetWallet = BitcoinWallet(
         walletId: "validateAddressMainNet",
@@ -199,6 +208,7 @@ void main() async {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
     });
 
@@ -337,13 +347,13 @@ void main() async {
 
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
-
+    late MockMainDB mockMainDB;
     BitcoinWallet? btc;
 
     setUp(() {
       client = MockElectrumX();
       cachedClient = MockCachedElectrumX();
-
+      mockMainDB = MockMainDB();
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
 
@@ -355,6 +365,7 @@ void main() async {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
     });
 
@@ -398,13 +409,13 @@ void main() async {
 
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
-
+    late MockMainDB mockMainDB;
     BitcoinWallet? btc;
 
     setUp(() async {
       client = MockElectrumX();
       cachedClient = MockCachedElectrumX();
-
+      mockMainDB = MockMainDB();
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
 
@@ -416,6 +427,7 @@ void main() async {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
     });
 
@@ -435,6 +447,7 @@ void main() async {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
       expect(Coin.bitcoinTestNet, Coin.bitcoinTestNet);
       expect(secureStore.interactions, 0);
@@ -596,7 +609,7 @@ void main() async {
 
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
-
+    late MockMainDB mockMainDB;
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
@@ -613,7 +626,7 @@ void main() async {
 
       client = MockElectrumX();
       cachedClient = MockCachedElectrumX();
-
+      mockMainDB = MockMainDB();
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
 
@@ -625,6 +638,7 @@ void main() async {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
     });
 
@@ -1287,6 +1301,7 @@ void main() async {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
       when(client?.ping()).thenAnswer((_) async => true);
       when(client?.getServerFeatures()).thenAnswer((_) async => {
@@ -2090,6 +2105,7 @@ void main() async {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
       when(client?.getServerFeatures()).thenAnswer((_) async => {
             "hosts": <dynamic, dynamic>{},

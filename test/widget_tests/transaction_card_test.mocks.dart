@@ -1900,25 +1900,6 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
         returnValueForMissingStub: null,
       );
   @override
-  _i18.Future<void> addNewTransactionData(
-    List<
-            _i15.Tuple4<_i21.Transaction, List<_i21.Output>, List<_i21.Input>,
-                _i21.Address?>>?
-        transactionsData,
-    String? walletId,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #addNewTransactionData,
-          [
-            transactionsData,
-            walletId,
-          ],
-        ),
-        returnValue: _i18.Future<void>.value(),
-        returnValueForMissingStub: _i18.Future<void>.value(),
-      ) as _i18.Future<void>);
-  @override
   void initFiroHive(String? walletId) => super.noSuchMethod(
         Invocation.method(
           #initFiroHive,

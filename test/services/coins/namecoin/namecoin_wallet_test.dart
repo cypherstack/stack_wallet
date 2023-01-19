@@ -4,6 +4,7 @@ import 'package:hive/hive.dart';
 import 'package:hive_test/hive_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/hive/db.dart';
@@ -18,7 +19,12 @@ import 'namecoin_transaction_data_samples.dart';
 import 'namecoin_wallet_test.mocks.dart';
 import 'namecoin_wallet_test_parameters.dart';
 
-@GenerateMocks([ElectrumX, CachedElectrumX, TransactionNotificationTracker])
+@GenerateMocks([
+  ElectrumX,
+  CachedElectrumX,
+  TransactionNotificationTracker,
+  MainDB,
+])
 void main() {
   group("namecoin constants", () {
     test("namecoin minimum confirmations", () async {
@@ -98,6 +104,7 @@ void main() {
     MockCachedElectrumX? cachedClient;
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
+    late MockMainDB mockMainDB;
 
     NamecoinWallet? mainnetWallet;
 
@@ -106,6 +113,7 @@ void main() {
       cachedClient = MockCachedElectrumX();
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
+      mockMainDB = MockMainDB();
 
       mainnetWallet = NamecoinWallet(
         walletId: "validateAddressMainNet",
@@ -115,6 +123,7 @@ void main() {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
     });
 
@@ -168,6 +177,7 @@ void main() {
     MockCachedElectrumX? cachedClient;
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
+    late MockMainDB mockMainDB;
 
     NamecoinWallet? nmc;
 
@@ -176,6 +186,7 @@ void main() {
       cachedClient = MockCachedElectrumX();
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
+      mockMainDB = MockMainDB();
 
       nmc = NamecoinWallet(
         walletId: "testNetworkConnection",
@@ -185,6 +196,7 @@ void main() {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
     });
 
@@ -228,6 +240,7 @@ void main() {
 
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
+    late MockMainDB mockMainDB;
 
     NamecoinWallet? nmc;
 
@@ -237,6 +250,7 @@ void main() {
 
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
+      mockMainDB = MockMainDB();
 
       nmc = NamecoinWallet(
         walletId: testWalletId,
@@ -246,6 +260,7 @@ void main() {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
     });
 
@@ -265,6 +280,7 @@ void main() {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
       expect(Coin.namecoin, Coin.namecoin);
       expect(secureStore.interactions, 0);
@@ -429,6 +445,7 @@ void main() {
 
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
+    late MockMainDB mockMainDB;
 
     NamecoinWallet? nmc;
 
@@ -446,6 +463,7 @@ void main() {
 
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
+      mockMainDB = MockMainDB();
 
       nmc = NamecoinWallet(
         walletId: testWalletId,
@@ -455,6 +473,7 @@ void main() {
         cachedClient: cachedClient!,
         tracker: tracker!,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
       );
     });
 
@@ -1502,6 +1521,7 @@ void main() {
     // //     cachedClient: cachedClient,
     // //
     // //     secureStore: secureStore,
+    //     mockableOverride: mockMainDB,
     // //   );
     // //
     // //   // set node

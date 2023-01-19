@@ -407,7 +407,7 @@ class DbVersionMigrator with WalletDB {
       await db.isar.writeTxn(() async {
         await db.isar.addresses.putAll(newAddresses);
       });
-      await addNewTransactionData(newTransactions, walletId);
+      await db.addNewTransactionData(newTransactions, walletId);
 
       // delete data from hive
       await walletBox.delete(receiveAddressesPrefix);

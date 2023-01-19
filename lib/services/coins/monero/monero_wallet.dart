@@ -910,7 +910,7 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
       }
     }
 
-    await addNewTransactionData(txnsData, walletId);
+    await db.addNewTransactionData(txnsData, walletId);
 
     // quick hack to notify manager to call notifyListeners if
     // transactions changed

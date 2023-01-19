@@ -9,6 +9,7 @@ import 'package:hive/hive.dart';
 import 'package:hive_test/hive_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
@@ -31,7 +32,12 @@ import 'sample_data/get_utxos_sample_data.dart';
 import 'sample_data/gethistory_samples.dart';
 import 'sample_data/transaction_data_samples.dart';
 
-@GenerateMocks([ElectrumX, CachedElectrumX, TransactionNotificationTracker])
+@GenerateMocks([
+  ElectrumX,
+  CachedElectrumX,
+  TransactionNotificationTracker,
+  MainDB,
+])
 void main() {
   group("isolate functions", () {
     test("isolateDerive", () async {
@@ -564,6 +570,7 @@ void main() {
     //     client: client,coin: Coin.firo,
     //     cachedClient: cachedClient,
     //     secureStore: secureStore,
+    //     mockableOverride: mockMainDB,
     //
     //     tracker: MockTransactionNotificationTracker(),
     //   );
@@ -586,6 +593,7 @@ void main() {
     //     coin: Coin.firo,
     //     cachedClient: cachedClient,
     //     secureStore: secureStore,
+    //     mockableOverride: mockMainDB,
     //
     //     tracker: MockTransactionNotificationTracker(),
     //   );
@@ -619,6 +627,7 @@ void main() {
     //     client: client,
     //     cachedClient: cachedClient,
     //     secureStore: secureStore,
+    //     mockableOverride: mockMainDB,
     //
     //     tracker: MockTransactionNotificationTracker(),
     //   );
@@ -651,6 +660,7 @@ void main() {
     //     client: client,
     //     cachedClient: cachedClient,
     //     secureStore: secureStore,
+    //     mockableOverride: mockMainDB,
     //
     //     tracker: MockTransactionNotificationTracker(),
     //   );
@@ -697,6 +707,7 @@ void main() {
     //     client: client,
     //     cachedClient: cachedClient,
     //     secureStore: secureStore,
+    //     mockableOverride: mockMainDB,
     //
     //     tracker: MockTransactionNotificationTracker(),
     //   );
@@ -768,6 +779,7 @@ void main() {
     //     client: client,
     //     cachedClient: cachedClient,
     //     secureStore: secureStore,
+    //     mockableOverride: mockMainDB,
     //
     //     tracker: MockTransactionNotificationTracker(),
     //   );
@@ -874,6 +886,7 @@ void main() {
     //     client: client,
     //     cachedClient: cachedClient,
     //     secureStore: secureStore,
+    //     mockableOverride: mockMainDB,
     //
     //     tracker: MockTransactionNotificationTracker(),
     //   );
@@ -921,6 +934,7 @@ void main() {
     //   final secureStore = FakeSecureStorage();
     //
     //   final tracker = MockTransactionNotificationTracker();
+    //   final mockMainDB = MockMainDB();
     //
     //   await Hive.openBox<dynamic>(DB.boxNamePrefs);
     //   await Prefs.instance.init();
@@ -960,6 +974,7 @@ void main() {
     //     client: client,
     //     cachedClient: cachedClient,
     //     secureStore: secureStore,
+    //     mockableOverride: mockMainDB,
     //
     //     tracker: tracker,
     //   );
@@ -985,8 +1000,8 @@ void main() {
         final client = MockElectrumX();
         final cachedClient = MockCachedElectrumX();
         final secureStore = FakeSecureStorage();
-
         final tracker = MockTransactionNotificationTracker();
+        final mockMainDB = MockMainDB();
 
         when(tracker.pendings).thenAnswer((realInvocation) => [
               "51576e2230c2911a508aabb85bb50045f04b8dc958790ce2372986c3ebbe7d3e",
@@ -1053,6 +1068,7 @@ void main() {
           client: client,
           cachedClient: cachedClient,
           secureStore: secureStore,
+          mockableOverride: mockMainDB,
           tracker: tracker,
         );
 
@@ -1082,6 +1098,7 @@ void main() {
       //     final secureStore = FakeSecureStorage();
       //
       //     final tracker = MockTransactionNotificationTracker();
+      // final mockMainDB = MockMainDB();
       //
       //     when(client.getTransaction(txHash: SampleGetTransactionData.txHash6))
       //         .thenAnswer((_) async => SampleGetTransactionData.txData6);
@@ -1120,6 +1137,7 @@ void main() {
       //       client: client,
       //       cachedClient: cachedClient,
       //       secureStore: secureStore,
+      //   mockableOverride: mockMainDB,
       //
       //       tracker: tracker,
       //     );
@@ -1136,6 +1154,7 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
+      final mockMainDB = MockMainDB();
 
       when(client.broadcastTransaction(
               rawTx:
@@ -1150,6 +1169,7 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -1164,6 +1184,7 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
+      final mockMainDB = MockMainDB();
 
       final firo = FiroWallet(
         walletName: testWalletName,
@@ -1172,6 +1193,7 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -1218,6 +1240,7 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
+      final mockMainDB = MockMainDB();
 
       await secureStore.write(
           key: "${testWalletId}buildMintTransaction_mnemonic",
@@ -1238,6 +1261,7 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -1270,6 +1294,7 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
+      final mockMainDB = MockMainDB();
 
       // mock electrumx client calls
       when(client.getServerFeatures()).thenAnswer((_) async => {
@@ -1364,6 +1389,7 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -1504,6 +1530,7 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
+      final mockMainDB = MockMainDB();
 
       await secureStore.write(
           key: '${testWalletId}fullRescan_mnemonic', value: TEST_MNEMONIC);
@@ -1532,6 +1559,7 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -1713,6 +1741,7 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
+      final mockMainDB = MockMainDB();
 
       await secureStore.write(
           key: '${testWalletId}fullRescan_mnemonic', value: TEST_MNEMONIC);
@@ -1734,6 +1763,7 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -1851,6 +1881,7 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
+      final mockMainDB = MockMainDB();
 
       // mock electrumx client calls
       when(client.getServerFeatures()).thenAnswer((_) async => {
@@ -1887,6 +1918,7 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -2125,6 +2157,7 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
+      final mockMainDB = MockMainDB();
 
       // mock electrumx client calls
       when(client.getServerFeatures()).thenAnswer((_) async => {
@@ -2145,6 +2178,7 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -2161,6 +2195,7 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
+      final mockMainDB = MockMainDB();
 
       // mock electrumx client calls
       when(client.getServerFeatures()).thenAnswer((_) async => {
@@ -2181,6 +2216,7 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -2216,6 +2252,7 @@ void main() {
     test("checkReceivingAddressForTransactions numtxs >= 1", () async {
       final client = MockElectrumX();
       final secureStore = FakeSecureStorage();
+      final mockMainDB = MockMainDB();
 
       when(client.getHistory(scripthash: SampleGetHistoryData.scripthash1))
           .thenAnswer((_) async => SampleGetHistoryData.data1);
@@ -2228,6 +2265,7 @@ void main() {
         client: client,
         cachedClient: MockCachedElectrumX(),
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -2324,6 +2362,7 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
+      final mockMainDB = MockMainDB();
 
       // set mnemonic
       await secureStore.write(
@@ -2421,6 +2460,7 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -2530,6 +2570,7 @@ void main() {
     //     client: client,
     //     cachedClient: cachedClient,
     //     secureStore: secureStore,
+    //     mockableOverride: mockMainDB,
     //
     //     tracker: MockTransactionNotificationTracker(),
     //   );
@@ -2627,6 +2668,7 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
+      final mockMainDB = MockMainDB();
 
       when(client.getLatestCoinId()).thenAnswer((_) async => 1);
       when(client.getBlockHeadTip()).thenAnswer(
@@ -2708,6 +2750,7 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -2803,6 +2846,7 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
+      final mockMainDB = MockMainDB();
 
       when(client.getLatestCoinId()).thenAnswer((_) async => 1);
       when(client.getBlockHeadTip()).thenAnswer(
@@ -2874,6 +2918,7 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -3043,6 +3088,7 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
+      final mockMainDB = MockMainDB();
 
       // set mnemonic
       await secureStore.write(
@@ -3125,6 +3171,7 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
+        mockableOverride: mockMainDB,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -3269,6 +3316,7 @@ void main() {
     //     client: client,
     //     cachedClient: cachedClient,
     //     secureStore: secureStore,
+    //     mockableOverride: mockMainDB,
     //
     //     tracker: MockTransactionNotificationTracker(),
     //   );

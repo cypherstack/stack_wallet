@@ -2113,7 +2113,7 @@ class EpicCashWallet extends CoinServiceAPI
       // Logging.instance.log("cmap: $cachedMap", level: LogLevel.Info);
     }
 
-    await addNewTransactionData(txnsData, walletId);
+    await db.addNewTransactionData(txnsData, walletId);
 
     // quick hack to notify manager to call notifyListeners if
     // transactions changed

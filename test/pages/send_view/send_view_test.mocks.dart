@@ -17,23 +17,22 @@ import 'package:stackwallet/models/isar/models/isar_models.dart' as _i22;
 import 'package:stackwallet/models/node_model.dart' as _i20;
 import 'package:stackwallet/models/paymint/fee_object_model.dart' as _i9;
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart'
-    as _i26;
+    as _i25;
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart' as _i21;
 import 'package:stackwallet/services/coins/coin_service.dart' as _i14;
 import 'package:stackwallet/services/coins/manager.dart' as _i6;
-import 'package:stackwallet/services/locale_service.dart' as _i24;
+import 'package:stackwallet/services/locale_service.dart' as _i23;
 import 'package:stackwallet/services/node_service.dart' as _i3;
 import 'package:stackwallet/services/transaction_notification_tracker.dart'
     as _i8;
 import 'package:stackwallet/services/wallets.dart' as _i15;
 import 'package:stackwallet/services/wallets_service.dart' as _i2;
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i27;
+import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i26;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i16;
-import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i25;
+import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i24;
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
     as _i7;
 import 'package:stackwallet/utilities/prefs.dart' as _i18;
-import 'package:tuple/tuple.dart' as _i23;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -1566,31 +1565,12 @@ class MockBitcoinWallet extends _i1.Mock implements _i21.BitcoinWallet {
         ),
         returnValueForMissingStub: null,
       );
-  @override
-  _i17.Future<void> addNewTransactionData(
-    List<
-            _i23.Tuple4<_i22.Transaction, List<_i22.Output>, List<_i22.Input>,
-                _i22.Address?>>?
-        transactionsData,
-    String? walletId,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #addNewTransactionData,
-          [
-            transactionsData,
-            walletId,
-          ],
-        ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
 }
 
 /// A class which mocks [LocaleService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockLocaleService extends _i1.Mock implements _i24.LocaleService {
+class MockLocaleService extends _i1.Mock implements _i23.LocaleService {
   MockLocaleService() {
     _i1.throwOnMissingStub(this);
   }
@@ -1708,12 +1688,12 @@ class MockPrefs extends _i1.Mock implements _i18.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i25.SyncingType get syncType => (super.noSuchMethod(
+  _i24.SyncingType get syncType => (super.noSuchMethod(
         Invocation.getter(#syncType),
-        returnValue: _i25.SyncingType.currentWalletOnly,
-      ) as _i25.SyncingType);
+        returnValue: _i24.SyncingType.currentWalletOnly,
+      ) as _i24.SyncingType);
   @override
-  set syncType(_i25.SyncingType? syncType) => super.noSuchMethod(
+  set syncType(_i24.SyncingType? syncType) => super.noSuchMethod(
         Invocation.setter(
           #syncType,
           syncType,
@@ -1773,12 +1753,12 @@ class MockPrefs extends _i1.Mock implements _i18.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i26.ExchangeRateType get exchangeRateType => (super.noSuchMethod(
+  _i25.ExchangeRateType get exchangeRateType => (super.noSuchMethod(
         Invocation.getter(#exchangeRateType),
-        returnValue: _i26.ExchangeRateType.estimated,
-      ) as _i26.ExchangeRateType);
+        returnValue: _i25.ExchangeRateType.estimated,
+      ) as _i25.ExchangeRateType);
   @override
-  set exchangeRateType(_i26.ExchangeRateType? exchangeRateType) =>
+  set exchangeRateType(_i25.ExchangeRateType? exchangeRateType) =>
       super.noSuchMethod(
         Invocation.setter(
           #exchangeRateType,
@@ -1860,12 +1840,12 @@ class MockPrefs extends _i1.Mock implements _i18.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i27.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
+  _i26.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
         Invocation.getter(#backupFrequencyType),
-        returnValue: _i27.BackupFrequencyType.everyTenMinutes,
-      ) as _i27.BackupFrequencyType);
+        returnValue: _i26.BackupFrequencyType.everyTenMinutes,
+      ) as _i26.BackupFrequencyType);
   @override
-  set backupFrequencyType(_i27.BackupFrequencyType? backupFrequencyType) =>
+  set backupFrequencyType(_i26.BackupFrequencyType? backupFrequencyType) =>
       super.noSuchMethod(
         Invocation.setter(
           #backupFrequencyType,

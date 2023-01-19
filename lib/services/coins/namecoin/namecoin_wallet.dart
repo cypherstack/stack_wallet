@@ -2179,7 +2179,7 @@ class NamecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       txnsData.add(data);
     }
-    await addNewTransactionData(txnsData, walletId);
+    await db.addNewTransactionData(txnsData, walletId);
 
     // quick hack to notify manager to call notifyListeners if
     // transactions changed

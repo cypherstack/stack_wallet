@@ -11,6 +11,7 @@ import 'package:bs58check/bs58check.dart' as bs58check;
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
+import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/balance.dart';
@@ -40,8 +41,6 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
-
-import '../../../db/main_db.dart';
 
 const int MINIMUM_CONFIRMATIONS = 1;
 const int DUST_LIMIT = 1000000;
@@ -1934,7 +1933,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       txns.add(txn);
     }
 
-    await addNewTransactionData(txns, walletId);
+    await db.addNewTransactionData(txns, walletId);
 
     // quick hack to notify manager to call notifyListeners if
     // transactions changed

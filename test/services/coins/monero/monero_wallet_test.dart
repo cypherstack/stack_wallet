@@ -18,6 +18,7 @@ import 'package:hive/hive.dart';
 import 'package:hive_test/hive_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 
@@ -37,7 +38,9 @@ String name = 'namee${Random().nextInt(10000000)}';
 int nettype = 0;
 WalletType type = WalletType.monero;
 
-@GenerateMocks([])
+@GenerateMocks([
+  MainDB,
+])
 void main() async {
   storage = FakeSecureStorage();
   keysStorage = KeyService(storage!);
@@ -135,42 +138,36 @@ void main() async {
       //     "${walletBase!.balance.entries.first.value.available} currency: ${walletBase!.currency}");
 
       expect(walletInfo.address, mainnetTestData[0][0]);
-      expect(
-          await walletBase!.getTransactionAddress(0, 0), mainnetTestData[0][0]);
-      expect(
-          await walletBase!.getTransactionAddress(0, 1), mainnetTestData[0][1]);
-      expect(
-          await walletBase!.getTransactionAddress(0, 2), mainnetTestData[0][2]);
-      expect(
-          await walletBase!.getTransactionAddress(1, 0), mainnetTestData[1][0]);
-      expect(
-          await walletBase!.getTransactionAddress(1, 1), mainnetTestData[1][1]);
-      expect(
-          await walletBase!.getTransactionAddress(1, 2), mainnetTestData[1][2]);
+      expect(walletBase!.getTransactionAddress(0, 0), mainnetTestData[0][0]);
+      expect(walletBase!.getTransactionAddress(0, 1), mainnetTestData[0][1]);
+      expect(walletBase!.getTransactionAddress(0, 2), mainnetTestData[0][2]);
+      expect(walletBase!.getTransactionAddress(1, 0), mainnetTestData[1][0]);
+      expect(walletBase!.getTransactionAddress(1, 1), mainnetTestData[1][1]);
+      expect(walletBase!.getTransactionAddress(1, 2), mainnetTestData[1][2]);
 
-      expect(await walletBase!.validateAddress(''), false);
+      expect(walletBase!.validateAddress(''), false);
       expect(
-          await walletBase!.validateAddress(
+          walletBase!.validateAddress(
               '4AeRgkWZsMJhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FHXDA6i1DnQTd6h8R3VU5AkbGcWSNhtSwNNPgaD48gp4nn'),
           true);
       expect(
-          await walletBase!.validateAddress(
+          walletBase!.validateAddress(
               '4asdfkWZsMJhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FHXDA6i1DnQTd6h8R3VU5AkbGcWSNhtSwNNPgaD48gpjkl'),
           false);
       expect(
-          await walletBase!.validateAddress(
+          walletBase!.validateAddress(
               '8AeRgkWZsMJhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FHXDA6i1DnQTd6h8R3VU5AkbGcWSNhtSwNNPgaD48gp4nn'),
           false);
       expect(
-          await walletBase!.validateAddress(
+          walletBase!.validateAddress(
               '84kYPuZ1eaVKGQhf26QPNWbSLQG16BywXdLYYShVrPNMLAUAWce5vcpRc78FxwRphrG6Cda7faCKdUMr8fUCH3peHPenvHy'),
           true);
       expect(
-          await walletBase!.validateAddress(
+          walletBase!.validateAddress(
               '8asdfuZ1eaVKGQhf26QPNWbSLQG16BywXdLYYShVrPNMLAUAWce5vcpRc78FxwRphrG6Cda7faCKdUMr8fUCH3peHPenjkl'),
           false);
       expect(
-          await walletBase!.validateAddress(
+          walletBase!.validateAddress(
               '44kYPuZ1eaVKGQhf26QPNWbSLQG16BywXdLYYShVrPNMLAUAWce5vcpRc78FxwRphrG6Cda7faCKdUMr8fUCH3peHPenvHy'),
           false);
     });
@@ -233,4 +230,4 @@ Future<String> pathForWalletDir(
 Future<String> pathForWallet(
         {required String name, required WalletType type}) async =>
     await pathForWalletDir(name: name, type: type)
-        .then((path) => path + '/$name');
+        .then((path) => '$path/$name');

@@ -2191,7 +2191,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       txns.add(Tuple4(tx, outputs, inputs, transactionAddress));
     }
 
-    await addNewTransactionData(txns, walletId);
+    await db.addNewTransactionData(txns, walletId);
 
     // quick hack to notify manager to call notifyListeners if
     // transactions changed

@@ -14,7 +14,7 @@ import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i10;
 import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i9;
 import 'package:stackwallet/models/balance.dart' as _i11;
 import 'package:stackwallet/models/isar/models/isar_models.dart' as _i21;
-import 'package:stackwallet/models/node_model.dart' as _i23;
+import 'package:stackwallet/models/node_model.dart' as _i22;
 import 'package:stackwallet/models/paymint/fee_object_model.dart' as _i8;
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart' as _i20;
 import 'package:stackwallet/services/coins/coin_service.dart' as _i14;
@@ -28,7 +28,6 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i16;
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
     as _i13;
 import 'package:stackwallet/utilities/prefs.dart' as _i18;
-import 'package:tuple/tuple.dart' as _i22;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -1355,25 +1354,6 @@ class MockBitcoinWallet extends _i1.Mock implements _i20.BitcoinWallet {
         ),
         returnValueForMissingStub: null,
       );
-  @override
-  _i17.Future<void> addNewTransactionData(
-    List<
-            _i22.Tuple4<_i21.Transaction, List<_i21.Output>, List<_i21.Input>,
-                _i21.Address?>>?
-        transactionsData,
-    String? walletId,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #addNewTransactionData,
-          [
-            transactionsData,
-            walletId,
-          ],
-        ),
-        returnValue: _i17.Future<void>.value(),
-        returnValueForMissingStub: _i17.Future<void>.value(),
-      ) as _i17.Future<void>);
 }
 
 /// A class which mocks [NodeService].
@@ -1389,15 +1369,15 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
         ),
       ) as _i13.SecureStorageInterface);
   @override
-  List<_i23.NodeModel> get primaryNodes => (super.noSuchMethod(
+  List<_i22.NodeModel> get primaryNodes => (super.noSuchMethod(
         Invocation.getter(#primaryNodes),
-        returnValue: <_i23.NodeModel>[],
-      ) as List<_i23.NodeModel>);
+        returnValue: <_i22.NodeModel>[],
+      ) as List<_i22.NodeModel>);
   @override
-  List<_i23.NodeModel> get nodes => (super.noSuchMethod(
+  List<_i22.NodeModel> get nodes => (super.noSuchMethod(
         Invocation.getter(#nodes),
-        returnValue: <_i23.NodeModel>[],
-      ) as List<_i23.NodeModel>);
+        returnValue: <_i22.NodeModel>[],
+      ) as List<_i22.NodeModel>);
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
@@ -1415,7 +1395,7 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
   @override
   _i17.Future<void> setPrimaryNodeFor({
     required _i16.Coin? coin,
-    required _i23.NodeModel? node,
+    required _i22.NodeModel? node,
     bool? shouldNotifyListeners = false,
   }) =>
       (super.noSuchMethod(
@@ -1432,40 +1412,40 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
         returnValueForMissingStub: _i17.Future<void>.value(),
       ) as _i17.Future<void>);
   @override
-  _i23.NodeModel? getPrimaryNodeFor({required _i16.Coin? coin}) =>
+  _i22.NodeModel? getPrimaryNodeFor({required _i16.Coin? coin}) =>
       (super.noSuchMethod(Invocation.method(
         #getPrimaryNodeFor,
         [],
         {#coin: coin},
-      )) as _i23.NodeModel?);
+      )) as _i22.NodeModel?);
   @override
-  List<_i23.NodeModel> getNodesFor(_i16.Coin? coin) => (super.noSuchMethod(
+  List<_i22.NodeModel> getNodesFor(_i16.Coin? coin) => (super.noSuchMethod(
         Invocation.method(
           #getNodesFor,
           [coin],
         ),
-        returnValue: <_i23.NodeModel>[],
-      ) as List<_i23.NodeModel>);
+        returnValue: <_i22.NodeModel>[],
+      ) as List<_i22.NodeModel>);
   @override
-  _i23.NodeModel? getNodeById({required String? id}) =>
+  _i22.NodeModel? getNodeById({required String? id}) =>
       (super.noSuchMethod(Invocation.method(
         #getNodeById,
         [],
         {#id: id},
-      )) as _i23.NodeModel?);
+      )) as _i22.NodeModel?);
   @override
-  List<_i23.NodeModel> failoverNodesFor({required _i16.Coin? coin}) =>
+  List<_i22.NodeModel> failoverNodesFor({required _i16.Coin? coin}) =>
       (super.noSuchMethod(
         Invocation.method(
           #failoverNodesFor,
           [],
           {#coin: coin},
         ),
-        returnValue: <_i23.NodeModel>[],
-      ) as List<_i23.NodeModel>);
+        returnValue: <_i22.NodeModel>[],
+      ) as List<_i22.NodeModel>);
   @override
   _i17.Future<void> add(
-    _i23.NodeModel? node,
+    _i22.NodeModel? node,
     String? password,
     bool? shouldNotifyListeners,
   ) =>
@@ -1517,7 +1497,7 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
       ) as _i17.Future<void>);
   @override
   _i17.Future<void> edit(
-    _i23.NodeModel? editedNode,
+    _i22.NodeModel? editedNode,
     String? password,
     bool? shouldNotifyListeners,
   ) =>

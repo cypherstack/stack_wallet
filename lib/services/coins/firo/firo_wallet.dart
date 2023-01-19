@@ -2879,7 +2879,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       txnsData.add(Tuple4(value.item2, outs, ins, transactionAddress));
     }
 
-    await addNewTransactionData(txnsData, walletId);
+    await db.addNewTransactionData(txnsData, walletId);
 
     // // update the _lelantusTransactionData
     // final models.TransactionData newTxData =
@@ -3021,7 +3021,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
 
         txnsData.add(Tuple4(transaction, [], [], transactionAddress));
 
-        await addNewTransactionData(txnsData, walletId);
+        await db.addNewTransactionData(txnsData, walletId);
 
         // final models.TransactionData newTxData =
         //     models.TransactionData.fromMap(transactions);
@@ -3566,7 +3566,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       txnsData.add(Tuple4(tx, outs, ins, transactionAddress));
     }
 
-    await addNewTransactionData(txnsData, walletId);
+    await db.addNewTransactionData(txnsData, walletId);
 
     // quick hack to notify manager to call notifyListeners if
     // transactions changed
@@ -4399,7 +4399,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       txnsData.add(Tuple4(value.item2, outs, ins, transactionAddress));
     }
 
-    await addNewTransactionData(txnsData, walletId);
+    await db.addNewTransactionData(txnsData, walletId);
   }
 
   Future<List<Map<String, dynamic>>> fetchAnonymitySets() async {

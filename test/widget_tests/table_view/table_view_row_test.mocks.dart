@@ -25,7 +25,6 @@ import 'package:stackwallet/services/wallets.dart' as _i14;
 import 'package:stackwallet/services/wallets_service.dart' as _i2;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i15;
 import 'package:stackwallet/utilities/prefs.dart' as _i17;
-import 'package:tuple/tuple.dart' as _i21;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -1341,25 +1340,6 @@ class MockBitcoinWallet extends _i1.Mock implements _i19.BitcoinWallet {
         ),
         returnValueForMissingStub: null,
       );
-  @override
-  _i16.Future<void> addNewTransactionData(
-    List<
-            _i21.Tuple4<_i20.Transaction, List<_i20.Output>, List<_i20.Input>,
-                _i20.Address?>>?
-        transactionsData,
-    String? walletId,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #addNewTransactionData,
-          [
-            transactionsData,
-            walletId,
-          ],
-        ),
-        returnValue: _i16.Future<void>.value(),
-        returnValueForMissingStub: _i16.Future<void>.value(),
-      ) as _i16.Future<void>);
 }
 
 /// A class which mocks [Manager].

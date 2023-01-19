@@ -18,7 +18,6 @@ import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as _i9;
 import 'package:stackwallet/services/transaction_notification_tracker.dart'
     as _i2;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i11;
-import 'package:tuple/tuple.dart' as _i14;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -986,25 +985,6 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
         ),
         returnValueForMissingStub: null,
       );
-  @override
-  _i10.Future<void> addNewTransactionData(
-    List<
-            _i14.Tuple4<_i12.Transaction, List<_i12.Output>, List<_i12.Input>,
-                _i12.Address?>>?
-        transactionsData,
-    String? walletId,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #addNewTransactionData,
-          [
-            transactionsData,
-            walletId,
-          ],
-        ),
-        returnValue: _i10.Future<void>.value(),
-        returnValueForMissingStub: _i10.Future<void>.value(),
-      ) as _i10.Future<void>);
   @override
   void initFiroHive(String? walletId) => super.noSuchMethod(
         Invocation.method(
