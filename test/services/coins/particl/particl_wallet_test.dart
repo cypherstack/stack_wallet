@@ -12,7 +12,6 @@ import 'package:stackwallet/services/price.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:tuple/tuple.dart';
 
 import 'particl_history_sample_data.dart';
 import 'particl_transaction_data_samples.dart';
@@ -100,7 +99,7 @@ void main() {
   group("validate mainnet particl addresses", () {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
-    MockPriceAPI? priceAPI;
+
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
@@ -110,7 +109,7 @@ void main() {
     setUp(() {
       client = MockElectrumX();
       cachedClient = MockCachedElectrumX();
-      priceAPI = MockPriceAPI();
+
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
 
@@ -121,7 +120,6 @@ void main() {
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
-        priceAPI: priceAPI,
         secureStore: secureStore,
       );
     });
@@ -133,7 +131,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("valid mainnet particl legacy/p2pkh address type", () {
@@ -145,7 +142,6 @@ void main() {
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("valid mainnet particl p2wpkh address", () {
@@ -160,7 +156,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("valid mainnet particl legacy/p2pkh address", () {
@@ -170,7 +165,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("invalid mainnet particl legacy/p2pkh address", () {
@@ -183,7 +177,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("invalid mainnet particl p2wpkh address", () {
@@ -195,7 +188,6 @@ void main() {
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("invalid bech32 address type", () {
@@ -207,7 +199,6 @@ void main() {
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("address has no matching script", () {
@@ -219,14 +210,13 @@ void main() {
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
   });
 
   group("testNetworkConnection", () {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
-    MockPriceAPI? priceAPI;
+
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
@@ -235,7 +225,7 @@ void main() {
     setUp(() {
       client = MockElectrumX();
       cachedClient = MockCachedElectrumX();
-      priceAPI = MockPriceAPI();
+
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
 
@@ -246,7 +236,6 @@ void main() {
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
-        priceAPI: priceAPI,
         secureStore: secureStore,
       );
     });
@@ -259,7 +248,6 @@ void main() {
       verify(client?.ping()).called(1);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("attempted connection fails due to exception", () async {
@@ -270,7 +258,6 @@ void main() {
       verify(client?.ping()).called(1);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("attempted connection test success", () async {
@@ -281,7 +268,6 @@ void main() {
       verify(client?.ping()).called(1);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
   });
 
@@ -291,7 +277,7 @@ void main() {
 
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
-    MockPriceAPI? priceAPI;
+
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
@@ -300,7 +286,7 @@ void main() {
     setUp(() async {
       client = MockElectrumX();
       cachedClient = MockCachedElectrumX();
-      priceAPI = MockPriceAPI();
+
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
 
@@ -311,7 +297,6 @@ void main() {
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
-        priceAPI: priceAPI,
         secureStore: secureStore,
       );
     });
@@ -321,7 +306,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("get networkType test", () async {
@@ -332,14 +316,12 @@ void main() {
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
-        priceAPI: priceAPI,
         secureStore: secureStore,
       );
       expect(Coin.particl, Coin.particl);
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("get cryptoCurrency", () async {
@@ -347,7 +329,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("get coinName", () async {
@@ -355,7 +336,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("get coinTicker", () async {
@@ -363,7 +343,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("get and set walletName", () async {
@@ -373,7 +352,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("estimateTxFee", () async {
@@ -388,7 +366,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("get fees succeeds", () async {
@@ -422,7 +399,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("get fees fails", () async {
@@ -459,7 +435,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     // test("get maxFee", () async {
@@ -491,7 +466,7 @@ void main() {
     //   verifyNoMoreInteractions(client);
     //   verifyNoMoreInteractions(cachedClient);
     //   verifyNoMoreInteractions(tracker);
-    //   verifyNoMoreInteractions(priceAPI);
+    //
     // });
   });
 
@@ -503,7 +478,7 @@ void main() {
 
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
-    MockPriceAPI? priceAPI;
+
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
@@ -532,7 +507,7 @@ void main() {
 
       client = MockElectrumX();
       cachedClient = MockCachedElectrumX();
-      priceAPI = MockPriceAPI();
+
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
 
@@ -543,7 +518,6 @@ void main() {
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
-        priceAPI: priceAPI,
         secureStore: secureStore,
       );
     });
@@ -555,7 +529,7 @@ void main() {
     //   verify(client?.ping()).called(1);
     //   verifyNoMoreInteractions(client);
     //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
+    //
     // });
 
     // test("initializeWallet no network exception", () async {
@@ -566,7 +540,7 @@ void main() {
     //   verify(client?.ping()).called(1);
     //   verifyNoMoreInteractions(client);
     //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
+    //
     // });
 
     test("initializeWallet mainnet throws bad network", () async {
@@ -589,7 +563,6 @@ void main() {
         expect(secureStore.interactions, 0);
         verifyNoMoreInteractions(client);
         verifyNoMoreInteractions(cachedClient);
-        verifyNoMoreInteractions(priceAPI);
       });
     });
 
@@ -615,7 +588,6 @@ void main() {
         expect(secureStore.interactions, 1);
         verifyNoMoreInteractions(client);
         verifyNoMoreInteractions(cachedClient);
-        verifyNoMoreInteractions(priceAPI);
       });
     });
 
@@ -650,7 +622,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test(
@@ -687,7 +658,6 @@ void main() {
       expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("recoverFromMnemonic using empty seed on mainnet succeeds", () async {
@@ -737,7 +707,6 @@ void main() {
 
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("get mnemonic list", () async {
@@ -778,7 +747,6 @@ void main() {
 
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("recoverFromMnemonic using non empty seed on mainnet succeeds",
@@ -847,7 +815,6 @@ void main() {
 
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("fullRescan succeeds", () async {
@@ -1040,7 +1007,6 @@ void main() {
 
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("fullRescan fails", () async {
@@ -1243,7 +1209,6 @@ void main() {
 
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("prepareSend fails", () async {
@@ -1372,7 +1337,6 @@ void main() {
 
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("confirmSend no hex", () async {
@@ -1388,7 +1352,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("confirmSend hex is not string", () async {
@@ -1404,7 +1367,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("confirmSend hex is string but missing other data", () async {
@@ -1424,7 +1386,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("confirmSend fails due to vSize being greater than fee", () async {
@@ -1445,7 +1406,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("confirmSend fails when broadcast transactions throws", () async {
@@ -1471,7 +1431,6 @@ void main() {
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
     //
     // // this test will create a non mocked electrumx client that will try to connect
@@ -1484,7 +1443,7 @@ void main() {
     // //     networkType: BasicNetworkType.test,
     // //     client: client,
     // //     cachedClient: cachedClient,
-    // //     priceAPI: priceAPI,
+    // //
     // //     secureStore: secureStore,
     // //   );
     // //
@@ -1520,7 +1479,7 @@ void main() {
     // //   expect(secureStore.interactions, 0);
     // //   verifyNoMoreInteractions(client);
     // //   verifyNoMoreInteractions(cachedClient);
-    // //   verifyNoMoreInteractions(priceAPI);
+    // //
     // // });
 
     test("refresh wallet mutex locked", () async {
@@ -1588,7 +1547,6 @@ void main() {
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("refresh wallet normally", () async {
@@ -1608,9 +1566,6 @@ void main() {
           .thenAnswer((_) async => []);
       when(client?.estimateFee(blocks: anyNamed("blocks")))
           .thenAnswer((_) async => Decimal.one);
-
-      when(priceAPI?.getPricesAnd24hChange(baseCurrency: "USD"))
-          .thenAnswer((_) async => {Coin.particl: Tuple2(Decimal.one, 0.3)});
 
       final List<dynamic> dynamicArgValues = [];
 
@@ -1640,7 +1595,6 @@ void main() {
       verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(3);
       verify(client?.estimateFee(blocks: anyNamed("blocks"))).called(3);
       verify(client?.getBlockHeadTip()).called(1);
-      verify(priceAPI?.getPricesAnd24hChange(baseCurrency: "USD")).called(2);
 
       for (final arg in dynamicArgValues) {
         final map = Map<String, List<dynamic>>.from(arg as Map);
@@ -1654,7 +1608,6 @@ void main() {
       expect(secureStore.deletes, 0);
 
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     tearDown(() async {

@@ -96,7 +96,6 @@ void main() {
   group("validate mainnet dogecoin addresses", () {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
-    MockPriceAPI? priceAPI;
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
@@ -105,7 +104,6 @@ void main() {
     setUp(() {
       client = MockElectrumX();
       cachedClient = MockCachedElectrumX();
-      priceAPI = MockPriceAPI();
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
 
@@ -116,7 +114,6 @@ void main() {
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
-        priceAPI: priceAPI,
         secureStore: secureStore,
       );
     });
@@ -126,11 +123,10 @@ void main() {
           mainnetWallet?.addressType(
               address: "DBYiFr1BRc2zB19p8jxdSu6DvFGTdWvkVF"),
           DerivePathType.bip44);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("invalid base58 address type", () {
@@ -138,11 +134,10 @@ void main() {
           () => mainnetWallet?.addressType(
               address: "mhqpGtwhcR6gFuuRjLTpHo41919QfuGy8Y"),
           throwsArgumentError);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("invalid bech32 address type", () {
@@ -150,11 +145,10 @@ void main() {
           () => mainnetWallet?.addressType(
               address: "tb1qzzlm6mnc8k54mx6akehl8p9ray8r439va5ndyq"),
           throwsArgumentError);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("address has no matching script", () {
@@ -162,40 +156,37 @@ void main() {
           () => mainnetWallet?.addressType(
               address: "mpMk94ETazqonHutyC1v6ajshgtP8oiFKU"),
           throwsArgumentError);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("valid mainnet dogecoin legacy/p2pkh address", () {
       expect(
           mainnetWallet?.validateAddress("DBYiFr1BRc2zB19p8jxdSu6DvFGTdWvkVF"),
           true);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("invalid mainnet dogecoin legacy/p2pkh address", () {
       expect(
           mainnetWallet?.validateAddress("mhqpGtwhcR6gFuuRjLTpHo41919QfuGy8Y"),
           false);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
   });
 
   group("testNetworkConnection", () {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
-    MockPriceAPI? priceAPI;
+
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
@@ -204,7 +195,6 @@ void main() {
     setUp(() {
       client = MockElectrumX();
       cachedClient = MockCachedElectrumX();
-      priceAPI = MockPriceAPI();
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
 
@@ -215,7 +205,6 @@ void main() {
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
-        priceAPI: priceAPI,
         secureStore: secureStore,
       );
     });
@@ -224,36 +213,33 @@ void main() {
       when(client?.ping()).thenAnswer((_) async => false);
       final bool? result = await doge?.testNetworkConnection();
       expect(result, false);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verify(client?.ping()).called(1);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("attempted connection fails due to exception", () async {
       when(client?.ping()).thenThrow(Exception);
       final bool? result = await doge?.testNetworkConnection();
       expect(result, false);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verify(client?.ping()).called(1);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("attempted connection test success", () async {
       when(client?.ping()).thenAnswer((_) async => true);
       final bool? result = await doge?.testNetworkConnection();
       expect(result, true);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verify(client?.ping()).called(1);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
   });
 
@@ -265,7 +251,7 @@ void main() {
 
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
-    MockPriceAPI? priceAPI;
+
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
@@ -274,7 +260,7 @@ void main() {
     setUp(() async {
       client = MockElectrumX();
       cachedClient = MockCachedElectrumX();
-      priceAPI = MockPriceAPI();
+
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
 
@@ -285,18 +271,16 @@ void main() {
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
-        priceAPI: priceAPI,
         secureStore: secureStore,
       );
     });
 
     test("get networkType main", () async {
       expect(doge?.coin, dcoin);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("get networkType test", () async {
@@ -307,53 +291,47 @@ void main() {
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
-        priceAPI: priceAPI,
         secureStore: secureStore,
       );
       expect(doge?.coin, dtestcoin);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("get cryptoCurrency", () async {
       expect(Coin.dogecoin, Coin.dogecoin);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("get coinName", () async {
       expect(Coin.dogecoin, Coin.dogecoin);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("get coinTicker", () async {
       expect(Coin.dogecoin, Coin.dogecoin);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("get and set walletName", () async {
       expect(Coin.dogecoin, Coin.dogecoin);
       doge?.walletName = "new name";
       expect(doge?.walletName, "new name");
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("estimateTxFee", () async {
@@ -365,11 +343,10 @@ void main() {
       expect(doge?.estimateTxFee(vSize: 356, feeRatePerKB: 1699), 712);
       expect(doge?.estimateTxFee(vSize: 356, feeRatePerKB: 2000), 712);
       expect(doge?.estimateTxFee(vSize: 356, feeRatePerKB: 12345), 4628);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("get fees succeeds", () async {
@@ -400,11 +377,10 @@ void main() {
       verify(client?.estimateFee(blocks: 1)).called(1);
       verify(client?.estimateFee(blocks: 5)).called(1);
       verify(client?.estimateFee(blocks: 20)).called(1);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("get fees fails", () async {
@@ -438,11 +414,10 @@ void main() {
       verify(client?.estimateFee(blocks: 1)).called(1);
       verify(client?.estimateFee(blocks: 5)).called(1);
       verify(client?.estimateFee(blocks: 20)).called(1);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("get maxFee", () async {
@@ -470,11 +445,10 @@ void main() {
       verify(client?.estimateFee(blocks: 1)).called(1);
       verify(client?.estimateFee(blocks: 5)).called(1);
       verify(client?.estimateFee(blocks: 20)).called(1);
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
   });
 
@@ -488,7 +462,7 @@ void main() {
 
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
-    MockPriceAPI? priceAPI;
+
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
@@ -517,7 +491,7 @@ void main() {
 
       client = MockElectrumX();
       cachedClient = MockCachedElectrumX();
-      priceAPI = MockPriceAPI();
+
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
 
@@ -528,7 +502,6 @@ void main() {
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
-        priceAPI: priceAPI,
         secureStore: secureStore,
       );
     });
@@ -542,7 +515,7 @@ void main() {
     //   verify(client?.ping()).called(0);
     //   verifyNoMoreInteractions(client);
     //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
+    //
     // });
 
     // test("initializeExisting no network exception", () async {
@@ -553,7 +526,7 @@ void main() {
     //   verify(client?.ping()).called(1);
     //   verifyNoMoreInteractions(client);
     //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
+    //
     // });
 
     // test("initializeNew mainnet throws bad network", () async {
@@ -578,7 +551,7 @@ void main() {
     //     verify(client?.getServerFeatures()).called(1);
     //     verifyNoMoreInteractions(client);
     //     verifyNoMoreInteractions(cachedClient);
-    //     verifyNoMoreInteractions(priceAPI);
+    //
     //   });
     // });
 
@@ -593,7 +566,7 @@ void main() {
             "hash_function": "sha256",
             "services": []
           });
-      await secureStore?.write(
+      await secureStore.write(
           key: "${testWalletId}_mnemonic", value: "some mnemonic");
 
       await Hive.openBox<dynamic>(testWalletId);
@@ -601,12 +574,11 @@ void main() {
 
       expectLater(() => doge?.initializeNew(), throwsA(isA<Exception>()))
           .then((_) {
-        expect(secureStore?.interactions, 2);
+        expect(secureStore.interactions, 2);
         verifyNever(client?.ping()).called(0);
         verify(client?.getServerFeatures()).called(1);
         verifyNoMoreInteractions(client);
         verifyNoMoreInteractions(cachedClient);
-        verifyNoMoreInteractions(priceAPI);
       });
     });
 
@@ -630,7 +602,7 @@ void main() {
     //     client: client!,
     //     cachedClient: cachedClient!,
     //     tracker: tracker!,
-    //     priceAPI: priceAPI,
+    //
     //     secureStore: secureStore,
     //   );
     //
@@ -644,7 +616,7 @@ void main() {
     //     verify(client?.getServerFeatures()).called(1);
     //     verifyNoMoreInteractions(client);
     //     verifyNoMoreInteractions(cachedClient);
-    //     verifyNoMoreInteractions(priceAPI);
+    //
     //   });
     // });
 
@@ -695,7 +667,7 @@ void main() {
     //   verify(client?.getServerFeatures()).called(1);
     //   verifyNoMoreInteractions(client);
     //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
+    //
     // });
 
     // test("initializeWallet new main net wallet", () async {
@@ -749,7 +721,7 @@ void main() {
     //   verify(client?.getServerFeatures()).called(1);
     //   verifyNoMoreInteractions(client);
     //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
+    //
     // });
 
     // // test("initializeWallet existing main net wallet", () async {
@@ -803,7 +775,7 @@ void main() {
     // //     coin: dtestcoin,
     // //     client: client!,
     // //     cachedClient: cachedClient!,
-    // //     priceAPI: priceAPI,
+    // //
     // //     secureStore: secureStore,
     // //   );
     // //
@@ -844,7 +816,7 @@ void main() {
     // //   verify(client?.getServerFeatures()).called(1);
     // //   verifyNoMoreInteractions(client);
     // //   verifyNoMoreInteractions(cachedClient);
-    // //   verifyNoMoreInteractions(priceAPI);
+    // //
     // // });
 
     test("get current receiving addresses", () async {
@@ -855,7 +827,6 @@ void main() {
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
-        priceAPI: priceAPI,
         secureStore: secureStore,
       );
       when(client?.ping()).thenAnswer((_) async => true);
@@ -892,50 +863,6 @@ void main() {
       verify(client?.getServerFeatures()).called(1);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
-    });
-
-    test("get allOwnAddresses", () async {
-      doge = DogecoinWallet(
-        walletId: testWalletId,
-        walletName: testWalletName,
-        coin: dtestcoin,
-        client: client!,
-        cachedClient: cachedClient!,
-        tracker: tracker!,
-        priceAPI: priceAPI,
-        secureStore: secureStore,
-      );
-      when(client?.ping()).thenAnswer((_) async => true);
-      when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
-            "pruning": null,
-            "server_version": "Unit tests",
-            "protocol_min": "1.4",
-            "protocol_max": "1.4.2",
-            "genesis_hash": GENESIS_HASH_TESTNET,
-            "hash_function": "sha256",
-            "services": []
-          });
-
-      await Hive.openBox<dynamic>(testWalletId);
-      await Hive.openBox<dynamic>(DB.boxNamePrefs);
-
-      await doge?.initializeNew();
-      await doge?.initializeExisting();
-      final addresses = await doge?.allOwnAddresses;
-      expect(addresses, isA<List<String>>());
-      expect(addresses?.length, 2);
-
-      for (int i = 0; i < 2; i++) {
-        expect(Address.validateAddress(addresses![i], dogecointestnet), true);
-      }
-
-      verifyNever(client?.ping()).called(0);
-      verify(client?.getServerFeatures()).called(1);
-      verifyNoMoreInteractions(client);
-      verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     // test("get utxos and balances", () async {
@@ -946,7 +873,7 @@ void main() {
     //     client: client!,
     //     cachedClient: cachedClient!,
     //     tracker: tracker!,
-    //     priceAPI: priceAPI,
+    //
     //     secureStore: secureStore,
     //   );
     //   when(client?.ping()).thenAnswer((_) async => true);
@@ -1040,7 +967,7 @@ void main() {
     //
     //   verifyNoMoreInteractions(client);
     //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
+    //
     // });
     //
     // // test("get utxos - multiple batches", () async {
@@ -1050,7 +977,7 @@ void main() {
     // //     coin: dtestcoin,
     // //     client: client!,
     // //     cachedClient: cachedClient!,
-    // //     priceAPI: priceAPI,
+    // //
     // //     secureStore: secureStore,
     // //   );
     // //   when(client?.ping()).thenAnswer((_) async => true);
@@ -1103,7 +1030,7 @@ void main() {
     // //
     // //   verifyNoMoreInteractions(client);
     // //   verifyNoMoreInteractions(cachedClient);
-    // //   verifyNoMoreInteractions(priceAPI);
+    // //
     // // });
     //
     test("get utxos fails", () async {
@@ -1114,7 +1041,6 @@ void main() {
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
-        priceAPI: priceAPI,
         secureStore: secureStore,
       );
       when(client?.ping()).thenAnswer((_) async => true);
@@ -1153,7 +1079,6 @@ void main() {
 
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("chain height fetch, update, and get", () async {
@@ -1164,7 +1089,6 @@ void main() {
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
-        priceAPI: priceAPI,
         secureStore: secureStore,
       );
       when(client?.ping()).thenAnswer((_) async => true);
@@ -1211,7 +1135,6 @@ void main() {
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("getTxCount succeeds", () async {
@@ -1241,11 +1164,10 @@ void main() {
                   "64953f7db441a21172de206bf70b920c8c718ed4f03df9a85073c0400be0053c"))
           .called(1);
 
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("getTxCount fails", () async {
@@ -1267,11 +1189,10 @@ void main() {
                   "64953f7db441a21172de206bf70b920c8c718ed4f03df9a85073c0400be0053c"))
           .called(1);
 
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("_checkCurrentReceivingAddressesForTransactions succeeds", () async {
@@ -1318,13 +1239,12 @@ void main() {
       verify(client?.getServerFeatures()).called(1);
       verifyNever(client?.ping()).called(0);
 
-      expect(secureStore?.interactions, 11);
-      expect(secureStore?.reads, 7);
-      expect(secureStore?.writes, 4);
-      expect(secureStore?.deletes, 0);
+      expect(secureStore.interactions, 11);
+      expect(secureStore.reads, 7);
+      expect(secureStore.writes, 4);
+      expect(secureStore.deletes, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("_checkCurrentReceivingAddressesForTransactions fails", () async {
@@ -1360,13 +1280,12 @@ void main() {
       verify(client?.getServerFeatures()).called(1);
       verifyNever(client?.ping()).called(0);
 
-      expect(secureStore?.interactions, 8);
-      expect(secureStore?.reads, 5);
-      expect(secureStore?.writes, 3);
-      expect(secureStore?.deletes, 0);
+      expect(secureStore.interactions, 8);
+      expect(secureStore.reads, 5);
+      expect(secureStore.writes, 3);
+      expect(secureStore.deletes, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("_checkCurrentChangeAddressesForTransactions succeeds", () async {
@@ -1413,14 +1332,13 @@ void main() {
       verify(client?.getServerFeatures()).called(1);
       verifyNever(client?.ping()).called(0);
 
-      expect(secureStore?.interactions, 11);
-      expect(secureStore?.reads, 7);
-      expect(secureStore?.writes, 4);
-      expect(secureStore?.deletes, 0);
+      expect(secureStore.interactions, 11);
+      expect(secureStore.reads, 7);
+      expect(secureStore.writes, 4);
+      expect(secureStore.deletes, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("_checkCurrentChangeAddressesForTransactions fails", () async {
@@ -1456,13 +1374,12 @@ void main() {
       verify(client?.getServerFeatures()).called(1);
       verifyNever(client?.ping()).called(0);
 
-      expect(secureStore?.interactions, 8);
-      expect(secureStore?.reads, 5);
-      expect(secureStore?.writes, 3);
-      expect(secureStore?.deletes, 0);
+      expect(secureStore.interactions, 8);
+      expect(secureStore.reads, 5);
+      expect(secureStore.writes, 3);
+      expect(secureStore.deletes, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     // test("getAllTxsToWatch", () async {
@@ -1490,7 +1407,7 @@ void main() {
     //   expect(secureStore?.interactions, 0);
     //   verifyNoMoreInteractions(client);
     //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
+    //
     // });
     //
     // test("refreshIfThereIsNewData true A", () async {
@@ -1509,7 +1426,7 @@ void main() {
     //     coin: dtestcoin,
     //     client: client!,
     //     cachedClient: cachedClient!,
-    //     priceAPI: priceAPI,
+    //
     //     secureStore: secureStore,
     //   );
     //   final wallet = await Hive.openBox(testWalletId);
@@ -1538,7 +1455,7 @@ void main() {
     //   expect(secureStore?.interactions, 0);
     //   verifyNoMoreInteractions(client);
     //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
+    //
     // });
     //
     // test("refreshIfThereIsNewData true B", () async {
@@ -1638,7 +1555,7 @@ void main() {
     //     coin: dtestcoin,
     //     client: client!,
     //     cachedClient: cachedClient!,
-    //     priceAPI: priceAPI,
+    //
     //     secureStore: secureStore,
     //   );
     //   final wallet = await Hive.openBox(testWalletId);
@@ -1670,7 +1587,7 @@ void main() {
     //   expect(secureStore?.interactions, 0);
     //   verifyNoMoreInteractions(client);
     //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
+    //
     // });
 
     // test("refreshIfThereIsNewData false A", () async {
@@ -1771,7 +1688,7 @@ void main() {
     //     client: client!,
     //     cachedClient: cachedClient!,
     //     tracker: tracker!,
-    //     priceAPI: priceAPI,
+    //
     //     secureStore: secureStore,
     //   );
     //   final wallet = await Hive.openBox(testWalletId);
@@ -1804,7 +1721,7 @@ void main() {
     //   expect(secureStore?.interactions, 0);
     //   verifyNoMoreInteractions(client);
     //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
+    //
     // });
 
     // // test("refreshIfThereIsNewData false B", () async {
@@ -1823,7 +1740,7 @@ void main() {
     // //     client: client!,
     // //     cachedClient: cachedClient!,
     // //     tracker: tracker!,
-    // //     priceAPI: priceAPI,
+    // //
     // //     secureStore: secureStore,
     // //   );
     // //   final wallet = await Hive.openBox(testWalletId);
@@ -1848,7 +1765,7 @@ void main() {
     // //   expect(secureStore?.interactions, 0);
     // //   verifyNoMoreInteractions(client);
     // //   verifyNoMoreInteractions(cachedClient);
-    // //   verifyNoMoreInteractions(priceAPI);
+    // //
     // // });
 
     test("get mnemonic list", () async {
@@ -1885,7 +1802,6 @@ void main() {
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test(
@@ -1916,10 +1832,9 @@ void main() {
 
       verify(client?.getServerFeatures()).called(1);
 
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test(
@@ -1932,7 +1847,6 @@ void main() {
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
-        priceAPI: priceAPI,
         secureStore: secureStore,
       );
       when(client?.getServerFeatures()).thenAnswer((_) async => {
@@ -1960,10 +1874,9 @@ void main() {
 
       verify(client?.getServerFeatures()).called(1);
 
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test(
@@ -1980,7 +1893,7 @@ void main() {
             "services": []
           });
 
-      await secureStore?.write(
+      await secureStore.write(
           key: "${testWalletId}_mnemonic", value: "some mnemonic words");
 
       bool hasThrown = false;
@@ -1997,10 +1910,9 @@ void main() {
 
       verify(client?.getServerFeatures()).called(1);
 
-      expect(secureStore?.interactions, 2);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("recoverFromMnemonic using non empty seed on mainnet succeeds",
@@ -2060,15 +1972,14 @@ void main() {
         ]
       })).called(1);
 
-      expect(secureStore?.interactions, 6);
-      expect(secureStore?.writes, 3);
-      expect(secureStore?.reads, 3);
-      expect(secureStore?.deletes, 0);
+      expect(secureStore.interactions, 6);
+      expect(secureStore.writes, 3);
+      expect(secureStore.reads, 3);
+      expect(secureStore.deletes, 0);
 
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("fullRescan succeeds", () async {
@@ -2117,10 +2028,10 @@ void main() {
       final preReceivingIndexP2PKH = await wallet.get('receivingIndexP2PKH');
       final preChangeIndexP2PKH = await wallet.get('changeIndexP2PKH');
       final preUtxoData = await wallet.get('latest_utxo_model');
-      final preReceiveDerivationsStringP2PKH = await secureStore?.read(
+      final preReceiveDerivationsStringP2PKH = await secureStore.read(
           key: "${testWalletId}_receiveDerivationsP2PKH");
-      final preChangeDerivationsStringP2PKH = await secureStore?.read(
-          key: "${testWalletId}_changeDerivationsP2PKH");
+      final preChangeDerivationsStringP2PKH =
+          await secureStore.read(key: "${testWalletId}_changeDerivationsP2PKH");
 
       // destroy the data that the rescan will fix
       await wallet.put(
@@ -2130,9 +2041,9 @@ void main() {
 
       await wallet.put('receivingIndexP2PKH', 123);
       await wallet.put('changeIndexP2PKH', 123);
-      await secureStore?.write(
+      await secureStore.write(
           key: "${testWalletId}_receiveDerivationsP2PKH", value: "{}");
-      await secureStore?.write(
+      await secureStore.write(
           key: "${testWalletId}_changeDerivationsP2PKH", value: "{}");
 
       bool hasThrown = false;
@@ -2150,10 +2061,10 @@ void main() {
       final receivingIndexP2PKH = await wallet.get('receivingIndexP2PKH');
       final changeIndexP2PKH = await wallet.get('changeIndexP2PKH');
       final utxoData = await wallet.get('latest_utxo_model');
-      final receiveDerivationsStringP2PKH = await secureStore?.read(
+      final receiveDerivationsStringP2PKH = await secureStore.read(
           key: "${testWalletId}_receiveDerivationsP2PKH");
-      final changeDerivationsStringP2PKH = await secureStore?.read(
-          key: "${testWalletId}_changeDerivationsP2PKH");
+      final changeDerivationsStringP2PKH =
+          await secureStore.read(key: "${testWalletId}_changeDerivationsP2PKH");
 
       expect(preReceivingAddressesP2PKH, receivingAddressesP2PKH);
       expect(preChangeAddressesP2PKH, changeAddressesP2PKH);
@@ -2179,14 +2090,13 @@ void main() {
       verify(cachedClient?.clearSharedTransactionCache(coin: Coin.dogecoin))
           .called(1);
 
-      expect(secureStore?.writes, 9);
-      expect(secureStore?.reads, 12);
-      expect(secureStore?.deletes, 2);
+      expect(secureStore.writes, 9);
+      expect(secureStore.reads, 12);
+      expect(secureStore.deletes, 2);
 
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("fullRescan fails", () async {
@@ -2237,10 +2147,10 @@ void main() {
       final preReceivingIndexP2PKH = await wallet.get('receivingIndexP2PKH');
       final preChangeIndexP2PKH = await wallet.get('changeIndexP2PKH');
       final preUtxoData = await wallet.get('latest_utxo_model');
-      final preReceiveDerivationsStringP2PKH = await secureStore?.read(
+      final preReceiveDerivationsStringP2PKH = await secureStore.read(
           key: "${testWalletId}_receiveDerivationsP2PKH");
-      final preChangeDerivationsStringP2PKH = await secureStore?.read(
-          key: "${testWalletId}_changeDerivationsP2PKH");
+      final preChangeDerivationsStringP2PKH =
+          await secureStore.read(key: "${testWalletId}_changeDerivationsP2PKH");
 
       when(client?.getBatchHistory(args: historyBatchArgs0))
           .thenThrow(Exception("fake exception"));
@@ -2261,10 +2171,10 @@ void main() {
       final receivingIndexP2PKH = await wallet.get('receivingIndexP2PKH');
       final changeIndexP2PKH = await wallet.get('changeIndexP2PKH');
       final utxoData = await wallet.get('latest_utxo_model');
-      final receiveDerivationsStringP2PKH = await secureStore?.read(
+      final receiveDerivationsStringP2PKH = await secureStore.read(
           key: "${testWalletId}_receiveDerivationsP2PKH");
-      final changeDerivationsStringP2PKH = await secureStore?.read(
-          key: "${testWalletId}_changeDerivationsP2PKH");
+      final changeDerivationsStringP2PKH =
+          await secureStore.read(key: "${testWalletId}_changeDerivationsP2PKH");
 
       expect(preReceivingAddressesP2PKH, receivingAddressesP2PKH);
       expect(preChangeAddressesP2PKH, changeAddressesP2PKH);
@@ -2290,14 +2200,13 @@ void main() {
       verify(cachedClient?.clearSharedTransactionCache(coin: Coin.dogecoin))
           .called(1);
 
-      expect(secureStore?.writes, 7);
-      expect(secureStore?.reads, 12);
-      expect(secureStore?.deletes, 4);
+      expect(secureStore.writes, 7);
+      expect(secureStore.reads, 12);
+      expect(secureStore.deletes, 4);
 
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     // // test("fetchBuildTxData succeeds", () async {
@@ -2474,7 +2383,7 @@ void main() {
     // //
     // //   verifyNoMoreInteractions(client);
     // //   verifyNoMoreInteractions(cachedClient);
-    // //   verifyNoMoreInteractions(priceAPI);
+    // //
     // // });
 
     // test("fetchBuildTxData throws", () async {
@@ -2555,7 +2464,7 @@ void main() {
     //
     //   verifyNoMoreInteractions(client);
     //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
+    //
     // });
 
     // test("build transaction succeeds", () async {
@@ -2648,7 +2557,7 @@ void main() {
     //
     //   verifyNoMoreInteractions(client);
     //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
+    //
     // });
 
     test("confirmSend error 1", () async {
@@ -2661,11 +2570,10 @@ void main() {
 
       expect(didThrow, true);
 
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("confirmSend error 2", () async {
@@ -2678,11 +2586,10 @@ void main() {
 
       expect(didThrow, true);
 
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("confirmSend some other error code", () async {
@@ -2695,11 +2602,10 @@ void main() {
 
       expect(didThrow, true);
 
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("confirmSend no hex", () async {
@@ -2712,11 +2618,10 @@ void main() {
 
       expect(didThrow, true);
 
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("confirmSend fails due to vSize being greater than fee", () async {
@@ -2734,11 +2639,10 @@ void main() {
               rawTx: "a string", requestID: anyNamed("requestID")))
           .called(1);
 
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("confirmSend fails when broadcast transactions throws", () async {
@@ -2760,11 +2664,10 @@ void main() {
               rawTx: "a string", requestID: anyNamed("requestID")))
           .called(1);
 
-      expect(secureStore?.interactions, 0);
+      expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("refresh wallet mutex locked", () async {
@@ -2821,15 +2724,14 @@ void main() {
         ]
       })).called(1);
 
-      expect(secureStore?.interactions, 6);
-      expect(secureStore?.writes, 3);
-      expect(secureStore?.reads, 3);
-      expect(secureStore?.deletes, 0);
+      expect(secureStore.interactions, 6);
+      expect(secureStore.writes, 3);
+      expect(secureStore.reads, 3);
+      expect(secureStore.deletes, 0);
 
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("refresh wallet throws", () async {
@@ -2889,15 +2791,14 @@ void main() {
       verify(client?.getBlockHeadTip()).called(1);
       verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(1);
 
-      expect(secureStore?.interactions, 6);
-      expect(secureStore?.writes, 3);
-      expect(secureStore?.reads, 3);
-      expect(secureStore?.deletes, 0);
+      expect(secureStore.interactions, 6);
+      expect(secureStore.writes, 3);
+      expect(secureStore.reads, 3);
+      expect(secureStore.deletes, 0);
 
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     // test("refresh wallet normally", () async {
@@ -2958,7 +2859,7 @@ void main() {
     //
     //   verifyNoMoreInteractions(client);
     //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
+    //
     // });
   });
 

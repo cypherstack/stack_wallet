@@ -75,7 +75,8 @@ void main() {
         usedSerials,
         firoNetwork,
       );
-      final result = await staticProcessRestore(txData, message);
+      const currentHeight = 100000000000;
+      final result = await staticProcessRestore(txData, message, currentHeight);
 
       expect(result, isA<Map<String, dynamic>>());
       expect(result["mintIndex"], 8);
@@ -371,7 +372,6 @@ void main() {
         client: MockElectrumX(),
         cachedClient: MockCachedElectrumX(),
         secureStore: FakeSecureStorage(),
-        priceAPI: MockPriceAPI(),
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -386,7 +386,6 @@ void main() {
         client: MockElectrumX(),
         cachedClient: MockCachedElectrumX(),
         secureStore: FakeSecureStorage(),
-        priceAPI: MockPriceAPI(),
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -401,7 +400,6 @@ void main() {
         client: MockElectrumX(),
         cachedClient: MockCachedElectrumX(),
         secureStore: FakeSecureStorage(),
-        priceAPI: MockPriceAPI(),
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -416,7 +414,6 @@ void main() {
         client: MockElectrumX(),
         cachedClient: MockCachedElectrumX(),
         secureStore: FakeSecureStorage(),
-        priceAPI: MockPriceAPI(),
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -431,7 +428,6 @@ void main() {
         client: MockElectrumX(),
         cachedClient: MockCachedElectrumX(),
         secureStore: FakeSecureStorage(),
-        priceAPI: MockPriceAPI(),
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -446,7 +442,6 @@ void main() {
         client: MockElectrumX(),
         cachedClient: MockCachedElectrumX(),
         secureStore: FakeSecureStorage(),
-        priceAPI: MockPriceAPI(),
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -466,7 +461,6 @@ void main() {
         client: client,
         cachedClient: MockCachedElectrumX(),
         secureStore: FakeSecureStorage(),
-        priceAPI: MockPriceAPI(),
         tracker: MockTransactionNotificationTracker(),
       );
       final bool result = await firo.testNetworkConnection();
@@ -485,7 +479,6 @@ void main() {
         client: client,
         cachedClient: MockCachedElectrumX(),
         secureStore: FakeSecureStorage(),
-        priceAPI: MockPriceAPI(),
         tracker: MockTransactionNotificationTracker(),
       );
       final bool result = await firo.testNetworkConnection();
@@ -504,7 +497,6 @@ void main() {
         client: client,
         cachedClient: MockCachedElectrumX(),
         secureStore: FakeSecureStorage(),
-        priceAPI: MockPriceAPI(),
         tracker: MockTransactionNotificationTracker(),
       );
       final bool result = await firo.testNetworkConnection();
@@ -558,7 +550,7 @@ void main() {
     //     client: client,coin: Coin.firo,
     //     cachedClient: cachedClient,
     //     secureStore: secureStore,
-    //     priceAPI: priceAPI,
+    //
     //     tracker: MockTransactionNotificationTracker(),
     //   );
     //
@@ -580,7 +572,7 @@ void main() {
     //     coin: Coin.firo,
     //     cachedClient: cachedClient,
     //     secureStore: secureStore,
-    //     priceAPI: priceAPI,
+    //
     //     tracker: MockTransactionNotificationTracker(),
     //   );
     //
@@ -613,7 +605,7 @@ void main() {
     //     client: client,
     //     cachedClient: cachedClient,
     //     secureStore: secureStore,
-    //     priceAPI: priceAPI,
+    //
     //     tracker: MockTransactionNotificationTracker(),
     //   );
     //
@@ -645,7 +637,7 @@ void main() {
     //     client: client,
     //     cachedClient: cachedClient,
     //     secureStore: secureStore,
-    //     priceAPI: priceAPI,
+    //
     //     tracker: MockTransactionNotificationTracker(),
     //   );
     //
@@ -691,7 +683,7 @@ void main() {
     //     client: client,
     //     cachedClient: cachedClient,
     //     secureStore: secureStore,
-    //     priceAPI: priceAPI,
+    //
     //     tracker: MockTransactionNotificationTracker(),
     //   );
     //
@@ -762,7 +754,7 @@ void main() {
     //     client: client,
     //     cachedClient: cachedClient,
     //     secureStore: secureStore,
-    //     priceAPI: priceAPI,
+    //
     //     tracker: MockTransactionNotificationTracker(),
     //   );
     //
@@ -868,7 +860,7 @@ void main() {
     //     client: client,
     //     cachedClient: cachedClient,
     //     secureStore: secureStore,
-    //     priceAPI: priceAPI,
+    //
     //     tracker: MockTransactionNotificationTracker(),
     //   );
     //
@@ -954,7 +946,7 @@ void main() {
     //     client: client,
     //     cachedClient: cachedClient,
     //     secureStore: secureStore,
-    //     priceAPI: priceAPI,
+    //
     //     tracker: tracker,
     //   );
     //
@@ -1051,14 +1043,13 @@ void main() {
           client: client,
           cachedClient: cachedClient,
           secureStore: secureStore,
-          priceAPI: priceAPI,
           tracker: tracker,
         );
 
         // firo.unconfirmedTxs = {};
 
         final wallet =
-            await Hive.openBox(testWalletId + "refreshIfThereIsNewData");
+            await Hive.openBox("${testWalletId}refreshIfThereIsNewData");
         await wallet.put('receivingAddresses', [
           "a8VV7vMzJdTQj1eLEJNskhLEBUxfNWhpAg",
           "aPjLWDTPQsoPHUTxKBNRzoebDALj3eTcfh",
@@ -1119,7 +1110,7 @@ void main() {
       //       client: client,
       //       cachedClient: cachedClient,
       //       secureStore: secureStore,
-      //       priceAPI: priceAPI,
+      //
       //       tracker: tracker,
       //     );
       //
@@ -1150,7 +1141,6 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
-        priceAPI: priceAPI,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -1174,7 +1164,6 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
-        priceAPI: priceAPI,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -1248,7 +1237,6 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
-        priceAPI: priceAPI,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -1379,7 +1367,6 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
-        priceAPI: priceAPI,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -1553,13 +1540,12 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
-        priceAPI: priceAPI,
         tracker: MockTransactionNotificationTracker(),
       );
 
       // pre grab derivations in order to set up mock calls needed later on
       await firo.fillAddresses(TEST_MNEMONIC);
-      final wallet = await Hive.openBox(testWalletId + "fullRescan");
+      final wallet = await Hive.openBox("${testWalletId}fullRescan");
 
       final rcv = await secureStore.read(
           key: "${testWalletId}fullRescan_receiveDerivations");
@@ -1761,7 +1747,6 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
-        priceAPI: priceAPI,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -1919,7 +1904,6 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
-        priceAPI: priceAPI,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -2179,7 +2163,6 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
-        priceAPI: priceAPI,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -2212,12 +2195,11 @@ void main() {
 
       final firo = FiroWallet(
         walletName: testWalletName,
-        walletId: testWalletId + "recoverFromMnemonic fails mainnet",
+        walletId: "${testWalletId}recoverFromMnemonic fails mainnet",
         coin: Coin.firo,
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
-        priceAPI: priceAPI,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -2230,98 +2212,6 @@ void main() {
           throwsA(isA<Exception>()));
     });
 
-    test("incrementAddressIndexForChain receiving", () async {
-      final firo = FiroWallet(
-        walletId: "${testWalletId}incrementAddressIndexForChain receiving",
-        walletName: testWalletName,
-        coin: Coin.firo,
-        client: MockElectrumX(),
-        cachedClient: MockCachedElectrumX(),
-        secureStore: FakeSecureStorage(),
-        priceAPI: MockPriceAPI(),
-        tracker: MockTransactionNotificationTracker(),
-      );
-
-      final wallet = await Hive.openBox<dynamic>(
-          "${testWalletId}incrementAddressIndexForChain receiving");
-      await wallet.put("receivingIndex", 1);
-
-      await expectLater(() async => await firo.incrementAddressIndexForChain(0),
-          returnsNormally);
-
-      expect(wallet.get("receivingIndex"), 2);
-    });
-
-    test("incrementAddressIndexForChain change", () async {
-      final firo = FiroWallet(
-        walletId: "${testWalletId}incrementAddressIndexForChain change",
-        walletName: testWalletName,
-        coin: Coin.firo,
-        client: MockElectrumX(),
-        cachedClient: MockCachedElectrumX(),
-        secureStore: FakeSecureStorage(),
-        priceAPI: MockPriceAPI(),
-        tracker: MockTransactionNotificationTracker(),
-      );
-
-      final wallet = await Hive.openBox(
-          "${testWalletId}incrementAddressIndexForChain change");
-      await wallet.put("changeIndex", 1);
-
-      await expectLater(() async => await firo.incrementAddressIndexForChain(1),
-          returnsNormally);
-
-      expect(wallet.get("changeIndex"), 2);
-    });
-
-    test("addToAddressesArrayForChain receiving", () async {
-      final firo = FiroWallet(
-        walletId: "${testWalletId}addToAddressesArrayForChain receiving",
-        walletName: testWalletName,
-        coin: Coin.firo,
-        client: MockElectrumX(),
-        cachedClient: MockCachedElectrumX(),
-        secureStore: FakeSecureStorage(),
-        priceAPI: MockPriceAPI(),
-        tracker: MockTransactionNotificationTracker(),
-      );
-
-      final wallet = await Hive.openBox<dynamic>(
-          "${testWalletId}addToAddressesArrayForChain receiving");
-
-      await expectLater(
-          () async =>
-              await firo.addToAddressesArrayForChain("Some Address String", 0),
-          returnsNormally);
-
-      expect(wallet.get("receivingAddresses"), ["Some Address String"]);
-    });
-
-    test("addToAddressesArrayForChain change", () async {
-      final firo = FiroWallet(
-        walletId: "${testWalletId}addToAddressesArrayForChain change",
-        walletName: testWalletName,
-        coin: Coin.firo,
-        client: MockElectrumX(),
-        cachedClient: MockCachedElectrumX(),
-        secureStore: FakeSecureStorage(),
-        priceAPI: MockPriceAPI(),
-        tracker: MockTransactionNotificationTracker(),
-      );
-
-      final wallet = await Hive.openBox<dynamic>(
-          "${testWalletId}addToAddressesArrayForChain change");
-      await wallet.put("changeAddresses", ["some address A"]);
-
-      await expectLater(
-          () async =>
-              await firo.addToAddressesArrayForChain("Some Address B", 1),
-          returnsNormally);
-
-      expect(
-          wallet.get("changeAddresses"), ["some address A", "Some Address B"]);
-    });
-
     test("checkReceivingAddressForTransactions fails", () async {
       final firo = FiroWallet(
         walletId: "${testWalletId}checkReceivingAddressForTransactions fails",
@@ -2330,7 +2220,6 @@ void main() {
         client: MockElectrumX(),
         cachedClient: MockCachedElectrumX(),
         secureStore: FakeSecureStorage(),
-        priceAPI: MockPriceAPI(),
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -2358,7 +2247,6 @@ void main() {
         client: client,
         cachedClient: MockCachedElectrumX(),
         secureStore: secureStore,
-        priceAPI: MockPriceAPI(),
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -2385,13 +2273,12 @@ void main() {
       when(client.getLatestCoinId()).thenAnswer((_) async => 1);
 
       final firo = FiroWallet(
-        walletId: testWalletId + "exit",
+        walletId: "${testWalletId}exit",
         walletName: testWalletName,
         coin: Coin.firo,
         client: client,
         cachedClient: MockCachedElectrumX(),
         secureStore: FakeSecureStorage(),
-        priceAPI: MockPriceAPI(),
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -2412,7 +2299,7 @@ void main() {
     //     client: client,
     //     cachedClient: MockCachedElectrumX(),
     //     secureStore: FakeSecureStorage(),
-    //     priceAPI: MockPriceAPI(),
+    //
     //     tracker: MockTransactionNotificationTracker(),
     //   );
     //
@@ -2435,13 +2322,12 @@ void main() {
               (_) async => GetUsedSerialsSampleData.serials['serials'] as List);
 
       final firo = FiroWallet(
-        walletId: testWalletId + "getUsedCoinSerials",
+        walletId: "${testWalletId}getUsedCoinSerials",
         walletName: testWalletName,
         coin: Coin.firo,
         client: client,
         cachedClient: cachedClient,
         secureStore: FakeSecureStorage(),
-        priceAPI: MockPriceAPI(),
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -2559,7 +2445,6 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
-        priceAPI: priceAPI,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -2669,7 +2554,7 @@ void main() {
     //     client: client,
     //     cachedClient: cachedClient,
     //     secureStore: secureStore,
-    //     priceAPI: priceAPI,
+    //
     //     tracker: MockTransactionNotificationTracker(),
     //   );
     //
@@ -2758,7 +2643,7 @@ void main() {
     //   expect(result.length, 64);
     // }, timeout: const Timeout(Duration(minutes: 3)));
 
-    test("send fails due to insufficient balance", () async {
+    test("prepareSend fails due to insufficient balance", () async {
       TestWidgetsFlutterBinding.ensureInitialized();
       const MethodChannel('uk.spiralarm.flutter/devicelocale')
           .setMockMethodCallHandler((methodCall) async => 'en_US');
@@ -2851,7 +2736,6 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
-        priceAPI: priceAPI,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -2933,8 +2817,9 @@ void main() {
           .put('changeAddresses', ["a5V5r6We6mNZzWJwGwEeRML3mEYLjvK39w"]);
 
       expect(
-          () async => await firo.send(
-              toAddress: "aHZJsucDrhr4Uzzx6XXrKnaTgLxsEAokvV", amount: 100),
+          () async => await firo.prepareSend(
+              address: "aHZJsucDrhr4Uzzx6XXrKnaTgLxsEAokvV",
+              satoshiAmount: 100),
           throwsA(isA<Exception>()));
     }, timeout: const Timeout(Duration(minutes: 3)));
 
@@ -3021,7 +2906,6 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
-        priceAPI: priceAPI,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -3173,7 +3057,6 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: FakeSecureStorage(),
-        priceAPI: priceAPI,
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -3192,211 +3075,9 @@ void main() {
         "a5V5r6We6mNZzWJwGwEeRML3mEYLjvK39w",
       ]);
 
-      expect(await firo.pendingBalance, Decimal.zero);
-      expect(await firo.availableBalance, Decimal.parse("0.00021594"));
-      expect(await firo.totalBalance, Decimal.parse("0.00021594"));
-    });
-
-    test("wallet balance minus maxfee - wallet balance is zero", () async {
-      TestWidgetsFlutterBinding.ensureInitialized();
-      const MethodChannel('uk.spiralarm.flutter/devicelocale')
-          .setMockMethodCallHandler((methodCall) async => 'en_US');
-      final client = MockElectrumX();
-      final cachedClient = MockCachedElectrumX();
-      final priceAPI = MockPriceAPI();
-      final secureStore = FakeSecureStorage();
-
-      when(client.getBatchHistory(args: batchHistoryRequest0))
-          .thenAnswer((realInvocation) async => batchHistoryResponse0);
-
-      when(client.getBatchUTXOs(args: batchUtxoRequest))
-          .thenAnswer((realInvocation) async => {});
-
-      // mock price calls
-      when(priceAPI.getPricesAnd24hChange(baseCurrency: "USD")).thenAnswer(
-          (_) async => {Coin.firo: Tuple2(Decimal.fromInt(10), 1.0)});
-
-      // mock history calls
-      when(client.getHistory(scripthash: SampleGetHistoryData.scripthash0))
-          .thenAnswer((_) async => SampleGetHistoryData.data0);
-      when(client.getHistory(scripthash: SampleGetHistoryData.scripthash1))
-          .thenAnswer((_) async => SampleGetHistoryData.data1);
-      when(client.getHistory(scripthash: SampleGetHistoryData.scripthash2))
-          .thenAnswer((_) async => SampleGetHistoryData.data2);
-      when(client.getHistory(scripthash: SampleGetHistoryData.scripthash3))
-          .thenAnswer((_) async => SampleGetHistoryData.data3);
-
-      // mock transaction calls
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash0,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData0);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash1,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData1);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash2,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData2);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash3,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData3);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash4,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData4);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash5,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData5);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash6,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData6);
-
-      final firo = FiroWallet(
-        walletId: "${testWalletId}wallet balance minus maxfee",
-        walletName: "pendingBalance wallet name",
-        coin: Coin.firo,
-        client: client,
-        cachedClient: cachedClient,
-        secureStore: secureStore,
-        priceAPI: priceAPI,
-        tracker: MockTransactionNotificationTracker(),
-      );
-
-      await secureStore.write(
-          key: "${testWalletId}wallet balance minus maxfee_mnemonic",
-          value: TEST_MNEMONIC);
-
-      final wallet = await Hive.openBox<dynamic>(
-          "${testWalletId}wallet balance minus maxfee");
-      await wallet.put('receivingAddresses', [
-        "a8VV7vMzJdTQj1eLEJNskhLEBUxfNWhpAg",
-        "aPjLWDTPQsoPHUTxKBNRzoebDALj3eTcfh",
-        "aKmXfS7nEZdqWBGRdAXcyMoEoKhZQDPBoq",
-      ]);
-
-      await wallet.put('changeAddresses', [
-        "a5V5r6We6mNZzWJwGwEeRML3mEYLjvK39w",
-      ]);
-
-      expect(await firo.maxFee, 0); // ???
-
-      expect(await firo.balanceMinusMaxFee, Decimal.parse("0"));
-    });
-
-    test("wallet balance minus maxfee - wallet balance is not zero", () async {
-      TestWidgetsFlutterBinding.ensureInitialized();
-      const MethodChannel('uk.spiralarm.flutter/devicelocale')
-          .setMockMethodCallHandler((methodCall) async => 'en_US');
-
-      final client = MockElectrumX();
-      final cachedClient = MockCachedElectrumX();
-      final priceAPI = MockPriceAPI();
-      final secureStore = FakeSecureStorage();
-
-      // mock price calls
-      when(priceAPI.getPricesAnd24hChange(baseCurrency: "USD")).thenAnswer(
-          (_) async => {Coin.firo: Tuple2(Decimal.fromInt(10), 1.0)});
-
-      // mock history calls
-      when(client.getHistory(scripthash: SampleGetHistoryData.scripthash0))
-          .thenAnswer((_) async => SampleGetHistoryData.data0);
-      when(client.getHistory(scripthash: SampleGetHistoryData.scripthash1))
-          .thenAnswer((_) async => SampleGetHistoryData.data1);
-      when(client.getHistory(scripthash: SampleGetHistoryData.scripthash2))
-          .thenAnswer((_) async => SampleGetHistoryData.data2);
-      when(client.getHistory(scripthash: SampleGetHistoryData.scripthash3))
-          .thenAnswer((_) async => SampleGetHistoryData.data3);
-
-      when(client.getBatchHistory(args: batchHistoryRequest0))
-          .thenAnswer((realInvocation) async => batchHistoryResponse0);
-
-      when(client.getBatchUTXOs(args: batchUtxoRequest))
-          .thenAnswer((realInvocation) async => {});
-
-      // mock transaction calls
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash0,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData0);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash1,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData1);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash2,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData2);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash3,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData3);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash4,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData4);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash5,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData5);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash6,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData6);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash7,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData7);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash8,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData8);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash9,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData9);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash10,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData10);
-
-      final firo = FiroWallet(
-        walletId: "${testWalletId}wallet balance minus maxfee",
-        walletName: "pendingBalance wallet name",
-        client: client,
-        coin: Coin.firo,
-        cachedClient: cachedClient,
-        secureStore: secureStore,
-        priceAPI: priceAPI,
-        tracker: MockTransactionNotificationTracker(),
-      );
-
-      await secureStore.write(
-          key: "${testWalletId}wallet balance minus maxfee_mnemonic",
-          value: TEST_MNEMONIC);
-
-      final wallet = await Hive.openBox<dynamic>(
-          "${testWalletId}wallet balance minus maxfee");
-      await wallet.put('_lelantus_coins', SampleLelantus.lelantusCoins);
-      await wallet.put('jindex', [2, 4, 6]);
-      await wallet.put('mintIndex', 8);
-      await wallet.put('receivingAddresses', [
-        "a8VV7vMzJdTQj1eLEJNskhLEBUxfNWhpAg",
-        "aPjLWDTPQsoPHUTxKBNRzoebDALj3eTcfh",
-        "aKmXfS7nEZdqWBGRdAXcyMoEoKhZQDPBoq",
-      ]);
-
-      await wallet.put('changeAddresses', [
-        "a5V5r6We6mNZzWJwGwEeRML3mEYLjvK39w",
-      ]);
-
-      expect(await firo.maxFee, 8914);
-
-      expect(await firo.balanceMinusMaxFee, Decimal.parse("0.0001268"));
+      expect(firo.balance.getPending(), Decimal.zero);
+      expect(firo.balance.getSpendable(), Decimal.parse("0.00021594"));
+      expect(firo.balance.getTotal(), Decimal.parse("0.00021594"));
     });
 
     test("get transactionData", () async {
@@ -3490,11 +3171,10 @@ void main() {
         client: client,
         cachedClient: cachedClient,
         secureStore: secureStore,
-        priceAPI: priceAPI,
         tracker: MockTransactionNotificationTracker(),
       );
 
-      final wallet = await Hive.openBox(testWalletId + "transactionData");
+      final wallet = await Hive.openBox("${testWalletId}transactionData");
       await wallet.put(
           'receivingAddresses', RefreshTestParams.receivingAddresses);
       await wallet.put('changeAddresses', RefreshTestParams.changeAddresses);
@@ -3634,7 +3314,7 @@ void main() {
     //     client: client,
     //     cachedClient: cachedClient,
     //     secureStore: secureStore,
-    //     priceAPI: priceAPI,
+    //
     //     tracker: MockTransactionNotificationTracker(),
     //   );
     //
@@ -3734,7 +3414,6 @@ void main() {
         client: MockElectrumX(),
         cachedClient: MockCachedElectrumX(),
         secureStore: FakeSecureStorage(),
-        priceAPI: MockPriceAPI(),
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -3774,7 +3453,6 @@ void main() {
           client: client,
           cachedClient: MockCachedElectrumX(),
           secureStore: FakeSecureStorage(),
-          priceAPI: MockPriceAPI(),
           tracker: MockTransactionNotificationTracker(),
         );
 
@@ -3796,7 +3474,6 @@ void main() {
           client: client,
           cachedClient: MockCachedElectrumX(),
           secureStore: FakeSecureStorage(),
-          priceAPI: MockPriceAPI(),
           tracker: MockTransactionNotificationTracker(),
         );
 
@@ -3813,7 +3490,6 @@ void main() {
           client: MockElectrumX(),
           cachedClient: MockCachedElectrumX(),
           secureStore: FakeSecureStorage(),
-          priceAPI: MockPriceAPI(),
           tracker: MockTransactionNotificationTracker(),
         );
 
@@ -3828,7 +3504,6 @@ void main() {
           client: MockElectrumX(),
           cachedClient: MockCachedElectrumX(),
           secureStore: FakeSecureStorage(),
-          priceAPI: MockPriceAPI(),
           tracker: MockTransactionNotificationTracker(),
         );
 
@@ -3851,7 +3526,6 @@ void main() {
           client: MockElectrumX(),
           cachedClient: MockCachedElectrumX(),
           secureStore: store,
-          priceAPI: MockPriceAPI(),
           tracker: MockTransactionNotificationTracker(),
         );
         final List<String> result = await firo.mnemonic;
@@ -3880,7 +3554,6 @@ void main() {
           client: MockElectrumX(),
           cachedClient: MockCachedElectrumX(),
           secureStore: store,
-          priceAPI: MockPriceAPI(),
           tracker: MockTransactionNotificationTracker(),
         );
         final mnemonic = await firo.mnemonic;
@@ -3896,7 +3569,6 @@ void main() {
         client: MockElectrumX(),
         cachedClient: MockCachedElectrumX(),
         secureStore: FakeSecureStorage(),
-        priceAPI: MockPriceAPI(),
         tracker: MockTransactionNotificationTracker(),
       );
 
@@ -3914,7 +3586,6 @@ void main() {
         client: MockElectrumX(),
         cachedClient: MockCachedElectrumX(),
         secureStore: FakeSecureStorage(),
-        priceAPI: MockPriceAPI(),
         tracker: MockTransactionNotificationTracker(),
       );
 
