@@ -11,6 +11,7 @@ import 'package:crypto/crypto.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
+import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/balance.dart';
@@ -667,8 +668,6 @@ class NamecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
         p2wpkhChangeAddressArray.add(address);
       }
 
-      await isarInit();
-
       await db.putAddresses([
         ...p2wpkhReceiveAddressArray,
         ...p2wpkhChangeAddressArray,
@@ -1171,7 +1170,6 @@ class NamecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
     await _prefs.init();
-    await isarInit();
   }
 
   // hack to add tx to txData before refresh completes
@@ -1256,6 +1254,7 @@ class NamecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     required CachedElectrumX cachedClient,
     required TransactionNotificationTracker tracker,
     required SecureStorageInterface secureStore,
+    MainDB? mockableOverride,
   }) {
     txTracker = tracker;
     _walletId = walletId;
@@ -1265,6 +1264,7 @@ class NamecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     _cachedElectrumXClient = cachedClient;
     _secureStore = secureStore;
     initCache(walletId, coin);
+    isarInit(mockableOverride: mockableOverride);
   }
 
   @override
@@ -1449,8 +1449,6 @@ class NamecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       _generateAddressForChain(0, 0, DerivePathType.bip49),
       _generateAddressForChain(1, 0, DerivePathType.bip49),
     ]);
-
-    await isarInit();
 
     await db.putAddresses(initialAddresses);
 

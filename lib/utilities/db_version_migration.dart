@@ -403,7 +403,7 @@ class DbVersionMigrator with WalletDB {
           _parseTransactions(txnsLelantus, walletId, true, newAddresses));
 
       // store newly parsed data in isar
-      await isarInit();
+      isarInit();
       await db.isar.writeTxn(() async {
         await db.isar.addresses.putAll(newAddresses);
       });

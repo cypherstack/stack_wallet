@@ -4,10 +4,11 @@ import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:tuple/tuple.dart';
 
 mixin WalletDB {
-  MainDB get db => MainDB.instance;
+  MainDB? _db;
+  MainDB get db => _db!;
 
-  Future<void> isarInit() async {
-    await db.isarInit();
+  void isarInit({MainDB? mockableOverride}) async {
+    _db = mockableOverride ?? MainDB.instance;
   }
 
   Future<void> addNewTransactionData(

@@ -1891,14 +1891,14 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
         returnValueForMissingStub: _i18.Future<void>.value(),
       ) as _i18.Future<void>);
   @override
-  _i18.Future<void> isarInit() => (super.noSuchMethod(
+  void isarInit({_i13.MainDB? mockableOverride}) => super.noSuchMethod(
         Invocation.method(
           #isarInit,
           [],
+          {#mockableOverride: mockableOverride},
         ),
-        returnValue: _i18.Future<void>.value(),
-        returnValueForMissingStub: _i18.Future<void>.value(),
-      ) as _i18.Future<void>);
+        returnValueForMissingStub: null,
+      );
   @override
   _i18.Future<void> addNewTransactionData(
     List<

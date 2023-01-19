@@ -41,6 +41,8 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../db/main_db.dart';
+
 const int MINIMUM_CONFIRMATIONS = 1;
 const int DUST_LIMIT = 1000000;
 
@@ -518,8 +520,6 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
             await _generateAddressForChain(1, 0, DerivePathType.bip44);
         p2pkhChangeAddressArray.add(address);
       }
-
-      await isarInit();
 
       await db.putAddresses([
         ...p2pkhReceiveAddressArray,
@@ -999,7 +999,6 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     }
 
     await _prefs.init();
-    await isarInit();
   }
 
   // hack to add tx to txData before refresh completes
@@ -1084,6 +1083,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     required CachedElectrumX cachedClient,
     required TransactionNotificationTracker tracker,
     required SecureStorageInterface secureStore,
+    MainDB? mockableOverride,
   }) {
     txTracker = tracker;
     _walletId = walletId;
@@ -1093,6 +1093,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     _cachedElectrumXClient = cachedClient;
     _secureStore = secureStore;
     initCache(walletId, coin);
+    isarInit(mockableOverride: mockableOverride);
   }
 
   @override
@@ -1233,8 +1234,6 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
         await _generateAddressForChain(0, 0, DerivePathType.bip44);
     final initialChangeAddressP2PKH =
         await _generateAddressForChain(1, 0, DerivePathType.bip44);
-
-    await isarInit();
 
     await db.putAddresses([
       initialReceivingAddressP2PKH,

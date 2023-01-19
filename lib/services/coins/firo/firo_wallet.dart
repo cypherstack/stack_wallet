@@ -11,6 +11,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 import 'package:lelantus/lelantus.dart';
+import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/balance.dart';
@@ -1213,6 +1214,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
     required CachedElectrumX cachedClient,
     required TransactionNotificationTracker tracker,
     required SecureStorageInterface secureStore,
+    MainDB? mockableOverride,
   }) {
     txTracker = tracker;
     _walletId = walletId;
@@ -1223,6 +1225,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
     _secureStore = secureStore;
     initCache(walletId, coin);
     initFiroHive(walletId);
+    isarInit(mockableOverride: mockableOverride);
 
     Logging.instance.log("$walletName isolates length: ${isolates.length}",
         level: LogLevel.Info);
@@ -1828,7 +1831,6 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
     await _prefs.init();
-    await isarInit();
   }
 
   Future<bool> refreshIfThereIsNewData() async {
@@ -2098,8 +2100,6 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
     // Generate and add addresses to relevant arrays
     final initialReceivingAddress = await _generateAddressForChain(0, 0);
     final initialChangeAddress = await _generateAddressForChain(1, 0);
-
-    await isarInit();
 
     await db.putAddresses([
       initialReceivingAddress,
@@ -4292,8 +4292,6 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
     Logging.instance
         .log("PROCESSORS ${Platform.numberOfProcessors}", level: LogLevel.Info);
     try {
-      await isarInit();
-
       final latestSetId = await getLatestSetId();
       final setDataMap = getSetDataMap(latestSetId);
       final usedSerialNumbers = getUsedCoinSerials();

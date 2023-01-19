@@ -2,7 +2,6 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_test/hive_test.dart';
-import 'package:isar/isar.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
@@ -21,8 +20,6 @@ import 'bitcoincash_wallet_test_parameters.dart';
 
 @GenerateMocks([ElectrumX, CachedElectrumX, TransactionNotificationTracker])
 void main() async {
-  await Isar.initializeIsarCore(download: true);
-
   group("bitcoincash constants", () {
     test("bitcoincash minimum confirmations", () async {
       expect(MINIMUM_CONFIRMATIONS, 1);

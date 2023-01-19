@@ -10,6 +10,7 @@ import 'package:http/http.dart';
 import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
+import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/node_model.dart';
@@ -528,17 +529,20 @@ class EpicCashWallet extends CoinServiceAPI
 
   NodeModel? _epicNode;
 
-  EpicCashWallet(
-      {required String walletId,
-      required String walletName,
-      required Coin coin,
-      required SecureStorageInterface secureStore}) {
+  EpicCashWallet({
+    required String walletId,
+    required String walletName,
+    required Coin coin,
+    required SecureStorageInterface secureStore,
+    MainDB? mockableOverride,
+  }) {
     _walletId = walletId;
     _walletName = walletName;
     _coin = coin;
     _secureStore = secureStore;
     initCache(walletId, coin);
     initEpicCashHive(walletId);
+    isarInit(mockableOverride: mockableOverride);
 
     Logging.instance.log("$walletName isolate length: ${isolates.length}",
         level: LogLevel.Info);
@@ -969,7 +973,6 @@ class EpicCashWallet extends CoinServiceAPI
     Logging.instance.log("Opening existing ${coin.prettyName} wallet",
         level: LogLevel.Info);
 
-    await isarInit();
     final config = await getRealConfig();
     final password = await _secureStore.read(key: '${_walletId}_password');
 
@@ -1039,8 +1042,6 @@ class EpicCashWallet extends CoinServiceAPI
     String stringConfig = await getConfig();
     String epicboxConfig = await getEpicBoxConfig();
 
-    await isarInit();
-
     await _secureStore.write(
         key: '${_walletId}_mnemonic', value: mnemonicString);
     await _secureStore.write(key: '${_walletId}_config', value: stringConfig);
@@ -1081,7 +1082,6 @@ class EpicCashWallet extends CoinServiceAPI
       epicUpdateChangeIndex(0),
     ]);
 
-    await isarInit();
     final initialReceivingAddress = await _getReceivingAddressForIndex(0);
 
     await db.putAddress(initialReceivingAddress);

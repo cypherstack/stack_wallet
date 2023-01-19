@@ -25,6 +25,7 @@ import 'package:flutter_libmonero/view_model/send/output.dart'
 import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
+import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
@@ -85,6 +86,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     required Coin coin,
     required SecureStorageInterface secureStorage,
     Prefs? prefs,
+    MainDB? mockableOverride,
   }) {
     _walletId = walletId;
     _walletName = walletName;
@@ -92,6 +94,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     _secureStorage = secureStorage;
     _prefs = prefs ?? Prefs.instance;
     initCache(walletId, coin);
+    isarInit(mockableOverride: mockableOverride);
   }
 
   @override
@@ -293,7 +296,6 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     keysStorage = KeyService(_secureStorage);
 
     await _prefs.init();
-    await isarInit();
 
     String? password;
     try {
@@ -397,7 +399,6 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     // Generate and add addresses to relevant arrays
     final initialReceivingAddress = await _generateAddressForChain(0, 0);
     // final initialChangeAddress = await _generateAddressForChain(1, 0);
-    await isarInit();
 
     await db.putAddress(initialReceivingAddress);
 
