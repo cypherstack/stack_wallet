@@ -225,8 +225,8 @@ void main() {
   });
 
   group("basic getters, setters, and functions", () {
-    final testWalletId = "NMCtestWalletID";
-    final testWalletName = "NMCWallet";
+    const testWalletId = "NMCtestWalletID";
+    const testWalletName = "NMCWallet";
 
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
@@ -324,14 +324,14 @@ void main() {
     test("get fees succeeds", () async {
       when(client?.ping()).thenAnswer((_) async => true);
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       when(client?.estimateFee(blocks: 1))
           .thenAnswer((realInvocation) async => Decimal.zero);
@@ -357,14 +357,14 @@ void main() {
     test("get fees fails", () async {
       when(client?.ping()).thenAnswer((_) async => true);
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       when(client?.estimateFee(blocks: 1))
           .thenAnswer((realInvocation) async => Decimal.zero);
@@ -393,14 +393,14 @@ void main() {
     // test("get maxFee", () async {
     //   when(client?.ping()).thenAnswer((_) async => true);
     //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
+    //         "hosts": <dynamic, dynamic>{},
     //         "pruning": null,
     //         "server_version": "Unit tests",
     //         "protocol_min": "1.4",
     //         "protocol_max": "1.4.2",
     //         "genesis_hash": GENESIS_HASH_TESTNET,
     //         "hash_function": "sha256",
-    //         "services": []
+    //         "services": <dynamic>[]
     //       });
     //   when(client?.estimateFee(blocks: 20))
     //       .thenAnswer((realInvocation) async => Decimal.zero);
@@ -424,8 +424,8 @@ void main() {
   });
 
   group("Namecoin service class functions that depend on shared storage", () {
-    final testWalletId = "NMCtestWalletID";
-    final testWalletName = "NMCWallet";
+    const testWalletId = "NMCtestWalletID";
+    const testWalletName = "NMCWallet";
 
     bool hiveAdaptersRegistered = false;
 
@@ -454,7 +454,7 @@ void main() {
         Hive.registerAdapter(UtxoObjectAdapter());
         Hive.registerAdapter(StatusAdapter());
 
-        final wallets = await Hive.openBox('wallets');
+        final wallets = await Hive.openBox<dynamic>('wallets');
         await wallets.put('currentWalletName', testWalletName);
       }
 
@@ -499,17 +499,17 @@ void main() {
     test("initializeWallet mainnet throws bad network", () async {
       when(client?.ping()).thenAnswer((_) async => true);
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       // await nmc?.initializeNew();
-      final wallets = await Hive.openBox<dynamic>(testWalletId);
+      await Hive.openBox<dynamic>(testWalletId);
 
       await expectLater(
               () => nmc?.initializeExisting(), throwsA(isA<Exception>()))
@@ -525,19 +525,19 @@ void main() {
     test("initializeWallet throws mnemonic overwrite exception", () async {
       when(client?.ping()).thenAnswer((_) async => true);
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       await secureStore.write(
           key: "${testWalletId}_mnemonic", value: "some mnemonic");
 
-      final wallets = await Hive.openBox<dynamic>(testWalletId);
+      await Hive.openBox<dynamic>(testWalletId);
       await expectLater(
               () => nmc?.initializeExisting(), throwsA(isA<Exception>()))
           .then((_) {
@@ -553,14 +553,14 @@ void main() {
     //     "recoverFromMnemonic using empty seed on mainnet fails due to bad genesis hash match",
     //     () async {
     //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
+    //         "hosts": <dynamic, dynamic>{},
     //         "pruning": null,
     //         "server_version": "Unit tests",
     //         "protocol_min": "1.4",
     //         "protocol_max": "1.4.2",
     //         "genesis_hash": GENESIS_HASH_TESTNET,
     //         "hash_function": "sha256",
-    //         "services": []
+    //         "services": <dynamic>[]
     //       });
     //
     //   bool hasThrown = false;
@@ -587,14 +587,14 @@ void main() {
         "recoverFromMnemonic using empty seed on mainnet fails due to attempted overwrite of mnemonic",
         () async {
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
 
       await secureStore.write(
@@ -621,14 +621,14 @@ void main() {
 
     test("recoverFromMnemonic using empty seed on mainnet succeeds", () async {
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       when(client?.getBatchHistory(args: historyBatchArgs0))
           .thenAnswer((_) async => emptyHistoryBatchResponse);
@@ -643,7 +643,7 @@ void main() {
       when(client?.getBatchHistory(args: historyBatchArgs5))
           .thenAnswer((_) async => emptyHistoryBatchResponse);
       await DB.instance.init();
-      final wallet = await Hive.openBox<dynamic>(testWalletId);
+      await Hive.openBox<dynamic>(testWalletId);
       bool hasThrown = false;
       try {
         await nmc?.recoverFromMnemonic(
@@ -675,14 +675,14 @@ void main() {
 
     test("get mnemonic list", () async {
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       when(client?.getBatchHistory(args: historyBatchArgs0))
           .thenAnswer((_) async => emptyHistoryBatchResponse);
@@ -697,7 +697,7 @@ void main() {
       when(client?.getBatchHistory(args: historyBatchArgs5))
           .thenAnswer((_) async => emptyHistoryBatchResponse);
 
-      final wallet = await Hive.openBox<dynamic>(testWalletId);
+      await Hive.openBox<dynamic>(testWalletId);
 
       await nmc?.recoverFromMnemonic(
           mnemonic: TEST_MNEMONIC,
@@ -722,14 +722,14 @@ void main() {
     test("recoverFromMnemonic using non empty seed on mainnet succeeds",
         () async {
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       when(client?.getBatchHistory(args: historyBatchArgs0))
           .thenAnswer((_) async => historyBatchResponse);
@@ -796,14 +796,14 @@ void main() {
 
     test("fullRescan succeeds", () async {
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       when(client?.getBatchHistory(args: historyBatchArgs0))
           .thenAnswer((_) async => historyBatchResponse);
@@ -1062,14 +1062,14 @@ void main() {
 
     test("fullRescan fails", () async {
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
 
       when(client?.getBatchHistory(args: historyBatchArgs0))
@@ -1275,14 +1275,14 @@ void main() {
 
     test("prepareSend fails", () async {
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       when(client?.getBatchHistory(args: historyBatchArgs0))
           .thenAnswer((_) async => historyBatchResponse);
@@ -1558,14 +1558,14 @@ void main() {
 
     test("refresh wallet mutex locked", () async {
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       when(client?.getBatchHistory(args: historyBatchArgs0))
           .thenAnswer((_) async => historyBatchResponse);
@@ -1634,14 +1634,14 @@ void main() {
       when(client?.getBlockHeadTip()).thenAnswer((realInvocation) async =>
           {"height": 520481, "hex": "some block hex"});
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       when(client?.getHistory(scripthash: anyNamed("scripthash")))
           .thenAnswer((_) async => []);

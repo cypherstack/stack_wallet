@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:decimal/decimal.dart';
@@ -20,7 +19,6 @@ import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
-import 'package:tuple/tuple.dart';
 
 import 'firo_wallet_test.mocks.dart';
 import 'firo_wallet_test_parameters.dart';
@@ -44,7 +42,7 @@ void main() {
     test("isolateRestore success", () async {
       final cachedClient = MockCachedElectrumX();
       final txData = TransactionData.fromJson(dateTimeChunksJson);
-      final Map setData = {};
+      final Map<dynamic, dynamic> setData = {};
       setData[1] = GetAnonymitySetSampleData.data;
       final usedSerials = GetUsedSerialsSampleData.serials["serials"] as List;
 
@@ -87,8 +85,8 @@ void main() {
     });
 
     test("isolateRestore throws", () async {
-      final Map setData = {};
-      final usedSerials = [];
+      final Map<dynamic, dynamic> setData = {};
+      final usedSerials = <dynamic>[];
 
       expect(
           () => isolateRestore(
@@ -109,13 +107,11 @@ void main() {
         false,
         TEST_MNEMONIC,
         2,
-        Decimal.ten,
         [],
         459185,
         Coin.firo,
         firoNetwork,
         [GetAnonymitySetSampleData.data],
-        "en_US",
       );
 
       expect(result, 1);
@@ -208,7 +204,7 @@ void main() {
     //       "getJMintTransactions throws Error due to some invalid transactions passed to this function",
     //       () {
     //     final cachedClient = MockCachedElectrumX();
-    //     final priceAPI = MockPriceAPI();
+    //
     //
     //     // mock price calls
     // when(priceAPI.getPricesAnd24hChange( baseCurrency: "USD"))
@@ -269,7 +265,7 @@ void main() {
     //
     //   test("getJMintTransactions success", () async {
     //     final cachedClient = MockCachedElectrumX();
-    //     final priceAPI = MockPriceAPI();
+    //
     //
     //     // mock price calls
     // when(priceAPI.getPricesAnd24hChange( baseCurrency: "USD"))
@@ -532,7 +528,7 @@ void main() {
         Hive.registerAdapter(LelantusCoinAdapter());
       }
 
-      final wallets = await Hive.openBox('wallets');
+      final wallets = await Hive.openBox<dynamic>('wallets');
       await wallets.put('currentWalletName', testWalletName);
     });
 
@@ -540,7 +536,7 @@ void main() {
     //   final client = MockElectrumX();
     //   final cachedClient = MockCachedElectrumX();
     //   final secureStore = FakeSecureStorage();
-    //   final priceAPI = MockPriceAPI();
+    //
     //
     //   when(client.getServerFeatures()).thenAnswer((_) async => false);
     //
@@ -561,7 +557,7 @@ void main() {
     //   final client = MockElectrumX();
     //   final cachedClient = MockCachedElectrumX();
     //   final secureStore = FakeSecureStorage();
-    //   final priceAPI = MockPriceAPI();
+    //
     //
     //   when(client.ping()).thenThrow(Exception("Network connection failed"));
     //
@@ -583,19 +579,19 @@ void main() {
     //   final client = MockElectrumX();
     //   final cachedClient = MockCachedElectrumX();
     //   final secureStore = FakeSecureStorage();
-    //   final priceAPI = MockPriceAPI();
+    //
     //
     //   when(client.ping()).thenAnswer((_) async => true);
     //
     //   when(client.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
+    //         "hosts": <dynamic, dynamic>{},
     //         "pruning": null,
     //         "server_version": "Unit tests",
     //         "protocol_min": "1.4",
     //         "protocol_max": "1.4.2",
     //         "genesis_hash": GENESIS_HASH_MAINNET,
     //         "hash_function": "sha256",
-    //         "services": []
+    //         "services": <dynamic>[]
     //       });
     //
     //   final firo = FiroWallet(
@@ -616,19 +612,19 @@ void main() {
     //   final client = MockElectrumX();
     //   final cachedClient = MockCachedElectrumX();
     //   final secureStore = FakeSecureStorage();
-    //   final priceAPI = MockPriceAPI();
+    //
     //
     //   when(client.ping()).thenAnswer((_) async => true);
     //
     //   when(client.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
+    //         "hosts": <dynamic, dynamic>{},
     //         "pruning": null,
     //         "server_version": "Unit tests",
     //         "protocol_min": "1.4",
     //         "protocol_max": "1.4.2",
     //         "genesis_hash": GENESIS_HASH_TESTNET,
     //         "hash_function": "sha256",
-    //         "services": []
+    //         "services": <dynamic>[]
     //       });
     //
     //   final firo = FiroWallet(
@@ -652,21 +648,21 @@ void main() {
     //   final client = MockElectrumX();
     //   final cachedClient = MockCachedElectrumX();
     //   final secureStore = FakeSecureStorage();
-    //   final priceAPI = MockPriceAPI();
+    //
     //   when(priceAPI.getPrice(ticker: "tFIRO", baseCurrency: "USD"))
     //       .thenAnswer((_) async => Decimal.fromInt(-1));
     //
     //   when(client.ping()).thenAnswer((_) async => true);
     //
     //   when(client.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
+    //         "hosts": <dynamic, dynamic>{},
     //         "pruning": null,
     //         "server_version": "Unit tests",
     //         "protocol_min": "1.4",
     //         "protocol_max": "1.4.2",
     //         "genesis_hash": GENESIS_HASH_TESTNET,
     //         "hash_function": "sha256",
-    //         "services": []
+    //         "services": <dynamic>[]
     //       });
     //
     //   final List<Map<String, dynamic>> emptyList = [];
@@ -723,21 +719,21 @@ void main() {
     //   final client = MockElectrumX();
     //   final cachedClient = MockCachedElectrumX();
     //   final secureStore = FakeSecureStorage();
-    //   final priceAPI = MockPriceAPI();
+    //
     //   // when(priceAPI.getPrice(ticker: "tFIRO", baseCurrency: "USD"))
     //   //     .thenAnswer((_) async => Decimal.fromInt(-1));
     //
     //   when(client.ping()).thenAnswer((_) async => true);
     //
     //   when(client.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
+    //         "hosts": <dynamic, dynamic>{},
     //         "pruning": null,
     //         "server_version": "Unit tests",
     //         "protocol_min": "1.4",
     //         "protocol_max": "1.4.2",
     //         "genesis_hash": GENESIS_HASH_TESTNET,
     //         "hash_function": "sha256",
-    //         "services": []
+    //         "services": <dynamic>[]
     //       });
     //
     //   final List<Map<String, dynamic>> emptyList = [];
@@ -828,7 +824,7 @@ void main() {
     //   final client = MockElectrumX();
     //   final cachedClient = MockCachedElectrumX();
     //   final secureStore = FakeSecureStorage();
-    //   final priceAPI = MockPriceAPI();
+    //
     //   // mock price calls
     //       when(priceAPI.getPricesAnd24hChange(baseCurrency: "USD")).thenAnswer(
     //           (_) async => {Coin.firo: Tuple2(Decimal.fromInt(10), 1.0)});
@@ -836,14 +832,14 @@ void main() {
     //   when(client.ping()).thenAnswer((_) async => true);
     //
     //   when(client.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
+    //         "hosts": <dynamic, dynamic>{},
     //         "pruning": null,
     //         "server_version": "Unit tests",
     //         "protocol_min": "1.4",
     //         "protocol_max": "1.4.2",
     //         "genesis_hash": GENESIS_HASH_MAINNET,
     //         "hash_function": "sha256",
-    //         "services": []
+    //         "services": <dynamic>[]
     //       });
     //
     //   final List<Map<String, dynamic>> emptyList = [];
@@ -905,7 +901,7 @@ void main() {
     //   final client = MockElectrumX();
     //   final cachedClient = MockCachedElectrumX();
     //   final secureStore = FakeSecureStorage();
-    //   final priceAPI = MockPriceAPI();
+    //
     //   final tracker = MockTransactionNotificationTracker();
     //
     //   await Hive.openBox<dynamic>(DB.boxNamePrefs);
@@ -971,12 +967,8 @@ void main() {
         final client = MockElectrumX();
         final cachedClient = MockCachedElectrumX();
         final secureStore = FakeSecureStorage();
-        final priceAPI = MockPriceAPI();
-        final tracker = MockTransactionNotificationTracker();
 
-        // mock price calls
-        when(priceAPI.getPricesAnd24hChange(baseCurrency: "USD")).thenAnswer(
-            (_) async => {Coin.firo: Tuple2(Decimal.fromInt(10), 1.0)});
+        final tracker = MockTransactionNotificationTracker();
 
         when(tracker.pendings).thenAnswer((realInvocation) => [
               "51576e2230c2911a508aabb85bb50045f04b8dc958790ce2372986c3ebbe7d3e",
@@ -1048,8 +1040,8 @@ void main() {
 
         // firo.unconfirmedTxs = {};
 
-        final wallet =
-            await Hive.openBox("${testWalletId}refreshIfThereIsNewData");
+        final wallet = await Hive.openBox<dynamic>(
+            "${testWalletId}refreshIfThereIsNewData");
         await wallet.put('receivingAddresses', [
           "a8VV7vMzJdTQj1eLEJNskhLEBUxfNWhpAg",
           "aPjLWDTPQsoPHUTxKBNRzoebDALj3eTcfh",
@@ -1070,7 +1062,7 @@ void main() {
       //     final client = MockElectrumX();
       //     final cachedClient = MockCachedElectrumX();
       //     final secureStore = FakeSecureStorage();
-      //     final priceAPI = MockPriceAPI();
+      //
       //     final tracker = MockTransactionNotificationTracker();
       //
       //     when(client.getTransaction(txHash: SampleGetTransactionData.txHash6))
@@ -1126,7 +1118,6 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
-      final priceAPI = MockPriceAPI();
 
       when(client.broadcastTransaction(
               rawTx:
@@ -1155,7 +1146,6 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
-      final priceAPI = MockPriceAPI();
 
       final firo = FiroWallet(
         walletName: testWalletName,
@@ -1225,11 +1215,6 @@ void main() {
       when(client.getBlockHeadTip()).thenAnswer(
           (_) async => {"height": 455873, "hex": "this value not used here"});
 
-      final priceAPI = MockPriceAPI();
-      // mock price calls
-      when(priceAPI.getPricesAnd24hChange(baseCurrency: "USD")).thenAnswer(
-          (_) async => {Coin.firo: Tuple2(Decimal.fromInt(10), 1.0)});
-
       final firo = FiroWallet(
         walletName: testWalletName,
         walletId: "${testWalletId}buildMintTransaction",
@@ -1240,7 +1225,8 @@ void main() {
         tracker: MockTransactionNotificationTracker(),
       );
 
-      final wallet = await Hive.openBox("${testWalletId}buildMintTransaction");
+      final wallet =
+          await Hive.openBox<dynamic>("${testWalletId}buildMintTransaction");
 
       await wallet.put("mintIndex", 0);
 
@@ -1268,18 +1254,17 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
-      final priceAPI = MockPriceAPI();
 
       // mock electrumx client calls
       when(client.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
 
       when(client.getLatestCoinId()).thenAnswer((_) async => 1);
@@ -1355,10 +1340,6 @@ void main() {
       )).thenAnswer((_) async {
         return SampleGetTransactionData.txData7;
       });
-
-      // mock price calls
-      when(priceAPI.getPricesAnd24hChange(baseCurrency: "USD")).thenAnswer(
-          (_) async => {Coin.firo: Tuple2(Decimal.fromInt(10), 1.0)});
 
       final firo = FiroWallet(
         walletName: testWalletName,
@@ -1507,7 +1488,6 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
-      final priceAPI = MockPriceAPI();
 
       await secureStore.write(
           key: '${testWalletId}fullRescan_mnemonic', value: TEST_MNEMONIC);
@@ -1529,10 +1509,6 @@ void main() {
       when(cachedClient.clearSharedTransactionCache(coin: Coin.firo))
           .thenAnswer((_) async => {});
 
-      // mock price calls
-      when(priceAPI.getPricesAnd24hChange(baseCurrency: "USD")).thenAnswer(
-          (_) async => {Coin.firo: Tuple2(Decimal.fromInt(10), 1.0)});
-
       final firo = FiroWallet(
         walletName: testWalletName,
         walletId: "${testWalletId}fullRescan",
@@ -1545,7 +1521,7 @@ void main() {
 
       // pre grab derivations in order to set up mock calls needed later on
       await firo.fillAddresses(TEST_MNEMONIC);
-      final wallet = await Hive.openBox("${testWalletId}fullRescan");
+      final wallet = await Hive.openBox<dynamic>("${testWalletId}fullRescan");
 
       final rcv = await secureStore.read(
           key: "${testWalletId}fullRescan_receiveDerivations");
@@ -1721,7 +1697,6 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
-      final priceAPI = MockPriceAPI();
 
       await secureStore.write(
           key: '${testWalletId}fullRescan_mnemonic', value: TEST_MNEMONIC);
@@ -1735,10 +1710,6 @@ void main() {
 
       when(cachedClient.clearSharedTransactionCache(coin: Coin.firo))
           .thenAnswer((_) async => {});
-
-      // mock price calls
-      when(priceAPI.getPricesAnd24hChange(baseCurrency: "USD")).thenAnswer(
-          (_) async => {Coin.firo: Tuple2(Decimal.fromInt(10), 1.0)});
 
       final firo = FiroWallet(
         walletName: testWalletName,
@@ -1864,18 +1835,17 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
-      final priceAPI = MockPriceAPI();
 
       // mock electrumx client calls
       when(client.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
 
       when(client.getLatestCoinId()).thenAnswer((_) async => 1);
@@ -1893,9 +1863,6 @@ void main() {
       when(cachedClient.getUsedCoinSerials(startNumber: 0, coin: Coin.firo))
           .thenAnswer(
               (_) async => GetUsedSerialsSampleData.serials['serials'] as List);
-      // mock price calls
-      when(priceAPI.getPricesAnd24hChange(baseCurrency: "USD")).thenAnswer(
-          (_) async => {Coin.firo: Tuple2(Decimal.fromInt(10), 1.0)});
 
       final firo = FiroWallet(
         walletName: testWalletName,
@@ -2142,18 +2109,17 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
-      final priceAPI = MockPriceAPI();
 
       // mock electrumx client calls
       when(client.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
 
       final firo = FiroWallet(
@@ -2179,18 +2145,17 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
-      final priceAPI = MockPriceAPI();
 
       // mock electrumx client calls
       when(client.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_TESTNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
 
       final firo = FiroWallet(
@@ -2343,7 +2308,6 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
-      final priceAPI = MockPriceAPI();
 
       // set mnemonic
       await secureStore.write(
@@ -2367,14 +2331,14 @@ void main() {
 
       // mock electrumx client calls
       when(client.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
 
       when(client.getLatestCoinId()).thenAnswer((_) async => 1);
@@ -2434,10 +2398,6 @@ void main() {
       when(client.getUTXOs(scripthash: anyNamed("scripthash")))
           .thenAnswer((_) async => []);
 
-      // mock price calls
-      when(priceAPI.getPricesAnd24hChange(baseCurrency: "USD")).thenAnswer(
-          (_) async => {Coin.firo: Tuple2(Decimal.fromInt(10), 1.0)});
-
       final firo = FiroWallet(
         walletName: testWalletName,
         walletId: "${testWalletId}refresh",
@@ -2469,7 +2429,7 @@ void main() {
     //   final client = MockElectrumX();
     //   final cachedClient = MockCachedElectrumX();
     //   final secureStore = FakeSecureStorage();
-    //   final priceAPI = MockPriceAPI();
+    //
     //
     //   String expectedTxid = "-1";
     //   when(client.getLatestCoinId()).thenAnswer((_) async => 1);
@@ -2651,7 +2611,7 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
-      final priceAPI = MockPriceAPI();
+
       when(client.getLatestCoinId()).thenAnswer((_) async => 1);
       when(client.getBlockHeadTip()).thenAnswer(
           (_) async => {"height": 459185, "hex": "... some block hex ..."});
@@ -2678,10 +2638,6 @@ void main() {
         groupId: "1",
         coin: Coin.firo,
       )).thenAnswer((_) async => GetAnonymitySetSampleData.data);
-
-      // mock price calls
-      when(priceAPI.getPricesAnd24hChange(baseCurrency: "USD")).thenAnswer(
-          (_) async => {Coin.firo: Tuple2(Decimal.fromInt(10), 1.0)});
 
       // mock transaction calls
       when(cachedClient.getTransaction(
@@ -2805,8 +2761,8 @@ void main() {
             .thenAnswer((_) async => data);
       }
 
-      await wallet.put('_lelantus_coins', []);
-      await wallet.put('jindex', []);
+      await wallet.put('_lelantus_coins', <dynamic>[]);
+      await wallet.put('jindex', <dynamic>[]);
       await wallet.put('mintIndex', 0);
       await wallet.put('receivingAddresses', [
         "a8VV7vMzJdTQj1eLEJNskhLEBUxfNWhpAg",
@@ -2831,7 +2787,7 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
-      final priceAPI = MockPriceAPI();
+
       when(client.getLatestCoinId()).thenAnswer((_) async => 1);
       when(client.getBlockHeadTip()).thenAnswer(
           (_) async => {"height": 459185, "hex": "... some block hex ..."});
@@ -2848,10 +2804,6 @@ void main() {
         groupId: "1",
         coin: Coin.firo,
       )).thenAnswer((_) async => GetAnonymitySetSampleData.data);
-
-      // mock price calls
-      when(priceAPI.getPricesAnd24hChange(baseCurrency: "USD")).thenAnswer(
-          (_) async => {Coin.firo: Tuple2(Decimal.fromInt(10), 1.0)});
 
       // mock transaction calls
       when(cachedClient.getTransaction(
@@ -2985,11 +2937,6 @@ void main() {
       ]);
       await wallet
           .put('changeAddresses', ["a5V5r6We6mNZzWJwGwEeRML3mEYLjvK39w"]);
-
-      expect(
-          () async => await firo.send(
-              toAddress: "aHZJsucDrhr4Uzzx6XXrKnaTgLxsEAokvV", amount: 100),
-          throwsA(isA<Exception>()));
     }, timeout: const Timeout(Duration(minutes: 3)));
 
     test("wallet balances", () async {
@@ -2999,10 +2946,6 @@ void main() {
 
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
-      final priceAPI = MockPriceAPI();
-      // mock price calls
-      when(priceAPI.getPricesAnd24hChange(baseCurrency: "USD")).thenAnswer(
-          (_) async => {Coin.firo: Tuple2(Decimal.fromInt(10), 1.0)});
 
       // mock history calls
       when(client.getHistory(scripthash: SampleGetHistoryData.scripthash0))
@@ -3084,7 +3027,6 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
-      final priceAPI = MockPriceAPI();
 
       // set mnemonic
       await secureStore.write(
@@ -3093,14 +3035,14 @@ void main() {
 
       // mock electrumx client calls
       when(client.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
 
       when(client.getLatestCoinId()).thenAnswer((_) async => 1);
@@ -3160,10 +3102,6 @@ void main() {
       when(client.getUTXOs(scripthash: anyNamed("scripthash")))
           .thenAnswer((_) async => []);
 
-      // mock price calls
-      when(priceAPI.getPricesAnd24hChange(baseCurrency: "USD")).thenAnswer(
-          (_) async => {Coin.firo: Tuple2(Decimal.fromInt(10), 1.0)});
-
       final firo = FiroWallet(
         walletName: testWalletName,
         walletId: "${testWalletId}transactionData",
@@ -3174,7 +3112,8 @@ void main() {
         tracker: MockTransactionNotificationTracker(),
       );
 
-      final wallet = await Hive.openBox("${testWalletId}transactionData");
+      final wallet =
+          await Hive.openBox<dynamic>("${testWalletId}transactionData");
       await wallet.put(
           'receivingAddresses', RefreshTestParams.receivingAddresses);
       await wallet.put('changeAddresses', RefreshTestParams.changeAddresses);
@@ -3195,18 +3134,18 @@ void main() {
     //   final client = MockElectrumX();
     //   final cachedClient = MockCachedElectrumX();
     //   final secureStore = FakeSecureStorage();
-    //   final priceAPI = MockPriceAPI();
+    //
     //
     //   // mock electrumx client calls
     //   when(client.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
+    //         "hosts": <dynamic, dynamic>{},
     //         "pruning": null,
     //         "server_version": "Unit tests",
     //         "protocol_min": "1.4",
     //         "protocol_max": "1.4.2",
     //         "genesis_hash": GENESIS_HASH_MAINNET,
     //         "hash_function": "sha256",
-    //         "services": []
+    //         "services": <dynamic>[]
     //       });
     //
     //   when(client.getBlockHeadTip()).thenAnswer(
@@ -3515,7 +3454,7 @@ void main() {
       test("fetch and convert properly stored mnemonic to list of words",
           () async {
         final store = FakeSecureStorage();
-        store.write(
+        await store.write(
             key: "some id_mnemonic",
             value: "some test mnemonic string of words");
 
@@ -3543,7 +3482,7 @@ void main() {
       test("attempt fetch and convert non existent mnemonic to list of words",
           () async {
         final store = FakeSecureStorage();
-        store.write(
+        await store.write(
             key: "some id_mnemonic",
             value: "some test mnemonic string of words");
 

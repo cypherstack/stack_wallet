@@ -244,10 +244,10 @@ void main() {
   });
 
   group("basic getters, setters, and functions", () {
-    final dcoin = Coin.dogecoin;
-    final dtestcoin = Coin.dogecoinTestNet;
-    final testWalletId = "DOGEtestWalletID";
-    final testWalletName = "DOGEWallet";
+    const dcoin = Coin.dogecoin;
+    const dtestcoin = Coin.dogecoinTestNet;
+    const testWalletId = "DOGEtestWalletID";
+    const testWalletName = "DOGEWallet";
 
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
@@ -352,14 +352,14 @@ void main() {
     test("get fees succeeds", () async {
       when(client?.ping()).thenAnswer((_) async => true);
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_TESTNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       when(client?.estimateFee(blocks: 1))
           .thenAnswer((realInvocation) async => Decimal.zero);
@@ -386,14 +386,14 @@ void main() {
     test("get fees fails", () async {
       when(client?.ping()).thenAnswer((_) async => true);
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_TESTNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       when(client?.estimateFee(blocks: 1))
           .thenAnswer((realInvocation) async => Decimal.zero);
@@ -423,14 +423,14 @@ void main() {
     test("get maxFee", () async {
       when(client?.ping()).thenAnswer((_) async => true);
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_TESTNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       when(client?.estimateFee(blocks: 20))
           .thenAnswer((realInvocation) async => Decimal.zero);
@@ -453,10 +453,10 @@ void main() {
   });
 
   group("DogeWallet service class functions that depend on shared storage", () {
-    final dcoin = Coin.dogecoin;
-    final dtestcoin = Coin.dogecoinTestNet;
-    final testWalletId = "DOGEtestWalletID";
-    final testWalletName = "DOGEWallet";
+    const dcoin = Coin.dogecoin;
+    const dtestcoin = Coin.dogecoinTestNet;
+    const testWalletId = "DOGEtestWalletID";
+    const testWalletName = "DOGEWallet";
 
     bool hiveAdaptersRegistered = false;
 
@@ -485,7 +485,7 @@ void main() {
         Hive.registerAdapter(UtxoObjectAdapter());
         Hive.registerAdapter(StatusAdapter());
 
-        final wallets = await Hive.openBox('wallets');
+        final wallets = await Hive.openBox<dynamic>('wallets');
         await wallets.put('currentWalletName', testWalletName);
       }
 
@@ -531,14 +531,14 @@ void main() {
 
     // test("initializeNew mainnet throws bad network", () async {
     //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
+    //         "hosts": <dynamic, dynamic>{},
     //         "pruning": null,
     //         "server_version": "Unit tests",
     //         "protocol_min": "1.4",
     //         "protocol_max": "1.4.2",
     //         "genesis_hash": GENESIS_HASH_TESTNET,
     //         "hash_function": "sha256",
-    //         "services": []
+    //         "services": <dynamic>[]
     //       });
     //
     //   await Hive.openBox<dynamic>(testWalletId);
@@ -557,14 +557,14 @@ void main() {
 
     test("initializeNew throws mnemonic overwrite exception", () async {
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       await secureStore.write(
           key: "${testWalletId}_mnemonic", value: "some mnemonic");
@@ -572,7 +572,7 @@ void main() {
       await Hive.openBox<dynamic>(testWalletId);
       await Hive.openBox<dynamic>(DB.boxNamePrefs);
 
-      expectLater(() => doge?.initializeNew(), throwsA(isA<Exception>()))
+      await expectLater(() => doge?.initializeNew(), throwsA(isA<Exception>()))
           .then((_) {
         expect(secureStore.interactions, 2);
         verifyNever(client?.ping()).called(0);
@@ -585,14 +585,14 @@ void main() {
     // test("initializeExisting testnet throws bad network", () async {
     //   when(client?.ping()).thenAnswer((_) async => true);
     //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
+    //         "hosts": <dynamic, dynamic>{},
     //         "pruning": null,
     //         "server_version": "Unit tests",
     //         "protocol_min": "1.4",
     //         "protocol_max": "1.4.2",
     //         "genesis_hash": GENESIS_HASH_MAINNET,
     //         "hash_function": "sha256",
-    //         "services": []
+    //         "services": <dynamic>[]
     //       });
     //
     //   doge = DogecoinWallet(
@@ -625,14 +625,14 @@ void main() {
     //   //     .thenAnswer((realInvocation) async => Decimal.fromInt(10));
     //   when(client?.ping()).thenAnswer((_) async => true);
     //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
+    //         "hosts": <dynamic, dynamic>{},
     //         "pruning": null,
     //         "server_version": "Unit tests",
     //         "protocol_min": "1.4",
     //         "protocol_max": "1.4.2",
     //         "genesis_hash": GENESIS_HASH_MAINNET,
     //         "hash_function": "sha256",
-    //         "services": []
+    //         "services": <dynamic>[]
     //       });
     //   // await DebugService.instance.init();
     //   expect(doge?.initializeExisting(), true);
@@ -647,7 +647,7 @@ void main() {
     //   expect(didThrow, true);
     //
     //   // set node
-    //   final wallet = await Hive.openBox(testWalletId);
+    //   final wallet = await Hive.openBox<dynamic> (testWalletId);
     //   await wallet.put("nodes", {
     //     "default": {
     //       "id": "some nodeID",
@@ -675,18 +675,18 @@ void main() {
     //       .thenAnswer((realInvocation) async => Decimal.fromInt(10));
     //   when(client?.ping()).thenAnswer((_) async => true);
     //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
+    //         "hosts": <dynamic, dynamic>{},
     //         "pruning": null,
     //         "server_version": "Unit tests",
     //         "protocol_min": "1.4",
     //         "protocol_max": "1.4.2",
     //         "genesis_hash": GENESIS_HASH_MAINNET,
     //         "hash_function": "sha256",
-    //         "services": []
+    //         "services": <dynamic>[]
     //       });
     //   expect(await doge?.initializeWallet(), true);
     //
-    //   final wallet = await Hive.openBox(testWalletId);
+    //   final wallet = await Hive.openBox<dynamic> (testWalletId);
     //
     //   expect(await wallet.get("addressBookEntries"), {});
     //   expect(await wallet.get('notes'), null);
@@ -731,20 +731,20 @@ void main() {
     // //   when(client?.getBatchHistory(args: anyNamed("args")))
     // //       .thenAnswer((_) async => {});
     // //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    // //         "hosts": {},
+    // //         "hosts": <dynamic, dynamic>{},
     // //         "pruning": null,
     // //         "server_version": "Unit tests",
     // //         "protocol_min": "1.4",
     // //         "protocol_max": "1.4.2",
     // //         "genesis_hash": GENESIS_HASH_MAINNET,
     // //         "hash_function": "sha256",
-    // //         "services": []
+    // //         "services": <dynamic>[]
     // //       });
     // //   // init new wallet
     // //   expect(doge?.initializeNew(), true);
     // //
     // //   // fetch data to compare later
-    // //   final newWallet = await Hive.openBox(testWalletId);
+    // //   final newWallet = await Hive.openBox<dynamic> (testWalletId);
     // //
     // //   final addressBookEntries = await newWallet.get("addressBookEntries");
     // //   final notes = await newWallet.get('notes');
@@ -783,7 +783,7 @@ void main() {
     // //   expect(doge?.initializeExisting(), true);
     // //
     // //   // compare data to ensure state matches state of previously closed wallet
-    // //   final wallet = await Hive.openBox(testWalletId);
+    // //   final wallet = await Hive.openBox<dynamic> (testWalletId);
     // //
     // //   expect(await wallet.get("addressBookEntries"), addressBookEntries);
     // //   expect(await wallet.get('notes'), notes);
@@ -831,14 +831,14 @@ void main() {
       );
       when(client?.ping()).thenAnswer((_) async => true);
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_TESTNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
 
       await Hive.openBox<dynamic>(testWalletId);
@@ -878,14 +878,14 @@ void main() {
     //   );
     //   when(client?.ping()).thenAnswer((_) async => true);
     //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
+    //         "hosts": <dynamic, dynamic>{},
     //         "pruning": null,
     //         "server_version": "Unit tests",
     //         "protocol_min": "1.4",
     //         "protocol_max": "1.4.2",
     //         "genesis_hash": GENESIS_HASH_TESTNET,
     //         "hash_function": "sha256",
-    //         "services": []
+    //         "services": <dynamic>[]
     //       });
     //
     //   await Hive.openBox<dynamic>(testWalletId);
@@ -982,14 +982,14 @@ void main() {
     // //   );
     // //   when(client?.ping()).thenAnswer((_) async => true);
     // //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    // //         "hosts": {},
+    // //         "hosts": <dynamic, dynamic>{},
     // //         "pruning": null,
     // //         "server_version": "Unit tests",
     // //         "protocol_min": "1.4",
     // //         "protocol_max": "1.4.2",
     // //         "genesis_hash": GENESIS_HASH_TESTNET,
     // //         "hash_function": "sha256",
-    // //         "services": []
+    // //         "services": <dynamic>[]
     // //       });
     // //
     // //   when(client?.getBatchUTXOs(args: anyNamed("args")))
@@ -1001,7 +1001,7 @@ void main() {
     // //   await doge?.initializeWallet();
     // //
     // //   // add some extra addresses to make sure we have more than the single batch size of 10
-    // //   final wallet = await Hive.openBox(testWalletId);
+    // //   final wallet = await Hive.openBox<dynamic> (testWalletId);
     // //   final addresses = await wallet.get("receivingAddressesP2PKH");
     // //   addresses.add("DQaAi9R58GXMpDyhePys6hHCuif4fhc1sN");
     // //   addresses.add("DBVhuF8QgeuxU2pssxzMgJqPhGCx5qyVkD");
@@ -1045,14 +1045,14 @@ void main() {
       );
       when(client?.ping()).thenAnswer((_) async => true);
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_TESTNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
 
       await Hive.openBox<dynamic>(testWalletId);
@@ -1093,14 +1093,14 @@ void main() {
       );
       when(client?.ping()).thenAnswer((_) async => true);
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_TESTNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
 
       await Hive.openBox<dynamic>(testWalletId);
@@ -1110,7 +1110,7 @@ void main() {
       await doge?.initializeExisting();
 
       // get stored
-      expect(await doge?.storedChainHeight, 0);
+      expect(doge?.storedChainHeight, 0);
 
       // fetch fails
       when(client?.getBlockHeadTip()).thenThrow(Exception("Some exception"));
@@ -1124,10 +1124,10 @@ void main() {
       expect(await doge?.chainHeight, 100);
 
       // update
-      await doge?.updateStoredChainHeight(newHeight: 1000);
+      await doge?.updateCachedChainHeight(1000);
 
       // fetch updated
-      expect(await doge?.storedChainHeight, 1000);
+      expect(doge?.storedChainHeight, 1000);
 
       verifyNever(client?.ping()).called(0);
       verify(client?.getServerFeatures()).called(1);
@@ -1198,14 +1198,14 @@ void main() {
     test("_checkCurrentReceivingAddressesForTransactions succeeds", () async {
       when(client?.ping()).thenAnswer((_) async => true);
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       when(client?.getHistory(scripthash: anyNamed("scripthash")))
           .thenAnswer((realInvocation) async => [
@@ -1250,14 +1250,14 @@ void main() {
     test("_checkCurrentReceivingAddressesForTransactions fails", () async {
       when(client?.ping()).thenAnswer((_) async => true);
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       when(client?.getHistory(scripthash: anyNamed("scripthash")))
           .thenThrow(Exception("some exception"));
@@ -1291,14 +1291,14 @@ void main() {
     test("_checkCurrentChangeAddressesForTransactions succeeds", () async {
       when(client?.ping()).thenAnswer((_) async => true);
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       when(client?.getHistory(scripthash: anyNamed("scripthash")))
           .thenAnswer((realInvocation) async => [
@@ -1344,14 +1344,14 @@ void main() {
     test("_checkCurrentChangeAddressesForTransactions fails", () async {
       when(client?.ping()).thenAnswer((_) async => true);
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       when(client?.getHistory(scripthash: anyNamed("scripthash")))
           .thenThrow(Exception("some exception"));
@@ -1429,7 +1429,7 @@ void main() {
     //
     //     secureStore: secureStore,
     //   );
-    //   final wallet = await Hive.openBox(testWalletId);
+    //   final wallet = await Hive.openBox<dynamic> (testWalletId);
     //   await wallet.put('receivingAddressesP2PKH', []);
     //
     //   await wallet.put('changeAddressesP2PKH', []);
@@ -1558,7 +1558,7 @@ void main() {
     //
     //     secureStore: secureStore,
     //   );
-    //   final wallet = await Hive.openBox(testWalletId);
+    //   final wallet = await Hive.openBox<dynamic> (testWalletId);
     //   await wallet.put('receivingAddressesP2PKH', []);
     //
     //   await wallet.put('changeAddressesP2PKH', []);
@@ -1691,7 +1691,7 @@ void main() {
     //
     //     secureStore: secureStore,
     //   );
-    //   final wallet = await Hive.openBox(testWalletId);
+    //   final wallet = await Hive.openBox<dynamic> (testWalletId);
     //   await wallet.put('receivingAddressesP2PKH', []);
     //
     //   await wallet.put('changeAddressesP2PKH', []);
@@ -1743,7 +1743,7 @@ void main() {
     // //
     // //     secureStore: secureStore,
     // //   );
-    // //   final wallet = await Hive.openBox(testWalletId);
+    // //   final wallet = await Hive.openBox<dynamic> (testWalletId);
     // //   await wallet.put('receivingAddressesP2PKH', []);
     // //
     // //   await wallet.put('changeAddressesP2PKH', []);
@@ -1770,21 +1770,21 @@ void main() {
 
     test("get mnemonic list", () async {
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       when(client?.getBatchHistory(args: historyBatchArgs0))
           .thenAnswer((_) async => emptyHistoryBatchResponse);
       when(client?.getBatchHistory(args: historyBatchArgs1))
           .thenAnswer((_) async => emptyHistoryBatchResponse);
 
-      final wallet = await Hive.openBox(testWalletId);
+      await Hive.openBox<dynamic>(testWalletId);
 
       // add maxNumberOfIndexesToCheck and height
       await doge?.recoverFromMnemonic(
@@ -1808,14 +1808,14 @@ void main() {
         "recoverFromMnemonic using empty seed on mainnet fails due to bad genesis hash match",
         () async {
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_TESTNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
 
       bool hasThrown = false;
@@ -1850,14 +1850,14 @@ void main() {
         secureStore: secureStore,
       );
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
 
       bool hasThrown = false;
@@ -1883,14 +1883,14 @@ void main() {
         "recoverFromMnemonic using empty seed on mainnet fails due to attempted overwrite of mnemonic",
         () async {
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
 
       await secureStore.write(
@@ -1918,14 +1918,14 @@ void main() {
     test("recoverFromMnemonic using non empty seed on mainnet succeeds",
         () async {
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       when(client?.getBatchHistory(args: historyBatchArgs0))
           .thenAnswer((_) async => historyBatchResponse);
@@ -1944,7 +1944,7 @@ void main() {
         ]
       })).thenAnswer((realInvocation) async => {"0": []});
 
-      final wallet = await Hive.openBox<dynamic>(testWalletId);
+      await Hive.openBox<dynamic>(testWalletId);
 
       bool hasThrown = false;
       try {
@@ -1984,14 +1984,14 @@ void main() {
 
     test("fullRescan succeeds", () async {
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       when(client?.getBatchHistory(args: historyBatchArgs0))
           .thenAnswer((_) async => historyBatchResponse);
@@ -2101,14 +2101,14 @@ void main() {
 
     test("fullRescan fails", () async {
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
 
       when(client?.getBatchHistory(args: historyBatchArgs0))
@@ -2130,7 +2130,7 @@ void main() {
       when(cachedClient?.clearSharedTransactionCache(coin: Coin.dogecoin))
           .thenAnswer((realInvocation) async {});
 
-      final wallet = await Hive.openBox(testWalletId);
+      final wallet = await Hive.openBox<dynamic>(testWalletId);
 
       // restore so we have something to rescan
       await doge?.recoverFromMnemonic(
@@ -2211,14 +2211,14 @@ void main() {
 
     // // test("fetchBuildTxData succeeds", () async {
     // //   when(client.getServerFeatures()).thenAnswer((_) async => {
-    // //         "hosts": {},
+    // //         "hosts": <dynamic, dynamic>{},
     // //         "pruning": null,
     // //         "server_version": "Unit tests",
     // //         "protocol_min": "1.4",
     // //         "protocol_max": "1.4.2",
     // //         "genesis_hash": GENESIS_HASH_MAINNET,
     // //         "hash_function": "sha256",
-    // //         "services": []
+    // //         "services": <dynamic>[]
     // //       });
     // //   when(client.getBatchHistory(args: historyBatchArgs0))
     // //       .thenAnswer((_) async => historyBatchResponse);
@@ -2388,14 +2388,14 @@ void main() {
 
     // test("fetchBuildTxData throws", () async {
     //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
+    //         "hosts": <dynamic, dynamic>{},
     //         "pruning": null,
     //         "server_version": "Unit tests",
     //         "protocol_min": "1.4",
     //         "protocol_max": "1.4.2",
     //         "genesis_hash": GENESIS_HASH_MAINNET,
     //         "hash_function": "sha256",
-    //         "services": []
+    //         "services": <dynamic>[]
     //       });
     //   when(client?.getBatchHistory(args: historyBatchArgs0))
     //       .thenAnswer((_) async => historyBatchResponse);
@@ -2469,14 +2469,14 @@ void main() {
 
     // test("build transaction succeeds", () async {
     //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
+    //         "hosts": <dynamic, dynamic>{},
     //         "pruning": null,
     //         "server_version": "Unit tests",
     //         "protocol_min": "1.4",
     //         "protocol_max": "1.4.2",
     //         "genesis_hash": GENESIS_HASH_MAINNET,
     //         "hash_function": "sha256",
-    //         "services": []
+    //         "services": <dynamic>[]
     //       });
     //   when(client?.getBatchHistory(args: historyBatchArgs0))
     //       .thenAnswer((_) async => historyBatchResponse);
@@ -2672,14 +2672,14 @@ void main() {
 
     test("refresh wallet mutex locked", () async {
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       when(client?.getBatchHistory(args: historyBatchArgs0))
           .thenAnswer((_) async => historyBatchResponse);
@@ -2697,7 +2697,7 @@ void main() {
         ]
       })).thenAnswer((realInvocation) async => {"0": []});
 
-      final wallet = await Hive.openBox(testWalletId);
+      final wallet = await Hive.openBox<dynamic>(testWalletId);
 
       // recover to fill data
       await doge?.recoverFromMnemonic(
@@ -2737,14 +2737,14 @@ void main() {
     test("refresh wallet throws", () async {
       when(client?.getBlockHeadTip()).thenThrow(Exception("some exception"));
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       when(client?.getBatchHistory(args: historyBatchArgs0))
           .thenAnswer((_) async => historyBatchResponse);
@@ -2764,7 +2764,7 @@ void main() {
       when(client?.getHistory(scripthash: anyNamed("scripthash")))
           .thenThrow(Exception("some exception"));
 
-      final wallet = await Hive.openBox(testWalletId);
+      await Hive.openBox<dynamic>(testWalletId);
 
       // recover to fill data
       await doge?.recoverFromMnemonic(
@@ -2805,14 +2805,14 @@ void main() {
     //   when(client?.getBlockHeadTip()).thenAnswer((realInvocation) async =>
     //       {"height": 520481, "hex": "some block hex"});
     //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
+    //         "hosts": <dynamic, dynamic>{},
     //         "pruning": null,
     //         "server_version": "Unit tests",
     //         "protocol_min": "1.4",
     //         "protocol_max": "1.4.2",
     //         "genesis_hash": GENESIS_HASH_MAINNET,
     //         "hash_function": "sha256",
-    //         "services": []
+    //         "services": <dynamic>[]
     //       });
     //   when(client?.getBatchHistory(args: historyBatchArgs0))
     //       .thenAnswer((_) async => historyBatchResponse);

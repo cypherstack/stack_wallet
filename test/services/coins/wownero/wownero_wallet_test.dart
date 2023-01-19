@@ -66,7 +66,7 @@ void main() async {
         Hive.registerAdapter(WalletTypeAdapter());
         Hive.registerAdapter(UnspentCoinsInfoAdapter());
 
-        final wallets = await Hive.openBox('wallets');
+        final wallets = await Hive.openBox<dynamic>('wallets');
         await wallets.put('currentWalletName', name);
 
         _walletInfoSource = await Hive.openBox<WalletInfo>(WalletInfo.boxName);
