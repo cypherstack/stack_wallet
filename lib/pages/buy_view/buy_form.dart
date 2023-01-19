@@ -81,6 +81,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     youReceiveCryptoAmount: Decimal.parse("1.0238917"),
     purchaseId: "someID",
     receivingAddress: '',
+    buyWithFiat: true,
   ); // TODO enum this or something
 
   bool buyWithFiat = true;
@@ -348,7 +349,6 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       ),
     );
 
-    buyWithFiat;
     quote = SimplexQuote(
       crypto: selectedCrypto!,
       fiat: selectedFiat!,
@@ -360,6 +360,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
           : Decimal.parse(_buyAmountController.text), // Ternary for this
       purchaseId: "purchaseId", // anything; we get an ID back
       receivingAddress: _receiveAddressController.text,
+      buyWithFiat: buyWithFiat,
     );
 
     await _loadQuote(quote);
@@ -486,6 +487,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       youReceiveCryptoAmount: Decimal.parse("1.0238917"),
       purchaseId: "someID",
       receivingAddress: '',
+      buyWithFiat: true,
     ); // TODO enum this or something
 
     // TODO set defaults better; should probably explicitly enumerate the coins & fiats used and pull the specific ones we need rather than generating them as defaults here

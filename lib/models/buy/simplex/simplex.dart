@@ -15,6 +15,7 @@ class Simplex {
     youReceiveCryptoAmount: Decimal.parse("1.0238917"),
     purchaseId: "someID",
     receivingAddress: '',
+    buyWithFiat: true,
   );
 
   void updateSupportedCryptos(List<Crypto> newCryptos) {

@@ -108,20 +108,15 @@ class SimplexAPI {
   }
 
   Future<BuyResponse<SimplexQuote>> getQuote(SimplexQuote quote) async {
-    // example for quote courtesy of @danrmiller
-    // curl -H "Content-Type: application/json" -d '{"digital_currency": "BTC", "fiat_currency": "USD", "requested_currency": "USD", "requested_amount": 100}' http://sandbox-api.stackwallet.com/quote
-    // official docs reference eg
-    // curl --request GET \
-    //      --url https://sandbox.test-simplexcc.com/v2/supported_crypto_currencies \
-    //      --header 'accept: application/json'
-
     try {
       Map<String, String> headers = {
         'Content-Type': 'application/json',
       };
       String data =
-          '{"digital_currency": "${quote.crypto.ticker.toUpperCase()}", "fiat_currency": "${quote.fiat.ticker.toUpperCase()}", "requested_currency": "USD", "requested_amount": ${quote.youPayFiatPrice}}';
-      Uri url = Uri.parse('http://sandbox-api.stackwallet.com/quote');
+          '{"CRYPTO_TICKER": "${quote.crypto.ticker.toUpperCase()}", "FIAT_TICKER": "${quote.fiat.ticker.toUpperCase()}", "REQUESTED_TICKER": "${quote.buyWithFiat ? quote.fiat.ticker.toUpperCase() : quote.crypto.ticker.toUpperCase()}", "REQUESTED_AMOUNT": ${quote.buyWithFiat ? quote.youPayFiatPrice : quote.youReceiveCryptoAmount}}';
+      // TODO add USER_ID
+      Uri url = Uri.parse('http://localhost/api.php/quote');
+      // TODO update to stackwallet.com hosted API
 
       var res = await http.post(url, headers: headers, body: data);
 
@@ -147,17 +142,18 @@ class SimplexAPI {
 
   BuyResponse<SimplexQuote> _parseQuote(dynamic jsonArray) {
     try {
-      String fiatPrice = "${jsonArray['result']['fiat_money']['total_amount']}";
-      String cryptoAmount = "${jsonArray['result']['digital_money']['amount']}";
+      String cryptoAmount = "${jsonArray['digital_money']['amount']}";
 
       SimplexQuote quote = jsonArray['quote'] as SimplexQuote;
       final SimplexQuote _quote = SimplexQuote(
-          crypto: quote.crypto,
-          fiat: quote.fiat,
-          youPayFiatPrice: Decimal.parse(fiatPrice),
-          youReceiveCryptoAmount: Decimal.parse(cryptoAmount),
-          purchaseId: jsonArray['result']['quote_id'] as String,
-          receivingAddress: quote.receivingAddress);
+        crypto: quote.crypto,
+        fiat: quote.fiat,
+        youPayFiatPrice: quote.youPayFiatPrice,
+        youReceiveCryptoAmount: Decimal.parse(cryptoAmount),
+        purchaseId: jsonArray['quote_id'] as String,
+        receivingAddress: quote.receivingAddress,
+        buyWithFiat: quote.buyWithFiat,
+      );
 
       return BuyResponse(value: _quote);
     } catch (e, s) {
@@ -174,6 +170,7 @@ class SimplexAPI {
 
   void newOrder(SimplexQuote quote) async {
     try {
+      /*
       String version = "123"; // TODO pull from app version variable
       String app_end_user_id =
           "01e7a0b9-8dfc-4988-a28d-84a34e5f0a63"; // TODO generate per-user ID (pull from wallet?)
@@ -181,19 +178,17 @@ class SimplexAPI {
           "1994-11-05T08:15:30-05:00"; // TODO supply real signup timestamp (pull from wallet?)
       String referral_ip = "207.66.86.226"; // TODO update to API server IP
       String payment_id =
-          "daaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"; // TODO make unique and save
+          "faaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"; // TODO make unique and save
       String order_id = "789"; // TODO generate unique ID per order
       String referrer = "https://stackwallet.com/simplex"; // TODO update
-      String apiKey = "XXX";
-      String publicKey = "pk_test_XXX";
+      String apiKey =
+          "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwYXJ0bmVyIjoic3RhY2t3YWxsZXQiLCJpcCI6WyIxLjIuMy40Il0sInNhbmRib3giOnRydWV9.VRaNZKPlc8wtkHGn0XscbsHnBMweZrMEyl2P94GfH94";
+      String publicKey = "pk_test_7cce3f58-680d-420c-9888-f53d44763fe6";
 
       // Using simplex_api/order; doesn't work:
-      /*
-      Map<String, String> headers = {
-        'Content-Type': 'application/json'
-      };
+      Map<String, String> headers = {'Content-Type': 'application/json'};
       String data =
-          '{"account_details": {"app_end_user_id": "${app_end_user_id}"}, "transaction_details": {"payment_details": {"fiat_total_amount": {"currency": "${quote.fiat.ticker.toUpperCase()}", "amount": "${quote.youPayFiatPrice}"}, "requested_digital_amount": {"currency": "${quote.crypto.ticker.toUpperCase()}", "amount": "${quote.youReceiveCryptoAmount}"}, "destination_wallet": {"currency": "${quote.crypto.ticker.toUpperCase()}", "address": "${quote.receivingAddress}"}}';
+          '{"account_details": {"app_end_user_id": "${app_end_user_id}"}, "transaction_details": {"payment_details": {"fiat_total_amount": {"currency": "${quote.fiat.ticker.toUpperCase()}", "amount": "${quote.youPayFiatPrice}"}, "requested_digital_amount": {"currency": "${quote.crypto.ticker.toUpperCase()}", "amount": "${quote.youReceiveCryptoAmount}"}, "destination_wallet": {"currency": "${quote.crypto.ticker.toUpperCase()}", "address": "${quote.receivingAddress}", "validation": "bypass"}}';
       Uri url = Uri.parse('http://sandbox-api.stackwallet.com/order');
       var res = await http.post(url, headers: headers, body: data);
 
@@ -202,7 +197,7 @@ class SimplexAPI {
       }
       final jsonArray = jsonDecode(res.body);
       print(jsonArray);
-      */
+      /*
 
       // Calling Simplex's API manually:
       // curl --request POST \
@@ -229,7 +224,9 @@ class SimplexAPI {
       final jsonArray = jsonDecode(res.body);
       print(jsonArray);
       // TODO check if {is_key_required: true} (indicates success)
+      */*/
 
+      print('test');
       return;
     } catch (e, s) {
       Logging.instance.log("newOrder exception: $e\n$s", level: LogLevel.Error);

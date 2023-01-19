@@ -14,12 +14,14 @@ class SimplexQuote {
   late final String purchaseId;
   late final String receivingAddress;
 
-  SimplexQuote({
-    required this.crypto,
-    required this.fiat,
-    required this.youPayFiatPrice,
-    required this.youReceiveCryptoAmount,
-    required this.purchaseId,
-    required this.receivingAddress,
-  });
+  late final bool buyWithFiat;
+
+  SimplexQuote(
+      {required this.crypto,
+      required this.fiat,
+      required this.youPayFiatPrice,
+      required this.youReceiveCryptoAmount,
+      required this.purchaseId,
+      required this.receivingAddress,
+      required this.buyWithFiat});
 }
