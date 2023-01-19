@@ -49,7 +49,7 @@ class Transaction {
 
   late final bool isCancelled;
 
-  late final bool? isLelantus;
+  late bool? isLelantus;
 
   late final String? slateId;
 
