@@ -2864,7 +2864,14 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
             List<isar_models.Input>, isar_models.Address?>> txnsData = [];
 
     for (final value in data.values) {
-      final transactionAddress = value.item1!;
+      // allow possible null address on mints as we don't display address
+      // this should normally never be null anyways but old (dbVersion up to 4)
+      // migrated transactions may not have had an address (full rescan should
+      // fix this)
+      final transactionAddress =
+          value.item2.subType == isar_models.TransactionSubType.mint
+              ? value.item1
+              : value.item1!;
       final outs =
           value.item2.outputs.where((_) => true).toList(growable: false);
       final ins = value.item2.inputs.where((_) => true).toList(growable: false);
