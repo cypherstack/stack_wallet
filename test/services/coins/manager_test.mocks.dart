@@ -978,10 +978,10 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
         returnValueForMissingStub: _i10.Future<void>.value(),
       ) as _i10.Future<void>);
   @override
-  _i10.Future<void> isarInit(String? walletId) => (super.noSuchMethod(
+  _i10.Future<void> isarInit() => (super.noSuchMethod(
         Invocation.method(
           #isarInit,
-          [walletId],
+          [],
         ),
         returnValue: _i10.Future<void>.value(),
         returnValueForMissingStub: _i10.Future<void>.value(),

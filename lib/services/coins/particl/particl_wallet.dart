@@ -602,7 +602,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
         p2wpkhChangeAddressArray.add(address);
       }
 
-      await isarInit(walletId);
+      await isarInit();
 
       await db.putAddresses([
         ...p2wpkhReceiveAddressArray,
@@ -1101,7 +1101,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
     await _prefs.init();
-    await isarInit(walletId);
+    await isarInit();
   }
 
   // TODO make sure this copied implementation from bitcoin_wallet.dart applies for particl just as well--or import it
@@ -1364,7 +1364,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
       _generateAddressForChain(1, 0, DerivePathType.bip44),
     ]);
 
-    await isarInit(walletId);
+    await isarInit();
 
     await db.putAddresses(initialAddresses);
 

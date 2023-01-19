@@ -519,7 +519,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
         p2pkhChangeAddressArray.add(address);
       }
 
-      await isarInit(walletId);
+      await isarInit();
 
       await db.putAddresses([
         ...p2pkhReceiveAddressArray,
@@ -999,7 +999,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     }
 
     await _prefs.init();
-    await isarInit(walletId);
+    await isarInit();
   }
 
   // hack to add tx to txData before refresh completes
@@ -1234,7 +1234,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     final initialChangeAddressP2PKH =
         await _generateAddressForChain(1, 0, DerivePathType.bip44);
 
-    await isarInit(walletId);
+    await isarInit();
 
     await db.putAddresses([
       initialReceivingAddressP2PKH,

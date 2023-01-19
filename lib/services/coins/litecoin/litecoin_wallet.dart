@@ -677,7 +677,7 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
         p2wpkhChangeAddressArray.add(address);
       }
 
-      await isarInit(walletId);
+      await isarInit();
 
       await db.putAddresses([
         ...p2wpkhReceiveAddressArray,
@@ -1182,7 +1182,7 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
     await _prefs.init();
-    await isarInit(walletId);
+    await isarInit();
   }
 
   // hack to add tx to txData before refresh completes
@@ -1473,7 +1473,7 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       _generateAddressForChain(1, 0, DerivePathType.bip49),
     ]);
 
-    await isarInit(walletId);
+    await isarInit();
 
     await db.putAddresses(initialAddresses);
 

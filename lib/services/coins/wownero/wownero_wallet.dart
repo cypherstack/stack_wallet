@@ -293,7 +293,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     keysStorage = KeyService(_secureStorage);
 
     await _prefs.init();
-    await isarInit(walletId);
+    await isarInit();
 
     String? password;
     try {
@@ -397,7 +397,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     // Generate and add addresses to relevant arrays
     final initialReceivingAddress = await _generateAddressForChain(0, 0);
     // final initialChangeAddress = await _generateAddressForChain(1, 0);
-    await isarInit(walletId);
+    await isarInit();
 
     await db.putAddress(initialReceivingAddress);
 

@@ -1828,7 +1828,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
     await _prefs.init();
-    await isarInit(walletId);
+    await isarInit();
   }
 
   Future<bool> refreshIfThereIsNewData() async {
@@ -2099,7 +2099,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
     final initialReceivingAddress = await _generateAddressForChain(0, 0);
     final initialChangeAddress = await _generateAddressForChain(1, 0);
 
-    await isarInit(walletId);
+    await isarInit();
 
     await db.putAddresses([
       initialReceivingAddress,
@@ -4292,7 +4292,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
     Logging.instance
         .log("PROCESSORS ${Platform.numberOfProcessors}", level: LogLevel.Info);
     try {
-      await isarInit(walletId);
+      await isarInit();
 
       final latestSetId = await getLatestSetId();
       final setDataMap = getSetDataMap(latestSetId);

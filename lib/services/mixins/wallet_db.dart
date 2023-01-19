@@ -6,7 +6,7 @@ import 'package:tuple/tuple.dart';
 mixin WalletDB {
   MainDB get db => MainDB.instance;
 
-  Future<void> isarInit(String walletId) async {
+  Future<void> isarInit() async {
     await db.isarInit();
   }
 

@@ -1558,10 +1558,10 @@ class MockBitcoinWallet extends _i1.Mock implements _i21.BitcoinWallet {
         returnValueForMissingStub: _i17.Future<void>.value(),
       ) as _i17.Future<void>);
   @override
-  _i17.Future<void> isarInit(String? walletId) => (super.noSuchMethod(
+  _i17.Future<void> isarInit() => (super.noSuchMethod(
         Invocation.method(
           #isarInit,
-          [walletId],
+          [],
         ),
         returnValue: _i17.Future<void>.value(),
         returnValueForMissingStub: _i17.Future<void>.value(),

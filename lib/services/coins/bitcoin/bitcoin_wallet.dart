@@ -659,7 +659,7 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
         p2wpkhChangeAddressArray.add(address);
       }
 
-      await isarInit(walletId);
+      await isarInit();
 
       await db.putAddresses([
         ...p2wpkhReceiveAddressArray,
@@ -1164,7 +1164,7 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     }
 
     await _prefs.init();
-    await isarInit(walletId);
+    await isarInit();
   }
 
   // hack to add tx to txData before refresh completes

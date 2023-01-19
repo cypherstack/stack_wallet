@@ -969,7 +969,7 @@ class EpicCashWallet extends CoinServiceAPI
     Logging.instance.log("Opening existing ${coin.prettyName} wallet",
         level: LogLevel.Info);
 
-    await isarInit(walletId);
+    await isarInit();
     final config = await getRealConfig();
     final password = await _secureStore.read(key: '${_walletId}_password');
 
@@ -1039,7 +1039,7 @@ class EpicCashWallet extends CoinServiceAPI
     String stringConfig = await getConfig();
     String epicboxConfig = await getEpicBoxConfig();
 
-    await isarInit(walletId);
+    await isarInit();
 
     await _secureStore.write(
         key: '${_walletId}_mnemonic', value: mnemonicString);
@@ -1081,7 +1081,7 @@ class EpicCashWallet extends CoinServiceAPI
       epicUpdateChangeIndex(0),
     ]);
 
-    await isarInit(walletId);
+    await isarInit();
     final initialReceivingAddress = await _getReceivingAddressForIndex(0);
 
     await db.putAddress(initialReceivingAddress);
