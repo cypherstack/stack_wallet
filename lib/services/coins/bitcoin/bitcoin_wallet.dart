@@ -1320,6 +1320,9 @@ class BitcoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
         .getAddresses(walletId)
         .filter()
         .not()
+        .typeEqualTo(isar_models.AddressType.unknown)
+        .and()
+        .not()
         .typeEqualTo(isar_models.AddressType.nonWallet)
         .and()
         .group((q) => q
