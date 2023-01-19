@@ -11,7 +11,6 @@ import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
-import 'package:stackwallet/services/price.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -20,8 +19,7 @@ import 'dogecoin_history_sample_data.dart';
 import 'dogecoin_wallet_test.mocks.dart';
 import 'dogecoin_wallet_test_parameters.dart';
 
-@GenerateMocks(
-    [ElectrumX, CachedElectrumX, PriceAPI, TransactionNotificationTracker])
+@GenerateMocks([ElectrumX, CachedElectrumX, TransactionNotificationTracker])
 void main() {
   group("dogecoin constants", () {
     test("dogecoin minimum confirmations", () async {

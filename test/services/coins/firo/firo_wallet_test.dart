@@ -17,7 +17,6 @@ import 'package:stackwallet/models/lelantus_coin.dart';
 import 'package:stackwallet/models/lelantus_fee_data.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart' as old;
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
-import 'package:stackwallet/services/price.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -32,8 +31,7 @@ import 'sample_data/get_utxos_sample_data.dart';
 import 'sample_data/gethistory_samples.dart';
 import 'sample_data/transaction_data_samples.dart';
 
-@GenerateMocks(
-    [ElectrumX, CachedElectrumX, PriceAPI, TransactionNotificationTracker])
+@GenerateMocks([ElectrumX, CachedElectrumX, TransactionNotificationTracker])
 void main() {
   group("isolate functions", () {
     test("isolateDerive", () async {

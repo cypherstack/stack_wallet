@@ -8,7 +8,6 @@ import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/particl/particl_wallet.dart';
-import 'package:stackwallet/services/price.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -18,8 +17,7 @@ import 'particl_transaction_data_samples.dart';
 import 'particl_wallet_test.mocks.dart';
 import 'particl_wallet_test_parameters.dart';
 
-@GenerateMocks(
-    [ElectrumX, CachedElectrumX, PriceAPI, TransactionNotificationTracker])
+@GenerateMocks([ElectrumX, CachedElectrumX, TransactionNotificationTracker])
 void main() {
   group("particl constants", () {
     test("particl minimum confirmations", () async {

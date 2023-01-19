@@ -12,7 +12,6 @@ import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
-import 'package:stackwallet/services/price.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -22,8 +21,7 @@ import 'bitcoin_transaction_data_samples.dart';
 import 'bitcoin_wallet_test.mocks.dart';
 import 'bitcoin_wallet_test_parameters.dart';
 
-@GenerateMocks(
-    [ElectrumX, CachedElectrumX, PriceAPI, TransactionNotificationTracker])
+@GenerateMocks([ElectrumX, CachedElectrumX, TransactionNotificationTracker])
 void main() async {
   await Isar.initializeIsarCore(download: true);
 
