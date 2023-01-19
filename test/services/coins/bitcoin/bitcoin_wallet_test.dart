@@ -8,9 +8,9 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
-import 'package:stackwallet/models/paymint/utxo_model.dart';
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
 import 'package:stackwallet/services/price.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
@@ -611,18 +611,6 @@ void main() async {
       await setUpTestHive();
       if (!hiveAdaptersRegistered) {
         hiveAdaptersRegistered = true;
-
-        // Registering Transaction Model Adapters
-        Hive.registerAdapter(TransactionDataAdapter());
-        Hive.registerAdapter(TransactionChunkAdapter());
-        Hive.registerAdapter(TransactionAdapter());
-        Hive.registerAdapter(InputAdapter());
-        Hive.registerAdapter(OutputAdapter());
-
-        // Registering Utxo Model Adapters
-        Hive.registerAdapter(UtxoDataAdapter());
-        Hive.registerAdapter(UtxoObjectAdapter());
-        Hive.registerAdapter(StatusAdapter());
 
         final wallets = await Hive.openBox<dynamic>('wallets');
         await wallets.put('currentWalletName', testWalletName);
@@ -1295,50 +1283,48 @@ void main() async {
     //
     // });
     //
-    // test("get utxos fails", () async {
-    //   btc = BitcoinWallet(
-    //     walletId: testWalletId,
-    //     walletName: testWalletName,
-    //     coin: Coin.bitcoinTestNet,
-    //     client: client!,
-    //     cachedClient: cachedClient!,
-    //     tracker: tracker!,
-    //
-    //     secureStore: secureStore,
-    //   );
-    //   when(client?.ping()).thenAnswer((_) async => true);
-    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": <dynamic, dynamic>{},
-    //         "pruning": null,
-    //         "server_version": "Unit tests",
-    //         "protocol_min": "1.4",
-    //         "protocol_max": "1.4.2",
-    //         "genesis_hash": GENESIS_HASH_TESTNET,
-    //         "hash_function": "sha256",
-    //         "services": <dynamic>[]
-    //       });
-    //
-    //   when(client?.getBatchUTXOs(args: anyNamed("args")))
-    //       .thenThrow(Exception("some exception"));
-    //
-    //   await btc?.initializeWallet();
-    //   final utxoData = await btc?.utxoData;
-    //   expect(utxoData, isA<UtxoData>());
-    //   expect(utxoData.toString(),
-    //       r"{totalUserCurrency: $0.00, satoshiBalance: 0, bitcoinBalance: 0, unspentOutputArray: []}");
-    //
-    //   final outputs = await btc?.unspentOutputs;
-    //   expect(outputs, isA<List<UtxoObject>>());
-    //   expect(outputs?.length, 0);
-    //
-    //   verify(client?.ping()).called(1);
-    //   verify(client?.getServerFeatures()).called(1);
-    //   verify(client?.getBatchUTXOs(args: anyNamed("args"))).called(1);
-    //
-    //   verifyNoMoreInteractions(client);
-    //   verifyNoMoreInteractions(cachedClient);
-    //
-    // });
+    test("get utxos fails", () async {
+      btc = BitcoinWallet(
+        walletId: testWalletId,
+        walletName: testWalletName,
+        coin: Coin.bitcoinTestNet,
+        client: client!,
+        cachedClient: cachedClient!,
+        tracker: tracker!,
+        secureStore: secureStore,
+      );
+      when(client?.ping()).thenAnswer((_) async => true);
+      when(client?.getServerFeatures()).thenAnswer((_) async => {
+            "hosts": <dynamic, dynamic>{},
+            "pruning": null,
+            "server_version": "Unit tests",
+            "protocol_min": "1.4",
+            "protocol_max": "1.4.2",
+            "genesis_hash": GENESIS_HASH_TESTNET,
+            "hash_function": "sha256",
+            "services": <dynamic>[]
+          });
+
+      await Hive.openBox<dynamic>(testWalletId);
+      await Hive.openBox<dynamic>(DB.boxNamePrefs);
+
+      when(client?.getBatchUTXOs(args: anyNamed("args")))
+          .thenThrow(Exception("some exception"));
+
+      await btc?.initializeNew();
+      await btc?.initializeExisting();
+
+      final outputs = await btc!.utxos;
+      expect(outputs, isA<List<UTXO>>());
+      expect(outputs.length, 0);
+
+      verify(client?.ping()).called(1);
+      verify(client?.getServerFeatures()).called(1);
+      verify(client?.getBatchUTXOs(args: anyNamed("args"))).called(1);
+
+      verifyNoMoreInteractions(client);
+      verifyNoMoreInteractions(cachedClient);
+    });
     //
     // test("chain height fetch, update, and get", () async {
     //   btc = BitcoinWallet(

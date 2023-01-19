@@ -1,5 +1,3 @@
-// import 'dart:typed_data';
-
 import 'package:bitcoindart/bitcoindart.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,9 +8,8 @@ import 'package:mockito/mockito.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
-import 'package:stackwallet/models/paymint/utxo_model.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/price.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
@@ -472,18 +469,6 @@ void main() {
       await setUpTestHive();
       if (!hiveAdaptersRegistered) {
         hiveAdaptersRegistered = true;
-
-        // Registering Transaction Model Adapters
-        Hive.registerAdapter(TransactionDataAdapter());
-        Hive.registerAdapter(TransactionChunkAdapter());
-        Hive.registerAdapter(TransactionAdapter());
-        Hive.registerAdapter(InputAdapter());
-        Hive.registerAdapter(OutputAdapter());
-
-        // Registering Utxo Model Adapters
-        Hive.registerAdapter(UtxoDataAdapter());
-        Hive.registerAdapter(UtxoObjectAdapter());
-        Hive.registerAdapter(StatusAdapter());
 
         final wallets = await Hive.openBox<dynamic>('wallets');
         await wallets.put('currentWalletName', testWalletName);
@@ -1064,14 +1049,9 @@ void main() {
       await doge?.initializeNew();
       await doge?.initializeExisting();
 
-      final utxoData = await doge?.utxoData;
-      expect(utxoData, isA<UtxoData>());
-      expect(utxoData.toString(),
-          r"{totalUserCurrency: 0.00, satoshiBalance: 0, bitcoinBalance: 0, unspentOutputArray: []}");
-
-      final outputs = await doge?.unspentOutputs;
-      expect(outputs, isA<List<UtxoObject>>());
-      expect(outputs?.length, 0);
+      final outputs = await doge!.utxos;
+      expect(outputs, isA<List<UTXO>>());
+      expect(outputs.length, 0);
 
       verifyNever(client?.ping()).called(0);
       verify(client?.getServerFeatures()).called(1);

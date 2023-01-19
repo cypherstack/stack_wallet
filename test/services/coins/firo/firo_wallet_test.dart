@@ -11,7 +11,11 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
-import 'package:stackwallet/models/models.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
+import 'package:stackwallet/models/lelantus_coin.dart';
+import 'package:stackwallet/models/lelantus_fee_data.dart';
+import 'package:stackwallet/models/paymint/transactions_model.dart' as old;
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/price.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
@@ -41,7 +45,7 @@ void main() {
 
     test("isolateRestore success", () async {
       final cachedClient = MockCachedElectrumX();
-      final txData = TransactionData.fromJson(dateTimeChunksJson);
+      final txDataOLD = old.TransactionData.fromJson(dateTimeChunksJson);
       final Map<dynamic, dynamic> setData = {};
       setData[1] = GetAnonymitySetSampleData.data;
       final usedSerials = GetUsedSerialsSampleData.serials["serials"] as List;
@@ -74,6 +78,34 @@ void main() {
         firoNetwork,
       );
       const currentHeight = 100000000000;
+
+      final txData = txDataOLD
+          .getAllTransactions()
+          .values
+          .map(
+            (t) => Transaction(
+              walletId: "walletId",
+              txid: t.txid,
+              timestamp: t.timestamp,
+              type: t.txType == "Sent"
+                  ? TransactionType.outgoing
+                  : TransactionType.incoming,
+              subType: t.subType == "mint"
+                  ? TransactionSubType.mint
+                  : t.subType == "join"
+                      ? TransactionSubType.join
+                      : TransactionSubType.none,
+              amount: t.amount,
+              fee: t.fees,
+              height: t.height,
+              isCancelled: t.isCancelled,
+              isLelantus: null,
+              slateId: t.slateId,
+              otherData: t.otherData,
+            ),
+          )
+          .toList();
+
       final result = await staticProcessRestore(txData, message, currentHeight);
 
       expect(result, isA<Map<String, dynamic>>());
@@ -511,18 +543,6 @@ void main() {
 
       if (!hiveAdaptersRegistered) {
         hiveAdaptersRegistered = true;
-
-        // Registering Transaction Model Adapters
-        Hive.registerAdapter(TransactionDataAdapter());
-        Hive.registerAdapter(TransactionChunkAdapter());
-        Hive.registerAdapter(TransactionAdapter());
-        Hive.registerAdapter(InputAdapter());
-        Hive.registerAdapter(OutputAdapter());
-
-        // Registering Utxo Model Adapters
-        Hive.registerAdapter(UtxoDataAdapter());
-        Hive.registerAdapter(UtxoObjectAdapter());
-        Hive.registerAdapter(StatusAdapter());
 
         // Registering Lelantus Model Adapters
         Hive.registerAdapter(LelantusCoinAdapter());
@@ -1181,21 +1201,19 @@ void main() {
       const MethodChannel('uk.spiralarm.flutter/devicelocale')
           .setMockMethodCallHandler((methodCall) async => 'en_US');
 
-      List<UtxoObject> utxos = [
-        UtxoObject(
+      List<UTXO> utxos = [
+        UTXO(
           txid: BuildMintTxTestParams.utxoInfo["txid"] as String,
           vout: BuildMintTxTestParams.utxoInfo["vout"] as int,
           value: BuildMintTxTestParams.utxoInfo["value"] as int,
-          txName: '',
-          status: Status(
-              confirmed: false,
-              blockHash: "",
-              blockHeight: -1,
-              blockTime: 42,
-              confirmations: 0),
           isCoinbase: false,
-          blocked: false,
-          fiatWorth: '',
+          walletId: '',
+          name: '',
+          isBlocked: false,
+          blockedReason: '',
+          blockHash: '',
+          blockHeight: -1,
+          blockTime: 42,
         )
       ];
       const sats = 9658;
@@ -3023,7 +3041,7 @@ void main() {
       expect(firo.balance.getTotal(), Decimal.parse("0.00021594"));
     });
 
-    test("get transactionData", () async {
+    test("get transactions", () async {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
@@ -3118,9 +3136,9 @@ void main() {
           'receivingAddresses', RefreshTestParams.receivingAddresses);
       await wallet.put('changeAddresses', RefreshTestParams.changeAddresses);
 
-      final txData = await firo.transactionData;
+      final txData = await firo.transactions;
 
-      expect(txData, isA<TransactionData>());
+      expect(txData, isA<List<Transaction>>());
 
       // kill timer and listener
       await firo.exit();

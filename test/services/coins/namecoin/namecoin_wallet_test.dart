@@ -8,8 +8,6 @@ import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
-import 'package:stackwallet/models/paymint/utxo_model.dart';
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:stackwallet/services/price.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
@@ -18,7 +16,6 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 
 import 'namecoin_history_sample_data.dart';
 import 'namecoin_transaction_data_samples.dart';
-import 'namecoin_utxo_sample_data.dart';
 import 'namecoin_wallet_test.mocks.dart';
 import 'namecoin_wallet_test_parameters.dart';
 
@@ -441,18 +438,6 @@ void main() {
       await setUpTestHive();
       if (!hiveAdaptersRegistered) {
         hiveAdaptersRegistered = true;
-
-        // Registering Transaction Model Adapters
-        Hive.registerAdapter(TransactionDataAdapter());
-        Hive.registerAdapter(TransactionChunkAdapter());
-        Hive.registerAdapter(TransactionAdapter());
-        Hive.registerAdapter(InputAdapter());
-        Hive.registerAdapter(OutputAdapter());
-
-        // Registering Utxo Model Adapters
-        Hive.registerAdapter(UtxoDataAdapter());
-        Hive.registerAdapter(UtxoObjectAdapter());
-        Hive.registerAdapter(StatusAdapter());
 
         final wallets = await Hive.openBox<dynamic>('wallets');
         await wallets.put('currentWalletName', testWalletName);
@@ -1354,7 +1339,7 @@ void main() {
               "bc1qggtj4ka8jsaj44hhd5mpamx7mp34m2d3w7k0m0",
               "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc"));
 
-      nmc?.outputsList = utxoList;
+      // nmc?.outputsList = utxoList;
 
       bool didThrow = false;
       try {
