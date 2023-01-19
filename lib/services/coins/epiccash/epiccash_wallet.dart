@@ -947,6 +947,7 @@ class EpicCashWallet extends CoinServiceAPI
         );
         return;
       }
+      await refresh();
       GlobalEventBus.instance.fire(
         WalletSyncStatusChangedEvent(
           WalletSyncStatus.synced,
@@ -2113,6 +2114,17 @@ class EpicCashWallet extends CoinServiceAPI
     }
 
     await addNewTransactionData(txnsData, walletId);
+
+    // quick hack to notify manager to call notifyListeners if
+    // transactions changed
+    if (txnsData.isNotEmpty) {
+      GlobalEventBus.instance.fire(
+        UpdatedInBackgroundEvent(
+          "Transactions updated/added for: $walletId $walletName  ",
+          walletId,
+        ),
+      );
+    }
 
     // midSortedArray
     //     .sort((a, b) => (b["timestamp"] as int) - (a["timestamp"] as int));

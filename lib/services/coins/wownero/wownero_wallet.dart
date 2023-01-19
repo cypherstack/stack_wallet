@@ -244,6 +244,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     var restoreHeight = walletBase?.walletInfo.restoreHeight;
     highestPercentCached = 0;
     await walletBase?.rescan(height: restoreHeight);
+    await refresh();
   }
 
   @override
@@ -977,6 +978,17 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     }
 
     await addNewTransactionData(txnsData, walletId);
+
+    // quick hack to notify manager to call notifyListeners if
+    // transactions changed
+    if (txnsData.isNotEmpty) {
+      GlobalEventBus.instance.fire(
+        UpdatedInBackgroundEvent(
+          "Transactions updated/added for: $walletId $walletName  ",
+          walletId,
+        ),
+      );
+    }
   }
 
   Future<String> _pathForWalletDir({

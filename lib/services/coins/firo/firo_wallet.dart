@@ -3567,6 +3567,17 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
     }
 
     await addNewTransactionData(txnsData, walletId);
+
+    // quick hack to notify manager to call notifyListeners if
+    // transactions changed
+    if (txnsData.isNotEmpty) {
+      GlobalEventBus.instance.fire(
+        UpdatedInBackgroundEvent(
+          "Transactions updated/added for: $walletId $walletName  ",
+          walletId,
+        ),
+      );
+    }
   }
 
   Future<void> _refreshUTXOs() async {
@@ -3886,6 +3897,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       await _recoverWalletFromBIP32SeedPhrase(mnemonic!, maxUnusedAddressGap);
 
       longMutex = false;
+      await refresh();
       Logging.instance.log("Full rescan complete!", level: LogLevel.Info);
       GlobalEventBus.instance.fire(
         WalletSyncStatusChangedEvent(

@@ -1936,6 +1936,17 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     }
 
     await addNewTransactionData(txns, walletId);
+
+    // quick hack to notify manager to call notifyListeners if
+    // transactions changed
+    if (txns.isNotEmpty) {
+      GlobalEventBus.instance.fire(
+        UpdatedInBackgroundEvent(
+          "Transactions updated/added for: $walletId $walletName  ",
+          walletId,
+        ),
+      );
+    }
   }
 
   int estimateTxFee({required int vSize, required int feeRatePerKB}) {
@@ -2484,6 +2495,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       );
 
       longMutex = false;
+      await refresh();
       Logging.instance.log("Full rescan complete!", level: LogLevel.Info);
       GlobalEventBus.instance.fire(
         WalletSyncStatusChangedEvent(
