@@ -111,7 +111,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       await _loadSimplexCurrencies();
       shouldPop = true;
       if (mounted) {
-        Navigator.of(context).pop();
+        Navigator.of(context, rootNavigator: isDesktop).pop();
       }
     }
 
@@ -215,7 +215,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       await _loadSimplexCurrencies();
       shouldPop = true;
       if (mounted) {
-        Navigator.of(context).pop();
+        Navigator.of(context, rootNavigator: isDesktop).pop();
       }
     }
 
@@ -366,7 +366,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     await _loadQuote(quote);
     shouldPop = true;
     if (mounted) {
-      Navigator.of(context).pop();
+      Navigator.of(context, rootNavigator: isDesktop).pop();
     }
     // }
 
