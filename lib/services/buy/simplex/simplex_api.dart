@@ -150,7 +150,7 @@ class SimplexAPI {
         fiat: quote.fiat,
         youPayFiatPrice: quote.youPayFiatPrice,
         youReceiveCryptoAmount: Decimal.parse(cryptoAmount),
-        purchaseId: jsonArray['quote_id'] as String,
+        id: jsonArray['quote_id'] as String,
         receivingAddress: quote.receivingAddress,
         buyWithFiat: quote.buyWithFiat,
       );

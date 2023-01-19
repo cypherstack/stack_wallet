@@ -11,7 +11,7 @@ class SimplexQuote {
   late final Decimal youPayFiatPrice;
   late final Decimal youReceiveCryptoAmount;
 
-  late final String purchaseId;
+  late final String id;
   late final String receivingAddress;
 
   late final bool buyWithFiat;
@@ -21,7 +21,7 @@ class SimplexQuote {
       required this.fiat,
       required this.youPayFiatPrice,
       required this.youReceiveCryptoAmount,
-      required this.purchaseId,
+      required this.id,
       required this.receivingAddress,
       required this.buyWithFiat});
 }

@@ -13,7 +13,7 @@ class Simplex {
         {'ticker': 'USD', 'name': 'United States Dollar', 'image': ''}),
     youPayFiatPrice: Decimal.parse("100"),
     youReceiveCryptoAmount: Decimal.parse("1.0238917"),
-    purchaseId: "someID",
+    id: "someID",
     receivingAddress: '',
     buyWithFiat: true,
   );

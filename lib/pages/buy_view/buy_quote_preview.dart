@@ -162,7 +162,7 @@ class _BuyQuotePreviewViewState extends State<BuyQuotePreviewView> {
                   style: STextStyles.label(context),
                 ),
                 Text(
-                  widget.quote.purchaseId,
+                  widget.quote.id,
                   style: STextStyles.label(context).copyWith(
                     color: Theme.of(context).extension<StackColors>()!.textDark,
                   ),

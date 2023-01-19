@@ -79,7 +79,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
         {'ticker': 'USD', 'name': 'United States Dollar', 'image': ''}),
     youPayFiatPrice: Decimal.parse("100"),
     youReceiveCryptoAmount: Decimal.parse("1.0238917"),
-    purchaseId: "someID",
+    id: "someID",
     receivingAddress: '',
     buyWithFiat: true,
   ); // TODO enum this or something
@@ -333,7 +333,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   }
 
   Future<void> previewQuote(SimplexQuote quote) async {
-    // if (ref.read(simplexProvider).quote.purchaseId == "someID") {
+    // if (ref.read(simplexProvider).quote.id == "someID") {
     //   // TODO make a better way of detecting a default SimplexQuote
     bool shouldPop = false;
     unawaited(
@@ -358,7 +358,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       youReceiveCryptoAmount: buyWithFiat
           ? Decimal.parse("0.000420282") // dummy value
           : Decimal.parse(_buyAmountController.text), // Ternary for this
-      purchaseId: "purchaseId", // anything; we get an ID back
+      id: "id", // anything; we get an ID back
       receivingAddress: _receiveAddressController.text,
       buyWithFiat: buyWithFiat,
     );
@@ -485,7 +485,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
           {'ticker': 'USD', 'name': 'United States Dollar', 'image': ''}),
       youPayFiatPrice: Decimal.parse("100"),
       youReceiveCryptoAmount: Decimal.parse("1.0238917"),
-      purchaseId: "someID",
+      id: "someID",
       receivingAddress: '',
       buyWithFiat: true,
     ); // TODO enum this or something
