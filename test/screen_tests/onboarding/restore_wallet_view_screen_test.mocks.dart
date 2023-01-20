@@ -7,13 +7,14 @@ import 'dart:async' as _i8;
 import 'dart:ui' as _i11;
 
 import 'package:barcode_scan2/barcode_scan2.dart' as _i2;
-import 'package:decimal/decimal.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
+import 'package:stackwallet/models/balance.dart' as _i5;
+import 'package:stackwallet/models/isar/models/isar_models.dart' as _i13;
 import 'package:stackwallet/models/models.dart' as _i4;
-import 'package:stackwallet/models/node_model.dart' as _i14;
+import 'package:stackwallet/models/node_model.dart' as _i15;
 import 'package:stackwallet/services/coins/coin_service.dart' as _i3;
 import 'package:stackwallet/services/coins/manager.dart' as _i12;
-import 'package:stackwallet/services/node_service.dart' as _i13;
+import 'package:stackwallet/services/node_service.dart' as _i14;
 import 'package:stackwallet/services/wallets_service.dart' as _i9;
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart' as _i7;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i10;
@@ -62,8 +63,8 @@ class _FakeFeeObject_2 extends _i1.SmartFake implements _i4.FeeObject {
         );
 }
 
-class _FakeDecimal_3 extends _i1.SmartFake implements _i5.Decimal {
-  _FakeDecimal_3(
+class _FakeBalance_3 extends _i1.SmartFake implements _i5.Balance {
+  _FakeBalance_3(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -72,20 +73,9 @@ class _FakeDecimal_3 extends _i1.SmartFake implements _i5.Decimal {
         );
 }
 
-class _FakeTransactionData_4 extends _i1.SmartFake
-    implements _i4.TransactionData {
-  _FakeTransactionData_4(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
-class _FakeSecureStorageInterface_5 extends _i1.SmartFake
+class _FakeSecureStorageInterface_4 extends _i1.SmartFake
     implements _i6.SecureStorageInterface {
-  _FakeSecureStorageInterface_5(
+  _FakeSecureStorageInterface_4(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -430,72 +420,24 @@ class MockManager extends _i1.Mock implements _i12.Manager {
         returnValue: _i8.Future<String>.value(''),
       ) as _i8.Future<String>);
   @override
-  _i8.Future<_i5.Decimal> get availableBalance => (super.noSuchMethod(
-        Invocation.getter(#availableBalance),
-        returnValue: _i8.Future<_i5.Decimal>.value(_FakeDecimal_3(
+  _i5.Balance get balance => (super.noSuchMethod(
+        Invocation.getter(#balance),
+        returnValue: _FakeBalance_3(
           this,
-          Invocation.getter(#availableBalance),
-        )),
-      ) as _i8.Future<_i5.Decimal>);
-  @override
-  _i5.Decimal get cachedAvailableBalance => (super.noSuchMethod(
-        Invocation.getter(#cachedAvailableBalance),
-        returnValue: _FakeDecimal_3(
-          this,
-          Invocation.getter(#cachedAvailableBalance),
+          Invocation.getter(#balance),
         ),
-      ) as _i5.Decimal);
+      ) as _i5.Balance);
   @override
-  _i8.Future<_i5.Decimal> get pendingBalance => (super.noSuchMethod(
-        Invocation.getter(#pendingBalance),
-        returnValue: _i8.Future<_i5.Decimal>.value(_FakeDecimal_3(
-          this,
-          Invocation.getter(#pendingBalance),
-        )),
-      ) as _i8.Future<_i5.Decimal>);
-  @override
-  _i8.Future<_i5.Decimal> get balanceMinusMaxFee => (super.noSuchMethod(
-        Invocation.getter(#balanceMinusMaxFee),
-        returnValue: _i8.Future<_i5.Decimal>.value(_FakeDecimal_3(
-          this,
-          Invocation.getter(#balanceMinusMaxFee),
-        )),
-      ) as _i8.Future<_i5.Decimal>);
-  @override
-  _i8.Future<_i5.Decimal> get totalBalance => (super.noSuchMethod(
-        Invocation.getter(#totalBalance),
-        returnValue: _i8.Future<_i5.Decimal>.value(_FakeDecimal_3(
-          this,
-          Invocation.getter(#totalBalance),
-        )),
-      ) as _i8.Future<_i5.Decimal>);
-  @override
-  _i5.Decimal get cachedTotalBalance => (super.noSuchMethod(
-        Invocation.getter(#cachedTotalBalance),
-        returnValue: _FakeDecimal_3(
-          this,
-          Invocation.getter(#cachedTotalBalance),
-        ),
-      ) as _i5.Decimal);
-  @override
-  _i8.Future<List<String>> get allOwnAddresses => (super.noSuchMethod(
-        Invocation.getter(#allOwnAddresses),
-        returnValue: _i8.Future<List<String>>.value(<String>[]),
-      ) as _i8.Future<List<String>>);
-  @override
-  _i8.Future<_i4.TransactionData> get transactionData => (super.noSuchMethod(
-        Invocation.getter(#transactionData),
+  _i8.Future<List<_i13.Transaction>> get transactions => (super.noSuchMethod(
+        Invocation.getter(#transactions),
         returnValue:
-            _i8.Future<_i4.TransactionData>.value(_FakeTransactionData_4(
-          this,
-          Invocation.getter(#transactionData),
-        )),
-      ) as _i8.Future<_i4.TransactionData>);
+            _i8.Future<List<_i13.Transaction>>.value(<_i13.Transaction>[]),
+      ) as _i8.Future<List<_i13.Transaction>>);
   @override
-  _i8.Future<List<_i4.UtxoObject>> get unspentOutputs => (super.noSuchMethod(
-        Invocation.getter(#unspentOutputs),
-        returnValue: _i8.Future<List<_i4.UtxoObject>>.value(<_i4.UtxoObject>[]),
-      ) as _i8.Future<List<_i4.UtxoObject>>);
+  _i8.Future<List<_i13.UTXO>> get utxos => (super.noSuchMethod(
+        Invocation.getter(#utxos),
+        returnValue: _i8.Future<List<_i13.UTXO>>.value(<_i13.UTXO>[]),
+      ) as _i8.Future<List<_i13.UTXO>>);
   @override
   set walletName(String? newName) => super.noSuchMethod(
         Invocation.setter(
@@ -524,6 +466,11 @@ class MockManager extends _i1.Mock implements _i12.Manager {
         Invocation.getter(#isConnected),
         returnValue: false,
       ) as bool);
+  @override
+  int get currentHeight => (super.noSuchMethod(
+        Invocation.getter(#currentHeight),
+        returnValue: 0,
+      ) as int);
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
@@ -572,24 +519,6 @@ class MockManager extends _i1.Mock implements _i12.Manager {
           #confirmSend,
           [],
           {#txData: txData},
-        ),
-        returnValue: _i8.Future<String>.value(''),
-      ) as _i8.Future<String>);
-  @override
-  _i8.Future<String> send({
-    required String? toAddress,
-    required int? amount,
-    Map<String, String>? args = const {},
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #send,
-          [],
-          {
-            #toAddress: toAddress,
-            #amount: amount,
-            #args: args,
-          },
         ),
         returnValue: _i8.Future<String>.value(''),
       ) as _i8.Future<String>);
@@ -683,14 +612,6 @@ class MockManager extends _i1.Mock implements _i12.Manager {
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
   @override
-  _i8.Future<bool> isOwnAddress(String? address) => (super.noSuchMethod(
-        Invocation.method(
-          #isOwnAddress,
-          [address],
-        ),
-        returnValue: _i8.Future<bool>.value(false),
-      ) as _i8.Future<bool>);
-  @override
   _i8.Future<int> estimateFeeFor(
     int? satoshiAmount,
     int? feeRate,
@@ -742,25 +663,25 @@ class MockManager extends _i1.Mock implements _i12.Manager {
 /// A class which mocks [NodeService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockNodeService extends _i1.Mock implements _i13.NodeService {
+class MockNodeService extends _i1.Mock implements _i14.NodeService {
   @override
   _i6.SecureStorageInterface get secureStorageInterface => (super.noSuchMethod(
         Invocation.getter(#secureStorageInterface),
-        returnValue: _FakeSecureStorageInterface_5(
+        returnValue: _FakeSecureStorageInterface_4(
           this,
           Invocation.getter(#secureStorageInterface),
         ),
       ) as _i6.SecureStorageInterface);
   @override
-  List<_i14.NodeModel> get primaryNodes => (super.noSuchMethod(
+  List<_i15.NodeModel> get primaryNodes => (super.noSuchMethod(
         Invocation.getter(#primaryNodes),
-        returnValue: <_i14.NodeModel>[],
-      ) as List<_i14.NodeModel>);
+        returnValue: <_i15.NodeModel>[],
+      ) as List<_i15.NodeModel>);
   @override
-  List<_i14.NodeModel> get nodes => (super.noSuchMethod(
+  List<_i15.NodeModel> get nodes => (super.noSuchMethod(
         Invocation.getter(#nodes),
-        returnValue: <_i14.NodeModel>[],
-      ) as List<_i14.NodeModel>);
+        returnValue: <_i15.NodeModel>[],
+      ) as List<_i15.NodeModel>);
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
@@ -778,7 +699,7 @@ class MockNodeService extends _i1.Mock implements _i13.NodeService {
   @override
   _i8.Future<void> setPrimaryNodeFor({
     required _i10.Coin? coin,
-    required _i14.NodeModel? node,
+    required _i15.NodeModel? node,
     bool? shouldNotifyListeners = false,
   }) =>
       (super.noSuchMethod(
@@ -795,40 +716,40 @@ class MockNodeService extends _i1.Mock implements _i13.NodeService {
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
   @override
-  _i14.NodeModel? getPrimaryNodeFor({required _i10.Coin? coin}) =>
+  _i15.NodeModel? getPrimaryNodeFor({required _i10.Coin? coin}) =>
       (super.noSuchMethod(Invocation.method(
         #getPrimaryNodeFor,
         [],
         {#coin: coin},
-      )) as _i14.NodeModel?);
+      )) as _i15.NodeModel?);
   @override
-  List<_i14.NodeModel> getNodesFor(_i10.Coin? coin) => (super.noSuchMethod(
+  List<_i15.NodeModel> getNodesFor(_i10.Coin? coin) => (super.noSuchMethod(
         Invocation.method(
           #getNodesFor,
           [coin],
         ),
-        returnValue: <_i14.NodeModel>[],
-      ) as List<_i14.NodeModel>);
+        returnValue: <_i15.NodeModel>[],
+      ) as List<_i15.NodeModel>);
   @override
-  _i14.NodeModel? getNodeById({required String? id}) =>
+  _i15.NodeModel? getNodeById({required String? id}) =>
       (super.noSuchMethod(Invocation.method(
         #getNodeById,
         [],
         {#id: id},
-      )) as _i14.NodeModel?);
+      )) as _i15.NodeModel?);
   @override
-  List<_i14.NodeModel> failoverNodesFor({required _i10.Coin? coin}) =>
+  List<_i15.NodeModel> failoverNodesFor({required _i10.Coin? coin}) =>
       (super.noSuchMethod(
         Invocation.method(
           #failoverNodesFor,
           [],
           {#coin: coin},
         ),
-        returnValue: <_i14.NodeModel>[],
-      ) as List<_i14.NodeModel>);
+        returnValue: <_i15.NodeModel>[],
+      ) as List<_i15.NodeModel>);
   @override
   _i8.Future<void> add(
-    _i14.NodeModel? node,
+    _i15.NodeModel? node,
     String? password,
     bool? shouldNotifyListeners,
   ) =>
@@ -880,7 +801,7 @@ class MockNodeService extends _i1.Mock implements _i13.NodeService {
       ) as _i8.Future<void>);
   @override
   _i8.Future<void> edit(
-    _i14.NodeModel? editedNode,
+    _i15.NodeModel? editedNode,
     String? password,
     bool? shouldNotifyListeners,
   ) =>

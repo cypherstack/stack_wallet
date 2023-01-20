@@ -17,6 +17,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+
 import 'send_view_test.mocks.dart';
 
 @GenerateMocks([
@@ -84,6 +85,8 @@ void main() {
       ),
     );
 
+    await widgetTester.pumpAndSettle();
+
     expect(find.text("Send to"), findsOneWidget);
     expect(find.text("Amount"), findsOneWidget);
     expect(find.text("Note (optional)"), findsOneWidget);
@@ -146,6 +149,8 @@ void main() {
         ),
       ),
     );
+
+    await widgetTester.pumpAndSettle();
 
     expect(find.text("Send to"), findsOneWidget);
     expect(find.text("Amount"), findsOneWidget);

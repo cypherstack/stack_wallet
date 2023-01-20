@@ -2,9 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
+import 'package:stackwallet/providers/blockchain/dogecoin/current_height_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/route_generator.dart';
@@ -37,18 +38,9 @@ class TransactionsList extends ConsumerStatefulWidget {
 class _TransactionsListState extends ConsumerState<TransactionsList> {
   //
   bool _hasLoaded = false;
-  Map<String, Transaction> _transactions = {};
+  List<Transaction> _transactions2 = [];
 
   late final ChangeNotifierProvider<Manager> managerProvider;
-
-  void updateTransactions(TransactionData newData) {
-    _transactions = {};
-    final newTransactions =
-        newData.txChunks.expand((element) => element.transactions);
-    for (final tx in newTransactions) {
-      _transactions[tx.txid] = tx;
-    }
-  }
 
   BorderRadius get _borderRadiusFirst {
     return BorderRadius.only(
@@ -73,12 +65,15 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
   }
 
   Widget itemBuilder(
-      BuildContext context, Transaction tx, BorderRadius? radius) {
+    BuildContext context,
+    Transaction tx,
+    BorderRadius? radius,
+  ) {
     final matchingTrades = ref
         .read(tradesServiceProvider)
         .trades
         .where((e) => e.payInTxid == tx.txid || e.payOutTxid == tx.txid);
-    if (tx.txType == "Sent" && matchingTrades.isNotEmpty) {
+    if (tx.type == TransactionType.outgoing && matchingTrades.isNotEmpty) {
       final trade = matchingTrades.first;
       return Container(
         decoration: BoxDecoration(
@@ -90,13 +85,16 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
           children: [
             TransactionCard(
               // this may mess with combined firo transactions
-              key: Key(tx.toString()), //
+              key: Key(tx.txid + tx.type.name + tx.address.value.toString()), //
               transaction: tx,
               walletId: widget.walletId,
             ),
             TradeCard(
               // this may mess with combined firo transactions
-              key: Key(tx.toString() + trade.uuid), //
+              key: Key(tx.txid +
+                  tx.type.name +
+                  tx.address.value.toString() +
+                  trade.uuid), //
               trade: trade,
               onTap: () async {
                 if (Util.isDesktop) {
@@ -182,12 +180,19 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
         ),
         child: TransactionCard(
           // this may mess with combined firo transactions
-          key: Key(tx.toString()), //
+          key: Key(tx.txid + tx.type.name + tx.address.value.toString()), //
           transaction: tx,
           walletId: widget.walletId,
         ),
       );
     }
+  }
+
+  void updateHeightProvider(Manager manager) {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      ref.read(currentHeightProvider(manager.coin).state).state =
+          manager.currentHeight;
+    });
   }
 
   @override
@@ -202,13 +207,16 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
     //     .watch(walletsChangeNotifierProvider)
     //     .getManagerProvider(widget.walletId);
 
+    final manager = ref.watch(walletsChangeNotifierProvider
+        .select((value) => value.getManager(widget.walletId)));
+
+    updateHeightProvider(manager);
     return FutureBuilder(
-      future:
-          ref.watch(managerProvider.select((value) => value.transactionData)),
-      builder: (fbContext, AsyncSnapshot<TransactionData> snapshot) {
+      future: manager.transactions,
+      builder: (fbContext, AsyncSnapshot<List<Transaction>> snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             snapshot.hasData) {
-          updateTransactions(snapshot.data!);
+          _transactions2 = snapshot.data!;
           _hasLoaded = true;
         }
         if (!_hasLoaded) {
@@ -227,11 +235,10 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
             ],
           );
         }
-        if (_transactions.isEmpty) {
+        if (_transactions2.isEmpty) {
           return const NoTransActionsFound();
         } else {
-          final list = _transactions.values.toList(growable: false);
-          list.sort((a, b) => b.timestamp - a.timestamp);
+          _transactions2.sort((a, b) => b.timestamp - a.timestamp);
           return RefreshIndicator(
             onRefresh: () async {
               //todo: check if print needed
@@ -247,12 +254,16 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                 ? ListView.separated(
                     itemBuilder: (context, index) {
                       BorderRadius? radius;
-                      if (index == list.length - 1) {
+                      if (_transactions2.length == 1) {
+                        radius = BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        );
+                      } else if (index == _transactions2.length - 1) {
                         radius = _borderRadiusLast;
                       } else if (index == 0) {
                         radius = _borderRadiusFirst;
                       }
-                      final tx = list[index];
+                      final tx = _transactions2[index];
                       return itemBuilder(context, tx, radius);
                     },
                     separatorBuilder: (context, index) {
@@ -264,18 +275,22 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                             .background,
                       );
                     },
-                    itemCount: list.length,
+                    itemCount: _transactions2.length,
                   )
                 : ListView.builder(
-                    itemCount: list.length,
+                    itemCount: _transactions2.length,
                     itemBuilder: (context, index) {
                       BorderRadius? radius;
-                      if (index == list.length - 1) {
+                      if (_transactions2.length == 1) {
+                        radius = BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        );
+                      } else if (index == _transactions2.length - 1) {
                         radius = _borderRadiusLast;
                       } else if (index == 0) {
                         radius = _borderRadiusFirst;
                       }
-                      final tx = list[index];
+                      final tx = _transactions2[index];
                       return itemBuilder(context, tx, radius);
                     },
                   ),

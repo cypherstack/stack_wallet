@@ -74,8 +74,12 @@ void main() {
       ),
     );
 
+    await widgetTester.pumpAndSettle();
+
     expect(find.byType(MaterialButton), findsOneWidget);
     await widgetTester.tap(find.byType(MaterialButton));
+
+    await widgetTester.pumpAndSettle();
   });
 
   testWidgets('test widget loads correctly', (widgetTester) async {
@@ -113,6 +117,9 @@ void main() {
         ),
       ),
     );
+
+    await widgetTester.pumpAndSettle();
+
     expect(find.byWidget(walletSheetCard), findsOneWidget);
   });
 }

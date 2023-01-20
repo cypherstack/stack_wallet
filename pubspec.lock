@@ -96,6 +96,15 @@ packages:
       url: "https://github.com/cypherstack/stack-bip39.git"
     source: git
     version: "1.0.6"
+  bip47:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: testing
+      resolved-ref: "8ed2f6245c71a4457ed4ffdd3a74e4bcb9f9d2d0"
+      url: "https://github.com/cypherstack/bip47.git"
+    source: git
+    version: "1.0.0"
   bitbox:
     dependency: "direct main"
     description:
@@ -345,6 +354,27 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  dart_base_x:
+    dependency: transitive
+    description:
+      name: dart_base_x
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
+  dart_bs58:
+    dependency: transitive
+    description:
+      name: dart_bs58
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.1"
+  dart_bs58check:
+    dependency: transitive
+    description:
+      name: dart_bs58check
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.0.2"
   dart_numerics:
     dependency: "direct main"
     description:
@@ -780,21 +810,21 @@ packages:
       name: isar
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.0-dev.10"
+    version: "3.0.5"
   isar_flutter_libs:
     dependency: "direct main"
     description:
       name: isar_flutter_libs
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.0-dev.10"
+    version: "3.0.5"
   isar_generator:
     dependency: "direct dev"
     description:
       name: isar_generator
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.0-dev.10"
+    version: "3.0.5"
   js:
     dependency: transitive
     description:
@@ -1708,5 +1738,5 @@ packages:
     source: hosted
     version: "1.0.0"
 sdks:
-  dart: ">=2.17.5 <3.0.0"
+  dart: ">=2.18.5 <3.0.0"
   flutter: ">=3.0.1"

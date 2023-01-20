@@ -38,7 +38,7 @@ abstract class Constants {
   // Enable Logger.print statements
   static const bool disableLogger = false;
 
-  static const int currentHiveDbVersion = 4;
+  static const int currentHiveDbVersion = 5;
 
   static int satsPerCoin(Coin coin) {
     switch (coin) {
