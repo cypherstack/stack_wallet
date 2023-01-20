@@ -45,9 +45,16 @@ class BuyWarningPopup extends StatelessWidget {
         label: "Continue",
         onPressed: () async {
           BuyResponse<SimplexOrder> order = await newOrder(quote);
+          // BuyResponse<bool> response =
+          // await redirect(order.value as SimplexOrder);
+          // // TODO save order
+          // Navigator.of(context, rootNavigator: isDesktop).pop;
           BuyResponse<bool> response =
-              await redirect(order.value as SimplexOrder);
-          // TODO save order and redirect
+              await redirect(order.value as SimplexOrder).then((order) {
+            // TODO save order
+            Navigator.of(context, rootNavigator: isDesktop).pop;
+            return order;
+          });
         },
       ),
       icon: SizedBox(
