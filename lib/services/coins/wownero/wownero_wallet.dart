@@ -15,7 +15,6 @@ import 'package:cw_core/wallet_type.dart';
 import 'package:cw_wownero/api/exceptions/creation_transaction_exception.dart';
 import 'package:cw_wownero/api/wallet.dart';
 import 'package:cw_wownero/pending_wownero_transaction.dart';
-import 'package:cw_wownero/wownero_amount_format.dart';
 import 'package:cw_wownero/wownero_wallet.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
@@ -24,21 +23,23 @@ import 'package:flutter_libmonero/core/wallet_creation_service.dart';
 import 'package:flutter_libmonero/view_model/send/output.dart'
     as wownero_output;
 import 'package:flutter_libmonero/wownero/wownero.dart';
-import 'package:http/http.dart';
+import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
+import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/models/balance.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
-import 'package:stackwallet/models/paymint/utxo_model.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/blocks_remaining_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/mixins/wallet_cache.dart';
+import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/price.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -48,17 +49,18 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
+import 'package:tuple/tuple.dart';
 
 const int MINIMUM_CONFIRMATIONS = 10;
 
-class WowneroWallet extends CoinServiceAPI {
-  final String _walletId;
-  final Coin _coin;
-  final PriceAPI _priceAPI;
-  final SecureStorageInterface _secureStorage;
-  final Prefs _prefs;
+class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
+  late final String _walletId;
+  late final Coin _coin;
+  late final SecureStorageInterface _secureStorage;
+  late final Prefs _prefs;
 
-  String _walletName;
+  late String _walletName;
+
   bool _shouldAutoSync = false;
   bool _isConnected = false;
   bool _hasCalledExit = false;
@@ -71,9 +73,9 @@ class WowneroWallet extends CoinServiceAPI {
   WalletCreationService? _walletCreationService;
   Timer? _autoSaveTimer;
 
-  Future<String>? _currentReceivingAddress;
+  Future<isar_models.Address?> get _currentReceivingAddress =>
+      db.getAddresses(walletId).sortByDerivationIndexDesc().findFirst();
   Future<FeeObject>? _feeObject;
-  Future<TransactionData>? _transactionData;
 
   Mutex prepareSendMutex = Mutex();
   Mutex estimateFeeMutex = Mutex();
@@ -83,33 +85,28 @@ class WowneroWallet extends CoinServiceAPI {
     required String walletName,
     required Coin coin,
     required SecureStorageInterface secureStorage,
-    PriceAPI? priceAPI,
     Prefs? prefs,
-  })  : _walletId = walletId,
-        _walletName = walletName,
-        _coin = coin,
-        _priceAPI = priceAPI ?? PriceAPI(Client()),
-        _secureStorage = secureStorage,
-        _prefs = prefs ?? Prefs.instance;
-
-  @override
-  bool get isFavorite {
-    try {
-      return DB.instance.get<dynamic>(boxName: walletId, key: "isFavorite")
-          as bool;
-    } catch (e, s) {
-      Logging.instance.log(
-          "isFavorite fetch failed (returning false by default): $e\n$s",
-          level: LogLevel.Error);
-      return false;
-    }
+    MainDB? mockableOverride,
+  }) {
+    _walletId = walletId;
+    _walletName = walletName;
+    _coin = coin;
+    _secureStorage = secureStorage;
+    _prefs = prefs ?? Prefs.instance;
+    initCache(walletId, coin);
+    isarInit(mockableOverride: mockableOverride);
   }
 
   @override
   set isFavorite(bool markFavorite) {
-    DB.instance.put<dynamic>(
-        boxName: walletId, key: "isFavorite", value: markFavorite);
+    _isFavorite = markFavorite;
+    updateCachedIsFavorite(markFavorite);
   }
+
+  @override
+  bool get isFavorite => _isFavorite ??= getCachedIsFavorite();
+
+  bool? _isFavorite;
 
   @override
   bool get shouldAutoSync => _shouldAutoSync;
@@ -143,23 +140,6 @@ class WowneroWallet extends CoinServiceAPI {
   set walletName(String newName) => _walletName = newName;
 
   @override
-  // not really used for wownero
-  Future<List<String>> get allOwnAddresses async => [];
-
-  @override
-  Future<Decimal> get availableBalance async {
-    int runningBalance = 0;
-    for (final entry in walletBase!.balance!.entries) {
-      runningBalance += entry.value.unlockedBalance;
-    }
-    return Format.satoshisToAmount(runningBalance, coin: coin);
-  }
-
-  @override
-  // not used
-  Future<Decimal> get balanceMinusMaxFee => throw UnimplementedError();
-
-  @override
   Coin get coin => _coin;
 
   @override
@@ -187,8 +167,9 @@ class WowneroWallet extends CoinServiceAPI {
   }
 
   @override
-  Future<String> get currentReceivingAddress =>
-      _currentReceivingAddress ??= _getCurrentAddressForChain(0);
+  Future<String> get currentReceivingAddress async =>
+      (await _currentReceivingAddress)?.value ??
+      (await _generateAddressForChain(0, 0)).value;
 
   @override
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
@@ -260,30 +241,30 @@ class WowneroWallet extends CoinServiceAPI {
     int maxUnusedAddressGap,
     int maxNumberOfIndexesToCheck,
   ) async {
+    // clear blockchain info
+    await db.deleteWalletBlockchainData(walletId);
+
     var restoreHeight = walletBase?.walletInfo.restoreHeight;
     highestPercentCached = 0;
     await walletBase?.rescan(height: restoreHeight);
+    await refresh();
   }
 
   @override
   Future<bool> generateNewAddress() async {
     try {
-      const String indexKey = "receivingIndex";
-      // First increment the receiving index
-      await _incrementAddressIndexForChain(0);
-      final newReceivingIndex =
-          DB.instance.get<dynamic>(boxName: walletId, key: indexKey) as int;
+      final currentReceiving = await _currentReceivingAddress;
+
+      final newReceivingIndex = currentReceiving!.derivationIndex + 1;
 
       // Use new index to derive a new receiving address
-      final newReceivingAddress =
-          await _generateAddressForChain(0, newReceivingIndex);
+      final newReceivingAddress = await _generateAddressForChain(
+        0,
+        newReceivingIndex,
+      );
 
-      // Add that new receiving address to the array of receiving addresses
-      await _addToAddressesArrayForChain(newReceivingAddress, 0);
-
-      // Set the new receiving address that the service
-
-      _currentReceivingAddress = Future(() => newReceivingAddress);
+      // Add that new receiving address
+      await db.putAddress(newReceivingAddress);
 
       return true;
     } catch (e, s) {
@@ -303,7 +284,7 @@ class WowneroWallet extends CoinServiceAPI {
         "Opening existing ${coin.prettyName} wallet $walletName...",
         level: LogLevel.Info);
 
-    if ((DB.instance.get<dynamic>(boxName: walletId, key: "id")) == null) {
+    if (getCachedId() == null) {
       //todo: check if print needed
       // debugPrint("Exception was thrown");
       throw Exception(
@@ -315,12 +296,6 @@ class WowneroWallet extends CoinServiceAPI {
     keysStorage = KeyService(_secureStorage);
 
     await _prefs.init();
-    // final data =
-    // DB.instance.get<dynamic>(boxName: walletId, key: "latest_tx_model")
-    // as TransactionData?;
-    // if (data != null) {
-    //   _transactionData = Future(() => data);
-    // }
 
     String? password;
     try {
@@ -335,17 +310,6 @@ class WowneroWallet extends CoinServiceAPI {
       "Opened existing ${coin.prettyName} wallet $walletName",
       level: LogLevel.Info,
     );
-    // Wallet already exists, triggers for a returning user
-
-    String indexKey = "receivingIndex";
-    final curIndex =
-        await DB.instance.get<dynamic>(boxName: walletId, key: indexKey) as int;
-    // Use new index to derive a new receiving address
-    final newReceivingAddress = await _generateAddressForChain(0, curIndex);
-    Logging.instance.log(
-        "wownero address in init existing: $newReceivingAddress",
-        level: LogLevel.Info);
-    _currentReceivingAddress = Future(() => newReceivingAddress);
   }
 
   @override
@@ -427,42 +391,18 @@ class WowneroWallet extends CoinServiceAPI {
     await walletBase?.connectToNode(
         node: Node(uri: "$host:${node.port}", type: WalletType.wownero));
     await walletBase?.startSync();
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
-
-    // Set relevant indexes
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: "receivingIndex", value: 0);
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: "changeIndex", value: 0);
-    await DB.instance.put<dynamic>(
-      boxName: walletId,
-      key: 'blocked_tx_hashes',
-      value: ["0xdefault"],
-    ); // A list of transaction hashes to represent frozen utxos in wallet
-    // initialize address book entries
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'addressBookEntries',
-        value: <String, String>{});
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: "isFavorite", value: false);
+    await Future.wait([
+      updateCachedId(walletId),
+      updateCachedIsFavorite(false),
+    ]);
 
     // Generate and add addresses to relevant arrays
     final initialReceivingAddress = await _generateAddressForChain(0, 0);
     // final initialChangeAddress = await _generateAddressForChain(1, 0);
 
-    await _addToAddressesArrayForChain(initialReceivingAddress, 0);
-    // await _addToAddressesArrayForChain(initialChangeAddress, 1);
+    await db.putAddress(initialReceivingAddress);
 
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'receivingAddresses',
-        value: [initialReceivingAddress]);
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: "receivingIndex", value: 0);
     walletBase?.close();
-    _currentReceivingAddress = Future(() => initialReceivingAddress);
 
     Logging.instance
         .log("initializeNew for $walletName $walletId", level: LogLevel.Info);
@@ -490,10 +430,6 @@ class WowneroWallet extends CoinServiceAPI {
   }
 
   @override
-  // not used in wow
-  Future<Decimal> get pendingBalance => throw UnimplementedError();
-
-  @override
   Future<Map<String, dynamic>> prepareSend({
     required String address,
     required int satoshiAmount,
@@ -519,17 +455,15 @@ class WowneroWallet extends CoinServiceAPI {
         try {
           // check for send all
           bool isSendAll = false;
-          final balance = await availableBalance;
-          final satInDecimal =
-              Format.satoshisToAmount(satoshiAmount, coin: coin);
-
-          if (satInDecimal == balance) {
+          final balance = await _availableBalance;
+          if (satoshiAmount == balance) {
             isSendAll = true;
           }
           Logging.instance
               .log("$address $satoshiAmount $args", level: LogLevel.Info);
-          String amountToSend = satInDecimal
-              .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
+          String amountToSend =
+              Format.satoshisToAmount(satoshiAmount, coin: coin)
+                  .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
           Logging.instance
               .log("$satoshiAmount $amountToSend", level: LogLevel.Info);
 
@@ -667,28 +601,11 @@ class WowneroWallet extends CoinServiceAPI {
             .add<WalletInfo>(boxName: WalletInfo.boxName, value: walletInfo);
         walletBase?.close();
         walletBase = wallet as WowneroWalletBase;
-        await DB.instance.put<dynamic>(
-            boxName: walletId,
-            key: 'receivingAddresses',
-            value: [walletInfo.address!]);
-        await DB.instance
-            .put<dynamic>(boxName: walletId, key: "receivingIndex", value: 0);
-        await DB.instance
-            .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
-        await DB.instance
-            .put<dynamic>(boxName: walletId, key: "changeIndex", value: 0);
-        await DB.instance.put<dynamic>(
-          boxName: walletId,
-          key: 'blocked_tx_hashes',
-          value: ["0xdefault"],
-        ); // A list of transaction hashes to represent frozen utxos in wallet
-        // initialize address book entries
-        await DB.instance.put<dynamic>(
-            boxName: walletId,
-            key: 'addressBookEntries',
-            value: <String, String>{});
-        await DB.instance
-            .put<dynamic>(boxName: walletId, key: "isFavorite", value: false);
+
+        await Future.wait([
+          updateCachedId(walletId),
+          updateCachedIsFavorite(false),
+        ]);
       } catch (e, s) {
         //todo: come back to this
         debugPrint(e.toString());
@@ -733,22 +650,10 @@ class WowneroWallet extends CoinServiceAPI {
       ),
     );
 
-    final newTxData = await _fetchTransactionData();
-    _transactionData = Future(() => newTxData);
+    await _refreshTransactions();
+    await _updateBalance();
 
     await _checkCurrentReceivingAddressesForTransactions();
-    String indexKey = "receivingIndex";
-    final curIndex =
-        DB.instance.get<dynamic>(boxName: walletId, key: indexKey) as int;
-    // Use new index to derive a new receiving address
-    try {
-      final newReceivingAddress = await _generateAddressForChain(0, curIndex);
-      _currentReceivingAddress = Future(() => newReceivingAddress);
-    } catch (e, s) {
-      Logging.instance.log(
-          "Failed to call _generateAddressForChain(0, $curIndex): $e\n$s",
-          level: LogLevel.Error);
-    }
 
     if (walletBase?.syncStatus is SyncedSyncStatus) {
       refreshMutex = false;
@@ -760,16 +665,6 @@ class WowneroWallet extends CoinServiceAPI {
         ),
       );
     }
-  }
-
-  @override
-  Future<String> send({
-    required String toAddress,
-    required int amount,
-    Map<String, String> args = const {},
-  }) {
-    // not used for xmr
-    throw UnimplementedError();
   }
 
   @override
@@ -835,8 +730,32 @@ class WowneroWallet extends CoinServiceAPI {
       ) as int? ??
       0;
 
-  @override
-  Future<Decimal> get totalBalance async {
+  Future<void> _updateBalance() async {
+    final total = await _totalBalance;
+    final available = await _availableBalance;
+    _balance = Balance(
+      coin: coin,
+      total: total,
+      spendable: available,
+      blockedTotal: 0,
+      pendingSpendable: total - available,
+    );
+    await updateCachedBalance(_balance!);
+  }
+
+  Future<int> get _availableBalance async {
+    try {
+      int runningBalance = 0;
+      for (final entry in walletBase!.balance!.entries) {
+        runningBalance += entry.value.unlockedBalance;
+      }
+      return runningBalance;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  Future<int> get _totalBalance async {
     try {
       final balanceEntries = walletBase?.balance?.entries;
       if (balanceEntries != null) {
@@ -845,7 +764,7 @@ class WowneroWallet extends CoinServiceAPI {
           bal = bal + element.value.fullBalance;
         }
         await _updateCachedBalance(bal);
-        return Format.satoshisToAmount(bal, coin: coin);
+        return bal;
       } else {
         final transactions = walletBase!.transactionHistory!.transactions;
         int transactionBalance = 0;
@@ -858,20 +777,12 @@ class WowneroWallet extends CoinServiceAPI {
         }
 
         await _updateCachedBalance(transactionBalance);
-        return Format.satoshisToAmount(transactionBalance, coin: coin);
+        return transactionBalance;
       }
     } catch (_) {
-      return Format.satoshisToAmount(_getCachedBalance(), coin: coin);
+      return _getCachedBalance();
     }
   }
-
-  @override
-  Future<TransactionData> get transactionData =>
-      _transactionData ??= _fetchTransactionData();
-
-  @override
-  // not used for xmr
-  Future<List<UtxoObject>> get unspentOutputs => throw UnimplementedError();
 
   @override
   Future<void> updateNode(bool shouldRefresh) async {
@@ -901,66 +812,23 @@ class WowneroWallet extends CoinServiceAPI {
   @override
   String get walletId => _walletId;
 
-  /// Returns the latest receiving/change (external/internal) address for the wallet depending on [chain]
-  /// and
-  /// [chain] - Use 0 for receiving (external), 1 for change (internal). Should not be any other value!
-  Future<String> _getCurrentAddressForChain(int chain) async {
-    // Here, we assume that chain == 1 if it isn't 0
-    String arrayKey = chain == 0 ? "receivingAddresses" : "changeAddresses";
-    final internalChainArray = (DB.instance
-        .get<dynamic>(boxName: walletId, key: arrayKey)) as List<dynamic>;
-    return internalChainArray.last as String;
-  }
-
-  /// Increases the index for either the internal or external chain, depending on [chain].
-  /// [chain] - Use 0 for receiving (external), 1 for change (internal). Should not be any other value!
-  Future<void> _incrementAddressIndexForChain(int chain) async {
-    // Here we assume chain == 1 if it isn't 0
-    String indexKey = chain == 0 ? "receivingIndex" : "changeIndex";
-
-    final newIndex =
-        (DB.instance.get<dynamic>(boxName: walletId, key: indexKey)) + 1;
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: indexKey, value: newIndex);
-  }
-
-  Future<String> _generateAddressForChain(int chain, int index) async {
+  Future<isar_models.Address> _generateAddressForChain(
+    int chain,
+    int index,
+  ) async {
     //
     String address = walletBase!.getTransactionAddress(chain, index);
 
-    return address;
-  }
-
-  /// Adds [address] to the relevant chain's address array, which is determined by [chain].
-  /// [address] - Expects a standard native segwit address
-  /// [chain] - Use 0 for receiving (external), 1 for change (internal). Should not be any other value!
-  Future<void> _addToAddressesArrayForChain(String address, int chain) async {
-    String chainArray = '';
-    if (chain == 0) {
-      chainArray = 'receivingAddresses';
-    } else {
-      chainArray = 'changeAddresses';
-    }
-
-    final addressArray =
-        DB.instance.get<dynamic>(boxName: walletId, key: chainArray);
-    if (addressArray == null) {
-      Logging.instance.log(
-          'Attempting to add the following to $chainArray array for chain $chain:${[
-            address
-          ]}',
-          level: LogLevel.Info);
-      await DB.instance
-          .put<dynamic>(boxName: walletId, key: chainArray, value: [address]);
-    } else {
-      // Make a deep copy of the existing list
-      final List<String> newArray = [];
-      addressArray
-          .forEach((dynamic _address) => newArray.add(_address as String));
-      newArray.add(address); // Add the address passed into the method
-      await DB.instance
-          .put<dynamic>(boxName: walletId, key: chainArray, value: newArray);
-    }
+    return isar_models.Address(
+      walletId: walletId,
+      derivationIndex: index,
+      value: address,
+      publicKey: [],
+      type: isar_models.AddressType.cryptonote,
+      subType: chain == 0
+          ? isar_models.AddressSubType.receiving
+          : isar_models.AddressSubType.change,
+    );
   }
 
   Future<FeeObject> _getFees() async {
@@ -975,7 +843,7 @@ class WowneroWallet extends CoinServiceAPI {
     );
   }
 
-  Future<TransactionData> _fetchTransactionData() async {
+  Future<void> _refreshTransactions() async {
     await walletBase!.updateTransactions();
     final transactions = walletBase?.transactionHistory!.transactions;
 
@@ -1011,121 +879,117 @@ class WowneroWallet extends CoinServiceAPI {
     //   }
     // }
 
-    // sort thing stuff
-    // change to get Wownero price
-    final priceData =
-        await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
-    Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
-    final List<Map<String, dynamic>> midSortedArray = [];
+    final List<
+        Tuple4<isar_models.Transaction, List<isar_models.Output>,
+            List<isar_models.Input>, isar_models.Address?>> txnsData = [];
 
     if (transactions != null) {
       for (var tx in transactions.entries) {
         // cachedTxids.add(tx.value.id);
-        Logging.instance.log(
-            "${tx.value.accountIndex} ${tx.value.addressIndex} ${tx.value.amount} ${tx.value.date} "
-            "${tx.value.direction} ${tx.value.fee} ${tx.value.height} ${tx.value.id} ${tx.value.isPending} ${tx.value.key} "
-            "${tx.value.recipientAddress}, ${tx.value.additionalInfo} con:${tx.value.confirmations}"
-            " ${tx.value.keyIndex}",
-            level: LogLevel.Info);
-        String am = wowneroAmountToString(amount: tx.value.amount!);
-        final worthNow = (currentPrice * Decimal.parse(am)).toStringAsFixed(2);
-        Map<String, dynamic> midSortedTx = {};
-        // // create final tx map
-        midSortedTx["txid"] = tx.value.id;
-        midSortedTx["confirmed_status"] = !tx.value.isPending &&
-            tx.value.confirmations != null &&
-            tx.value.confirmations! >= MINIMUM_CONFIRMATIONS;
-        midSortedTx["confirmations"] = tx.value.confirmations ?? 0;
-        midSortedTx["timestamp"] =
-            (tx.value.date.millisecondsSinceEpoch ~/ 1000);
-        midSortedTx["txType"] =
-            tx.value.direction == TransactionDirection.incoming
-                ? "Received"
-                : "Sent";
-        midSortedTx["amount"] = tx.value.amount;
-        midSortedTx["worthNow"] = worthNow;
-        midSortedTx["worthAtBlockTimestamp"] = worthNow;
-        midSortedTx["fees"] = tx.value.fee;
-        // TODO: shouldn't wownero have an address I can grab
+        // Logging.instance.log(
+        //     "${tx.value.accountIndex} ${tx.value.addressIndex} ${tx.value.amount} ${tx.value.date} "
+        //     "${tx.value.direction} ${tx.value.fee} ${tx.value.height} ${tx.value.id} ${tx.value.isPending} ${tx.value.key} "
+        //     "${tx.value.recipientAddress}, ${tx.value.additionalInfo} con:${tx.value.confirmations}"
+        //     " ${tx.value.keyIndex}",
+        //     level: LogLevel.Info);
+        // String am = wowneroAmountToString(amount: tx.value.amount!);
+        // final worthNow = (currentPrice * Decimal.parse(am)).toStringAsFixed(2);
+        // Map<String, dynamic> midSortedTx = {};
+        // // // create final tx map
+        // midSortedTx["txid"] = tx.value.id;
+        // midSortedTx["confirmed_status"] = !tx.value.isPending &&
+        //     tx.value.confirmations != null &&
+        //     tx.value.confirmations! >= MINIMUM_CONFIRMATIONS;
+        // midSortedTx["confirmations"] = tx.value.confirmations ?? 0;
+        // midSortedTx["timestamp"] =
+        //     (tx.value.date.millisecondsSinceEpoch ~/ 1000);
+        // midSortedTx["txType"] =
+        //     tx.value.direction == TransactionDirection.incoming
+        //         ? "Received"
+        //         : "Sent";
+        // midSortedTx["amount"] = tx.value.amount;
+        // midSortedTx["worthNow"] = worthNow;
+        // midSortedTx["worthAtBlockTimestamp"] = worthNow;
+        // midSortedTx["fees"] = tx.value.fee;
+        // if (tx.value.direction == TransactionDirection.incoming) {
+        //   final addressInfo = tx.value.additionalInfo;
+        //
+        //   midSortedTx["address"] = walletBase?.getTransactionAddress(
+        //     addressInfo!['accountIndex'] as int,
+        //     addressInfo['addressIndex'] as int,
+        //   );
+        // } else {
+        //   midSortedTx["address"] = "";
+        // }
+        //
+        // final int txHeight = tx.value.height ?? 0;
+        // midSortedTx["height"] = txHeight;
+        // // if (txHeight >= latestTxnBlockHeight) {
+        // //   latestTxnBlockHeight = txHeight;
+        // // }
+        //
+        // midSortedTx["aliens"] = <dynamic>[];
+        // midSortedTx["inputSize"] = 0;
+        // midSortedTx["outputSize"] = 0;
+        // midSortedTx["inputs"] = <dynamic>[];
+        // midSortedTx["outputs"] = <dynamic>[];
+        // midSortedArray.add(midSortedTx);
+
+        isar_models.Address? address;
+        isar_models.TransactionType type;
         if (tx.value.direction == TransactionDirection.incoming) {
           final addressInfo = tx.value.additionalInfo;
 
-          midSortedTx["address"] = walletBase?.getTransactionAddress(
+          final addressString = walletBase?.getTransactionAddress(
             addressInfo!['accountIndex'] as int,
             addressInfo['addressIndex'] as int,
           );
+
+          if (addressString != null) {
+            address = await db
+                .getAddresses(walletId)
+                .filter()
+                .valueEqualTo(addressString)
+                .findFirst();
+          }
+
+          type = isar_models.TransactionType.incoming;
         } else {
-          midSortedTx["address"] = "";
+          // txn.address = "";
+          type = isar_models.TransactionType.outgoing;
         }
 
-        final int txHeight = tx.value.height ?? 0;
-        midSortedTx["height"] = txHeight;
-        // if (txHeight >= latestTxnBlockHeight) {
-        //   latestTxnBlockHeight = txHeight;
-        // }
+        final txn = isar_models.Transaction(
+          walletId: walletId,
+          txid: tx.value.id,
+          timestamp: (tx.value.date.millisecondsSinceEpoch ~/ 1000),
+          type: type,
+          subType: isar_models.TransactionSubType.none,
+          amount: tx.value.amount ?? 0,
+          fee: tx.value.fee ?? 0,
+          height: tx.value.height,
+          isCancelled: false,
+          isLelantus: false,
+          slateId: null,
+          otherData: null,
+        );
 
-        midSortedTx["aliens"] = <dynamic>[];
-        midSortedTx["inputSize"] = 0;
-        midSortedTx["outputSize"] = 0;
-        midSortedTx["inputs"] = <dynamic>[];
-        midSortedTx["outputs"] = <dynamic>[];
-        midSortedArray.add(midSortedTx);
+        txnsData.add(Tuple4(txn, [], [], address));
       }
     }
 
-    // sort by date  ----
-    midSortedArray
-        .sort((a, b) => (b["timestamp"] as int) - (a["timestamp"] as int));
-    Logging.instance.log(midSortedArray, level: LogLevel.Info);
+    await db.addNewTransactionData(txnsData, walletId);
 
-    // buildDateTimeChunks
-    final Map<String, dynamic> result = {"dateTimeChunks": <dynamic>[]};
-    final dateArray = <dynamic>[];
-
-    for (int i = 0; i < midSortedArray.length; i++) {
-      final txObject = midSortedArray[i];
-      final date = extractDateFromTimestamp(txObject["timestamp"] as int);
-      final txTimeArray = [txObject["timestamp"], date];
-
-      if (dateArray.contains(txTimeArray[1])) {
-        result["dateTimeChunks"].forEach((dynamic chunk) {
-          if (extractDateFromTimestamp(chunk["timestamp"] as int) ==
-              txTimeArray[1]) {
-            if (chunk["transactions"] == null) {
-              chunk["transactions"] = <Map<String, dynamic>>[];
-            }
-            chunk["transactions"].add(txObject);
-          }
-        });
-      } else {
-        dateArray.add(txTimeArray[1]);
-        final chunk = {
-          "timestamp": txTimeArray[0],
-          "transactions": [txObject],
-        };
-        result["dateTimeChunks"].add(chunk);
-      }
+    // quick hack to notify manager to call notifyListeners if
+    // transactions changed
+    if (txnsData.isNotEmpty) {
+      GlobalEventBus.instance.fire(
+        UpdatedInBackgroundEvent(
+          "Transactions updated/added for: $walletId $walletName  ",
+          walletId,
+        ),
+      );
     }
-
-    // final transactionsMap = cachedTransactions?.getAllTransactions() ?? {};
-    final Map<String, Transaction> transactionsMap = {};
-    transactionsMap
-        .addAll(TransactionData.fromJson(result).getAllTransactions());
-
-    final txModel = TransactionData.fromMap(transactionsMap);
-    //
-    // await DB.instance.put<dynamic>(
-    //     boxName: walletId,
-    //     key: 'storedTxnDataHeight',
-    //     value: latestTxnBlockHeight);
-    // await DB.instance.put<dynamic>(
-    //     boxName: walletId, key: 'latest_tx_model', value: txModel);
-    // await DB.instance.put<dynamic>(
-    //     boxName: walletId,
-    //     key: 'cachedTxids',
-    //     value: cachedTxids.toList(growable: false));
-
-    return txModel;
   }
 
   Future<String> _pathForWalletDir({
@@ -1193,12 +1057,12 @@ class WowneroWallet extends CoinServiceAPI {
   }
 
   Future<void> _refreshTxData() async {
-    final txnData = await _fetchTransactionData();
-    final count = txnData.getAllTransactions().length;
+    await _refreshTransactions();
+    final count = await db.getTransactions(walletId).count();
 
     if (count > _txCount) {
       _txCount = count;
-      _transactionData = Future(() => txnData);
+      await _updateBalance();
       GlobalEventBus.instance.fire(
         UpdatedInBackgroundEvent(
           "New transaction data found in $walletId $walletName!",
@@ -1249,6 +1113,7 @@ class WowneroWallet extends CoinServiceAPI {
         if (highestPercentCached < percent) {
           highestPercentCached = percent;
         }
+        await updateCachedChainHeight(height);
 
         GlobalEventBus.instance.fire(
           RefreshPercentChangedEvent(
@@ -1337,23 +1202,34 @@ class WowneroWallet extends CoinServiceAPI {
       }
 
       // Check the new receiving index
-      String indexKey = "receivingIndex";
-      final curIndex =
-          DB.instance.get<dynamic>(boxName: walletId, key: indexKey) as int;
+      final currentReceiving = await _currentReceivingAddress;
+      final curIndex = currentReceiving?.derivationIndex ?? -1;
+
       if (highestIndex >= curIndex) {
         // First increment the receiving index
-        await _incrementAddressIndexForChain(0);
-        final newReceivingIndex =
-            DB.instance.get<dynamic>(boxName: walletId, key: indexKey) as int;
+        final newReceivingIndex = curIndex + 1;
 
         // Use new index to derive a new receiving address
         final newReceivingAddress =
             await _generateAddressForChain(0, newReceivingIndex);
 
-        // Add that new receiving address to the array of receiving addresses
-        await _addToAddressesArrayForChain(newReceivingAddress, 0);
+        final existing = await db
+            .getAddresses(walletId)
+            .filter()
+            .valueEqualTo(newReceivingAddress.value)
+            .findFirst();
+        if (existing == null) {
+          // Add that new change address
+          await db.putAddress(newReceivingAddress);
+        } else {
+          // we need to update the address
+          await db.updateAddress(existing, newReceivingAddress);
 
-        _currentReceivingAddress = Future(() => newReceivingAddress);
+          // since we updated an existing address there is a chance it has
+          // some tx history. To prevent address reuse we will call check again
+          // recursively
+          await _checkReceivingAddressForTransactions();
+        }
       }
     } on SocketException catch (se, s) {
       Logging.instance.log(
@@ -1378,4 +1254,19 @@ class WowneroWallet extends CoinServiceAPI {
         key: "highestPercentCached",
         value: value,
       );
+
+  @override
+  int get storedChainHeight => getCachedChainHeight();
+
+  @override
+  Balance get balance => _balance ??= getCachedBalance();
+  Balance? _balance;
+
+  @override
+  Future<List<isar_models.Transaction>> get transactions =>
+      db.getTransactions(walletId).sortByTimestampDesc().findAll();
+
+  @override
+  // TODO: implement utxos
+  Future<List<isar_models.UTXO>> get utxos => throw UnimplementedError();
 }

@@ -75,6 +75,8 @@ void main() {
       ),
     );
 
+    await widgetTester.pumpAndSettle();
+
     expect(find.text("Some Text 1"), findsOneWidget);
     expect(find.byType(TableViewRow), findsWidgets);
     expect(find.byType(TableViewCell), findsWidgets);

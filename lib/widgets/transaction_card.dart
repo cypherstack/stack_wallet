@@ -2,10 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
+import 'package:stackwallet/providers/blockchain/dogecoin/current_height_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -34,14 +35,24 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
   late final Transaction _transaction;
   late final String walletId;
 
-  String whatIsIt(String type, Coin coin) {
+  String whatIsIt(
+    TransactionType type,
+    Coin coin,
+    int currentHeight,
+  ) {
     if (coin == Coin.epicCash && _transaction.slateId == null) {
       return "Restored Funds";
     }
 
-    if (_transaction.subType == "mint") {
+    final confirmedStatus = _transaction.isConfirmed(
+      currentHeight,
+      coin.requiredConfirmations,
+    );
+
+    if (type != TransactionType.incoming &&
+        _transaction.subType == TransactionSubType.mint) {
       // if (type == "Received") {
-      if (_transaction.confirmedStatus) {
+      if (confirmedStatus) {
         return "Anonymized";
       } else {
         return "Anonymizing";
@@ -57,23 +68,23 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
       // }
     }
 
-    if (type == "Received") {
+    if (type == TransactionType.incoming) {
       // if (_transaction.isMinting) {
       //   return "Minting";
       // } else
-      if (_transaction.confirmedStatus) {
+      if (confirmedStatus) {
         return "Received";
       } else {
         return "Receiving";
       }
-    } else if (type == "Sent") {
-      if (_transaction.confirmedStatus) {
+    } else if (type == TransactionType.outgoing) {
+      if (confirmedStatus) {
         return "Sent";
       } else {
         return "Sending";
       }
     } else {
-      return type;
+      return type.name;
     }
   }
 
@@ -103,12 +114,14 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
 
     String prefix = "";
     if (Util.isDesktop) {
-      if (_transaction.txType == "Sent") {
+      if (_transaction.type == TransactionType.outgoing) {
         prefix = "-";
-      } else if (_transaction.txType == "Received") {
+      } else if (_transaction.type == TransactionType.incoming) {
         prefix = "+";
       }
     }
+
+    final currentHeight = ref.watch(currentHeightProvider(coin).state).state;
 
     return Material(
       color: Theme.of(context).extension<StackColors>()!.popupBG,
@@ -166,7 +179,12 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
             padding: const EdgeInsets.all(8),
             child: Row(
               children: [
-                TxIcon(transaction: _transaction),
+                TxIcon(
+                  transaction: _transaction,
+                  coin: ref.watch(walletsChangeNotifierProvider.select(
+                      (value) => value.getManager(widget.walletId).coin)),
+                  currentHeight: currentHeight,
+                ),
                 const SizedBox(
                   width: 14,
                 ),
@@ -184,7 +202,11 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                               child: Text(
                                 _transaction.isCancelled
                                     ? "Cancelled"
-                                    : whatIsIt(_transaction.txType, coin),
+                                    : whatIsIt(
+                                        _transaction.type,
+                                        coin,
+                                        currentHeight,
+                                      ),
                                 style: STextStyles.itemSubtitle12(context),
                               ),
                             ),

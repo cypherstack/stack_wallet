@@ -13,11 +13,16 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
+
+import '../../hive/db.dart';
+import '../../utilities/db_version_migration.dart';
+import '../../utilities/logger.dart';
 
 class DesktopLoginView extends ConsumerStatefulWidget {
   const DesktopLoginView({
@@ -43,6 +48,25 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
   bool hidePassword = true;
   bool _continueEnabled = false;
 
+  Future<void> _checkDesktopMigrate() async {
+    if (Util.isDesktop) {
+      int dbVersion = DB.instance.get<dynamic>(
+              boxName: DB.boxNameDBInfo, key: "hive_data_version") as int? ??
+          0;
+      if (dbVersion < Constants.currentHiveDbVersion) {
+        try {
+          await DbVersionMigrator().migrate(
+            dbVersion,
+            secureStore: ref.read(secureStoreProvider),
+          );
+        } catch (e, s) {
+          Logging.instance.log("Cannot migrate desktop database\n$e $s",
+              level: LogLevel.Error, printFullLength: true);
+        }
+      }
+    }
+  }
+
   Future<void> login() async {
     try {
       unawaited(
@@ -63,12 +87,18 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
 
       await Future<void>.delayed(const Duration(seconds: 1));
 
+      // init security context
       await ref
           .read(storageCryptoHandlerProvider)
           .initFromExisting(passwordController.text);
 
+      // init desktop secure storage
       await (ref.read(secureStoreProvider).store as DesktopSecureStore).init();
 
+      // check and migrate if needed
+      await _checkDesktopMigrate();
+
+      // load data
       await widget.load?.call();
 
       // if no errors passphrase is correct

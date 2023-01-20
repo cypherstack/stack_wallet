@@ -27,8 +27,9 @@ class WalletInfoRowBalanceFuture extends ConsumerWidget {
       ),
     );
 
+    // TODO redo this widget now that its not actually a future
     return FutureBuilder(
-      future: manager.totalBalance,
+      future: Future(() => manager.balance.getTotal()),
       builder: (builderContext, AsyncSnapshot<Decimal> snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             snapshot.hasData) {

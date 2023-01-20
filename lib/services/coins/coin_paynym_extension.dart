@@ -3,14 +3,14 @@ import 'dart:typed_data';
 
 import 'package:bip47/bip47.dart';
 import 'package:bip47/src/util.dart';
-import 'package:bitcoindart/bitcoindart.dart';
+import 'package:bitcoindart/bitcoindart.dart' as btc_dart;
 import 'package:bitcoindart/src/utils/constants/op.dart' as op;
 import 'package:bitcoindart/src/utils/script.dart' as bscript;
 import 'package:decimal/decimal.dart';
+import 'package:isar/isar.dart';
 import 'package:pointycastle/digests/sha256.dart';
 import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/models/models.dart' as models;
-import 'package:stackwallet/models/paymint/utxo_model.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -59,7 +59,8 @@ extension PayNym on DogecoinWallet {
   Future<Uint8List> signWithNotificationKey(Uint8List data) async {
     final node = getBip32Root((await mnemonic).join(" "), network)
         .derivePath("m/47'/0'/0'");
-    final pair = ECPair.fromPrivateKey(node.privateKey!, network: network);
+    final pair =
+        btc_dart.ECPair.fromPrivateKey(node.privateKey!, network: network);
     final signed = pair.sign(SHA256Digest().process(data));
     return signed;
   }
@@ -130,24 +131,22 @@ extension PayNym on DogecoinWallet {
   }
 
   /// return the notification tx sent from my wallet if it exists
-  Future<models.Transaction?> hasSentNotificationTx(PaymentCode pCode) async {
-    final txData = await transactionData;
-
-    for (final tx in txData.getAllTransactions().values) {
-      if (tx.address == pCode.notificationAddress()) {
-        return tx;
-      }
-    }
-
-    return null;
+  Future<Transaction?> hasSentNotificationTx(PaymentCode pCode) async {
+    final tx = await db
+        .getTransactions(walletId)
+        .filter()
+        .address((q) => q.valueEqualTo(pCode.notificationAddress()))
+        .findFirst();
+    return tx;
   }
 
   void preparePaymentCodeSend(PaymentCode pCode) async {
     final notifTx = await hasSentNotificationTx(pCode);
+    final currentHeight = await chainHeight;
 
     if (notifTx == null) {
       throw PaynymSendException("No notification transaction sent to $pCode");
-    } else if (!notifTx.confirmedStatus) {
+    } else if (!notifTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)) {
       throw PaynymSendException(
           "Notification transaction sent to $pCode has not confirmed yet");
     } else {
@@ -230,17 +229,19 @@ extension PayNym on DogecoinWallet {
     required int selectedTxFeeRate,
     required String targetPaymentCodeString,
     int additionalOutputs = 0,
-    List<UtxoObject>? utxos,
+    List<UTXO>? utxos,
   }) async {
     const amountToSend = DUST_LIMIT;
-    final List<UtxoObject> availableOutputs = utxos ?? outputsList;
-    final List<UtxoObject> spendableOutputs = [];
+    final List<UTXO> availableOutputs = utxos ?? await this.utxos;
+    final List<UTXO> spendableOutputs = [];
     int spendableSatoshiValue = 0;
 
     // Build list of spendable outputs and totaling their satoshi amount
     for (var i = 0; i < availableOutputs.length; i++) {
-      if (availableOutputs[i].blocked == false &&
-          availableOutputs[i].status.confirmed == true) {
+      if (availableOutputs[i].isBlocked == false &&
+          availableOutputs[i]
+                  .isConfirmed(await chainHeight, MINIMUM_CONFIRMATIONS) ==
+              true) {
         spendableOutputs.add(availableOutputs[i]);
         spendableSatoshiValue += availableOutputs[i].value;
       }
@@ -257,12 +258,11 @@ extension PayNym on DogecoinWallet {
     }
 
     // sort spendable by age (oldest first)
-    spendableOutputs.sort(
-        (a, b) => b.status.confirmations.compareTo(a.status.confirmations));
+    spendableOutputs.sort((a, b) => b.blockTime!.compareTo(a.blockTime!));
 
     int satoshisBeingUsed = 0;
     int outputsBeingUsed = 0;
-    List<UtxoObject> utxoObjectsToUse = [];
+    List<UTXO> utxoObjectsToUse = [];
 
     for (int i = 0;
         satoshisBeingUsed < amountToSend && i < spendableOutputs.length;
@@ -403,7 +403,7 @@ extension PayNym on DogecoinWallet {
   // equal to its vSize
   Future<Tuple2<String, int>> _createNotificationTx({
     required String targetPaymentCodeString,
-    required List<UtxoObject> utxosToUse,
+    required List<UTXO> utxosToUse,
     required Map<String, dynamic> utxoSigningData,
     required int change,
   }) async {
@@ -420,7 +420,7 @@ extension PayNym on DogecoinWallet {
     final buffer = rev.buffer.asByteData();
     buffer.setUint32(txPoint.length, txPointIndex, Endian.little);
 
-    final myKeyPair = utxoSigningData[utxo.txid]["keyPair"] as ECPair;
+    final myKeyPair = utxoSigningData[utxo.txid]["keyPair"] as btc_dart.ECPair;
 
     final S = SecretPoint(
       myKeyPair.privateKey!,
@@ -440,7 +440,7 @@ extension PayNym on DogecoinWallet {
     ]);
 
     // build a notification tx
-    final txb = TransactionBuilder(network: network);
+    final txb = btc_dart.TransactionBuilder(network: network);
     txb.setVersion(1);
 
     txb.addInput(
@@ -454,9 +454,8 @@ extension PayNym on DogecoinWallet {
     // TODO: add possible change output and mark output as dangerous
     if (change > 0) {
       // generate new change address if current change address has been used
-      await checkChangeAddressForTransactions(DerivePathType.bip44);
-      final String changeAddress =
-          await getCurrentAddressForChain(1, DerivePathType.bip44);
+      await checkChangeAddressForTransactions();
+      final String changeAddress = await currentChangeAddress;
       txb.addOutput(changeAddress, change);
     }
 
@@ -470,7 +469,7 @@ extension PayNym on DogecoinWallet {
       final txid = utxosToUse[i].txid;
       txb.sign(
         vin: i,
-        keyPair: utxoSigningData[txid]["keyPair"] as ECPair,
+        keyPair: utxoSigningData[txid]["keyPair"] as btc_dart.ECPair,
         // witnessValue: utxosToUse[i].value,
       );
     }
@@ -563,15 +562,24 @@ extension PayNym on DogecoinWallet {
   }
 }
 
-Future<Map<String, dynamic>> parseTransaction(
+Future<Tuple4<Transaction, List<Output>, List<Input>, Address>>
+    parseTransaction(
   Map<String, dynamic> txData,
   dynamic electrumxClient,
-  Set<String> myAddresses,
-  Set<String> myChangeAddresses,
+  List<Address> myAddresses,
   Coin coin,
   int minConfirms,
-  Decimal currentPrice,
+  String walletId,
 ) async {
+  Set<String> receivingAddresses = myAddresses
+      .where((e) => e.subType == AddressSubType.receiving)
+      .map((e) => e.value)
+      .toSet();
+  Set<String> changeAddresses = myAddresses
+      .where((e) => e.subType == AddressSubType.change)
+      .map((e) => e.value)
+      .toSet();
+
   Set<String> inputAddresses = {};
   Set<String> outputAddresses = {};
 
@@ -580,6 +588,7 @@ Future<Map<String, dynamic>> parseTransaction(
 
   int amountSentFromWallet = 0;
   int amountReceivedInWallet = 0;
+  int changeAmount = 0;
 
   // parse inputs
   for (final input in txData["vin"] as List) {
@@ -612,7 +621,8 @@ Future<Map<String, dynamic>> parseTransaction(
           inputAddresses.add(address);
 
           // if input was from my wallet, add value to amount sent
-          if (myAddresses.contains(address)) {
+          if (receivingAddresses.contains(address) ||
+              changeAddresses.contains(address)) {
             amountSentFromWallet += value;
           }
         }
@@ -637,61 +647,110 @@ Future<Map<String, dynamic>> parseTransaction(
     if (address != null) {
       outputAddresses.add(address);
 
-      // if output was from my wallet, add value to amount received
-      if (myAddresses.contains(address)) {
+      // if output was to my wallet, add value to amount received
+      if (receivingAddresses.contains(address)) {
         amountReceivedInWallet += value;
+      } else if (changeAddresses.contains(address)) {
+        changeAmount += value;
       }
     }
   }
 
-  final mySentFromAddresses = myAddresses.intersection(inputAddresses);
-  final myReceivedOnAddresses = myAddresses.intersection(outputAddresses);
+  final mySentFromAddresses = [
+    ...receivingAddresses.intersection(inputAddresses),
+    ...changeAddresses.intersection(inputAddresses)
+  ];
+  final myReceivedOnAddresses =
+      receivingAddresses.intersection(outputAddresses);
+  final myChangeReceivedOnAddresses =
+      changeAddresses.intersection(outputAddresses);
 
   final fee = totalInputValue - totalOutputValue;
 
-  // create normalized tx data map
-  Map<String, dynamic> normalizedTx = {};
+  // this is the address initially used to fetch the txid
+  Address transactionAddress = txData["address"] as Address;
 
-  final int confirms = txData["confirmations"] as int? ?? 0;
-
-  normalizedTx["txid"] = txData["txid"] as String;
-  normalizedTx["confirmed_status"] = confirms >= minConfirms;
-  normalizedTx["confirmations"] = confirms;
-  normalizedTx["timestamp"] = txData["blocktime"] as int? ??
-      (DateTime.now().millisecondsSinceEpoch ~/ 1000);
-  normalizedTx["aliens"] = <dynamic>[];
-  normalizedTx["fees"] = fee;
-  normalizedTx["address"] = txData["address"] as String;
-  normalizedTx["inputSize"] = txData["vin"].length;
-  normalizedTx["outputSize"] = txData["vout"].length;
-  normalizedTx["inputs"] = txData["vin"];
-  normalizedTx["outputs"] = txData["vout"];
-  normalizedTx["height"] = txData["height"] as int;
-
+  TransactionType type;
   int amount;
-  String type;
   if (mySentFromAddresses.isNotEmpty && myReceivedOnAddresses.isNotEmpty) {
     // tx is sent to self
-    type = "Sent to self";
-    amount = amountSentFromWallet - amountReceivedInWallet - fee;
+    type = TransactionType.sentToSelf;
+
+    // should be 0
+    amount = amountSentFromWallet - amountReceivedInWallet - fee - changeAmount;
   } else if (mySentFromAddresses.isNotEmpty) {
     // outgoing tx
-    type = "Sent";
-    amount = amountSentFromWallet;
+    type = TransactionType.outgoing;
+    amount = amountSentFromWallet - changeAmount - fee;
+
+    final possible =
+        outputAddresses.difference(myChangeReceivedOnAddresses).first;
+
+    if (transactionAddress.value != possible) {
+      transactionAddress = Address(
+        walletId: walletId,
+        value: possible,
+        derivationIndex: -1,
+        subType: AddressSubType.nonWallet,
+        type: AddressType.nonWallet,
+        publicKey: [],
+      );
+    }
   } else {
     // incoming tx
-    type = "Received";
+    type = TransactionType.incoming;
     amount = amountReceivedInWallet;
   }
 
-  normalizedTx["txType"] = type;
-  normalizedTx["amount"] = amount;
-  normalizedTx["worthNow"] = (Format.satoshisToAmount(
-            amount,
-            coin: coin,
-          ) *
-          currentPrice)
-      .toStringAsFixed(2);
+  final tx = Transaction(
+    walletId: walletId,
+    txid: txData["txid"] as String,
+    timestamp: txData["blocktime"] as int? ??
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000),
+    type: type,
+    subType: TransactionSubType.none,
+    amount: amount,
+    fee: fee,
+    height: txData["height"] as int?,
+    isCancelled: false,
+    isLelantus: false,
+    slateId: null,
+    otherData: null,
+  );
 
-  return normalizedTx;
+  List<Output> outs = [];
+  List<Input> ins = [];
+
+  for (final json in txData["vin"] as List) {
+    bool isCoinBase = json['coinbase'] != null;
+    final input = Input(
+      walletId: walletId,
+      txid: json['txid'] as String,
+      vout: json['vout'] as int? ?? -1,
+      scriptSig: json['scriptSig']?['hex'] as String?,
+      scriptSigAsm: json['scriptSig']?['asm'] as String?,
+      isCoinbase: isCoinBase ? isCoinBase : json['is_coinbase'] as bool?,
+      sequence: json['sequence'] as int?,
+      innerRedeemScriptAsm: json['innerRedeemscriptAsm'] as String?,
+    );
+    ins.add(input);
+  }
+
+  for (final json in txData["vout"] as List) {
+    final output = Output(
+      walletId: walletId,
+      scriptPubKey: json['scriptPubKey']?['hex'] as String?,
+      scriptPubKeyAsm: json['scriptPubKey']?['asm'] as String?,
+      scriptPubKeyType: json['scriptPubKey']?['type'] as String?,
+      scriptPubKeyAddress: json["scriptPubKey"]?["addresses"]?[0] as String? ??
+          json['scriptPubKey']['type'] as String,
+      value: Format.decimalAmountToSatoshis(
+        Decimal.parse(json["value"].toString()),
+        coin,
+      ),
+    );
+    outs.add(output);
+  }
+
+  return Tuple4(tx, outs, ins, transactionAddress);
 }

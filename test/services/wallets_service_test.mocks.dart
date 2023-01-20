@@ -112,4 +112,29 @@ class MockSecureStorageWrapper extends _i1.Mock
         returnValue: _i3.Future<void>.value(),
         returnValueForMissingStub: _i3.Future<void>.value(),
       ) as _i3.Future<void>);
+  @override
+  _i3.Future<void> deleteAll({
+    _i4.IOSOptions? iOptions,
+    _i4.AndroidOptions? aOptions,
+    _i4.LinuxOptions? lOptions,
+    _i4.WebOptions? webOptions,
+    _i4.MacOsOptions? mOptions,
+    _i4.WindowsOptions? wOptions,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #deleteAll,
+          [],
+          {
+            #iOptions: iOptions,
+            #aOptions: aOptions,
+            #lOptions: lOptions,
+            #webOptions: webOptions,
+            #mOptions: mOptions,
+            #wOptions: wOptions,
+          },
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
 }

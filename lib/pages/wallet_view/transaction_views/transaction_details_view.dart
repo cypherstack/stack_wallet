@@ -5,12 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/models/models.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/dialogs/cancelling_transaction_progress_dialog.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/edit_note_view.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
+import 'package:stackwallet/providers/blockchain/dogecoin/current_height_provider.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
@@ -19,7 +20,6 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/block_explorers.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -80,13 +80,13 @@ class _TransactionDetailsViewState
 
     coin = widget.coin;
     amount = Format.satoshisToAmount(_transaction.amount, coin: coin);
-    fee = Format.satoshisToAmount(_transaction.fees, coin: coin);
+    fee = Format.satoshisToAmount(_transaction.fee, coin: coin);
 
     if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-        _transaction.subType == "mint") {
+        _transaction.subType == TransactionSubType.mint) {
       amountPrefix = "";
     } else {
-      amountPrefix = _transaction.txType.toLowerCase() == "sent" ? "-" : "+";
+      amountPrefix = _transaction.type == TransactionType.outgoing ? "-" : "+";
     }
 
     // if (coin == Coin.firo || coin == Coin.firoTestNet) {
@@ -102,10 +102,10 @@ class _TransactionDetailsViewState
     super.dispose();
   }
 
-  String whatIsIt(String type) {
+  String whatIsIt(TransactionType type, int height) {
     if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      if (_transaction.subType == "mint") {
-        if (_transaction.confirmedStatus) {
+      if (_transaction.subType == TransactionSubType.mint) {
+        if (_transaction.isConfirmed(height, coin.requiredConfirmations)) {
           return "Minted";
         } else {
           return "Minting";
@@ -113,23 +113,23 @@ class _TransactionDetailsViewState
       }
     }
 
-    if (type == "Received") {
+    if (type == TransactionType.incoming) {
       // if (_transaction.isMinting) {
       //   return "Minting";
       // } else
-      if (_transaction.confirmedStatus) {
+      if (_transaction.isConfirmed(height, coin.requiredConfirmations)) {
         return "Received";
       } else {
         return "Receiving";
       }
-    } else if (type == "Sent") {
-      if (_transaction.confirmedStatus) {
+    } else if (type == TransactionType.outgoing) {
+      if (_transaction.isConfirmed(height, coin.requiredConfirmations)) {
         return "Sent";
       } else {
         return "Sending";
       }
     } else {
-      return type;
+      return type.name;
     }
   }
 
@@ -298,6 +298,8 @@ class _TransactionDetailsViewState
 
   @override
   Widget build(BuildContext context) {
+    final currentHeight = ref.watch(currentHeightProvider(coin).state).state;
+
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -403,6 +405,8 @@ class _TransactionDetailsViewState
                                           children: [
                                             TxIcon(
                                               transaction: _transaction,
+                                              currentHeight: currentHeight,
+                                              coin: coin,
                                             ),
                                             const SizedBox(
                                               width: 16,
@@ -411,7 +415,9 @@ class _TransactionDetailsViewState
                                               _transaction.isCancelled
                                                   ? "Cancelled"
                                                   : whatIsIt(
-                                                      _transaction.txType),
+                                                      _transaction.type,
+                                                      currentHeight,
+                                                    ),
                                               style:
                                                   STextStyles.desktopTextMedium(
                                                       context),
@@ -489,6 +495,8 @@ class _TransactionDetailsViewState
                                       if (!isDesktop)
                                         TxIcon(
                                           transaction: _transaction,
+                                          currentHeight: currentHeight,
+                                          coin: coin,
                                         ),
                                     ],
                                   ),
@@ -523,13 +531,17 @@ class _TransactionDetailsViewState
                                   SelectableText(
                                     _transaction.isCancelled
                                         ? "Cancelled"
-                                        : whatIsIt(_transaction.txType),
+                                        : whatIsIt(
+                                            _transaction.type,
+                                            currentHeight,
+                                          ),
                                     style: isDesktop
                                         ? STextStyles
                                                 .desktopTextExtraExtraSmall(
                                                     context)
                                             .copyWith(
-                                            color: _transaction.txType == "Sent"
+                                            color: _transaction.type ==
+                                                    TransactionType.outgoing
                                                 ? Theme.of(context)
                                                     .extension<StackColors>()!
                                                     .accentColorOrange
@@ -546,11 +558,12 @@ class _TransactionDetailsViewState
                             ),
                             if (!((coin == Coin.monero ||
                                         coin == Coin.wownero) &&
-                                    _transaction.txType.toLowerCase() ==
-                                        "sent") &&
+                                    _transaction.type ==
+                                        TransactionType.outgoing) &&
                                 !((coin == Coin.firo ||
                                         coin == Coin.firoTestNet) &&
-                                    _transaction.subType == "mint"))
+                                    _transaction.subType ==
+                                        TransactionSubType.mint))
                               isDesktop
                                   ? const _Divider()
                                   : const SizedBox(
@@ -558,11 +571,12 @@ class _TransactionDetailsViewState
                                     ),
                             if (!((coin == Coin.monero ||
                                         coin == Coin.wownero) &&
-                                    _transaction.txType.toLowerCase() ==
-                                        "sent") &&
+                                    _transaction.type ==
+                                        TransactionType.outgoing) &&
                                 !((coin == Coin.firo ||
                                         coin == Coin.firoTestNet) &&
-                                    _transaction.subType == "mint"))
+                                    _transaction.subType ==
+                                        TransactionSubType.mint))
                               RoundedWhiteContainer(
                                 padding: isDesktop
                                     ? const EdgeInsets.all(16)
@@ -578,8 +592,8 @@ class _TransactionDetailsViewState
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            _transaction.txType.toLowerCase() ==
-                                                    "sent"
+                                            _transaction.type ==
+                                                    TransactionType.outgoing
                                                 ? "Sent to"
                                                 : "Receiving address",
                                             style: isDesktop
@@ -592,17 +606,19 @@ class _TransactionDetailsViewState
                                           const SizedBox(
                                             height: 8,
                                           ),
-                                          _transaction.txType.toLowerCase() ==
-                                                  "received"
+                                          _transaction.type ==
+                                                  TransactionType.incoming
                                               ? FutureBuilder(
                                                   future: fetchContactNameFor(
-                                                      _transaction.address),
+                                                      _transaction.address
+                                                          .value!.value),
                                                   builder: (builderContext,
                                                       AsyncSnapshot<String>
                                                           snapshot) {
                                                     String
                                                         addressOrContactName =
-                                                        _transaction.address;
+                                                        _transaction.address
+                                                            .value!.value;
                                                     if (snapshot.connectionState ==
                                                             ConnectionState
                                                                 .done &&
@@ -630,7 +646,8 @@ class _TransactionDetailsViewState
                                                   },
                                                 )
                                               : SelectableText(
-                                                  _transaction.address,
+                                                  _transaction
+                                                      .address.value!.value,
                                                   style: isDesktop
                                                       ? STextStyles
                                                               .desktopTextExtraExtraSmall(
@@ -651,7 +668,7 @@ class _TransactionDetailsViewState
                                     ),
                                     if (isDesktop)
                                       IconCopyButton(
-                                        data: _transaction.address,
+                                        data: _transaction.address.value!.value,
                                       ),
                                   ],
                                 ),
@@ -855,7 +872,10 @@ class _TransactionDetailsViewState
                                   : const EdgeInsets.all(12),
                               child: Builder(builder: (context) {
                                 final feeString = showFeePending
-                                    ? _transaction.confirmedStatus
+                                    ? _transaction.isConfirmed(
+                                        currentHeight,
+                                        coin.requiredConfirmations,
+                                      )
                                         ? Format.localizedStringAsFixed(
                                             value: fee,
                                             locale: ref.watch(
@@ -947,9 +967,14 @@ class _TransactionDetailsViewState
                                   : const EdgeInsets.all(12),
                               child: Builder(builder: (context) {
                                 final height = widget.coin != Coin.epicCash &&
-                                        _transaction.confirmedStatus
+                                        _transaction.isConfirmed(
+                                          currentHeight,
+                                          coin.requiredConfirmations,
+                                        )
                                     ? "${_transaction.height == 0 ? "Unknown" : _transaction.height}"
-                                    : _transaction.confirmations > 0
+                                    : _transaction.getConfirmations(
+                                                currentHeight) >
+                                            0
                                         ? "${_transaction.height}"
                                         : "Pending";
 
@@ -1297,9 +1322,13 @@ class _TransactionDetailsViewState
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton: (coin == Coin.epicCash &&
-                _transaction.confirmedStatus == false &&
+                _transaction.isConfirmed(
+                      currentHeight,
+                      coin.requiredConfirmations,
+                    ) ==
+                    false &&
                 _transaction.isCancelled == false &&
-                _transaction.txType == "Sent")
+                _transaction.type == TransactionType.outgoing)
             ? SizedBox(
                 width: MediaQuery.of(context).size.width - 32,
                 child: TextButton(

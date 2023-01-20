@@ -37,6 +37,7 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
       rows: [
         for (int i = 0; i < providersByCoin.length; i++)
           Builder(
+            key: Key("${providersByCoin[i].key.name}_${runtimeType}_key"),
             builder: (context) {
               final providers = ref.watch(walletsChangeNotifierProvider.select(
                   (value) => value

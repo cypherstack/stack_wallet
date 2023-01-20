@@ -190,7 +190,8 @@ extension CoinExt on Coin {
 
       case Coin.dogecoin:
       case Coin.dogecoinTestNet:
-        return true;
+        // return true;
+        return false;
     }
   }
 

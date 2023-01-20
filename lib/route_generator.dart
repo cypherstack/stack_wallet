@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/contact_address_entry.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
@@ -121,6 +120,8 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:tuple/tuple.dart';
+
+import 'models/isar/models/blockchain_data/transaction.dart';
 
 class RouteGenerator {
   static const bool useMaterialPageRoute = true;
