@@ -1022,11 +1022,12 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         DefaultNodes.getNodeFor(coin);
   }
 
-  void onNewBlock() {
+  void onNewBlock({required int height, required int blocksLeft}) {
     //
     print("=============================");
     print("New Wownero Block! :: $walletName");
     print("=============================");
+    updateCachedChainHeight(height);
     _refreshTxDataHelper();
   }
 
