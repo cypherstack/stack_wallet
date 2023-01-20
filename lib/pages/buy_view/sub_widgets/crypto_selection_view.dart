@@ -198,18 +198,17 @@ class _CryptoSelectionViewState extends State<CryptoSelectionView> {
                         child: Row(
                           children: [
                             SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: _coins[index].image.isNotEmpty
-                                  ? SvgPicture.network(
-                                      _coins[index].image,
-                                      width: 24,
-                                      height: 24,
-                                      placeholderBuilder: (_) =>
-                                          const LoadingIndicator(),
-                                    )
-                                  : null,
-                            ),
+                                width: 24,
+                                height: 24,
+                                child: _coins[index].image.isNotEmpty
+                                    ? SvgPicture.network(
+                                        _coins[index].image,
+                                        width: 24,
+                                        height: 24,
+                                        placeholderBuilder: (_) =>
+                                            const LoadingIndicator(),
+                                      )
+                                    : getIconForTicker(_coins[index].ticker)),
                             const SizedBox(
                               width: 10,
                             ),
@@ -249,4 +248,17 @@ class _CryptoSelectionViewState extends State<CryptoSelectionView> {
       ),
     );
   }
+}
+
+Widget? getIconForTicker(String ticker) {
+  print(ticker);
+  if (!isCoinSupportedByTicker(ticker)) {
+    return null;
+  }
+  Coin? coin = coinFromTickerCaseInsensitive(ticker);
+  String iconAsset = Assets.svg.iconFor(coin: coin);
+  if (iconAsset != null) {
+    return SvgPicture.asset(iconAsset, height: 20, width: 20);
+  }
+  return null;
 }

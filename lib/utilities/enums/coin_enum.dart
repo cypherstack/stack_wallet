@@ -330,3 +330,29 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
           ticker, "name", "No Coin enum value with that ticker");
   }
 }
+
+// This was added for the Buy view.I would use coinFromTickerCaseInsensitive
+// however I need it to return null or something else to indicate failure
+// instead of throwing an exception
+bool isCoinSupportedByTicker(String ticker) {
+  switch (ticker.toLowerCase()) {
+    case "btc":
+    case "ltc":
+    case "bch":
+    case "doge":
+    case "epic":
+    case "firo":
+    case "xmr":
+    case "nmc":
+    case "part":
+    case "tltc":
+    case "tbtc":
+    case "tbch":
+    case "tfiro":
+    case "tdoge":
+    case "wow":
+      return true;
+    default:
+      return false;
+  }
+}
