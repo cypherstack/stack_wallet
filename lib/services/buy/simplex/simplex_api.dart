@@ -122,7 +122,7 @@ class SimplexAPI {
             : "${quote.youReceiveCryptoAmount}",
       };
       // TODO add USER_ID
-      Uri url = Uri.http('localhost', 'api.php/quote', data);
+      Uri url = Uri.http('localhost', 'api.php', data);
       // TODO update to stackwallet.com hosted API and use HTTPS
 
       var res = await http.post(url, headers: headers, body: json.encode(data));
@@ -193,7 +193,7 @@ class SimplexAPI {
       };
       // TODO add USER_ID
 
-      Uri url = Uri.http('localhost', 'api.php/order', data);
+      Uri url = Uri.http('localhost', 'api.php', data);
       // TODO update to stackwallet.com hosted API and use HTTPS
       var res = await http.post(url, headers: headers, body: json.encode(data));
       if (res.statusCode != 200) {
@@ -224,7 +224,7 @@ class SimplexAPI {
     try {
       bool status = await launchUrl(
         Uri.parse(
-            "http://localhost/api.php/redirect?PAYMENT_ID=${order.paymentId}"),
+            "http://localhost/api.php?ROUTE=redirect&PAYMENT_ID=${order.paymentId}"),
         mode: LaunchMode.externalApplication,
       );
 
