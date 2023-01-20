@@ -5,13 +5,13 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:stackwallet/models/buy/response_objects/crypto.dart';
-// import 'package:stackwallet/models/buy/response_objects/crypto.dart';
 import 'package:stackwallet/models/buy/response_objects/fiat.dart';
 import 'package:stackwallet/models/buy/response_objects/order.dart';
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
 import 'package:stackwallet/services/buy/buy_response.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:tuple/tuple.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SimplexAPI {
   static const String scheme = "https";
@@ -199,9 +199,8 @@ class SimplexAPI {
       if (res.statusCode != 200) {
         throw Exception('newOrder exception: statusCode= ${res.statusCode}');
       }
-      final jsonArray = jsonDecode(res.body); // TODO check if json
-      // TODO create and return SimplexOrder here
-
+      final jsonArray = jsonDecode(res.body); // TODO check if valid json
+      print(jsonArray);
       SimplexOrder _order = SimplexOrder(
         quote: quote,
         paymentId: "${jsonArray['paymentId']}",
@@ -218,6 +217,27 @@ class SimplexAPI {
           BuyExceptionType.generic,
         ),
       );
+    }
+  }
+
+  Future<BuyResponse<bool>> redirect(SimplexOrder order) async {
+    try {
+      bool status = await launchUrl(
+        Uri.parse(
+            "http://localhost/api.php/redirect?PAYMENT_ID=${order.paymentId}"),
+        mode: LaunchMode.externalApplication,
+      );
+
+      print(status);
+
+      return BuyResponse(value: status);
+    } catch (e, s) {
+      Logging.instance.log("newOrder exception: $e\n$s", level: LogLevel.Error);
+      return BuyResponse(
+          exception: BuyException(
+        e.toString(),
+        BuyExceptionType.generic,
+      ));
     }
   }
 }

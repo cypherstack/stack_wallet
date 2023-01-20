@@ -21,8 +21,11 @@ class BuyWarningPopup extends StatelessWidget {
   final SimplexQuote quote;
 
   Future<BuyResponse<SimplexOrder>> newOrder(SimplexQuote quote) async {
-    // BuyResponse<SimplexOrder> order = ;
     return SimplexAPI.instance.newOrder(quote);
+  }
+
+  Future<BuyResponse<bool>> redirect(SimplexOrder order) async {
+    return SimplexAPI.instance.redirect(order);
   }
 
   @override
@@ -40,6 +43,8 @@ class BuyWarningPopup extends StatelessWidget {
         label: "Continue",
         onPressed: () async {
           BuyResponse<SimplexOrder> order = await newOrder(quote);
+          BuyResponse<bool> response =
+              await redirect(order.value as SimplexOrder);
           // TODO save order and redirect
         },
       ),
