@@ -1,13 +1,9 @@
 import 'package:isar/isar.dart';
+import 'package:stackwallet/exceptions/address/address_exception.dart';
 import 'package:stackwallet/models/isar/models/address/crypto_currency_address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
-import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
 
 part 'address.g.dart';
-
-class AddressException extends SWException {
-  AddressException(super.message);
-}
 
 @Collection(accessor: "addresses")
 class Address extends CryptoCurrencyAddress {

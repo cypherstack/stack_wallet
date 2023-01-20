@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:stackwallet/exceptions/wallet/insufficient_balance_exception.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/paynym/dialogs/confirm_paynym_connect_dialog.dart';

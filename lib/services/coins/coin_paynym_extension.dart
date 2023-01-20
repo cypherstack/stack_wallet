@@ -8,6 +8,8 @@ import 'package:bitcoindart/src/utils/constants/op.dart' as op;
 import 'package:bitcoindart/src/utils/script.dart' as bscript;
 import 'package:isar/isar.dart';
 import 'package:pointycastle/digests/sha256.dart';
+import 'package:stackwallet/exceptions/wallet/insufficient_balance_exception.dart';
+import 'package:stackwallet/exceptions/wallet/paynym_send_exception.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
@@ -15,23 +17,6 @@ import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:tuple/tuple.dart';
-
-class SWException with Exception {
-  SWException(this.message);
-
-  final String message;
-
-  @override
-  toString() => message;
-}
-
-class InsufficientBalanceException extends SWException {
-  InsufficientBalanceException(super.message);
-}
-
-class PaynymSendException extends SWException {
-  PaynymSendException(super.message);
-}
 
 extension PayNym on DogecoinWallet {
   // fetch or generate this wallet's bip47 payment code
