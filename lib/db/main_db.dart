@@ -12,7 +12,11 @@ class MainDB {
 
   Isar get isar => _isar!;
 
-  Future<bool> isarInit() async {
+  Future<bool> isarInit({Isar? mock}) async {
+    if (mock != null) {
+      _isar = mock;
+      return true;
+    }
     if (_isar != null && isar.isOpen) return false;
     _isar = await Isar.open(
       [

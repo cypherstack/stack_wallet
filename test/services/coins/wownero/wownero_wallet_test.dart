@@ -16,9 +16,7 @@ import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_test/hive_test.dart';
-import 'package:mockito/annotations.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 
 import 'wownero_wallet_test_data.dart';
@@ -36,9 +34,6 @@ String name = '';
 int nettype = 0;
 WalletType type = WalletType.wownero;
 
-@GenerateMocks([
-  MainDB,
-])
 void main() async {
   storage = FakeSecureStorage();
   keysStorage = KeyService(storage!);
