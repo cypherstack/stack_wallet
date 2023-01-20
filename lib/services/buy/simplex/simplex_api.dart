@@ -66,7 +66,6 @@ class SimplexAPI {
       List<Crypto> cryptos = [];
       List<Fiat> fiats = [];
 
-      // TODO map List<String> supportedCryptos to List<Crypto>
       for (final crypto in jsonArray as List) {
         cryptos.add(Crypto.fromJson({
           'ticker': "${crypto['ticker_symbol']}",
@@ -126,12 +125,13 @@ class SimplexAPI {
 
       print(jsonArray);
 
-      var supportedFiats = jsonArray['result']['supported_fiat_currencies'];
-      // TODO map List<String> supportedFiats to List<Fiat>
-      for (final ticker in supportedFiats as List) {
+      for (final fiat in jsonArray as List) {
+        print(fiat);
         fiats.add(Fiat.fromJson({
-          'ticker': ticker as String,
-          'name': ticker,
+          'ticker': "${fiat['ticker_symbol']}",
+          'name': "${fiat['ticker_symbol']}",
+          'min_amount': "${fiat['min_amount']}",
+          'max_amount': "${fiat['max_amount']}",
           'image': "",
         }));
       }
