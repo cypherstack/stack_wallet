@@ -4,7 +4,7 @@ mixin WalletDB {
   MainDB? _db;
   MainDB get db => _db!;
 
-  void isarInit({MainDB? mockableOverride}) async {
+  void initWalletDB({MainDB? mockableOverride}) async {
     _db = mockableOverride ?? MainDB.instance;
   }
 }

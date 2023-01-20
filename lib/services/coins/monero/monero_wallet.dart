@@ -92,7 +92,7 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     _secureStorage = secureStorage;
     _prefs = prefs ?? Prefs.instance;
     initCache(walletId, coin);
-    isarInit(mockableOverride: mockableOverride);
+    initWalletDB(mockableOverride: mockableOverride);
   }
 
   @override

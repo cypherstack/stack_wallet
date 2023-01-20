@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:hive/hive.dart';
+import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
@@ -403,7 +404,8 @@ class DbVersionMigrator with WalletDB {
           _parseTransactions(txnsLelantus, walletId, true, newAddresses));
 
       // store newly parsed data in isar
-      isarInit();
+      await MainDB.instance.initMainDB();
+      initWalletDB();
       await db.isar.writeTxn(() async {
         await db.isar.addresses.putAll(newAddresses);
       });

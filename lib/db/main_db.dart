@@ -12,7 +12,7 @@ class MainDB {
 
   Isar get isar => _isar!;
 
-  Future<bool> isarInit({Isar? mock}) async {
+  Future<bool> initMainDB({Isar? mock}) async {
     if (mock != null) {
       _isar = mock;
       return true;
@@ -28,7 +28,7 @@ class MainDB {
         AddressSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
-      inspector: true,
+      inspector: false,
       name: "wallet_data",
     );
     return true;

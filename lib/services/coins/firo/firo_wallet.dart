@@ -1225,7 +1225,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
     _secureStore = secureStore;
     initCache(walletId, coin);
     initFiroHive(walletId);
-    isarInit(mockableOverride: mockableOverride);
+    initWalletDB(mockableOverride: mockableOverride);
 
     Logging.instance.log("$walletName isolates length: ${isolates.length}",
         level: LogLevel.Info);

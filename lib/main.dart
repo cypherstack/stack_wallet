@@ -265,7 +265,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         await loadShared();
       }
 
-      await MainDB.instance.isarInit();
+      await MainDB.instance.initMainDB();
 
       _notificationsService = ref.read(notificationsProvider);
       _nodeService = ref.read(nodeServiceChangeNotifierProvider);

@@ -542,7 +542,7 @@ class EpicCashWallet extends CoinServiceAPI
     _secureStore = secureStore;
     initCache(walletId, coin);
     initEpicCashHive(walletId);
-    isarInit(mockableOverride: mockableOverride);
+    initWalletDB(mockableOverride: mockableOverride);
 
     Logging.instance.log("$walletName isolate length: ${isolates.length}",
         level: LogLevel.Info);
