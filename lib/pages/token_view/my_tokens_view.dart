@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages/token_view/sub_widgets/my_tokens_list.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -22,29 +24,33 @@ import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
+import 'package:stackwallet/utilities/eth_commons.dart';
 
 class MyTokensView extends ConsumerStatefulWidget {
   const MyTokensView({
     Key? key,
-    required this.walletId,
+    required this.walletAddress,
+    required this.tokens,
+    required this.walletName,
   }) : super(key: key);
 
   static const String routeName = "/myTokens";
-  final String walletId;
+  final String walletAddress;
+  final List<dynamic> tokens;
+  final String walletName;
 
   @override
   ConsumerState<MyTokensView> createState() => _TokenDetailsViewState();
 }
 
 class _TokenDetailsViewState extends ConsumerState<MyTokensView> {
-  late final String walletId;
-
+  late final String walletAddress;
   late final TextEditingController _searchController;
   final searchFieldFocusNode = FocusNode();
 
   @override
   void initState() {
-    walletId = widget.walletId;
+    walletAddress = widget.walletAddress;
     _searchController = TextEditingController();
 
     super.initState();
@@ -95,7 +101,7 @@ class _TokenDetailsViewState extends ConsumerState<MyTokensView> {
                     width: 12,
                   ),
                   Text(
-                    "My ETH Wallet Tokens",
+                    "${widget.walletName} Tokens",
                     style: STextStyles.desktopH3(context),
                   ),
                 ],
@@ -117,7 +123,7 @@ class _TokenDetailsViewState extends ConsumerState<MyTokensView> {
                 },
               ),
               title: Text(
-                "My ETH Wallet Tokens",
+                "${widget.walletName} Tokens",
                 style: STextStyles.navBarTitle(context),
               ),
               actions: [
@@ -250,12 +256,12 @@ class _TokenDetailsViewState extends ConsumerState<MyTokensView> {
                 ],
               ),
             ),
-            if (isDesktop)
-              const SizedBox(
-                height: 8,
-              ),
             const SizedBox(
               height: 8,
+            ),
+            Expanded(
+              child: MyTokensList(
+                  tokens: widget.tokens, walletAddress: walletAddress),
             ),
           ],
         ),

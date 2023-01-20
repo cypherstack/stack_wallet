@@ -81,33 +81,22 @@ class GasTracker {
   }
 }
 
-class EthereumWallet extends CoinServiceAPI {
+class TokenWallet extends CoinServiceAPI {
   NodeModel? _ethNode;
   final _gasLimit = 21000;
   final _blockExplorer = "https://blockscout.com/eth/mainnet/api?";
   final _gasTrackerUrl = "https://beaconcha.in/api/v1/execution/gasnow";
 
   @override
-  set isFavorite(bool markFavorite) {
-    DB.instance.put<dynamic>(
-        boxName: walletId, key: "isFavorite", value: markFavorite);
-  }
+  set isFavorite(bool markFavorite) {}
 
   @override
   bool get isFavorite {
-    try {
-      return DB.instance.get<dynamic>(boxName: walletId, key: "isFavorite")
-          as bool;
-    } catch (e, s) {
-      Logging.instance.log(
-          "isFavorite fetch failed (returning false by default): $e\n$s",
-          level: LogLevel.Error);
-      return false;
-    }
+    throw UnimplementedError();
   }
 
   @override
-  Coin get coin => _coin;
+  Coin get coin => Coin.ethereum;
 
   late SecureStorageInterface _secureStore;
   late final TransactionNotificationTracker txTracker;
@@ -115,6 +104,7 @@ class EthereumWallet extends CoinServiceAPI {
   final _prefs = Prefs.instance;
   bool longMutex = false;
 
+  //TODO - move shared logic to eth_commons
   Future<NodeModel> getCurrentNode() async {
     return NodeService(secureStorageInterface: _secureStore)
             .getPrimaryNodeFor(coin: coin) ??
@@ -128,7 +118,7 @@ class EthereumWallet extends CoinServiceAPI {
 
   late EthPrivateKey _credentials;
 
-  EthereumWallet({
+  TokenWallet({
     required String walletId,
     required String walletName,
     required Coin coin,
@@ -139,7 +129,7 @@ class EthereumWallet extends CoinServiceAPI {
     txTracker = tracker;
     _walletId = walletId;
     _walletName = walletName;
-    _coin = coin;
+    // _coin = coin;
 
     _priceAPI = priceAPI ?? PriceAPI(Client());
     _secureStore = secureStore;
@@ -169,7 +159,6 @@ class EthereumWallet extends CoinServiceAPI {
   String get walletName => _walletName;
   late String _walletName;
 
-  late Coin _coin;
   Timer? timer;
   Timer? _networkAliveTimer;
 

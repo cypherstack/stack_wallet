@@ -79,6 +79,7 @@ import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_set
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
 import 'package:stackwallet/pages/stack_privacy_calls.dart';
 import 'package:stackwallet/pages/token_view/my_tokens_view.dart';
+import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/edit_note_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
@@ -1294,11 +1295,27 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case MyTokensView.routeName:
-        if (args is String) {
+        if (args is Tuple3<String, List<dynamic>, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => MyTokensView(
-              walletId: args,
+                walletAddress: args.item1,
+                tokens: args.item2,
+                walletName: args.item3),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case TokenView.routeName:
+        if (args is Tuple2<String, String>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => TokenView(
+              walletAddress: args.item1,
+              contractAddress: args.item2,
             ),
             settings: RouteSettings(
               name: settings.name,

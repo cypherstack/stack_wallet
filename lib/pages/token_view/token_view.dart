@@ -50,26 +50,31 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:tuple/tuple.dart';
 
 /// [eventBus] should only be set during testing
-class WalletView extends ConsumerStatefulWidget {
-  const WalletView({
+class TokenView extends ConsumerStatefulWidget {
+  const TokenView({
     Key? key,
     required this.walletId,
+    required this.contractAddress,
     required this.managerProvider,
     this.eventBus,
+    required this.walletAddress,
   }) : super(key: key);
 
-  static const String routeName = "/wallet";
+  static const String routeName = "/token";
   static const double navBarHeight = 65.0;
 
   final String walletId;
+  final String contractAddress;
+  final String walletAddress;
   final ChangeNotifierProvider<Manager> managerProvider;
+
   final EventBus? eventBus;
 
   @override
-  ConsumerState<WalletView> createState() => _WalletViewState();
+  ConsumerState<TokenView> createState() => _TokenViewState();
 }
 
-class _WalletViewState extends ConsumerState<WalletView> {
+class _TokenViewState extends ConsumerState<TokenView> {
   late final EventBus eventBus;
   late final String walletId;
   late final ChangeNotifierProvider<Manager> managerProvider;
@@ -185,7 +190,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
       ).timeout(
         timeout,
         onTimeout: () => Navigator.of(context).popUntil(
-          ModalRoute.withName(WalletView.routeName),
+          ModalRoute.withName(TokenView.routeName),
         ),
       ));
     }
@@ -318,7 +323,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
       shouldPop = true;
       if (mounted) {
         Navigator.of(context).popUntil(
-          ModalRoute.withName(WalletView.routeName),
+          ModalRoute.withName(TokenView.routeName),
         );
         unawaited(
           showFloatingFlushBar(
@@ -336,7 +341,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
       shouldPop = true;
       if (mounted) {
         Navigator.of(context).popUntil(
-          ModalRoute.withName(WalletView.routeName),
+          ModalRoute.withName(TokenView.routeName),
         );
         unawaited(
           showFloatingFlushBar(
@@ -350,7 +355,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
       shouldPop = true;
       if (mounted) {
         Navigator.of(context).popUntil(
-          ModalRoute.withName(WalletView.routeName),
+          ModalRoute.withName(TokenView.routeName),
         );
         await showDialog<dynamic>(
           context: context,
@@ -424,7 +429,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: AppBarIconButton(
-                    key: const Key("walletViewRadioButton"),
+                    key: const Key("tokenViewRadioButton"),
                     size: 36,
                     shadows: const [],
                     color:
@@ -452,7 +457,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: AppBarIconButton(
-                    key: const Key("walletViewAlertsButton"),
+                    key: const Key("tokenViewAlertsButton"),
                     size: 36,
                     shadows: const [],
                     color:
@@ -517,7 +522,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: AppBarIconButton(
-                    key: const Key("walletViewSettingsButton"),
+                    key: const Key("tokenViewSettingsButton"),
                     size: 36,
                     shadows: const [],
                     color:
@@ -678,7 +683,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                   Constants.size.circularBorderRadius,
                                 ),
                                 bottom: Radius.circular(
-                                  // WalletView.navBarHeight / 2.0,
+                                  // TokenView.navBarHeight / 2.0,
                                   Constants.size.circularBorderRadius,
                                 ),
                               ),
@@ -719,14 +724,14 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                     right: 16,
                                   ),
                                   child: SizedBox(
-                                    height: WalletView.navBarHeight,
+                                    height: TokenView.navBarHeight,
                                     child: WalletNavigationBar(
                                       enableExchange:
                                           Constants.enableExchange &&
                                               ref.watch(managerProvider.select(
                                                       (value) => value.coin)) !=
                                                   Coin.epicCash,
-                                      height: WalletView.navBarHeight,
+                                      height: TokenView.navBarHeight,
                                       onExchangePressed: () =>
                                           _onExchangePressed(context),
                                       onReceivePressed: () async {
