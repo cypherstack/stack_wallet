@@ -8,6 +8,7 @@ import 'package:stackwallet/models/buy/response_objects/quote.dart';
 import 'package:stackwallet/services/buy/buy_response.dart';
 import 'package:stackwallet/services/buy/simplex/simplex_api.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -19,6 +20,7 @@ class BuyWarningPopup extends StatelessWidget {
   }) : super(key: key);
 
   final SimplexQuote quote;
+  final isDesktop = Util.isDesktop;
 
   Future<BuyResponse<SimplexOrder>> newOrder(SimplexQuote quote) async {
     return SimplexAPI.instance.newOrder(quote);
@@ -37,7 +39,7 @@ class BuyWarningPopup extends StatelessWidget {
           "their instructions.",
       leftButton: SecondaryButton(
         label: "Cancel",
-        onPressed: Navigator.of(context).pop,
+        onPressed: Navigator.of(context, rootNavigator: isDesktop).pop,
       ),
       rightButton: PrimaryButton(
         label: "Continue",
