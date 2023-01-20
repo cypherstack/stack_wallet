@@ -10,7 +10,6 @@ import 'package:stackwallet/models/buy/response_objects/order.dart';
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
 import 'package:stackwallet/services/buy/buy_response.dart';
 import 'package:stackwallet/utilities/logger.dart';
-import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SimplexAPI {
@@ -28,9 +27,7 @@ class SimplexAPI {
     return Uri.https(authority, path, params);
   }
 
-  Future<BuyResponse<Tuple2<List<Crypto>, List<Fiat>>>> getSupported() async {
-    // example for quote courtesy of @danrmiller
-    // curl -H "Content-Type: application/json" -d '{"digital_currency": "BTC", "fiat_currency": "USD", "requested_currency": "USD", "requested_amount": 100}' http://sandbox-api.stackwallet.com/quote
+  Future<BuyResponse<List<Crypto>>> getSupportedCryptos() async {
     // official docs reference eg
     // curl --request GET \
     //      --url https://sandbox.test-simplexcc.com/v2/supported_crypto_currencies \
@@ -38,13 +35,11 @@ class SimplexAPI {
 
     try {
       Map<String, String> headers = {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
       };
-      String data =
-          '{"digital_currency": "BTC", "fiat_currency": "USD", "requested_currency": "USD", "requested_amount": 100}';
-      Uri url = Uri.parse('http://sandbox-api.stackwallet.com/quote');
+      Uri url = Uri.parse('http://localhost/api.php?ROUTE=supported_cryptos');
 
-      var res = await http.post(url, headers: headers, body: data);
+      var res = await http.post(url, headers: headers);
 
       if (res.statusCode != 200) {
         throw Exception(
@@ -53,7 +48,7 @@ class SimplexAPI {
 
       final jsonArray = jsonDecode(res.body);
 
-      return await compute(_parseSupported, jsonArray);
+      return await compute(_parseSupportedCryptos, jsonArray);
     } catch (e, s) {
       Logging.instance.log("getAvailableCurrencies exception: $e\n$s",
           level: LogLevel.Error);
@@ -66,22 +61,71 @@ class SimplexAPI {
     }
   }
 
-  BuyResponse<Tuple2<List<Crypto>, List<Fiat>>> _parseSupported(
-      dynamic jsonArray) {
+  BuyResponse<List<Crypto>> _parseSupportedCryptos(dynamic jsonArray) {
     try {
       List<Crypto> cryptos = [];
       List<Fiat> fiats = [];
 
-      var supportedCryptos =
-          jsonArray['result']['supported_digital_currencies'];
       // TODO map List<String> supportedCryptos to List<Crypto>
-      for (final ticker in supportedCryptos as List) {
+      for (final crypto in jsonArray as List) {
         cryptos.add(Crypto.fromJson({
-          'ticker': ticker as String,
-          'name': ticker,
+          'ticker': "${crypto['ticker_symbol']}",
+          'name': crypto['name'],
+          'network': "${crypto['network']}",
+          'contractAddress': "${crypto['contractAddress']}",
           'image': "",
         }));
       }
+
+      return BuyResponse(value: cryptos);
+    } catch (e, s) {
+      Logging.instance
+          .log("_parseSupported exception: $e\n$s", level: LogLevel.Error);
+      return BuyResponse(
+        exception: BuyException(
+          e.toString(),
+          BuyExceptionType.generic,
+        ),
+      );
+    }
+  }
+
+  Future<BuyResponse<List<Fiat>>> getSupportedFiats() async {
+    try {
+      Map<String, String> headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      };
+      Uri url = Uri.parse('http://localhost/api.php?ROUTE=supported_fiats');
+
+      var res = await http.post(url, headers: headers);
+
+      if (res.statusCode != 200) {
+        throw Exception(
+            'getAvailableCurrencies exception: statusCode= ${res.statusCode}');
+      }
+
+      final jsonArray = jsonDecode(res.body);
+
+      return await compute(_parseSupportedFiats, jsonArray);
+    } catch (e, s) {
+      Logging.instance.log("getAvailableCurrencies exception: $e\n$s",
+          level: LogLevel.Error);
+      return BuyResponse(
+        exception: BuyException(
+          e.toString(),
+          BuyExceptionType.generic,
+        ),
+      );
+    }
+  }
+
+  BuyResponse<List<Fiat>> _parseSupportedFiats(dynamic jsonArray) {
+    try {
+      List<Crypto> cryptos = [];
+      List<Fiat> fiats = [];
+
+      print(jsonArray);
+
       var supportedFiats = jsonArray['result']['supported_fiat_currencies'];
       // TODO map List<String> supportedFiats to List<Fiat>
       for (final ticker in supportedFiats as List) {
@@ -92,7 +136,7 @@ class SimplexAPI {
         }));
       }
 
-      return BuyResponse(value: Tuple2(cryptos, fiats));
+      return BuyResponse(value: fiats);
     } catch (e, s) {
       Logging.instance
           .log("_parseSupported exception: $e\n$s", level: LogLevel.Error);

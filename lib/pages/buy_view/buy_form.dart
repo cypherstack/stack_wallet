@@ -108,7 +108,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
           ),
         ),
       );
-      await _loadSimplexCurrencies();
+      await _loadSimplexCryptos();
       shouldPop = true;
       if (mounted) {
         Navigator.of(context, rootNavigator: isDesktop).pop();
@@ -212,7 +212,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
           ),
         ),
       );
-      await _loadSimplexCurrencies();
+      await _loadSimplexFiats();
       shouldPop = true;
       if (mounted) {
         Navigator.of(context, rootNavigator: isDesktop).pop();
@@ -229,12 +229,29 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     );
   }
 
-  Future<void> _loadSimplexCurrencies() async {
-    final response = await SimplexAPI.instance.getSupported();
+  Future<void> _loadSimplexCryptos() async {
+    final response = await SimplexAPI.instance.getSupportedCryptos();
+
+    print('test1');
+    print(response.value);
 
     if (response.value != null) {
-      ref.read(simplexProvider).updateSupportedCryptos(response.value!.item1);
-      ref.read(simplexProvider).updateSupportedFiats(response.value!.item2);
+      ref.read(simplexProvider).updateSupportedCryptos(response.value!);
+    } else {
+      Logging.instance.log(
+        "_loadSimplexCurrencies: $response",
+        level: LogLevel.Warning,
+      );
+    }
+  }
+
+  Future<void> _loadSimplexFiats() async {
+    final response = await SimplexAPI.instance.getSupportedFiats();
+
+    print(response.value);
+
+    if (response.value != null) {
+      ref.read(simplexProvider).updateSupportedFiats(response.value!);
     } else {
       Logging.instance.log(
         "_loadSimplexCurrencies: $response",
