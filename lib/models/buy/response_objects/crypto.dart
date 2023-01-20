@@ -25,11 +25,11 @@ class Crypto {
   factory Crypto.fromJson(Map<String, dynamic> json) {
     try {
       return Crypto(
-        ticker: json["ticker"] as String,
-        name: json["name"] as String,
-        network: json["network"] as String,
-        contractAddress: json["contractAddress"] as String,
-        image: json["image"] as String,
+        ticker: "${json['ticker']}",
+        name: "${json['name']}",
+        network: "${json['network']}",
+        contractAddress: "${json['contractAddress']}",
+        image: "${json['image']}",
       );
     } catch (e) {
       rethrow;
