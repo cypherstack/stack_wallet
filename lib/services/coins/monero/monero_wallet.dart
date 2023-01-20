@@ -92,7 +92,7 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     _secureStorage = secureStorage;
     _prefs = prefs ?? Prefs.instance;
     initCache(walletId, coin);
-    isarInit(mockableOverride: mockableOverride);
+    initWalletDB(mockableOverride: mockableOverride);
   }
 
   @override
@@ -381,7 +381,12 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     final node = await _getCurrentNode();
     final host = Uri.parse(node.host).host;
     await walletBase!.connectToNode(
-        node: Node(uri: "$host:${node.port}", type: WalletType.monero));
+      node: Node(
+        uri: "$host:${node.port}",
+        type: WalletType.monero,
+        trusted: node.trusted ?? false,
+      ),
+    );
     await walletBase!.startSync();
 
     await Future.wait([
@@ -603,7 +608,12 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
       final node = await _getCurrentNode();
       final host = Uri.parse(node.host).host;
       await walletBase!.connectToNode(
-          node: Node(uri: "$host:${node.port}", type: WalletType.monero));
+        node: Node(
+          uri: "$host:${node.port}",
+          type: WalletType.monero,
+          trusted: node.trusted ?? false,
+        ),
+      );
       await walletBase!.rescan(height: credentials.height);
       walletBase!.close();
     } catch (e, s) {
@@ -690,7 +700,12 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
             final node = await _getCurrentNode();
             final host = Uri.parse(node.host).host;
             await walletBase?.connectToNode(
-                node: Node(uri: "$host:${node.port}", type: WalletType.monero));
+              node: Node(
+                uri: "$host:${node.port}",
+                type: WalletType.monero,
+                trusted: node.trusted ?? false,
+              ),
+            );
           }
           await walletBase?.startSync();
           await refresh();
@@ -782,7 +797,12 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
     final host = Uri.parse(node.host).host;
     await walletBase?.connectToNode(
-        node: Node(uri: "$host:${node.port}", type: WalletType.monero));
+      node: Node(
+        uri: "$host:${node.port}",
+        type: WalletType.monero,
+        trusted: node.trusted ?? false,
+      ),
+    );
 
     // TODO: is this sync call needed? Do we need to notify ui here?
     await walletBase?.startSync();

@@ -294,4 +294,46 @@ abstract class CoinServiceAPI {
   Future<void> updateSentCachedTxData(Map<String, dynamic> txData);
 
   int get storedChainHeight;
+
+  // Certain outputs return address as an array/list of strings like List<String> ["addresses"][0], some return it as a string like String ["address"]
+  String? getAddress(dynamic output) {
+    // Julian's code from https://github.com/cypherstack/stack_wallet/blob/35a8172d35f1b5cdbd22f0d56c4db02f795fd032/lib/services/coins/coin_paynym_extension.dart#L170 wins codegolf for this, I'd love to commit it now but need to retest this section ... should make unit tests for this case
+    // final String? address = output["scriptPubKey"]?["addresses"]?[0] as String? ?? output["scriptPubKey"]?["address"] as String?;
+    String? address;
+    if (output.containsKey('scriptPubKey') as bool) {
+      // Make sure the key exists before using it
+      if (output["scriptPubKey"].containsKey('address') as bool) {
+        address = output["scriptPubKey"]["address"] as String?;
+      } else if (output["scriptPubKey"].containsKey('addresses') as bool) {
+        address = output["scriptPubKey"]["addresses"][0] as String?;
+        // TODO determine cases in which there are multiple addresses in the array
+      }
+    } /*else {
+      // TODO detect cases in which no scriptPubKey exists
+      Logging.instance.log("output type not detected; output: ${output}",
+          level: LogLevel.Info);
+    }*/
+
+    return address;
+  }
+
+  // Firo wants an array/list of address strings like List<String>
+  List? getAddresses(dynamic output) {
+    // Inspired by Julian's code as referenced above, need to test before committing
+    // final List? addresses = output["scriptPubKey"]?["addresses"] as List? ?? [output["scriptPubKey"]?["address"]] as List?;
+    List? addresses;
+    if (output.containsKey('scriptPubKey') as bool) {
+      if (output["scriptPubKey"].containsKey('addresses') as bool) {
+        addresses = output["scriptPubKey"]["addresses"] as List?;
+      } else if (output["scriptPubKey"].containsKey('address') as bool) {
+        addresses = [output["scriptPubKey"]["address"]];
+      }
+    } /*else {
+      // TODO detect cases in which no scriptPubKey exists
+      Logging.instance.log("output type not detected; output: ${output}",
+          level: LogLevel.Info);
+    }*/
+
+    return addresses;
+  }
 }

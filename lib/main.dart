@@ -59,6 +59,7 @@ import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/dark_colors.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
+import 'package:stackwallet/utilities/theme/oled_black_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:window_size/window_size.dart';
@@ -77,7 +78,6 @@ void main() async {
   if (Platform.isIOS) {
     Util.libraryPath = await getLibraryDirectory();
   }
-
   Screen? screen;
   if (Platform.isLinux || (Util.isDesktop && !Platform.isIOS)) {
     screen = await getCurrentScreen();
@@ -265,7 +265,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         await loadShared();
       }
 
-      await MainDB.instance.isarInit();
+      await MainDB.instance.initMainDB();
 
       _notificationsService = ref.read(notificationsProvider);
       _nodeService = ref.read(nodeServiceChangeNotifierProvider);
@@ -326,6 +326,9 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     switch (colorScheme) {
       case "dark":
         colorTheme = DarkColors();
+        break;
+      case "oledBlack":
+        colorTheme = OledBlackColors();
         break;
       case "oceanBreeze":
         colorTheme = OceanBreezeColors();

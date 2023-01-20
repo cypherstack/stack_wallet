@@ -1276,7 +1276,7 @@ class LitecoinWallet extends CoinServiceAPI
     _cachedElectrumXClient = cachedClient;
     _secureStore = secureStore;
     initCache(walletId, coin);
-    isarInit(mockableOverride: mockableOverride);
+    initWalletDB(mockableOverride: mockableOverride);
   }
 
   @override

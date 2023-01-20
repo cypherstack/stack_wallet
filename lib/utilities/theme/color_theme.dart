@@ -3,12 +3,11 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/theme/dark_colors.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
+import 'package:stackwallet/utilities/theme/oled_black_colors.dart';
 
-enum ThemeType {
-  light,
-  dark,
-  oceanBreeze,
-}
+enum ThemeType { light, dark, oceanBreeze, oledBlack }
+
+// adjust this file
 
 extension ThemeTypeExt on ThemeType {
   StackColorTheme get colorTheme {
@@ -19,6 +18,8 @@ extension ThemeTypeExt on ThemeType {
         return DarkColors();
       case ThemeType.oceanBreeze:
         return OceanBreezeColors();
+      case ThemeType.oledBlack:
+        return OledBlackColors();
     }
   }
 
@@ -30,6 +31,8 @@ extension ThemeTypeExt on ThemeType {
         return "Dark";
       case ThemeType.oceanBreeze:
         return "Ocean Breeze";
+      case ThemeType.oledBlack:
+        return "Oled Black";
     }
   }
 }
@@ -65,6 +68,7 @@ abstract class StackColorTheme {
   Color get textWhite;
   Color get textFavoriteCard;
   Color get textError;
+  Color get textRestore;
 
 // button background
   Color get buttonBackPrimary;
@@ -143,6 +147,8 @@ abstract class StackColorTheme {
   Color get textFieldDefaultBG;
   Color get textFieldErrorBG;
   Color get textFieldSuccessBG;
+  Color get textFieldErrorBorder;
+  Color get textFieldSuccessBorder;
   Color get textFieldActiveSearchIconLeft;
   Color get textFieldDefaultSearchIconLeft;
   Color get textFieldErrorSearchIconLeft;

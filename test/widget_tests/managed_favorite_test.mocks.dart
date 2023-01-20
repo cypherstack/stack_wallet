@@ -1347,9 +1347,9 @@ class MockBitcoinWallet extends _i1.Mock implements _i20.BitcoinWallet {
         returnValueForMissingStub: _i17.Future<void>.value(),
       ) as _i17.Future<void>);
   @override
-  void isarInit({_i12.MainDB? mockableOverride}) => super.noSuchMethod(
+  void initWalletDB({_i12.MainDB? mockableOverride}) => super.noSuchMethod(
         Invocation.method(
-          #isarInit,
+          #initWalletDB,
           [],
           {#mockableOverride: mockableOverride},
         ),

@@ -108,6 +108,7 @@ abstract class DefaultNodes {
         coinName: Coin.monero.name,
         isFailover: true,
         isDown: false,
+        trusted: true,
       );
 
   static NodeModel get wownero => NodeModel(
@@ -120,6 +121,7 @@ abstract class DefaultNodes {
         coinName: Coin.wownero.name,
         isFailover: true,
         isDown: false,
+        trusted: true,
       );
 
   static NodeModel get epicCash => NodeModel(
