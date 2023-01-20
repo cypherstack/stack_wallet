@@ -20,7 +20,6 @@ class BuyWarningPopup extends StatelessWidget {
   }) : super(key: key);
 
   final SimplexQuote quote;
-  final isDesktop = Util.isDesktop;
 
   Future<BuyResponse<SimplexOrder>> newOrder(SimplexQuote quote) async {
     return SimplexAPI.instance.newOrder(quote);
@@ -32,6 +31,8 @@ class BuyWarningPopup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = Util.isDesktop;
+
     return StackDialog(
       title: "Buy ${quote.crypto.ticker}",
       message: "This purchase is provided and fulfilled by Simplex by nuvei "
