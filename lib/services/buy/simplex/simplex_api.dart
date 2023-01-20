@@ -1,16 +1,14 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:stackwallet/models/buy/response_objects/crypto.dart';
-// import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
-// import 'package:stackwallet/models/exchange/response_objects/pair.dart';
-// import 'package:stackwallet/models/exchange/response_objects/range.dart';
-// import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/buy/response_objects/fiat.dart';
-import 'package:stackwallet/models/buy/response_objects/quote.dart';
 // import 'package:stackwallet/models/buy/response_objects/crypto.dart';
+import 'package:stackwallet/models/buy/response_objects/fiat.dart';
+import 'package:stackwallet/models/buy/response_objects/order.dart';
+import 'package:stackwallet/models/buy/response_objects/quote.dart';
 import 'package:stackwallet/services/buy/buy_response.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:tuple/tuple.dart';
@@ -175,8 +173,7 @@ class SimplexAPI {
     }
   }
 
-  /*Future<BuyResponse<SimplexOrder>>*/ void newOrder(
-      SimplexQuote quote) async {
+  Future<BuyResponse<SimplexOrder>> newOrder(SimplexQuote quote) async {
     // Calling Simplex's API manually:
     // curl --request POST \
     //      --url https://sandbox.test-simplexcc.com/wallet/merchant/v2/payments/partner/data \
@@ -204,16 +201,23 @@ class SimplexAPI {
       }
       final jsonArray = jsonDecode(res.body); // TODO check if json
       // TODO create and return SimplexOrder here
-      print(jsonArray);
-      return;
+
+      SimplexOrder _order = SimplexOrder(
+        quote: quote,
+        paymentId: "${jsonArray['paymentId']}",
+        orderId: "${jsonArray['orderId']}",
+        userId: "${jsonArray['userId']}",
+      );
+
+      return BuyResponse(value: _order);
     } catch (e, s) {
       Logging.instance.log("newOrder exception: $e\n$s", level: LogLevel.Error);
-      return; /*BuyResponse(
+      return BuyResponse(
         exception: BuyException(
           e.toString(),
           BuyExceptionType.generic,
         ),
-      );*/
+      );
     }
   }
 }
