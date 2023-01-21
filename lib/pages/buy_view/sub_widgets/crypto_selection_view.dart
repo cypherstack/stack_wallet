@@ -250,13 +250,23 @@ class _CryptoSelectionViewState extends State<CryptoSelectionView> {
   }
 }
 
+bool isStackCoin(String? ticker) {
+  if (ticker == null) return false;
+
+  try {
+    coinFromTickerCaseInsensitive(ticker);
+    return true;
+  } on ArgumentError catch (_) {
+    return false;
+  }
+}
+
 Widget? getIconForTicker(String ticker) {
   print(ticker);
-  String? iconAsset = isCoinSupportedByTicker(ticker)
+  String? iconAsset = isStackCoin(ticker)
       ? Assets.svg.iconFor(coin: coinFromTickerCaseInsensitive(ticker))
       : Assets.svg.buyIconFor(ticker);
-  if (iconAsset != null) {
-    return SvgPicture.asset(iconAsset, height: 20, width: 20);
-  }
-  return null;
+  return (iconAsset != null)
+      ? SvgPicture.asset(iconAsset, height: 20, width: 20)
+      : null;
 }
