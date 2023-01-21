@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:intl/intl.dart';
 import 'package:stackwallet/models/buy/response_objects/fiat.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -75,7 +76,12 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
 
   @override
   Widget build(BuildContext context) {
+    Locale locale = Localizations.localeOf(context);
+    var format = NumberFormat.simpleCurrency(locale: locale.toString());
+    // See https://stackoverflow.com/a/67055685
+
     final isDesktop = Util.isDesktop;
+
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) {
@@ -198,7 +204,7 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
                         child: Row(
                           children: [
                             SizedBox(
-                              width: 24,
+                              width: 48,
                               height: 24,
                               child: _fiats[index].image.isNotEmpty
                                   ? SvgPicture.network(
@@ -208,7 +214,26 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
                                       placeholderBuilder: (_) =>
                                           const LoadingIndicator(),
                                     )
-                                  : null,
+                                  : Text(
+                                      format.simpleCurrencySymbol(
+                                          _fiats[index].ticker.toUpperCase()),
+                                      style: STextStyles.largeMedium14(context)
+                                          .apply(
+                                              fontSizeFactor: (1 /
+                                                  format
+                                                      .simpleCurrencySymbol(
+                                                          _fiats[index]
+                                                              .ticker
+                                                              .toUpperCase())
+                                                      .length * // Couldn't get pow() working here
+                                                  format
+                                                      .simpleCurrencySymbol(
+                                                          _fiats[index]
+                                                              .ticker
+                                                              .toUpperCase())
+                                                      .length)),
+                                      textAlign: TextAlign.center,
+                                    ),
                             ),
                             const SizedBox(
                               width: 10,
