@@ -217,7 +217,7 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
                                   : Text(
                                       format.simpleCurrencySymbol(
                                           _fiats[index].ticker.toUpperCase()),
-                                      style: STextStyles.largeMedium14(context)
+                                      style: STextStyles.currencyTicker(context)
                                           .apply(
                                               fontSizeFactor: (1 /
                                                   format
