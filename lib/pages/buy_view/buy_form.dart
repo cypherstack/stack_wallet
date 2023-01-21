@@ -969,7 +969,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                       ? const ClipboardIcon()
                                       : const XIcon(),
                                 ),
-                          if (_receiveAddressController.text.isEmpty)
+                          if (_receiveAddressController.text.isEmpty &&
+                              isStackCoin(selectedCrypto?.ticker))
                             TextFieldIconButton(
                               key: const Key("buyViewAddressBookButtonKey"),
                               onTap: () {
