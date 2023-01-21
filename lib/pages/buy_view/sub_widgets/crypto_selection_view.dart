@@ -252,11 +252,9 @@ class _CryptoSelectionViewState extends State<CryptoSelectionView> {
 
 Widget? getIconForTicker(String ticker) {
   print(ticker);
-  if (!isCoinSupportedByTicker(ticker)) {
-    return null;
-  }
-  Coin? coin = coinFromTickerCaseInsensitive(ticker);
-  String iconAsset = Assets.svg.iconFor(coin: coin);
+  String? iconAsset = isCoinSupportedByTicker(ticker)
+      ? Assets.svg.iconFor(coin: coinFromTickerCaseInsensitive(ticker))
+      : Assets.svg.buyIconFor(ticker);
   if (iconAsset != null) {
     return SvgPicture.asset(iconAsset, height: 20, width: 20);
   }
