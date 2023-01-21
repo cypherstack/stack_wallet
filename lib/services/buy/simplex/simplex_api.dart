@@ -123,10 +123,7 @@ class SimplexAPI {
       List<Crypto> cryptos = [];
       List<Fiat> fiats = [];
 
-      print(jsonArray);
-
       for (final fiat in jsonArray as List) {
-        print(fiat);
         fiats.add(Fiat.fromJson({
           'ticker': "${fiat['ticker_symbol']}",
           'name': "${fiat['ticker_symbol']}",
@@ -244,7 +241,7 @@ class SimplexAPI {
         throw Exception('newOrder exception: statusCode= ${res.statusCode}');
       }
       final jsonArray = jsonDecode(res.body); // TODO check if valid json
-      print(jsonArray);
+
       SimplexOrder _order = SimplexOrder(
         quote: quote,
         paymentId: "${jsonArray['paymentId']}",
@@ -271,8 +268,6 @@ class SimplexAPI {
             "http://localhost/api.php?ROUTE=redirect&PAYMENT_ID=${order.paymentId}"),
         mode: LaunchMode.externalApplication,
       );
-
-      print(status);
 
       return BuyResponse(value: status);
     } catch (e, s) {
