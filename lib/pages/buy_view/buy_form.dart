@@ -969,7 +969,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                     _receiveAddressController.text = "";
                                     // _receiveAddress = "";
                                     setState(() {
-                                      _addressToggleFlag = false;
+                                      _addressToggleFlag = true;
                                     });
                                   },
                                   child: const XIcon(),
