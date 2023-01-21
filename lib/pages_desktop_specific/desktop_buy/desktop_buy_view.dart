@@ -8,7 +8,7 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 class DesktopBuyView extends StatefulWidget {
   const DesktopBuyView({Key? key}) : super(key: key);
 
-  static const String routeName = "/desktopBuy";
+  static const String routeName = "/desktopBuyView";
 
   @override
   State<DesktopBuyView> createState() => _DesktopBuyViewState();

@@ -4,6 +4,8 @@ import 'package:stackwallet/pages/buy_view/buy_form.dart';
 class BuyView extends StatefulWidget {
   const BuyView({Key? key}) : super(key: key);
 
+  static const String routeName = "/stackBuyView";
+
   @override
   State<BuyView> createState() => _BuyViewState();
 }
