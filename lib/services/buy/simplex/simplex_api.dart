@@ -1,3 +1,5 @@
+// TODO use _buildUri
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -28,11 +30,6 @@ class SimplexAPI {
   }
 
   Future<BuyResponse<List<Crypto>>> getSupportedCryptos() async {
-    // official docs reference eg
-    // curl --request GET \
-    //      --url https://sandbox.test-simplexcc.com/v2/supported_crypto_currencies \
-    //      --header 'accept: application/json'
-
     try {
       Map<String, String> headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -40,13 +37,11 @@ class SimplexAPI {
       Uri url = Uri.parse('http://localhost/api.php?ROUTE=supported_cryptos');
 
       var res = await http.post(url, headers: headers);
-
       if (res.statusCode != 200) {
         throw Exception(
             'getAvailableCurrencies exception: statusCode= ${res.statusCode}');
       }
-
-      final jsonArray = jsonDecode(res.body);
+      final jsonArray = jsonDecode(res.body); // TODO handle if invalid json
 
       return await compute(_parseSupportedCryptos, jsonArray);
     } catch (e, s) {
@@ -67,6 +62,7 @@ class SimplexAPI {
       List<Fiat> fiats = [];
 
       for (final crypto in jsonArray as List) {
+        // TODO validate jsonArray
         cryptos.add(Crypto.fromJson({
           'ticker': "${crypto['ticker_symbol']}",
           'name': crypto['name'],
@@ -97,13 +93,11 @@ class SimplexAPI {
       Uri url = Uri.parse('http://localhost/api.php?ROUTE=supported_fiats');
 
       var res = await http.post(url, headers: headers);
-
       if (res.statusCode != 200) {
         throw Exception(
             'getAvailableCurrencies exception: statusCode= ${res.statusCode}');
       }
-
-      final jsonArray = jsonDecode(res.body);
+      final jsonArray = jsonDecode(res.body); // TODO validate json
 
       return await compute(_parseSupportedFiats, jsonArray);
     } catch (e, s) {
@@ -124,6 +118,7 @@ class SimplexAPI {
       List<Fiat> fiats = [];
 
       for (final fiat in jsonArray as List) {
+        // TODO validate list
         fiats.add(Fiat.fromJson({
           'ticker': "${fiat['ticker_symbol']}",
           'name': "${fiat['ticker_symbol']}",
