@@ -1088,14 +1088,20 @@ class _BuyFormState extends ConsumerState<BuyForm> {
               onExit: (_) => setState(() => _hovering1 = false),
               child: GestureDetector(
                   onTap: () {
-                    previewQuote(quote);
+                    if (_receiveAddressController.text.isNotEmpty &&
+                        _buyAmountController.text.isNotEmpty) {
+                      previewQuote(quote);
+                    }
                   },
                   child: PrimaryButton(
                     buttonHeight: isDesktop ? ButtonHeight.l : null,
                     enabled: _receiveAddressController.text.isNotEmpty &&
                         _buyAmountController.text.isNotEmpty,
                     onPressed: () {
-                      previewQuote(quote);
+                      if (_receiveAddressController.text.isNotEmpty &&
+                          _buyAmountController.text.isNotEmpty) {
+                        previewQuote(quote);
+                      }
                     },
                     label: "Preview quote",
                   )),
