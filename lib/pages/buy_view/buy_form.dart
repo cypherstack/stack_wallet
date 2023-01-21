@@ -350,6 +350,15 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     }
   }
 
+  Widget? getIconForTicker(String ticker) {
+    String? iconAsset = isStackCoin(ticker)
+        ? Assets.svg.iconFor(coin: coinFromTickerCaseInsensitive(ticker))
+        : Assets.svg.buyIconFor(ticker);
+    return (iconAsset != null)
+        ? SvgPicture.asset(iconAsset, height: 20, width: 20)
+        : null;
+  }
+
   Future<void> previewQuote(SimplexQuote quote) async {
     // if (ref.read(simplexProvider).quote.id == "someID") {
     //   // TODO make a better way of detecting a default SimplexQuote
@@ -587,13 +596,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                     padding: const EdgeInsets.all(12),
                     child: Row(
                       children: <Widget>[
-                        SvgPicture.asset(
-                          Assets.svg.iconFor(
-                            coin: coinFromTickerCaseInsensitive("BTC"),
-                          ),
-                          height: 18,
-                          width: 18,
-                        ),
+                        getIconForTicker(selectedCrypto?.ticker ?? "BTC")
+                            as Widget,
                         const SizedBox(
                           width: 10,
                         ),
@@ -800,13 +804,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                           .length)),
                               textAlign: TextAlign.center,
                             )
-                          : SvgPicture.asset(
-                              Assets.svg.iconFor(
-                                coin: coinFromTickerCaseInsensitive("BTC"),
-                              ),
-                              height: 18,
-                              width: 18,
-                            ),
+                          : getIconForTicker(selectedCrypto?.ticker ?? "BTC")
+                              as Widget,
                       const SizedBox(width: 10), // maybe make isDesktop-aware?
                       Text(
                         buyWithFiat

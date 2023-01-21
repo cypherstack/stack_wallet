@@ -262,7 +262,6 @@ bool isStackCoin(String? ticker) {
 }
 
 Widget? getIconForTicker(String ticker) {
-  print(ticker);
   String? iconAsset = isStackCoin(ticker)
       ? Assets.svg.iconFor(coin: coinFromTickerCaseInsensitive(ticker))
       : Assets.svg.buyIconFor(ticker);
