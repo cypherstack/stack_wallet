@@ -31,6 +31,8 @@ class AppearanceSettingsView extends ConsumerWidget {
         return "Dark theme";
       case ThemeType.oledBlack:
         return "Oled Black theme";
+      case ThemeType.fruitSorbet:
+        return "Fruit Sorbet theme";
     }
   }
 
