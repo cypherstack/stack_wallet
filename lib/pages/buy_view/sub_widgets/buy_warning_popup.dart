@@ -48,10 +48,11 @@ class BuyWarningPopup extends StatelessWidget {
           BuyResponse<SimplexOrder> order = await newOrder(quote);
           BuyResponse<bool> response =
               await redirect(order.value as SimplexOrder).then((order) {
-            // TODO save order
             Navigator.of(context, rootNavigator: isDesktop).pop();
             Navigator.of(context, rootNavigator: isDesktop).pop();
             // How would I correctly popUntil here?
+            // TODO save order
+            // TODO show order confirmation page
             return order;
           });
         },
