@@ -235,11 +235,10 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   Future<void> _loadSimplexCryptos() async {
     final response = await SimplexAPI.instance.getSupportedCryptos();
 
-    print('test1');
-    print(response.value);
-
     if (response.value != null) {
-      ref.read(simplexProvider).updateSupportedCryptos(response.value!);
+      ref
+          .read(simplexProvider)
+          .updateSupportedCryptos(response.value!); // TODO validate
     } else {
       Logging.instance.log(
         "_loadSimplexCurrencies: $response",
@@ -251,10 +250,10 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   Future<void> _loadSimplexFiats() async {
     final response = await SimplexAPI.instance.getSupportedFiats();
 
-    print(response.value);
-
     if (response.value != null) {
-      ref.read(simplexProvider).updateSupportedFiats(response.value!);
+      ref
+          .read(simplexProvider)
+          .updateSupportedFiats(response.value!); // TODO validate
     } else {
       Logging.instance.log(
         "_loadSimplexCurrencies: $response",
