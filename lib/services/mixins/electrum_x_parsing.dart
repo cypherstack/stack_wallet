@@ -152,24 +152,6 @@ mixin ElectrumXParsing {
         type == TransactionType.incoming &&
         transactionAddress.subType == AddressSubType.paynymNotification;
 
-    final tx = Transaction(
-      walletId: walletId,
-      txid: txData["txid"] as String,
-      timestamp: txData["blocktime"] as int? ??
-          (DateTime.now().millisecondsSinceEpoch ~/ 1000),
-      type: type,
-      subType: isNotificationTx
-          ? TransactionSubType.bip47Notification
-          : TransactionSubType.none,
-      amount: amount,
-      fee: fee,
-      height: txData["height"] as int?,
-      isCancelled: false,
-      isLelantus: false,
-      slateId: null,
-      otherData: null,
-    );
-
     List<Output> outs = [];
     List<Input> ins = [];
 
@@ -196,7 +178,8 @@ mixin ElectrumXParsing {
         scriptPubKeyType: json['scriptPubKey']?['type'] as String?,
         scriptPubKeyAddress:
             json["scriptPubKey"]?["addresses"]?[0] as String? ??
-                json['scriptPubKey']['type'] as String,
+                json['scriptPubKey']?['type'] as String? ??
+                "",
         value: Format.decimalAmountToSatoshis(
           Decimal.parse(json["value"].toString()),
           coin,
@@ -204,6 +187,24 @@ mixin ElectrumXParsing {
       );
       outs.add(output);
     }
+
+    final tx = Transaction(
+      walletId: walletId,
+      txid: txData["txid"] as String,
+      timestamp: txData["blocktime"] as int? ??
+          (DateTime.now().millisecondsSinceEpoch ~/ 1000),
+      type: type,
+      subType: isNotificationTx
+          ? TransactionSubType.bip47Notification
+          : TransactionSubType.none,
+      amount: amount,
+      fee: fee,
+      height: txData["height"] as int?,
+      isCancelled: false,
+      isLelantus: false,
+      slateId: null,
+      otherData: null,
+    );
 
     return Tuple4(tx, outs, ins, transactionAddress);
   }
