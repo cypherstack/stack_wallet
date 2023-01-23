@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/theme/dark_colors.dart';
+import 'package:stackwallet/utilities/theme/fruit_sorbet_theme.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
 import 'package:stackwallet/utilities/theme/oled_black_colors.dart';
 
-enum ThemeType { light, dark, oceanBreeze, oledBlack }
+enum ThemeType { light, dark, oceanBreeze, oledBlack, fruitSorbet }
 
 // adjust this file
 
@@ -20,6 +21,8 @@ extension ThemeTypeExt on ThemeType {
         return OceanBreezeColors();
       case ThemeType.oledBlack:
         return OledBlackColors();
+      case ThemeType.fruitSorbet:
+        return FruitSorbetColors();
     }
   }
 
@@ -33,6 +36,8 @@ extension ThemeTypeExt on ThemeType {
         return "Ocean Breeze";
       case ThemeType.oledBlack:
         return "Oled Black";
+      case ThemeType.fruitSorbet:
+        return "Fruit Sorbet";
     }
   }
 }

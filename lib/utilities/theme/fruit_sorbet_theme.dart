@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 
-class LightColors extends StackColorTheme {
+class FruitSorbetColors extends StackColorTheme {
   @override
   ThemeType get themeType => ThemeType.light;
 
