@@ -968,7 +968,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                       "buyViewClearAddressFieldButtonKey"),
                                   onTap: () {
                                     _receiveAddressController.text = "";
-                                    // _receiveAddress = "";
+                                    _address = "";
                                     setState(() {
                                       _addressToggleFlag = true;
                                     });
