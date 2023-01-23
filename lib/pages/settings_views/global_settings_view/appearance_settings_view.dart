@@ -7,7 +7,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/dark_colors.dart';
-import 'package:stackwallet/utilities/theme/fruit_sorbet_theme.dart';
+import 'package:stackwallet/utilities/theme/fruit_sorbet_colors.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
 import 'package:stackwallet/utilities/theme/oled_black_colors.dart';
@@ -570,7 +570,7 @@ class _ThemeOptionsView extends ConsumerState<ThemeOptionsView> {
                             );
                             ref.read(colorThemeProvider.state).state =
                                 StackColors.fromStackColorTheme(
-                              OledBlackColors(),
+                              FruitSorbetColors(),
                             );
 
                             setState(() {

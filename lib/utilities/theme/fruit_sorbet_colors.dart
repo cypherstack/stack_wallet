@@ -3,11 +3,10 @@ import 'package:stackwallet/utilities/theme/color_theme.dart';
 
 class FruitSorbetColors extends StackColorTheme {
   @override
-  ThemeType get themeType => ThemeType.light;
+  ThemeType get themeType => ThemeType.fruitSorbet;
 
   @override
-  Color get background =>
-      const Color(0xFFF7F7F7); //change this to background svg
+  Color get background => Colors.transparent;
   @override
   Color get backgroundAppBar => background;
   @override

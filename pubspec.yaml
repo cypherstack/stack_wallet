@@ -370,7 +370,7 @@ flutter:
     - assets/svg/dark/stack-icon1.svg
     - assets/svg/dark/buy-coins-icon.svg
 
-    # light theme specific
+    # ocean theme specific
     - assets/svg/oceanBreeze/tx-exchange-icon.svg
     - assets/svg/oceanBreeze/tx-exchange-icon-pending.svg
     - assets/svg/oceanBreeze/tx-exchange-icon-failed.svg
@@ -400,6 +400,22 @@ flutter:
     - assets/svg/oledBlack/bell-new.svg
     - assets/svg/oledBlack/stack-icon1.svg
     - assets/svg/oledBlack/buy-coins-icon.svg
+
+    # fruit sorbet theme specific
+    - assets/svg/fruitSorbet/tx-exchange-icon.svg
+    - assets/svg/fruitSorbet/tx-exchange-icon-pending.svg
+    - assets/svg/fruitSorbet/tx-exchange-icon-failed.svg
+    - assets/svg/fruitSorbet/tx-icon-send.svg
+    - assets/svg/fruitSorbet/tx-icon-send-pending.svg
+    - assets/svg/fruitSorbet/tx-icon-send-failed.svg
+    - assets/svg/fruitSorbet/tx-icon-receive.svg
+    - assets/svg/fruitSorbet/tx-icon-receive-pending.svg
+    - assets/svg/fruitSorbet/tx-icon-receive-failed.svg
+    - assets/svg/fruitSorbet/exchange-2.svg
+    - assets/svg/fruitSorbet/bell-new.svg
+    - assets/svg/fruitSorbet/stack-icon1.svg
+    - assets/svg/fruitSorbet/buy-coins-icon.svg
+    - assets/svg/fruitSorbet/bg.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

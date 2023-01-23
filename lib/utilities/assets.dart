@@ -37,6 +37,7 @@ class _SVG {
         return null;
 
       case ThemeType.oceanBreeze:
+      case ThemeType.fruitSorbet:
         return "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/bg.svg";
     }
   }

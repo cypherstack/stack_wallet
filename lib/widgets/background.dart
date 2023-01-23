@@ -24,6 +24,7 @@ class Background extends StatelessWidget {
         color = Theme.of(context).extension<StackColors>()!.background;
         break;
       case ThemeType.oceanBreeze:
+      case ThemeType.fruitSorbet:
         color = null;
         break;
     }
