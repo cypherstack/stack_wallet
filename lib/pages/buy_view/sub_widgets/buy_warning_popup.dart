@@ -5,8 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/buy/response_objects/order.dart';
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
-import 'package:stackwallet/pages/buy_view/buy_view.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_buy/desktop_buy_view.dart';
 import 'package:stackwallet/services/buy/buy_response.dart';
 import 'package:stackwallet/services/buy/simplex/simplex_api.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -51,9 +49,9 @@ class BuyWarningPopup extends StatelessWidget {
           BuyResponse<bool> response =
               await redirect(order.value as SimplexOrder).then((order) {
             // TODO save order
-            Navigator.of(context, rootNavigator: isDesktop).pushNamed(
-              isDesktop ? DesktopBuyView.routeName : BuyView.routeName,
-            ); // TODO fix this for desktop, test for mobile. popUntil?
+            Navigator.of(context, rootNavigator: isDesktop).pop();
+            Navigator.of(context, rootNavigator: isDesktop).pop();
+            // How would I correctly popUntil here?
             return order;
           });
         },
