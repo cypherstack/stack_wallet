@@ -183,37 +183,39 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                           if (snapshot.data!) {
                             return PrimaryButton(
                               label: "Send",
-                              buttonHeight: ButtonHeight.s,
+                              buttonHeight: ButtonHeight.l,
                               icon: SvgPicture.asset(
                                 Assets.svg.circleArrowUpRight,
-                                width: 16,
-                                height: 16,
+                                width: 10,
+                                height: 10,
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .buttonTextPrimary,
                               ),
-                              iconSpacing: 6,
+                              iconSpacing: 4,
+                              width: 86,
                               onPressed: _onSend,
                             );
                           } else {
                             return PrimaryButton(
                               label: "Connect",
-                              buttonHeight: ButtonHeight.s,
+                              buttonHeight: ButtonHeight.l,
                               icon: SvgPicture.asset(
                                 Assets.svg.circlePlusFilled,
-                                width: 16,
-                                height: 16,
+                                width: 10,
+                                height: 10,
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .buttonTextPrimary,
                               ),
-                              iconSpacing: 6,
+                              iconSpacing: 4,
+                              width: 86,
                               onPressed: _onConnectPressed,
                             );
                           }
                         } else {
                           return const SizedBox(
-                            height: 100,
+                            height: 32,
                             child: LoadingIndicator(),
                           );
                         }
