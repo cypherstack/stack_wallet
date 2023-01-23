@@ -1,3 +1,4 @@
+import 'package:bip47/src/util.dart';
 import 'package:decimal/decimal.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -148,10 +149,6 @@ mixin ElectrumXParsing {
       amount = amountReceivedInWallet;
     }
 
-    bool isNotificationTx = coin.hasPaynymSupport &&
-        type == TransactionType.incoming &&
-        transactionAddress.subType == AddressSubType.paynymNotification;
-
     List<Output> outs = [];
     List<Input> ins = [];
 
@@ -188,15 +185,27 @@ mixin ElectrumXParsing {
       outs.add(output);
     }
 
+    TransactionSubType txSubType = TransactionSubType.none;
+    if (coin.hasPaynymSupport && outs.length > 1) {
+      List<String>? scriptChunks = outs[1].scriptPubKeyAsm?.split(" ");
+      if (scriptChunks?.length == 2 && scriptChunks?[0] == "OP_RETURN") {
+        final blindedPaymentCode = scriptChunks![1];
+        final bytes = blindedPaymentCode.fromHex;
+
+        // https://en.bitcoin.it/wiki/BIP_0047#Sending
+        if (bytes.length == 80 && bytes.first == 1) {
+          txSubType = TransactionSubType.bip47Notification;
+        }
+      }
+    }
+
     final tx = Transaction(
       walletId: walletId,
       txid: txData["txid"] as String,
       timestamp: txData["blocktime"] as int? ??
           (DateTime.now().millisecondsSinceEpoch ~/ 1000),
       type: type,
-      subType: isNotificationTx
-          ? TransactionSubType.bip47Notification
-          : TransactionSubType.none,
+      subType: txSubType,
       amount: amount,
       fee: fee,
       height: txData["height"] as int?,

@@ -28,7 +28,7 @@ extension PayNym on DogecoinWallet {
     return root;
   }
 
-  // fetch or generate this wallet's bip47 payment code
+  /// fetch or generate this wallet's bip47 payment code
   Future<PaymentCode> getPaymentCode() async {
     final address = await db
         .getAddresses(walletId)
@@ -75,7 +75,7 @@ extension PayNym on DogecoinWallet {
   }
 
   void preparePaymentCodeSend(PaymentCode pCode) async {
-    if (!hasConnected(pCode.notificationAddress())) {
+    if (!(await hasConnected(pCode.notificationAddress()))) {
       throw PaynymSendException("No notification transaction sent to $pCode");
     } else {
       final root = await getRootNode(mnemonic: await mnemonic);
@@ -433,12 +433,56 @@ extension PayNym on DogecoinWallet {
     }
   }
 
-  bool hasConnected(String paymentCodeString) {
-    return db
-            .getTransactions(walletId)
-            .filter()
-            .address((q) => q.valueEqualTo(paymentCodeString))
-            .countSync() >
-        0;
+  // TODO optimize
+  Future<bool> hasConnected(String paymentCodeString) async {
+    final myCode = await getPaymentCode();
+    final myNotificationAddress = myCode.notificationAddress();
+
+    final txns = await db
+        .getTransactions(walletId)
+        .filter()
+        .subTypeEqualTo(TransactionSubType.bip47Notification)
+        .findAll();
+
+    for (final tx in txns) {
+      if (tx.address.value?.value == myNotificationAddress) {
+        return true;
+      }
+
+      final blindedCode =
+          tx.outputs.elementAt(1).scriptPubKeyAsm!.split(" ")[1];
+
+      final designatedInput = tx.inputs.first;
+
+      final txPoint = designatedInput.txid.fromHex.toList();
+      final txPointIndex = designatedInput.vout;
+
+      final rev = Uint8List(txPoint.length + 4);
+      Util.copyBytes(Uint8List.fromList(txPoint), 0, rev, 0, txPoint.length);
+      final buffer = rev.buffer.asByteData();
+      buffer.setUint32(txPoint.length, txPointIndex, Endian.little);
+
+      final pubKey = designatedInput.scriptSigAsm!.split(" ")[1].fromHex;
+
+      final root = await getRootNode(mnemonic: await mnemonic);
+      final myPrivateKey =
+          root.derivePath(kPaynymDerivePath).derive(0).privateKey!;
+
+      final S = SecretPoint(myPrivateKey, pubKey);
+
+      final mask = PaymentCode.getMask(S.ecdhSecret(), rev);
+
+      final unBlindedPayload = PaymentCode.blind(blindedCode.fromHex, mask);
+
+      final unBlindedPaymentCode =
+          PaymentCode.initFromPayload(unBlindedPayload);
+
+      if (paymentCodeString == unBlindedPaymentCode.toString()) {
+        return true;
+      }
+    }
+
+    // otherwise return no
+    return false;
   }
 }

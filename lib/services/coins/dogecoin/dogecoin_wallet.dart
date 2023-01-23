@@ -1162,10 +1162,8 @@ class DogecoinWallet extends CoinServiceAPI
         .not()
         .typeEqualTo(isar_models.AddressType.nonWallet)
         .and()
-        .group((q) => q
-            .subTypeEqualTo(isar_models.AddressSubType.receiving)
-            .or()
-            .subTypeEqualTo(isar_models.AddressSubType.change))
+        .not()
+        .subTypeEqualTo(isar_models.AddressSubType.nonWallet)
         .findAll();
     return allAddresses;
   }
