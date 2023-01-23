@@ -288,6 +288,8 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     }
     walletBase = (await walletService!.openWallet(_walletId, password))
         as MoneroWalletBase;
+
+    await _checkCurrentReceivingAddressesForTransactions();
     // walletBase!.onNewBlock = onNewBlock;
     // walletBase!.onNewTransaction = onNewTransaction;
     // walletBase!.syncStatusChanged = syncStatusChanged;

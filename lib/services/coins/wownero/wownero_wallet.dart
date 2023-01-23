@@ -306,6 +306,8 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     walletBase = (await walletService?.openWallet(_walletId, password!))
         as WowneroWalletBase;
 
+    await _checkCurrentReceivingAddressesForTransactions();
+
     Logging.instance.log(
       "Opened existing ${coin.prettyName} wallet $walletName",
       level: LogLevel.Info,
@@ -1245,12 +1247,9 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         } else {
           // we need to update the address
           await db.updateAddress(existing, newReceivingAddress);
-
-          // since we updated an existing address there is a chance it has
-          // some tx history. To prevent address reuse we will call check again
-          // recursively
-          await _checkReceivingAddressForTransactions();
         }
+        // keep checking until address with no tx history is set as current
+        await _checkReceivingAddressForTransactions();
       }
     } on SocketException catch (se, s) {
       Logging.instance.log(
