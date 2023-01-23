@@ -44,6 +44,10 @@ class PaynymDetailsPopup extends ConsumerStatefulWidget {
 class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
   bool _showInsufficientFundsInfo = false;
 
+  Future<void> _onSend() async {
+    // todo send
+  }
+
   Future<void> _onConnectPressed() async {
     bool canPop = false;
     unawaited(
@@ -63,7 +67,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
         .getManager(widget.walletId)
         .wallet as DogecoinWallet;
 
-    if (wallet.hasConnected(widget.accountLite.code)) {
+    if (await wallet.hasConnected(widget.accountLite.code)) {
       canPop = true;
       Navigator.of(context).pop();
       // TODO show info popup
@@ -136,6 +140,9 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
 
   @override
   Widget build(BuildContext context) {
+    final wallet = ref.watch(walletsChangeNotifierProvider.select(
+        (value) => value.getManager(widget.walletId).wallet as DogecoinWallet));
+
     return DesktopDialog(
       maxWidth: MediaQuery.of(context).size.width - 32,
       maxHeight: double.infinity,
@@ -168,20 +175,49 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                         ),
                       ],
                     ),
-                    PrimaryButton(
-                      label: "Connect",
-                      buttonHeight: ButtonHeight.l,
-                      icon: SvgPicture.asset(
-                        Assets.svg.circlePlusFilled,
-                        width: 10,
-                        height: 10,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .buttonTextPrimary,
-                      ),
-                      iconSpacing: 4,
-                      width: 86,
-                      onPressed: _onConnectPressed,
+                    FutureBuilder(
+                      future: wallet.hasConnected(widget.accountLite.code),
+                      builder: (context, AsyncSnapshot<bool> snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done &&
+                            snapshot.hasData) {
+                          if (snapshot.data!) {
+                            return PrimaryButton(
+                              label: "Send",
+                              buttonHeight: ButtonHeight.s,
+                              icon: SvgPicture.asset(
+                                Assets.svg.circleArrowUpRight,
+                                width: 16,
+                                height: 16,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .buttonTextPrimary,
+                              ),
+                              iconSpacing: 6,
+                              onPressed: _onSend,
+                            );
+                          } else {
+                            return PrimaryButton(
+                              label: "Connect",
+                              buttonHeight: ButtonHeight.s,
+                              icon: SvgPicture.asset(
+                                Assets.svg.circlePlusFilled,
+                                width: 16,
+                                height: 16,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .buttonTextPrimary,
+                              ),
+                              iconSpacing: 6,
+                              onPressed: _onConnectPressed,
+                            );
+                          }
+                        } else {
+                          return const SizedBox(
+                            height: 100,
+                            child: LoadingIndicator(),
+                          );
+                        }
+                      },
                     ),
                   ],
                 ),

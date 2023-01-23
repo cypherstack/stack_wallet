@@ -63,7 +63,7 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
         .getManager(widget.walletId)
         .wallet as DogecoinWallet;
 
-    if (wallet.hasConnected(widget.accountLite.code)) {
+    if (await wallet.hasConnected(widget.accountLite.code)) {
       canPop = true;
       Navigator.of(context, rootNavigator: true).pop();
       // TODO show info popup
@@ -187,40 +187,53 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                 ),
                 Row(
                   children: [
-                    if (!wallet.hasConnected(widget.accountLite.code))
-                      Expanded(
-                        child: PrimaryButton(
-                          label: "Connect",
-                          buttonHeight: ButtonHeight.s,
-                          icon: SvgPicture.asset(
-                            Assets.svg.circlePlusFilled,
-                            width: 16,
-                            height: 16,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .buttonTextPrimary,
-                          ),
-                          iconSpacing: 6,
-                          onPressed: _onConnectPressed,
-                        ),
+                    Expanded(
+                      child: FutureBuilder(
+                        future: wallet.hasConnected(widget.accountLite.code),
+                        builder: (context, AsyncSnapshot<bool> snapshot) {
+                          if (snapshot.connectionState ==
+                                  ConnectionState.done &&
+                              snapshot.hasData) {
+                            if (snapshot.data!) {
+                              return PrimaryButton(
+                                label: "Send",
+                                buttonHeight: ButtonHeight.s,
+                                icon: SvgPicture.asset(
+                                  Assets.svg.circleArrowUpRight,
+                                  width: 16,
+                                  height: 16,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .buttonTextPrimary,
+                                ),
+                                iconSpacing: 6,
+                                onPressed: _onSend,
+                              );
+                            } else {
+                              return PrimaryButton(
+                                label: "Connect",
+                                buttonHeight: ButtonHeight.s,
+                                icon: SvgPicture.asset(
+                                  Assets.svg.circlePlusFilled,
+                                  width: 16,
+                                  height: 16,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .buttonTextPrimary,
+                                ),
+                                iconSpacing: 6,
+                                onPressed: _onConnectPressed,
+                              );
+                            }
+                          } else {
+                            return const SizedBox(
+                              height: 100,
+                              child: LoadingIndicator(),
+                            );
+                          }
+                        },
                       ),
-                    if (wallet.hasConnected(widget.accountLite.code))
-                      Expanded(
-                        child: PrimaryButton(
-                          label: "Send",
-                          buttonHeight: ButtonHeight.s,
-                          icon: SvgPicture.asset(
-                            Assets.svg.circleArrowUpRight,
-                            width: 16,
-                            height: 16,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .buttonTextPrimary,
-                          ),
-                          iconSpacing: 6,
-                          onPressed: _onSend,
-                        ),
-                      ),
+                    ),
                     const SizedBox(
                       width: 20,
                     ),
