@@ -34,7 +34,8 @@ class SimplexAPI {
       Map<String, String> headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
       };
-      Uri url = Uri.parse('http://localhost/api.php?ROUTE=supported_cryptos');
+      Uri url = Uri.parse(
+          'https://simplex-sandbox.stackwallet.com/api.php?ROUTE=supported_cryptos');
 
       var res = await http.post(url, headers: headers);
       if (res.statusCode != 200) {
@@ -261,7 +262,7 @@ class SimplexAPI {
     try {
       bool status = await launchUrl(
         Uri.parse(
-            "http://localhost/api.php?ROUTE=redirect&PAYMENT_ID=${order.paymentId}"),
+            "https://simplex-sandbox.stackwallet.com/api.php?ROUTE=redirect&PAYMENT_ID=${order.paymentId}"),
         mode: LaunchMode.externalApplication,
       );
 
