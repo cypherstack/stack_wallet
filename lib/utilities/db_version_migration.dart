@@ -503,7 +503,7 @@ class DbVersionMigrator with WalletDB {
             type: isar_models.AddressType.unknown,
             subType: type == isar_models.TransactionType.incoming
                 ? isar_models.AddressSubType.receiving
-                : isar_models.AddressSubType.change,
+                : isar_models.AddressSubType.unknown,
           );
         }
       }
