@@ -15,7 +15,9 @@ mixin ElectrumXParsing {
     String walletId,
   ) async {
     Set<String> receivingAddresses = myAddresses
-        .where((e) => e.subType == AddressSubType.receiving)
+        .where((e) =>
+            e.subType == AddressSubType.receiving ||
+            e.subType == AddressSubType.paynymNotification)
         .map((e) => e.value)
         .toSet();
     Set<String> changeAddresses = myAddresses
@@ -146,13 +148,19 @@ mixin ElectrumXParsing {
       amount = amountReceivedInWallet;
     }
 
+    bool isNotificationTx = coin.hasPaynymSupport &&
+        type == TransactionType.incoming &&
+        transactionAddress.subType == AddressSubType.paynymNotification;
+
     final tx = Transaction(
       walletId: walletId,
       txid: txData["txid"] as String,
       timestamp: txData["blocktime"] as int? ??
           (DateTime.now().millisecondsSinceEpoch ~/ 1000),
       type: type,
-      subType: TransactionSubType.none,
+      subType: isNotificationTx
+          ? TransactionSubType.bip47Notification
+          : TransactionSubType.none,
       amount: amount,
       fee: fee,
       height: txData["height"] as int?,

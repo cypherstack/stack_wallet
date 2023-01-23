@@ -9,19 +9,36 @@ import 'package:bitcoindart/src/utils/constants/op.dart' as op;
 import 'package:bitcoindart/src/utils/script.dart' as bscript;
 import 'package:isar/isar.dart';
 import 'package:pointycastle/digests/sha256.dart';
+import 'package:stackwallet/db/main_db.dart';
+import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/exceptions/wallet/insufficient_balance_exception.dart';
-import 'package:stackwallet/exceptions/wallet/paynym_send_exception.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:tuple/tuple.dart';
+import 'package:stackwallet/exceptions/wallet/paynym_send_exception.dart';
 
-const kPaynymDerivePath = "m/47'/0'/0'";
+mixin PaynymSupport {
+  late final btc_dart.NetworkType network;
+  late final MainDB db;
+  late final Coin coin;
+  late final String walletId;
+  void initPaynymSupport({
+    required btc_dart.NetworkType network,
+    required MainDB db,
+    required Coin coin,
+    required String walletId,
+  }) {
+    this.network = network;
+    this.db = db;
+    this.coin = coin;
+    this.walletId = walletId;
+  }
 
-extension PayNym on DogecoinWallet {
   // generate bip32 payment code root
   Future<bip32.BIP32> getRootNode({required List<String> mnemonic}) async {
     final root = await Bip32Utils.getBip32Root(mnemonic.join(" "), network);
@@ -29,60 +46,178 @@ extension PayNym on DogecoinWallet {
   }
 
   // fetch or generate this wallet's bip47 payment code
-  Future<PaymentCode> getPaymentCode() async {
-    final address = await db
-        .getAddresses(walletId)
-        .filter()
-        .subTypeEqualTo(AddressSubType.paynymNotification)
-        .findFirst();
+  Future<PaymentCode> getPaymentCode({
+    required List<String> mnemonic,
+  }) async {
+    // TODO: cache elsewhere
+    // final paymentCodeString = DB.instance
+    //     .get<dynamic>(boxName: walletId, key: "paymentCodeString") as String?;
     PaymentCode paymentCode;
-    if (address == null) {
-      final root = await getRootNode(mnemonic: await mnemonic);
-      final node = root.derivePath(kPaynymDerivePath);
-      paymentCode =
-          PaymentCode.initFromPubKey(node.publicKey, node.chainCode, network);
-
-      await db.putAddress(
-        Address(
-          walletId: walletId,
-          value: paymentCode.notificationAddress(),
-          publicKey: paymentCode.getPubKey(),
-          derivationIndex: 0,
-          type: AddressType.p2pkh, // todo change this for btc
-          subType: AddressSubType.paynymNotification,
-          otherData: paymentCode.toString(),
-        ),
-      );
-    } else {
-      paymentCode = PaymentCode.fromPaymentCode(address.otherData!, network);
-    }
+    // if (paymentCodeString == null) {
+    final root = await getRootNode(mnemonic: mnemonic);
+    final node = root.derivePath("m/47'/0'/0'");
+    paymentCode =
+        PaymentCode.initFromPubKey(node.publicKey, node.chainCode, network);
+    // await DB.instance.put<dynamic>(
+    //     boxName: walletId,
+    //     key: "paymentCodeString",
+    //     value: paymentCode.toString());
+    // } else {
+    //   paymentCode = PaymentCode.fromPaymentCode(paymentCodeString, network);
+    // }
     return paymentCode;
   }
 
-  Future<Uint8List> signWithNotificationKey(Uint8List data) async {
-    final root = await getRootNode(mnemonic: await mnemonic);
-    final node = root.derivePath(kPaynymDerivePath);
-    final pair =
-        btc_dart.ECPair.fromPrivateKey(node.privateKey!, network: network);
+  Future<Uint8List> signWithNotificationKey({
+    required Uint8List data,
+    required List<String> mnemonic,
+  }) async {
+    final root = await getRootNode(
+      mnemonic: mnemonic,
+    );
+    final node = root.derivePath("m/47'/0'/0'");
+    final pair = btc_dart.ECPair.fromPrivateKey(node.privateKey!, network: network);
     final signed = pair.sign(SHA256Digest().process(data));
     return signed;
   }
 
-  Future<String> signStringWithNotificationKey(String data) async {
-    final bytes =
-        await signWithNotificationKey(Uint8List.fromList(utf8.encode(data)));
+  Future<String> signStringWithNotificationKey({
+    required String data,
+    required List<String> mnemonic,
+  }) async {
+    final bytes = await signWithNotificationKey(
+      data: Uint8List.fromList(utf8.encode(data)),
+      mnemonic: mnemonic,
+    );
     return Format.uint8listToString(bytes);
+    // final bytes =
+    //     await signWithNotificationKey(Uint8List.fromList(utf8.encode(data)));
+    // return Format.uint8listToString(bytes);
+  }
+
+  /// Update cached lists of notification transaction IDs.
+  /// Returns true if there are new notification transactions found since last
+  /// checked.
+  Future<bool> checkForNotificationTransactions({
+    required Coin coin,
+    required PaymentCode paymentCode,
+    required ElectrumX electrumXClient,
+    required CachedElectrumX cachedElectrumXClient,
+    required int currentChainHeight,
+  }) async {
+    final notificationAddress = paymentCode.notificationAddress();
+
+    final receivedNotificationTransactions = await db
+        .getTransactions(walletId)
+        .filter()
+        .address((q) => q.valueEqualTo(notificationAddress))
+        .findAll();
+
+
+    final unconfirmedTransactions = receivedNotificationTransactions.where(
+      (e) => !e.isConfirmed(
+        currentChainHeight,
+        coin.requiredConfirmations,
+      ),
+    );
+
+    final totalStoredCount = receivedNotificationTransactions.length;
+    final storedUnconfirmedCount = unconfirmedTransactions.length;
+
+    // for (final txid in transactionIds) {
+    //   final tx = await cachedElectrumXClient.getTransaction(
+    //     txHash: txid,
+    //     coin: coin,
+    //   );
+    //
+    //   // check if tx is confirmed
+    //   if ((tx["confirmations"] as int? ?? 0) > coin.requiredConfirmations) {
+    //     // remove it from unconfirmed set
+    //     unconfirmedNotificationTransactionIds.remove(txid);
+    //
+    //     // add it to confirmed set
+    //     confirmedNotificationTransactionIds.add(txid);
+    //   } else {
+    //     // otherwise add it to the unconfirmed set
+    //     unconfirmedNotificationTransactionIds.add(txid);
+    //   }
+    // }
+    //
+    // final newTotalCount = confirmedNotificationTransactionIds.length +
+    //     unconfirmedNotificationTransactionIds.length;
+    //
+    // return newTotalCount > totalCount;
+    return false;
+  }
+
+  // bool hasConnected(String paymentCodeString) {
+  //   return getPaynymNotificationTxInfo()
+  //       .values
+  //       .where((e) => e["paymentCodeString"] == paymentCodeString)
+  //       .isNotEmpty;
+  // }
+  //
+  // bool hasConnectedConfirmed(String paymentCodeString) {
+  //   return getPaynymNotificationTxInfo()
+  //       .values
+  //       .where((e) =>
+  //   e["paymentCodeString"] == paymentCodeString &&
+  //       e["confirmed"] == true)
+  //       .isNotEmpty;
+  // }
+  //
+  // // fetch paynym notification tx meta data
+  // Map<String, dynamic> getPaynymNotificationTxInfo() {
+  //   final map = DB.instance.get<dynamic>(
+  //       boxName: walletId, key: "paynymNotificationTxInfo") as Map? ??
+  //       {};
+  //
+  //   return Map<String, dynamic>.from(map);
+  // }
+
+  // // add/update paynym notification tx meta data entry
+  // Future<void> updatePaynymNotificationInfo({
+  //   required String txid,
+  //   required bool confirmed,
+  //   required String paymentCodeString,
+  // }) async {
+  //   final data = getPaynymNotificationTxInfo();
+  //   data[txid] = {
+  //     "txid": txid,
+  //     "confirmed": confirmed,
+  //     "paymentCodeString": paymentCodeString,
+  //   };
+  //   await DB.instance.put<dynamic>(
+  //     boxName: walletId,
+  //     key: "paynymNotificationTxInfo",
+  //     value: data,
+  //   );
+  // }
+
+  Future<Transaction?> hasSentNotificationTx(PaymentCode pCode) async {
+    final tx = await db
+        .getTransactions(walletId)
+        .filter()
+        .address((q) => q.valueEqualTo(pCode.notificationAddress())).countSync()
+        .findFirst();
+    return tx;
   }
 
   void preparePaymentCodeSend(PaymentCode pCode) async {
-    if (!hasConnected(pCode.notificationAddress())) {
+    final notifTx = await hasSentNotificationTx(pCode);
+    final currentHeight = await chainHeight;
+
+    if (notifTx == null) {
       throw PaynymSendException("No notification transaction sent to $pCode");
+    } else if (!notifTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)) {
+      throw PaynymSendException(
+          "Notification transaction sent to $pCode has not confirmed yet");
     } else {
-      final root = await getRootNode(mnemonic: await mnemonic);
-      final node = root.derivePath(kPaynymDerivePath);
+      final node = getBip32Root((await mnemonic).join(" "), network)
+          .derivePath("m/47'/0'/0'");
       final sendToAddress = await nextUnusedSendAddressFrom(
-        pCode: pCode,
-        privateKey: node.derive(0).privateKey!,
+        pCode,
+        node.derive(0).privateKey!,
       );
 
       // todo: Actual transaction build
@@ -91,21 +226,22 @@ extension PayNym on DogecoinWallet {
 
   /// get the next unused address to send to given the receiver's payment code
   /// and your own private key
-  Future<String> nextUnusedSendAddressFrom({
-    required PaymentCode pCode,
-    required Uint8List privateKey,
-    int startIndex = 0,
-  }) async {
+  Future<String> nextUnusedSendAddressFrom(
+      PaymentCode pCode,
+      Uint8List privateKey,
+      ) async {
     // https://en.bitcoin.it/wiki/BIP_0047#Path_levels
     const maxCount = 2147483647;
 
     final paymentAddress = PaymentAddress.initWithPrivateKey(
       privateKey,
       pCode,
-      startIndex, // initial index to check
+      0, // initial index to check
     );
 
-    for (; paymentAddress.index <= maxCount; paymentAddress.index++) {
+    for ( ;
+    paymentAddress.index <= maxCount;
+    paymentAddress.index++) {
       final address = paymentAddress.getSendAddress();
 
       final transactionIds = await electrumXClient.getHistory(
@@ -126,10 +262,10 @@ extension PayNym on DogecoinWallet {
   /// get your receiving addresses given the sender's payment code and your own
   /// private key
   List<String> deriveReceivingAddressesFor(
-    PaymentCode pCode,
-    Uint8List privateKey,
-    int count,
-  ) {
+      PaymentCode pCode,
+      Uint8List privateKey,
+      int count,
+      ) {
     // https://en.bitcoin.it/wiki/BIP_0047#Path_levels
     const maxCount = 2147483647;
     assert(count <= maxCount);
@@ -142,8 +278,8 @@ extension PayNym on DogecoinWallet {
 
     final List<String> result = [];
     for (paymentAddress.index = 0;
-        paymentAddress.index < count;
-        paymentAddress.index++) {
+    paymentAddress.index < count;
+    paymentAddress.index++) {
       final address = paymentAddress.getReceiveAddress();
 
       result.add(address);
@@ -152,14 +288,20 @@ extension PayNym on DogecoinWallet {
     return result;
   }
 
-  Future<Map<String, dynamic>> prepareNotificationTx({
+  Future<Map<String, dynamic>> buildNotificationTx({
     required int selectedTxFeeRate,
     required String targetPaymentCodeString,
+    required PaymentCode myPaymentCode,
     int additionalOutputs = 0,
-    List<UTXO>? utxos,
+    required List<UTXO> utxos,
+    required int dustLimit,
+    required int chainHeight,
+    required  Future<Map<String, dynamic>> Function(
+  List< UTXO>  
+  ) fetchBuildTxData,
   }) async {
-    const amountToSend = DUST_LIMIT;
-    final List<UTXO> availableOutputs = utxos ?? await this.utxos;
+    final amountToSend = dustLimit;
+    final List<UTXO> availableOutputs = utxos ;
     final List<UTXO> spendableOutputs = [];
     int spendableSatoshiValue = 0;
 
@@ -167,7 +309,7 @@ extension PayNym on DogecoinWallet {
     for (var i = 0; i < availableOutputs.length; i++) {
       if (availableOutputs[i].isBlocked == false &&
           availableOutputs[i]
-                  .isConfirmed(await chainHeight, MINIMUM_CONFIRMATIONS) ==
+              .isConfirmed(  chainHeight, coin.requiredConfirmations) ==
               true) {
         spendableOutputs.add(availableOutputs[i]);
         spendableSatoshiValue += availableOutputs[i].value;
@@ -192,8 +334,8 @@ extension PayNym on DogecoinWallet {
     List<UTXO> utxoObjectsToUse = [];
 
     for (int i = 0;
-        satoshisBeingUsed < amountToSend && i < spendableOutputs.length;
-        i++) {
+    satoshisBeingUsed < amountToSend && i < spendableOutputs.length;
+    i++) {
       utxoObjectsToUse.add(spendableOutputs[i]);
       satoshisBeingUsed += spendableOutputs[i].value;
       outputsBeingUsed += 1;
@@ -201,8 +343,8 @@ extension PayNym on DogecoinWallet {
 
     // add additional outputs if required
     for (int i = 0;
-        i < additionalOutputs && outputsBeingUsed < spendableOutputs.length;
-        i++) {
+    i < additionalOutputs && outputsBeingUsed < spendableOutputs.length;
+    i++) {
       utxoObjectsToUse.add(spendableOutputs[outputsBeingUsed]);
       satoshisBeingUsed += spendableOutputs[outputsBeingUsed].value;
       outputsBeingUsed += 1;
@@ -212,17 +354,17 @@ extension PayNym on DogecoinWallet {
     final utxoSigningData = await fetchBuildTxData(utxoObjectsToUse);
 
     final int vSizeForNoChange = (await _createNotificationTx(
-            targetPaymentCodeString: targetPaymentCodeString,
-            utxosToUse: utxoObjectsToUse,
-            utxoSigningData: utxoSigningData,
-            change: 0))
+        targetPaymentCodeString: targetPaymentCodeString,
+        utxosToUse: utxoObjectsToUse,
+        utxoSigningData: utxoSigningData,
+        change: 0, myPaymentCode: myPaymentCode, dustLimit: dustLimit, changeAddress: ))
         .item2;
 
     final int vSizeForWithChange = (await _createNotificationTx(
-            targetPaymentCodeString: targetPaymentCodeString,
-            utxosToUse: utxoObjectsToUse,
-            utxoSigningData: utxoSigningData,
-            change: satoshisBeingUsed - amountToSend))
+        targetPaymentCodeString: targetPaymentCodeString,
+        utxosToUse: utxoObjectsToUse,
+        utxoSigningData: utxoSigningData,
+        change: satoshisBeingUsed - amountToSend, myPaymentCode: myPaymentCode, dustLimit: dustLimit, changeAddress: ch,))
         .item2;
 
     // Assume 2 outputs, for recipient and payment code script
@@ -244,13 +386,13 @@ extension PayNym on DogecoinWallet {
       feeForWithChange = vSizeForWithChange * 1000;
     }
 
-    if (satoshisBeingUsed - amountToSend > feeForNoChange + DUST_LIMIT) {
+    if (satoshisBeingUsed - amountToSend > feeForNoChange + dustLimit) {
       // try to add change output due to "left over" amount being greater than
       // the estimated fee + the dust limit
       int changeAmount = satoshisBeingUsed - amountToSend - feeForWithChange;
 
       // check estimates are correct and build notification tx
-      if (changeAmount >= DUST_LIMIT &&
+      if (changeAmount >= dustLimit &&
           satoshisBeingUsed - amountToSend - changeAmount == feeForWithChange) {
         final txn = await _createNotificationTx(
           targetPaymentCodeString: targetPaymentCodeString,
@@ -297,7 +439,7 @@ extension PayNym on DogecoinWallet {
         targetPaymentCodeString: targetPaymentCodeString,
         utxosToUse: utxoObjectsToUse,
         utxoSigningData: utxoSigningData,
-        change: 0,
+        change: 0, myPaymentCode: null,
       );
 
       int feeBeingPaid = satoshisBeingUsed - amountToSend;
@@ -314,10 +456,10 @@ extension PayNym on DogecoinWallet {
       // if we get here we do not have enough funds to cover the tx total so we
       // check if we have any more available outputs and try again
       if (spendableOutputs.length > outputsBeingUsed) {
-        return prepareNotificationTx(
+        return buildNotificationTx(
           selectedTxFeeRate: selectedTxFeeRate,
           targetPaymentCodeString: targetPaymentCodeString,
-          additionalOutputs: additionalOutputs + 1,
+          additionalOutputs: additionalOutputs + 1, utxos: utxos, dustLimit: dustLimit, chainHeight: chainHeight, fetchBuildTxData: fetchBuildTxData,
         );
       } else {
         throw InsufficientBalanceException(
@@ -330,13 +472,15 @@ extension PayNym on DogecoinWallet {
   // equal to its vSize
   Future<Tuple2<String, int>> _createNotificationTx({
     required String targetPaymentCodeString,
+    required PaymentCode myPaymentCode,
     required List<UTXO> utxosToUse,
     required Map<String, dynamic> utxoSigningData,
     required int change,
+    required int dustLimit,
+    required Address changeAddress,
   }) async {
     final targetPaymentCode =
-        PaymentCode.fromPaymentCode(targetPaymentCodeString, network);
-    final myCode = await getPaymentCode();
+    PaymentCode.fromPaymentCode(targetPaymentCodeString, network);
 
     final utxo = utxosToUse.first;
     final txPoint = utxo.txid.fromHex.toList();
@@ -357,7 +501,7 @@ extension PayNym on DogecoinWallet {
     final blindingMask = PaymentCode.getMask(S.ecdhSecret(), rev);
 
     final blindedPaymentCode = PaymentCode.blind(
-      myCode.getPayload(),
+      myPaymentCode.getPayload(),
       blindingMask,
     );
 
@@ -375,15 +519,13 @@ extension PayNym on DogecoinWallet {
       txPointIndex,
     );
 
-    txb.addOutput(targetPaymentCode.notificationAddress(), DUST_LIMIT);
+    txb.addOutput(targetPaymentCode.notificationAddress(), dustLimit);
     txb.addOutput(opReturnScript, 0);
 
     // TODO: add possible change output and mark output as dangerous
     if (change > 0) {
-      // generate new change address if current change address has been used
-      await checkChangeAddressForTransactions();
-      final String changeAddress = await currentChangeAddress;
-      txb.addOutput(changeAddress, change);
+      final String changeAddressString = changeAddress.value;
+      txb.addOutput(changeAddressString, change);
     }
 
     txb.sign(
@@ -396,7 +538,7 @@ extension PayNym on DogecoinWallet {
       final txid = utxosToUse[i].txid;
       txb.sign(
         vin: i,
-        keyPair: utxoSigningData[txid]["keyPair"] as btc_dart.ECPair,
+        keyPair: utxoSigningData[txid]["keyPair"] as ECPair,
         // witnessValue: utxosToUse[i].value,
       );
     }
@@ -406,8 +548,8 @@ extension PayNym on DogecoinWallet {
     return Tuple2(builtTx.toHex(), builtTx.virtualSize());
   }
 
-  Future<String> broadcastNotificationTx(
-      {required Map<String, dynamic> preparedTx}) async {
+  Future<String> confirmSendNotificationTx(
+      {required Map<String, dynamic> preparedTx, required ElectrumX electrumXClient,}) async {
     try {
       Logging.instance.log("confirmNotificationTx txData: $preparedTx",
           level: LogLevel.Info);
@@ -415,15 +557,6 @@ extension PayNym on DogecoinWallet {
           rawTx: preparedTx["hex"] as String);
       Logging.instance.log("Sent txHash: $txHash", level: LogLevel.Info);
 
-      // TODO: only refresh transaction data
-      try {
-        await refresh();
-      } catch (e) {
-        Logging.instance.log(
-          "refresh() failed in confirmNotificationTx ($walletName::$walletId): $e",
-          level: LogLevel.Error,
-        );
-      }
 
       return txHash;
     } catch (e, s) {
@@ -433,12 +566,4 @@ extension PayNym on DogecoinWallet {
     }
   }
 
-  bool hasConnected(String paymentCodeString) {
-    return db
-            .getTransactions(walletId)
-            .filter()
-            .address((q) => q.valueEqualTo(paymentCodeString))
-            .countSync() >
-        0;
-  }
 }

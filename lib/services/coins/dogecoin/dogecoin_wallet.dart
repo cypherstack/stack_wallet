@@ -2776,7 +2776,7 @@ class DogecoinWallet extends CoinServiceAPI
 // Dogecoin Network
 final dogecoin = NetworkType(
     messagePrefix: '\x18Dogecoin Signed Message:\n',
-    bech32: 'bc',
+    // bech32: 'bc',
     bip32: Bip32Type(public: 0x02facafd, private: 0x02fac398),
     pubKeyHash: 0x1e,
     scriptHash: 0x16,
@@ -2784,7 +2784,7 @@ final dogecoin = NetworkType(
 
 final dogecointestnet = NetworkType(
     messagePrefix: '\x18Dogecoin Signed Message:\n',
-    bech32: 'tb',
+    // bech32: 'tb',
     bip32: Bip32Type(public: 0x043587cf, private: 0x04358394),
     pubKeyHash: 0x71,
     scriptHash: 0xc4,

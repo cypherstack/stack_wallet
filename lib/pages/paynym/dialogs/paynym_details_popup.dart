@@ -63,13 +63,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
         .getManager(widget.walletId)
         .wallet as DogecoinWallet;
 
-    // sanity check to prevent second notifcation tx
-    if (wallet.hasConnectedConfirmed(widget.accountLite.code)) {
-      canPop = true;
-      Navigator.of(context).pop();
-      // TODO show info popup
-      return;
-    } else if (wallet.hasConnected(widget.accountLite.code)) {
+    if (wallet.hasConnected(widget.accountLite.code)) {
       canPop = true;
       Navigator.of(context).pop();
       // TODO show info popup
@@ -81,7 +75,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
     Map<String, dynamic> preparedTx;
 
     try {
-      preparedTx = await wallet.buildNotificationTx(
+      preparedTx = await wallet.prepareNotificationTx(
         selectedTxFeeRate: rates.medium,
         targetPaymentCodeString: widget.accountLite.code,
       );

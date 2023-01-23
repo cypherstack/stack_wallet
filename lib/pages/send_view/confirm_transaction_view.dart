@@ -93,7 +93,7 @@ class _ConfirmTransactionViewState
       String txid;
       if (widget.isPaynymNotificationTransaction) {
         txid = await (manager.wallet as DogecoinWallet)
-            .confirmNotificationTx(preparedTx: transactionInfo);
+            .broadcastNotificationTx(preparedTx: transactionInfo);
       } else if (widget.isPaynymTransaction) {
         //
         throw UnimplementedError("paynym send not implemented yet");
