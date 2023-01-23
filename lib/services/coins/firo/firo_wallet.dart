@@ -871,24 +871,28 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
   Future<String> get currentReceivingAddress async =>
       (await _currentReceivingAddress).value;
 
-  Future<isar_models.Address> get _currentReceivingAddress async => (await db
-      .getAddresses(walletId)
-      .filter()
-      .typeEqualTo(isar_models.AddressType.p2pkh)
-      .subTypeEqualTo(isar_models.AddressSubType.receiving)
-      .sortByDerivationIndexDesc()
-      .findFirst())!;
+  Future<isar_models.Address> get _currentReceivingAddress async =>
+      (await db
+          .getAddresses(walletId)
+          .filter()
+          .typeEqualTo(isar_models.AddressType.p2pkh)
+          .subTypeEqualTo(isar_models.AddressSubType.receiving)
+          .sortByDerivationIndexDesc()
+          .findFirst()) ??
+      await _generateAddressForChain(0, 0);
 
   Future<String> get currentChangeAddress async =>
       (await _currentChangeAddress).value;
 
-  Future<isar_models.Address> get _currentChangeAddress async => (await db
-      .getAddresses(walletId)
-      .filter()
-      .typeEqualTo(isar_models.AddressType.p2pkh)
-      .subTypeEqualTo(isar_models.AddressSubType.change)
-      .sortByDerivationIndexDesc()
-      .findFirst())!;
+  Future<isar_models.Address> get _currentChangeAddress async =>
+      (await db
+          .getAddresses(walletId)
+          .filter()
+          .typeEqualTo(isar_models.AddressType.p2pkh)
+          .subTypeEqualTo(isar_models.AddressSubType.change)
+          .sortByDerivationIndexDesc()
+          .findFirst()) ??
+      await _generateAddressForChain(1, 0);
 
   late String _walletName;
   @override
@@ -1831,6 +1835,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
     await _prefs.init();
+    await checkChangeAddressForTransactions();
+    await checkReceivingAddressForTransactions();
   }
 
   Future<bool> refreshIfThereIsNewData() async {
@@ -3144,7 +3150,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           'Number of txs for current receiving address $currentReceiving: $txCount',
           level: LogLevel.Info);
 
-      if (txCount >= 1) {
+      if (txCount >= 1 || currentReceiving.derivationIndex < 0) {
         // First increment the receiving index
         final newReceivingIndex = currentReceiving.derivationIndex + 1;
 
@@ -3165,12 +3171,9 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
         } else {
           // we need to update the address
           await db.updateAddress(existing, newReceivingAddress);
-
-          // since we updated an existing address there is a chance it has
-          // some tx history. To prevent address reuse we will call check again
-          // recursively
-          await checkReceivingAddressForTransactions();
         }
+        // keep checking until address with no tx history is set as current
+        await checkReceivingAddressForTransactions();
       }
     } on SocketException catch (se, s) {
       Logging.instance.log(
@@ -3194,7 +3197,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           'Number of txs for current change address: $currentChange: $txCount',
           level: LogLevel.Info);
 
-      if (txCount >= 1) {
+      if (txCount >= 1 || currentChange.derivationIndex < 0) {
         // First increment the change index
         final newChangeIndex = currentChange.derivationIndex + 1;
 
@@ -3215,12 +3218,9 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
         } else {
           // we need to update the address
           await db.updateAddress(existing, newChangeAddress);
-
-          // since we updated an existing address there is a chance it has
-          // some tx history. To prevent address reuse we will call check again
-          // recursively
-          await checkChangeAddressForTransactions();
         }
+        // keep checking until address with no tx history is set as current
+        await checkChangeAddressForTransactions();
       }
     } on SocketException catch (se, s) {
       Logging.instance.log(

@@ -186,24 +186,28 @@ class BitcoinWallet extends CoinServiceAPI
   Future<String> get currentReceivingAddress async =>
       (await _currentReceivingAddress).value;
 
-  Future<isar_models.Address> get _currentReceivingAddress async => (await db
-      .getAddresses(walletId)
-      .filter()
-      .typeEqualTo(isar_models.AddressType.p2wpkh)
-      .subTypeEqualTo(isar_models.AddressSubType.receiving)
-      .sortByDerivationIndexDesc()
-      .findFirst())!;
+  Future<isar_models.Address> get _currentReceivingAddress async =>
+      (await db
+          .getAddresses(walletId)
+          .filter()
+          .typeEqualTo(isar_models.AddressType.p2wpkh)
+          .subTypeEqualTo(isar_models.AddressSubType.receiving)
+          .sortByDerivationIndexDesc()
+          .findFirst()) ??
+      await _generateAddressForChain(0, 0, DerivePathType.bip84);
 
   Future<String> get currentChangeAddress async =>
       (await _currentChangeAddress).value;
 
-  Future<isar_models.Address> get _currentChangeAddress async => (await db
-      .getAddresses(walletId)
-      .filter()
-      .typeEqualTo(isar_models.AddressType.p2wpkh)
-      .subTypeEqualTo(isar_models.AddressSubType.change)
-      .sortByDerivationIndexDesc()
-      .findFirst())!;
+  Future<isar_models.Address> get _currentChangeAddress async =>
+      (await db
+          .getAddresses(walletId)
+          .filter()
+          .typeEqualTo(isar_models.AddressType.p2wpkh)
+          .subTypeEqualTo(isar_models.AddressSubType.change)
+          .sortByDerivationIndexDesc()
+          .findFirst()) ??
+      await _generateAddressForChain(1, 0, DerivePathType.bip84);
 
   @override
   Future<void> exit() async {
@@ -1164,6 +1168,8 @@ class BitcoinWallet extends CoinServiceAPI
     }
 
     await _prefs.init();
+    await _checkCurrentChangeAddressesForTransactions();
+    await _checkCurrentReceivingAddressesForTransactions();
   }
 
   // hack to add tx to txData before refresh completes
@@ -1857,7 +1863,7 @@ class BitcoinWallet extends CoinServiceAPI
           'Number of txs for current receiving address $currentReceiving: $txCount',
           level: LogLevel.Info);
 
-      if (txCount >= 1) {
+      if (txCount >= 1 || currentReceiving.derivationIndex < 0) {
         // First increment the receiving index
         final newReceivingIndex = currentReceiving.derivationIndex + 1;
 
@@ -1876,12 +1882,9 @@ class BitcoinWallet extends CoinServiceAPI
         } else {
           // we need to update the address
           await db.updateAddress(existing, newReceivingAddress);
-
-          // since we updated an existing address there is a chance it has
-          // some tx history. To prevent address reuse we will call check again
-          // recursively
-          await _checkReceivingAddressForTransactions();
         }
+        // keep checking until address with no tx history is set as current
+        await _checkReceivingAddressForTransactions();
       }
     } catch (e, s) {
       Logging.instance.log(
@@ -1899,7 +1902,7 @@ class BitcoinWallet extends CoinServiceAPI
           'Number of txs for current change address $currentChange: $txCount',
           level: LogLevel.Info);
 
-      if (txCount >= 1) {
+      if (txCount >= 1 || currentChange.derivationIndex < 0) {
         // First increment the change index
         final newChangeIndex = currentChange.derivationIndex + 1;
 
@@ -1918,12 +1921,9 @@ class BitcoinWallet extends CoinServiceAPI
         } else {
           // we need to update the address
           await db.updateAddress(existing, newChangeAddress);
-
-          // since we updated an existing address there is a chance it has
-          // some tx history. To prevent address reuse we will call check again
-          // recursively
-          await _checkChangeAddressForTransactions();
         }
+        // keep checking until address with no tx history is set as current
+        await _checkChangeAddressForTransactions();
       }
     } on SocketException catch (se, s) {
       Logging.instance.log(
