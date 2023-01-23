@@ -9,11 +9,13 @@ import 'package:intl/intl.dart';
 import 'package:stackwallet/models/buy/response_objects/crypto.dart';
 import 'package:stackwallet/models/buy/response_objects/fiat.dart';
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
+import 'package:stackwallet/models/contact_address_entry.dart';
 import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
 import 'package:stackwallet/pages/buy_view/buy_quote_preview.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/fiat_selection_view.dart';
 import 'package:stackwallet/pages/exchange_view/choose_from_stack_view.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/address_book_address_chooser.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/buy/simplex/simplex_api.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
@@ -1003,11 +1005,69 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                       : const XIcon(),
                                 ),
                           if (_receiveAddressController.text.isEmpty &&
-                              isStackCoin(selectedCrypto?.ticker))
+                              isStackCoin(selectedCrypto?.ticker) &&
+                              isDesktop)
+                            TextFieldIconButton(
+                              key: const Key("buyViewAddressBookButtonKey"),
+                              onTap: () async {
+                                final entry =
+                                    await showDialog<ContactAddressEntry?>(
+                                  context: context,
+                                  builder: (context) => DesktopDialog(
+                                    maxWidth: 696,
+                                    maxHeight: 600,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                left: 32,
+                                              ),
+                                              child: Text(
+                                                "Address book",
+                                                style: STextStyles.desktopH3(
+                                                    context),
+                                              ),
+                                            ),
+                                            const DesktopDialogCloseButton(),
+                                          ],
+                                        ),
+                                        Expanded(
+                                          child: AddressBookAddressChooser(
+                                            coin: coinFromTickerCaseInsensitive(
+                                                selectedCrypto!.ticker
+                                                    .toString()),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+
+                                if (entry != null) {
+                                  _receiveAddressController.text =
+                                      entry.address;
+                                  _address = entry.address;
+
+                                  setState(() {
+                                    _addressToggleFlag = true;
+                                  });
+                                }
+                              },
+                              child: const AddressBookIcon(),
+                            ),
+                          if (_receiveAddressController.text.isEmpty &&
+                              isStackCoin(selectedCrypto?.ticker) &&
+                              !isDesktop)
                             TextFieldIconButton(
                               key: const Key("buyViewAddressBookButtonKey"),
                               onTap: () {
-                                Navigator.of(context).pushNamed(
+                                Navigator.of(context, rootNavigator: isDesktop)
+                                    .pushNamed(
                                   AddressBookView.routeName,
                                 );
                               },
