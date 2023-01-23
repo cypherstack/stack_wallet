@@ -90,7 +90,8 @@ class SimplexAPI {
       Map<String, String> headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
       };
-      Uri url = Uri.parse('http://localhost/api.php?ROUTE=supported_fiats');
+      Uri url = Uri.parse(
+          'https://simplex-sandbox.stackwallet.com/api.php?ROUTE=supported_fiats');
 
       var res = await http.post(url, headers: headers);
       if (res.statusCode != 200) {
@@ -158,10 +159,10 @@ class SimplexAPI {
             : "${quote.youReceiveCryptoAmount}",
       };
       // TODO add USER_ID
-      Uri url = Uri.http('localhost', 'api.php', data);
+      Uri url = Uri.https('simplex-sandbox.stackwallet.com', 'api.php', data);
       // TODO update to stackwallet.com hosted API and use HTTPS
 
-      var res = await http.post(url, headers: headers, body: json.encode(data));
+      var res = await http.get(url, headers: headers);
       if (res.statusCode != 200) {
         throw Exception('getQuote exception: statusCode= ${res.statusCode}');
       }
@@ -229,9 +230,9 @@ class SimplexAPI {
       };
       // TODO add USER_ID
 
-      Uri url = Uri.http('localhost', 'api.php', data);
+      Uri url = Uri.https('simplex-sandbox.stackwallet.com', 'api.php', data);
       // TODO update to stackwallet.com hosted API and use HTTPS
-      var res = await http.post(url, headers: headers, body: json.encode(data));
+      var res = await http.get(url, headers: headers);
       if (res.statusCode != 200) {
         throw Exception('newOrder exception: statusCode= ${res.statusCode}');
       }
