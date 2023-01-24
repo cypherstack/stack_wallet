@@ -71,6 +71,10 @@ class FruitSorbetColors extends StackColorTheme {
   Color get buttonBackBorder => const Color(0xFFF95369);
   @override
   Color get buttonBackBorderDisabled => const Color(0xFFFCA7B3);
+  @override
+  Color get buttonBackBorderSecondary => buttonBackBorder;
+  @override
+  Color get buttonBackBorderSecondaryDisabled => buttonBackSecondaryDisabled;
 
   @override
   Color get numberBackDefault => const Color(0xFFFFF8EE);
