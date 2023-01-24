@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:intl/intl.dart';
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/buy_warning_popup.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -42,6 +43,10 @@ class _BuyQuotePreviewViewState extends State<BuyQuotePreviewView> {
 
   @override
   Widget build(BuildContext context) {
+    Locale locale = Localizations.localeOf(context);
+    var format = NumberFormat.simpleCurrency(locale: locale.toString());
+    // See https://stackoverflow.com/a/67055685
+
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) {
@@ -104,7 +109,7 @@ class _BuyQuotePreviewViewState extends State<BuyQuotePreviewView> {
                   style: STextStyles.label(context),
                 ),
                 Text(
-                  "${widget.quote.youPayFiatPrice.toStringAsFixed(2)} ${widget.quote.fiat.ticker.toUpperCase()}",
+                  "${format.simpleCurrencySymbol(widget.quote.fiat.ticker.toUpperCase())}${widget.quote.youPayFiatPrice.toStringAsFixed(2)} ${widget.quote.fiat.ticker.toUpperCase()}",
                   style: STextStyles.label(context).copyWith(
                     color: Theme.of(context).extension<StackColors>()!.textDark,
                   ),
