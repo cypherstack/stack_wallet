@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/buy/response_objects/order.dart';
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
+import 'package:stackwallet/pages/buy_view/buy_order_invoice.dart';
 import 'package:stackwallet/services/buy/buy_response.dart';
 import 'package:stackwallet/services/buy/simplex/simplex_api.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -14,12 +14,14 @@ import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class BuyWarningPopup extends StatelessWidget {
-  const BuyWarningPopup({
+  BuyWarningPopup({
     Key? key,
     required this.quote,
+    this.order,
   }) : super(key: key);
 
   final SimplexQuote quote;
+  SimplexOrder? order;
 
   Future<BuyResponse<SimplexOrder>> newOrder(SimplexQuote quote) async {
     return SimplexAPI.instance.newOrder(quote);
@@ -32,6 +34,15 @@ class BuyWarningPopup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
+
+    Future<void> _buyInvoice() async {
+      await showDialog<void>(
+        context: context,
+        builder: (context) => BuyOrderInvoiceView(
+          order: order as SimplexOrder,
+        ),
+      );
+    }
 
     return StackDialog(
       title: "Buy ${quote.crypto.ticker}",
@@ -46,15 +57,19 @@ class BuyWarningPopup extends StatelessWidget {
         label: "Continue",
         onPressed: () async {
           BuyResponse<SimplexOrder> order = await newOrder(quote);
-          BuyResponse<bool> response =
-              await redirect(order.value as SimplexOrder).then((order) {
+          await redirect(order.value as SimplexOrder).then((_response) async {
+            this.order = order.value as SimplexOrder;
             Navigator.of(context, rootNavigator: isDesktop).pop();
             Navigator.of(context, rootNavigator: isDesktop).pop();
-            // How would I correctly popUntil here?
-            // TODO save order
-            // TODO show order confirmation page
-            return order;
+            await _buyInvoice();
           });
+          // BuyResponse<bool> response =
+          //     await redirect(order.value as SimplexOrder).then((order) {
+          //   // How would I correctly popUntil here?
+          //   // TODO save order
+          //   // TODO show order confirmation page
+          //   return order;
+          // });
         },
       ),
       icon: SizedBox(
