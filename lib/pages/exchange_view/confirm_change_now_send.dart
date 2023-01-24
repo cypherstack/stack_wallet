@@ -137,7 +137,7 @@ class _ConfirmChangeNowSendViewState
             rightButton: TextButton(
               style: Theme.of(context)
                   .extension<StackColors>()!
-                  .getSecondaryEnabledButtonColor(context),
+                  .getSecondaryEnabledButtonStyle(context),
               child: Text(
                 "Ok",
                 style: STextStyles.button(context).copyWith(

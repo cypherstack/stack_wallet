@@ -579,7 +579,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             child: TextButton(
                               style: Theme.of(context)
                                   .extension<StackColors>()!
-                                  .getSecondaryEnabledButtonColor(context),
+                                  .getSecondaryEnabledButtonStyle(context),
                               onPressed: () async {
                                 await showDialog<void>(
                                   context: context,
@@ -609,7 +609,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                       },
                                       style: Theme.of(context)
                                           .extension<StackColors>()!
-                                          .getPrimaryEnabledButtonColor(
+                                          .getPrimaryEnabledButtonStyle(
                                               context),
                                       child: Text(
                                         "Continue",

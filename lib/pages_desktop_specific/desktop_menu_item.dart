@@ -282,10 +282,10 @@ class _DesktopMenuItemState<T> extends ConsumerState<DesktopMenuItem<T>>
       style: value == group
           ? Theme.of(context)
               .extension<StackColors>()!
-              .getDesktopMenuButtonColorSelected(context)
+              .getDesktopMenuButtonStyleSelected(context)
           : Theme.of(context)
               .extension<StackColors>()!
-              .getDesktopMenuButtonColor(context),
+              .getDesktopMenuButtonStyle(context),
       onPressed: () {
         onChanged(value);
       },

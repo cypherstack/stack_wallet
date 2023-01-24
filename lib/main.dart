@@ -58,6 +58,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/dark_colors.dart';
+import 'package:stackwallet/utilities/theme/fruit_sorbet_colors.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
 import 'package:stackwallet/utilities/theme/oled_black_colors.dart';
@@ -339,8 +340,11 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         colorTheme = OceanBreezeColors();
         break;
       case "light":
-      default:
         colorTheme = LightColors();
+        break;
+      case "fruitSorbet":
+      default:
+        colorTheme = FruitSorbetColors();
     }
     loadingCompleter = Completer();
     WidgetsBinding.instance.addObserver(this);

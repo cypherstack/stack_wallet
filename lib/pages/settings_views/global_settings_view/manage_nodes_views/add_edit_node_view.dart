@@ -284,7 +284,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                   },
                   style: Theme.of(context)
                       .extension<StackColors>()!
-                      .getPrimaryEnabledButtonColor(context),
+                      .getPrimaryEnabledButtonStyle(context),
                   child: Text(
                     "Save",
                     style: STextStyles.button(context),
@@ -603,10 +603,10 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                 style: saveEnabled
                     ? Theme.of(context)
                         .extension<StackColors>()!
-                        .getPrimaryEnabledButtonColor(context)
+                        .getPrimaryEnabledButtonStyle(context)
                     : Theme.of(context)
                         .extension<StackColors>()!
-                        .getPrimaryDisabledButtonColor(context),
+                        .getPrimaryDisabledButtonStyle(context),
                 onPressed: saveEnabled ? attemptSave : null,
                 child: Text(
                   "Save",

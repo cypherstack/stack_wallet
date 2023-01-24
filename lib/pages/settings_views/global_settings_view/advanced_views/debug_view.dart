@@ -144,7 +144,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                         leftButton: TextButton(
                           style: Theme.of(context)
                               .extension<StackColors>()!
-                              .getSecondaryEnabledButtonColor(context),
+                              .getSecondaryEnabledButtonStyle(context),
                           child: Text(
                             "Cancel",
                             style: STextStyles.itemSubtitle12(context),
@@ -156,7 +156,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                         rightButton: TextButton(
                           style: Theme.of(context)
                               .extension<StackColors>()!
-                              .getPrimaryEnabledButtonColor(context),
+                              .getPrimaryEnabledButtonStyle(context),
                           child: Text(
                             "Delete logs",
                             style: STextStyles.button(context),

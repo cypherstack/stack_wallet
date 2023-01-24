@@ -426,7 +426,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                     Navigator.of(context).pop(),
                                                 style: Theme.of(context)
                                                     .extension<StackColors>()!
-                                                    .getSecondaryEnabledButtonColor(
+                                                    .getSecondaryEnabledButtonStyle(
                                                         context),
                                                 child: Text(
                                                   "Cancel",
@@ -451,7 +451,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                             },
                             style: Theme.of(context)
                                 .extension<StackColors>()!
-                                .getPrimaryEnabledButtonColor(context),
+                                .getPrimaryEnabledButtonStyle(context),
                             child: Text(
                               "Show QR Code",
                               style: STextStyles.button(context),
@@ -578,7 +578,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                     style: Theme.of(context)
                                                         .extension<
                                                             StackColors>()!
-                                                        .getSecondaryEnabledButtonColor(
+                                                        .getSecondaryEnabledButtonStyle(
                                                             context),
                                                     child: Text(
                                                       "Ok",
@@ -628,7 +628,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                         },
                                   style: Theme.of(context)
                                       .extension<StackColors>()!
-                                      .getSecondaryEnabledButtonColor(context),
+                                      .getSecondaryEnabledButtonStyle(context),
                                   child: Text(
                                     buttonTitle,
                                     style: STextStyles.button(context).copyWith(

@@ -94,7 +94,7 @@ class AddWalletButton extends StatelessWidget {
     return TextButton(
       style: Theme.of(context)
           .extension<StackColors>()!
-          .getPrimaryEnabledButtonColor(context),
+          .getPrimaryEnabledButtonStyle(context),
       onPressed: () {
         if (isDesktop) {
           Navigator.of(

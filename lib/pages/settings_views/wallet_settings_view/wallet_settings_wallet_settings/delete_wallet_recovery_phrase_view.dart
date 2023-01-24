@@ -156,7 +156,7 @@ class _DeleteWalletRecoveryPhraseViewState
               TextButton(
                 style: Theme.of(context)
                     .extension<StackColors>()!
-                    .getPrimaryEnabledButtonColor(context),
+                    .getPrimaryEnabledButtonStyle(context),
                 onPressed: () {
                   showDialog<dynamic>(
                     barrierDismissible: true,
@@ -166,7 +166,7 @@ class _DeleteWalletRecoveryPhraseViewState
                       leftButton: TextButton(
                         style: Theme.of(context)
                             .extension<StackColors>()!
-                            .getSecondaryEnabledButtonColor(context),
+                            .getSecondaryEnabledButtonStyle(context),
                         onPressed: () {
                           Navigator.pop(context);
                         },
@@ -181,7 +181,7 @@ class _DeleteWalletRecoveryPhraseViewState
                       rightButton: TextButton(
                         style: Theme.of(context)
                             .extension<StackColors>()!
-                            .getPrimaryEnabledButtonColor(context),
+                            .getPrimaryEnabledButtonStyle(context),
                         onPressed: () async {
                           final walletId = _manager.walletId;
                           final walletsInstance =

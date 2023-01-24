@@ -41,6 +41,8 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color buttonBackSecondaryDisabled;
   final Color buttonBackBorder;
   final Color buttonBackBorderDisabled;
+  final Color buttonBackBorderSecondary;
+  final Color buttonBackBorderSecondaryDisabled;
   final Color numberBackDefault;
   final Color numpadBackDefault;
   final Color bottomNavBack;
@@ -211,6 +213,8 @@ class StackColors extends ThemeExtension<StackColors> {
     required this.buttonBackSecondaryDisabled,
     required this.buttonBackBorder,
     required this.buttonBackBorderDisabled,
+    required this.buttonBackBorderSecondary,
+    required this.buttonBackBorderSecondaryDisabled,
     required this.numberBackDefault,
     required this.numpadBackDefault,
     required this.bottomNavBack,
@@ -352,6 +356,9 @@ class StackColors extends ThemeExtension<StackColors> {
       buttonBackSecondaryDisabled: colorTheme.buttonBackSecondaryDisabled,
       buttonBackBorder: colorTheme.buttonBackBorder,
       buttonBackBorderDisabled: colorTheme.buttonBackBorderDisabled,
+      buttonBackBorderSecondary: colorTheme.buttonBackBorderSecondary,
+      buttonBackBorderSecondaryDisabled:
+          colorTheme.buttonBackBorderSecondaryDisabled,
       numberBackDefault: colorTheme.numberBackDefault,
       numpadBackDefault: colorTheme.numpadBackDefault,
       bottomNavBack: colorTheme.bottomNavBack,
@@ -496,6 +503,8 @@ class StackColors extends ThemeExtension<StackColors> {
     Color? buttonBackSecondaryDisabled,
     Color? buttonBackBorder,
     Color? buttonBackBorderDisabled,
+    Color? buttonBackBorderSecondary,
+    Color? buttonBackBorderSecondaryDisabled,
     Color? numberBackDefault,
     Color? numpadBackDefault,
     Color? bottomNavBack,
@@ -638,6 +647,10 @@ class StackColors extends ThemeExtension<StackColors> {
       buttonBackBorder: buttonBackBorder ?? this.buttonBackBorder,
       buttonBackBorderDisabled:
           buttonBackBorderDisabled ?? this.buttonBackBorderDisabled,
+      buttonBackBorderSecondary:
+          buttonBackBorderSecondary ?? this.buttonBackBorderSecondary,
+      buttonBackBorderSecondaryDisabled: buttonBackBorderSecondaryDisabled ??
+          this.buttonBackBorderSecondaryDisabled,
       numberBackDefault: numberBackDefault ?? this.numberBackDefault,
       numpadBackDefault: numpadBackDefault ?? this.numpadBackDefault,
       bottomNavBack: bottomNavBack ?? this.bottomNavBack,
@@ -940,6 +953,16 @@ class StackColors extends ThemeExtension<StackColors> {
       buttonBackBorderDisabled: Color.lerp(
         buttonBackBorderDisabled,
         other.buttonBackBorderDisabled,
+        t,
+      )!,
+      buttonBackBorderSecondary: Color.lerp(
+        buttonBackBorderSecondary,
+        other.buttonBackBorderSecondary,
+        t,
+      )!,
+      buttonBackBorderSecondaryDisabled: Color.lerp(
+        buttonBackBorderSecondaryDisabled,
+        other.buttonBackBorderSecondaryDisabled,
         t,
       )!,
       numberBackDefault: Color.lerp(
@@ -1526,70 +1549,97 @@ class StackColors extends ThemeExtension<StackColors> {
     }
   }
 
-  ButtonStyle? getDeleteEnabledButtonColor(BuildContext context) =>
+  ButtonStyle? getDeleteEnabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               textFieldErrorBG,
             ),
           );
 
-  ButtonStyle? getDeleteDisabledButtonColor(BuildContext context) =>
+  ButtonStyle? getDeleteDisabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               buttonBackSecondaryDisabled,
             ),
           );
 
-  ButtonStyle? getPrimaryEnabledButtonColor(BuildContext context) =>
+  ButtonStyle? getPrimaryEnabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               buttonBackPrimary,
             ),
           );
 
-  ButtonStyle? getPrimaryDisabledButtonColor(BuildContext context) =>
+  ButtonStyle? getPrimaryDisabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               buttonBackPrimaryDisabled,
             ),
           );
 
-  ButtonStyle? getSecondaryEnabledButtonColor(BuildContext context) =>
+  ButtonStyle? getSecondaryEnabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               buttonBackSecondary,
             ),
+            shape: MaterialStateProperty.all(
+              RoundedRectangleBorder(
+                side: BorderSide(
+                  color: buttonBackBorderSecondary,
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(10000),
+              ),
+            ),
           );
 
-  ButtonStyle? getSecondaryDisabledButtonColor(BuildContext context) =>
+  ButtonStyle? getSecondaryDisabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               buttonBackSecondaryDisabled,
             ),
+            shape: MaterialStateProperty.all(
+              RoundedRectangleBorder(
+                side: BorderSide(
+                  color: buttonBackBorderSecondaryDisabled,
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(10000),
+              ),
+            ),
           );
 
-  ButtonStyle? getSmallSecondaryEnabledButtonColor(BuildContext context) =>
+  ButtonStyle? getSmallSecondaryEnabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               textFieldDefaultBG,
             ),
+            shape: MaterialStateProperty.all(
+              RoundedRectangleBorder(
+                side: BorderSide(
+                  color: buttonBackBorderSecondary,
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(10000),
+              ),
+            ),
           );
 
-  ButtonStyle? getDesktopMenuButtonColor(BuildContext context) =>
+  ButtonStyle? getDesktopMenuButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               popupBG,
             ),
           );
 
-  ButtonStyle? getDesktopMenuButtonColorSelected(BuildContext context) =>
+  ButtonStyle? getDesktopMenuButtonStyleSelected(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               textFieldDefaultBG,
             ),
           );
 
-  ButtonStyle? getDesktopSettingsButtonColor(BuildContext context) =>
+  ButtonStyle? getDesktopSettingsButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               background,

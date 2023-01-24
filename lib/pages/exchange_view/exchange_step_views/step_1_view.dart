@@ -188,7 +188,7 @@ class _Step1ViewState extends State<Step1View> {
                             },
                             style: Theme.of(context)
                                 .extension<StackColors>()!
-                                .getPrimaryEnabledButtonColor(context),
+                                .getPrimaryEnabledButtonStyle(context),
                             child: Text(
                               "Next",
                               style: STextStyles.button(context),

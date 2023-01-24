@@ -781,10 +781,10 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
               style: shouldEnableCreate
                   ? Theme.of(context)
                       .extension<StackColors>()!
-                      .getPrimaryEnabledButtonColor(context)
+                      .getPrimaryEnabledButtonStyle(context)
                   : Theme.of(context)
                       .extension<StackColors>()!
-                      .getPrimaryDisabledButtonColor(context),
+                      .getPrimaryDisabledButtonStyle(context),
               onPressed: !shouldEnableCreate ? null : onSavePressed,
               child: Text(
                 "Save",
