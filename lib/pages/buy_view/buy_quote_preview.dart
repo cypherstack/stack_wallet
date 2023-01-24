@@ -160,7 +160,7 @@ class _BuyQuotePreviewViewState extends State<BuyQuotePreviewView> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "Purchase ID",
+                  "Quote ID",
                   style: STextStyles.label(context),
                 ),
                 Text(
