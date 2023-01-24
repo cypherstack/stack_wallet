@@ -519,7 +519,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     ); // TODO enum this or something
 
     // TODO set defaults better; should probably explicitly enumerate the coins & fiats used and pull the specific ones we need rather than generating them as defaults here
-    selectedFiat = Fiat.fromJson({'ticker': 'USD', 'name': 'USD', 'image': ''});
+    selectedFiat = Fiat.fromJson(
+        {'ticker': 'USD', 'name': 'United States Dollar', 'image': ''});
     selectedCrypto =
         Crypto.fromJson({'ticker': 'BTC', 'name': 'Bitcoin', 'image': ''});
 
@@ -692,7 +693,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                         ),
                         Expanded(
                           child: Text(
-                            selectedFiat?.ticker ?? "ERR",
+                            "${selectedFiat?.ticker ?? 'ERR'} ${selectedFiat?.name ?? 'Error'}",
                             style: STextStyles.largeMedium14(context),
                           ),
                         ),
