@@ -798,7 +798,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Row(children: [
-                      const SizedBox(width: 10), // maybe make isDesktop-aware?
+                      SizedBox(width: buyWithFiat ? 10 : 6),
                       buyWithFiat
                           ? Text(
                               format.simpleCurrencySymbol(
@@ -817,7 +817,10 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             )
                           : getIconForTicker(selectedCrypto?.ticker ?? "BTC")
                               as Widget,
-                      const SizedBox(width: 15), // maybe make isDesktop-aware?
+                      SizedBox(
+                          width: buyWithFiat
+                              ? 15
+                              : 10), // maybe make isDesktop-aware?
                       Text(
                         buyWithFiat
                             ? selectedFiat?.ticker ?? "ERR"
