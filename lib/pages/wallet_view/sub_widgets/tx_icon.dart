@@ -1,17 +1,26 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 class TxIcon extends StatelessWidget {
-  const TxIcon({Key? key, required this.transaction}) : super(key: key);
+  const TxIcon({
+    Key? key,
+    required this.transaction,
+    required this.currentHeight,
+    required this.coin,
+  }) : super(key: key);
+
   final Transaction transaction;
+  final int currentHeight;
+  final Coin coin;
 
   static const Size size = Size(32, 32);
 
   String _getAssetName(
       bool isCancelled, bool isReceived, bool isPending, BuildContext context) {
-    if (!isReceived && transaction.subType == "mint") {
+    if (!isReceived && transaction.subType == TransactionSubType.mint) {
       if (isCancelled) {
         return Assets.svg.anonymizeFailed;
       }
@@ -42,7 +51,7 @@ class TxIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final txIsReceived = transaction.txType == "Received";
+    final txIsReceived = transaction.type == TransactionType.incoming;
 
     return SizedBox(
       width: size.width,
@@ -52,7 +61,10 @@ class TxIcon extends StatelessWidget {
           _getAssetName(
             transaction.isCancelled,
             txIsReceived,
-            !transaction.confirmedStatus,
+            !transaction.isConfirmed(
+              currentHeight,
+              coin.requiredConfirmations,
+            ),
             context,
           ),
           width: size.width,

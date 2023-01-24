@@ -1,19 +1,11 @@
-import 'package:decimal/decimal.dart';
+import 'package:stackwallet/models/balance.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
-import 'package:stackwallet/models/paymint/utxo_model.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 class FakeCoinServiceAPI extends CoinServiceAPI {
-  @override
-  // TODO: implement allOwnAddresses
-  Future<List<String>> get allOwnAddresses => throw UnimplementedError();
-
-  @override
-  // TODO: implement balanceMinusMaxFee
-  Future<Decimal> get balanceMinusMaxFee => throw UnimplementedError();
-
   @override
   // TODO: implement currentReceivingAddress
   Future<String> get currentReceivingAddress => throw UnimplementedError();
@@ -33,22 +25,10 @@ class FakeCoinServiceAPI extends CoinServiceAPI {
   Future<List<String>> get mnemonic => throw UnimplementedError();
 
   @override
-  // TODO: implement pendingBalance
-  Future<Decimal> get pendingBalance => throw UnimplementedError();
-
-  @override
   Future<void> refresh() {
     // TODO: implement refresh
     throw UnimplementedError();
   }
-
-  @override
-  // TODO: implement totalBalance
-  Future<Decimal> get totalBalance => throw UnimplementedError();
-
-  @override
-  // TODO: implement transactionData
-  Future<TransactionData> get transactionData => throw UnimplementedError();
 
   @override
   bool validateAddress(String address) {
@@ -72,10 +52,6 @@ class FakeCoinServiceAPI extends CoinServiceAPI {
   }
 
   @override
-  // TODO: implement unspentOutputs
-  Future<List<UtxoObject>> get unspentOutputs => throw UnimplementedError();
-
-  @override
   bool get isFavorite => throw UnimplementedError();
 
   @override
@@ -83,10 +59,6 @@ class FakeCoinServiceAPI extends CoinServiceAPI {
 
   @override
   late bool shouldAutoSync;
-
-  @override
-  // TODO: implement availableBalance
-  Future<Decimal> get availableBalance => throw UnimplementedError();
 
   @override
   // TODO: implement coin
@@ -163,15 +135,6 @@ class FakeCoinServiceAPI extends CoinServiceAPI {
   }
 
   @override
-  Future<String> send(
-      {required String toAddress,
-      required int amount,
-      Map<String, String> args = const {}}) {
-    // TODO: implement send
-    throw UnimplementedError();
-  }
-
-  @override
   Future<bool> testNetworkConnection() {
     // TODO: implement testNetworkConnection
     throw UnimplementedError();
@@ -188,4 +151,20 @@ class FakeCoinServiceAPI extends CoinServiceAPI {
     // TODO: implement updateSentCachedTxData
     throw UnimplementedError();
   }
+
+  @override
+  // TODO: implement balance
+  Balance get balance => throw UnimplementedError();
+
+  @override
+  // TODO: implement storedChainHeight
+  int get storedChainHeight => throw UnimplementedError();
+
+  @override
+  // TODO: implement transactions
+  Future<List<Transaction>> get transactions => throw UnimplementedError();
+
+  @override
+  // TODO: implement utxos
+  Future<List<UTXO>> get utxos => throw UnimplementedError();
 }

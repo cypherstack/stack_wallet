@@ -7,7 +7,7 @@ part of 'log.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetLogCollection on Isar {
   IsarCollection<Log> get logs => this.collection();
@@ -21,6 +21,7 @@ const LogSchema = CollectionSchema(
       id: 0,
       name: r'logLevel',
       type: IsarType.string,
+      enumMap: _LoglogLevelEnumValueMap,
     ),
     r'message': PropertySchema(
       id: 1,
@@ -34,12 +35,9 @@ const LogSchema = CollectionSchema(
     )
   },
   estimateSize: _logEstimateSize,
-  serializeNative: _logSerializeNative,
-  deserializeNative: _logDeserializeNative,
-  deserializePropNative: _logDeserializePropNative,
-  serializeWeb: _logSerializeWeb,
-  deserializeWeb: _logDeserializeWeb,
-  deserializePropWeb: _logDeserializePropWeb,
+  serialize: _logSerialize,
+  deserialize: _logDeserialize,
+  deserializeProp: _logDeserializeProp,
   idName: r'id',
   indexes: {
     r'timestampInMillisUTC': IndexSchema(
@@ -61,7 +59,7 @@ const LogSchema = CollectionSchema(
   getId: _logGetId,
   getLinks: _logGetLinks,
   attach: _logAttach,
-  version: 5,
+  version: '3.0.5',
 );
 
 int _logEstimateSize(
@@ -70,49 +68,48 @@ int _logEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  bytesCount += 3 + object.logLevel.value.length * 3;
+  bytesCount += 3 + object.logLevel.name.length * 3;
   bytesCount += 3 + object.message.length * 3;
   return bytesCount;
 }
 
-int _logSerializeNative(
+void _logSerialize(
   Log object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.logLevel.value);
+  writer.writeString(offsets[0], object.logLevel.name);
   writer.writeString(offsets[1], object.message);
   writer.writeLong(offsets[2], object.timestampInMillisUTC);
-  return writer.usedBytes;
 }
 
-Log _logDeserializeNative(
-  int id,
-  IsarBinaryReader reader,
+Log _logDeserialize(
+  Id id,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Log();
   object.id = id;
   object.logLevel =
-      _LogLogLevelMap[reader.readStringOrNull(offsets[0])] ?? LogLevel.Info;
+      _LoglogLevelValueEnumMap[reader.readStringOrNull(offsets[0])] ??
+          LogLevel.Info;
   object.message = reader.readString(offsets[1]);
   object.timestampInMillisUTC = reader.readLong(offsets[2]);
   return object;
 }
 
-P _logDeserializePropNative<P>(
-  Id id,
-  IsarBinaryReader reader,
+P _logDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
 ) {
   switch (propertyId) {
     case 0:
-      return (_LogLogLevelMap[reader.readStringOrNull(offset)] ?? LogLevel.Info)
-          as P;
+      return (_LoglogLevelValueEnumMap[reader.readStringOrNull(offset)] ??
+          LogLevel.Info) as P;
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
@@ -122,36 +119,21 @@ P _logDeserializePropNative<P>(
   }
 }
 
-Object _logSerializeWeb(IsarCollection<Log> collection, Log object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-Log _logDeserializeWeb(IsarCollection<Log> collection, Object jsObj) {
-  /*final object = Log();object.id = IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);object.logLevel = IsarNative.jsObjectGet(jsObj, r'logLevel') ?? LogLevel.Info;object.message = IsarNative.jsObjectGet(jsObj, r'message') ?? '';object.timestampInMillisUTC = IsarNative.jsObjectGet(jsObj, r'timestampInMillisUTC') ?? (double.negativeInfinity as int);*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _logDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
-  }
-}
-
-final _LogLogLevelMap = {
-  LogLevel.Info.value: LogLevel.Info,
-  LogLevel.Warning.value: LogLevel.Warning,
-  LogLevel.Error.value: LogLevel.Error,
-  LogLevel.Fatal.value: LogLevel.Fatal,
+const _LoglogLevelEnumValueMap = {
+  r'Info': r'Info',
+  r'Warning': r'Warning',
+  r'Error': r'Error',
+  r'Fatal': r'Fatal',
+};
+const _LoglogLevelValueEnumMap = {
+  r'Info': LogLevel.Info,
+  r'Warning': LogLevel.Warning,
+  r'Error': LogLevel.Error,
+  r'Fatal': LogLevel.Fatal,
 };
 
-int? _logGetId(Log object) {
-  if (object.id == Isar.autoIncrement) {
-    return null;
-  } else {
-    return object.id;
-  }
+Id _logGetId(Log object) {
+  return object.id;
 }
 
 List<IsarLinkBase<dynamic>> _logGetLinks(Log object) {
@@ -179,7 +161,7 @@ extension LogQueryWhereSort on QueryBuilder<Log, Log, QWhere> {
 }
 
 extension LogQueryWhere on QueryBuilder<Log, Log, QWhereClause> {
-  QueryBuilder<Log, Log, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<Log, Log, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -188,7 +170,7 @@ extension LogQueryWhere on QueryBuilder<Log, Log, QWhereClause> {
     });
   }
 
-  QueryBuilder<Log, Log, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Log, Log, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -210,7 +192,7 @@ extension LogQueryWhere on QueryBuilder<Log, Log, QWhereClause> {
     });
   }
 
-  QueryBuilder<Log, Log, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<Log, Log, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -219,7 +201,7 @@ extension LogQueryWhere on QueryBuilder<Log, Log, QWhereClause> {
     });
   }
 
-  QueryBuilder<Log, Log, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<Log, Log, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -229,8 +211,8 @@ extension LogQueryWhere on QueryBuilder<Log, Log, QWhereClause> {
   }
 
   QueryBuilder<Log, Log, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -336,7 +318,7 @@ extension LogQueryWhere on QueryBuilder<Log, Log, QWhereClause> {
 }
 
 extension LogQueryFilter on QueryBuilder<Log, Log, QFilterCondition> {
-  QueryBuilder<Log, Log, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<Log, Log, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -346,7 +328,7 @@ extension LogQueryFilter on QueryBuilder<Log, Log, QFilterCondition> {
   }
 
   QueryBuilder<Log, Log, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -359,7 +341,7 @@ extension LogQueryFilter on QueryBuilder<Log, Log, QFilterCondition> {
   }
 
   QueryBuilder<Log, Log, QAfterFilterCondition> idLessThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -372,8 +354,8 @@ extension LogQueryFilter on QueryBuilder<Log, Log, QFilterCondition> {
   }
 
   QueryBuilder<Log, Log, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -498,6 +480,24 @@ extension LogQueryFilter on QueryBuilder<Log, Log, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Log, Log, QAfterFilterCondition> logLevelIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'logLevel',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Log, Log, QAfterFilterCondition> logLevelIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'logLevel',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Log, Log, QAfterFilterCondition> messageEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -604,6 +604,24 @@ extension LogQueryFilter on QueryBuilder<Log, Log, QFilterCondition> {
         property: r'message',
         wildcard: pattern,
         caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Log, Log, QAfterFilterCondition> messageIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'message',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Log, Log, QAfterFilterCondition> messageIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'message',
+        value: '',
       ));
     });
   }

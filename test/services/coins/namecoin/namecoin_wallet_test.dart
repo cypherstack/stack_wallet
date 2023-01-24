@@ -6,25 +6,20 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
-import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
-import 'package:stackwallet/models/paymint/utxo_model.dart';
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
-import 'package:stackwallet/services/price.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:tuple/tuple.dart';
 
-import 'namecoin_history_sample_data.dart';
-import 'namecoin_transaction_data_samples.dart';
-import 'namecoin_utxo_sample_data.dart';
 import 'namecoin_wallet_test.mocks.dart';
 import 'namecoin_wallet_test_parameters.dart';
 
-@GenerateMocks(
-    [ElectrumX, CachedElectrumX, PriceAPI, TransactionNotificationTracker])
+@GenerateMocks([
+  ElectrumX,
+  CachedElectrumX,
+  TransactionNotificationTracker,
+])
 void main() {
   group("namecoin constants", () {
     test("namecoin minimum confirmations", () async {
@@ -102,7 +97,6 @@ void main() {
   group("validate mainnet namecoin addresses", () {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
-    MockPriceAPI? priceAPI;
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
@@ -111,7 +105,6 @@ void main() {
     setUp(() {
       client = MockElectrumX();
       cachedClient = MockCachedElectrumX();
-      priceAPI = MockPriceAPI();
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
 
@@ -122,7 +115,6 @@ void main() {
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
-        priceAPI: priceAPI,
         secureStore: secureStore,
       );
     });
@@ -136,7 +128,6 @@ void main() {
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("valid mainnet bech32 p2wpkh address type", () {
@@ -148,7 +139,6 @@ void main() {
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("invalid bech32 address type", () {
@@ -160,7 +150,6 @@ void main() {
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("address has no matching script", () {
@@ -172,14 +161,12 @@ void main() {
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
   });
 
   group("testNetworkConnection", () {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
-    MockPriceAPI? priceAPI;
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
@@ -188,7 +175,6 @@ void main() {
     setUp(() {
       client = MockElectrumX();
       cachedClient = MockCachedElectrumX();
-      priceAPI = MockPriceAPI();
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
 
@@ -199,7 +185,6 @@ void main() {
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
-        priceAPI: priceAPI,
         secureStore: secureStore,
       );
     });
@@ -212,7 +197,6 @@ void main() {
       verify(client?.ping()).called(1);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("attempted connection fails due to exception", () async {
@@ -223,7 +207,6 @@ void main() {
       verify(client?.ping()).called(1);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("attempted connection test success", () async {
@@ -234,17 +217,16 @@ void main() {
       verify(client?.ping()).called(1);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
   });
 
   group("basic getters, setters, and functions", () {
-    final testWalletId = "NMCtestWalletID";
-    final testWalletName = "NMCWallet";
+    const testWalletId = "NMCtestWalletID";
+    const testWalletName = "NMCWallet";
 
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
-    MockPriceAPI? priceAPI;
+
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
@@ -253,7 +235,7 @@ void main() {
     setUp(() async {
       client = MockElectrumX();
       cachedClient = MockCachedElectrumX();
-      priceAPI = MockPriceAPI();
+
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
 
@@ -264,7 +246,6 @@ void main() {
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
-        priceAPI: priceAPI,
         secureStore: secureStore,
       );
     });
@@ -274,7 +255,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("get networkType test", () async {
@@ -285,14 +265,12 @@ void main() {
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
-        priceAPI: priceAPI,
         secureStore: secureStore,
       );
       expect(Coin.namecoin, Coin.namecoin);
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("get cryptoCurrency", () async {
@@ -300,7 +278,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("get coinName", () async {
@@ -308,7 +285,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("get coinTicker", () async {
@@ -316,7 +292,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("get and set walletName", () async {
@@ -326,7 +301,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("estimateTxFee", () async {
@@ -341,20 +315,19 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("get fees succeeds", () async {
       when(client?.ping()).thenAnswer((_) async => true);
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       when(client?.estimateFee(blocks: 1))
           .thenAnswer((realInvocation) async => Decimal.zero);
@@ -375,20 +348,19 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("get fees fails", () async {
       when(client?.ping()).thenAnswer((_) async => true);
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       when(client?.estimateFee(blocks: 1))
           .thenAnswer((realInvocation) async => Decimal.zero);
@@ -412,20 +384,19 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     // test("get maxFee", () async {
     //   when(client?.ping()).thenAnswer((_) async => true);
     //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
+    //         "hosts": <dynamic, dynamic>{},
     //         "pruning": null,
     //         "server_version": "Unit tests",
     //         "protocol_min": "1.4",
     //         "protocol_max": "1.4.2",
     //         "genesis_hash": GENESIS_HASH_TESTNET,
     //         "hash_function": "sha256",
-    //         "services": []
+    //         "services": <dynamic>[]
     //       });
     //   when(client?.estimateFee(blocks: 20))
     //       .thenAnswer((realInvocation) async => Decimal.zero);
@@ -444,19 +415,19 @@ void main() {
     //   verifyNoMoreInteractions(client);
     //   verifyNoMoreInteractions(cachedClient);
     //   verifyNoMoreInteractions(tracker);
-    //   verifyNoMoreInteractions(priceAPI);
+    //
     // });
   });
 
   group("Namecoin service class functions that depend on shared storage", () {
-    final testWalletId = "NMCtestWalletID";
-    final testWalletName = "NMCWallet";
+    const testWalletId = "NMCtestWalletID";
+    const testWalletName = "NMCWallet";
 
     bool hiveAdaptersRegistered = false;
 
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
-    MockPriceAPI? priceAPI;
+
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
 
@@ -467,25 +438,13 @@ void main() {
       if (!hiveAdaptersRegistered) {
         hiveAdaptersRegistered = true;
 
-        // Registering Transaction Model Adapters
-        Hive.registerAdapter(TransactionDataAdapter());
-        Hive.registerAdapter(TransactionChunkAdapter());
-        Hive.registerAdapter(TransactionAdapter());
-        Hive.registerAdapter(InputAdapter());
-        Hive.registerAdapter(OutputAdapter());
-
-        // Registering Utxo Model Adapters
-        Hive.registerAdapter(UtxoDataAdapter());
-        Hive.registerAdapter(UtxoObjectAdapter());
-        Hive.registerAdapter(StatusAdapter());
-
-        final wallets = await Hive.openBox('wallets');
+        final wallets = await Hive.openBox<dynamic>('wallets');
         await wallets.put('currentWalletName', testWalletName);
       }
 
       client = MockElectrumX();
       cachedClient = MockCachedElectrumX();
-      priceAPI = MockPriceAPI();
+
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
 
@@ -496,7 +455,6 @@ void main() {
         client: client!,
         cachedClient: cachedClient!,
         tracker: tracker!,
-        priceAPI: priceAPI,
         secureStore: secureStore,
       );
     });
@@ -508,70 +466,70 @@ void main() {
     //   verify(client?.ping()).called(1);
     //   verifyNoMoreInteractions(client);
     //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
+    //
     // });
 
     // test("initializeWallet no network exception", () async {
     //   when(client?.ping()).thenThrow(Exception("Network connection failed"));
-    //   final wallets = await Hive.openBox(testWalletId);
+    //   final wallets = await Hive.openBox<dynamic>(testWalletId);
     //   expect(await nmc?.initializeExisting(), false);
     //   expect(secureStore.interactions, 0);
     //   verify(client?.ping()).called(1);
     //   verifyNoMoreInteractions(client);
     //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
+    //
     // });
 
     test("initializeWallet mainnet throws bad network", () async {
       when(client?.ping()).thenAnswer((_) async => true);
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       // await nmc?.initializeNew();
-      final wallets = await Hive.openBox(testWalletId);
+      await Hive.openBox<dynamic>(testWalletId);
 
-      expectLater(() => nmc?.initializeExisting(), throwsA(isA<Exception>()))
+      await expectLater(
+              () => nmc?.initializeExisting(), throwsA(isA<Exception>()))
           .then((_) {
         expect(secureStore.interactions, 0);
         // verify(client?.ping()).called(1);
         // verify(client?.getServerFeatures()).called(1);
         verifyNoMoreInteractions(client);
         verifyNoMoreInteractions(cachedClient);
-        verifyNoMoreInteractions(priceAPI);
       });
     });
 
     test("initializeWallet throws mnemonic overwrite exception", () async {
       when(client?.ping()).thenAnswer((_) async => true);
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
       await secureStore.write(
           key: "${testWalletId}_mnemonic", value: "some mnemonic");
 
-      final wallets = await Hive.openBox(testWalletId);
-      expectLater(() => nmc?.initializeExisting(), throwsA(isA<Exception>()))
+      await Hive.openBox<dynamic>(testWalletId);
+      await expectLater(
+              () => nmc?.initializeExisting(), throwsA(isA<Exception>()))
           .then((_) {
         expect(secureStore.interactions, 1);
         // verify(client?.ping()).called(1);
         // verify(client?.getServerFeatures()).called(1);
         verifyNoMoreInteractions(client);
         verifyNoMoreInteractions(cachedClient);
-        verifyNoMoreInteractions(priceAPI);
       });
     });
 
@@ -579,14 +537,14 @@ void main() {
     //     "recoverFromMnemonic using empty seed on mainnet fails due to bad genesis hash match",
     //     () async {
     //   when(client?.getServerFeatures()).thenAnswer((_) async => {
-    //         "hosts": {},
+    //         "hosts": <dynamic, dynamic>{},
     //         "pruning": null,
     //         "server_version": "Unit tests",
     //         "protocol_min": "1.4",
     //         "protocol_max": "1.4.2",
     //         "genesis_hash": GENESIS_HASH_TESTNET,
     //         "hash_function": "sha256",
-    //         "services": []
+    //         "services": <dynamic>[]
     //       });
     //
     //   bool hasThrown = false;
@@ -606,21 +564,21 @@ void main() {
     //   expect(secureStore.interactions, 0);
     //   verifyNoMoreInteractions(client);
     //   verifyNoMoreInteractions(cachedClient);
-    //   verifyNoMoreInteractions(priceAPI);
+    //
     // });
 
     test(
         "recoverFromMnemonic using empty seed on mainnet fails due to attempted overwrite of mnemonic",
         () async {
       when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
+            "hosts": <dynamic, dynamic>{},
             "pruning": null,
             "server_version": "Unit tests",
             "protocol_min": "1.4",
             "protocol_max": "1.4.2",
             "genesis_hash": GENESIS_HASH_MAINNET,
             "hash_function": "sha256",
-            "services": []
+            "services": <dynamic>[]
           });
 
       await secureStore.write(
@@ -643,808 +601,801 @@ void main() {
       expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
-    test("recoverFromMnemonic using empty seed on mainnet succeeds", () async {
-      when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
-            "pruning": null,
-            "server_version": "Unit tests",
-            "protocol_min": "1.4",
-            "protocol_max": "1.4.2",
-            "genesis_hash": GENESIS_HASH_MAINNET,
-            "hash_function": "sha256",
-            "services": []
-          });
-      when(client?.getBatchHistory(args: historyBatchArgs0))
-          .thenAnswer((_) async => emptyHistoryBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs1))
-          .thenAnswer((_) async => emptyHistoryBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs2))
-          .thenAnswer((_) async => emptyHistoryBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs3))
-          .thenAnswer((_) async => emptyHistoryBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs4))
-          .thenAnswer((_) async => emptyHistoryBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs5))
-          .thenAnswer((_) async => emptyHistoryBatchResponse);
-      await DB.instance.init();
-      final wallet = await Hive.openBox(testWalletId);
-      bool hasThrown = false;
-      try {
-        await nmc?.recoverFromMnemonic(
-            mnemonic: TEST_MNEMONIC,
-            maxUnusedAddressGap: 2,
-            maxNumberOfIndexesToCheck: 1000,
-            height: 4000);
-      } catch (_) {
-        hasThrown = true;
-      }
-      expect(hasThrown, false);
-
-      verify(client?.getServerFeatures()).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs4)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs5)).called(1);
-
-      expect(secureStore.interactions, 20);
-      expect(secureStore.writes, 7);
-      expect(secureStore.reads, 13);
-      expect(secureStore.deletes, 0);
-
-      verifyNoMoreInteractions(client);
-      verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
-    });
-
-    test("get mnemonic list", () async {
-      when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
-            "pruning": null,
-            "server_version": "Unit tests",
-            "protocol_min": "1.4",
-            "protocol_max": "1.4.2",
-            "genesis_hash": GENESIS_HASH_MAINNET,
-            "hash_function": "sha256",
-            "services": []
-          });
-      when(client?.getBatchHistory(args: historyBatchArgs0))
-          .thenAnswer((_) async => emptyHistoryBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs1))
-          .thenAnswer((_) async => emptyHistoryBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs2))
-          .thenAnswer((_) async => emptyHistoryBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs3))
-          .thenAnswer((_) async => emptyHistoryBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs4))
-          .thenAnswer((_) async => emptyHistoryBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs5))
-          .thenAnswer((_) async => emptyHistoryBatchResponse);
-
-      final wallet = await Hive.openBox(testWalletId);
-
-      await nmc?.recoverFromMnemonic(
-          mnemonic: TEST_MNEMONIC,
-          maxUnusedAddressGap: 2,
-          maxNumberOfIndexesToCheck: 1000,
-          height: 4000);
-
-      expect(await nmc?.mnemonic, TEST_MNEMONIC.split(" "));
-
-      verify(client?.getServerFeatures()).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs4)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs5)).called(1);
-
-      verifyNoMoreInteractions(client);
-      verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
-    });
-
-    test("recoverFromMnemonic using non empty seed on mainnet succeeds",
-        () async {
-      when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
-            "pruning": null,
-            "server_version": "Unit tests",
-            "protocol_min": "1.4",
-            "protocol_max": "1.4.2",
-            "genesis_hash": GENESIS_HASH_MAINNET,
-            "hash_function": "sha256",
-            "services": []
-          });
-      when(client?.getBatchHistory(args: historyBatchArgs0))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs1))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs2))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs3))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs4))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs5))
-          .thenAnswer((_) async => historyBatchResponse);
-
-      List<dynamic> dynamicArgValues = [];
-
-      when(client?.getBatchHistory(args: anyNamed("args")))
-          .thenAnswer((realInvocation) async {
-        if (realInvocation.namedArguments.values.first.length == 1) {
-          dynamicArgValues.add(realInvocation.namedArguments.values.first);
-        }
-
-        return historyBatchResponse;
-      });
-
-      await Hive.openBox<dynamic>(testWalletId);
-
-      bool hasThrown = false;
-      try {
-        await nmc?.recoverFromMnemonic(
-            mnemonic: TEST_MNEMONIC,
-            maxUnusedAddressGap: 2,
-            maxNumberOfIndexesToCheck: 1000,
-            height: 4000);
-      } catch (_) {
-        hasThrown = true;
-      }
-      expect(hasThrown, false);
-
-      verify(client?.getServerFeatures()).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs4)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs5)).called(1);
-
-      for (final arg in dynamicArgValues) {
-        final map = Map<String, List<dynamic>>.from(arg as Map);
-
-        verify(client?.getBatchHistory(args: map)).called(1);
-        expect(activeScriptHashes.contains(map.values.first.first as String),
-            true);
-      }
-
-      expect(secureStore.interactions, 14);
-      expect(secureStore.writes, 7);
-      expect(secureStore.reads, 7);
-      expect(secureStore.deletes, 0);
-
-      verifyNoMoreInteractions(client);
-      verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
-    });
-
-    test("fullRescan succeeds", () async {
-      when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
-            "pruning": null,
-            "server_version": "Unit tests",
-            "protocol_min": "1.4",
-            "protocol_max": "1.4.2",
-            "genesis_hash": GENESIS_HASH_MAINNET,
-            "hash_function": "sha256",
-            "services": []
-          });
-      when(client?.getBatchHistory(args: historyBatchArgs0))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs1))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs2))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs3))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs4))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs5))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(cachedClient?.clearSharedTransactionCache(coin: Coin.namecoin))
-          .thenAnswer((realInvocation) async {});
-
-      when(client?.getBatchHistory(args: {
-        "0": [
-          "dd63fc12f5e6c1ada2cf3c941d1648e6d561ce4024747bb2117d72112d83287c"
-        ]
-      })).thenAnswer((realInvocation) async => {"0": []});
-
-      when(client?.getBatchHistory(args: {
-        "0": [
-          "86906979fc9107d06d560275d7de8305b69d7189c3206ac9070ad76e6abff874"
-        ]
-      })).thenAnswer((realInvocation) async => {"0": []});
-
-      when(client?.getBatchHistory(args: {
-        "0": [
-          "c068e7fa4aa0b8a63114f6d11c047ca4be6a8fa333eb0dac48506e8f150af73b"
-        ]
-      })).thenAnswer((realInvocation) async => {"0": []});
-
-      when(client?.getBatchHistory(args: {
-        "0": [
-          "cd3dd4abe4f9efc7149ba334d2d6790020331805b0bd5c7ed89a3ac6a22f10b9"
-        ]
-      })).thenAnswer((realInvocation) async => {"0": []});
-      when(client?.getBatchHistory(args: {
-        "0": [
-          "587943864cefed4f1643a5ee2ce2b3c13a0c6ad7c435373f0ac328e144a15c1e"
-        ]
-      })).thenAnswer((realInvocation) async => {"0": []});
-      when(client?.getBatchHistory(args: {
-        "0": [
-          "42d6e40636f4740f9c7f95ef0bbc2a4c17f54da2bc98a32a622e2bf73eb675c3"
-        ]
-      })).thenAnswer((realInvocation) async => {"0": []});
-
-      final wallet = await Hive.openBox<dynamic>(testWalletId);
-
-      // restore so we have something to rescan
-      await nmc?.recoverFromMnemonic(
-          mnemonic: TEST_MNEMONIC,
-          maxUnusedAddressGap: 2,
-          maxNumberOfIndexesToCheck: 1000,
-          height: 4000);
-
-      // fetch valid wallet data
-      final preReceivingAddressesP2PKH =
-          await wallet.get('receivingAddressesP2PKH');
-      final preReceivingAddressesP2SH =
-          await wallet.get('receivingAddressesP2SH');
-      final preReceivingAddressesP2WPKH =
-          await wallet.get('receivingAddressesP2WPKH');
-      final preChangeAddressesP2PKH = await wallet.get('changeAddressesP2PKH');
-      final preChangeAddressesP2SH = await wallet.get('changeAddressesP2SH');
-      final preChangeAddressesP2WPKH =
-          await wallet.get('changeAddressesP2WPKH');
-      final preReceivingIndexP2PKH = await wallet.get('receivingIndexP2PKH');
-      final preReceivingIndexP2SH = await wallet.get('receivingIndexP2SH');
-      final preReceivingIndexP2WPKH = await wallet.get('receivingIndexP2WPKH');
-      final preChangeIndexP2PKH = await wallet.get('changeIndexP2PKH');
-      final preChangeIndexP2SH = await wallet.get('changeIndexP2SH');
-      final preChangeIndexP2WPKH = await wallet.get('changeIndexP2WPKH');
-      final preUtxoData = await wallet.get('latest_utxo_model');
-      final preReceiveDerivationsStringP2PKH = await secureStore.read(
-          key: "${testWalletId}_receiveDerivationsP2PKH");
-      final preChangeDerivationsStringP2PKH =
-          await secureStore.read(key: "${testWalletId}_changeDerivationsP2PKH");
-      final preReceiveDerivationsStringP2SH =
-          await secureStore.read(key: "${testWalletId}_receiveDerivationsP2SH");
-      final preChangeDerivationsStringP2SH =
-          await secureStore.read(key: "${testWalletId}_changeDerivationsP2SH");
-      final preReceiveDerivationsStringP2WPKH = await secureStore.read(
-          key: "${testWalletId}_receiveDerivationsP2WPKH");
-      final preChangeDerivationsStringP2WPKH = await secureStore.read(
-          key: "${testWalletId}_changeDerivationsP2WPKH");
-
-      // destroy the data that the rescan will fix
-      await wallet.put(
-          'receivingAddressesP2PKH', ["some address", "some other address"]);
-      await wallet.put(
-          'receivingAddressesP2SH', ["some address", "some other address"]);
-      await wallet.put(
-          'receivingAddressesP2WPKH', ["some address", "some other address"]);
-      await wallet
-          .put('changeAddressesP2PKH', ["some address", "some other address"]);
-      await wallet
-          .put('changeAddressesP2SH', ["some address", "some other address"]);
-      await wallet
-          .put('changeAddressesP2WPKH', ["some address", "some other address"]);
-      await wallet.put('receivingIndexP2PKH', 123);
-      await wallet.put('receivingIndexP2SH', 123);
-      await wallet.put('receivingIndexP2WPKH', 123);
-      await wallet.put('changeIndexP2PKH', 123);
-      await wallet.put('changeIndexP2SH', 123);
-      await wallet.put('changeIndexP2WPKH', 123);
-      await secureStore.write(
-          key: "${testWalletId}_receiveDerivationsP2PKH", value: "{}");
-      await secureStore.write(
-          key: "${testWalletId}_changeDerivationsP2PKH", value: "{}");
-      await secureStore.write(
-          key: "${testWalletId}_receiveDerivationsP2SH", value: "{}");
-      await secureStore.write(
-          key: "${testWalletId}_changeDerivationsP2SH", value: "{}");
-      await secureStore.write(
-          key: "${testWalletId}_receiveDerivationsP2WPKH", value: "{}");
-      await secureStore.write(
-          key: "${testWalletId}_changeDerivationsP2WPKH", value: "{}");
-
-      bool hasThrown = false;
-      try {
-        await nmc?.fullRescan(2, 1000);
-      } catch (_) {
-        hasThrown = true;
-      }
-      expect(hasThrown, false);
-
-      // fetch wallet data again
-      final receivingAddressesP2PKH =
-          await wallet.get('receivingAddressesP2PKH');
-      final receivingAddressesP2SH = await wallet.get('receivingAddressesP2SH');
-      final receivingAddressesP2WPKH =
-          await wallet.get('receivingAddressesP2WPKH');
-      final changeAddressesP2PKH = await wallet.get('changeAddressesP2PKH');
-      final changeAddressesP2SH = await wallet.get('changeAddressesP2SH');
-      final changeAddressesP2WPKH = await wallet.get('changeAddressesP2WPKH');
-      final receivingIndexP2PKH = await wallet.get('receivingIndexP2PKH');
-      final receivingIndexP2SH = await wallet.get('receivingIndexP2SH');
-      final receivingIndexP2WPKH = await wallet.get('receivingIndexP2WPKH');
-      final changeIndexP2PKH = await wallet.get('changeIndexP2PKH');
-      final changeIndexP2SH = await wallet.get('changeIndexP2SH');
-      final changeIndexP2WPKH = await wallet.get('changeIndexP2WPKH');
-      final utxoData = await wallet.get('latest_utxo_model');
-      final receiveDerivationsStringP2PKH = await secureStore.read(
-          key: "${testWalletId}_receiveDerivationsP2PKH");
-      final changeDerivationsStringP2PKH =
-          await secureStore.read(key: "${testWalletId}_changeDerivationsP2PKH");
-      final receiveDerivationsStringP2SH =
-          await secureStore.read(key: "${testWalletId}_receiveDerivationsP2SH");
-      final changeDerivationsStringP2SH =
-          await secureStore.read(key: "${testWalletId}_changeDerivationsP2SH");
-      final receiveDerivationsStringP2WPKH = await secureStore.read(
-          key: "${testWalletId}_receiveDerivationsP2WPKH");
-      final changeDerivationsStringP2WPKH = await secureStore.read(
-          key: "${testWalletId}_changeDerivationsP2WPKH");
-
-      expect(preReceivingAddressesP2PKH, receivingAddressesP2PKH);
-      expect(preReceivingAddressesP2SH, receivingAddressesP2SH);
-      expect(preReceivingAddressesP2WPKH, receivingAddressesP2WPKH);
-      expect(preChangeAddressesP2PKH, changeAddressesP2PKH);
-      expect(preChangeAddressesP2SH, changeAddressesP2SH);
-      expect(preChangeAddressesP2WPKH, changeAddressesP2WPKH);
-      expect(preReceivingIndexP2PKH, receivingIndexP2PKH);
-      expect(preReceivingIndexP2SH, receivingIndexP2SH);
-      expect(preReceivingIndexP2WPKH, receivingIndexP2WPKH);
-      expect(preChangeIndexP2PKH, changeIndexP2PKH);
-      expect(preChangeIndexP2SH, changeIndexP2SH);
-      expect(preChangeIndexP2WPKH, changeIndexP2WPKH);
-      expect(preUtxoData, utxoData);
-      expect(preReceiveDerivationsStringP2PKH, receiveDerivationsStringP2PKH);
-      expect(preChangeDerivationsStringP2PKH, changeDerivationsStringP2PKH);
-      expect(preReceiveDerivationsStringP2SH, receiveDerivationsStringP2SH);
-      expect(preChangeDerivationsStringP2SH, changeDerivationsStringP2SH);
-      expect(preReceiveDerivationsStringP2WPKH, receiveDerivationsStringP2WPKH);
-      expect(preChangeDerivationsStringP2WPKH, changeDerivationsStringP2WPKH);
-
-      verify(client?.getServerFeatures()).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs0)).called(2);
-      verify(client?.getBatchHistory(args: historyBatchArgs1)).called(2);
-      verify(client?.getBatchHistory(args: historyBatchArgs2)).called(2);
-      verify(client?.getBatchHistory(args: historyBatchArgs3)).called(2);
-      verify(client?.getBatchHistory(args: historyBatchArgs4)).called(2);
-      verify(client?.getBatchHistory(args: historyBatchArgs5)).called(2);
-      verify(client?.getBatchHistory(args: {
-        "0": [
-          "dd63fc12f5e6c1ada2cf3c941d1648e6d561ce4024747bb2117d72112d83287c"
-        ]
-      })).called(2);
-      verify(client?.getBatchHistory(args: {
-        "0": [
-          "86906979fc9107d06d560275d7de8305b69d7189c3206ac9070ad76e6abff874"
-        ]
-      })).called(2);
-
-      verify(client?.getBatchHistory(args: {
-        "0": [
-          "c068e7fa4aa0b8a63114f6d11c047ca4be6a8fa333eb0dac48506e8f150af73b"
-        ]
-      })).called(2);
-
-      verify(client?.getBatchHistory(args: {
-        "0": [
-          "cd3dd4abe4f9efc7149ba334d2d6790020331805b0bd5c7ed89a3ac6a22f10b9"
-        ]
-      })).called(2);
-
-      verify(client?.getBatchHistory(args: {
-        "0": [
-          "587943864cefed4f1643a5ee2ce2b3c13a0c6ad7c435373f0ac328e144a15c1e"
-        ]
-      })).called(2);
-
-      verify(client?.getBatchHistory(args: {
-        "0": [
-          "42d6e40636f4740f9c7f95ef0bbc2a4c17f54da2bc98a32a622e2bf73eb675c3"
-        ]
-      })).called(2);
-      verify(cachedClient?.clearSharedTransactionCache(coin: Coin.namecoin))
-          .called(1);
-
-      // for (final arg in dynamicArgValues) {
-      //   final map = Map<String, List<dynamic>>.from(arg as Map);
-      //   Map<String, int> argCount = {};
-      //
-      //   // verify(client?.getBatchHistory(args: map)).called(1);
-      //   // expect(activeScriptHashes.contains(map.values.first.first as String),
-      //   //     true);
-      // }
-
-      // Map<String, int> argCount = {};
-      //
-      // for (final arg in dynamicArgValues) {
-      //   final map = Map<String, List<dynamic>>.from(arg as Map);
-      //
-      //   final str = jsonEncode(map);
-      //
-      //   if (argCount[str] == null) {
-      //     argCount[str] = 1;
-      //   } else {
-      //     argCount[str] = argCount[str]! + 1;
-      //   }
-      // }
-      //
-      // argCount.forEach((key, value) => print("arg: $key\ncount: $value"));
-
-      expect(secureStore.writes, 25);
-      expect(secureStore.reads, 32);
-      expect(secureStore.deletes, 6);
-
-      verifyNoMoreInteractions(client);
-      verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
-    });
-
-    test("fullRescan fails", () async {
-      when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
-            "pruning": null,
-            "server_version": "Unit tests",
-            "protocol_min": "1.4",
-            "protocol_max": "1.4.2",
-            "genesis_hash": GENESIS_HASH_MAINNET,
-            "hash_function": "sha256",
-            "services": []
-          });
-
-      when(client?.getBatchHistory(args: historyBatchArgs0))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs1))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs2))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs3))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs4))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs5))
-          .thenAnswer((_) async => historyBatchResponse);
-
-      when(client?.getBatchHistory(args: {
-        "0": [
-          "dd63fc12f5e6c1ada2cf3c941d1648e6d561ce4024747bb2117d72112d83287c"
-        ]
-      })).thenAnswer((realInvocation) async => {"0": []});
-
-      when(client?.getBatchHistory(args: {
-        "0": [
-          "cd3dd4abe4f9efc7149ba334d2d6790020331805b0bd5c7ed89a3ac6a22f10b9"
-        ]
-      })).thenAnswer((realInvocation) async => {"0": []});
-
-      when(client?.getBatchHistory(args: {
-        "0": [
-          "42d6e40636f4740f9c7f95ef0bbc2a4c17f54da2bc98a32a622e2bf73eb675c3"
-        ]
-      })).thenAnswer((realInvocation) async => {"0": []});
-
-      when(client?.getBatchHistory(args: {
-        "0": [
-          "587943864cefed4f1643a5ee2ce2b3c13a0c6ad7c435373f0ac328e144a15c1e"
-        ]
-      })).thenAnswer((realInvocation) async => {"0": []});
-
-      when(client?.getBatchHistory(args: {
-        "0": [
-          "86906979fc9107d06d560275d7de8305b69d7189c3206ac9070ad76e6abff874"
-        ]
-      })).thenAnswer((realInvocation) async => {"0": []});
-
-      when(client?.getBatchHistory(args: {
-        "0": [
-          "c068e7fa4aa0b8a63114f6d11c047ca4be6a8fa333eb0dac48506e8f150af73b"
-        ]
-      })).thenAnswer((realInvocation) async => {"0": []});
-
-      when(cachedClient?.clearSharedTransactionCache(coin: Coin.namecoin))
-          .thenAnswer((realInvocation) async {});
-
-      final wallet = await Hive.openBox<dynamic>(testWalletId);
-
-      // restore so we have something to rescan
-      await nmc?.recoverFromMnemonic(
-          mnemonic: TEST_MNEMONIC,
-          maxUnusedAddressGap: 2,
-          maxNumberOfIndexesToCheck: 1000,
-          height: 4000);
-
-      // fetch wallet data
-      final preReceivingAddressesP2PKH =
-          await wallet.get('receivingAddressesP2PKH');
-      final preReceivingAddressesP2SH =
-          await wallet.get('receivingAddressesP2SH');
-      final preReceivingAddressesP2WPKH =
-          await wallet.get('receivingAddressesP2WPKH');
-      final preChangeAddressesP2PKH = await wallet.get('changeAddressesP2PKH');
-      final preChangeAddressesP2SH = await wallet.get('changeAddressesP2SH');
-      final preChangeAddressesP2WPKH =
-          await wallet.get('changeAddressesP2WPKH');
-      final preReceivingIndexP2PKH = await wallet.get('receivingIndexP2PKH');
-      final preReceivingIndexP2SH = await wallet.get('receivingIndexP2SH');
-      final preReceivingIndexP2WPKH = await wallet.get('receivingIndexP2WPKH');
-      final preChangeIndexP2PKH = await wallet.get('changeIndexP2PKH');
-      final preChangeIndexP2SH = await wallet.get('changeIndexP2SH');
-      final preChangeIndexP2WPKH = await wallet.get('changeIndexP2WPKH');
-      final preUtxoData = await wallet.get('latest_utxo_model');
-      final preReceiveDerivationsStringP2PKH = await secureStore.read(
-          key: "${testWalletId}_receiveDerivationsP2PKH");
-      final preChangeDerivationsStringP2PKH =
-          await secureStore.read(key: "${testWalletId}_changeDerivationsP2PKH");
-      final preReceiveDerivationsStringP2SH =
-          await secureStore.read(key: "${testWalletId}_receiveDerivationsP2SH");
-      final preChangeDerivationsStringP2SH =
-          await secureStore.read(key: "${testWalletId}_changeDerivationsP2SH");
-      final preReceiveDerivationsStringP2WPKH = await secureStore.read(
-          key: "${testWalletId}_receiveDerivationsP2WPKH");
-      final preChangeDerivationsStringP2WPKH = await secureStore.read(
-          key: "${testWalletId}_changeDerivationsP2WPKH");
-
-      when(client?.getBatchHistory(args: historyBatchArgs0))
-          .thenThrow(Exception("fake exception"));
-
-      bool hasThrown = false;
-      try {
-        await nmc?.fullRescan(2, 1000);
-      } catch (_) {
-        hasThrown = true;
-      }
-      expect(hasThrown, true);
-
-      // fetch wallet data again
-      final receivingAddressesP2PKH =
-          await wallet.get('receivingAddressesP2PKH');
-      final receivingAddressesP2SH = await wallet.get('receivingAddressesP2SH');
-      final receivingAddressesP2WPKH =
-          await wallet.get('receivingAddressesP2WPKH');
-      final changeAddressesP2PKH = await wallet.get('changeAddressesP2PKH');
-      final changeAddressesP2SH = await wallet.get('changeAddressesP2SH');
-      final changeAddressesP2WPKH = await wallet.get('changeAddressesP2WPKH');
-      final receivingIndexP2PKH = await wallet.get('receivingIndexP2PKH');
-      final receivingIndexP2SH = await wallet.get('receivingIndexP2SH');
-      final receivingIndexP2WPKH = await wallet.get('receivingIndexP2WPKH');
-      final changeIndexP2PKH = await wallet.get('changeIndexP2PKH');
-      final changeIndexP2SH = await wallet.get('changeIndexP2SH');
-      final changeIndexP2WPKH = await wallet.get('changeIndexP2WPKH');
-      final utxoData = await wallet.get('latest_utxo_model');
-      final receiveDerivationsStringP2PKH = await secureStore.read(
-          key: "${testWalletId}_receiveDerivationsP2PKH");
-      final changeDerivationsStringP2PKH =
-          await secureStore.read(key: "${testWalletId}_changeDerivationsP2PKH");
-      final receiveDerivationsStringP2SH =
-          await secureStore.read(key: "${testWalletId}_receiveDerivationsP2SH");
-      final changeDerivationsStringP2SH =
-          await secureStore.read(key: "${testWalletId}_changeDerivationsP2SH");
-      final receiveDerivationsStringP2WPKH = await secureStore.read(
-          key: "${testWalletId}_receiveDerivationsP2WPKH");
-      final changeDerivationsStringP2WPKH = await secureStore.read(
-          key: "${testWalletId}_changeDerivationsP2WPKH");
-
-      expect(preReceivingAddressesP2PKH, receivingAddressesP2PKH);
-      expect(preReceivingAddressesP2SH, receivingAddressesP2SH);
-      expect(preReceivingAddressesP2WPKH, receivingAddressesP2WPKH);
-      expect(preChangeAddressesP2PKH, changeAddressesP2PKH);
-      expect(preChangeAddressesP2SH, changeAddressesP2SH);
-      expect(preChangeAddressesP2WPKH, changeAddressesP2WPKH);
-      expect(preReceivingIndexP2PKH, receivingIndexP2PKH);
-      expect(preReceivingIndexP2SH, receivingIndexP2SH);
-      expect(preReceivingIndexP2WPKH, receivingIndexP2WPKH);
-      expect(preChangeIndexP2PKH, changeIndexP2PKH);
-      expect(preChangeIndexP2SH, changeIndexP2SH);
-      expect(preChangeIndexP2WPKH, changeIndexP2WPKH);
-      expect(preUtxoData, utxoData);
-      expect(preReceiveDerivationsStringP2PKH, receiveDerivationsStringP2PKH);
-      expect(preChangeDerivationsStringP2PKH, changeDerivationsStringP2PKH);
-      expect(preReceiveDerivationsStringP2SH, receiveDerivationsStringP2SH);
-      expect(preChangeDerivationsStringP2SH, changeDerivationsStringP2SH);
-      expect(preReceiveDerivationsStringP2WPKH, receiveDerivationsStringP2WPKH);
-      expect(preChangeDerivationsStringP2WPKH, changeDerivationsStringP2WPKH);
-
-      verify(client?.getServerFeatures()).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs0)).called(2);
-      verify(client?.getBatchHistory(args: historyBatchArgs1)).called(2);
-      verify(client?.getBatchHistory(args: historyBatchArgs2)).called(2);
-      verify(client?.getBatchHistory(args: historyBatchArgs3)).called(2);
-      verify(client?.getBatchHistory(args: historyBatchArgs4)).called(2);
-      verify(client?.getBatchHistory(args: historyBatchArgs5)).called(2);
-
-      verify(client?.getBatchHistory(args: {
-        "0": [
-          "dd63fc12f5e6c1ada2cf3c941d1648e6d561ce4024747bb2117d72112d83287c"
-        ]
-      })).called(2);
-      verify(client?.getBatchHistory(args: {
-        "0": [
-          "cd3dd4abe4f9efc7149ba334d2d6790020331805b0bd5c7ed89a3ac6a22f10b9"
-        ]
-      })).called(1);
-      verify(client?.getBatchHistory(args: {
-        "0": [
-          "42d6e40636f4740f9c7f95ef0bbc2a4c17f54da2bc98a32a622e2bf73eb675c3"
-        ]
-      })).called(2);
-      verify(client?.getBatchHistory(args: {
-        "0": [
-          "587943864cefed4f1643a5ee2ce2b3c13a0c6ad7c435373f0ac328e144a15c1e"
-        ]
-      })).called(2);
-      verify(client?.getBatchHistory(args: {
-        "0": [
-          "86906979fc9107d06d560275d7de8305b69d7189c3206ac9070ad76e6abff874"
-        ]
-      })).called(2);
-      verify(client?.getBatchHistory(args: {
-        "0": [
-          "c068e7fa4aa0b8a63114f6d11c047ca4be6a8fa333eb0dac48506e8f150af73b"
-        ]
-      })).called(2);
-      verify(cachedClient?.clearSharedTransactionCache(coin: Coin.namecoin))
-          .called(1);
-
-      expect(secureStore.writes, 19);
-      expect(secureStore.reads, 32);
-      expect(secureStore.deletes, 12);
-
-      verifyNoMoreInteractions(client);
-      verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
-    });
-
-    test("prepareSend fails", () async {
-      when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
-            "pruning": null,
-            "server_version": "Unit tests",
-            "protocol_min": "1.4",
-            "protocol_max": "1.4.2",
-            "genesis_hash": GENESIS_HASH_MAINNET,
-            "hash_function": "sha256",
-            "services": []
-          });
-      when(client?.getBatchHistory(args: historyBatchArgs0))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs1))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs2))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs3))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs4))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs5))
-          .thenAnswer((_) async => historyBatchResponse);
-
-      List<dynamic> dynamicArgValues = [];
-
-      when(client?.getBatchHistory(args: anyNamed("args")))
-          .thenAnswer((realInvocation) async {
-        if (realInvocation.namedArguments.values.first.length == 1) {
-          dynamicArgValues.add(realInvocation.namedArguments.values.first);
-        }
-
-        return historyBatchResponse;
-      });
-
-      await Hive.openBox<dynamic>(testWalletId);
-
-      when(cachedClient?.getTransaction(
-              txHash:
-                  "dffa9543852197f9fb90f8adafaab8a0b9b4925e9ada8c6bdcaf00bf2e9f60d7",
-              coin: Coin.namecoin))
-          .thenAnswer((_) async => tx2Raw);
-      when(cachedClient?.getTransaction(
-              txHash:
-                  "71b56532e9e7321bd8c30d0f8b14530743049d2f3edd5623065c46eee1dda04d",
-              coin: Coin.namecoin))
-          .thenAnswer((_) async => tx3Raw);
-      when(cachedClient?.getTransaction(
-        txHash:
-            "c7e700f7e23a85bbdd9de86d502322a933607ee7ea7e16adaf02e477cdd849b9",
-        coin: Coin.namecoin,
-      )).thenAnswer((_) async => tx4Raw);
-
-      // recover to fill data
-      await nmc?.recoverFromMnemonic(
-          mnemonic: TEST_MNEMONIC,
-          maxUnusedAddressGap: 2,
-          maxNumberOfIndexesToCheck: 1000,
-          height: 4000);
-
-      // modify addresses to properly mock data to build a tx
-      final rcv44 = await secureStore.read(
-          key: testWalletId + "_receiveDerivationsP2PKH");
-      await secureStore.write(
-          key: testWalletId + "_receiveDerivationsP2PKH",
-          value: rcv44?.replaceFirst("1RMSPixoLPuaXuhR2v4HsUMcRjLncKDaw",
-              "16FuTPaeRSPVxxCnwQmdyx2PQWxX6HWzhQ"));
-      final rcv49 =
-          await secureStore.read(key: testWalletId + "_receiveDerivationsP2SH");
-      await secureStore.write(
-          key: testWalletId + "_receiveDerivationsP2SH",
-          value: rcv49?.replaceFirst("3AV74rKfibWmvX34F99yEvUcG4LLQ9jZZk",
-              "36NvZTcMsMowbt78wPzJaHHWaNiyR73Y4g"));
-      final rcv84 = await secureStore.read(
-          key: testWalletId + "_receiveDerivationsP2WPKH");
-      await secureStore.write(
-          key: testWalletId + "_receiveDerivationsP2WPKH",
-          value: rcv84?.replaceFirst(
-              "bc1qggtj4ka8jsaj44hhd5mpamx7mp34m2d3w7k0m0",
-              "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc"));
-
-      nmc?.outputsList = utxoList;
-
-      bool didThrow = false;
-      try {
-        await nmc?.prepareSend(
-            address: "nc1q6k4x8ye6865z3rc8zkt8gyu52na7njqt6hsk4v",
-            satoshiAmount: 15000);
-      } catch (_) {
-        didThrow = true;
-      }
-
-      expect(didThrow, true);
-
-      verify(client?.getServerFeatures()).called(1);
-
-      /// verify transaction no matching calls
-
-      // verify(cachedClient?.getTransaction(
-      //         txHash:
-      //             "2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703",
-      //         coin: Coin.namecoin,
-      //         callOutSideMainIsolate: false))
-      //     .called(1);
-      // verify(cachedClient?.getTransaction(
-      //         txHash:
-      //             "ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7",
-      //         coin: Coin.namecoin,
-      //         callOutSideMainIsolate: false))
-      //     .called(1);
-      // verify(cachedClient?.getTransaction(
-      //         txHash:
-      //             "3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4",
-      //         coin: Coin.namecoin,
-      //         callOutSideMainIsolate: false))
-      //     .called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs4)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs5)).called(1);
-
-      for (final arg in dynamicArgValues) {
-        final map = Map<String, List<dynamic>>.from(arg as Map);
-
-        verify(client?.getBatchHistory(args: map)).called(1);
-        expect(activeScriptHashes.contains(map.values.first.first as String),
-            true);
-      }
-
-      expect(secureStore.interactions, 20);
-      expect(secureStore.writes, 10);
-      expect(secureStore.reads, 10);
-      expect(secureStore.deletes, 0);
-
-      verifyNoMoreInteractions(client);
-      verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
-    });
+    // test("recoverFromMnemonic using empty seed on mainnet succeeds", () async {
+    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
+    //         "hosts": <dynamic, dynamic>{},
+    //         "pruning": null,
+    //         "server_version": "Unit tests",
+    //         "protocol_min": "1.4",
+    //         "protocol_max": "1.4.2",
+    //         "genesis_hash": GENESIS_HASH_MAINNET,
+    //         "hash_function": "sha256",
+    //         "services": <dynamic>[]
+    //       });
+    //   when(client?.getBatchHistory(args: historyBatchArgs0))
+    //       .thenAnswer((_) async => emptyHistoryBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs1))
+    //       .thenAnswer((_) async => emptyHistoryBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs2))
+    //       .thenAnswer((_) async => emptyHistoryBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs3))
+    //       .thenAnswer((_) async => emptyHistoryBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs4))
+    //       .thenAnswer((_) async => emptyHistoryBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs5))
+    //       .thenAnswer((_) async => emptyHistoryBatchResponse);
+    //   await DB.instance.init();
+    //   await Hive.openBox<dynamic>(testWalletId);
+    //   bool hasThrown = false;
+    //   try {
+    //     await nmc?.recoverFromMnemonic(
+    //         mnemonic: TEST_MNEMONIC,
+    //         maxUnusedAddressGap: 2,
+    //         maxNumberOfIndexesToCheck: 1000,
+    //         height: 4000);
+    //   } catch (_) {
+    //     hasThrown = true;
+    //   }
+    //   expect(hasThrown, false);
+    //
+    //   verify(client?.getServerFeatures()).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs4)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs5)).called(1);
+    //
+    //   expect(secureStore.interactions, 20);
+    //   expect(secureStore.writes, 7);
+    //   expect(secureStore.reads, 13);
+    //   expect(secureStore.deletes, 0);
+    //
+    //   verifyNoMoreInteractions(client);
+    //   verifyNoMoreInteractions(cachedClient);
+    // });
+    //
+    // test("get mnemonic list", () async {
+    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
+    //         "hosts": <dynamic, dynamic>{},
+    //         "pruning": null,
+    //         "server_version": "Unit tests",
+    //         "protocol_min": "1.4",
+    //         "protocol_max": "1.4.2",
+    //         "genesis_hash": GENESIS_HASH_MAINNET,
+    //         "hash_function": "sha256",
+    //         "services": <dynamic>[]
+    //       });
+    //   when(client?.getBatchHistory(args: historyBatchArgs0))
+    //       .thenAnswer((_) async => emptyHistoryBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs1))
+    //       .thenAnswer((_) async => emptyHistoryBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs2))
+    //       .thenAnswer((_) async => emptyHistoryBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs3))
+    //       .thenAnswer((_) async => emptyHistoryBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs4))
+    //       .thenAnswer((_) async => emptyHistoryBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs5))
+    //       .thenAnswer((_) async => emptyHistoryBatchResponse);
+    //
+    //   await Hive.openBox<dynamic>(testWalletId);
+    //
+    //   await nmc?.recoverFromMnemonic(
+    //       mnemonic: TEST_MNEMONIC,
+    //       maxUnusedAddressGap: 2,
+    //       maxNumberOfIndexesToCheck: 1000,
+    //       height: 4000);
+    //
+    //   expect(await nmc?.mnemonic, TEST_MNEMONIC.split(" "));
+    //
+    //   verify(client?.getServerFeatures()).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs4)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs5)).called(1);
+    //
+    //   verifyNoMoreInteractions(client);
+    //   verifyNoMoreInteractions(cachedClient);
+    // });
+
+    // test("recoverFromMnemonic using non empty seed on mainnet succeeds",
+    //     () async {
+    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
+    //         "hosts": <dynamic, dynamic>{},
+    //         "pruning": null,
+    //         "server_version": "Unit tests",
+    //         "protocol_min": "1.4",
+    //         "protocol_max": "1.4.2",
+    //         "genesis_hash": GENESIS_HASH_MAINNET,
+    //         "hash_function": "sha256",
+    //         "services": <dynamic>[]
+    //       });
+    //   when(client?.getBatchHistory(args: historyBatchArgs0))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs1))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs2))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs3))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs4))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs5))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //
+    //   List<dynamic> dynamicArgValues = [];
+    //
+    //   when(client?.getBatchHistory(args: anyNamed("args")))
+    //       .thenAnswer((realInvocation) async {
+    //     if (realInvocation.namedArguments.values.first.length == 1) {
+    //       dynamicArgValues.add(realInvocation.namedArguments.values.first);
+    //     }
+    //
+    //     return historyBatchResponse;
+    //   });
+    //
+    //   await Hive.openBox<dynamic>(testWalletId);
+    //
+    //   bool hasThrown = false;
+    //   try {
+    //     await nmc?.recoverFromMnemonic(
+    //         mnemonic: TEST_MNEMONIC,
+    //         maxUnusedAddressGap: 2,
+    //         maxNumberOfIndexesToCheck: 1000,
+    //         height: 4000);
+    //   } catch (_) {
+    //     hasThrown = true;
+    //   }
+    //   expect(hasThrown, false);
+    //
+    //   verify(client?.getServerFeatures()).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs4)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs5)).called(1);
+    //
+    //   for (final arg in dynamicArgValues) {
+    //     final map = Map<String, List<dynamic>>.from(arg as Map);
+    //
+    //     verify(client?.getBatchHistory(args: map)).called(1);
+    //     expect(activeScriptHashes.contains(map.values.first.first as String),
+    //         true);
+    //   }
+    //
+    //   expect(secureStore.interactions, 14);
+    //   expect(secureStore.writes, 7);
+    //   expect(secureStore.reads, 7);
+    //   expect(secureStore.deletes, 0);
+    //
+    //   verifyNoMoreInteractions(client);
+    //   verifyNoMoreInteractions(cachedClient);
+    // });
+    //
+    // test("fullRescan succeeds", () async {
+    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
+    //         "hosts": <dynamic, dynamic>{},
+    //         "pruning": null,
+    //         "server_version": "Unit tests",
+    //         "protocol_min": "1.4",
+    //         "protocol_max": "1.4.2",
+    //         "genesis_hash": GENESIS_HASH_MAINNET,
+    //         "hash_function": "sha256",
+    //         "services": <dynamic>[]
+    //       });
+    //   when(client?.getBatchHistory(args: historyBatchArgs0))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs1))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs2))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs3))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs4))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs5))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(cachedClient?.clearSharedTransactionCache(coin: Coin.namecoin))
+    //       .thenAnswer((realInvocation) async {});
+    //
+    //   when(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "dd63fc12f5e6c1ada2cf3c941d1648e6d561ce4024747bb2117d72112d83287c"
+    //     ]
+    //   })).thenAnswer((realInvocation) async => {"0": []});
+    //
+    //   when(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "86906979fc9107d06d560275d7de8305b69d7189c3206ac9070ad76e6abff874"
+    //     ]
+    //   })).thenAnswer((realInvocation) async => {"0": []});
+    //
+    //   when(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "c068e7fa4aa0b8a63114f6d11c047ca4be6a8fa333eb0dac48506e8f150af73b"
+    //     ]
+    //   })).thenAnswer((realInvocation) async => {"0": []});
+    //
+    //   when(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "cd3dd4abe4f9efc7149ba334d2d6790020331805b0bd5c7ed89a3ac6a22f10b9"
+    //     ]
+    //   })).thenAnswer((realInvocation) async => {"0": []});
+    //   when(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "587943864cefed4f1643a5ee2ce2b3c13a0c6ad7c435373f0ac328e144a15c1e"
+    //     ]
+    //   })).thenAnswer((realInvocation) async => {"0": []});
+    //   when(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "42d6e40636f4740f9c7f95ef0bbc2a4c17f54da2bc98a32a622e2bf73eb675c3"
+    //     ]
+    //   })).thenAnswer((realInvocation) async => {"0": []});
+    //
+    //   final wallet = await Hive.openBox<dynamic>(testWalletId);
+    //
+    //   // restore so we have something to rescan
+    //   await nmc?.recoverFromMnemonic(
+    //       mnemonic: TEST_MNEMONIC,
+    //       maxUnusedAddressGap: 2,
+    //       maxNumberOfIndexesToCheck: 1000,
+    //       height: 4000);
+    //
+    //   // fetch valid wallet data
+    //   final preReceivingAddressesP2PKH =
+    //       await wallet.get('receivingAddressesP2PKH');
+    //   final preReceivingAddressesP2SH =
+    //       await wallet.get('receivingAddressesP2SH');
+    //   final preReceivingAddressesP2WPKH =
+    //       await wallet.get('receivingAddressesP2WPKH');
+    //   final preChangeAddressesP2PKH = await wallet.get('changeAddressesP2PKH');
+    //   final preChangeAddressesP2SH = await wallet.get('changeAddressesP2SH');
+    //   final preChangeAddressesP2WPKH =
+    //       await wallet.get('changeAddressesP2WPKH');
+    //   final preReceivingIndexP2PKH = await wallet.get('receivingIndexP2PKH');
+    //   final preReceivingIndexP2SH = await wallet.get('receivingIndexP2SH');
+    //   final preReceivingIndexP2WPKH = await wallet.get('receivingIndexP2WPKH');
+    //   final preChangeIndexP2PKH = await wallet.get('changeIndexP2PKH');
+    //   final preChangeIndexP2SH = await wallet.get('changeIndexP2SH');
+    //   final preChangeIndexP2WPKH = await wallet.get('changeIndexP2WPKH');
+    //   final preUtxoData = await wallet.get('latest_utxo_model');
+    //   final preReceiveDerivationsStringP2PKH = await secureStore.read(
+    //       key: "${testWalletId}_receiveDerivationsP2PKH");
+    //   final preChangeDerivationsStringP2PKH =
+    //       await secureStore.read(key: "${testWalletId}_changeDerivationsP2PKH");
+    //   final preReceiveDerivationsStringP2SH =
+    //       await secureStore.read(key: "${testWalletId}_receiveDerivationsP2SH");
+    //   final preChangeDerivationsStringP2SH =
+    //       await secureStore.read(key: "${testWalletId}_changeDerivationsP2SH");
+    //   final preReceiveDerivationsStringP2WPKH = await secureStore.read(
+    //       key: "${testWalletId}_receiveDerivationsP2WPKH");
+    //   final preChangeDerivationsStringP2WPKH = await secureStore.read(
+    //       key: "${testWalletId}_changeDerivationsP2WPKH");
+    //
+    //   // destroy the data that the rescan will fix
+    //   await wallet.put(
+    //       'receivingAddressesP2PKH', ["some address", "some other address"]);
+    //   await wallet.put(
+    //       'receivingAddressesP2SH', ["some address", "some other address"]);
+    //   await wallet.put(
+    //       'receivingAddressesP2WPKH', ["some address", "some other address"]);
+    //   await wallet
+    //       .put('changeAddressesP2PKH', ["some address", "some other address"]);
+    //   await wallet
+    //       .put('changeAddressesP2SH', ["some address", "some other address"]);
+    //   await wallet
+    //       .put('changeAddressesP2WPKH', ["some address", "some other address"]);
+    //   await wallet.put('receivingIndexP2PKH', 123);
+    //   await wallet.put('receivingIndexP2SH', 123);
+    //   await wallet.put('receivingIndexP2WPKH', 123);
+    //   await wallet.put('changeIndexP2PKH', 123);
+    //   await wallet.put('changeIndexP2SH', 123);
+    //   await wallet.put('changeIndexP2WPKH', 123);
+    //   await secureStore.write(
+    //       key: "${testWalletId}_receiveDerivationsP2PKH", value: "{}");
+    //   await secureStore.write(
+    //       key: "${testWalletId}_changeDerivationsP2PKH", value: "{}");
+    //   await secureStore.write(
+    //       key: "${testWalletId}_receiveDerivationsP2SH", value: "{}");
+    //   await secureStore.write(
+    //       key: "${testWalletId}_changeDerivationsP2SH", value: "{}");
+    //   await secureStore.write(
+    //       key: "${testWalletId}_receiveDerivationsP2WPKH", value: "{}");
+    //   await secureStore.write(
+    //       key: "${testWalletId}_changeDerivationsP2WPKH", value: "{}");
+    //
+    //   bool hasThrown = false;
+    //   try {
+    //     await nmc?.fullRescan(2, 1000);
+    //   } catch (_) {
+    //     hasThrown = true;
+    //   }
+    //   expect(hasThrown, false);
+    //
+    //   // fetch wallet data again
+    //   final receivingAddressesP2PKH =
+    //       await wallet.get('receivingAddressesP2PKH');
+    //   final receivingAddressesP2SH = await wallet.get('receivingAddressesP2SH');
+    //   final receivingAddressesP2WPKH =
+    //       await wallet.get('receivingAddressesP2WPKH');
+    //   final changeAddressesP2PKH = await wallet.get('changeAddressesP2PKH');
+    //   final changeAddressesP2SH = await wallet.get('changeAddressesP2SH');
+    //   final changeAddressesP2WPKH = await wallet.get('changeAddressesP2WPKH');
+    //   final receivingIndexP2PKH = await wallet.get('receivingIndexP2PKH');
+    //   final receivingIndexP2SH = await wallet.get('receivingIndexP2SH');
+    //   final receivingIndexP2WPKH = await wallet.get('receivingIndexP2WPKH');
+    //   final changeIndexP2PKH = await wallet.get('changeIndexP2PKH');
+    //   final changeIndexP2SH = await wallet.get('changeIndexP2SH');
+    //   final changeIndexP2WPKH = await wallet.get('changeIndexP2WPKH');
+    //   final utxoData = await wallet.get('latest_utxo_model');
+    //   final receiveDerivationsStringP2PKH = await secureStore.read(
+    //       key: "${testWalletId}_receiveDerivationsP2PKH");
+    //   final changeDerivationsStringP2PKH =
+    //       await secureStore.read(key: "${testWalletId}_changeDerivationsP2PKH");
+    //   final receiveDerivationsStringP2SH =
+    //       await secureStore.read(key: "${testWalletId}_receiveDerivationsP2SH");
+    //   final changeDerivationsStringP2SH =
+    //       await secureStore.read(key: "${testWalletId}_changeDerivationsP2SH");
+    //   final receiveDerivationsStringP2WPKH = await secureStore.read(
+    //       key: "${testWalletId}_receiveDerivationsP2WPKH");
+    //   final changeDerivationsStringP2WPKH = await secureStore.read(
+    //       key: "${testWalletId}_changeDerivationsP2WPKH");
+    //
+    //   expect(preReceivingAddressesP2PKH, receivingAddressesP2PKH);
+    //   expect(preReceivingAddressesP2SH, receivingAddressesP2SH);
+    //   expect(preReceivingAddressesP2WPKH, receivingAddressesP2WPKH);
+    //   expect(preChangeAddressesP2PKH, changeAddressesP2PKH);
+    //   expect(preChangeAddressesP2SH, changeAddressesP2SH);
+    //   expect(preChangeAddressesP2WPKH, changeAddressesP2WPKH);
+    //   expect(preReceivingIndexP2PKH, receivingIndexP2PKH);
+    //   expect(preReceivingIndexP2SH, receivingIndexP2SH);
+    //   expect(preReceivingIndexP2WPKH, receivingIndexP2WPKH);
+    //   expect(preChangeIndexP2PKH, changeIndexP2PKH);
+    //   expect(preChangeIndexP2SH, changeIndexP2SH);
+    //   expect(preChangeIndexP2WPKH, changeIndexP2WPKH);
+    //   expect(preUtxoData, utxoData);
+    //   expect(preReceiveDerivationsStringP2PKH, receiveDerivationsStringP2PKH);
+    //   expect(preChangeDerivationsStringP2PKH, changeDerivationsStringP2PKH);
+    //   expect(preReceiveDerivationsStringP2SH, receiveDerivationsStringP2SH);
+    //   expect(preChangeDerivationsStringP2SH, changeDerivationsStringP2SH);
+    //   expect(preReceiveDerivationsStringP2WPKH, receiveDerivationsStringP2WPKH);
+    //   expect(preChangeDerivationsStringP2WPKH, changeDerivationsStringP2WPKH);
+    //
+    //   verify(client?.getServerFeatures()).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs0)).called(2);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs1)).called(2);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs2)).called(2);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs3)).called(2);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs4)).called(2);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs5)).called(2);
+    //   verify(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "dd63fc12f5e6c1ada2cf3c941d1648e6d561ce4024747bb2117d72112d83287c"
+    //     ]
+    //   })).called(2);
+    //   verify(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "86906979fc9107d06d560275d7de8305b69d7189c3206ac9070ad76e6abff874"
+    //     ]
+    //   })).called(2);
+    //
+    //   verify(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "c068e7fa4aa0b8a63114f6d11c047ca4be6a8fa333eb0dac48506e8f150af73b"
+    //     ]
+    //   })).called(2);
+    //
+    //   verify(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "cd3dd4abe4f9efc7149ba334d2d6790020331805b0bd5c7ed89a3ac6a22f10b9"
+    //     ]
+    //   })).called(2);
+    //
+    //   verify(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "587943864cefed4f1643a5ee2ce2b3c13a0c6ad7c435373f0ac328e144a15c1e"
+    //     ]
+    //   })).called(2);
+    //
+    //   verify(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "42d6e40636f4740f9c7f95ef0bbc2a4c17f54da2bc98a32a622e2bf73eb675c3"
+    //     ]
+    //   })).called(2);
+    //   verify(cachedClient?.clearSharedTransactionCache(coin: Coin.namecoin))
+    //       .called(1);
+    //
+    //   // for (final arg in dynamicArgValues) {
+    //   //   final map = Map<String, List<dynamic>>.from(arg as Map);
+    //   //   Map<String, int> argCount = {};
+    //   //
+    //   //   // verify(client?.getBatchHistory(args: map)).called(1);
+    //   //   // expect(activeScriptHashes.contains(map.values.first.first as String),
+    //   //   //     true);
+    //   // }
+    //
+    //   // Map<String, int> argCount = {};
+    //   //
+    //   // for (final arg in dynamicArgValues) {
+    //   //   final map = Map<String, List<dynamic>>.from(arg as Map);
+    //   //
+    //   //   final str = jsonEncode(map);
+    //   //
+    //   //   if (argCount[str] == null) {
+    //   //     argCount[str] = 1;
+    //   //   } else {
+    //   //     argCount[str] = argCount[str]! + 1;
+    //   //   }
+    //   // }
+    //   //
+    //   // argCount.forEach((key, value) => print("arg: $key\ncount: $value"));
+    //
+    //   expect(secureStore.writes, 25);
+    //   expect(secureStore.reads, 32);
+    //   expect(secureStore.deletes, 6);
+    //
+    //   verifyNoMoreInteractions(client);
+    //   verifyNoMoreInteractions(cachedClient);
+    // });
+    //
+    // test("fullRescan fails", () async {
+    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
+    //         "hosts": <dynamic, dynamic>{},
+    //         "pruning": null,
+    //         "server_version": "Unit tests",
+    //         "protocol_min": "1.4",
+    //         "protocol_max": "1.4.2",
+    //         "genesis_hash": GENESIS_HASH_MAINNET,
+    //         "hash_function": "sha256",
+    //         "services": <dynamic>[]
+    //       });
+    //
+    //   when(client?.getBatchHistory(args: historyBatchArgs0))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs1))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs2))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs3))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs4))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs5))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //
+    //   when(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "dd63fc12f5e6c1ada2cf3c941d1648e6d561ce4024747bb2117d72112d83287c"
+    //     ]
+    //   })).thenAnswer((realInvocation) async => {"0": []});
+    //
+    //   when(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "cd3dd4abe4f9efc7149ba334d2d6790020331805b0bd5c7ed89a3ac6a22f10b9"
+    //     ]
+    //   })).thenAnswer((realInvocation) async => {"0": []});
+    //
+    //   when(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "42d6e40636f4740f9c7f95ef0bbc2a4c17f54da2bc98a32a622e2bf73eb675c3"
+    //     ]
+    //   })).thenAnswer((realInvocation) async => {"0": []});
+    //
+    //   when(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "587943864cefed4f1643a5ee2ce2b3c13a0c6ad7c435373f0ac328e144a15c1e"
+    //     ]
+    //   })).thenAnswer((realInvocation) async => {"0": []});
+    //
+    //   when(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "86906979fc9107d06d560275d7de8305b69d7189c3206ac9070ad76e6abff874"
+    //     ]
+    //   })).thenAnswer((realInvocation) async => {"0": []});
+    //
+    //   when(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "c068e7fa4aa0b8a63114f6d11c047ca4be6a8fa333eb0dac48506e8f150af73b"
+    //     ]
+    //   })).thenAnswer((realInvocation) async => {"0": []});
+    //
+    //   when(cachedClient?.clearSharedTransactionCache(coin: Coin.namecoin))
+    //       .thenAnswer((realInvocation) async {});
+    //
+    //   final wallet = await Hive.openBox<dynamic>(testWalletId);
+    //
+    //   // restore so we have something to rescan
+    //   await nmc?.recoverFromMnemonic(
+    //       mnemonic: TEST_MNEMONIC,
+    //       maxUnusedAddressGap: 2,
+    //       maxNumberOfIndexesToCheck: 1000,
+    //       height: 4000);
+    //
+    //   // fetch wallet data
+    //   final preReceivingAddressesP2PKH =
+    //       await wallet.get('receivingAddressesP2PKH');
+    //   final preReceivingAddressesP2SH =
+    //       await wallet.get('receivingAddressesP2SH');
+    //   final preReceivingAddressesP2WPKH =
+    //       await wallet.get('receivingAddressesP2WPKH');
+    //   final preChangeAddressesP2PKH = await wallet.get('changeAddressesP2PKH');
+    //   final preChangeAddressesP2SH = await wallet.get('changeAddressesP2SH');
+    //   final preChangeAddressesP2WPKH =
+    //       await wallet.get('changeAddressesP2WPKH');
+    //   final preReceivingIndexP2PKH = await wallet.get('receivingIndexP2PKH');
+    //   final preReceivingIndexP2SH = await wallet.get('receivingIndexP2SH');
+    //   final preReceivingIndexP2WPKH = await wallet.get('receivingIndexP2WPKH');
+    //   final preChangeIndexP2PKH = await wallet.get('changeIndexP2PKH');
+    //   final preChangeIndexP2SH = await wallet.get('changeIndexP2SH');
+    //   final preChangeIndexP2WPKH = await wallet.get('changeIndexP2WPKH');
+    //   final preUtxoData = await wallet.get('latest_utxo_model');
+    //   final preReceiveDerivationsStringP2PKH = await secureStore.read(
+    //       key: "${testWalletId}_receiveDerivationsP2PKH");
+    //   final preChangeDerivationsStringP2PKH =
+    //       await secureStore.read(key: "${testWalletId}_changeDerivationsP2PKH");
+    //   final preReceiveDerivationsStringP2SH =
+    //       await secureStore.read(key: "${testWalletId}_receiveDerivationsP2SH");
+    //   final preChangeDerivationsStringP2SH =
+    //       await secureStore.read(key: "${testWalletId}_changeDerivationsP2SH");
+    //   final preReceiveDerivationsStringP2WPKH = await secureStore.read(
+    //       key: "${testWalletId}_receiveDerivationsP2WPKH");
+    //   final preChangeDerivationsStringP2WPKH = await secureStore.read(
+    //       key: "${testWalletId}_changeDerivationsP2WPKH");
+    //
+    //   when(client?.getBatchHistory(args: historyBatchArgs0))
+    //       .thenThrow(Exception("fake exception"));
+    //
+    //   bool hasThrown = false;
+    //   try {
+    //     await nmc?.fullRescan(2, 1000);
+    //   } catch (_) {
+    //     hasThrown = true;
+    //   }
+    //   expect(hasThrown, true);
+    //
+    //   // fetch wallet data again
+    //   final receivingAddressesP2PKH =
+    //       await wallet.get('receivingAddressesP2PKH');
+    //   final receivingAddressesP2SH = await wallet.get('receivingAddressesP2SH');
+    //   final receivingAddressesP2WPKH =
+    //       await wallet.get('receivingAddressesP2WPKH');
+    //   final changeAddressesP2PKH = await wallet.get('changeAddressesP2PKH');
+    //   final changeAddressesP2SH = await wallet.get('changeAddressesP2SH');
+    //   final changeAddressesP2WPKH = await wallet.get('changeAddressesP2WPKH');
+    //   final receivingIndexP2PKH = await wallet.get('receivingIndexP2PKH');
+    //   final receivingIndexP2SH = await wallet.get('receivingIndexP2SH');
+    //   final receivingIndexP2WPKH = await wallet.get('receivingIndexP2WPKH');
+    //   final changeIndexP2PKH = await wallet.get('changeIndexP2PKH');
+    //   final changeIndexP2SH = await wallet.get('changeIndexP2SH');
+    //   final changeIndexP2WPKH = await wallet.get('changeIndexP2WPKH');
+    //   final utxoData = await wallet.get('latest_utxo_model');
+    //   final receiveDerivationsStringP2PKH = await secureStore.read(
+    //       key: "${testWalletId}_receiveDerivationsP2PKH");
+    //   final changeDerivationsStringP2PKH =
+    //       await secureStore.read(key: "${testWalletId}_changeDerivationsP2PKH");
+    //   final receiveDerivationsStringP2SH =
+    //       await secureStore.read(key: "${testWalletId}_receiveDerivationsP2SH");
+    //   final changeDerivationsStringP2SH =
+    //       await secureStore.read(key: "${testWalletId}_changeDerivationsP2SH");
+    //   final receiveDerivationsStringP2WPKH = await secureStore.read(
+    //       key: "${testWalletId}_receiveDerivationsP2WPKH");
+    //   final changeDerivationsStringP2WPKH = await secureStore.read(
+    //       key: "${testWalletId}_changeDerivationsP2WPKH");
+    //
+    //   expect(preReceivingAddressesP2PKH, receivingAddressesP2PKH);
+    //   expect(preReceivingAddressesP2SH, receivingAddressesP2SH);
+    //   expect(preReceivingAddressesP2WPKH, receivingAddressesP2WPKH);
+    //   expect(preChangeAddressesP2PKH, changeAddressesP2PKH);
+    //   expect(preChangeAddressesP2SH, changeAddressesP2SH);
+    //   expect(preChangeAddressesP2WPKH, changeAddressesP2WPKH);
+    //   expect(preReceivingIndexP2PKH, receivingIndexP2PKH);
+    //   expect(preReceivingIndexP2SH, receivingIndexP2SH);
+    //   expect(preReceivingIndexP2WPKH, receivingIndexP2WPKH);
+    //   expect(preChangeIndexP2PKH, changeIndexP2PKH);
+    //   expect(preChangeIndexP2SH, changeIndexP2SH);
+    //   expect(preChangeIndexP2WPKH, changeIndexP2WPKH);
+    //   expect(preUtxoData, utxoData);
+    //   expect(preReceiveDerivationsStringP2PKH, receiveDerivationsStringP2PKH);
+    //   expect(preChangeDerivationsStringP2PKH, changeDerivationsStringP2PKH);
+    //   expect(preReceiveDerivationsStringP2SH, receiveDerivationsStringP2SH);
+    //   expect(preChangeDerivationsStringP2SH, changeDerivationsStringP2SH);
+    //   expect(preReceiveDerivationsStringP2WPKH, receiveDerivationsStringP2WPKH);
+    //   expect(preChangeDerivationsStringP2WPKH, changeDerivationsStringP2WPKH);
+    //
+    //   verify(client?.getServerFeatures()).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs0)).called(2);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs1)).called(2);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs2)).called(2);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs3)).called(2);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs4)).called(2);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs5)).called(2);
+    //
+    //   verify(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "dd63fc12f5e6c1ada2cf3c941d1648e6d561ce4024747bb2117d72112d83287c"
+    //     ]
+    //   })).called(2);
+    //   verify(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "cd3dd4abe4f9efc7149ba334d2d6790020331805b0bd5c7ed89a3ac6a22f10b9"
+    //     ]
+    //   })).called(1);
+    //   verify(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "42d6e40636f4740f9c7f95ef0bbc2a4c17f54da2bc98a32a622e2bf73eb675c3"
+    //     ]
+    //   })).called(2);
+    //   verify(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "587943864cefed4f1643a5ee2ce2b3c13a0c6ad7c435373f0ac328e144a15c1e"
+    //     ]
+    //   })).called(2);
+    //   verify(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "86906979fc9107d06d560275d7de8305b69d7189c3206ac9070ad76e6abff874"
+    //     ]
+    //   })).called(2);
+    //   verify(client?.getBatchHistory(args: {
+    //     "0": [
+    //       "c068e7fa4aa0b8a63114f6d11c047ca4be6a8fa333eb0dac48506e8f150af73b"
+    //     ]
+    //   })).called(2);
+    //   verify(cachedClient?.clearSharedTransactionCache(coin: Coin.namecoin))
+    //       .called(1);
+    //
+    //   expect(secureStore.writes, 19);
+    //   expect(secureStore.reads, 32);
+    //   expect(secureStore.deletes, 12);
+    //
+    //   verifyNoMoreInteractions(client);
+    //   verifyNoMoreInteractions(cachedClient);
+    // });
+    //
+    // test("prepareSend fails", () async {
+    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
+    //         "hosts": <dynamic, dynamic>{},
+    //         "pruning": null,
+    //         "server_version": "Unit tests",
+    //         "protocol_min": "1.4",
+    //         "protocol_max": "1.4.2",
+    //         "genesis_hash": GENESIS_HASH_MAINNET,
+    //         "hash_function": "sha256",
+    //         "services": <dynamic>[]
+    //       });
+    //   when(client?.getBatchHistory(args: historyBatchArgs0))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs1))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs2))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs3))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs4))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs5))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //
+    //   List<dynamic> dynamicArgValues = [];
+    //
+    //   when(client?.getBatchHistory(args: anyNamed("args")))
+    //       .thenAnswer((realInvocation) async {
+    //     if (realInvocation.namedArguments.values.first.length == 1) {
+    //       dynamicArgValues.add(realInvocation.namedArguments.values.first);
+    //     }
+    //
+    //     return historyBatchResponse;
+    //   });
+    //
+    //   await Hive.openBox<dynamic>(testWalletId);
+    //
+    //   when(cachedClient?.getTransaction(
+    //           txHash:
+    //               "dffa9543852197f9fb90f8adafaab8a0b9b4925e9ada8c6bdcaf00bf2e9f60d7",
+    //           coin: Coin.namecoin))
+    //       .thenAnswer((_) async => tx2Raw);
+    //   when(cachedClient?.getTransaction(
+    //           txHash:
+    //               "71b56532e9e7321bd8c30d0f8b14530743049d2f3edd5623065c46eee1dda04d",
+    //           coin: Coin.namecoin))
+    //       .thenAnswer((_) async => tx3Raw);
+    //   when(cachedClient?.getTransaction(
+    //     txHash:
+    //         "c7e700f7e23a85bbdd9de86d502322a933607ee7ea7e16adaf02e477cdd849b9",
+    //     coin: Coin.namecoin,
+    //   )).thenAnswer((_) async => tx4Raw);
+    //
+    //   // recover to fill data
+    //   await nmc?.recoverFromMnemonic(
+    //       mnemonic: TEST_MNEMONIC,
+    //       maxUnusedAddressGap: 2,
+    //       maxNumberOfIndexesToCheck: 1000,
+    //       height: 4000);
+    //
+    //   // modify addresses to properly mock data to build a tx
+    //   final rcv44 = await secureStore.read(
+    //       key: "${testWalletId}_receiveDerivationsP2PKH");
+    //   await secureStore.write(
+    //       key: "${testWalletId}_receiveDerivationsP2PKH",
+    //       value: rcv44?.replaceFirst("1RMSPixoLPuaXuhR2v4HsUMcRjLncKDaw",
+    //           "16FuTPaeRSPVxxCnwQmdyx2PQWxX6HWzhQ"));
+    //   final rcv49 =
+    //       await secureStore.read(key: "${testWalletId}_receiveDerivationsP2SH");
+    //   await secureStore.write(
+    //       key: "${testWalletId}_receiveDerivationsP2SH",
+    //       value: rcv49?.replaceFirst("3AV74rKfibWmvX34F99yEvUcG4LLQ9jZZk",
+    //           "36NvZTcMsMowbt78wPzJaHHWaNiyR73Y4g"));
+    //   final rcv84 = await secureStore.read(
+    //       key: "${testWalletId}_receiveDerivationsP2WPKH");
+    //   await secureStore.write(
+    //       key: "${testWalletId}_receiveDerivationsP2WPKH",
+    //       value: rcv84?.replaceFirst(
+    //           "bc1qggtj4ka8jsaj44hhd5mpamx7mp34m2d3w7k0m0",
+    //           "bc1q42lja79elem0anu8q8s3h2n687re9jax556pcc"));
+    //
+    //   // nmc?.outputsList = utxoList;
+    //
+    //   bool didThrow = false;
+    //   try {
+    //     await nmc?.prepareSend(
+    //         address: "nc1q6k4x8ye6865z3rc8zkt8gyu52na7njqt6hsk4v",
+    //         satoshiAmount: 15000);
+    //   } catch (_) {
+    //     didThrow = true;
+    //   }
+    //
+    //   expect(didThrow, true);
+    //
+    //   verify(client?.getServerFeatures()).called(1);
+    //
+    //   /// verify transaction no matching calls
+    //
+    //   // verify(cachedClient?.getTransaction(
+    //   //         txHash:
+    //   //             "2087ce09bc316877c9f10971526a2bffa3078d52ea31752639305cdcd8230703",
+    //   //         coin: Coin.namecoin,
+    //   //         callOutSideMainIsolate: false))
+    //   //     .called(1);
+    //   // verify(cachedClient?.getTransaction(
+    //   //         txHash:
+    //   //             "ed32c967a0e86d51669ac21c2bb9bc9c50f0f55fbacdd8db21d0a986fba93bd7",
+    //   //         coin: Coin.namecoin,
+    //   //         callOutSideMainIsolate: false))
+    //   //     .called(1);
+    //   // verify(cachedClient?.getTransaction(
+    //   //         txHash:
+    //   //             "3f0032f89ac44b281b50314cff3874c969c922839dddab77ced54e86a21c3fd4",
+    //   //         coin: Coin.namecoin,
+    //   //         callOutSideMainIsolate: false))
+    //   //     .called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs4)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs5)).called(1);
+    //
+    //   for (final arg in dynamicArgValues) {
+    //     final map = Map<String, List<dynamic>>.from(arg as Map);
+    //
+    //     verify(client?.getBatchHistory(args: map)).called(1);
+    //     expect(activeScriptHashes.contains(map.values.first.first as String),
+    //         true);
+    //   }
+    //
+    //   expect(secureStore.interactions, 20);
+    //   expect(secureStore.writes, 10);
+    //   expect(secureStore.reads, 10);
+    //   expect(secureStore.deletes, 0);
+    //
+    //   verifyNoMoreInteractions(client);
+    //   verifyNoMoreInteractions(cachedClient);
+    // });
 
     test("confirmSend no hex", () async {
       bool didThrow = false;
@@ -1459,7 +1410,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("confirmSend hex is not string", () async {
@@ -1475,7 +1425,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("confirmSend hex is string but missing other data", () async {
@@ -1495,7 +1444,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("confirmSend fails due to vSize being greater than fee", () async {
@@ -1516,7 +1464,6 @@ void main() {
       expect(secureStore.interactions, 0);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
     });
 
     test("confirmSend fails when broadcast transactions throws", () async {
@@ -1542,7 +1489,6 @@ void main() {
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
     });
     //
     // // this test will create a non mocked electrumx client that will try to connect
@@ -1555,12 +1501,13 @@ void main() {
     // //     networkType: BasicNetworkType.test,
     // //     client: client,
     // //     cachedClient: cachedClient,
-    // //     priceAPI: priceAPI,
+    // //
     // //     secureStore: secureStore,
+    //
     // //   );
     // //
     // //   // set node
-    // //   final wallet = await Hive.openBox(testWalletId);
+    // //   final wallet = await Hive.openBox<dynamic>(testWalletId);
     // //   await wallet.put("nodes", {
     // //     "default": {
     // //       "id": "some nodeID",
@@ -1591,150 +1538,144 @@ void main() {
     // //   expect(secureStore.interactions, 0);
     // //   verifyNoMoreInteractions(client);
     // //   verifyNoMoreInteractions(cachedClient);
-    // //   verifyNoMoreInteractions(priceAPI);
+    // //
     // // });
 
-    test("refresh wallet mutex locked", () async {
-      when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
-            "pruning": null,
-            "server_version": "Unit tests",
-            "protocol_min": "1.4",
-            "protocol_max": "1.4.2",
-            "genesis_hash": GENESIS_HASH_MAINNET,
-            "hash_function": "sha256",
-            "services": []
-          });
-      when(client?.getBatchHistory(args: historyBatchArgs0))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs1))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs2))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs3))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs4))
-          .thenAnswer((_) async => historyBatchResponse);
-      when(client?.getBatchHistory(args: historyBatchArgs5))
-          .thenAnswer((_) async => historyBatchResponse);
-
-      List<dynamic> dynamicArgValues = [];
-
-      when(client?.getBatchHistory(args: anyNamed("args")))
-          .thenAnswer((realInvocation) async {
-        if (realInvocation.namedArguments.values.first.length == 1) {
-          dynamicArgValues.add(realInvocation.namedArguments.values.first);
-        }
-
-        return historyBatchResponse;
-      });
-
-      await Hive.openBox<dynamic>(testWalletId);
-
-      // recover to fill data
-      await nmc?.recoverFromMnemonic(
-          mnemonic: TEST_MNEMONIC,
-          maxUnusedAddressGap: 2,
-          maxNumberOfIndexesToCheck: 1000,
-          height: 4000);
-
-      nmc?.refreshMutex = true;
-
-      await nmc?.refresh();
-
-      verify(client?.getServerFeatures()).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs4)).called(1);
-      verify(client?.getBatchHistory(args: historyBatchArgs5)).called(1);
-
-      for (final arg in dynamicArgValues) {
-        final map = Map<String, List<dynamic>>.from(arg as Map);
-
-        verify(client?.getBatchHistory(args: map)).called(1);
-        expect(activeScriptHashes.contains(map.values.first.first as String),
-            true);
-      }
-
-      expect(secureStore.interactions, 14);
-      expect(secureStore.writes, 7);
-      expect(secureStore.reads, 7);
-      expect(secureStore.deletes, 0);
-
-      verifyNoMoreInteractions(client);
-      verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(tracker);
-      verifyNoMoreInteractions(priceAPI);
-    });
-
-    test("refresh wallet normally", () async {
-      when(client?.getBlockHeadTip()).thenAnswer((realInvocation) async =>
-          {"height": 520481, "hex": "some block hex"});
-      when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": {},
-            "pruning": null,
-            "server_version": "Unit tests",
-            "protocol_min": "1.4",
-            "protocol_max": "1.4.2",
-            "genesis_hash": GENESIS_HASH_MAINNET,
-            "hash_function": "sha256",
-            "services": []
-          });
-      when(client?.getHistory(scripthash: anyNamed("scripthash")))
-          .thenAnswer((_) async => []);
-      when(client?.estimateFee(blocks: anyNamed("blocks")))
-          .thenAnswer((_) async => Decimal.one);
-
-      when(priceAPI?.getPricesAnd24hChange(baseCurrency: "USD"))
-          .thenAnswer((_) async => {Coin.namecoin: Tuple2(Decimal.one, 0.3)});
-
-      final List<dynamic> dynamicArgValues = [];
-
-      when(client?.getBatchHistory(args: anyNamed("args")))
-          .thenAnswer((realInvocation) async {
-        dynamicArgValues.add(realInvocation.namedArguments.values.first);
-        return historyBatchResponse;
-      });
-
-      await Hive.openBox<dynamic>(testWalletId);
-
-      // recover to fill data
-      await nmc?.recoverFromMnemonic(
-          mnemonic: TEST_MNEMONIC,
-          maxUnusedAddressGap: 2,
-          maxNumberOfIndexesToCheck: 1000,
-          height: 4000);
-
-      when(client?.getBatchHistory(args: anyNamed("args")))
-          .thenAnswer((_) async => {});
-      when(client?.getBatchUTXOs(args: anyNamed("args")))
-          .thenAnswer((_) async => emptyHistoryBatchResponse);
-
-      await nmc?.refresh();
-
-      verify(client?.getServerFeatures()).called(1);
-      verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(4);
-      verify(client?.estimateFee(blocks: anyNamed("blocks"))).called(3);
-      verify(client?.getBlockHeadTip()).called(1);
-      verify(priceAPI?.getPricesAnd24hChange(baseCurrency: "USD")).called(2);
-
-      for (final arg in dynamicArgValues) {
-        final map = Map<String, List<dynamic>>.from(arg as Map);
-
-        verify(client?.getBatchHistory(args: map)).called(1);
-      }
-
-      expect(secureStore.interactions, 14);
-      expect(secureStore.writes, 7);
-      expect(secureStore.reads, 7);
-      expect(secureStore.deletes, 0);
-
-      // verifyNoMoreInteractions(client);
-      verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(priceAPI);
-    });
+    // test("refresh wallet mutex locked", () async {
+    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
+    //         "hosts": <dynamic, dynamic>{},
+    //         "pruning": null,
+    //         "server_version": "Unit tests",
+    //         "protocol_min": "1.4",
+    //         "protocol_max": "1.4.2",
+    //         "genesis_hash": GENESIS_HASH_MAINNET,
+    //         "hash_function": "sha256",
+    //         "services": <dynamic>[]
+    //       });
+    //   when(client?.getBatchHistory(args: historyBatchArgs0))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs1))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs2))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs3))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs4))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //   when(client?.getBatchHistory(args: historyBatchArgs5))
+    //       .thenAnswer((_) async => historyBatchResponse);
+    //
+    //   List<dynamic> dynamicArgValues = [];
+    //
+    //   when(client?.getBatchHistory(args: anyNamed("args")))
+    //       .thenAnswer((realInvocation) async {
+    //     if (realInvocation.namedArguments.values.first.length == 1) {
+    //       dynamicArgValues.add(realInvocation.namedArguments.values.first);
+    //     }
+    //
+    //     return historyBatchResponse;
+    //   });
+    //
+    //   await Hive.openBox<dynamic>(testWalletId);
+    //
+    //   // recover to fill data
+    //   await nmc?.recoverFromMnemonic(
+    //       mnemonic: TEST_MNEMONIC,
+    //       maxUnusedAddressGap: 2,
+    //       maxNumberOfIndexesToCheck: 1000,
+    //       height: 4000);
+    //
+    //   nmc?.refreshMutex = true;
+    //
+    //   await nmc?.refresh();
+    //
+    //   verify(client?.getServerFeatures()).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs0)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs1)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs2)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs3)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs4)).called(1);
+    //   verify(client?.getBatchHistory(args: historyBatchArgs5)).called(1);
+    //
+    //   for (final arg in dynamicArgValues) {
+    //     final map = Map<String, List<dynamic>>.from(arg as Map);
+    //
+    //     verify(client?.getBatchHistory(args: map)).called(1);
+    //     expect(activeScriptHashes.contains(map.values.first.first as String),
+    //         true);
+    //   }
+    //
+    //   expect(secureStore.interactions, 14);
+    //   expect(secureStore.writes, 7);
+    //   expect(secureStore.reads, 7);
+    //   expect(secureStore.deletes, 0);
+    //
+    //   verifyNoMoreInteractions(client);
+    //   verifyNoMoreInteractions(cachedClient);
+    //   verifyNoMoreInteractions(tracker);
+    // });
+    //
+    // test("refresh wallet normally", () async {
+    //   when(client?.getBlockHeadTip()).thenAnswer((realInvocation) async =>
+    //       {"height": 520481, "hex": "some block hex"});
+    //   when(client?.getServerFeatures()).thenAnswer((_) async => {
+    //         "hosts": <dynamic, dynamic>{},
+    //         "pruning": null,
+    //         "server_version": "Unit tests",
+    //         "protocol_min": "1.4",
+    //         "protocol_max": "1.4.2",
+    //         "genesis_hash": GENESIS_HASH_MAINNET,
+    //         "hash_function": "sha256",
+    //         "services": <dynamic>[]
+    //       });
+    //   when(client?.getHistory(scripthash: anyNamed("scripthash")))
+    //       .thenAnswer((_) async => []);
+    //   when(client?.estimateFee(blocks: anyNamed("blocks")))
+    //       .thenAnswer((_) async => Decimal.one);
+    //
+    //   final List<dynamic> dynamicArgValues = [];
+    //
+    //   when(client?.getBatchHistory(args: anyNamed("args")))
+    //       .thenAnswer((realInvocation) async {
+    //     dynamicArgValues.add(realInvocation.namedArguments.values.first);
+    //     return historyBatchResponse;
+    //   });
+    //
+    //   await Hive.openBox<dynamic>(testWalletId);
+    //
+    //   // recover to fill data
+    //   await nmc?.recoverFromMnemonic(
+    //       mnemonic: TEST_MNEMONIC,
+    //       maxUnusedAddressGap: 2,
+    //       maxNumberOfIndexesToCheck: 1000,
+    //       height: 4000);
+    //
+    //   when(client?.getBatchHistory(args: anyNamed("args")))
+    //       .thenAnswer((_) async => {});
+    //   when(client?.getBatchUTXOs(args: anyNamed("args")))
+    //       .thenAnswer((_) async => emptyHistoryBatchResponse);
+    //
+    //   await nmc?.refresh();
+    //
+    //   verify(client?.getServerFeatures()).called(1);
+    //   verify(client?.getHistory(scripthash: anyNamed("scripthash"))).called(4);
+    //   verify(client?.estimateFee(blocks: anyNamed("blocks"))).called(3);
+    //   verify(client?.getBlockHeadTip()).called(1);
+    //
+    //   for (final arg in dynamicArgValues) {
+    //     final map = Map<String, List<dynamic>>.from(arg as Map);
+    //
+    //     verify(client?.getBatchHistory(args: map)).called(1);
+    //   }
+    //
+    //   expect(secureStore.interactions, 14);
+    //   expect(secureStore.writes, 7);
+    //   expect(secureStore.reads, 7);
+    //   expect(secureStore.deletes, 0);
+    //
+    //   // verifyNoMoreInteractions(client);
+    //   verifyNoMoreInteractions(cachedClient);
+    // });
 
     tearDown(() async {
       await tearDownTestHive();

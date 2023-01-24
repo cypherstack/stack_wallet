@@ -160,7 +160,7 @@ abstract class DefaultNodes {
       isDown: false);
 
   static NodeModel get bitcoinTestnet => NodeModel(
-        host: "bitcoin-testnet.cypherstack.com",
+        host: "bitcoin-testnet.stackwallet.com",
         port: 51002,
         name: defaultName,
         id: _nodeId(Coin.bitcoinTestNet),

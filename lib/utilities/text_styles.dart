@@ -7,6 +7,35 @@ class STextStyles {
   static StackColors _theme(BuildContext context) =>
       Theme.of(context).extension<StackColors>()!;
 
+  static TextStyle sectionLabelMedium12(BuildContext context) {
+    switch (_theme(context).themeType) {
+      case ThemeType.light:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark3,
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        );
+      case ThemeType.oceanBreeze:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark3,
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        );
+      case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark3,
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark3,
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        );
+    }
+  }
+
   static TextStyle pageTitleH1(BuildContext context) {
     switch (_theme(context).themeType) {
       case ThemeType.light:
@@ -862,7 +891,7 @@ class STextStyles {
     }
   }
 
-  static TextStyle w600_10(BuildContext context) {
+  static TextStyle w600_12(BuildContext context) {
     switch (_theme(context).themeType) {
       case ThemeType.light:
         return GoogleFonts.inter(
@@ -892,6 +921,35 @@ class STextStyles {
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
+          fontSize: 12,
+        );
+    }
+  }
+
+  static TextStyle w500_12(BuildContext context) {
+    switch (_theme(context).themeType) {
+      case ThemeType.light:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        );
+      case ThemeType.oceanBreeze:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        );
+      case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
           fontSize: 12,
         );
     }
@@ -1153,6 +1211,39 @@ class STextStyles {
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
+          fontSize: 24,
+          height: 24 / 24,
+        );
+    }
+  }
+
+  static TextStyle w500_24(BuildContext context) {
+    switch (_theme(context).themeType) {
+      case ThemeType.light:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 24,
+          height: 24 / 24,
+        );
+      case ThemeType.oceanBreeze:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 24,
+          height: 24 / 24,
+        );
+      case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 24,
+          height: 24 / 24,
+        );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
           fontSize: 24,
           height: 24 / 24,
         );

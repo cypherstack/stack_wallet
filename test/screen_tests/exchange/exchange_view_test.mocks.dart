@@ -423,6 +423,11 @@ class MockTradesService extends _i1.Mock implements _i9.TradesService {
         returnValue: false,
       ) as bool);
   @override
+  _i10.Trade? get(String? tradeId) => (super.noSuchMethod(Invocation.method(
+        #get,
+        [tradeId],
+      )) as _i10.Trade?);
+  @override
   _i7.Future<void> add({
     required _i10.Trade? trade,
     required bool? shouldNotifyListeners,

@@ -7,9 +7,10 @@ import 'dart:async' as _i8;
 import 'dart:ui' as _i10;
 
 import 'package:barcode_scan2/barcode_scan2.dart' as _i2;
-import 'package:decimal/decimal.dart' as _i6;
 import 'package:mockito/mockito.dart' as _i1;
+import 'package:stackwallet/models/balance.dart' as _i6;
 import 'package:stackwallet/models/contact.dart' as _i3;
+import 'package:stackwallet/models/isar/models/isar_models.dart' as _i13;
 import 'package:stackwallet/models/models.dart' as _i5;
 import 'package:stackwallet/services/address_book_service.dart' as _i9;
 import 'package:stackwallet/services/coins/coin_service.dart' as _i4;
@@ -69,19 +70,8 @@ class _FakeFeeObject_3 extends _i1.SmartFake implements _i5.FeeObject {
         );
 }
 
-class _FakeDecimal_4 extends _i1.SmartFake implements _i6.Decimal {
-  _FakeDecimal_4(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
-class _FakeTransactionData_5 extends _i1.SmartFake
-    implements _i5.TransactionData {
-  _FakeTransactionData_5(
+class _FakeBalance_4 extends _i1.SmartFake implements _i6.Balance {
+  _FakeBalance_4(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -321,72 +311,24 @@ class MockManager extends _i1.Mock implements _i11.Manager {
         returnValue: _i8.Future<String>.value(''),
       ) as _i8.Future<String>);
   @override
-  _i8.Future<_i6.Decimal> get availableBalance => (super.noSuchMethod(
-        Invocation.getter(#availableBalance),
-        returnValue: _i8.Future<_i6.Decimal>.value(_FakeDecimal_4(
+  _i6.Balance get balance => (super.noSuchMethod(
+        Invocation.getter(#balance),
+        returnValue: _FakeBalance_4(
           this,
-          Invocation.getter(#availableBalance),
-        )),
-      ) as _i8.Future<_i6.Decimal>);
-  @override
-  _i6.Decimal get cachedAvailableBalance => (super.noSuchMethod(
-        Invocation.getter(#cachedAvailableBalance),
-        returnValue: _FakeDecimal_4(
-          this,
-          Invocation.getter(#cachedAvailableBalance),
+          Invocation.getter(#balance),
         ),
-      ) as _i6.Decimal);
+      ) as _i6.Balance);
   @override
-  _i8.Future<_i6.Decimal> get pendingBalance => (super.noSuchMethod(
-        Invocation.getter(#pendingBalance),
-        returnValue: _i8.Future<_i6.Decimal>.value(_FakeDecimal_4(
-          this,
-          Invocation.getter(#pendingBalance),
-        )),
-      ) as _i8.Future<_i6.Decimal>);
-  @override
-  _i8.Future<_i6.Decimal> get balanceMinusMaxFee => (super.noSuchMethod(
-        Invocation.getter(#balanceMinusMaxFee),
-        returnValue: _i8.Future<_i6.Decimal>.value(_FakeDecimal_4(
-          this,
-          Invocation.getter(#balanceMinusMaxFee),
-        )),
-      ) as _i8.Future<_i6.Decimal>);
-  @override
-  _i8.Future<_i6.Decimal> get totalBalance => (super.noSuchMethod(
-        Invocation.getter(#totalBalance),
-        returnValue: _i8.Future<_i6.Decimal>.value(_FakeDecimal_4(
-          this,
-          Invocation.getter(#totalBalance),
-        )),
-      ) as _i8.Future<_i6.Decimal>);
-  @override
-  _i6.Decimal get cachedTotalBalance => (super.noSuchMethod(
-        Invocation.getter(#cachedTotalBalance),
-        returnValue: _FakeDecimal_4(
-          this,
-          Invocation.getter(#cachedTotalBalance),
-        ),
-      ) as _i6.Decimal);
-  @override
-  _i8.Future<List<String>> get allOwnAddresses => (super.noSuchMethod(
-        Invocation.getter(#allOwnAddresses),
-        returnValue: _i8.Future<List<String>>.value(<String>[]),
-      ) as _i8.Future<List<String>>);
-  @override
-  _i8.Future<_i5.TransactionData> get transactionData => (super.noSuchMethod(
-        Invocation.getter(#transactionData),
+  _i8.Future<List<_i13.Transaction>> get transactions => (super.noSuchMethod(
+        Invocation.getter(#transactions),
         returnValue:
-            _i8.Future<_i5.TransactionData>.value(_FakeTransactionData_5(
-          this,
-          Invocation.getter(#transactionData),
-        )),
-      ) as _i8.Future<_i5.TransactionData>);
+            _i8.Future<List<_i13.Transaction>>.value(<_i13.Transaction>[]),
+      ) as _i8.Future<List<_i13.Transaction>>);
   @override
-  _i8.Future<List<_i5.UtxoObject>> get unspentOutputs => (super.noSuchMethod(
-        Invocation.getter(#unspentOutputs),
-        returnValue: _i8.Future<List<_i5.UtxoObject>>.value(<_i5.UtxoObject>[]),
-      ) as _i8.Future<List<_i5.UtxoObject>>);
+  _i8.Future<List<_i13.UTXO>> get utxos => (super.noSuchMethod(
+        Invocation.getter(#utxos),
+        returnValue: _i8.Future<List<_i13.UTXO>>.value(<_i13.UTXO>[]),
+      ) as _i8.Future<List<_i13.UTXO>>);
   @override
   set walletName(String? newName) => super.noSuchMethod(
         Invocation.setter(
@@ -415,6 +357,11 @@ class MockManager extends _i1.Mock implements _i11.Manager {
         Invocation.getter(#isConnected),
         returnValue: false,
       ) as bool);
+  @override
+  int get currentHeight => (super.noSuchMethod(
+        Invocation.getter(#currentHeight),
+        returnValue: 0,
+      ) as int);
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
@@ -463,24 +410,6 @@ class MockManager extends _i1.Mock implements _i11.Manager {
           #confirmSend,
           [],
           {#txData: txData},
-        ),
-        returnValue: _i8.Future<String>.value(''),
-      ) as _i8.Future<String>);
-  @override
-  _i8.Future<String> send({
-    required String? toAddress,
-    required int? amount,
-    Map<String, String>? args = const {},
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #send,
-          [],
-          {
-            #toAddress: toAddress,
-            #amount: amount,
-            #args: args,
-          },
         ),
         returnValue: _i8.Future<String>.value(''),
       ) as _i8.Future<String>);
@@ -573,14 +502,6 @@ class MockManager extends _i1.Mock implements _i11.Manager {
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
-  @override
-  _i8.Future<bool> isOwnAddress(String? address) => (super.noSuchMethod(
-        Invocation.method(
-          #isOwnAddress,
-          [address],
-        ),
-        returnValue: _i8.Future<bool>.value(false),
-      ) as _i8.Future<bool>);
   @override
   _i8.Future<int> estimateFeeFor(
     int? satoshiAmount,
