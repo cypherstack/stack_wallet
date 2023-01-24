@@ -450,6 +450,9 @@ class _WalletNavigationBarState extends State<WalletNavigationBar> {
                     ),
                   ),
                 ),
+                const SizedBox(
+                  width: 12,
+                ),
               ],
             ),
           ),
