@@ -585,7 +585,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 },
                 child: RoundedContainer(
                   padding:
-                      const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
+                      const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
                   color: _hovering1
                       ? Theme.of(context)
                           .extension<StackColors>()!
@@ -652,7 +652,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 },
                 child: RoundedContainer(
                   padding:
-                      const EdgeInsets.symmetric(vertical: 3, horizontal: 6),
+                      const EdgeInsets.symmetric(vertical: 3, horizontal: 2),
                   color: _hovering2
                       ? Theme.of(context)
                           .extension<StackColors>()!
@@ -663,23 +663,27 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                           .textFieldDefaultBG,
                   child: Padding(
                     padding: const EdgeInsets.only(
-                        left: 16.0, top: 12.0, right: 12.0, bottom: 12.0),
+                        left: 12.0, top: 12.0, right: 12.0, bottom: 12.0),
                     child: Row(
                       children: <Widget>[
-                        Text(
-                          format.simpleCurrencySymbol(
-                              selectedFiat?.ticker ?? "ERR".toUpperCase()),
-                          style: STextStyles.currencyTicker(context).apply(
-                              fontSizeFactor: (1 /
-                                  format
-                                      .simpleCurrencySymbol(
-                                          selectedFiat?.ticker ?? "ERR")
-                                      .length * // Couldn't get pow() working here
-                                  format
-                                      .simpleCurrencySymbol(
-                                          selectedFiat?.ticker ?? "ERR")
-                                      .length)),
-                          textAlign: TextAlign.center,
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 3, horizontal: 6),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .highlight,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            format.simpleCurrencySymbol(
+                                selectedFiat?.ticker ?? "ERR".toUpperCase()),
+                            textAlign: TextAlign.center,
+                            style: STextStyles.smallMed12(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorDark),
+                          ),
                         ),
                         // SvgPicture.asset(
                         //   Assets.svg.iconFor(
@@ -689,7 +693,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                         //   width: 18,
                         // ),
                         const SizedBox(
-                          width: 15,
+                          width: 9,
                         ),
                         Text(
                           "${selectedFiat?.ticker ?? 'ERR'}",
@@ -798,28 +802,33 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Row(children: [
-                      SizedBox(width: buyWithFiat ? 10 : 6),
+                      const SizedBox(width: 2),
                       buyWithFiat
-                          ? Text(
-                              format.simpleCurrencySymbol(
-                                  selectedFiat?.ticker ?? "ERR".toUpperCase()),
-                              style: STextStyles.currencyTicker(context).apply(
-                                  fontSizeFactor: (1 /
-                                      format
-                                          .simpleCurrencySymbol(
-                                              selectedFiat?.ticker ?? "ERR")
-                                          .length * // Couldn't get pow() working here
-                                      format
-                                          .simpleCurrencySymbol(
-                                              selectedFiat?.ticker ?? "ERR")
-                                          .length)),
-                              textAlign: TextAlign.center,
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 3, horizontal: 6),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .highlight,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                format.simpleCurrencySymbol(
+                                    selectedFiat?.ticker ??
+                                        "ERR".toUpperCase()),
+                                textAlign: TextAlign.center,
+                                style: STextStyles.smallMed12(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark),
+                              ),
                             )
                           : getIconForTicker(selectedCrypto?.ticker ?? "BTC")
                               as Widget,
                       SizedBox(
                           width: buyWithFiat
-                              ? 15
+                              ? 9
                               : 10), // maybe make isDesktop-aware?
                       Text(
                         buyWithFiat
@@ -962,7 +971,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                   context,
                 ).copyWith(
                   contentPadding: const EdgeInsets.only(
-                    left: 16,
+                    left: 13,
                     top: 6,
                     bottom: 8,
                     right: 5,
