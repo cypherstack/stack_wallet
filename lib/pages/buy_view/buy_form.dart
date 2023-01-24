@@ -661,7 +661,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                           .extension<StackColors>()!
                           .textFieldDefaultBG,
                   child: Padding(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.only(
+                        left: 16.0, top: 12.0, right: 12.0, bottom: 12.0),
                     child: Row(
                       children: <Widget>[
                         Text(
@@ -687,7 +688,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                         //   width: 18,
                         // ),
                         const SizedBox(
-                          width: 10,
+                          width: 15,
                         ),
                         Expanded(
                           child: Text(
@@ -789,6 +790,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Row(children: [
+                      const SizedBox(width: 10), // maybe make isDesktop-aware?
                       buyWithFiat
                           ? Text(
                               format.simpleCurrencySymbol(
@@ -807,7 +809,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             )
                           : getIconForTicker(selectedCrypto?.ticker ?? "BTC")
                               as Widget,
-                      const SizedBox(width: 10), // maybe make isDesktop-aware?
+                      const SizedBox(width: 15), // maybe make isDesktop-aware?
                       Text(
                         buyWithFiat
                             ? selectedFiat?.ticker ?? "ERR"
