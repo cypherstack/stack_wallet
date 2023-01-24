@@ -202,27 +202,29 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
                       child: RoundedWhiteContainer(
                         child: Row(
                           children: [
-                            SizedBox(
-                              width: 48,
-                              height: 24,
+                            Container(
+                              padding: const EdgeInsets.all(7.5),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .highlight,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
                               child: Text(
                                 format.simpleCurrencySymbol(
                                     _fiats[index].ticker.toUpperCase()),
-                                style: STextStyles.currencyTicker(context)
-                                    .apply(
-                                        fontSizeFactor: (1 /
-                                            format
-                                                .simpleCurrencySymbol(
-                                                    _fiats[index]
-                                                        .ticker
-                                                        .toUpperCase())
-                                                .length * // Couldn't get pow() working here
-                                            format
-                                                .simpleCurrencySymbol(
-                                                    _fiats[index]
-                                                        .ticker
-                                                        .toUpperCase())
-                                                .length)),
+                                style: STextStyles.subtitle(context).apply(
+                                    fontSizeFactor: (1 /
+                                        format
+                                            .simpleCurrencySymbol(_fiats[index]
+                                                .ticker
+                                                .toUpperCase())
+                                            .length * // Couldn't get pow() working here
+                                        format
+                                            .simpleCurrencySymbol(_fiats[index]
+                                                .ticker
+                                                .toUpperCase())
+                                            .length)),
                                 textAlign: TextAlign.center,
                               ),
                             ),

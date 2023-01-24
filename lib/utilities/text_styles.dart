@@ -2178,18 +2178,4 @@ class STextStyles {
         );
     }
   }
-
-  static TextStyle currencyTicker(BuildContext context) {
-    return GoogleFonts.inter(
-      color: _theme(context).textDark,
-      fontWeight: FontWeight.w500,
-      fontSize: 16,
-      background: Paint()
-        ..color = Theme.of(context).extension<StackColors>()!.highlight
-        ..strokeWidth = 8
-        ..strokeJoin = StrokeJoin.round
-        ..strokeCap = StrokeCap.round
-        ..style = PaintingStyle.stroke,
-    );
-  }
 }
