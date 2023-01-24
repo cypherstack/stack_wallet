@@ -5,6 +5,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/languages_enum.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
+import 'package:uuid/uuid.dart';
 
 class Prefs extends ChangeNotifier {
   Prefs._();
@@ -38,6 +39,7 @@ class Prefs extends ChangeNotifier {
       _startupWalletId = await _getStartupWalletId();
       _externalCalls = await _getHasExternalCalls();
       _familiarity = await _getHasFamiliarity();
+      _userID = await _getUserID();
 
       _initialized = true;
     }
@@ -601,5 +603,25 @@ class Prefs extends ChangeNotifier {
       return false;
     }
     return true;
+  }
+
+  String? _userID;
+  String? get userID => _userID;
+
+  Future<String?> _getUserID() async {
+    String? userID = await DB.instance
+        .get<dynamic>(boxName: DB.boxNamePrefs, key: "userID") as String?;
+    if (userID == null) {
+      userID = const Uuid().v4();
+      await saveUserID(userID);
+    }
+    return userID;
+  }
+
+  Future<void> saveUserID(String userID) async {
+    _userID = userID;
+    await DB.instance
+        .put<dynamic>(boxName: DB.boxNamePrefs, key: "userID", value: _userID);
+    // notifyListeners();
   }
 }

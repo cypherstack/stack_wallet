@@ -317,6 +317,10 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
             break;
         }
       }
+
+      ref
+          .read(prefsChangeNotifierProvider)
+          .userID; // Just reading the ref should set it if it's not already set
     } catch (e, s) {
       Logger.print("$e $s", normalLength: false);
     }
