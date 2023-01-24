@@ -1156,8 +1156,6 @@ class _BuyFormState extends ConsumerState<BuyForm> {
             ),
             MouseRegion(
               cursor: SystemMouseCursors.click,
-              onEnter: (_) => setState(() => _hovering1 = true),
-              onExit: (_) => setState(() => _hovering1 = false),
               child: GestureDetector(
                   onTap: () {
                     if (_receiveAddressController.text.isNotEmpty &&
