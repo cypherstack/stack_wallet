@@ -7,8 +7,10 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/dark_colors.dart';
+import 'package:stackwallet/utilities/theme/fruit_sorbet_colors.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
+import 'package:stackwallet/utilities/theme/oled_black_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -28,6 +30,10 @@ class AppearanceSettingsView extends ConsumerWidget {
         return "Ocean theme";
       case ThemeType.dark:
         return "Dark theme";
+      case ThemeType.oledBlack:
+        return "Oled Black theme";
+      case ThemeType.fruitSorbet:
+        return "Fruit Sorbet theme";
     }
   }
 
@@ -417,6 +423,168 @@ class _ThemeOptionsView extends ConsumerState<ThemeOptionsView> {
                     ),
                     Text(
                       "Dark",
+                      style:
+                          STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark2,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(
+          height: 10,
+        ),
+        MaterialButton(
+          splashColor: Colors.transparent,
+          hoverColor: Colors.transparent,
+          padding: const EdgeInsets.all(0),
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+          ),
+          onPressed: () {
+            DB.instance.put<dynamic>(
+              boxName: DB.boxNameTheme,
+              key: "colorScheme",
+              value: ThemeType.oledBlack.name,
+            );
+            ref.read(colorThemeProvider.state).state =
+                StackColors.fromStackColorTheme(
+              OledBlackColors(),
+            );
+
+            setState(() {
+              _selectedTheme = "oledBlack";
+            });
+          },
+          child: SizedBox(
+            width: 200,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 10,
+                      height: 10,
+                      child: Radio(
+                        activeColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .radioButtonIconEnabled,
+                        value: "oledBlack",
+                        groupValue: _selectedTheme,
+                        onChanged: (newValue) {
+                          if (newValue is String && newValue == "oledBlack") {
+                            DB.instance.put<dynamic>(
+                              boxName: DB.boxNameTheme,
+                              key: "colorScheme",
+                              value: ThemeType.oledBlack.name,
+                            );
+                            ref.read(colorThemeProvider.state).state =
+                                StackColors.fromStackColorTheme(
+                              OledBlackColors(),
+                            );
+
+                            setState(() {
+                              _selectedTheme = "oledBlack";
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 14,
+                    ),
+                    Text(
+                      "OLED Black",
+                      style:
+                          STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark2,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(
+          height: 10,
+        ),
+        MaterialButton(
+          splashColor: Colors.transparent,
+          hoverColor: Colors.transparent,
+          padding: const EdgeInsets.all(0),
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+          ),
+          onPressed: () {
+            DB.instance.put<dynamic>(
+              boxName: DB.boxNameTheme,
+              key: "colorScheme",
+              value: ThemeType.fruitSorbet.name,
+            );
+            ref.read(colorThemeProvider.state).state =
+                StackColors.fromStackColorTheme(
+              FruitSorbetColors(),
+            );
+
+            setState(() {
+              _selectedTheme = "fruitSorbet";
+            });
+          },
+          child: SizedBox(
+            width: 200,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 10,
+                      height: 10,
+                      child: Radio(
+                        activeColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .radioButtonIconEnabled,
+                        value: "fruitSorbet",
+                        groupValue: _selectedTheme,
+                        onChanged: (newValue) {
+                          if (newValue is String && newValue == "fruitSorbet") {
+                            DB.instance.put<dynamic>(
+                              boxName: DB.boxNameTheme,
+                              key: "colorScheme",
+                              value: ThemeType.fruitSorbet.name,
+                            );
+                            ref.read(colorThemeProvider.state).state =
+                                StackColors.fromStackColorTheme(
+                              FruitSorbetColors(),
+                            );
+
+                            setState(() {
+                              _selectedTheme = "fruitSorbet";
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 14,
+                    ),
+                    Text(
+                      "Fruit Sorbet",
                       style:
                           STextStyles.desktopTextExtraSmall(context).copyWith(
                         color: Theme.of(context)

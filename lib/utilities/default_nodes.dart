@@ -108,6 +108,7 @@ abstract class DefaultNodes {
         coinName: Coin.monero.name,
         isFailover: true,
         isDown: false,
+        trusted: true,
       );
 
   static NodeModel get wownero => NodeModel(
@@ -120,6 +121,7 @@ abstract class DefaultNodes {
         coinName: Coin.wownero.name,
         isFailover: true,
         isDown: false,
+        trusted: true,
       );
 
   static NodeModel get epicCash => NodeModel(
@@ -158,7 +160,7 @@ abstract class DefaultNodes {
       isDown: false);
 
   static NodeModel get bitcoinTestnet => NodeModel(
-        host: "bitcoin-testnet.cypherstack.com",
+        host: "bitcoin-testnet.stackwallet.com",
         port: 51002,
         name: defaultName,
         id: _nodeId(Coin.bitcoinTestNet),

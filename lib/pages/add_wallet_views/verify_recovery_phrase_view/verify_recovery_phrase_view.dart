@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
@@ -160,8 +161,9 @@ class _VerifyRecoveryPhraseViewState
 
     result.insert(random.nextInt(wordsToShow), chosenWord);
 
-    //todo: this prints sensitive info
-    debugPrint("Mnemonic game correct word: $chosenWord");
+    if (kDebugMode) {
+      print("Mnemonic game correct word: $chosenWord");
+    }
 
     return Tuple2(result, chosenWord);
   }

@@ -596,7 +596,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                                   fileToSave,
                                   adkString,
                                   jsonEncode(backup),
-                                  adkVersion: adkVersion,
+                                  adkVersion,
                                 );
 
                                 // this future should already be complete unless there was an error encrypting

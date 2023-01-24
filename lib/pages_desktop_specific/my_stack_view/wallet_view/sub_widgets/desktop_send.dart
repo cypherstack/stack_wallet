@@ -97,73 +97,73 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final manager =
         ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
-    // TODO: remove the need for this!!
-    final bool isOwnAddress = await manager.isOwnAddress(_address!);
-    if (isOwnAddress) {
-      await showDialog<dynamic>(
-        context: context,
-        useSafeArea: false,
-        barrierDismissible: true,
-        builder: (context) {
-          return DesktopDialog(
-            maxWidth: 400,
-            maxHeight: double.infinity,
-            child: Padding(
-              padding: const EdgeInsets.only(
-                left: 32,
-                bottom: 32,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Transaction failed",
-                        style: STextStyles.desktopH3(context),
-                      ),
-                      const DesktopDialogCloseButton(),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 12,
-                  ),
-                  Text(
-                    "Sending to self is currently disabled",
-                    textAlign: TextAlign.left,
-                    style: STextStyles.desktopTextExtraExtraSmall(context)
-                        .copyWith(
-                      fontSize: 18,
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 40,
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SecondaryButton(
-                          buttonHeight: ButtonHeight.l,
-                          label: "Ok",
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 32,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-      return;
-    }
+    // // TODO: remove the need for this!!
+    // final bool isOwnAddress = await manager.isOwnAddress(_address!);
+    // if (isOwnAddress) {
+    //   await showDialog<dynamic>(
+    //     context: context,
+    //     useSafeArea: false,
+    //     barrierDismissible: true,
+    //     builder: (context) {
+    //       return DesktopDialog(
+    //         maxWidth: 400,
+    //         maxHeight: double.infinity,
+    //         child: Padding(
+    //           padding: const EdgeInsets.only(
+    //             left: 32,
+    //             bottom: 32,
+    //           ),
+    //           child: Column(
+    //             crossAxisAlignment: CrossAxisAlignment.start,
+    //             children: [
+    //               Row(
+    //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //                 children: [
+    //                   Text(
+    //                     "Transaction failed",
+    //                     style: STextStyles.desktopH3(context),
+    //                   ),
+    //                   const DesktopDialogCloseButton(),
+    //                 ],
+    //               ),
+    //               const SizedBox(
+    //                 height: 12,
+    //               ),
+    //               Text(
+    //                 "Sending to self is currently disabled",
+    //                 textAlign: TextAlign.left,
+    //                 style: STextStyles.desktopTextExtraExtraSmall(context)
+    //                     .copyWith(
+    //                   fontSize: 18,
+    //                 ),
+    //               ),
+    //               const SizedBox(
+    //                 height: 40,
+    //               ),
+    //               Row(
+    //                 children: [
+    //                   Expanded(
+    //                     child: SecondaryButton(
+    //                       buttonHeight: ButtonHeight.l,
+    //                       label: "Ok",
+    //                       onPressed: () {
+    //                         Navigator.of(context).pop();
+    //                       },
+    //                     ),
+    //                   ),
+    //                   const SizedBox(
+    //                     width: 32,
+    //                   ),
+    //                 ],
+    //               ),
+    //             ],
+    //           ),
+    //         ),
+    //       );
+    //     },
+    //   );
+    //   return;
+    // }
 
     final amount = Format.decimalAmountToSatoshis(_amountToSend!, coin);
     int availableBalance;
@@ -171,16 +171,14 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       if (ref.read(publicPrivateBalanceStateProvider.state).state ==
           "Private") {
         availableBalance = Format.decimalAmountToSatoshis(
-            await (manager.wallet as FiroWallet).availablePrivateBalance(),
-            coin);
+            (manager.wallet as FiroWallet).availablePrivateBalance(), coin);
       } else {
         availableBalance = Format.decimalAmountToSatoshis(
-            await (manager.wallet as FiroWallet).availablePublicBalance(),
-            coin);
+            (manager.wallet as FiroWallet).availablePublicBalance(), coin);
       }
     } else {
       availableBalance =
-          Format.decimalAmountToSatoshis(await manager.availableBalance, coin);
+          Format.decimalAmountToSatoshis(manager.balance.getSpendable(), coin);
     }
 
     // confirm send all
@@ -568,9 +566,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     if (wallet != null) {
       Decimal? balance;
       if (private) {
-        balance = await wallet.availablePrivateBalance();
+        balance = wallet.availablePrivateBalance();
       } else {
-        balance = await wallet.availablePublicBalance();
+        balance = wallet.availablePublicBalance();
       }
 
       return Format.localizedStringAsFixed(
@@ -757,19 +755,18 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           .wallet as FiroWallet;
       if (ref.read(publicPrivateBalanceStateProvider.state).state ==
           "Private") {
-        cryptoAmountController.text =
-            (await firoWallet.availablePrivateBalance())
-                .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
+        cryptoAmountController.text = (firoWallet.availablePrivateBalance())
+            .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
       } else {
-        cryptoAmountController.text =
-            (await firoWallet.availablePublicBalance())
-                .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
+        cryptoAmountController.text = (firoWallet.availablePublicBalance())
+            .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
       }
     } else {
-      cryptoAmountController.text = (await ref
+      cryptoAmountController.text = (ref
               .read(walletsChangeNotifierProvider)
               .getManager(walletId)
-              .availableBalance)
+              .balance
+              .getSpendable())
           .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
     }
   }

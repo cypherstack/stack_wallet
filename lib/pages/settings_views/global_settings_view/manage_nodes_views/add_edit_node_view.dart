@@ -328,6 +328,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           enabled: true,
           coinName: coin.name,
           isFailover: formData.isFailover!,
+          trusted: formData.trusted!,
           isDown: false,
         );
 
@@ -352,6 +353,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           enabled: true,
           coinName: coin.name,
           isFailover: formData.isFailover!,
+          trusted: formData.trusted!,
           isDown: false,
         );
 
@@ -621,11 +623,11 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 class NodeFormData {
   String? name, host, login, password;
   int? port;
-  bool? useSSL, isFailover;
+  bool? useSSL, isFailover, trusted;
 
   @override
   String toString() {
-    return "{ name: $name, host: $host, port: $port, useSSL: $useSSL }";
+    return "{ name: $name, host: $host, port: $port, useSSL: $useSSL, trusted: $trusted }";
   }
 }
 
@@ -666,6 +668,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
 
   bool _useSSL = false;
   bool _isFailover = false;
+  bool _trusted = false;
   int? port;
   late bool enableSSLCheckbox;
 
@@ -718,6 +721,9 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     return enable;
   }
 
+  bool get shouldBeReadOnly =>
+      widget.readOnly || widget.node?.isDefault == true;
+
   void _updateState() {
     port = int.tryParse(_portController.text);
     onChanged?.call(canSave, canTestConnection);
@@ -733,6 +739,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     ref.read(nodeFormDataProvider).port = port;
     ref.read(nodeFormDataProvider).useSSL = _useSSL;
     ref.read(nodeFormDataProvider).isFailover = _isFailover;
+    ref.read(nodeFormDataProvider).trusted = _trusted;
   }
 
   @override
@@ -764,12 +771,12 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       _usernameController.text = node.loginName ?? "";
       _useSSL = node.useSSL;
       _isFailover = node.isFailover;
+      _trusted = node.trusted ?? false;
       if (widget.coin == Coin.epicCash) {
         enableSSLCheckbox = !node.host.startsWith("http");
       } else {
         enableSSLCheckbox = true;
       }
-      print("enableSSLCheckbox: $enableSSLCheckbox");
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         // update provider state object so test connection works without having to modify a field in the ui first
@@ -812,7 +819,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             autocorrect: Util.isDesktop ? false : true,
             enableSuggestions: Util.isDesktop ? false : true,
             key: const Key("addCustomNodeNodeNameFieldKey"),
-            readOnly: widget.readOnly,
+            readOnly: shouldBeReadOnly,
             enabled: enableField(_nameController),
             controller: _nameController,
             focusNode: _nameFocusNode,
@@ -822,7 +829,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               _nameFocusNode,
               context,
             ).copyWith(
-              suffixIcon: !widget.readOnly && _nameController.text.isNotEmpty
+              suffixIcon: !shouldBeReadOnly && _nameController.text.isNotEmpty
                   ? Padding(
                       padding: const EdgeInsets.only(right: 0),
                       child: UnconstrainedBox(
@@ -858,7 +865,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             autocorrect: Util.isDesktop ? false : true,
             enableSuggestions: Util.isDesktop ? false : true,
             key: const Key("addCustomNodeNodeAddressFieldKey"),
-            readOnly: widget.readOnly,
+            readOnly: shouldBeReadOnly,
             enabled: enableField(_hostController),
             controller: _hostController,
             focusNode: _hostFocusNode,
@@ -870,7 +877,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               _hostFocusNode,
               context,
             ).copyWith(
-              suffixIcon: !widget.readOnly && _hostController.text.isNotEmpty
+              suffixIcon: !shouldBeReadOnly && _hostController.text.isNotEmpty
                   ? Padding(
                       padding: const EdgeInsets.only(right: 0),
                       child: UnconstrainedBox(
@@ -917,7 +924,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             autocorrect: Util.isDesktop ? false : true,
             enableSuggestions: Util.isDesktop ? false : true,
             key: const Key("addCustomNodeNodePortFieldKey"),
-            readOnly: widget.readOnly,
+            readOnly: shouldBeReadOnly,
             enabled: enableField(_portController),
             controller: _portController,
             focusNode: _portFocusNode,
@@ -929,7 +936,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               _portFocusNode,
               context,
             ).copyWith(
-              suffixIcon: !widget.readOnly && _portController.text.isNotEmpty
+              suffixIcon: !shouldBeReadOnly && _portController.text.isNotEmpty
                   ? Padding(
                       padding: const EdgeInsets.only(right: 0),
                       child: UnconstrainedBox(
@@ -966,7 +973,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               autocorrect: Util.isDesktop ? false : true,
               enableSuggestions: Util.isDesktop ? false : true,
               controller: _usernameController,
-              readOnly: widget.readOnly,
+              readOnly: shouldBeReadOnly,
               enabled: enableField(_usernameController),
               keyboardType: TextInputType.number,
               focusNode: _usernameFocusNode,
@@ -977,7 +984,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                 context,
               ).copyWith(
                 suffixIcon:
-                    !widget.readOnly && _usernameController.text.isNotEmpty
+                    !shouldBeReadOnly && _usernameController.text.isNotEmpty
                         ? Padding(
                             padding: const EdgeInsets.only(right: 0),
                             child: UnconstrainedBox(
@@ -1015,7 +1022,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               autocorrect: Util.isDesktop ? false : true,
               enableSuggestions: Util.isDesktop ? false : true,
               controller: _passwordController,
-              readOnly: widget.readOnly,
+              readOnly: shouldBeReadOnly,
               enabled: enableField(_passwordController),
               keyboardType: TextInputType.number,
               focusNode: _passwordFocusNode,
@@ -1026,7 +1033,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                 context,
               ).copyWith(
                 suffixIcon:
-                    !widget.readOnly && _passwordController.text.isNotEmpty
+                    !shouldBeReadOnly && _passwordController.text.isNotEmpty
                         ? Padding(
                             padding: const EdgeInsets.only(right: 0),
                             child: UnconstrainedBox(
@@ -1059,7 +1066,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
           Row(
             children: [
               GestureDetector(
-                onTap: !widget.readOnly && enableSSLCheckbox
+                onTap: !shouldBeReadOnly && enableSSLCheckbox
                     ? () {
                         setState(() {
                           _useSSL = !_useSSL;
@@ -1075,7 +1082,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                         width: 20,
                         height: 20,
                         child: Checkbox(
-                          fillColor: !widget.readOnly && enableSSLCheckbox
+                          fillColor: !shouldBeReadOnly && enableSSLCheckbox
                               ? null
                               : MaterialStateProperty.all(Theme.of(context)
                                   .extension<StackColors>()!
@@ -1083,7 +1090,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,
                           value: _useSSL,
-                          onChanged: !widget.readOnly && enableSSLCheckbox
+                          onChanged: !shouldBeReadOnly && enableSSLCheckbox
                               ? (newValue) {
                                   setState(() {
                                     _useSSL = newValue!;
@@ -1098,6 +1105,57 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                       ),
                       Text(
                         "Use SSL",
+                        style: STextStyles.itemSubtitle12(context),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        if (widget.coin == Coin.monero || widget.coin == Coin.wownero)
+          Row(
+            children: [
+              GestureDetector(
+                onTap: !widget.readOnly /*&& trustedCheckbox*/
+                    ? () {
+                        setState(() {
+                          _trusted = !_trusted;
+                        });
+                        _updateState();
+                      }
+                    : null,
+                child: Container(
+                  color: Colors.transparent,
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: Checkbox(
+                          fillColor: !widget.readOnly
+                              ? null
+                              : MaterialStateProperty.all(Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .checkboxBGDisabled),
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          value: _trusted,
+                          onChanged: !widget.readOnly
+                              ? (newValue) {
+                                  setState(() {
+                                    _trusted = newValue!;
+                                  });
+                                  _updateState();
+                                }
+                              : null,
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 12,
+                      ),
+                      Text(
+                        "Trusted",
                         style: STextStyles.itemSubtitle12(context),
                       )
                     ],

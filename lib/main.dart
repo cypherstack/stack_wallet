@@ -60,9 +60,12 @@ import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/dark_colors.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
+import 'package:stackwallet/utilities/theme/oled_black_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:window_size/window_size.dart';
+
+import 'db/main_db.dart';
 
 final openedFromSWBFileStringStateProvider =
     StateProvider<String?>((ref) => null);
@@ -76,7 +79,6 @@ void main() async {
   if (Platform.isIOS) {
     Util.libraryPath = await getLibraryDirectory();
   }
-
   Screen? screen;
   if (Platform.isLinux || (Util.isDesktop && !Platform.isIOS)) {
     screen = await getCurrentScreen();
@@ -156,7 +158,7 @@ void main() async {
 
   await Hive.openBox<dynamic>(DB.boxNameDBInfo);
 
-  // todo: db migrate stuff for desktop needs to be handled eventually
+  // Desktop migrate handled elsewhere (currently desktop_login_view.dart)
   if (!Util.isDesktop) {
     int dbVersion = DB.instance.get<dynamic>(
             boxName: DB.boxNameDBInfo, key: "hive_data_version") as int? ??
@@ -171,7 +173,7 @@ void main() async {
           ),
         );
       } catch (e, s) {
-        Logging.instance.log("Cannot migrate database\n$e $s",
+        Logging.instance.log("Cannot migrate mobile database\n$e $s",
             level: LogLevel.Error, printFullLength: true);
       }
     }
@@ -264,6 +266,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         await loadShared();
       }
 
+      await MainDB.instance.initMainDB();
+
       _notificationsService = ref.read(notificationsProvider);
       _nodeService = ref.read(nodeServiceChangeNotifierProvider);
       _tradesService = ref.read(tradesServiceProvider);
@@ -327,6 +331,9 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     switch (colorScheme) {
       case "dark":
         colorTheme = DarkColors();
+        break;
+      case "oledBlack":
+        colorTheme = OledBlackColors();
         break;
       case "oceanBreeze":
         colorTheme = OceanBreezeColors();
