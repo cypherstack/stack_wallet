@@ -71,7 +71,9 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
                     ? Theme.of(context)
                         .extension<StackColors>()!
                         .buttonTextPrimary
-                    : Theme.of(context).extension<StackColors>()!.textDark,
+                    : Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonTextSecondary,
               ),
             ),
           ),
@@ -118,7 +120,9 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
                     ? Theme.of(context)
                         .extension<StackColors>()!
                         .buttonTextPrimary
-                    : Theme.of(context).extension<StackColors>()!.textDark,
+                    : Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonTextSecondary,
               ),
             ),
           ),
