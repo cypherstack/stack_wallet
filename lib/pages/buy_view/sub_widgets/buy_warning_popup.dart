@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/buy/response_objects/order.dart';
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
-import 'package:stackwallet/pages/buy_view/buy_order_invoice.dart';
+import 'package:stackwallet/pages/buy_view/buy_order_details.dart';
 import 'package:stackwallet/services/buy/buy_response.dart';
 import 'package:stackwallet/services/buy/simplex/simplex_api.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -38,7 +38,7 @@ class BuyWarningPopup extends StatelessWidget {
     Future<void> _buyInvoice() async {
       await showDialog<void>(
         context: context,
-        builder: (context) => BuyOrderInvoiceView(
+        builder: (context) => BuyOrderDetailsView(
           order: order as SimplexOrder,
         ),
       );

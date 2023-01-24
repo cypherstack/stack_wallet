@@ -11,21 +11,21 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
-class BuyOrderInvoiceView extends StatefulWidget {
-  const BuyOrderInvoiceView({
+class BuyOrderDetailsView extends StatefulWidget {
+  const BuyOrderDetailsView({
     Key? key,
     required this.order,
   }) : super(key: key);
 
   final SimplexOrder order;
 
-  static const String routeName = "/buyOrderInvoice";
+  static const String routeName = "/buyOrderDetails";
 
   @override
-  State<BuyOrderInvoiceView> createState() => _BuyOrderInvoiceViewState();
+  State<BuyOrderDetailsView> createState() => _BuyOrderDetailsViewState();
 }
 
-class _BuyOrderInvoiceViewState extends State<BuyOrderInvoiceView> {
+class _BuyOrderDetailsViewState extends State<BuyOrderDetailsView> {
   final isDesktop = Util.isDesktop;
 
   @override
