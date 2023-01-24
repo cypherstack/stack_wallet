@@ -11,6 +11,7 @@ import 'package:stackwallet/models/buy/response_objects/fiat.dart';
 import 'package:stackwallet/models/buy/response_objects/order.dart';
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
 import 'package:stackwallet/services/buy/buy_response.dart';
+import 'package:stackwallet/utilities/enums/fiat_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -120,14 +121,17 @@ class SimplexAPI {
       List<Fiat> fiats = [];
 
       for (final fiat in jsonArray as List) {
-        // TODO validate list
-        fiats.add(Fiat.fromJson({
-          'ticker': "${fiat['ticker_symbol']}",
-          'name': "${fiat['ticker_symbol']}",
-          'min_amount': "${fiat['min_amount']}",
-          'max_amount': "${fiat['max_amount']}",
-          'image': "",
-        }));
+        if (isSimplexFiat("${fiat['ticker_symbol']}")) {
+          // TODO validate list
+          fiats.add(Fiat.fromJson({
+            'ticker': "${fiat['ticker_symbol']}",
+            'name': fiatFromTickerCaseInsensitive("${fiat['ticker_symbol']}")
+                .prettyName,
+            'min_amount': "${fiat['min_amount']}",
+            'max_amount': "${fiat['max_amount']}",
+            'image': "",
+          }));
+        } // TODO handle else
       }
 
       return BuyResponse(value: fiats);
@@ -274,6 +278,15 @@ class SimplexAPI {
         e.toString(),
         BuyExceptionType.generic,
       ));
+    }
+  }
+
+  bool isSimplexFiat(String ticker) {
+    try {
+      fiatFromTickerCaseInsensitive(ticker);
+      return true;
+    } on ArgumentError catch (_) {
+      return false;
     }
   }
 }
