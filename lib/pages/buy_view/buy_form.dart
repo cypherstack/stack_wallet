@@ -693,7 +693,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                         //   width: 18,
                         // ),
                         const SizedBox(
-                          width: 9,
+                          width: 8,
                         ),
                         Text(
                           "${selectedFiat?.ticker ?? 'ERR'}",
@@ -828,7 +828,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                               as Widget,
                       SizedBox(
                           width: buyWithFiat
-                              ? 9
+                              ? 8
                               : 10), // maybe make isDesktop-aware?
                       Text(
                         buyWithFiat
