@@ -669,7 +669,7 @@ class _StackRestoreProgressViewState
                         },
                         style: Theme.of(context)
                             .extension<StackColors>()!
-                            .getPrimaryEnabledButtonColor(context),
+                            .getPrimaryEnabledButtonStyle(context),
                         child: Text(
                           _success ? "OK" : "Cancel restore process",
                           style: STextStyles.button(context).copyWith(

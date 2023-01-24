@@ -1526,70 +1526,70 @@ class StackColors extends ThemeExtension<StackColors> {
     }
   }
 
-  ButtonStyle? getDeleteEnabledButtonColor(BuildContext context) =>
+  ButtonStyle? getDeleteEnabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               textFieldErrorBG,
             ),
           );
 
-  ButtonStyle? getDeleteDisabledButtonColor(BuildContext context) =>
+  ButtonStyle? getDeleteDisabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               buttonBackSecondaryDisabled,
             ),
           );
 
-  ButtonStyle? getPrimaryEnabledButtonColor(BuildContext context) =>
+  ButtonStyle? getPrimaryEnabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               buttonBackPrimary,
             ),
           );
 
-  ButtonStyle? getPrimaryDisabledButtonColor(BuildContext context) =>
+  ButtonStyle? getPrimaryDisabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               buttonBackPrimaryDisabled,
             ),
           );
 
-  ButtonStyle? getSecondaryEnabledButtonColor(BuildContext context) =>
+  ButtonStyle? getSecondaryEnabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               buttonBackSecondary,
             ),
           );
 
-  ButtonStyle? getSecondaryDisabledButtonColor(BuildContext context) =>
+  ButtonStyle? getSecondaryDisabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               buttonBackSecondaryDisabled,
             ),
           );
 
-  ButtonStyle? getSmallSecondaryEnabledButtonColor(BuildContext context) =>
+  ButtonStyle? getSmallSecondaryEnabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               textFieldDefaultBG,
             ),
           );
 
-  ButtonStyle? getDesktopMenuButtonColor(BuildContext context) =>
+  ButtonStyle? getDesktopMenuButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               popupBG,
             ),
           );
 
-  ButtonStyle? getDesktopMenuButtonColorSelected(BuildContext context) =>
+  ButtonStyle? getDesktopMenuButtonStyleSelected(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               textFieldDefaultBG,
             ),
           );
 
-  ButtonStyle? getDesktopSettingsButtonColor(BuildContext context) =>
+  ButtonStyle? getDesktopSettingsButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               background,

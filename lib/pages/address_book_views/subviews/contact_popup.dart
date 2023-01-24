@@ -148,7 +148,7 @@ class ContactPopUp extends ConsumerWidget {
                                         },
                                         style: Theme.of(context)
                                             .extension<StackColors>()!
-                                            .getSecondaryEnabledButtonColor(
+                                            .getSecondaryEnabledButtonStyle(
                                                 context)!
                                             .copyWith(
                                               minimumSize:

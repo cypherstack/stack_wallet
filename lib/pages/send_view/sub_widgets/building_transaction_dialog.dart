@@ -107,7 +107,7 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
           rightButton: TextButton(
             style: Theme.of(context)
                 .extension<StackColors>()!
-                .getSecondaryEnabledButtonColor(context),
+                .getSecondaryEnabledButtonStyle(context),
             child: Text(
               "Cancel",
               style: STextStyles.itemSubtitle12(context),

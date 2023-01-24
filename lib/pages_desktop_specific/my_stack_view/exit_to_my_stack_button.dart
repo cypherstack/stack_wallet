@@ -22,7 +22,7 @@ class ExitToMyStackButton extends StatelessWidget {
         child: TextButton(
           style: Theme.of(context)
               .extension<StackColors>()!
-              .getSmallSecondaryEnabledButtonColor(context),
+              .getSmallSecondaryEnabledButtonStyle(context),
           onPressed: onPressed ??
               () {
                 Navigator.of(context).popUntil(

@@ -1608,7 +1608,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                             leftButton: TextButton(
                                               style: Theme.of(context)
                                                   .extension<StackColors>()!
-                                                  .getSecondaryEnabledButtonColor(
+                                                  .getSecondaryEnabledButtonStyle(
                                                       context),
                                               child: Text(
                                                 "Cancel",
@@ -1628,7 +1628,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                             rightButton: TextButton(
                                               style: Theme.of(context)
                                                   .extension<StackColors>()!
-                                                  .getPrimaryEnabledButtonColor(
+                                                  .getPrimaryEnabledButtonStyle(
                                                       context),
                                               child: Text(
                                                 "Yes",
@@ -1738,7 +1738,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                               rightButton: TextButton(
                                                 style: Theme.of(context)
                                                     .extension<StackColors>()!
-                                                    .getSecondaryEnabledButtonColor(
+                                                    .getSecondaryEnabledButtonStyle(
                                                         context),
                                                 child: Text(
                                                   "Ok",
@@ -1767,10 +1767,10 @@ class _SendViewState extends ConsumerState<SendView> {
                                     .state
                                 ? Theme.of(context)
                                     .extension<StackColors>()!
-                                    .getPrimaryEnabledButtonColor(context)
+                                    .getPrimaryEnabledButtonStyle(context)
                                 : Theme.of(context)
                                     .extension<StackColors>()!
-                                    .getPrimaryDisabledButtonColor(context),
+                                    .getPrimaryDisabledButtonStyle(context),
                             child: Text(
                               "Preview",
                               style: STextStyles.button(context),

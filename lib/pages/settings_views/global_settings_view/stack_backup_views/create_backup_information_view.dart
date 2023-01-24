@@ -67,7 +67,7 @@ class CreateBackupInfoView extends StatelessWidget {
                         TextButton(
                           style: Theme.of(context)
                               .extension<StackColors>()!
-                              .getPrimaryEnabledButtonColor(context),
+                              .getPrimaryEnabledButtonStyle(context),
                           onPressed: () {
                             Navigator.of(context)
                                 .pushNamed(CreateBackupView.routeName);

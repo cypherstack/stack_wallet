@@ -45,14 +45,14 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
             style: selectedIndex == 0
                 ? Theme.of(context)
                     .extension<StackColors>()!
-                    .getPrimaryEnabledButtonColor(context)!
+                    .getPrimaryEnabledButtonStyle(context)!
                     .copyWith(
                       minimumSize:
                           MaterialStateProperty.all<Size>(const Size(46, 36)),
                     )
                 : Theme.of(context)
                     .extension<StackColors>()!
-                    .getSecondaryEnabledButtonColor(context)!
+                    .getSecondaryEnabledButtonStyle(context)!
                     .copyWith(
                       minimumSize:
                           MaterialStateProperty.all<Size>(const Size(46, 36)),
@@ -86,14 +86,14 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
             style: selectedIndex == 1
                 ? Theme.of(context)
                     .extension<StackColors>()!
-                    .getPrimaryEnabledButtonColor(context)!
+                    .getPrimaryEnabledButtonStyle(context)!
                     .copyWith(
                       minimumSize:
                           MaterialStateProperty.all<Size>(const Size(46, 36)),
                     )
                 : Theme.of(context)
                     .extension<StackColors>()!
-                    .getSecondaryEnabledButtonColor(context)!
+                    .getSecondaryEnabledButtonStyle(context)!
                     .copyWith(
                       minimumSize:
                           MaterialStateProperty.all<Size>(const Size(46, 36)),

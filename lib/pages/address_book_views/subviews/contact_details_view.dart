@@ -177,7 +177,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                         leftButton: TextButton(
                           style: Theme.of(context)
                               .extension<StackColors>()!
-                              .getSecondaryEnabledButtonColor(context),
+                              .getSecondaryEnabledButtonStyle(context),
                           child: Text(
                             "Cancel",
                             style: STextStyles.itemSubtitle12(context),
@@ -189,7 +189,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                         rightButton: TextButton(
                           style: Theme.of(context)
                               .extension<StackColors>()!
-                              .getPrimaryEnabledButtonColor(context),
+                              .getPrimaryEnabledButtonStyle(context),
                           child: Text(
                             "Delete",
                             style: STextStyles.button(context),
@@ -273,7 +273,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                         },
                         style: Theme.of(context)
                             .extension<StackColors>()!
-                            .getSecondaryEnabledButtonColor(context)!
+                            .getSecondaryEnabledButtonStyle(context)!
                             .copyWith(
                               minimumSize: MaterialStateProperty.all<Size>(
                                   const Size(46, 32)),
