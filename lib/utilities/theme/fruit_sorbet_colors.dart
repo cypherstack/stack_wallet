@@ -314,4 +314,14 @@ class FruitSorbetColors extends StackColorTheme {
   Color get textConfirmTotalAmount => const Color(0xFF232323);
   @override
   Color get textSelectedWordTableItem => const Color(0xFF232323);
+
+  @override
+  BoxShadow get standardBoxShadow => BoxShadow(
+        color: shadow,
+        spreadRadius: 3,
+        blurRadius: 4,
+      );
+
+  @override
+  BoxShadow? get homeViewButtonBarBoxShadow => null;
 }

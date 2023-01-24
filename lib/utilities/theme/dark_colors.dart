@@ -314,4 +314,18 @@ class DarkColors extends StackColorTheme {
   Color get textConfirmTotalAmount => const Color(0xFF003921);
   @override
   Color get textSelectedWordTableItem => const Color(0xFF00297A);
+
+  @override
+  BoxShadow get standardBoxShadow => BoxShadow(
+        color: shadow,
+        spreadRadius: 3,
+        blurRadius: 4,
+      );
+
+  @override
+  BoxShadow? get homeViewButtonBarBoxShadow => BoxShadow(
+        color: shadow,
+        spreadRadius: 3,
+        blurRadius: 4,
+      );
 }
