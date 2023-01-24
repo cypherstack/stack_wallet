@@ -38,7 +38,10 @@ class _BUY {
 
   String simplexLogo(BuildContext context) {
     return (Theme.of(context).extension<StackColors>()!.themeType ==
-            ThemeType.dark) // TODO make sure this cover OLED black, too
+                ThemeType.dark ||
+            Theme.of(context).extension<StackColors>()!.themeType ==
+                ThemeType
+                    .oledBlack) // TODO make sure this cover OLED black, too
         ? "assets/svg/buy/Simplex-Nuvei-Logo-light.svg"
         : "assets/svg/buy/Simplex-Nuvei-Logo.svg";
   }
