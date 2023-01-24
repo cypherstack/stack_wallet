@@ -115,6 +115,26 @@ class _BuyQuotePreviewViewState extends State<BuyQuotePreviewView> {
           const SizedBox(
             height: 8,
           ),
+          // RoundedWhiteContainer(
+          //   child: Row(
+          //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //     children: [
+          //       Text(
+          //         "You pay with",
+          //         style: STextStyles.label(context),
+          //       ),
+          //       Text(
+          //         widget.quote.fiat.name,
+          //         style: STextStyles.label(context).copyWith(
+          //           color: Theme.of(context).extension<StackColors>()!.textDark,
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ),
+          // const SizedBox(
+          //   height: 8,
+          // ),
           RoundedWhiteContainer(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
