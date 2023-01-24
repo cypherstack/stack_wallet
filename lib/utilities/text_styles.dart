@@ -33,6 +33,12 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 12,
         );
+      case ThemeType.fruitSorbet:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark3,
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        );
     }
   }
 
@@ -952,6 +958,12 @@ class STextStyles {
           fontWeight: FontWeight.w500,
           fontSize: 12,
         );
+      case ThemeType.fruitSorbet:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        );
     }
   }
 
@@ -1241,6 +1253,13 @@ class STextStyles {
           height: 24 / 24,
         );
       case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 24,
+          height: 24 / 24,
+        );
+      case ThemeType.fruitSorbet:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w500,
