@@ -13,11 +13,14 @@ import 'package:stackwallet/models/buy/response_objects/quote.dart';
 import 'package:stackwallet/services/buy/buy_response.dart';
 import 'package:stackwallet/utilities/enums/fiat_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SimplexAPI {
   static const String scheme = "https";
   static const String authority = "sandbox-api.stackwallet.com";
+
+  final _prefs = Prefs.instance;
 
   SimplexAPI._();
   static final SimplexAPI _instance = SimplexAPI._();
@@ -149,6 +152,9 @@ class SimplexAPI {
 
   Future<BuyResponse<SimplexQuote>> getQuote(SimplexQuote quote) async {
     try {
+      await _prefs.init();
+      String? userID = _prefs.userID;
+
       Map<String, String> headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
       };
@@ -163,7 +169,9 @@ class SimplexAPI {
             ? "${quote.youPayFiatPrice}"
             : "${quote.youReceiveCryptoAmount}",
       };
-      // TODO add USER_ID
+      if (userID != null) {
+        data['USER_ID'] = userID;
+      }
       Uri url = Uri.https('simplex-sandbox.stackwallet.com', 'api.php', data);
       // TODO update to stackwallet.com hosted API and use HTTPS
 
@@ -175,7 +183,7 @@ class SimplexAPI {
 
       jsonArray['quote'] = quote; // Add and pass this on
 
-      return await compute(_parseQuote, jsonArray);
+      return await _parseQuote(jsonArray);
     } catch (e, s) {
       Logging.instance.log("getQuote exception: $e\n$s", level: LogLevel.Error);
       return BuyResponse(

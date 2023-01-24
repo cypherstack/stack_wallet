@@ -318,9 +318,10 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         }
       }
 
-      ref
-          .read(prefsChangeNotifierProvider)
-          .userID; // Just reading the ref should set it if it's not already set
+      // ref
+      //     .read(prefsChangeNotifierProvider)
+      //     .userID; // Just reading the ref should set it if it's not already set
+      // We shouldn't need to do this, instead only generating an ID when (or if) the userID is looked up when creating a quote
     } catch (e, s) {
       Logger.print("$e $s", normalLength: false);
     }
