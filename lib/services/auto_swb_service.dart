@@ -75,8 +75,7 @@ class AutoSWBService extends ChangeNotifier {
           createAutoBackupFilename(autoBackupDirectoryPath, now);
 
       final result = await SWB.encryptStackWalletWithADK(
-          fileToSave, adkString!, jsonString,
-          adkVersion: adkVersion);
+          fileToSave, adkString!, jsonString, adkVersion);
 
       if (!result) {
         throw Exception("stack auto backup service failed to create a backup");
