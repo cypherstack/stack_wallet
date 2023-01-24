@@ -304,11 +304,16 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     color: Theme.of(context)
                         .extension<StackColors>()!
                         .backgroundAppBar,
-                    boxShadow: [
-                      Theme.of(context)
-                          .extension<StackColors>()!
-                          .standardBoxShadow,
-                    ],
+                    boxShadow: Theme.of(context)
+                                .extension<StackColors>()!
+                                .homeViewButtonBarBoxShadow !=
+                            null
+                        ? [
+                            Theme.of(context)
+                                .extension<StackColors>()!
+                                .homeViewButtonBarBoxShadow!,
+                          ]
+                        : null,
                   ),
                   child: const Padding(
                     padding: EdgeInsets.only(

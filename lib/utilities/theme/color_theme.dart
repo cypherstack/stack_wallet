@@ -217,6 +217,9 @@ abstract class StackColorTheme {
   Color get myStackContactIconBG;
   Color get textConfirmTotalAmount;
   Color get textSelectedWordTableItem;
+
+  BoxShadow get standardBoxShadow;
+  BoxShadow? get homeViewButtonBarBoxShadow;
 }
 
 class CoinThemeColor {

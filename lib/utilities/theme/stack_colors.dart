@@ -176,6 +176,9 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color textConfirmTotalAmount;
   final Color textSelectedWordTableItem;
 
+  final BoxShadow standardBoxShadow;
+  final BoxShadow? homeViewButtonBarBoxShadow;
+
   StackColors({
     required this.themeType,
     required this.background,
@@ -312,6 +315,8 @@ class StackColors extends ThemeExtension<StackColors> {
     required this.myStackContactIconBG,
     required this.textConfirmTotalAmount,
     required this.textSelectedWordTableItem,
+    required this.standardBoxShadow,
+    required this.homeViewButtonBarBoxShadow,
   });
 
   factory StackColors.fromStackColorTheme(StackColorTheme colorTheme) {
@@ -453,6 +458,8 @@ class StackColors extends ThemeExtension<StackColors> {
       myStackContactIconBG: colorTheme.myStackContactIconBG,
       textConfirmTotalAmount: colorTheme.textConfirmTotalAmount,
       textSelectedWordTableItem: colorTheme.textSelectedWordTableItem,
+      homeViewButtonBarBoxShadow: colorTheme.homeViewButtonBarBoxShadow,
+      standardBoxShadow: colorTheme.standardBoxShadow,
     );
   }
 
@@ -593,6 +600,8 @@ class StackColors extends ThemeExtension<StackColors> {
     Color? myStackContactIconBG,
     Color? textConfirmTotalAmount,
     Color? textSelectedWordTableItem,
+    BoxShadow? homeViewButtonBarBoxShadow,
+    BoxShadow? standardBoxShadow,
   }) {
     return StackColors(
       themeType: themeType ?? this.themeType,
@@ -768,6 +777,9 @@ class StackColors extends ThemeExtension<StackColors> {
           textConfirmTotalAmount ?? this.textConfirmTotalAmount,
       textSelectedWordTableItem:
           textSelectedWordTableItem ?? this.textSelectedWordTableItem,
+      homeViewButtonBarBoxShadow:
+          homeViewButtonBarBoxShadow ?? this.homeViewButtonBarBoxShadow,
+      standardBoxShadow: standardBoxShadow ?? this.standardBoxShadow,
     );
   }
 
@@ -783,6 +795,8 @@ class StackColors extends ThemeExtension<StackColors> {
     return StackColors(
       themeType: other.themeType,
       gradientBackground: other.gradientBackground,
+      homeViewButtonBarBoxShadow: other.homeViewButtonBarBoxShadow,
+      standardBoxShadow: other.standardBoxShadow,
       background: Color.lerp(
         background,
         other.background,
@@ -1480,12 +1494,6 @@ class StackColors extends ThemeExtension<StackColors> {
   }
 
   static const _coin = CoinThemeColor();
-
-  BoxShadow get standardBoxShadow => BoxShadow(
-        color: shadow,
-        spreadRadius: 3,
-        blurRadius: 4,
-      );
 
   Color colorForStatus(String status) {
     switch (status) {

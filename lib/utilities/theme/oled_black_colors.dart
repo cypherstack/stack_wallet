@@ -316,4 +316,18 @@ class OledBlackColors extends StackColorTheme {
   Color get textConfirmTotalAmount => const Color(0xFF144D35);
   @override
   Color get textSelectedWordTableItem => const Color(0xFF143D8E);
+
+  @override
+  BoxShadow get standardBoxShadow => BoxShadow(
+        color: shadow,
+        spreadRadius: 3,
+        blurRadius: 4,
+      );
+
+  @override
+  BoxShadow? get homeViewButtonBarBoxShadow => BoxShadow(
+        color: shadow,
+        spreadRadius: 3,
+        blurRadius: 4,
+      );
 }
