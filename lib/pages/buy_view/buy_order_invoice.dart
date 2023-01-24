@@ -42,7 +42,7 @@ class _BuyOrderInvoiceViewState extends State<BuyOrderInvoiceView> {
                   Theme.of(context).extension<StackColors>()!.backgroundAppBar,
               leading: const AppBarBackButton(),
               title: Text(
-                "Order invoice",
+                "Order details",
                 style: STextStyles.navBarTitle(context),
               ),
             ),
@@ -77,11 +77,71 @@ class _BuyOrderInvoiceViewState extends State<BuyOrderInvoiceView> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            "Simplex Order",
+            "Simplex order",
             style: STextStyles.pageTitleH1(context),
           ),
           const SizedBox(
             height: 16,
+          ),
+          RoundedWhiteContainer(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Purchase ID",
+                  style: STextStyles.label(context),
+                ),
+                Text(
+                  widget.order.paymentId,
+                  style: STextStyles.label(context).copyWith(
+                    color: Theme.of(context).extension<StackColors>()!.textDark,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+          RoundedWhiteContainer(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "User ID",
+                  style: STextStyles.label(context),
+                ),
+                Text(
+                  widget.order.userId,
+                  style: STextStyles.label(context).copyWith(
+                    color: Theme.of(context).extension<StackColors>()!.textDark,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+          RoundedWhiteContainer(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Quote ID",
+                  style: STextStyles.label(context),
+                ),
+                Text(
+                  widget.order.quote.id,
+                  style: STextStyles.label(context).copyWith(
+                    color: Theme.of(context).extension<StackColors>()!.textDark,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(
+            height: 8,
           ),
           RoundedWhiteContainer(
             child: Row(
@@ -153,66 +213,6 @@ class _BuyOrderInvoiceViewState extends State<BuyOrderInvoiceView> {
                 ),
                 Text(
                   "${widget.order.quote.receivingAddress} ",
-                  style: STextStyles.label(context).copyWith(
-                    color: Theme.of(context).extension<StackColors>()!.textDark,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          RoundedWhiteContainer(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Quote ID",
-                  style: STextStyles.label(context),
-                ),
-                Text(
-                  widget.order.quote.id,
-                  style: STextStyles.label(context).copyWith(
-                    color: Theme.of(context).extension<StackColors>()!.textDark,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          RoundedWhiteContainer(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Purchase ID",
-                  style: STextStyles.label(context),
-                ),
-                Text(
-                  widget.order.paymentId,
-                  style: STextStyles.label(context).copyWith(
-                    color: Theme.of(context).extension<StackColors>()!.textDark,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          RoundedWhiteContainer(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "User ID",
-                  style: STextStyles.label(context),
-                ),
-                Text(
-                  widget.order.userId,
                   style: STextStyles.label(context).copyWith(
                     color: Theme.of(context).extension<StackColors>()!.textDark,
                   ),
