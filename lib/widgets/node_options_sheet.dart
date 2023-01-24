@@ -307,7 +307,7 @@ class NodeOptionsSheet extends ConsumerWidget {
                       child: TextButton(
                         style: Theme.of(context)
                             .extension<StackColors>()!
-                            .getSecondaryEnabledButtonColor(context),
+                            .getSecondaryEnabledButtonStyle(context),
                         onPressed: () {
                           Navigator.pop(context);
                           Navigator.of(context).pushNamed(
@@ -337,10 +337,10 @@ class NodeOptionsSheet extends ConsumerWidget {
                         style: status == "Connected"
                             ? Theme.of(context)
                                 .extension<StackColors>()!
-                                .getPrimaryDisabledButtonColor(context)
+                                .getPrimaryDisabledButtonStyle(context)
                             : Theme.of(context)
                                 .extension<StackColors>()!
-                                .getPrimaryEnabledButtonColor(context),
+                                .getPrimaryEnabledButtonStyle(context),
                         onPressed: status == "Connected"
                             ? null
                             : () async {

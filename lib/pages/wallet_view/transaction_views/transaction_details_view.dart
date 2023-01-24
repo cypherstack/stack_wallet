@@ -202,7 +202,7 @@ class _TransactionDetailsViewState
               rightButton: TextButton(
                 style: Theme.of(context)
                     .extension<StackColors>()!
-                    .getPrimaryEnabledButtonColor(context),
+                    .getPrimaryEnabledButtonStyle(context),
                 onPressed: () {
                   Navigator.of(context).pop(true);
                 },

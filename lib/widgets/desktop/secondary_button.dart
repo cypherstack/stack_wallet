@@ -139,10 +139,10 @@ class SecondaryButton extends StatelessWidget {
         style: enabled
             ? Theme.of(context)
                 .extension<StackColors>()!
-                .getSecondaryEnabledButtonColor(context)
+                .getSecondaryEnabledButtonStyle(context)
             : Theme.of(context)
                 .extension<StackColors>()!
-                .getSecondaryDisabledButtonColor(context),
+                .getSecondaryDisabledButtonStyle(context),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

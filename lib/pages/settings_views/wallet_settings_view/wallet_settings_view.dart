@@ -306,7 +306,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                                 },
                                 style: Theme.of(context)
                                     .extension<StackColors>()!
-                                    .getSecondaryEnabledButtonColor(context),
+                                    .getSecondaryEnabledButtonStyle(context),
                                 child: Text(
                                   "Log out",
                                   style: STextStyles.button(context).copyWith(

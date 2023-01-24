@@ -364,10 +364,10 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
               style: _nextEnabled
                   ? Theme.of(context)
                       .extension<StackColors>()!
-                      .getPrimaryEnabledButtonColor(context)
+                      .getPrimaryEnabledButtonStyle(context)
                   : Theme.of(context)
                       .extension<StackColors>()!
-                      .getPrimaryDisabledButtonColor(context),
+                      .getPrimaryDisabledButtonStyle(context),
               child: Text(
                 "Next",
                 style: isDesktop

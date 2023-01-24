@@ -54,7 +54,7 @@ dependencies:
   stack_wallet_backup:
     git:
       url: https://github.com/cypherstack/stack_wallet_backup.git
-      ref: 011dc9ce3d29f5fdeeaf711d58b5122f055c146d
+      ref: 6ada1204a4e0cf84d932b568e6150550478db69b
 
   bip47:
     git:
@@ -346,6 +346,7 @@ flutter:
     - assets/svg/light-mode.svg
     - assets/svg/ocean-breeze-theme.svg
     - assets/svg/oled-black-theme.svg
+    - assets/svg/fruit-sorbet-theme.svg
 
     # light theme specific
     - assets/svg/light/tx-exchange-icon.svg
@@ -377,7 +378,7 @@ flutter:
     - assets/svg/dark/stack-icon1.svg
     - assets/svg/dark/buy-coins-icon.svg
 
-    # light theme specific
+    # ocean theme specific
     - assets/svg/oceanBreeze/tx-exchange-icon.svg
     - assets/svg/oceanBreeze/tx-exchange-icon-pending.svg
     - assets/svg/oceanBreeze/tx-exchange-icon-failed.svg
@@ -407,6 +408,22 @@ flutter:
     - assets/svg/oledBlack/bell-new.svg
     - assets/svg/oledBlack/stack-icon1.svg
     - assets/svg/oledBlack/buy-coins-icon.svg
+
+    # fruit sorbet theme specific
+    - assets/svg/fruitSorbet/tx-exchange-icon.svg
+    - assets/svg/fruitSorbet/tx-exchange-icon-pending.svg
+    - assets/svg/fruitSorbet/tx-exchange-icon-failed.svg
+    - assets/svg/fruitSorbet/tx-icon-send.svg
+    - assets/svg/fruitSorbet/tx-icon-send-pending.svg
+    - assets/svg/fruitSorbet/tx-icon-send-failed.svg
+    - assets/svg/fruitSorbet/tx-icon-receive.svg
+    - assets/svg/fruitSorbet/tx-icon-receive-pending.svg
+    - assets/svg/fruitSorbet/tx-icon-receive-failed.svg
+    - assets/svg/fruitSorbet/exchange-2.svg
+    - assets/svg/fruitSorbet/bell-new.svg
+    - assets/svg/fruitSorbet/stack-icon1.svg
+    - assets/svg/fruitSorbet/buy-coins-icon.svg
+    - assets/svg/fruitSorbet/bg.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

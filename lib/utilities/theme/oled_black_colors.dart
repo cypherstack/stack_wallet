@@ -72,6 +72,10 @@ class OledBlackColors extends StackColorTheme {
   Color get buttonBackBorder => const Color(0xFF6F9CE9);
   @override
   Color get buttonBackBorderDisabled => const Color(0xFF212F46);
+  @override
+  Color get buttonBackBorderSecondary => buttonBackSecondary;
+  @override
+  Color get buttonBackBorderSecondaryDisabled => buttonBackSecondaryDisabled;
 
   @override
   Color get numberBackDefault => const Color(0xFF242424);
@@ -316,4 +320,18 @@ class OledBlackColors extends StackColorTheme {
   Color get textConfirmTotalAmount => const Color(0xFF144D35);
   @override
   Color get textSelectedWordTableItem => const Color(0xFF143D8E);
+
+  @override
+  BoxShadow get standardBoxShadow => BoxShadow(
+        color: shadow,
+        spreadRadius: 3,
+        blurRadius: 4,
+      );
+
+  @override
+  BoxShadow? get homeViewButtonBarBoxShadow => BoxShadow(
+        color: shadow,
+        spreadRadius: 3,
+        blurRadius: 4,
+      );
 }

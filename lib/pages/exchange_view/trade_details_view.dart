@@ -713,7 +713,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                         },
                                         style: Theme.of(context)
                                             .extension<StackColors>()!
-                                            .getSecondaryEnabledButtonColor(
+                                            .getSecondaryEnabledButtonStyle(
                                                 context),
                                         child: Text(
                                           "Cancel",

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/coin_wallets_table.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -43,7 +44,18 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
                   (value) => value
                       .getManagerProvidersForCoin(providersByCoin[i].key)));
 
+              VoidCallback? expandOverride;
+              if (providers.length == 1) {
+                expandOverride = () {
+                  Navigator.of(context).pushNamed(
+                    DesktopWalletView.routeName,
+                    arguments: ref.read(providers.first).walletId,
+                  );
+                };
+              }
+
               return TableViewRow(
+                expandOverride: expandOverride,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 16,

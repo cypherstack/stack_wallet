@@ -206,7 +206,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                       onPressed: generateNewAddress,
                       style: Theme.of(context)
                           .extension<StackColors>()!
-                          .getSecondaryEnabledButtonColor(context),
+                          .getSecondaryEnabledButtonStyle(context),
                       child: Text(
                         "Generate new address",
                         style: STextStyles.button(context).copyWith(

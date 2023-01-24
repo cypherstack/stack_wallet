@@ -698,7 +698,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                   },
                                   style: Theme.of(context)
                                       .extension<StackColors>()!
-                                      .getSecondaryEnabledButtonColor(context),
+                                      .getSecondaryEnabledButtonStyle(context),
                                   child: Text(
                                     "Back",
                                     style: STextStyles.button(context).copyWith(

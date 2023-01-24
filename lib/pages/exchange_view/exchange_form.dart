@@ -144,7 +144,6 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       await Future<void>.delayed(const Duration(milliseconds: 300));
 
       Navigator.of(context, rootNavigator: true).pop();
-
     } else {
       final toTicker = ref.read(exchangeFormStateProvider).toTicker ?? "";
       final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "";
@@ -1017,7 +1016,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                   leftButton: TextButton(
                     style: Theme.of(context)
                         .extension<StackColors>()!
-                        .getSecondaryEnabledButtonColor(context),
+                        .getSecondaryEnabledButtonStyle(context),
                     child: Text(
                       "Cancel",
                       style: STextStyles.itemSubtitle12(context),
@@ -1030,7 +1029,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                   rightButton: TextButton(
                     style: Theme.of(context)
                         .extension<StackColors>()!
-                        .getPrimaryEnabledButtonColor(context),
+                        .getPrimaryEnabledButtonStyle(context),
                     child: Text(
                       "Attempt",
                       style: STextStyles.button(context),

@@ -71,6 +71,10 @@ class DarkColors extends StackColorTheme {
   Color get buttonBackBorder => const Color(0xFF4C86E9);
   @override
   Color get buttonBackBorderDisabled => const Color(0xFF314265);
+  @override
+  Color get buttonBackBorderSecondary => buttonBackSecondary;
+  @override
+  Color get buttonBackBorderSecondaryDisabled => buttonBackSecondaryDisabled;
 
   @override
   Color get numberBackDefault => const Color(0xFF484B51);
@@ -314,4 +318,18 @@ class DarkColors extends StackColorTheme {
   Color get textConfirmTotalAmount => const Color(0xFF003921);
   @override
   Color get textSelectedWordTableItem => const Color(0xFF00297A);
+
+  @override
+  BoxShadow get standardBoxShadow => BoxShadow(
+        color: shadow,
+        spreadRadius: 3,
+        blurRadius: 4,
+      );
+
+  @override
+  BoxShadow? get homeViewButtonBarBoxShadow => BoxShadow(
+        color: shadow,
+        spreadRadius: 3,
+        blurRadius: 4,
+      );
 }

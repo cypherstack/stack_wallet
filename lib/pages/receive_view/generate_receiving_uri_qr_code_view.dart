@@ -225,7 +225,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                     },
                     style: Theme.of(context)
                         .extension<StackColors>()!
-                        .getSecondaryEnabledButtonColor(context),
+                        .getSecondaryEnabledButtonStyle(context),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
