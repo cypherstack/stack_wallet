@@ -82,6 +82,8 @@ abstract class StackColorTheme {
   Color get buttonBackSecondaryDisabled;
   Color get buttonBackBorder;
   Color get buttonBackBorderDisabled;
+  Color get buttonBackBorderSecondary;
+  Color get buttonBackBorderSecondaryDisabled;
   Color get numberBackDefault;
   Color get numpadBackDefault;
   Color get bottomNavBack;

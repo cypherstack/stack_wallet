@@ -72,6 +72,10 @@ class OledBlackColors extends StackColorTheme {
   Color get buttonBackBorder => const Color(0xFF6F9CE9);
   @override
   Color get buttonBackBorderDisabled => const Color(0xFF212F46);
+  @override
+  Color get buttonBackBorderSecondary => buttonBackSecondary;
+  @override
+  Color get buttonBackBorderSecondaryDisabled => buttonBackSecondaryDisabled;
 
   @override
   Color get numberBackDefault => const Color(0xFF242424);

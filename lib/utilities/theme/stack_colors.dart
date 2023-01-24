@@ -41,6 +41,8 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color buttonBackSecondaryDisabled;
   final Color buttonBackBorder;
   final Color buttonBackBorderDisabled;
+  final Color buttonBackBorderSecondary;
+  final Color buttonBackBorderSecondaryDisabled;
   final Color numberBackDefault;
   final Color numpadBackDefault;
   final Color bottomNavBack;
@@ -211,6 +213,8 @@ class StackColors extends ThemeExtension<StackColors> {
     required this.buttonBackSecondaryDisabled,
     required this.buttonBackBorder,
     required this.buttonBackBorderDisabled,
+    required this.buttonBackBorderSecondary,
+    required this.buttonBackBorderSecondaryDisabled,
     required this.numberBackDefault,
     required this.numpadBackDefault,
     required this.bottomNavBack,
@@ -352,6 +356,9 @@ class StackColors extends ThemeExtension<StackColors> {
       buttonBackSecondaryDisabled: colorTheme.buttonBackSecondaryDisabled,
       buttonBackBorder: colorTheme.buttonBackBorder,
       buttonBackBorderDisabled: colorTheme.buttonBackBorderDisabled,
+      buttonBackBorderSecondary: colorTheme.buttonBackBorderSecondary,
+      buttonBackBorderSecondaryDisabled:
+          colorTheme.buttonBackBorderSecondaryDisabled,
       numberBackDefault: colorTheme.numberBackDefault,
       numpadBackDefault: colorTheme.numpadBackDefault,
       bottomNavBack: colorTheme.bottomNavBack,
@@ -496,6 +503,8 @@ class StackColors extends ThemeExtension<StackColors> {
     Color? buttonBackSecondaryDisabled,
     Color? buttonBackBorder,
     Color? buttonBackBorderDisabled,
+    Color? buttonBackBorderSecondary,
+    Color? buttonBackBorderSecondaryDisabled,
     Color? numberBackDefault,
     Color? numpadBackDefault,
     Color? bottomNavBack,
@@ -638,6 +647,10 @@ class StackColors extends ThemeExtension<StackColors> {
       buttonBackBorder: buttonBackBorder ?? this.buttonBackBorder,
       buttonBackBorderDisabled:
           buttonBackBorderDisabled ?? this.buttonBackBorderDisabled,
+      buttonBackBorderSecondary:
+          buttonBackBorderSecondary ?? this.buttonBackBorderSecondary,
+      buttonBackBorderSecondaryDisabled: buttonBackBorderSecondaryDisabled ??
+          this.buttonBackBorderSecondaryDisabled,
       numberBackDefault: numberBackDefault ?? this.numberBackDefault,
       numpadBackDefault: numpadBackDefault ?? this.numpadBackDefault,
       bottomNavBack: bottomNavBack ?? this.bottomNavBack,
@@ -940,6 +953,16 @@ class StackColors extends ThemeExtension<StackColors> {
       buttonBackBorderDisabled: Color.lerp(
         buttonBackBorderDisabled,
         other.buttonBackBorderDisabled,
+        t,
+      )!,
+      buttonBackBorderSecondary: Color.lerp(
+        buttonBackBorderSecondary,
+        other.buttonBackBorderSecondary,
+        t,
+      )!,
+      buttonBackBorderSecondaryDisabled: Color.lerp(
+        buttonBackBorderSecondaryDisabled,
+        other.buttonBackBorderSecondaryDisabled,
         t,
       )!,
       numberBackDefault: Color.lerp(
@@ -1562,7 +1585,7 @@ class StackColors extends ThemeExtension<StackColors> {
             shape: MaterialStateProperty.all(
               RoundedRectangleBorder(
                 side: BorderSide(
-                  color: buttonBackBorder,
+                  color: buttonBackBorderSecondary,
                   width: 1,
                 ),
                 borderRadius: BorderRadius.circular(10000),
@@ -1578,7 +1601,7 @@ class StackColors extends ThemeExtension<StackColors> {
             shape: MaterialStateProperty.all(
               RoundedRectangleBorder(
                 side: BorderSide(
-                  color: buttonBackBorder,
+                  color: buttonBackBorderSecondaryDisabled,
                   width: 1,
                 ),
                 borderRadius: BorderRadius.circular(10000),
@@ -1594,7 +1617,7 @@ class StackColors extends ThemeExtension<StackColors> {
             shape: MaterialStateProperty.all(
               RoundedRectangleBorder(
                 side: BorderSide(
-                  color: buttonBackBorder,
+                  color: buttonBackBorderSecondary,
                   width: 1,
                 ),
                 borderRadius: BorderRadius.circular(10000),
