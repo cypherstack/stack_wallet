@@ -36,7 +36,12 @@ class _BUY {
   //       "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/buy.svg";
   String get buy => "assets/svg/light/buy-coins-icon.svg";
 
-  String get simplexLogo => "assets/svg/buy/Simplex-Nuvei-Logo.svg";
+  String simplexLogo(BuildContext context) {
+    return (Theme.of(context).extension<StackColors>()!.themeType ==
+            ThemeType.dark)
+        ? "assets/svg/buy/Simplex-Nuvei-Logo-light.svg"
+        : "assets/svg/buy/Simplex-Nuvei-Logo.svg";
+  }
 }
 
 class _SVG {

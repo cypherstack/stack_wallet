@@ -61,7 +61,7 @@ class BuyWarningPopup extends StatelessWidget {
         width: 64,
         height: 32,
         child: SvgPicture.asset(
-          Assets.buy.simplexLogo,
+          Assets.buy.simplexLogo(context),
         ),
       ),
     );
