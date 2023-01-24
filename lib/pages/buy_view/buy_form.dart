@@ -691,9 +691,16 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                         const SizedBox(
                           width: 15,
                         ),
+                        Text(
+                          "${selectedFiat?.ticker ?? 'ERR'}",
+                          style: STextStyles.largeMedium14(context),
+                        ),
+                        const SizedBox(
+                          width: 12,
+                        ),
                         Expanded(
                           child: Text(
-                            "${selectedFiat?.ticker ?? 'ERR'} ${selectedFiat?.name ?? 'Error'}",
+                            "${selectedFiat?.name ?? 'Error'}",
                             style: STextStyles.largeMedium14(context),
                           ),
                         ),
