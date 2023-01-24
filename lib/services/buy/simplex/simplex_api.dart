@@ -195,8 +195,11 @@ class SimplexAPI {
       final SimplexQuote _quote = SimplexQuote(
         crypto: quote.crypto,
         fiat: quote.fiat,
-        youPayFiatPrice: quote.youPayFiatPrice,
-        youReceiveCryptoAmount: Decimal.parse(cryptoAmount),
+        youPayFiatPrice: quote.buyWithFiat
+            ? quote.youPayFiatPrice
+            : Decimal.parse("${jsonArray['fiat_money']['base_amount']}"),
+        youReceiveCryptoAmount:
+            Decimal.parse("${jsonArray['digital_money']['amount']}"),
         id: jsonArray['quote_id'] as String,
         receivingAddress: quote.receivingAddress,
         buyWithFiat: quote.buyWithFiat,
