@@ -11,7 +11,6 @@ import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
@@ -200,15 +199,7 @@ class _CryptoSelectionViewState extends State<CryptoSelectionView> {
                             SizedBox(
                                 width: 24,
                                 height: 24,
-                                child: _coins[index].image.isNotEmpty
-                                    ? SvgPicture.network(
-                                        _coins[index].image,
-                                        width: 24,
-                                        height: 24,
-                                        placeholderBuilder: (_) =>
-                                            const LoadingIndicator(),
-                                      )
-                                    : getIconForTicker(_coins[index].ticker)),
+                                child: getIconForTicker(_coins[index].ticker)),
                             const SizedBox(
                               width: 10,
                             ),

@@ -12,7 +12,6 @@ import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
@@ -206,34 +205,26 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
                             SizedBox(
                               width: 48,
                               height: 24,
-                              child: _fiats[index].image.isNotEmpty
-                                  ? SvgPicture.network(
-                                      _fiats[index].image,
-                                      width: 24,
-                                      height: 24,
-                                      placeholderBuilder: (_) =>
-                                          const LoadingIndicator(),
-                                    )
-                                  : Text(
-                                      format.simpleCurrencySymbol(
-                                          _fiats[index].ticker.toUpperCase()),
-                                      style: STextStyles.currencyTicker(context)
-                                          .apply(
-                                              fontSizeFactor: (1 /
-                                                  format
-                                                      .simpleCurrencySymbol(
-                                                          _fiats[index]
-                                                              .ticker
-                                                              .toUpperCase())
-                                                      .length * // Couldn't get pow() working here
-                                                  format
-                                                      .simpleCurrencySymbol(
-                                                          _fiats[index]
-                                                              .ticker
-                                                              .toUpperCase())
-                                                      .length)),
-                                      textAlign: TextAlign.center,
-                                    ),
+                              child: Text(
+                                format.simpleCurrencySymbol(
+                                    _fiats[index].ticker.toUpperCase()),
+                                style: STextStyles.currencyTicker(context)
+                                    .apply(
+                                        fontSizeFactor: (1 /
+                                            format
+                                                .simpleCurrencySymbol(
+                                                    _fiats[index]
+                                                        .ticker
+                                                        .toUpperCase())
+                                                .length * // Couldn't get pow() working here
+                                            format
+                                                .simpleCurrencySymbol(
+                                                    _fiats[index]
+                                                        .ticker
+                                                        .toUpperCase())
+                                                .length)),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                             const SizedBox(
                               width: 10,

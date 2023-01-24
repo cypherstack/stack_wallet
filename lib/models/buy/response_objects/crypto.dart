@@ -11,15 +11,11 @@ class Crypto {
   /// Crypto contract address
   final String? contractAddress;
 
-  /// Crypto logo url
-  final String image;
-
   Crypto({
     required this.ticker,
     required this.name,
     required this.network,
     required this.contractAddress,
-    required this.image,
   });
 
   factory Crypto.fromJson(Map<String, dynamic> json) {
@@ -29,7 +25,6 @@ class Crypto {
         name: "${json['name']}",
         network: "${json['network']}",
         contractAddress: "${json['contractAddress']}",
-        image: "${json['image']}",
       );
     } catch (e) {
       rethrow;
@@ -42,7 +37,6 @@ class Crypto {
       "name": name,
       "network": network,
       "contractAddress": contractAddress,
-      "image": image,
     };
 
     return map;
@@ -51,14 +45,12 @@ class Crypto {
   Crypto copyWith({
     String? ticker,
     String? name,
-    String? image,
   }) {
     return Crypto(
       ticker: ticker ?? this.ticker,
       name: name ?? this.name,
       network: network ?? this.network,
       contractAddress: contractAddress ?? this.contractAddress,
-      image: image ?? this.image,
     );
   }
 
