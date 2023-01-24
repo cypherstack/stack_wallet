@@ -38,6 +38,7 @@ class BuyWarningPopup extends StatelessWidget {
     Future<void> _buyInvoice() async {
       await showDialog<void>(
         context: context,
+        // useRootNavigator: isDesktop,
         builder: (context) => BuyOrderDetailsView(
           order: order as SimplexOrder,
         ),
@@ -63,13 +64,6 @@ class BuyWarningPopup extends StatelessWidget {
             Navigator.of(context, rootNavigator: isDesktop).pop();
             await _buyInvoice();
           });
-          // BuyResponse<bool> response =
-          //     await redirect(order.value as SimplexOrder).then((order) {
-          //   // How would I correctly popUntil here?
-          //   // TODO save order
-          //   // TODO show order confirmation page
-          //   return order;
-          // });
         },
       ),
       icon: SizedBox(
