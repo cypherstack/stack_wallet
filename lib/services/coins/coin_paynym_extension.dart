@@ -64,6 +64,8 @@ extension PayNym on DogecoinWallet {
     final node = root.derivePath(kPaynymDerivePath);
     final pair =
         btc_dart.ECPair.fromPrivateKey(node.privateKey!, network: network);
+    // TODO: is pair same as priv key from node?
+    // todo: should this priv key be used or priv key of derive(0)?
     final signed = pair.sign(SHA256Digest().process(data));
     return signed;
   }
