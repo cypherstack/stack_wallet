@@ -189,7 +189,7 @@ class SimplexAPI {
 
       jsonArray['quote'] = quote; // Add and pass this on
 
-      return await _parseQuote(jsonArray);
+      return _parseQuote(jsonArray);
     } catch (e, s) {
       Logging.instance.log("getQuote exception: $e\n$s", level: LogLevel.Error);
       return BuyResponse(
