@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/token_view/token_view.dart';
+import 'package:stackwallet/providers/global/tokens_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -13,14 +14,22 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
 
+import 'package:stackwallet/providers/global/wallets_provider.dart';
+
+import 'package:stackwallet/services/coins/manager.dart';
+
 class MyTokenSelectItem extends ConsumerWidget {
   const MyTokenSelectItem(
       {Key? key,
+      required this.managerProvider,
+      required this.walletId,
       required this.walletAddress,
       required this.tokenData,
       required})
       : super(key: key);
 
+  final ChangeNotifierProvider<Manager> managerProvider;
+  final String walletId;
   final String walletAddress;
   final Map<String, String> tokenData;
 
@@ -42,9 +51,38 @@ class MyTokenSelectItem extends ConsumerWidget {
               BorderRadius.circular(Constants.size.circularBorderRadius),
         ),
         onPressed: () {
+          // ref
+          //     .read(walletsChangeNotifierProvider)
+          //     .getManagerProvider(walletId)
+
+          // final walletId = ref
+          //     .read(managerProvider)
+          //     .walletName;
+          // final manager =  ref
+          //     .read(walletsChangeNotifierProvider)
+          //     .getManagerProvider(walletId)
+
+          // arguments: Tuple2(walletId, managerProvider,  walletAddress,
+          //     tokenData["contractAddress"])
+
+          // arguments: Tuple2(
+          //     walletId,
+          //     ref
+          //         .read(tokensChangeNotifierProvider)
+          //         .getManagerProvider(walletId)
+
+          // arguments: Tuple2(
+          //     walletId,
+          //     ref
+          //         .read(tokensChangeNotifierProvider)
+          //         .getManagerProvider(walletId)
+
           Navigator.of(context).pushNamed(
             TokenView.routeName,
-            arguments: Tuple2(walletAddress, tokenData["contractAddress"]),
+            arguments: Tuple2(
+                walletId,
+                ref.read(tokensChangeNotifierProvider).getManagerProvider(
+                    tokenData["contractAddress"] as String)),
           );
         },
 

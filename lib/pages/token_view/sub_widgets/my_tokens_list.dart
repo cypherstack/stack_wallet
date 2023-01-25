@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/my_token_select_item.dart';
+import 'package:stackwallet/services/coins/manager.dart';
 
 class MyTokensList extends StatelessWidget {
   const MyTokensList({
     Key? key,
+    required this.managerProvider,
+    required this.walletId,
     required this.tokens,
     required this.walletAddress,
   }) : super(key: key);
 
+  final ChangeNotifierProvider<Manager> managerProvider;
+  final String walletId;
   final List<dynamic> tokens;
   final String walletAddress;
 
@@ -23,6 +28,8 @@ class MyTokensList extends StatelessWidget {
             return Padding(
               padding: const EdgeInsets.all(4),
               child: MyTokenSelectItem(
+                managerProvider: managerProvider,
+                walletId: walletId,
                 walletAddress: walletAddress,
                 tokenData: tokens[index] as Map<String, String>,
               ),

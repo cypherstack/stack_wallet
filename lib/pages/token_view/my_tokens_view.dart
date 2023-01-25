@@ -26,18 +26,22 @@ import 'package:stackwallet/widgets/textfield_icon_button.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
 import 'package:stackwallet/utilities/eth_commons.dart';
 
+import 'package:stackwallet/services/coins/manager.dart';
+
 class MyTokensView extends ConsumerStatefulWidget {
   const MyTokensView({
     Key? key,
+    required this.managerProvider,
+    required this.walletId,
     required this.walletAddress,
     required this.tokens,
-    required this.walletName,
   }) : super(key: key);
 
   static const String routeName = "/myTokens";
+  final ChangeNotifierProvider<Manager> managerProvider;
+  final String walletId;
   final String walletAddress;
   final List<dynamic> tokens;
-  final String walletName;
 
   @override
   ConsumerState<MyTokensView> createState() => _TokenDetailsViewState();
@@ -45,12 +49,13 @@ class MyTokensView extends ConsumerStatefulWidget {
 
 class _TokenDetailsViewState extends ConsumerState<MyTokensView> {
   late final String walletAddress;
+  // late final String walletName;
   late final TextEditingController _searchController;
   final searchFieldFocusNode = FocusNode();
 
   @override
   void initState() {
-    walletAddress = widget.walletAddress;
+    // walletAddress = widget.walletAddress;
     _searchController = TextEditingController();
 
     super.initState();
@@ -101,7 +106,7 @@ class _TokenDetailsViewState extends ConsumerState<MyTokensView> {
                     width: 12,
                   ),
                   Text(
-                    "${widget.walletName} Tokens",
+                    "${ref.read(widget.managerProvider).walletName} Tokens",
                     style: STextStyles.desktopH3(context),
                   ),
                 ],
@@ -123,7 +128,7 @@ class _TokenDetailsViewState extends ConsumerState<MyTokensView> {
                 },
               ),
               title: Text(
-                "${widget.walletName} Tokens",
+                "${ref.read(widget.managerProvider).walletName} Tokens",
                 style: STextStyles.navBarTitle(context),
               ),
               actions: [
@@ -261,7 +266,10 @@ class _TokenDetailsViewState extends ConsumerState<MyTokensView> {
             ),
             Expanded(
               child: MyTokensList(
-                  tokens: widget.tokens, walletAddress: walletAddress),
+                  managerProvider: widget.managerProvider,
+                  walletId: widget.walletId,
+                  tokens: widget.tokens,
+                  walletAddress: widget.walletAddress),
             ),
           ],
         ),

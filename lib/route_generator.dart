@@ -117,6 +117,7 @@ import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/syncin
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:stackwallet/services/tokens/token_manager.dart';
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:tuple/tuple.dart';
@@ -1295,13 +1296,15 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case MyTokensView.routeName:
-        if (args is Tuple3<String, List<dynamic>, String>) {
+        if (args is Tuple4<ChangeNotifierProvider<Manager>, String, String,
+            List<dynamic>>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => MyTokensView(
-                walletAddress: args.item1,
-                tokens: args.item2,
-                walletName: args.item3),
+                managerProvider: args.item1,
+                walletId: args.item2,
+                walletAddress: args.item3,
+                tokens: args.item4),
             settings: RouteSettings(
               name: settings.name,
             ),
@@ -1309,13 +1312,29 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      // case WalletView.routeName:
+      //   if (args is Tuple2<String, ChangeNotifierProvider<Manager>>) {
+      //     return getRoute(
+      //       shouldUseMaterialRoute: useMaterialPageRoute,
+      //       builder: (_) => WalletView(
+      //         walletId: args.item1,
+      //         managerProvider: args.item2,
+      //       ),
+      //       settings: RouteSettings(
+      //         name: settings.name,
+      //       ),
+      //     );
+      //   }
+
       case TokenView.routeName:
-        if (args is Tuple2<String, String>) {
+        if (args is Tuple2<String, ChangeNotifierProvider<TokenManager>>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => TokenView(
-              walletAddress: args.item1,
-              contractAddress: args.item2,
+              contractAddress: args.item1,
+              managerProvider: args.item2,
+              // walletAddress: args.item3,
+              // contractAddress: args.item4,
             ),
             settings: RouteSettings(
               name: settings.name,
