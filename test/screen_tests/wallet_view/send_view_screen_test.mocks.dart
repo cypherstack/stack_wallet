@@ -235,6 +235,11 @@ class MockManager extends _i1.Mock implements _i8.Manager {
         returnValue: 0,
       ) as int);
   @override
+  bool get hasPaynymSupport => (super.noSuchMethod(
+        Invocation.getter(#hasPaynymSupport),
+        returnValue: false,
+      ) as bool);
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
