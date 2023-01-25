@@ -290,9 +290,17 @@ class SimplexAPI {
 
   Future<BuyResponse<bool>> redirect(SimplexOrder order) async {
     try {
+      Map<String, String> headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      };
+      Map<String, String> data = {
+        'ROUTE': 'redirect',
+        'PAYMENT_ID': order.paymentId,
+      };
+      Uri url = _buildUri('api.php', data);
+
       bool status = await launchUrl(
-        Uri.parse(
-            "https://simplex-sandbox.stackwallet.com/api.php?ROUTE=redirect&PAYMENT_ID=${order.paymentId}"),
+        url,
         mode: LaunchMode.externalApplication,
       );
 
