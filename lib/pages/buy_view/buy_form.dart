@@ -684,13 +684,6 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                     .accentColorDark),
                           ),
                         ),
-                        // SvgPicture.asset(
-                        //   Assets.svg.iconFor(
-                        //     coin: coinFromTickerCaseInsensitive("BTC"),
-                        //   ),
-                        //   height: 18,
-                        //   width: 18,
-                        // ),
                         const SizedBox(
                           width: 8,
                         ),
