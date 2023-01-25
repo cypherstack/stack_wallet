@@ -13,7 +13,6 @@ import 'package:stackwallet/exceptions/wallet/insufficient_balance_exception.dar
 import 'package:stackwallet/exceptions/wallet/paynym_send_exception.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
-import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -23,9 +22,19 @@ const kPaynymDerivePath = "m/47'/0'/0'";
 
 extension PayNym on DogecoinWallet {
   // generate bip32 payment code root
-  Future<bip32.BIP32> getRootNode({required List<String> mnemonic}) async {
+  Future<bip32.BIP32> getRootNode({
+    required List<String> mnemonic,
+  }) async {
     final root = await Bip32Utils.getBip32Root(mnemonic.join(" "), network);
     return root;
+  }
+
+  Future<Uint8List> deriveNotificationPrivateKey({
+    required List<String> mnemonic,
+  }) async {
+    final root = await getRootNode(mnemonic: mnemonic);
+    final node = root.derivePath(kPaynymDerivePath).derive(0);
+    return node.privateKey!;
   }
 
   /// fetch or generate this wallet's bip47 payment code
@@ -34,13 +43,19 @@ extension PayNym on DogecoinWallet {
         .getAddresses(walletId)
         .filter()
         .subTypeEqualTo(AddressSubType.paynymNotification)
+        .and()
+        .not()
+        .typeEqualTo(AddressType.nonWallet)
         .findFirst();
     PaymentCode paymentCode;
     if (address == null) {
       final root = await getRootNode(mnemonic: await mnemonic);
       final node = root.derivePath(kPaynymDerivePath);
-      paymentCode =
-          PaymentCode.initFromPubKey(node.publicKey, node.chainCode, network);
+      paymentCode = PaymentCode.initFromPubKey(
+        node.publicKey,
+        node.chainCode,
+        network,
+      );
 
       await db.putAddress(
         Address(
@@ -60,12 +75,9 @@ extension PayNym on DogecoinWallet {
   }
 
   Future<Uint8List> signWithNotificationKey(Uint8List data) async {
-    final root = await getRootNode(mnemonic: await mnemonic);
-    final node = root.derivePath(kPaynymDerivePath);
-    final pair =
-        btc_dart.ECPair.fromPrivateKey(node.privateKey!, network: network);
-    // TODO: is pair same as priv key from node?
-    // todo: should this priv key be used or priv key of derive(0)?
+    final privateKey =
+        await deriveNotificationPrivateKey(mnemonic: await mnemonic);
+    final pair = btc_dart.ECPair.fromPrivateKey(privateKey, network: network);
     final signed = pair.sign(SHA256Digest().process(data));
     return signed;
   }
@@ -76,24 +88,27 @@ extension PayNym on DogecoinWallet {
     return Format.uint8listToString(bytes);
   }
 
-  void preparePaymentCodeSend(PaymentCode pCode) async {
-    if (!(await hasConnected(pCode.notificationAddress()))) {
-      throw PaynymSendException("No notification transaction sent to $pCode");
+  Future<Future<Map<String, dynamic>>> preparePaymentCodeSend(
+      PaymentCode paymentCode, int satoshiAmount) async {
+    if (!(await hasConnected(paymentCode.notificationAddress()))) {
+      throw PaynymSendException(
+          "No notification transaction sent to $paymentCode");
     } else {
-      final root = await getRootNode(mnemonic: await mnemonic);
-      final node = root.derivePath(kPaynymDerivePath);
+      final myPrivateKey =
+          await deriveNotificationPrivateKey(mnemonic: await mnemonic);
       final sendToAddress = await nextUnusedSendAddressFrom(
-        pCode: pCode,
-        privateKey: node.derive(0).privateKey!,
+        pCode: paymentCode,
+        privateKey: myPrivateKey,
       );
 
-      // todo: Actual transaction build
+      return prepareSend(
+          address: sendToAddress.value, satoshiAmount: satoshiAmount);
     }
   }
 
   /// get the next unused address to send to given the receiver's payment code
   /// and your own private key
-  Future<String> nextUnusedSendAddressFrom({
+  Future<Address> nextUnusedSendAddressFrom({
     required PaymentCode pCode,
     required Uint8List privateKey,
     int startIndex = 0,
@@ -101,24 +116,46 @@ extension PayNym on DogecoinWallet {
     // https://en.bitcoin.it/wiki/BIP_0047#Path_levels
     const maxCount = 2147483647;
 
-    final paymentAddress = PaymentAddress.initWithPrivateKey(
-      privateKey,
-      pCode,
-      startIndex, // initial index to check
-    );
+    for (int i = startIndex; i < maxCount; i++) {
+      final address = await db
+          .getAddresses(walletId)
+          .filter()
+          .subTypeEqualTo(AddressSubType.paynymSend)
+          .and()
+          .otherDataEqualTo(pCode.toString())
+          .and()
+          .derivationIndexEqualTo(i)
+          .findFirst();
 
-    for (; paymentAddress.index <= maxCount; paymentAddress.index++) {
-      final address = paymentAddress.getSendAddress();
+      if (address != null) {
+        final count = await getTxCount(address: address.value);
+        // return address if unused, otherwise continue to next index
+        if (count == 0) {
+          return address;
+        }
+      } else {
+        final paymentAddress = PaymentAddress.initWithPrivateKey(
+          privateKey,
+          pCode,
+          i, // index to use
+        ).getSendAddress();
 
-      final transactionIds = await electrumXClient.getHistory(
-        scripthash: AddressUtils.convertToScriptHash(
-          address,
-          network,
-        ),
-      );
+        // add address to local db
+        final address = Address(
+          walletId: walletId,
+          value: paymentAddress,
+          publicKey: [],
+          derivationIndex: i,
+          type: AddressType.p2pkh,
+          subType: AddressSubType.paynymSend,
+        );
+        await db.putAddress(address);
 
-      if (transactionIds.isEmpty) {
-        return address;
+        final count = await getTxCount(address: address.value);
+        // return address if unused, otherwise continue to next index
+        if (count == 0) {
+          return address;
+        }
       }
     }
 
@@ -466,9 +503,8 @@ extension PayNym on DogecoinWallet {
 
       final pubKey = designatedInput.scriptSigAsm!.split(" ")[1].fromHex;
 
-      final root = await getRootNode(mnemonic: await mnemonic);
       final myPrivateKey =
-          root.derivePath(kPaynymDerivePath).derive(0).privateKey!;
+          await deriveNotificationPrivateKey(mnemonic: await mnemonic);
 
       final S = SecretPoint(myPrivateKey, pubKey);
 
