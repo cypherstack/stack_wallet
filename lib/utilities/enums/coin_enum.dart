@@ -171,29 +171,6 @@ extension CoinExt on Coin {
     }
   }
 
-  bool get hasPaynymSupport {
-    switch (this) {
-      case Coin.bitcoin:
-      case Coin.litecoin:
-      case Coin.bitcoincash:
-      case Coin.firo:
-      case Coin.namecoin:
-      case Coin.particl:
-      case Coin.bitcoinTestNet:
-      case Coin.litecoinTestNet:
-      case Coin.bitcoincashTestnet:
-      case Coin.firoTestNet:
-      case Coin.epicCash:
-      case Coin.monero:
-      case Coin.wownero:
-        return false;
-
-      case Coin.dogecoin:
-      case Coin.dogecoinTestNet:
-        return true;
-    }
-  }
-
   int get requiredConfirmations {
     switch (this) {
       case Coin.bitcoin:

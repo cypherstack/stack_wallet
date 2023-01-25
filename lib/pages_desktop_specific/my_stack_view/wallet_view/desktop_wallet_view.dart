@@ -21,7 +21,6 @@ import 'package:stackwallet/providers/global/paynym_api_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
-import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -536,7 +535,8 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                         );
                       },
                     ),
-                  if (coin.hasPaynymSupport)
+                  if (ref.watch(walletsChangeNotifierProvider.select((value) =>
+                      value.getManager(widget.walletId).hasPaynymSupport)))
                     SecondaryButton(
                       label: "PayNym",
                       width: 160,
