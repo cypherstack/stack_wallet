@@ -186,7 +186,7 @@ mixin ElectrumXParsing {
     }
 
     TransactionSubType txSubType = TransactionSubType.none;
-    if (coin.hasPaynymSupport && outs.length > 1) {
+    if (coin.hasPaynymSupport && outs.length > 1 && ins.isNotEmpty) {
       List<String>? scriptChunks = outs[1].scriptPubKeyAsm?.split(" ");
       if (scriptChunks?.length == 2 && scriptChunks?[0] == "OP_RETURN") {
         final blindedPaymentCode = scriptChunks![1];

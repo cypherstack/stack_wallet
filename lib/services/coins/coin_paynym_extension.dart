@@ -134,20 +134,18 @@ extension PayNym on DogecoinWallet {
           return address;
         }
       } else {
-        final paymentAddress = PaymentAddress.initWithPrivateKey(
+        final pair = PaymentAddress.initWithPrivateKey(
           privateKey,
           pCode,
           i, // index to use
-        ).getSendAddress();
+        ).getSendAddressKeyPair();
 
         // add address to local db
-        final address = Address(
-          walletId: walletId,
-          value: paymentAddress,
-          publicKey: [],
+        final address = generatePaynymSendAddressFromKeyPair(
+          pair: pair,
           derivationIndex: i,
-          type: AddressType.p2pkh,
-          subType: AddressSubType.paynymSend,
+          derivePathType: DerivePathType.bip44,
+          toPaymentCode: pCode,
         );
         await db.putAddress(address);
 
@@ -160,35 +158,6 @@ extension PayNym on DogecoinWallet {
     }
 
     throw PaynymSendException("Exhausted unused send addresses!");
-  }
-
-  /// get your receiving addresses given the sender's payment code and your own
-  /// private key
-  List<String> deriveReceivingAddressesFor(
-    PaymentCode pCode,
-    Uint8List privateKey,
-    int count,
-  ) {
-    // https://en.bitcoin.it/wiki/BIP_0047#Path_levels
-    const maxCount = 2147483647;
-    assert(count <= maxCount);
-
-    final paymentAddress = PaymentAddress.initWithPrivateKey(
-      privateKey,
-      pCode,
-      0, // initial index
-    );
-
-    final List<String> result = [];
-    for (paymentAddress.index = 0;
-        paymentAddress.index < count;
-        paymentAddress.index++) {
-      final address = paymentAddress.getReceiveAddress();
-
-      result.add(address);
-    }
-
-    return result;
   }
 
   Future<Map<String, dynamic>> prepareNotificationTx({
@@ -484,14 +453,39 @@ extension PayNym on DogecoinWallet {
         .findAll();
 
     for (final tx in txns) {
+      // quick check that may cause problems?
       if (tx.address.value?.value == myNotificationAddress) {
         return true;
       }
 
-      final blindedCode =
-          tx.outputs.elementAt(1).scriptPubKeyAsm!.split(" ")[1];
+      final unBlindedPaymentCode = await unBlindedPaymentCodeFromTransaction(
+        transaction: tx,
+        myCode: myCode,
+      );
 
-      final designatedInput = tx.inputs.first;
+      if (paymentCodeString == unBlindedPaymentCode.toString()) {
+        return true;
+      }
+    }
+
+    // otherwise return no
+    return false;
+  }
+
+  Future<PaymentCode?> unBlindedPaymentCodeFromTransaction({
+    required Transaction transaction,
+    required PaymentCode myCode,
+  }) async {
+    if (transaction.address.value != null &&
+        transaction.address.value!.value != myCode.notificationAddress()) {
+      return null;
+    }
+
+    try {
+      final blindedCode =
+          transaction.outputs.elementAt(1).scriptPubKeyAsm!.split(" ")[1];
+
+      final designatedInput = transaction.inputs.first;
 
       final txPoint = designatedInput.txid.fromHex.toList();
       final txPointIndex = designatedInput.vout;
@@ -515,12 +509,199 @@ extension PayNym on DogecoinWallet {
       final unBlindedPaymentCode =
           PaymentCode.initFromPayload(unBlindedPayload);
 
-      if (paymentCodeString == unBlindedPaymentCode.toString()) {
-        return true;
+      return unBlindedPaymentCode;
+    } catch (e) {
+      Logging.instance.log(
+        "unBlindedPaymentCodeFromTransaction() failed: $e",
+        level: LogLevel.Warning,
+      );
+      return null;
+    }
+  }
+
+  Future<List<PaymentCode>>
+      getAllPaymentCodesFromNotificationTransactions() async {
+    final myCode = await getPaymentCode();
+    final txns = await db
+        .getTransactions(walletId)
+        .filter()
+        .subTypeEqualTo(TransactionSubType.bip47Notification)
+        .findAll();
+
+    List<PaymentCode> unBlindedList = [];
+
+    for (final tx in txns) {
+      final unBlinded = await unBlindedPaymentCodeFromTransaction(
+        transaction: tx,
+        myCode: myCode,
+      );
+      if (unBlinded != null) {
+        unBlindedList.add(unBlinded);
       }
     }
 
-    // otherwise return no
-    return false;
+    return unBlindedList;
+  }
+
+  Future<void> restoreHistoryWith(
+    PaymentCode other,
+    int maxUnusedAddressGap,
+    int maxNumberOfIndexesToCheck,
+  ) async {
+    // https://en.bitcoin.it/wiki/BIP_0047#Path_levels
+    const maxCount = 2147483647;
+    assert(maxNumberOfIndexesToCheck < maxCount);
+
+    final myPrivateKey =
+        await deriveNotificationPrivateKey(mnemonic: await mnemonic);
+
+    List<Address> addresses = [];
+    int receivingGapCounter = 0;
+    int outgoingGapCounter = 0;
+
+    for (int i = 0;
+        i < maxNumberOfIndexesToCheck &&
+            (receivingGapCounter < maxUnusedAddressGap ||
+                outgoingGapCounter < maxUnusedAddressGap);
+        i++) {
+      final paymentAddress = PaymentAddress.initWithPrivateKey(
+        myPrivateKey,
+        other,
+        i, // index to use
+      );
+
+      if (receivingGapCounter < maxUnusedAddressGap) {
+        final pair = paymentAddress.getSendAddressKeyPair();
+        final address = generatePaynymSendAddressFromKeyPair(
+          pair: pair,
+          derivationIndex: i,
+          derivePathType: DerivePathType.bip44,
+          toPaymentCode: other,
+        );
+        addresses.add(address);
+
+        final count = await getTxCount(address: address.value);
+
+        if (count > 0) {
+          receivingGapCounter++;
+        } else {
+          receivingGapCounter = 0;
+        }
+      }
+
+      if (outgoingGapCounter < maxUnusedAddressGap) {
+        final pair = paymentAddress.getReceiveAddressKeyPair();
+        final address = generatePaynymReceivingAddressFromKeyPair(
+          pair: pair,
+          derivationIndex: i,
+          derivePathType: DerivePathType.bip44,
+          fromPaymentCode: other,
+        );
+        addresses.add(address);
+
+        final count = await getTxCount(address: address.value);
+
+        if (count > 0) {
+          outgoingGapCounter++;
+        } else {
+          outgoingGapCounter = 0;
+        }
+      }
+    }
+    await db.putAddresses(addresses);
+  }
+
+  Address generatePaynymSendAddressFromKeyPair({
+    required btc_dart.ECPair pair,
+    required int derivationIndex,
+    required DerivePathType derivePathType,
+    required PaymentCode toPaymentCode,
+  }) {
+    final data = btc_dart.PaymentData(pubkey: pair.publicKey);
+
+    String addressString;
+    switch (derivePathType) {
+      case DerivePathType.bip44:
+        addressString =
+            btc_dart.P2PKH(data: data, network: network).data.address!;
+        break;
+
+      // The following doesn't apply to doge currently
+      //
+      // case DerivePathType.bip49:
+      //   addressString = btc_dart.P2SH(
+      //       data: btc_dart.PaymentData(
+      //           redeem: btc_dart.P2WPKH(data: data, network: network).data),
+      //       network:  network)
+      //       .data
+      //       .address!;
+      //   addrType = AddressType.p2sh;
+      //    break;
+      // case DerivePathType.bip84:
+      //   addressString = btc_dart.P2WPKH(network: network, data: data).data.address!;
+      //   addrType = AddressType.p2wpkh;
+      //    break;
+
+    }
+
+    final address = Address(
+      walletId: walletId,
+      value: addressString,
+      publicKey: pair.publicKey,
+      derivationIndex: derivationIndex,
+      type: AddressType.nonWallet,
+      subType: AddressSubType.paynymSend,
+      otherData: toPaymentCode.toString(),
+    );
+
+    return address;
+  }
+
+  Address generatePaynymReceivingAddressFromKeyPair({
+    required btc_dart.ECPair pair,
+    required int derivationIndex,
+    required DerivePathType derivePathType,
+    required PaymentCode fromPaymentCode,
+  }) {
+    final data = btc_dart.PaymentData(pubkey: pair.publicKey);
+
+    String addressString;
+    AddressType addrType;
+    switch (derivePathType) {
+      case DerivePathType.bip44:
+        addressString =
+            btc_dart.P2PKH(data: data, network: network).data.address!;
+        addrType = AddressType.p2pkh;
+        break;
+
+      // The following doesn't apply to doge currently
+      //
+      // case DerivePathType.bip49:
+      //   addressString = btc_dart.P2SH(
+      //       data: btc_dart.PaymentData(
+      //           redeem: btc_dart.P2WPKH(data: data, network: network).data),
+      //       network:  network)
+      //       .data
+      //       .address!;
+      //   addrType = AddressType.p2sh;
+      //    break;
+      // case DerivePathType.bip84:
+      //   addressString = btc_dart.P2WPKH(network: network, data: data).data.address!;
+      //   addrType = AddressType.p2wpkh;
+      //    break;
+
+    }
+
+    final address = Address(
+      walletId: walletId,
+      value: addressString,
+      publicKey: pair.publicKey,
+      derivationIndex: derivationIndex,
+      type: addrType,
+      subType: AddressSubType.paynymReceive,
+      otherData: fromPaymentCode.toString(),
+    );
+
+    return address;
   }
 }
