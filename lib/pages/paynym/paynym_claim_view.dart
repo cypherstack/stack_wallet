@@ -12,6 +12,7 @@ import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.da
 import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -168,7 +169,8 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                   if (shouldCancel) return;
 
                   // get payment code
-                  final pCode = await wallet.getPaymentCode();
+                  final pCode = await wallet.getPaymentCode(
+                      DerivePathTypeExt.primaryFor(wallet.coin));
 
                   if (shouldCancel) return;
 

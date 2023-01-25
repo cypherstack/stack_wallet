@@ -31,6 +31,7 @@ import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -304,7 +305,8 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
         .getManager(widget.walletId)
         .wallet as DogecoinWallet);
 
-    final code = await wallet.getPaymentCode();
+    final code =
+        await wallet.getPaymentCode(DerivePathTypeExt.primaryFor(wallet.coin));
 
     final account = await ref.read(paynymAPIProvider).nym(code.toString());
 

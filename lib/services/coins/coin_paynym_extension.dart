@@ -14,11 +14,10 @@ import 'package:stackwallet/exceptions/wallet/paynym_send_exception.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:tuple/tuple.dart';
-
-import '../../utilities/enums/derive_path_type_enum.dart';
 
 const kPaynymDerivePath = "m/47'/0'/0'";
 
@@ -66,8 +65,10 @@ extension PayNym on DogecoinWallet {
   }
 
   Future<Future<Map<String, dynamic>>> preparePaymentCodeSend(
-      PaymentCode paymentCode, int satoshiAmount) async {
-    if (!(await hasConnected(paymentCode.notificationAddress()))) {
+      {required PaymentCode paymentCode,
+      required int satoshiAmount,
+      Map<String, dynamic>? args}) async {
+    if (!(await hasConnected(paymentCode.notificationAddressP2PKH()))) {
       throw PaynymSendException(
           "No notification transaction sent to $paymentCode");
     } else {
@@ -360,7 +361,8 @@ extension PayNym on DogecoinWallet {
       txPointIndex,
     );
 
-    txb.addOutput(targetPaymentCode.notificationAddress(), DUST_LIMIT);
+    // todo: modify address once segwit support is in our bip47
+    txb.addOutput(targetPaymentCode.notificationAddressP2PKH(), DUST_LIMIT);
     txb.addOutput(opReturnScript, 0);
 
     // TODO: add possible change output and mark output as dangerous
@@ -420,8 +422,8 @@ extension PayNym on DogecoinWallet {
 
   // TODO optimize
   Future<bool> hasConnected(String paymentCodeString) async {
-    final myCode = await getPaymentCode(DerivePathType.bip44);
-    final myNotificationAddress = myCode.notificationAddress();
+    final myNotificationAddress =
+        await getMyNotificationAddress(DerivePathTypeExt.primaryFor(coin));
 
     final txns = await db
         .getTransactions(walletId)
@@ -431,13 +433,13 @@ extension PayNym on DogecoinWallet {
 
     for (final tx in txns) {
       // quick check that may cause problems?
-      if (tx.address.value?.value == myNotificationAddress) {
+      if (tx.address.value?.value == myNotificationAddress.value) {
         return true;
       }
 
       final unBlindedPaymentCode = await unBlindedPaymentCodeFromTransaction(
         transaction: tx,
-        myCode: myCode,
+        myNotificationAddress: myNotificationAddress,
       );
 
       if (paymentCodeString == unBlindedPaymentCode.toString()) {
@@ -451,10 +453,10 @@ extension PayNym on DogecoinWallet {
 
   Future<PaymentCode?> unBlindedPaymentCodeFromTransaction({
     required Transaction transaction,
-    required PaymentCode myCode,
+    required Address myNotificationAddress,
   }) async {
     if (transaction.address.value != null &&
-        transaction.address.value!.value != myCode.notificationAddress()) {
+        transaction.address.value!.value != myNotificationAddress.value) {
       return null;
     }
 
@@ -498,7 +500,8 @@ extension PayNym on DogecoinWallet {
 
   Future<List<PaymentCode>>
       getAllPaymentCodesFromNotificationTransactions() async {
-    final myCode = await getPaymentCode(DerivePathType.bip44);
+    final myAddress =
+        await getMyNotificationAddress(DerivePathTypeExt.primaryFor(coin));
     final txns = await db
         .getTransactions(walletId)
         .filter()
@@ -510,7 +513,7 @@ extension PayNym on DogecoinWallet {
     for (final tx in txns) {
       final unBlinded = await unBlindedPaymentCodeFromTransaction(
         transaction: tx,
-        myCode: myCode,
+        myNotificationAddress: myAddress,
       );
       if (unBlinded != null) {
         unBlindedList.add(unBlinded);
@@ -603,32 +606,34 @@ extension PayNym on DogecoinWallet {
             btc_dart.P2PKH(data: data, network: network).data.address!;
         break;
 
-      // The following doesn't apply to doge currently
-      case DerivePathType.bip49:
-        addressString = btc_dart
-            .P2SH(
-              data: btc_dart.PaymentData(
-                  redeem: btc_dart
-                      .P2WPKH(
-                        data: data,
-                        network: network,
-                      )
-                      .data),
-              network: network,
-            )
-            .data
-            .address!;
-        break;
-
-      case DerivePathType.bip84:
-        addressString = btc_dart
-            .P2WPKH(
-              network: network,
-              data: data,
-            )
-            .data
-            .address!;
-        break;
+      // The following doesn't apply currently
+      // case DerivePathType.bip49:
+      //   addressString = btc_dart
+      //       .P2SH(
+      //         data: btc_dart.PaymentData(
+      //             redeem: btc_dart
+      //                 .P2WPKH(
+      //                   data: data,
+      //                   network: network,
+      //                 )
+      //                 .data),
+      //         network: network,
+      //       )
+      //       .data
+      //       .address!;
+      //   break;
+      //
+      // case DerivePathType.bip84:
+      //   addressString = btc_dart
+      //       .P2WPKH(
+      //         network: network,
+      //         data: data,
+      //       )
+      //       .data
+      //       .address!;
+      //   break;
+      default:
+        throw UnimplementedError("segwit paynyms not implemented yet");
     }
 
     final address = Address(
@@ -666,34 +671,36 @@ extension PayNym on DogecoinWallet {
         addrType = AddressType.p2pkh;
         break;
 
-      // The following doesn't apply to doge currently
-      case DerivePathType.bip49:
-        addressString = btc_dart
-            .P2SH(
-              data: btc_dart.PaymentData(
-                  redeem: btc_dart
-                      .P2WPKH(
-                        data: data,
-                        network: network,
-                      )
-                      .data),
-              network: network,
-            )
-            .data
-            .address!;
-        addrType = AddressType.p2sh;
-        break;
-
-      case DerivePathType.bip84:
-        addressString = btc_dart
-            .P2WPKH(
-              network: network,
-              data: data,
-            )
-            .data
-            .address!;
-        addrType = AddressType.p2wpkh;
-        break;
+      // The following doesn't apply currently
+      // case DerivePathType.bip49:
+      //   addressString = btc_dart
+      //       .P2SH(
+      //         data: btc_dart.PaymentData(
+      //             redeem: btc_dart
+      //                 .P2WPKH(
+      //                   data: data,
+      //                   network: network,
+      //                 )
+      //                 .data),
+      //         network: network,
+      //       )
+      //       .data
+      //       .address!;
+      //   addrType = AddressType.p2sh;
+      //   break;
+      //
+      // case DerivePathType.bip84:
+      //   addressString = btc_dart
+      //       .P2WPKH(
+      //         network: network,
+      //         data: data,
+      //       )
+      //       .data
+      //       .address!;
+      //   addrType = AddressType.p2wpkh;
+      //   break;
+      default:
+        throw UnimplementedError("segwit paynyms not implemented yet");
     }
 
     final address = Address(
@@ -712,6 +719,9 @@ extension PayNym on DogecoinWallet {
   Future<Address> getMyNotificationAddress(
     DerivePathType derivePathType,
   ) async {
+    // TODO: fix when segwit is here
+    derivePathType = DerivePathType.bip44;
+
     AddressType type;
     switch (derivePathType) {
       case DerivePathType.bip44:
@@ -748,14 +758,44 @@ extension PayNym on DogecoinWallet {
       );
 
       String addressString;
+      final data =
+          btc_dart.PaymentData(pubkey: paymentCode.notificationPublicKey());
       switch (derivePathType) {
         case DerivePathType.bip44:
-          addressString = paymentCode.notificationAddress();
+          addressString = btc_dart
+              .P2PKH(
+                data: data,
+                network: network,
+              )
+              .data
+              .address!;
           break;
-        case DerivePathType.bip49:
-          throw Exception("DerivePathType not supported.");
-        case DerivePathType.bip84:
-          throw Exception("DerivePathType not supported.");
+        // case DerivePathType.bip49:
+        //   addressString = btc_dart
+        //       .P2SH(
+        //         data: btc_dart.PaymentData(
+        //             redeem: btc_dart
+        //                 .P2WPKH(
+        //                   data: data,
+        //                   network: network,
+        //                 )
+        //                 .data),
+        //         network: network,
+        //       )
+        //       .data
+        //       .address!;
+        //   break;
+        // case DerivePathType.bip84:
+        //   addressString = btc_dart
+        //       .P2WPKH(
+        //         network: network,
+        //         data: data,
+        //       )
+        //       .data
+        //       .address!;
+        //   break;
+        default:
+          throw UnimplementedError("segwit paynyms not implemented yet");
       }
 
       final address = Address(
