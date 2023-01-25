@@ -1,30 +1,69 @@
+import 'dart:convert';
+
 import 'package:decimal/decimal.dart';
+import 'package:http/http.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart';
 import 'package:stackwallet/services/tokens/token_service.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/eth_commons.dart';
 
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
+import 'package:web3dart/web3dart.dart';
+
+class AbiRequestResponse {
+  final String message;
+  final String result;
+  final String status;
+
+  const AbiRequestResponse({
+    required this.message,
+    required this.result,
+    required this.status,
+  });
+
+  factory AbiRequestResponse.fromJson(Map<String, dynamic> json) {
+    return AbiRequestResponse(
+      message: json['message'] as String,
+      result: json['result'] as String,
+      status: json['status'] as String,
+    );
+  }
+}
 
 class EthereumToken extends TokenServiceAPI {
   @override
   late bool shouldAutoSync;
-  late String _walletId;
   late String _contractAddress;
+  late EthPrivateKey _credentials;
+  late Future<List<String>> _walletMnemonic;
   late SecureStorageInterface _secureStore;
+  late String _tokenAbi;
   late final TransactionNotificationTracker txTracker;
+
+  String rpcUrl =
+      'https://mainnet.infura.io/v3/22677300bf774e49a458b73313ee56ba';
 
   EthereumToken({
     required String contractAddress,
-    required String walletId,
-    required SecureStorageInterface secureStore,
-    required TransactionNotificationTracker tracker,
+    required Future<List<String>> walletMnemonic,
+    // required SecureStorageInterface secureStore,
   }) {
-    txTracker = tracker;
-    _walletId = walletId;
     _contractAddress = contractAddress;
-    _secureStore = secureStore;
+    _walletMnemonic = walletMnemonic;
+    // _secureStore = secureStore;
+  }
+
+  Future<AbiRequestResponse> fetchTokenAbi() async {
+    final response = await get(Uri.parse(
+        "https://api.etherscan.io/api?module=contract&action=getabi&address=$_contractAddress&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
+    if (response.statusCode == 200) {
+      return AbiRequestResponse.fromJson(
+          json.decode(response.body) as Map<String, dynamic>);
+    } else {
+      throw Exception('Failed to load transactions');
+    }
   }
 
   @override
@@ -64,7 +103,18 @@ class EthereumToken extends TokenServiceAPI {
   Future<FeeObject> get fees => throw UnimplementedError();
 
   @override
-  Future<void> initializeExisting() {
+  Future<void> initializeExisting() async {
+    AbiRequestResponse abi = await fetchTokenAbi();
+    //Fetch token ABI so we can call token functions
+    if (abi.message == "OK") {
+      _tokenAbi = abi.result;
+    }
+
+    final mnemonic = await _walletMnemonic;
+    String mnemonicString = mnemonic.join(' ');
+
+    //Get private key for given mnemonic
+    String privateKey = getPrivateKey(mnemonicString);
     // TODO: implement initializeExisting
     throw UnimplementedError();
   }

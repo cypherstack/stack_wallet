@@ -5,7 +5,6 @@ import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
 
 import "package:hex/hex.dart";
-import 'package:bitcoindart/bitcoindart.dart';
 import 'package:decimal/decimal.dart';
 import 'package:devicelocale/devicelocale.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
@@ -22,7 +21,6 @@ import 'package:stackwallet/utilities/eth_commons.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/prefs.dart';
-import 'package:string_to_hex/string_to_hex.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:web3dart/web3dart.dart' as web3;
 import 'package:web3dart/web3dart.dart' as Transaction;
@@ -45,7 +43,7 @@ import 'package:stackwallet/services/event_bus/events/global/updated_in_backgrou
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 
-const int MINIMUM_CONFIRMATIONS = 5;
+const int MINIMUM_CONFIRMATIONS = 3;
 
 //THis is used for mapping transactions per address from the block explorer
 class AddressTransaction {
@@ -469,10 +467,14 @@ class EthereumWallet extends CoinServiceAPI {
       isSendAll = true;
     }
 
+    print("SATOSHI AMOUNT BEFORE $satoshiAmount");
+    print("FEE IS $fee");
     if (isSendAll) {
       //Subtract fee amount from send amount
       satoshiAmount -= feeEstimate;
     }
+
+    print("SATOSHI AMOUNT AFTER $satoshiAmount");
 
     Map<String, dynamic> txData = {
       "fee": feeEstimate,
@@ -504,8 +506,6 @@ class EthereumWallet extends CoinServiceAPI {
 
       String privateKey = getPrivateKey(mnemonic);
       _credentials = EthPrivateKey.fromHex(privateKey);
-
-      // _credentials = EthPrivateKey.fromHex(StringToHex.toHexString(mnemonic));
 
       // print(_credentials.address);
       //Get ERC-20 transactions for wallet (So we can get the and save wallet's ERC-20 TOKENS
@@ -1062,8 +1062,6 @@ class EthereumWallet extends CoinServiceAPI {
 
   @override
   set walletName(String newName) => _walletName = newName;
-
-  // Future<String>
 
   void stopNetworkAlivePinging() {
     _networkAliveTimer?.cancel();

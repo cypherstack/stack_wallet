@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/token_view/token_view.dart';
+import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
 import 'package:stackwallet/providers/global/tokens_provider.dart';
+import 'package:stackwallet/services/tokens/ethereum/ethereum_token.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -31,11 +33,12 @@ class MyTokenSelectItem extends ConsumerWidget {
   final ChangeNotifierProvider<Manager> managerProvider;
   final String walletId;
   final String walletAddress;
-  final Map<String, String> tokenData;
+  final Map<dynamic, dynamic> tokenData;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    int balance = int.parse(tokenData["balance"] as String);
+    print("TOKEN DATA IS $tokenData");
+    int balance = tokenData["balance"] as int;
     int tokenDecimals = int.parse(tokenData["decimals"] as String);
     final balanceInDecimal = (balance / (pow(10, tokenDecimals)));
 
@@ -51,38 +54,20 @@ class MyTokenSelectItem extends ConsumerWidget {
               BorderRadius.circular(Constants.size.circularBorderRadius),
         ),
         onPressed: () {
-          // ref
-          //     .read(walletsChangeNotifierProvider)
-          //     .getManagerProvider(walletId)
+          final mnemonicList = ref.read(managerProvider).mnemonic;
 
-          // final walletId = ref
-          //     .read(managerProvider)
-          //     .walletName;
-          // final manager =  ref
-          //     .read(walletsChangeNotifierProvider)
-          //     .getManagerProvider(walletId)
-
-          // arguments: Tuple2(walletId, managerProvider,  walletAddress,
-          //     tokenData["contractAddress"])
-
-          // arguments: Tuple2(
-          //     walletId,
-          //     ref
-          //         .read(tokensChangeNotifierProvider)
-          //         .getManagerProvider(walletId)
-
-          // arguments: Tuple2(
-          //     walletId,
-          //     ref
-          //         .read(tokensChangeNotifierProvider)
-          //         .getManagerProvider(walletId)
+          final token = EthereumToken(
+              contractAddress: tokenData["contractAddress"] as String,
+              walletMnemonic: mnemonicList);
 
           Navigator.of(context).pushNamed(
             TokenView.routeName,
-            arguments: Tuple2(
+            arguments: Tuple3(
                 walletId,
-                ref.read(tokensChangeNotifierProvider).getManagerProvider(
-                    tokenData["contractAddress"] as String)),
+                ref
+                    .read(walletsChangeNotifierProvider)
+                    .getManagerProvider(walletId),
+                token),
           );
         },
 

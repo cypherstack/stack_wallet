@@ -783,8 +783,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                             .read(managerProvider)
                                             .currentReceivingAddress;
 
-                                        // String walletTokens = await
-
                                         List<dynamic> tokens =
                                             await getWalletTokens(await ref
                                                 .read(managerProvider)

@@ -31,7 +31,7 @@ class MyTokensList extends StatelessWidget {
                 managerProvider: managerProvider,
                 walletId: walletId,
                 walletAddress: walletAddress,
-                tokenData: tokens[index] as Map<String, String>,
+                tokenData: tokens[index] as Map<dynamic, dynamic>,
               ),
             );
           },
