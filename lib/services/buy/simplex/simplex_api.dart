@@ -17,8 +17,9 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SimplexAPI {
-  static const String scheme = "https";
   static const String authority = "sandbox-api.stackwallet.com";
+  // static const String authority = "localhost";
+  static const String scheme = authority == "localhost" ? "http" : "https";
 
   final _prefs = Prefs.instance;
 
@@ -30,6 +31,9 @@ class SimplexAPI {
   http.Client? client;
 
   Uri _buildUri(String path, Map<String, String>? params) {
+    if (scheme == "http") {
+      return Uri.http(authority, path, params);
+    }
     return Uri.https(authority, path, params);
   }
 
@@ -38,8 +42,10 @@ class SimplexAPI {
       Map<String, String> headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
       };
-      Uri url = Uri.parse(
-          'https://simplex-sandbox.stackwallet.com/api.php?ROUTE=supported_cryptos');
+      Map<String, String> data = {
+        'ROUTE': 'supported_cryptos',
+      };
+      Uri url = _buildUri('api.php', data);
 
       var res = await http.post(url, headers: headers);
       if (res.statusCode != 200) {
@@ -48,7 +54,7 @@ class SimplexAPI {
       }
       final jsonArray = jsonDecode(res.body); // TODO handle if invalid json
 
-      return await compute(_parseSupportedCryptos, jsonArray);
+      return _parseSupportedCryptos(jsonArray);
     } catch (e, s) {
       Logging.instance.log("getAvailableCurrencies exception: $e\n$s",
           level: LogLevel.Error);
