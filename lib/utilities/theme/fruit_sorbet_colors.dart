@@ -325,7 +325,7 @@ class FruitSorbetColors extends StackColorTheme {
   @override
   Color get rateTypeToggleColorOff => popupBG;
   @override
-  Color get rateTypeToggleDesktopColorOn => buttonBackSecondary;
+  Color get rateTypeToggleDesktopColorOn => const Color(0xFFFFD8CE);
   @override
   Color get rateTypeToggleDesktopColorOff => buttonBackSecondary;
 

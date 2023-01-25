@@ -325,7 +325,7 @@ class DarkColors extends StackColorTheme {
   @override
   Color get rateTypeToggleColorOff => popupBG;
   @override
-  Color get rateTypeToggleDesktopColorOn => buttonBackSecondary;
+  Color get rateTypeToggleDesktopColorOn => textFieldDefaultBG;
   @override
   Color get rateTypeToggleDesktopColorOff => buttonBackSecondary;
 
