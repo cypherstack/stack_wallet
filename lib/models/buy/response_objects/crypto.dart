@@ -41,21 +41,4 @@ class Crypto {
 
     return map;
   }
-
-  Crypto copyWith({
-    String? ticker,
-    String? name,
-  }) {
-    return Crypto(
-      ticker: ticker ?? this.ticker,
-      name: name ?? this.name,
-      network: network ?? this.network,
-      contractAddress: contractAddress ?? this.contractAddress,
-    );
-  }
-
-  @override
-  String toString() {
-    return "Crypto: ${toJson()}";
-  }
 }
