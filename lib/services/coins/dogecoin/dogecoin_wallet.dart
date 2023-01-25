@@ -24,6 +24,7 @@ import 'package:stackwallet/services/event_bus/events/global/updated_in_backgrou
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/electrum_x_parsing.dart';
+import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
@@ -125,7 +126,7 @@ bip32.BIP32 getBip32RootWrapper(Tuple2<String, NetworkType> args) {
 }
 
 class DogecoinWallet extends CoinServiceAPI
-    with WalletCache, WalletDB, ElectrumXParsing {
+    with WalletCache, WalletDB, ElectrumXParsing, PaynymWalletInterface {
   static const integrationTestFlag =
       bool.fromEnvironment("IS_INTEGRATION_TEST");
   final _prefs = Prefs.instance;
@@ -1099,6 +1100,23 @@ class DogecoinWallet extends CoinServiceAPI
     _secureStore = secureStore;
     initCache(walletId, coin);
     initWalletDB(mockableOverride: mockableOverride);
+    initPaynymWalletInterface(
+      walletId: walletId,
+      walletName: walletName,
+      network: network,
+      coin: coin,
+      db: db,
+      electrumXClient: electrumXClient,
+      getMnemonic: () => mnemonic,
+      getChainHeight: () => chainHeight,
+      getCurrentChangeAddress: () => currentChangeAddress,
+      estimateTxFee: estimateTxFee,
+      prepareSend: prepareSend,
+      getTxCount: getTxCount,
+      fetchBuildTxData: fetchBuildTxData,
+      refresh: refresh,
+      checkChangeAddressForTransactions: checkChangeAddressForTransactions,
+    );
   }
 
   @override

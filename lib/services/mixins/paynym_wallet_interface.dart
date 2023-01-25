@@ -24,39 +24,39 @@ import 'package:tuple/tuple.dart';
 
 const kPaynymDerivePath = "m/47'/0'/0'";
 
-mixin PaynymSupport {
+mixin PaynymWalletInterface {
   // passed in wallet data
-  late final String walletId;
-  late final String walletName;
-  late final btc_dart.NetworkType network;
-  late final Coin coin;
-  late final MainDB db;
-  late final ElectrumX electrumXClient;
+  late final String _walletId;
+  late final String _walletName;
+  late final btc_dart.NetworkType _network;
+  late final Coin _coin;
+  late final MainDB _db;
+  late final ElectrumX _electrumXClient;
 
   // passed in wallet functions
-  late final Future<List<String>> Function() getMnemonic;
-  late final Future<int> Function() getChainHeight;
-  late final Future<String> Function() getCurrentChangeAddress;
+  late final Future<List<String>> Function() _getMnemonic;
+  late final Future<int> Function() _getChainHeight;
+  late final Future<String> Function() _getCurrentChangeAddress;
   late final int Function({
     required int vSize,
     required int feeRatePerKB,
-  }) estimateTxFee;
+  }) _estimateTxFee;
   late final Future<Map<String, dynamic>> Function({
     required String address,
     required int satoshiAmount,
     Map<String, dynamic>? args,
-  }) prepareSend;
+  }) _prepareSend;
   late final Future<int> Function({
     required String address,
-  }) getTxCount;
+  }) _getTxCount;
   late final Future<Map<String, dynamic>> Function(
     List<UTXO> utxosToUse,
-  ) fetchBuildTxData;
-  late final Future<void> Function() refresh;
-  late final Future<void> Function() checkChangeAddressForTransactions;
+  ) _fetchBuildTxData;
+  late final Future<void> Function() _refresh;
+  late final Future<void> Function() _checkChangeAddressForTransactions;
 
   // initializer
-  void initPaynymSupport({
+  void initPaynymWalletInterface({
     required String walletId,
     required String walletName,
     required btc_dart.NetworkType network,
@@ -88,28 +88,28 @@ mixin PaynymSupport {
     required Future<void> Function() refresh,
     required Future<void> Function() checkChangeAddressForTransactions,
   }) {
-    this.walletId = walletId;
-    this.walletName = walletName;
-    this.network = network;
-    this.coin = coin;
-    this.db = db;
-    this.electrumXClient = electrumXClient;
-    this.getMnemonic = getMnemonic;
-    this.getChainHeight = getChainHeight;
-    this.getCurrentChangeAddress = getCurrentChangeAddress;
-    this.estimateTxFee = estimateTxFee;
-    this.prepareSend = prepareSend;
-    this.getTxCount = getTxCount;
-    this.fetchBuildTxData = fetchBuildTxData;
-    this.refresh = refresh;
-    this.checkChangeAddressForTransactions = checkChangeAddressForTransactions;
+    _walletId = walletId;
+    _walletName = walletName;
+    _network = network;
+    _coin = coin;
+    _db = db;
+    _electrumXClient = electrumXClient;
+    _getMnemonic = getMnemonic;
+    _getChainHeight = getChainHeight;
+    _getCurrentChangeAddress = getCurrentChangeAddress;
+    _estimateTxFee = estimateTxFee;
+    _prepareSend = prepareSend;
+    _getTxCount = getTxCount;
+    _fetchBuildTxData = fetchBuildTxData;
+    _refresh = refresh;
+    _checkChangeAddressForTransactions = checkChangeAddressForTransactions;
   }
 
   // generate bip32 payment code root
   Future<bip32.BIP32> getRootNode({
     required List<String> mnemonic,
   }) async {
-    final root = await Bip32Utils.getBip32Root(mnemonic.join(" "), network);
+    final root = await Bip32Utils.getBip32Root(mnemonic.join(" "), _network);
     return root;
   }
 
@@ -128,15 +128,15 @@ mixin PaynymSupport {
     final address = await getMyNotificationAddress(derivePathType);
     final paymentCode = PaymentCode.fromPaymentCode(
       address.otherData!,
-      network,
+      _network,
     );
     return paymentCode;
   }
 
   Future<Uint8List> signWithNotificationKey(Uint8List data) async {
     final privateKey =
-        await deriveNotificationPrivateKey(mnemonic: await getMnemonic());
-    final pair = btc_dart.ECPair.fromPrivateKey(privateKey, network: network);
+        await deriveNotificationPrivateKey(mnemonic: await _getMnemonic());
+    final pair = btc_dart.ECPair.fromPrivateKey(privateKey, network: _network);
     final signed = pair.sign(SHA256Digest().process(data));
     return signed;
   }
@@ -156,13 +156,13 @@ mixin PaynymSupport {
           "No notification transaction sent to $paymentCode");
     } else {
       final myPrivateKey =
-          await deriveNotificationPrivateKey(mnemonic: await getMnemonic());
+          await deriveNotificationPrivateKey(mnemonic: await _getMnemonic());
       final sendToAddress = await nextUnusedSendAddressFrom(
         pCode: paymentCode,
         privateKey: myPrivateKey,
       );
 
-      return prepareSend(
+      return _prepareSend(
           address: sendToAddress.value, satoshiAmount: satoshiAmount);
     }
   }
@@ -178,8 +178,8 @@ mixin PaynymSupport {
     const maxCount = 2147483647;
 
     for (int i = startIndex; i < maxCount; i++) {
-      final address = await db
-          .getAddresses(walletId)
+      final address = await _db
+          .getAddresses(_walletId)
           .filter()
           .subTypeEqualTo(AddressSubType.paynymSend)
           .and()
@@ -189,7 +189,7 @@ mixin PaynymSupport {
           .findFirst();
 
       if (address != null) {
-        final count = await getTxCount(address: address.value);
+        final count = await _getTxCount(address: address.value);
         // return address if unused, otherwise continue to next index
         if (count == 0) {
           return address;
@@ -208,9 +208,9 @@ mixin PaynymSupport {
           derivePathType: DerivePathType.bip44,
           toPaymentCode: pCode,
         );
-        await db.putAddress(address);
+        await _db.putAddress(address);
 
-        final count = await getTxCount(address: address.value);
+        final count = await _getTxCount(address: address.value);
         // return address if unused, otherwise continue to next index
         if (count == 0) {
           return address;
@@ -229,15 +229,15 @@ mixin PaynymSupport {
   }) async {
     const amountToSend = DUST_LIMIT;
     final List<UTXO> availableOutputs =
-        utxos ?? await db.getUTXOs(walletId).findAll();
+        utxos ?? await _db.getUTXOs(_walletId).findAll();
     final List<UTXO> spendableOutputs = [];
     int spendableSatoshiValue = 0;
 
     // Build list of spendable outputs and totaling their satoshi amount
     for (var i = 0; i < availableOutputs.length; i++) {
       if (availableOutputs[i].isBlocked == false &&
-          availableOutputs[i]
-                  .isConfirmed(await getChainHeight(), MINIMUM_CONFIRMATIONS) ==
+          availableOutputs[i].isConfirmed(
+                  await _getChainHeight(), MINIMUM_CONFIRMATIONS) ==
               true) {
         spendableOutputs.add(availableOutputs[i]);
         spendableSatoshiValue += availableOutputs[i].value;
@@ -279,7 +279,7 @@ mixin PaynymSupport {
     }
 
     // gather required signing data
-    final utxoSigningData = await fetchBuildTxData(utxoObjectsToUse);
+    final utxoSigningData = await _fetchBuildTxData(utxoObjectsToUse);
 
     final int vSizeForNoChange = (await _createNotificationTx(
             targetPaymentCodeString: targetPaymentCodeString,
@@ -296,13 +296,13 @@ mixin PaynymSupport {
         .item2;
 
     // Assume 2 outputs, for recipient and payment code script
-    int feeForNoChange = estimateTxFee(
+    int feeForNoChange = _estimateTxFee(
       vSize: vSizeForNoChange,
       feeRatePerKB: selectedTxFeeRate,
     );
 
     // Assume 3 outputs, for recipient, payment code script, and change
-    int feeForWithChange = estimateTxFee(
+    int feeForWithChange = _estimateTxFee(
       vSize: vSizeForWithChange,
       feeRatePerKB: selectedTxFeeRate,
     );
@@ -405,7 +405,7 @@ mixin PaynymSupport {
     required int change,
   }) async {
     final targetPaymentCode =
-        PaymentCode.fromPaymentCode(targetPaymentCodeString, network);
+        PaymentCode.fromPaymentCode(targetPaymentCodeString, _network);
     final myCode = await getPaymentCode(DerivePathType.bip44);
 
     final utxo = utxosToUse.first;
@@ -437,7 +437,7 @@ mixin PaynymSupport {
     ]);
 
     // build a notification tx
-    final txb = btc_dart.TransactionBuilder(network: network);
+    final txb = btc_dart.TransactionBuilder(network: _network);
     txb.setVersion(1);
 
     txb.addInput(
@@ -452,8 +452,8 @@ mixin PaynymSupport {
     // TODO: add possible change output and mark output as dangerous
     if (change > 0) {
       // generate new change address if current change address has been used
-      await checkChangeAddressForTransactions();
-      final String changeAddress = await getCurrentChangeAddress();
+      await _checkChangeAddressForTransactions();
+      final String changeAddress = await _getCurrentChangeAddress();
       txb.addOutput(changeAddress, change);
     }
 
@@ -482,16 +482,16 @@ mixin PaynymSupport {
     try {
       Logging.instance.log("confirmNotificationTx txData: $preparedTx",
           level: LogLevel.Info);
-      final txHash = await electrumXClient.broadcastTransaction(
+      final txHash = await _electrumXClient.broadcastTransaction(
           rawTx: preparedTx["hex"] as String);
       Logging.instance.log("Sent txHash: $txHash", level: LogLevel.Info);
 
       // TODO: only refresh transaction data
       try {
-        await refresh();
+        await _refresh();
       } catch (e) {
         Logging.instance.log(
-          "refresh() failed in confirmNotificationTx ($walletName::$walletId): $e",
+          "refresh() failed in confirmNotificationTx ($_walletName::$_walletId): $e",
           level: LogLevel.Error,
         );
       }
@@ -507,10 +507,10 @@ mixin PaynymSupport {
   // TODO optimize
   Future<bool> hasConnected(String paymentCodeString) async {
     final myNotificationAddress =
-        await getMyNotificationAddress(DerivePathTypeExt.primaryFor(coin));
+        await getMyNotificationAddress(DerivePathTypeExt.primaryFor(_coin));
 
-    final txns = await db
-        .getTransactions(walletId)
+    final txns = await _db
+        .getTransactions(_walletId)
         .filter()
         .subTypeEqualTo(TransactionSubType.bip47Notification)
         .findAll();
@@ -561,7 +561,7 @@ mixin PaynymSupport {
       final pubKey = designatedInput.scriptSigAsm!.split(" ")[1].fromHex;
 
       final myPrivateKey =
-          await deriveNotificationPrivateKey(mnemonic: await getMnemonic());
+          await deriveNotificationPrivateKey(mnemonic: await _getMnemonic());
 
       final S = SecretPoint(myPrivateKey, pubKey);
 
@@ -585,9 +585,9 @@ mixin PaynymSupport {
   Future<List<PaymentCode>>
       getAllPaymentCodesFromNotificationTransactions() async {
     final myAddress =
-        await getMyNotificationAddress(DerivePathTypeExt.primaryFor(coin));
-    final txns = await db
-        .getTransactions(walletId)
+        await getMyNotificationAddress(DerivePathTypeExt.primaryFor(_coin));
+    final txns = await _db
+        .getTransactions(_walletId)
         .filter()
         .subTypeEqualTo(TransactionSubType.bip47Notification)
         .findAll();
@@ -617,7 +617,7 @@ mixin PaynymSupport {
     assert(maxNumberOfIndexesToCheck < maxCount);
 
     final myPrivateKey =
-        await deriveNotificationPrivateKey(mnemonic: await getMnemonic());
+        await deriveNotificationPrivateKey(mnemonic: await _getMnemonic());
 
     List<Address> addresses = [];
     int receivingGapCounter = 0;
@@ -644,7 +644,7 @@ mixin PaynymSupport {
         );
         addresses.add(address);
 
-        final count = await getTxCount(address: address.value);
+        final count = await _getTxCount(address: address.value);
 
         if (count > 0) {
           receivingGapCounter++;
@@ -663,7 +663,7 @@ mixin PaynymSupport {
         );
         addresses.add(address);
 
-        final count = await getTxCount(address: address.value);
+        final count = await _getTxCount(address: address.value);
 
         if (count > 0) {
           outgoingGapCounter++;
@@ -672,7 +672,7 @@ mixin PaynymSupport {
         }
       }
     }
-    await db.putAddresses(addresses);
+    await _db.putAddresses(addresses);
   }
 
   Address generatePaynymSendAddressFromKeyPair({
@@ -687,7 +687,7 @@ mixin PaynymSupport {
     switch (derivePathType) {
       case DerivePathType.bip44:
         addressString =
-            btc_dart.P2PKH(data: data, network: network).data.address!;
+            btc_dart.P2PKH(data: data, network: _network).data.address!;
         break;
 
       // The following doesn't apply currently
@@ -721,7 +721,7 @@ mixin PaynymSupport {
     }
 
     final address = Address(
-      walletId: walletId,
+      walletId: _walletId,
       value: addressString,
       publicKey: pair.publicKey,
       derivationIndex: derivationIndex,
@@ -748,7 +748,7 @@ mixin PaynymSupport {
         addressString = btc_dart
             .P2PKH(
               data: data,
-              network: network,
+              network: _network,
             )
             .data
             .address!;
@@ -788,7 +788,7 @@ mixin PaynymSupport {
     }
 
     final address = Address(
-      walletId: walletId,
+      walletId: _walletId,
       value: addressString,
       publicKey: pair.publicKey,
       derivationIndex: derivationIndex,
@@ -819,8 +819,8 @@ mixin PaynymSupport {
         break;
     }
 
-    final storedAddress = await db
-        .getAddresses(walletId)
+    final storedAddress = await _db
+        .getAddresses(_walletId)
         .filter()
         .subTypeEqualTo(AddressSubType.paynymNotification)
         .and()
@@ -833,12 +833,12 @@ mixin PaynymSupport {
     if (storedAddress != null) {
       return storedAddress;
     } else {
-      final root = await getRootNode(mnemonic: await getMnemonic());
+      final root = await getRootNode(mnemonic: await _getMnemonic());
       final node = root.derivePath(kPaynymDerivePath);
       final paymentCode = PaymentCode.initFromPubKey(
         node.publicKey,
         node.chainCode,
-        network,
+        _network,
       );
 
       String addressString;
@@ -849,7 +849,7 @@ mixin PaynymSupport {
           addressString = btc_dart
               .P2PKH(
                 data: data,
-                network: network,
+                network: _network,
               )
               .data
               .address!;
@@ -883,7 +883,7 @@ mixin PaynymSupport {
       }
 
       final address = Address(
-        walletId: walletId,
+        walletId: _walletId,
         value: addressString,
         publicKey: paymentCode.getPubKey(),
         derivationIndex: 0,
@@ -892,7 +892,7 @@ mixin PaynymSupport {
         otherData: paymentCode.toString(),
       );
 
-      await db.putAddress(address);
+      await _db.putAddress(address);
       return address;
     }
   }
