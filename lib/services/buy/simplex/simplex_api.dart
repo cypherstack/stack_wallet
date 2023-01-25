@@ -101,8 +101,10 @@ class SimplexAPI {
       Map<String, String> headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
       };
-      Uri url = Uri.parse(
-          'https://simplex-sandbox.stackwallet.com/api.php?ROUTE=supported_fiats');
+      Map<String, String> data = {
+        'ROUTE': 'supported_fiats',
+      };
+      Uri url = _buildUri('api.php', data);
 
       var res = await http.post(url, headers: headers);
       if (res.statusCode != 200) {
@@ -111,7 +113,7 @@ class SimplexAPI {
       }
       final jsonArray = jsonDecode(res.body); // TODO validate json
 
-      return await compute(_parseSupportedFiats, jsonArray);
+      return _parseSupportedFiats(jsonArray);
     } catch (e, s) {
       Logging.instance.log("getAvailableCurrencies exception: $e\n$s",
           level: LogLevel.Error);
