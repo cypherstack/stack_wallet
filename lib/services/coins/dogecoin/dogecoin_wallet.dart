@@ -34,6 +34,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
@@ -49,8 +50,6 @@ const String GENESIS_HASH_MAINNET =
     "1a91e3dace36e2be3bf030a65679fe821aa1d6ef92e7c9902eb318182c355691";
 const String GENESIS_HASH_TESTNET =
     "bb0a78264637406b6360aad926284d544d7049f45189db5664f3c4d07350559e";
-
-enum DerivePathType { bip44 }
 
 bip32.BIP32 getBip32Node(int chain, int index, String mnemonic,
     NetworkType network, DerivePathType derivePathType) {
@@ -90,7 +89,7 @@ bip32.BIP32 getBip32NodeFromRoot(
     case DerivePathType.bip44:
       return root.derivePath("m/44'/$coinType'/0'/$chain/$index");
     default:
-      throw Exception("DerivePathType must not be null.");
+      throw Exception("Unsupported DerivePathType");
   }
 }
 
@@ -1273,9 +1272,8 @@ class DogecoinWallet extends CoinServiceAPI
       case DerivePathType.bip44:
         address = P2PKH(data: data, network: network).data.address!;
         break;
-      // default:
-      //   // should never hit this due to all enum cases handled
-      //   return null;
+      default:
+        throw Exception("Unsupported DerivePathType");
     }
 
     // add generated address & info to derivations
@@ -1320,6 +1318,8 @@ class DogecoinWallet extends CoinServiceAPI
             .sortByDerivationIndexDesc()
             .findFirst();
         break;
+      default:
+        throw Exception("Unsupported DerivePathType");
     }
     return address!.value;
   }
@@ -1332,6 +1332,8 @@ class DogecoinWallet extends CoinServiceAPI
       case DerivePathType.bip44:
         key = "${walletId}_${chainId}DerivationsP2PKH";
         break;
+      default:
+        throw Exception("Unsupported DerivePathType");
     }
     return key;
   }
@@ -2339,6 +2341,8 @@ class DogecoinWallet extends CoinServiceAPI
               case DerivePathType.bip44:
                 addressesP2PKH.add(address);
                 break;
+              default:
+                throw Exception("Unsupported DerivePathType");
             }
           }
         }

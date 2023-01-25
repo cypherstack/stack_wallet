@@ -33,6 +33,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
@@ -49,8 +50,6 @@ const String GENESIS_HASH_MAINNET =
     "000000000062b72c5e2ceb45fbc8587e807c155b0da735e6483dfba2f0a9c770";
 const String GENESIS_HASH_TESTNET =
     "00000007199508e34a9ff81e6ec0c477a4cccff2a4767a8eee39c11db367b008";
-
-enum DerivePathType { bip44, bip49, bip84 }
 
 bip32.BIP32 getBip32Node(
   int chain,

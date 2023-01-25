@@ -32,6 +32,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
@@ -47,8 +48,6 @@ const String GENESIS_HASH_MAINNET =
     "0000ee0784c195317ac95623e22fddb8c7b8825dc3998e0bb924d66866eccf4c";
 const String GENESIS_HASH_TESTNET =
     "0000594ada5310b367443ee0afd4fa3d0bbd5850ea4e33cdc7d6a904a7ec7c90";
-
-enum DerivePathType { bip44, bip84 }
 
 bip32.BIP32 getBip32Node(
   int chain,
@@ -1407,6 +1406,8 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
         address = P2WPKH(network: _network, data: data).data.address!;
         addrType = isar_models.AddressType.p2wpkh;
         break;
+      default:
+        throw Exception("Unsupported DerivePathType");
     }
 
     // add generated address & info to derivations
@@ -1450,6 +1451,8 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
       case DerivePathType.bip84:
         type = isar_models.AddressType.p2wpkh;
         break;
+      default:
+        throw Exception("Unsupported DerivePathType");
     }
     address = await db
         .getAddresses(walletId)
@@ -1475,6 +1478,8 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
       case DerivePathType.bip84:
         key = "${walletId}_${chainId}DerivationsP2WPKH";
         break;
+      default:
+        throw Exception("Unsupported DerivePathType");
     }
     return key;
   }
@@ -2743,6 +2748,8 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
               case DerivePathType.bip84:
                 addressesP2WPKH.add(address);
                 break;
+              default:
+                throw Exception("Unsupported DerivePathType");
             }
           }
         }

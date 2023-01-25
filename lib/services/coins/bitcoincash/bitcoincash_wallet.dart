@@ -34,6 +34,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
@@ -49,8 +50,6 @@ const String GENESIS_HASH_MAINNET =
     "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f";
 const String GENESIS_HASH_TESTNET =
     "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943";
-
-enum DerivePathType { bip44, bip49 }
 
 bip32.BIP32 getBip32Node(int chain, int index, String mnemonic,
     NetworkType network, DerivePathType derivePathType) {
@@ -1421,9 +1420,8 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
             .address!;
         addrType = isar_models.AddressType.p2sh;
         break;
-      // default:
-      //   // should never hit this due to all enum cases handled
-      //   return null;
+      case DerivePathType.bip84:
+        throw UnsupportedError("bip84 not supported by BCH");
     }
 
     // add generated address & info to derivations
@@ -1466,6 +1464,8 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       case DerivePathType.bip49:
         type = isar_models.AddressType.p2sh;
         break;
+      case DerivePathType.bip84:
+        throw UnsupportedError("bip84 not supported by BCH");
     }
 
     final address = await db
@@ -1491,6 +1491,8 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       case DerivePathType.bip49:
         key = "${walletId}_${chainId}DerivationsP2SH";
         break;
+      case DerivePathType.bip84:
+        throw UnsupportedError("bip84 not supported by BCH");
     }
     return key;
   }
@@ -2611,6 +2613,8 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
               case DerivePathType.bip49:
                 addressesP2SH.add(address);
                 break;
+              case DerivePathType.bip84:
+                throw UnsupportedError("bip84 not supported by BCH");
             }
           }
         }
