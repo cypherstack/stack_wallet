@@ -250,18 +250,20 @@ class SimplexAPI {
       };
       Map<String, String> data = {
         'ROUTE': 'order',
-        'QUOTE_ID': "${quote.id}",
-        'ADDRESS': "${quote.receivingAddress}",
-        'CRYPTO_TICKER': "${quote.crypto.ticker.toUpperCase()}",
+        'QUOTE_ID': quote.id,
+        'ADDRESS': quote.receivingAddress,
+        'CRYPTO_TICKER': quote.crypto.ticker.toUpperCase(),
       };
       if (userID != null) {
         data['USER_ID'] = userID;
       }
       if (signupEpoch != null && signupEpoch != 0) {
+        DateTime date = DateTime.fromMillisecondsSinceEpoch(signupEpoch * 1000);
         data['SIGNUP_TIMESTAMP'] =
-            "${DateTime.fromMillisecondsSinceEpoch(signupEpoch * 1000)}";
+            date.toIso8601String() + timeZoneFormatter(date.timeZoneOffset);
       }
       Uri url = _buildUri('api.php', data);
+      print(data);
 
       var res = await http.get(url, headers: headers);
       if (res.statusCode != 200) {
@@ -323,4 +325,8 @@ class SimplexAPI {
       return false;
     }
   }
+
+  // See https://github.com/dart-lang/sdk/issues/43391#issuecomment-1229656422
+  String timeZoneFormatter(Duration offset) =>
+      "${offset.isNegative ? "-" : "+"}${offset.inHours.abs().toString().padLeft(2, "0")}:${(offset.inMinutes - offset.inHours * 60).abs().toString().padLeft(2, "0")}";
 }
