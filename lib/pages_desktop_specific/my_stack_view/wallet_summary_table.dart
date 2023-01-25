@@ -46,10 +46,15 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
 
               VoidCallback? expandOverride;
               if (providers.length == 1) {
-                expandOverride = () {
-                  Navigator.of(context).pushNamed(
+                expandOverride = () async {
+                  final manager = ref.read(providers.first);
+                  if (manager.coin == Coin.monero ||
+                      manager.coin == Coin.wownero) {
+                    await manager.initializeExisting();
+                  }
+                  await Navigator.of(context).pushNamed(
                     DesktopWalletView.routeName,
-                    arguments: ref.read(providers.first).walletId,
+                    arguments: manager.walletId,
                   );
                 };
               }
