@@ -145,7 +145,8 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                           height: 2,
                                         ),
                                         FutureBuilder(
-                                          future: manager.totalBalance,
+                                          future: Future(
+                                              () => manager.balance.getTotal()),
                                           builder: (builderContext,
                                               AsyncSnapshot<Decimal> snapshot) {
                                             if (snapshot.connectionState ==

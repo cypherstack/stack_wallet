@@ -208,7 +208,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                   },
                                   style: Theme.of(context)
                                       .extension<StackColors>()!
-                                      .getSecondaryEnabledButtonColor(context),
+                                      .getSecondaryEnabledButtonStyle(context),
                                   child: Text(
                                     "Back",
                                     style: STextStyles.button(context).copyWith(
@@ -322,7 +322,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                   },
                                   style: Theme.of(context)
                                       .extension<StackColors>()!
-                                      .getPrimaryEnabledButtonColor(context),
+                                      .getPrimaryEnabledButtonStyle(context),
                                   child: Text(
                                     "Next",
                                     style: STextStyles.button(context),

@@ -11,7 +11,7 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.5.28+102
+version: 1.5.30+105
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
@@ -54,7 +54,12 @@ dependencies:
   stack_wallet_backup:
     git:
       url: https://github.com/cypherstack/stack_wallet_backup.git
-      ref: 011dc9ce3d29f5fdeeaf711d58b5122f055c146d
+      ref: 6ada1204a4e0cf84d932b568e6150550478db69b
+
+  bip47:
+    git:
+      url: https://github.com/cypherstack/bip47.git
+      ref: testing
 
   # Utility plugins
 #  provider: ^6.0.1
@@ -130,8 +135,8 @@ dependencies:
   file_picker: ^5.0.1
   connectivity_plus: 2.3.6+1
 #  document_file_save_plus: ^1.0.5
-  isar: 3.0.0-dev.10
-  isar_flutter_libs: 3.0.0-dev.10 # contains the binaries
+  isar: 3.0.5
+  isar_flutter_libs: 3.0.5 # contains the binaries
   dropdown_button2: 1.7.2
   string_validator: ^0.3.0
 
@@ -151,7 +156,7 @@ dev_dependencies:
   analyzer: ^4.6.0
   import_sorter: ^4.6.0
   flutter_lints: ^2.0.1
-  isar_generator: 3.0.0-dev.10
+  isar_generator: 3.0.5
 
 flutter_icons:
   android: true
@@ -255,6 +260,8 @@ flutter:
     - assets/svg/x.svg
     - assets/svg/x-fat.svg
     - assets/svg/user.svg
+    - assets/svg/user-plus.svg
+    - assets/svg/user-minus.svg
     - assets/svg/trash.svg
     - assets/svg/eye.svg
     - assets/svg/eye-slash.svg
@@ -300,6 +307,7 @@ flutter:
     - assets/svg/keys.svg
     - assets/svg/arrow-down.svg
     - assets/svg/plus-circle.svg
+    - assets/svg/circle-plus-filled.svg
     - assets/svg/configuration.svg
     # coin icons
     - assets/svg/coin_icons/Bitcoin.svg
@@ -338,6 +346,7 @@ flutter:
     - assets/svg/light-mode.svg
     - assets/svg/ocean-breeze-theme.svg
     - assets/svg/oled-black-theme.svg
+    - assets/svg/fruit-sorbet-theme.svg
 
     # light theme specific
     - assets/svg/light/tx-exchange-icon.svg
@@ -369,7 +378,7 @@ flutter:
     - assets/svg/dark/stack-icon1.svg
     - assets/svg/dark/buy-coins-icon.svg
 
-    # light theme specific
+    # ocean theme specific
     - assets/svg/oceanBreeze/tx-exchange-icon.svg
     - assets/svg/oceanBreeze/tx-exchange-icon-pending.svg
     - assets/svg/oceanBreeze/tx-exchange-icon-failed.svg
@@ -399,6 +408,22 @@ flutter:
     - assets/svg/oledBlack/bell-new.svg
     - assets/svg/oledBlack/stack-icon1.svg
     - assets/svg/oledBlack/buy-coins-icon.svg
+
+    # fruit sorbet theme specific
+    - assets/svg/fruitSorbet/tx-exchange-icon.svg
+    - assets/svg/fruitSorbet/tx-exchange-icon-pending.svg
+    - assets/svg/fruitSorbet/tx-exchange-icon-failed.svg
+    - assets/svg/fruitSorbet/tx-icon-send.svg
+    - assets/svg/fruitSorbet/tx-icon-send-pending.svg
+    - assets/svg/fruitSorbet/tx-icon-send-failed.svg
+    - assets/svg/fruitSorbet/tx-icon-receive.svg
+    - assets/svg/fruitSorbet/tx-icon-receive-pending.svg
+    - assets/svg/fruitSorbet/tx-icon-receive-failed.svg
+    - assets/svg/fruitSorbet/exchange-2.svg
+    - assets/svg/fruitSorbet/bell-new.svg
+    - assets/svg/fruitSorbet/stack-icon1.svg
+    - assets/svg/fruitSorbet/buy-coins-icon.svg
+    - assets/svg/fruitSorbet/bg.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

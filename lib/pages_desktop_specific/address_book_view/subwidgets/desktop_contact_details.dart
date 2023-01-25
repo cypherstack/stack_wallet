@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:isar/isar.dart';
 import 'package:stackwallet/models/contact.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/add_new_contact_address_view.dart';
 import 'package:stackwallet/pages_desktop_specific/address_book_view/subwidgets/desktop_address_card.dart';
 import 'package:stackwallet/pages_desktop_specific/address_book_view/subwidgets/desktop_contact_options_menu_popup.dart';
@@ -21,6 +23,8 @@ import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/transaction_card.dart';
 import 'package:tuple/tuple.dart';
+
+import '../../../db/main_db.dart';
 
 class DesktopContactDetails extends ConsumerStatefulWidget {
   const DesktopContactDetails({
@@ -57,11 +61,13 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
 
     List<Tuple2<String, Transaction>> result = [];
     for (final manager in managers) {
-      final transactions = (await manager.transactionData)
-          .getAllTransactions()
-          .values
-          .toList()
-          .where((e) => _contactHasAddress(e.address, contact));
+      final transactions = await MainDB.instance
+          .getTransactions(manager.walletId)
+          .filter()
+          .anyOf(contact.addresses.map((e) => e.address),
+              (q, String e) => q.address((q) => q.valueEqualTo(e)))
+          .sortByTimestampDesc()
+          .findAll();
 
       for (final tx in transactions) {
         result.add(Tuple2(manager.walletId, tx));

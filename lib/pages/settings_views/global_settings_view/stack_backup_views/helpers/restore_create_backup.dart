@@ -133,9 +133,9 @@ abstract class SWB {
   static Future<bool> encryptStackWalletWithADK(
     String fileToSave,
     String adk,
-    String plaintext, {
-    int? adkVersion,
-  }) async {
+    String plaintext,
+    int adkVersion,
+  ) async {
     try {
       File backupFile = File(fileToSave);
       if (!backupFile.existsSync()) {

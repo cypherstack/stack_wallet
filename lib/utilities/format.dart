@@ -8,6 +8,10 @@ import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 abstract class Format {
+  static String shorten(String value, int beginCount, int endCount) {
+    return "${value.substring(0, beginCount)}...${value.substring(value.length - endCount)}";
+  }
+
   static Decimal satoshisToAmount(int sats, {required Coin coin}) {
     return (Decimal.fromInt(sats) /
             Decimal.fromInt(Constants.satsPerCoin(coin)))

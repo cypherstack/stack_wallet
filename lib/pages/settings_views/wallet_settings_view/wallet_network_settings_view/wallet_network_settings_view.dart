@@ -126,7 +126,7 @@ class _WalletNetworkSettingsViewState
             rightButton: TextButton(
               style: Theme.of(context)
                   .extension<StackColors>()!
-                  .getSecondaryEnabledButtonColor(context),
+                  .getSecondaryEnabledButtonStyle(context),
               child: Text(
                 "Ok",
                 style: STextStyles.itemSubtitle12(context),
@@ -156,7 +156,7 @@ class _WalletNetworkSettingsViewState
             rightButton: TextButton(
               style: Theme.of(context)
                   .extension<StackColors>()!
-                  .getSecondaryEnabledButtonColor(context),
+                  .getSecondaryEnabledButtonStyle(context),
               child: Text(
                 "Ok",
                 style: STextStyles.itemSubtitle12(context),
@@ -507,7 +507,7 @@ class _WalletNetworkSettingsViewState
                           children: [
                             Text(
                               "Synchronized",
-                              style: STextStyles.w600_10(context),
+                              style: STextStyles.w600_12(context),
                             ),
                             Text(
                               "100%",
@@ -581,7 +581,7 @@ class _WalletNetworkSettingsViewState
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             AnimatedText(
-                              style: STextStyles.w600_10(context),
+                              style: STextStyles.w600_12(context),
                               stringsToLoopThrough: const [
                                 "Synchronizing",
                                 "Synchronizing.",
@@ -679,7 +679,7 @@ class _WalletNetworkSettingsViewState
                           children: [
                             Text(
                               "Unable to synchronize",
-                              style: STextStyles.w600_10(context).copyWith(
+                              style: STextStyles.w600_12(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .accentColorRed,

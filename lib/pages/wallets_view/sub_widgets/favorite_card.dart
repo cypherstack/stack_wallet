@@ -217,8 +217,8 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                     ),
                   ),
                   FutureBuilder(
-                    future: ref.watch(
-                        managerProvider.select((value) => value.totalBalance)),
+                    future: Future(() => ref.watch(managerProvider
+                        .select((value) => value.balance.getTotal()))),
                     builder: (builderContext, AsyncSnapshot<Decimal> snapshot) {
                       if (snapshot.connectionState == ConnectionState.done &&
                           snapshot.hasData) {

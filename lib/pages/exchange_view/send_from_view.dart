@@ -338,7 +338,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
             rightButton: TextButton(
               style: Theme.of(context)
                   .extension<StackColors>()!
-                  .getSecondaryEnabledButtonColor(context),
+                  .getSecondaryEnabledButtonStyle(context),
               child: Text(
                 "Ok",
                 style: STextStyles.button(context).copyWith(
@@ -438,8 +438,10 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                               style: STextStyles.itemSubtitle(context),
                             ),
                             FutureBuilder(
-                              future: (manager.wallet as FiroWallet)
-                                  .availablePrivateBalance(),
+                              // TODO redo this widget now that its not actually a future
+                              future: Future(() =>
+                                  (manager.wallet as FiroWallet)
+                                      .availablePrivateBalance()),
                               builder: (builderContext,
                                   AsyncSnapshot<Decimal> snapshot) {
                                 if (snapshot.connectionState ==
@@ -524,8 +526,10 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                               style: STextStyles.itemSubtitle(context),
                             ),
                             FutureBuilder(
-                              future: (manager.wallet as FiroWallet)
-                                  .availablePublicBalance(),
+                              // TODO redo this widget now that its not actually a future
+                              future: Future(() =>
+                                  (manager.wallet as FiroWallet)
+                                      .availablePublicBalance()),
                               builder: (builderContext,
                                   AsyncSnapshot<Decimal> snapshot) {
                                 if (snapshot.connectionState ==
@@ -634,7 +638,8 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                       ),
                     if (!isFiro)
                       FutureBuilder(
-                        future: manager.totalBalance,
+                        // TODO redo this widget now that its not actually a future
+                        future: Future(() => manager.balance.getTotal()),
                         builder:
                             (builderContext, AsyncSnapshot<Decimal> snapshot) {
                           if (snapshot.connectionState ==

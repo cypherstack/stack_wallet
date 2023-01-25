@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/theme/dark_colors.dart';
+import 'package:stackwallet/utilities/theme/fruit_sorbet_colors.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
 import 'package:stackwallet/utilities/theme/oled_black_colors.dart';
 
-enum ThemeType { light, dark, oceanBreeze, oledBlack }
+enum ThemeType { light, dark, oceanBreeze, oledBlack, fruitSorbet }
 
 // adjust this file
 
@@ -20,6 +21,8 @@ extension ThemeTypeExt on ThemeType {
         return OceanBreezeColors();
       case ThemeType.oledBlack:
         return OledBlackColors();
+      case ThemeType.fruitSorbet:
+        return FruitSorbetColors();
     }
   }
 
@@ -33,6 +36,8 @@ extension ThemeTypeExt on ThemeType {
         return "Ocean Breeze";
       case ThemeType.oledBlack:
         return "Oled Black";
+      case ThemeType.fruitSorbet:
+        return "Fruit Sorbet";
     }
   }
 }
@@ -77,6 +82,8 @@ abstract class StackColorTheme {
   Color get buttonBackSecondaryDisabled;
   Color get buttonBackBorder;
   Color get buttonBackBorderDisabled;
+  Color get buttonBackBorderSecondary;
+  Color get buttonBackBorderSecondaryDisabled;
   Color get numberBackDefault;
   Color get numpadBackDefault;
   Color get bottomNavBack;
@@ -212,6 +219,9 @@ abstract class StackColorTheme {
   Color get myStackContactIconBG;
   Color get textConfirmTotalAmount;
   Color get textSelectedWordTableItem;
+
+  BoxShadow get standardBoxShadow;
+  BoxShadow? get homeViewButtonBarBoxShadow;
 }
 
 class CoinThemeColor {

@@ -105,7 +105,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                           leftButton: TextButton(
                             style: Theme.of(context)
                                 .extension<StackColors>()!
-                                .getSecondaryEnabledButtonColor(context),
+                                .getSecondaryEnabledButtonStyle(context),
                             onPressed: () {
                               Navigator.pop(context);
                             },
@@ -120,7 +120,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                           rightButton: TextButton(
                             style: Theme.of(context)
                                 .extension<StackColors>()!
-                                .getPrimaryEnabledButtonColor(context),
+                                .getPrimaryEnabledButtonStyle(context),
                             onPressed: () {
                               Navigator.pop(context);
                               Navigator.push(

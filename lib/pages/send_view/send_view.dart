@@ -485,22 +485,22 @@ class _SendViewState extends ConsumerState<SendView> {
                                       coin == Coin.firoTestNet)
                                     const Spacer(),
                                   FutureBuilder(
+                                    // TODO redo this widget now that its not actually a future
                                     future: (coin != Coin.firo &&
                                             coin != Coin.firoTestNet)
-                                        ? ref.watch(provider.select(
-                                            (value) => value.availableBalance))
-                                        : ref
-                                                    .watch(
-                                                        publicPrivateBalanceStateProvider
-                                                            .state)
-                                                    .state ==
+                                        ? Future(() => ref.watch(
+                                            provider.select((value) =>
+                                                value.balance.getSpendable())))
+                                        : ref.watch(publicPrivateBalanceStateProvider.state).state ==
                                                 "Private"
-                                            ? (ref.watch(provider).wallet
-                                                    as FiroWallet)
-                                                .availablePrivateBalance()
-                                            : (ref.watch(provider).wallet
-                                                    as FiroWallet)
-                                                .availablePublicBalance(),
+                                            ? Future(() => (ref
+                                                    .watch(provider)
+                                                    .wallet as FiroWallet)
+                                                .availablePrivateBalance())
+                                            : Future(() => (ref
+                                                    .watch(provider)
+                                                    .wallet as FiroWallet)
+                                                .availablePublicBalance()),
                                     builder:
                                         (_, AsyncSnapshot<Decimal> snapshot) {
                                       if (snapshot.connectionState ==
@@ -1085,9 +1085,10 @@ class _SendViewState extends ConsumerState<SendView> {
                                                   .decimalPlacesForCoin(coin));
                                     }
                                   } else {
-                                    cryptoAmountController.text = (await ref
+                                    cryptoAmountController.text = (ref
                                             .read(provider)
-                                            .availableBalance)
+                                            .balance
+                                            .getSpendable())
                                         .toStringAsFixed(
                                             Constants.decimalPlacesForCoin(
                                                 coin));
@@ -1523,43 +1524,43 @@ class _SendViewState extends ConsumerState<SendView> {
                                         .read(walletsChangeNotifierProvider)
                                         .getManager(walletId);
 
-                                    // TODO: remove the need for this!!
-                                    final bool isOwnAddress =
-                                        await manager.isOwnAddress(_address!);
-                                    if (isOwnAddress) {
-                                      await showDialog<dynamic>(
-                                        context: context,
-                                        useSafeArea: false,
-                                        barrierDismissible: true,
-                                        builder: (context) {
-                                          return StackDialog(
-                                            title: "Transaction failed",
-                                            message:
-                                                "Sending to self is currently disabled",
-                                            rightButton: TextButton(
-                                              style: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .getSecondaryEnabledButtonColor(
-                                                      context),
-                                              child: Text(
-                                                "Ok",
-                                                style: STextStyles.button(
-                                                        context)
-                                                    .copyWith(
-                                                        color: Theme.of(context)
-                                                            .extension<
-                                                                StackColors>()!
-                                                            .accentColorDark),
-                                              ),
-                                              onPressed: () {
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                          );
-                                        },
-                                      );
-                                      return;
-                                    }
+                                    // // TODO: remove the need for this!!
+                                    // final bool isOwnAddress =
+                                    //     await manager.isOwnAddress(_address!);
+                                    // if (isOwnAddress && coin != Coin.dogecoinTestNet) {
+                                    //   await showDialog<dynamic>(
+                                    //     context: context,
+                                    //     useSafeArea: false,
+                                    //     barrierDismissible: true,
+                                    //     builder: (context) {
+                                    //       return StackDialog(
+                                    //         title: "Transaction failed",
+                                    //         message:
+                                    //             "Sending to self is currently disabled",
+                                    //         rightButton: TextButton(
+                                    //           style: Theme.of(context)
+                                    //               .extension<StackColors>()!
+                                    //               .getSecondaryEnabledButtonColor(
+                                    //                   context),
+                                    //           child: Text(
+                                    //             "Ok",
+                                    //             style: STextStyles.button(
+                                    //                     context)
+                                    //                 .copyWith(
+                                    //                     color: Theme.of(context)
+                                    //                         .extension<
+                                    //                             StackColors>()!
+                                    //                         .accentColorDark),
+                                    //           ),
+                                    //           onPressed: () {
+                                    //             Navigator.of(context).pop();
+                                    //           },
+                                    //         ),
+                                    //       );
+                                    //     },
+                                    //   );
+                                    //   return;
+                                    // }
 
                                     final amount =
                                         Format.decimalAmountToSatoshis(
@@ -1575,22 +1576,20 @@ class _SendViewState extends ConsumerState<SendView> {
                                           "Private") {
                                         availableBalance =
                                             Format.decimalAmountToSatoshis(
-                                                await (manager.wallet
-                                                        as FiroWallet)
+                                                (manager.wallet as FiroWallet)
                                                     .availablePrivateBalance(),
                                                 coin);
                                       } else {
                                         availableBalance =
                                             Format.decimalAmountToSatoshis(
-                                                await (manager.wallet
-                                                        as FiroWallet)
+                                                (manager.wallet as FiroWallet)
                                                     .availablePublicBalance(),
                                                 coin);
                                       }
                                     } else {
                                       availableBalance =
                                           Format.decimalAmountToSatoshis(
-                                              await manager.availableBalance,
+                                              manager.balance.getSpendable(),
                                               coin);
                                     }
 
@@ -1609,7 +1608,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                             leftButton: TextButton(
                                               style: Theme.of(context)
                                                   .extension<StackColors>()!
-                                                  .getSecondaryEnabledButtonColor(
+                                                  .getSecondaryEnabledButtonStyle(
                                                       context),
                                               child: Text(
                                                 "Cancel",
@@ -1629,7 +1628,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                             rightButton: TextButton(
                                               style: Theme.of(context)
                                                   .extension<StackColors>()!
-                                                  .getPrimaryEnabledButtonColor(
+                                                  .getPrimaryEnabledButtonStyle(
                                                       context),
                                               child: Text(
                                                 "Yes",
@@ -1739,7 +1738,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                               rightButton: TextButton(
                                                 style: Theme.of(context)
                                                     .extension<StackColors>()!
-                                                    .getSecondaryEnabledButtonColor(
+                                                    .getSecondaryEnabledButtonStyle(
                                                         context),
                                                 child: Text(
                                                   "Ok",
@@ -1768,10 +1767,10 @@ class _SendViewState extends ConsumerState<SendView> {
                                     .state
                                 ? Theme.of(context)
                                     .extension<StackColors>()!
-                                    .getPrimaryEnabledButtonColor(context)
+                                    .getPrimaryEnabledButtonStyle(context)
                                 : Theme.of(context)
                                     .extension<StackColors>()!
-                                    .getPrimaryDisabledButtonColor(context),
+                                    .getPrimaryDisabledButtonStyle(context),
                             child: Text(
                               "Preview",
                               style: STextStyles.button(context),

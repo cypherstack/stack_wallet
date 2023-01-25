@@ -37,6 +37,7 @@ class _SVG {
         return null;
 
       case ThemeType.oceanBreeze:
+      case ThemeType.fruitSorbet:
         return "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/bg.svg";
     }
   }
@@ -71,6 +72,7 @@ class _SVG {
   String txExchangeFailed(BuildContext context) =>
       "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/tx-exchange-icon-failed.svg";
 
+  String get themeFruit => "assets/svg/fruit-sorbet-theme.svg";
   String get themeOledBlack => "assets/svg/oled-black-theme.svg";
   String get themeOcean => "assets/svg/ocean-breeze-theme.svg";
   String get themeLight => "assets/svg/light-mode.svg";
@@ -78,6 +80,7 @@ class _SVG {
 
   String get circleSliders => "assets/svg/configuration.svg";
   String get circlePlus => "assets/svg/plus-circle.svg";
+  String get circlePlusFilled => "assets/svg/circle-plus-filled.svg";
   String get framedGear => "assets/svg/framed-gear.svg";
   String get framedAddressBook => "assets/svg/framed-address-book.svg";
   String get circleNode => "assets/svg/node-circle.svg";
@@ -136,6 +139,8 @@ class _SVG {
   String get thickX => "assets/svg/x-fat.svg";
   String get x => "assets/svg/x.svg";
   String get user => "assets/svg/user.svg";
+  String get userPlus => "assets/svg/user-plus.svg";
+  String get userMinus => "assets/svg/user-minus.svg";
   String get trash => "assets/svg/trash.svg";
   String get eye => "assets/svg/eye.svg";
   String get eyeSlash => "assets/svg/eye-slash.svg";

@@ -16,6 +16,7 @@ class SecondaryButton extends StatelessWidget {
     this.onPressed,
     this.enabled = true,
     this.buttonHeight,
+    this.iconSpacing = 10,
   }) : super(key: key);
 
   final double? width;
@@ -25,6 +26,7 @@ class SecondaryButton extends StatelessWidget {
   final bool enabled;
   final Widget? icon;
   final ButtonHeight? buttonHeight;
+  final double iconSpacing;
 
   TextStyle getStyle(bool isDesktop, BuildContext context) {
     if (isDesktop) {
@@ -66,6 +68,16 @@ class SecondaryButton extends StatelessWidget {
               : STextStyles.desktopButtonSecondaryDisabled(context);
       }
     } else {
+      if (buttonHeight == ButtonHeight.l) {
+        return STextStyles.button(context).copyWith(
+          fontSize: 10,
+          color: enabled
+              ? Theme.of(context).extension<StackColors>()!.buttonTextSecondary
+              : Theme.of(context)
+                  .extension<StackColors>()!
+                  .buttonTextSecondaryDisabled,
+        );
+      }
       return STextStyles.button(context).copyWith(
         color: enabled
             ? Theme.of(context).extension<StackColors>()!.buttonTextSecondary
@@ -127,22 +139,33 @@ class SecondaryButton extends StatelessWidget {
         style: enabled
             ? Theme.of(context)
                 .extension<StackColors>()!
-                .getSecondaryEnabledButtonColor(context)
+                .getSecondaryEnabledButtonStyle(context)
             : Theme.of(context)
                 .extension<StackColors>()!
-                .getSecondaryDisabledButtonColor(context),
+                .getSecondaryDisabledButtonStyle(context),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (icon != null) icon!,
             if (icon != null && label != null)
-              const SizedBox(
-                width: 10,
+              SizedBox(
+                width: iconSpacing,
               ),
             if (label != null)
-              Text(
-                label!,
-                style: getStyle(isDesktop, context),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    label!,
+                    style: getStyle(isDesktop, context),
+                  ),
+                  if (buttonHeight != null && buttonHeight == ButtonHeight.s)
+                    const SizedBox(
+                      height: 2,
+                    ),
+                ],
               ),
           ],
         ),

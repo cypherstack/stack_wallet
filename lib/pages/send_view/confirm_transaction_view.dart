@@ -12,6 +12,8 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/route_generator.dart';
+import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
+import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -41,6 +43,9 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
     required this.walletId,
     this.routeOnSuccessName = WalletView.routeName,
     this.isTradeTransaction = false,
+    this.isPaynymTransaction = false,
+    this.isPaynymNotificationTransaction = false,
+    this.onSuccessInsteadOfRouteOnSuccess,
   }) : super(key: key);
 
   static const String routeName = "/confirmTransactionView";
@@ -49,6 +54,9 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
   final String walletId;
   final String routeOnSuccessName;
   final bool isTradeTransaction;
+  final bool isPaynymTransaction;
+  final bool isPaynymNotificationTransaction;
+  final VoidCallback? onSuccessInsteadOfRouteOnSuccess;
 
   @override
   ConsumerState<ConfirmTransactionView> createState() =>
@@ -83,14 +91,22 @@ class _ConfirmTransactionViewState
 
     try {
       String txid;
-      final coin = manager.coin;
-      if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-          ref.read(publicPrivateBalanceStateProvider.state).state !=
-              "Private") {
-        txid = await (manager.wallet as FiroWallet)
-            .confirmSendPublic(txData: transactionInfo);
+      if (widget.isPaynymNotificationTransaction) {
+        txid = await (manager.wallet as DogecoinWallet)
+            .confirmNotificationTx(preparedTx: transactionInfo);
+      } else if (widget.isPaynymTransaction) {
+        //
+        throw UnimplementedError("paynym send not implemented yet");
       } else {
-        txid = await manager.confirmSend(txData: transactionInfo);
+        final coin = manager.coin;
+        if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+            ref.read(publicPrivateBalanceStateProvider.state).state !=
+                "Private") {
+          txid = await (manager.wallet as FiroWallet)
+              .confirmSendPublic(txData: transactionInfo);
+        } else {
+          txid = await manager.confirmSend(txData: transactionInfo);
+        }
       }
 
       // save note
@@ -102,7 +118,12 @@ class _ConfirmTransactionViewState
 
       // pop back to wallet
       if (mounted) {
-        Navigator.of(context).popUntil(ModalRoute.withName(routeOnSuccessName));
+        if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
+          Navigator.of(context)
+              .popUntil(ModalRoute.withName(routeOnSuccessName));
+        } else {
+          widget.onSuccessInsteadOfRouteOnSuccess!.call();
+        }
       }
     } on BadEpicHttpAddressException catch (_) {
       if (mounted) {
@@ -175,7 +196,7 @@ class _ConfirmTransactionViewState
               rightButton: TextButton(
                 style: Theme.of(context)
                     .extension<StackColors>()!
-                    .getSecondaryEnabledButtonColor(context),
+                    .getSecondaryEnabledButtonStyle(context),
                 child: Text(
                   "Ok",
                   style: STextStyles.button(context).copyWith(

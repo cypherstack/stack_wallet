@@ -40,6 +40,7 @@ class CoinWalletsTable extends ConsumerWidget {
           children: [
             for (int i = 0; i < walletIds.length; i++)
               Column(
+                key: Key("${coin.name}_$runtimeType${walletIds[i]}_key"),
                 children: [
                   if (i != 0)
                     const SizedBox(

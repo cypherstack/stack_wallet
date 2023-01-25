@@ -69,7 +69,7 @@ class DeleteWalletWarningView extends ConsumerWidget {
               TextButton(
                 style: Theme.of(context)
                     .extension<StackColors>()!
-                    .getSecondaryEnabledButtonColor(context),
+                    .getSecondaryEnabledButtonStyle(context),
                 onPressed: () {
                   Navigator.pop(context);
                 },
@@ -87,7 +87,7 @@ class DeleteWalletWarningView extends ConsumerWidget {
               TextButton(
                 style: Theme.of(context)
                     .extension<StackColors>()!
-                    .getPrimaryEnabledButtonColor(context),
+                    .getPrimaryEnabledButtonStyle(context),
                 onPressed: () async {
                   final manager = ref
                       .read(walletsChangeNotifierProvider)
