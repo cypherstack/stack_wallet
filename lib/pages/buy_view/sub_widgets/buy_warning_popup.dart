@@ -8,9 +8,14 @@ import 'package:stackwallet/pages/buy_view/buy_order_details.dart';
 import 'package:stackwallet/services/buy/buy_response.dart';
 import 'package:stackwallet/services/buy/simplex/simplex_api.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class BuyWarningPopup extends StatelessWidget {
@@ -37,12 +42,61 @@ class BuyWarningPopup extends StatelessWidget {
 
     Future<void> _buyInvoice() async {
       await showDialog<void>(
-        context: context,
-        // useRootNavigator: isDesktop,
-        builder: (context) => BuyOrderDetailsView(
-          order: order as SimplexOrder,
-        ),
-      );
+          context: context,
+          // useRootNavigator: isDesktop,
+          builder: (context) {
+            return isDesktop
+                ? DesktopDialog(
+                    maxHeight: 700,
+                    maxWidth: 580,
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                left: 32,
+                              ),
+                              child: Text(
+                                "Order details",
+                                style: STextStyles.desktopH3(context),
+                              ),
+                            ),
+                            const DesktopDialogCloseButton(),
+                          ],
+                        ),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              left: 32,
+                              right: 32,
+                              bottom: 32,
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: RoundedWhiteContainer(
+                                    padding: const EdgeInsets.all(16),
+                                    borderColor: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .background,
+                                    child: BuyOrderDetailsView(
+                                      order: order as SimplexOrder,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : BuyOrderDetailsView(
+                    order: order as SimplexOrder,
+                  );
+          });
     }
 
     return StackDialog(
