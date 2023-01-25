@@ -16,7 +16,7 @@ class OledBlackColors extends StackColorTheme {
   Color get overlay => const Color(0xFF121212);
 
   @override
-  Color get accentColorBlue => const Color(0xFF77A7F9);
+  Color get accentColorBlue => const Color(0xFFF26822);
   @override
   Color get accentColorGreen => const Color(0xFF4CC0A0);
   @override
@@ -61,17 +61,17 @@ class OledBlackColors extends StackColorTheme {
 
   // button background
   @override
-  Color get buttonBackPrimary => const Color(0xFF6F9CE9);
+  Color get buttonBackPrimary => const Color(0xFFF26822);
   @override
   Color get buttonBackSecondary => const Color(0xFF1F1F1F);
   @override
-  Color get buttonBackPrimaryDisabled => const Color(0xFF212F46);
+  Color get buttonBackPrimaryDisabled => const Color(0xFF491F0A);
   @override
-  Color get buttonBackSecondaryDisabled => const Color(0xFF3D3D3D);
+  Color get buttonBackSecondaryDisabled => const Color(0xFF0F0F0F);
   @override
-  Color get buttonBackBorder => const Color(0xFF6F9CE9);
+  Color get buttonBackBorder => const Color(0xFFF26822);
   @override
-  Color get buttonBackBorderDisabled => const Color(0xFF212F46);
+  Color get buttonBackBorderDisabled => const Color(0xFF491F0A);
   @override
   Color get buttonBackBorderSecondary => buttonBackSecondary;
   @override
@@ -80,7 +80,7 @@ class OledBlackColors extends StackColorTheme {
   @override
   Color get numberBackDefault => const Color(0xFF242424);
   @override
-  Color get numpadBackDefault => const Color(0xFF6F9CE9);
+  Color get numpadBackDefault => const Color(0xFFF26822);
   @override
   Color get bottomNavBack => const Color(0xFF202122);
 
@@ -92,15 +92,15 @@ class OledBlackColors extends StackColorTheme {
   @override
   Color get buttonTextPrimaryDisabled => const Color(0xFF000000);
   @override
-  Color get buttonTextSecondaryDisabled => const Color(0xFF090909);
+  Color get buttonTextSecondaryDisabled => const Color(0xFF6F6F6F);
   @override
-  Color get buttonTextBorder => const Color(0xFF6F9CE9);
+  Color get buttonTextBorder => const Color(0xFFF26822);
   @override
   Color get buttonTextDisabled => const Color(0xFF000000);
   @override
-  Color get buttonTextBorderless => const Color(0xFF6F9CE9);
+  Color get buttonTextBorderless => const Color(0xFFF26822);
   @override
-  Color get buttonTextBorderlessDisabled => const Color(0xFF212F46);
+  Color get buttonTextBorderlessDisabled => const Color(0xFF491F0A);
   @override
   Color get numberTextDefault => const Color(0xFFD3D3D3);
   @override
@@ -110,27 +110,27 @@ class OledBlackColors extends StackColorTheme {
 
   // switch
   @override
-  Color get switchBGOn => const Color(0xFF77A7F9);
+  Color get switchBGOn => const Color(0xFFF26822);
   @override
-  Color get switchBGOff => const Color(0xFF445C85);
+  Color get switchBGOff => const Color(0xFF403F3F);
   @override
   Color get switchBGDisabled => const Color(0xFF333538);
   @override
-  Color get switchCircleOn => const Color(0xFFC9DDF5);
+  Color get switchCircleOn => const Color(0xFFFFE8DC);
   @override
-  Color get switchCircleOff => const Color(0xFF94AAC9);
+  Color get switchCircleOff => const Color(0xFFFAF6F3);
   @override
   Color get switchCircleDisabled => const Color(0xFF848484);
 
   // step indicator background
   @override
-  Color get stepIndicatorBGCheck => const Color(0xFF77A7F9);
+  Color get stepIndicatorBGCheck => const Color(0xFFF26822);
   @override
-  Color get stepIndicatorBGNumber => const Color(0xFF77A7F9);
+  Color get stepIndicatorBGNumber => const Color(0xFFF26822);
   @override
   Color get stepIndicatorBGInactive => const Color(0xFF3B3F46);
   @override
-  Color get stepIndicatorBGLines => const Color(0xFF6393E5);
+  Color get stepIndicatorBGLines => const Color(0xFFF26822);
   @override
   Color get stepIndicatorBGLinesInactive => const Color(0xFF63676E);
   @override
@@ -138,15 +138,15 @@ class OledBlackColors extends StackColorTheme {
   @override
   Color get stepIndicatorIconNumber => const Color(0xFF000000);
   @override
-  Color get stepIndicatorIconInactive => const Color(0xFFA5A5A5);
+  Color get stepIndicatorIconInactive => const Color(0xFFAFAFAF);
 
   // checkbox
   @override
-  Color get checkboxBGChecked => const Color(0xFF77A7F9);
+  Color get checkboxBGChecked => const Color(0xFFF26822);
   @override
-  Color get checkboxBorderEmpty => const Color(0xFF353536);
+  Color get checkboxBorderEmpty => const Color(0xFF66696A);
   @override
-  Color get checkboxBGDisabled => const Color(0xFF5D759B);
+  Color get checkboxBGDisabled => const Color(0xFF783818);
   @override
   Color get checkboxIconChecked => const Color(0xFF000000);
   @override
@@ -251,17 +251,17 @@ class OledBlackColors extends StackColorTheme {
 
   // radio buttons
   @override
-  Color get radioButtonIconBorder => const Color(0xFF77A7F9);
+  Color get radioButtonIconBorder => const Color(0xFFF26822);
   @override
   Color get radioButtonIconBorderDisabled => const Color(0xFF7D7D7D);
   @override
-  Color get radioButtonBorderEnabled => const Color(0xFF77A7F9);
+  Color get radioButtonBorderEnabled => const Color(0xFFF26822);
   @override
   Color get radioButtonBorderDisabled => const Color(0xFF7D7D7D);
   @override
-  Color get radioButtonIconCircle => const Color(0xFF77A7F9);
+  Color get radioButtonIconCircle => const Color(0xFFF26822);
   @override
-  Color get radioButtonIconEnabled => const Color(0xFF77A7F9);
+  Color get radioButtonIconEnabled => const Color(0xFFF26822);
   @override
   Color get radioButtonTextEnabled => const Color(0xFFA8AAB2);
   @override
@@ -279,7 +279,7 @@ class OledBlackColors extends StackColorTheme {
   @override
   Color get infoItemText => const Color(0xFFDEDEDE);
   @override
-  Color get infoItemIcons => const Color(0xFF77A7F9);
+  Color get infoItemIcons => const Color(0xFF5C94F4);
 
   // popup
   @override

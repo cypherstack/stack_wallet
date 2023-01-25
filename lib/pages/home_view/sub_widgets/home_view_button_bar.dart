@@ -127,37 +127,46 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
             ),
           ),
         ),
-        // TODO: Do not delete this code.
-        // only temporarily disabled
-        // SizedBox(
-        //   width: 8,
-        // ),
-        // Expanded(
-        //   child: TextButton(
-        //     style: ButtonStyle(
-        //       minimumSize: MaterialStateProperty.all<Size>(Size(46, 36)),
-        //       backgroundColor: MaterialStateProperty.all<Color>(
-        //         selectedIndex == 2
-        //             ? CFColors.stackAccent
-        //             : CFColors.disabledButton,
-        //       ),
-        //     ),
-        //     onPressed: () {
-        //       FocusScope.of(context).unfocus();
-        //       if (selectedIndex != 2) {
-        //         ref.read(homeViewPageIndexStateProvider.state).state = 2;
-        //       }
-        //     },
-        //     child: Text(
-        //       "Buy",
-        //       style: STextStyles.button(context).copyWith(
-        //         fontSize: 14,
-        //         color:
-        //             selectedIndex == 2 ? CFColors.light1 : Theme.of(context).extension<StackColors>()!.accentColorDark
-        //       ),
-        //     ),
-        //   ),
-        // ),
+        const SizedBox(
+          width: 8,
+        ),
+        Expanded(
+          child: TextButton(
+            style: selectedIndex == 2
+                ? Theme.of(context)
+                    .extension<StackColors>()!
+                    .getPrimaryEnabledButtonStyle(context)!
+                    .copyWith(
+                      minimumSize:
+                          MaterialStateProperty.all<Size>(const Size(46, 36)),
+                    )
+                : Theme.of(context)
+                    .extension<StackColors>()!
+                    .getSecondaryEnabledButtonStyle(context)!
+                    .copyWith(
+                      minimumSize:
+                          MaterialStateProperty.all<Size>(const Size(46, 36)),
+                    ),
+            onPressed: () async {
+              FocusScope.of(context).unfocus();
+              if (selectedIndex != 2) {
+                ref.read(homeViewPageIndexStateProvider.state).state = 2;
+              }
+              // await BuyDataLoadingService().loadAll(ref);
+            },
+            child: Text(
+              "Buy",
+              style: STextStyles.button(context).copyWith(
+                fontSize: 14,
+                color: selectedIndex == 2
+                    ? Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonTextPrimary
+                    : Theme.of(context).extension<StackColors>()!.textDark,
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }

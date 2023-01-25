@@ -6,8 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
-import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/delete_wallet_button.dart';
@@ -26,8 +24,6 @@ import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
-import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -44,8 +40,6 @@ import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/hover_text_field.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:tuple/tuple.dart';
 
 /// [eventBus] should only be set during testing
 class DesktopWalletView extends ConsumerStatefulWidget {
@@ -70,8 +64,6 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
 
   late final bool _shouldDisableAutoSyncOnLogOut;
 
-  final _cnLoadingService = ExchangeDataLoadingService();
-
   Future<void> onBackPressed() async {
     await _logout();
     if (mounted) {
@@ -94,87 +86,6 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
       unawaited(ref.read(autoSWBServiceProvider).doBackup());
     }
     ref.read(managerProvider.notifier).isActiveWallet = false;
-  }
-
-  void _loadCNData() {
-    // unawaited future
-    if (ref.read(prefsChangeNotifierProvider).externalCalls) {
-      _cnLoadingService.loadAll(ref,
-          coin: ref
-              .read(walletsChangeNotifierProvider)
-              .getManager(widget.walletId)
-              .coin);
-    } else {
-      Logging.instance.log("User does not want to use external calls",
-          level: LogLevel.Info);
-    }
-  }
-
-  void _onExchangePressed(BuildContext context) async {
-    final managerProvider = ref
-        .read(walletsChangeNotifierProvider)
-        .getManagerProvider(widget.walletId);
-    unawaited(_cnLoadingService.loadAll(ref));
-
-    final coin = ref.read(managerProvider).coin;
-
-    if (coin == Coin.epicCash) {
-      await showDialog<void>(
-        context: context,
-        builder: (_) => const StackOkDialog(
-          title: "Exchange not available for Epic Cash",
-        ),
-      );
-    } else if (coin.name.endsWith("TestNet")) {
-      await showDialog<void>(
-        context: context,
-        builder: (_) => const StackOkDialog(
-          title: "Exchange not available for test net coins",
-        ),
-      );
-    } else {
-      ref.read(currentExchangeNameStateProvider.state).state =
-          ChangeNowExchange.exchangeName;
-      ref.read(prefsChangeNotifierProvider).exchangeRateType =
-          ExchangeRateType.estimated;
-
-      ref.read(exchangeFormStateProvider).exchange = ref.read(exchangeProvider);
-      ref.read(exchangeFormStateProvider).exchangeType =
-          ExchangeRateType.estimated;
-
-      final currencies = ref
-          .read(availableChangeNowCurrenciesProvider)
-          .currencies
-          .where((element) =>
-              element.ticker.toLowerCase() == coin.ticker.toLowerCase());
-
-      if (currencies.isNotEmpty) {
-        ref.read(exchangeFormStateProvider).setCurrencies(
-              currencies.first,
-              ref
-                  .read(availableChangeNowCurrenciesProvider)
-                  .currencies
-                  .firstWhere(
-                    (element) =>
-                        element.ticker.toLowerCase() !=
-                        coin.ticker.toLowerCase(),
-                  ),
-            );
-      }
-
-      if (mounted) {
-        unawaited(
-          Navigator.of(context).pushNamed(
-            WalletInitiatedExchangeView.routeName,
-            arguments: Tuple3(
-              widget.walletId,
-              coin,
-              _loadCNData,
-            ),
-          ),
-        );
-      }
-    }
   }
 
   Future<void> attemptAnonymize() async {

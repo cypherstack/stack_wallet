@@ -232,6 +232,8 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                                 if (isEasy) {
                                   unawaited(ExchangeDataLoadingService()
                                       .loadAll(ref));
+                                  // unawaited(
+                                  //     BuyDataLoadingService().loadAll(ref));
                                   ref
                                       .read(priceAnd24hChangeNotifierProvider)
                                       .start(true);
