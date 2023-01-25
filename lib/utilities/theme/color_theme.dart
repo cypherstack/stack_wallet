@@ -220,9 +220,16 @@ abstract class StackColorTheme {
   Color get textConfirmTotalAmount;
   Color get textSelectedWordTableItem;
 
+// rate type toggle
+  Color get rateTypeToggleColorOn;
+  Color get rateTypeToggleColorOff;
+  Color get rateTypeToggleDesktopColorOn;
+  Color get rateTypeToggleDesktopColorOff;
+
   BoxShadow get standardBoxShadow;
   BoxShadow? get homeViewButtonBarBoxShadow;
 }
+// 0xFFFFD8CE
 
 class CoinThemeColor {
   const CoinThemeColor();
