@@ -242,6 +242,10 @@ class SimplexAPI {
     //      --header 'content-type: application/json' \
     //      -d '{"account_details": {"app_provider_id": "$publicKey", "app_version_id": "123", "app_end_user_id": "01e7a0b9-8dfc-4988-a28d-84a34e5f0a63", "signup_login": {"timestamp": "1994-11-05T08:15:30-05:00", "ip": "207.66.86.226"}}, "transaction_details": {"payment_details": {"quote_id": "3b58f4b4-ed6f-447c-b96a-ffe97d7b6803", "payment_id": "baaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "order_id": "789", "original_http_ref_url": "https://stackwallet.com/simplex", "destination_wallet": {"currency": "BTC", "address": "bc1qjvj9ca8gdsv3g58yrzrk6jycvgnjh9uj35rja2"}}}}'
     try {
+      await _prefs.init();
+      String? userID = _prefs.userID;
+      int? signupEpoch = _prefs.signupEpoch;
+
       Map<String, String> headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
       };
@@ -251,10 +255,15 @@ class SimplexAPI {
         'ADDRESS': "${quote.receivingAddress}",
         'CRYPTO_TICKER': "${quote.crypto.ticker.toUpperCase()}",
       };
-      // TODO add USER_ID
+      if (userID != null) {
+        data['USER_ID'] = userID;
+      }
+      if (signupEpoch != null && signupEpoch != 0) {
+        data['SIGNUP_TIMESTAMP'] =
+            "${DateTime.fromMillisecondsSinceEpoch(signupEpoch * 1000)}";
+      }
+      Uri url = _buildUri('api.php', data);
 
-      Uri url = Uri.https('simplex-sandbox.stackwallet.com', 'api.php', data);
-      // TODO update to stackwallet.com hosted API and use HTTPS
       var res = await http.get(url, headers: headers);
       if (res.statusCode != 200) {
         throw Exception('newOrder exception: statusCode= ${res.statusCode}');
