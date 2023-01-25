@@ -3,11 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/toggle.dart';
-
-import '../../../utilities/constants.dart';
 
 class RateTypeToggle extends ConsumerWidget {
   const RateTypeToggle({
@@ -37,10 +36,16 @@ class RateTypeToggle extends ConsumerWidget {
         }
       },
       isOn: !estimated,
-      onColor: Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
+      onColor: isDesktop
+          ? Theme.of(context)
+              .extension<StackColors>()!
+              .rateTypeToggleDesktopColorOn
+          : Theme.of(context).extension<StackColors>()!.rateTypeToggleColorOn,
       offColor: isDesktop
-          ? Theme.of(context).extension<StackColors>()!.buttonBackSecondary
-          : Theme.of(context).extension<StackColors>()!.popupBG,
+          ? Theme.of(context)
+              .extension<StackColors>()!
+              .rateTypeToggleDesktopColorOff
+          : Theme.of(context).extension<StackColors>()!.rateTypeToggleColorOff,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(
           Constants.size.circularBorderRadius,

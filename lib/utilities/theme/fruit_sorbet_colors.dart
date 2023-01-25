@@ -319,6 +319,16 @@ class FruitSorbetColors extends StackColorTheme {
   @override
   Color get textSelectedWordTableItem => const Color(0xFF232323);
 
+  //rate type toggle
+  @override
+  Color get rateTypeToggleColorOn => const Color(0xFFFFD8CE);
+  @override
+  Color get rateTypeToggleColorOff => popupBG;
+  @override
+  Color get rateTypeToggleDesktopColorOn => const Color(0xFFFFD8CE);
+  @override
+  Color get rateTypeToggleDesktopColorOff => buttonBackSecondary;
+
   @override
   BoxShadow get standardBoxShadow => BoxShadow(
         color: shadow,
