@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages/buy_view/buy_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_loading_overlay.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_view.dart';
 import 'package:stackwallet/pages/home_view/sub_widgets/home_view_button_bar.dart';
@@ -45,6 +46,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
   bool _exitEnabled = false;
 
   final _exchangeDataLoadingService = ExchangeDataLoadingService();
+  // final _buyDataLoadingService = BuyDataLoadingService();
 
   Future<bool> _onWillPop() async {
     // go to home view when tapping back on the main exchange view
@@ -92,6 +94,26 @@ class _HomeViewState extends ConsumerState<HomeView> {
     }
   }
 
+  // void _loadSimplexData() {
+  //   // unawaited future
+  //   if (ref.read(prefsChangeNotifierProvider).externalCalls) {
+  //     _buyDataLoadingService.loadAll(ref);
+  //   } else {
+  //     Logging.instance.log("User does not want to use external calls",
+  //         level: LogLevel.Info);
+  //   }
+  // }
+
+  bool _lock = false;
+
+  Future<void> _animateToPage(int index) async {
+    await _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.decelerate,
+    );
+  }
+
   @override
   void initState() {
     _pageController = PageController();
@@ -106,7 +128,14 @@ class _HomeViewState extends ConsumerState<HomeView> {
             ),
           ],
         ),
-      // const BuyView(),
+      if (Constants.enableBuy)
+        // Stack(
+        //   children: [
+        const BuyView(),
+      // BuyLoadingOverlayView(
+      //   unawaitedLoad: _loadSimplexData,
+      // ),
+      //   ],
     ];
 
     ref.read(notificationsProvider).startCheckingWatchedNotifications();
@@ -301,35 +330,31 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   builder: (_, _ref, __) {
                     _ref.listen(homeViewPageIndexStateProvider,
                         (previous, next) {
-                      if (next is int) {
+                      if (next is int && next >= 0 && next <= 2) {
                         if (next == 1) {
                           _exchangeDataLoadingService.loadAll(ref);
                         }
-                        if (next >= 0 && next <= 1) {
-                          _pageController.animateToPage(
-                            next,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.decelerate,
-                          );
-                        }
+                        // if (next == 2) {
+                        //   _buyDataLoadingService.loadAll(ref);
+                        // }
+
+                        _lock = true;
+                        _animateToPage(next).then((value) => _lock = false);
                       }
                     });
                     return PageView(
                       controller: _pageController,
                       children: _children,
                       onPageChanged: (pageIndex) {
-                        ref.read(homeViewPageIndexStateProvider.state).state =
-                            pageIndex;
+                        if (!_lock) {
+                          ref.read(homeViewPageIndexStateProvider.state).state =
+                              pageIndex;
+                        }
                       },
                     );
                   },
                 ),
               ),
-              // Expanded(
-              //   child: HomeStack(
-              //     children: _children,
-              //   ),
-              // ),
             ],
           ),
         ),

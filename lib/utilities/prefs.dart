@@ -5,6 +5,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/languages_enum.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
+import 'package:uuid/uuid.dart';
 
 class Prefs extends ChangeNotifier {
   Prefs._();
@@ -38,6 +39,8 @@ class Prefs extends ChangeNotifier {
       _startupWalletId = await _getStartupWalletId();
       _externalCalls = await _getHasExternalCalls();
       _familiarity = await _getHasFamiliarity();
+      _userId = await _getUserId();
+      _signupEpoch = await _getSignupEpoch();
 
       _initialized = true;
     }
@@ -601,5 +604,46 @@ class Prefs extends ChangeNotifier {
       return false;
     }
     return true;
+  }
+
+  String? _userId;
+  String? get userID => _userId;
+
+  Future<String?> _getUserId() async {
+    String? userID = await DB.instance
+        .get<dynamic>(boxName: DB.boxNamePrefs, key: "userID") as String?;
+    if (userID == null) {
+      userID = const Uuid().v4();
+      await saveUserID(userID);
+    }
+    return userID;
+  }
+
+  Future<void> saveUserID(String userId) async {
+    _userId = userId;
+    await DB.instance
+        .put<dynamic>(boxName: DB.boxNamePrefs, key: "userID", value: _userId);
+    // notifyListeners();
+  }
+
+  int? _signupEpoch;
+  int? get signupEpoch => _signupEpoch;
+
+  Future<int?> _getSignupEpoch() async {
+    int? signupEpoch = await DB.instance
+        .get<dynamic>(boxName: DB.boxNamePrefs, key: "signupEpoch") as int?;
+    if (signupEpoch == null) {
+      signupEpoch = DateTime.now().millisecondsSinceEpoch ~/
+          Duration.millisecondsPerSecond;
+      await saveSignupEpoch(signupEpoch);
+    }
+    return signupEpoch;
+  }
+
+  Future<void> saveSignupEpoch(int signupEpoch) async {
+    _signupEpoch = signupEpoch;
+    await DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs, key: "signupEpoch", value: _signupEpoch);
+    // notifyListeners();
   }
 }

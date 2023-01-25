@@ -33,6 +33,7 @@ class DB {
   static const String boxNameDBInfo = "dbInfo";
   static const String boxNameTheme = "theme";
   static const String boxNameDesktopData = "desktopData";
+  static const String boxNameBuys = "buysBox";
 
   String boxNameTxCache({required Coin coin}) => "${coin.name}_txCache";
   String boxNameSetCache({required Coin coin}) =>

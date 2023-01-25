@@ -412,39 +412,47 @@ class _WalletNavigationBarState extends State<WalletNavigationBar> {
                 const SizedBox(
                   width: 12,
                 ),
-                // TODO: Do not delete this code.
-                // only temporarily disabled
-                // Spacer(
-                //   flex: 2,
-                // ),
-                // GestureDetector(
-                //   onTap: onBuyPressed,
-                //   child: Container(
-                //     color: Colors.transparent,
-                //     child: Padding(
-                //       padding: const EdgeInsets.symmetric(vertical: 2.0),
-                //       child: Column(
-                //         crossAxisAlignment: CrossAxisAlignment.center,
-                //         children: [
-                //           Spacer(),
-                //           SvgPicture.asset(
-                //             Assets.svg.buy,
-                //             width: 24,
-                //             height: 24,
-                //           ),
-                //           SizedBox(
-                //             height: 4,
-                //           ),
-                //           Text(
-                //             "Buy",
-                //             style: STextStyles.buttonSmall(context),
-                //           ),
-                //           Spacer(),
-                //         ],
-                //       ),
-                //     ),
-                //   ),
-                // ),
+                RawMaterialButton(
+                  constraints: const BoxConstraints(
+                    minWidth: 66,
+                  ),
+                  onPressed: widget.onBuyPressed,
+                  splashColor:
+                      Theme.of(context).extension<StackColors>()!.highlight,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                      widget.height / 2.0,
+                    ),
+                  ),
+                  child: Container(
+                    color: Colors.transparent,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Spacer(),
+                          SvgPicture.asset(
+                            Assets.svg.buyDesktop,
+                            width: 24,
+                            height: 24,
+                          ),
+                          const SizedBox(
+                            height: 4,
+                          ),
+                          Text(
+                            "Buy",
+                            style: STextStyles.buttonSmall(context),
+                          ),
+                          const Spacer(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  width: 12,
+                ),
               ],
             ),
           ),

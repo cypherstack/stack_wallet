@@ -337,8 +337,6 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.particl;
     case "tltc":
       return Coin.litecoinTestNet;
-    case "part":
-      return Coin.particl;
     case "tbtc":
       return Coin.bitcoinTestNet;
     case "tbch":
