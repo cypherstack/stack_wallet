@@ -39,7 +39,7 @@ class Prefs extends ChangeNotifier {
       _startupWalletId = await _getStartupWalletId();
       _externalCalls = await _getHasExternalCalls();
       _familiarity = await _getHasFamiliarity();
-      _userID = await _getUserID();
+      _userId = await _getUserId();
 
       _initialized = true;
     }
@@ -605,10 +605,10 @@ class Prefs extends ChangeNotifier {
     return true;
   }
 
-  String? _userID;
-  String? get userID => _userID;
+  String? _userId;
+  String? get userID => _userId;
 
-  Future<String?> _getUserID() async {
+  Future<String?> _getUserId() async {
     String? userID = await DB.instance
         .get<dynamic>(boxName: DB.boxNamePrefs, key: "userID") as String?;
     if (userID == null) {
@@ -618,10 +618,10 @@ class Prefs extends ChangeNotifier {
     return userID;
   }
 
-  Future<void> saveUserID(String userID) async {
-    _userID = userID;
+  Future<void> saveUserID(String userId) async {
+    _userId = userId;
     await DB.instance
-        .put<dynamic>(boxName: DB.boxNamePrefs, key: "userID", value: _userID);
+        .put<dynamic>(boxName: DB.boxNamePrefs, key: "userID", value: _userId);
     // notifyListeners();
   }
 }
