@@ -8,24 +8,24 @@ class Fiat {
   final String name;
 
   /// Fiat name
-  final Decimal min_amount;
+  final Decimal minAmount;
 
   /// Fiat name
-  final Decimal max_amount;
+  final Decimal maxAmount;
 
   Fiat(
       {required this.ticker,
       required this.name,
-      required this.min_amount,
-      required this.max_amount});
+      required this.minAmount,
+      required this.maxAmount});
 
   factory Fiat.fromJson(Map<String, dynamic> json) {
     try {
       return Fiat(
         ticker: "${json['ticker']}",
         name: "${json['name']}", // TODO nameFromTicker
-        min_amount: Decimal.parse("${json['min_amount'] ?? 0}"),
-        max_amount: Decimal.parse("${json['max_amount'] ?? 0}"),
+        minAmount: Decimal.parse("${json['minAmount'] ?? 0}"),
+        maxAmount: Decimal.parse("${json['maxAmount'] ?? 0}"),
       );
     } catch (e) {
       rethrow;
@@ -36,8 +36,8 @@ class Fiat {
     final map = {
       "ticker": ticker,
       "name": name,
-      "min_amount": min_amount,
-      "max_amount": max_amount,
+      "min_amount": minAmount,
+      "max_amount": maxAmount,
     };
 
     return map;

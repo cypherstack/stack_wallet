@@ -137,8 +137,8 @@ class SimplexAPI {
             'ticker': "${fiat['ticker_symbol']}",
             'name': fiatFromTickerCaseInsensitive("${fiat['ticker_symbol']}")
                 .prettyName,
-            'min_amount': "${fiat['min_amount']}",
-            'max_amount': "${fiat['max_amount']}",
+            'minAmount': "${fiat['min_amount']}",
+            'maxAmount': "${fiat['max_amount']}",
             'image': "",
           }));
         } // TODO handle else
