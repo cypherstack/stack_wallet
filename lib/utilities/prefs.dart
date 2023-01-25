@@ -40,6 +40,7 @@ class Prefs extends ChangeNotifier {
       _externalCalls = await _getHasExternalCalls();
       _familiarity = await _getHasFamiliarity();
       _userId = await _getUserId();
+      _signupEpoch = await _getSignupEpoch();
 
       _initialized = true;
     }
@@ -622,6 +623,27 @@ class Prefs extends ChangeNotifier {
     _userId = userId;
     await DB.instance
         .put<dynamic>(boxName: DB.boxNamePrefs, key: "userID", value: _userId);
+    // notifyListeners();
+  }
+
+  int? _signupEpoch;
+  int? get signupEpoch => _signupEpoch;
+
+  Future<int?> _getSignupEpoch() async {
+    int? signupEpoch = await DB.instance
+        .get<dynamic>(boxName: DB.boxNamePrefs, key: "signupEpoch") as int?;
+    if (signupEpoch == null) {
+      signupEpoch = DateTime.now().millisecondsSinceEpoch ~/
+          Duration.millisecondsPerSecond;
+      await saveSignupEpoch(signupEpoch);
+    }
+    return signupEpoch;
+  }
+
+  Future<void> saveSignupEpoch(int signupEpoch) async {
+    _signupEpoch = signupEpoch;
+    await DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs, key: "signupEpoch", value: _signupEpoch);
     // notifyListeners();
   }
 }
