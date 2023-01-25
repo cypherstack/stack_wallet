@@ -1,5 +1,3 @@
-// TODO use _buildUri
-
 import 'dart:async';
 import 'dart:convert';
 
