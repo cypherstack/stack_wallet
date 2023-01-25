@@ -11,6 +11,7 @@ import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 
 import 'dogecoin_wallet_test.mocks.dart';
@@ -37,11 +38,6 @@ void main() {
       expect(GENESIS_HASH_TESTNET,
           "bb0a78264637406b6360aad926284d544d7049f45189db5664f3c4d07350559e");
     });
-  });
-
-  test("dogecoin DerivePathType enum", () {
-    expect(DerivePathType.values.length, 1);
-    expect(DerivePathType.values.toString(), "[DerivePathType.bip44]");
   });
 
   group("bip32 node/root", () {

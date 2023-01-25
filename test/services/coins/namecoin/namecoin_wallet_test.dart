@@ -10,6 +10,7 @@ import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 
 import 'namecoin_wallet_test.mocks.dart';
@@ -36,12 +37,6 @@ void main() {
       expect(GENESIS_HASH_TESTNET,
           "00000007199508e34a9ff81e6ec0c477a4cccff2a4767a8eee39c11db367b008");
     });
-  });
-
-  test("namecoin DerivePathType enum", () {
-    expect(DerivePathType.values.length, 3);
-    expect(DerivePathType.values.toString(),
-        "[DerivePathType.bip44, DerivePathType.bip49, DerivePathType.bip84]");
   });
 
   group("bip32 node/root", () {
