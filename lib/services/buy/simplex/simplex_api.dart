@@ -180,8 +180,7 @@ class SimplexAPI {
       if (userID != null) {
         data['USER_ID'] = userID;
       }
-      Uri url = Uri.https('simplex-sandbox.stackwallet.com', 'api.php', data);
-      // TODO update to stackwallet.com hosted API and use HTTPS
+      Uri url = _buildUri('api.php', data);
 
       var res = await http.get(url, headers: headers);
       if (res.statusCode != 200) {
