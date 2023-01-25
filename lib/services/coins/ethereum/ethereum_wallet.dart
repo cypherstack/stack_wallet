@@ -1,7 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
+
+import "package:hex/hex.dart";
+import 'package:bitcoindart/bitcoindart.dart';
 import 'package:decimal/decimal.dart';
 import 'package:devicelocale/devicelocale.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
@@ -87,6 +91,7 @@ class EthereumWallet extends CoinServiceAPI {
   // final _blockExplorer = "https://blockscout.com/eth/mainnet/api?";
   final _blockExplorer = "https://api.etherscan.io/api?";
   final _gasTrackerUrl = "https://beaconcha.in/api/v1/execution/gasnow";
+  final _hdPath = "m/44'/60'/0'/0";
 
   @override
   String get walletId => _walletId;
@@ -309,9 +314,8 @@ class EthereumWallet extends CoinServiceAPI {
     //First get mnemonic so we can initialize credentials
     final mnemonicString =
         await _secureStore.read(key: '${_walletId}_mnemonic');
-
-    _credentials =
-        EthPrivateKey.fromHex(StringToHex.toHexString(mnemonicString));
+    String privateKey = getPrivateKey(mnemonicString!);
+    _credentials = EthPrivateKey.fromHex(privateKey);
 
     Logging.instance.log("Opening existing ${coin.prettyName} wallet.",
         level: LogLevel.Info);
@@ -329,13 +333,27 @@ class EthereumWallet extends CoinServiceAPI {
     }
   }
 
+  String getPrivateKey(String mnemonic) {
+    final isValidMnemonic = bip39.validateMnemonic(mnemonic);
+    if (!isValidMnemonic) {
+      throw 'Invalid mnemonic';
+    }
+
+    final seed = bip39.mnemonicToSeed(mnemonic);
+    final root = bip32.BIP32.fromSeed(seed);
+    const index = 0;
+    final addressAtIndex = root.derivePath("$_hdPath/$index");
+
+    return HEX.encode(addressAtIndex.privateKey as List<int>);
+  }
+
   @override
   Future<void> initializeNew() async {
     await _prefs.init();
     final String mnemonic = bip39.generateMnemonic(strength: 256);
-    _credentials = EthPrivateKey.fromHex(StringToHex.toHexString(mnemonic));
     await _secureStore.write(key: '${_walletId}_mnemonic', value: mnemonic);
-
+    String privateKey = getPrivateKey(mnemonic);
+    _credentials = EthPrivateKey.fromHex(privateKey);
     //Store credentials in secure store
     await _secureStore.write(
         key: '${_walletId}_credentials', value: _credentials.toString());
@@ -484,9 +502,12 @@ class EthereumWallet extends CoinServiceAPI {
       await _secureStore.write(
           key: '${_walletId}_mnemonic', value: mnemonic.trim());
 
-      _credentials = EthPrivateKey.fromHex(StringToHex.toHexString(mnemonic));
+      String privateKey = getPrivateKey(mnemonic);
+      _credentials = EthPrivateKey.fromHex(privateKey);
 
-      print(_credentials.address);
+      // _credentials = EthPrivateKey.fromHex(StringToHex.toHexString(mnemonic));
+
+      // print(_credentials.address);
       //Get ERC-20 transactions for wallet (So we can get the and save wallet's ERC-20 TOKENS
       AddressTransaction tokenTransactions = await fetchAddressTransactions(
           _credentials.address.toString(), "tokentx");
