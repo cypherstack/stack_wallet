@@ -42,23 +42,4 @@ class Fiat {
 
     return map;
   }
-
-  Fiat copyWith({
-    String? ticker,
-    String? name,
-    Decimal? min_amount,
-    Decimal? max_amount,
-  }) {
-    return Fiat(
-      ticker: ticker ?? this.ticker,
-      name: name ?? this.name,
-      min_amount: min_amount ?? this.min_amount,
-      max_amount: max_amount ?? this.max_amount,
-    );
-  }
-
-  @override
-  String toString() {
-    return "Fiat: ${toJson()}";
-  }
 }
