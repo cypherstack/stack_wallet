@@ -29,7 +29,18 @@ class BuyWarningPopup extends StatelessWidget {
   SimplexOrder? order;
 
   Future<BuyResponse<SimplexOrder>> newOrder(SimplexQuote quote) async {
-    return SimplexAPI.instance.newOrder(quote);
+    final response = await SimplexAPI.instance.newOrder(quote);
+
+    // if (response.value != null) {
+    //   ref.read(simplexProvider).updateOrder(response.value!);
+    // } else {
+    //   Logging.instance.log(
+    //     "_loadQuote: $response",
+    //     level: LogLevel.Warning,
+    //   );
+    // }
+
+    return response;
   }
 
   Future<BuyResponse<bool>> redirect(SimplexOrder order) async {
