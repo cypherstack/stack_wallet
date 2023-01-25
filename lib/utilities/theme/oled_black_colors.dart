@@ -16,7 +16,7 @@ class OledBlackColors extends StackColorTheme {
   Color get overlay => const Color(0xFF121212);
 
   @override
-  Color get accentColorBlue => const Color(0xFF77A7F9);
+  Color get accentColorBlue => const Color(0xFFF26822);
   @override
   Color get accentColorGreen => const Color(0xFF4CC0A0);
   @override
@@ -112,7 +112,7 @@ class OledBlackColors extends StackColorTheme {
   @override
   Color get switchBGOn => const Color(0xFFF26822);
   @override
-  Color get switchBGOff => const Color(0xFFF7A47A);
+  Color get switchBGOff => const Color(0xFF403F3F);
   @override
   Color get switchBGDisabled => const Color(0xFF333538);
   @override
