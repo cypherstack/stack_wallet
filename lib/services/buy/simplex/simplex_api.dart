@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:stackwallet/models/buy/response_objects/crypto.dart';
 import 'package:stackwallet/models/buy/response_objects/fiat.dart';
