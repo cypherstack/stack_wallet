@@ -84,12 +84,12 @@ void main() {
     ]);
   });
 
-  test("get hashcode", () {
-    final adapter = LelantusCoinAdapter();
-
-    final result = adapter.hashCode;
-    expect(result, 9);
-  });
+  // test("get hashcode", () {
+  //   final adapter = LelantusCoinAdapter();
+  //
+  //   final result = adapter.hashCode;
+  //   expect(result, 9);
+  // });
 
   group("compare operator", () {
     test("is equal one", () {

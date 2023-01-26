@@ -9,6 +9,7 @@ abstract class Assets {
   static const lottie = _ANIMATIONS();
   static const socials = _SOCIALS();
   static const exchange = _EXCHANGE();
+  static const buy = _BUY();
 }
 
 class _SOCIALS {
@@ -25,6 +26,25 @@ class _EXCHANGE {
 
   String get changeNow => "assets/svg/exchange_icons/change_now_logo_1.svg";
   String get simpleSwap => "assets/svg/exchange_icons/simpleswap-icon.svg";
+}
+
+class _BUY {
+  const _BUY();
+
+  // TODO: switch this to something like
+  // String buy(BuildContext context) =>
+  //       "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/buy.svg";
+  String get buy => "assets/svg/light/buy-coins-icon.svg";
+
+  String simplexLogo(BuildContext context) {
+    return (Theme.of(context).extension<StackColors>()!.themeType ==
+                ThemeType.dark ||
+            Theme.of(context).extension<StackColors>()!.themeType ==
+                ThemeType
+                    .oledBlack) // TODO make sure this cover OLED black, too
+        ? "assets/svg/buy/Simplex-Nuvei-Logo-light.svg"
+        : "assets/svg/buy/Simplex-Nuvei-Logo.svg";
+  }
 }
 
 class _SVG {
@@ -169,6 +189,7 @@ class _SVG {
   String get anonymizeFailed => "assets/svg/tx-icon-anonymize-failed.svg";
   String get addressBookDesktop => "assets/svg/address-book-desktop.svg";
   String get exchangeDesktop => "assets/svg/exchange-desktop.svg";
+  String get buyDesktop => "assets/svg/light/buy-coins-icon.svg";
   String get aboutDesktop => "assets/svg/about-desktop.svg";
   String get walletDesktop => "assets/svg/wallet-desktop.svg";
   String get exitDesktop => "assets/svg/exit-desktop.svg";
@@ -188,6 +209,17 @@ class _SVG {
   String get wownero => "assets/svg/coin_icons/Wownero.svg";
   String get namecoin => "assets/svg/coin_icons/Namecoin.svg";
   String get particl => "assets/svg/coin_icons/Particl.svg";
+
+  String get cosmos => "assets/svg/coin_icons/Cosmos.svg";
+  String get binanceusd => "assets/svg/coin_icons/BinanceUSD.svg";
+  String get dai => "assets/svg/coin_icons/Dai.svg";
+  String get dash => "assets/svg/coin_icons/Dash.svg";
+  String get eos => "assets/svg/coin_icons/EOS.svg";
+  String get ethereum => "assets/svg/coin_icons/Ethereum.svg";
+  String get tron => "assets/svg/coin_icons/Tron.svg";
+  String get tether => "assets/svg/coin_icons/Tether.svg";
+  String get stellar => "assets/svg/coin_icons/Stellar.svg";
+  String get ripple => "assets/svg/coin_icons/Ripple.svg";
 
   String get chevronRight => "assets/svg/chevron-right.svg";
   String get minimize => "assets/svg/minimize.svg";
@@ -234,6 +266,33 @@ class _SVG {
         return firoTestnet;
       case Coin.dogecoinTestNet:
         return dogecoinTestnet;
+    }
+  }
+
+  String? buyIconFor(String ticker) {
+    switch (ticker.toLowerCase()) {
+      case 'atom':
+        return cosmos;
+      case 'busd':
+        return binanceusd;
+      case 'dai':
+        return dai;
+      case 'dash':
+        return dash;
+      case 'eos':
+        return eos;
+      case 'eth':
+        return ethereum;
+      case 'trx':
+        return tron;
+      case 'usdt':
+        return tether;
+      case 'xlm':
+        return stellar;
+      case 'xrp':
+        return ripple;
+      default:
+        return null;
     }
   }
 }

@@ -178,6 +178,12 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color textConfirmTotalAmount;
   final Color textSelectedWordTableItem;
 
+// rate type toggle
+  final Color rateTypeToggleColorOn;
+  final Color rateTypeToggleColorOff;
+  final Color rateTypeToggleDesktopColorOn;
+  final Color rateTypeToggleDesktopColorOff;
+
   final BoxShadow standardBoxShadow;
   final BoxShadow? homeViewButtonBarBoxShadow;
 
@@ -319,6 +325,10 @@ class StackColors extends ThemeExtension<StackColors> {
     required this.myStackContactIconBG,
     required this.textConfirmTotalAmount,
     required this.textSelectedWordTableItem,
+    required this.rateTypeToggleColorOn,
+    required this.rateTypeToggleColorOff,
+    required this.rateTypeToggleDesktopColorOn,
+    required this.rateTypeToggleDesktopColorOff,
     required this.standardBoxShadow,
     required this.homeViewButtonBarBoxShadow,
   });
@@ -465,6 +475,10 @@ class StackColors extends ThemeExtension<StackColors> {
       myStackContactIconBG: colorTheme.myStackContactIconBG,
       textConfirmTotalAmount: colorTheme.textConfirmTotalAmount,
       textSelectedWordTableItem: colorTheme.textSelectedWordTableItem,
+      rateTypeToggleColorOn: colorTheme.rateTypeToggleColorOn,
+      rateTypeToggleColorOff: colorTheme.rateTypeToggleColorOff,
+      rateTypeToggleDesktopColorOn: colorTheme.rateTypeToggleDesktopColorOn,
+      rateTypeToggleDesktopColorOff: colorTheme.rateTypeToggleDesktopColorOff,
       homeViewButtonBarBoxShadow: colorTheme.homeViewButtonBarBoxShadow,
       standardBoxShadow: colorTheme.standardBoxShadow,
     );
@@ -609,6 +623,10 @@ class StackColors extends ThemeExtension<StackColors> {
     Color? myStackContactIconBG,
     Color? textConfirmTotalAmount,
     Color? textSelectedWordTableItem,
+    Color? rateTypeToggleColorOn,
+    Color? rateTypeToggleColorOff,
+    Color? rateTypeToggleDesktopColorOn,
+    Color? rateTypeToggleDesktopColorOff,
     BoxShadow? homeViewButtonBarBoxShadow,
     BoxShadow? standardBoxShadow,
   }) {
@@ -790,6 +808,14 @@ class StackColors extends ThemeExtension<StackColors> {
           textConfirmTotalAmount ?? this.textConfirmTotalAmount,
       textSelectedWordTableItem:
           textSelectedWordTableItem ?? this.textSelectedWordTableItem,
+      rateTypeToggleColorOn:
+          rateTypeToggleColorOn ?? this.rateTypeToggleColorOn,
+      rateTypeToggleColorOff:
+          rateTypeToggleColorOff ?? this.rateTypeToggleColorOff,
+      rateTypeToggleDesktopColorOn:
+          rateTypeToggleDesktopColorOn ?? this.rateTypeToggleDesktopColorOn,
+      rateTypeToggleDesktopColorOff:
+          rateTypeToggleDesktopColorOff ?? this.rateTypeToggleDesktopColorOff,
       homeViewButtonBarBoxShadow:
           homeViewButtonBarBoxShadow ?? this.homeViewButtonBarBoxShadow,
       standardBoxShadow: standardBoxShadow ?? this.standardBoxShadow,
@@ -1481,6 +1507,26 @@ class StackColors extends ThemeExtension<StackColors> {
       textSelectedWordTableItem: Color.lerp(
         textSelectedWordTableItem,
         other.textSelectedWordTableItem,
+        t,
+      )!,
+      rateTypeToggleColorOn: Color.lerp(
+        rateTypeToggleColorOn,
+        other.rateTypeToggleColorOn,
+        t,
+      )!,
+      rateTypeToggleColorOff: Color.lerp(
+        rateTypeToggleColorOff,
+        other.rateTypeToggleColorOff,
+        t,
+      )!,
+      rateTypeToggleDesktopColorOn: Color.lerp(
+        rateTypeToggleDesktopColorOn,
+        other.rateTypeToggleDesktopColorOn,
+        t,
+      )!,
+      rateTypeToggleDesktopColorOff: Color.lerp(
+        rateTypeToggleDesktopColorOff,
+        other.rateTypeToggleDesktopColorOff,
         t,
       )!,
     );

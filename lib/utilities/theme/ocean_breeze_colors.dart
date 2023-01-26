@@ -326,6 +326,16 @@ class OceanBreezeColors extends StackColorTheme {
   @override
   Color get textSelectedWordTableItem => const Color(0xFF232323);
 
+  //rate type toggle
+  @override
+  Color get rateTypeToggleColorOn => textFieldDefaultBG;
+  @override
+  Color get rateTypeToggleColorOff => popupBG;
+  @override
+  Color get rateTypeToggleDesktopColorOn => textFieldDefaultBG;
+  @override
+  Color get rateTypeToggleDesktopColorOff => buttonBackSecondary;
+
   @override
   BoxShadow get standardBoxShadow => BoxShadow(
         color: shadow,

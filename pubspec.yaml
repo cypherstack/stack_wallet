@@ -11,7 +11,7 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.5.30+105
+version: 1.5.35+110
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
@@ -320,6 +320,17 @@ flutter:
     - assets/svg/coin_icons/Wownero.svg
     - assets/svg/coin_icons/Namecoin.svg
     - assets/svg/coin_icons/Particl.svg
+    # buy coin icons
+    - assets/svg/coin_icons/Cosmos.svg
+    - assets/svg/coin_icons/BinanceUSD.svg
+    - assets/svg/coin_icons/Dai.svg
+    - assets/svg/coin_icons/Dash.svg
+    - assets/svg/coin_icons/EOS.svg
+    - assets/svg/coin_icons/Ethereum.svg
+    - assets/svg/coin_icons/Tron.svg
+    - assets/svg/coin_icons/Tether.svg
+    - assets/svg/coin_icons/Stellar.svg
+    - assets/svg/coin_icons/Ripple.svg
     # lottie animations
     - assets/lottie/test.json
     - assets/lottie/test2.json
@@ -424,6 +435,10 @@ flutter:
     - assets/svg/fruitSorbet/stack-icon1.svg
     - assets/svg/fruitSorbet/buy-coins-icon.svg
     - assets/svg/fruitSorbet/bg.svg
+
+    # buy
+    - assets/svg/buy/Simplex-Nuvei-Logo.svg
+    - assets/svg/buy/Simplex-Nuvei-Logo-light.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
