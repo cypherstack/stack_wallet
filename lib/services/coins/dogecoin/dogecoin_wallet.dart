@@ -1118,6 +1118,8 @@ class DogecoinWallet extends CoinServiceAPI
       fetchBuildTxData: fetchBuildTxData,
       refresh: refresh,
       checkChangeAddressForTransactions: checkChangeAddressForTransactions,
+      addDerivation: addDerivation,
+      addDerivations: addDerivations,
     );
   }
 

@@ -54,6 +54,18 @@ mixin PaynymWalletInterface {
   ) _fetchBuildTxData;
   late final Future<void> Function() _refresh;
   late final Future<void> Function() _checkChangeAddressForTransactions;
+  late final Future<void> Function({
+    required int chain,
+    required String address,
+    required String pubKey,
+    required String wif,
+    required DerivePathType derivePathType,
+  }) _addDerivation;
+  late final Future<void> Function({
+    required int chain,
+    required DerivePathType derivePathType,
+    required Map<String, dynamic> derivationsToAdd,
+  }) _addDerivations;
 
   // initializer
   void initPaynymWalletInterface({
@@ -87,6 +99,20 @@ mixin PaynymWalletInterface {
         fetchBuildTxData,
     required Future<void> Function() refresh,
     required Future<void> Function() checkChangeAddressForTransactions,
+    required Future<void> Function({
+      required int chain,
+      required String address,
+      required String pubKey,
+      required String wif,
+      required DerivePathType derivePathType,
+    })
+        addDerivation,
+    required Future<void> Function({
+      required int chain,
+      required DerivePathType derivePathType,
+      required Map<String, dynamic> derivationsToAdd,
+    })
+        addDerivations,
   }) {
     _walletId = walletId;
     _walletName = walletName;
@@ -103,6 +129,8 @@ mixin PaynymWalletInterface {
     _fetchBuildTxData = fetchBuildTxData;
     _refresh = refresh;
     _checkChangeAddressForTransactions = checkChangeAddressForTransactions;
+    _addDerivation = addDerivation;
+    _addDerivations = addDerivations;
   }
 
   // convenience getter
@@ -140,7 +168,7 @@ mixin PaynymWalletInterface {
       index,
     );
     final pair = paymentAddress.getReceiveAddressKeyPair();
-    final address = generatePaynymReceivingAddressFromKeyPair(
+    final address = await generatePaynymReceivingAddressFromKeyPair(
       pair: pair,
       derivationIndex: index,
       derivePathType: DerivePathType.bip44,
@@ -704,7 +732,7 @@ mixin PaynymWalletInterface {
         i, // index to use
       );
 
-      if (receivingGapCounter < maxUnusedAddressGap) {
+      if (outgoingGapCounter < maxUnusedAddressGap) {
         final pair = paymentAddress.getSendAddressKeyPair();
         final address = generatePaynymSendAddressFromKeyPair(
           pair: pair,
@@ -717,15 +745,15 @@ mixin PaynymWalletInterface {
         final count = await _getTxCount(address: address.value);
 
         if (count > 0) {
-          receivingGapCounter++;
+          outgoingGapCounter++;
         } else {
-          receivingGapCounter = 0;
+          outgoingGapCounter = 0;
         }
       }
 
-      if (outgoingGapCounter < maxUnusedAddressGap) {
+      if (receivingGapCounter < maxUnusedAddressGap) {
         final pair = paymentAddress.getReceiveAddressKeyPair();
-        final address = generatePaynymReceivingAddressFromKeyPair(
+        final address = await generatePaynymReceivingAddressFromKeyPair(
           pair: pair,
           derivationIndex: i,
           derivePathType: DerivePathType.bip44,
@@ -736,9 +764,9 @@ mixin PaynymWalletInterface {
         final count = await _getTxCount(address: address.value);
 
         if (count > 0) {
-          outgoingGapCounter++;
+          receivingGapCounter++;
         } else {
-          outgoingGapCounter = 0;
+          receivingGapCounter = 0;
         }
       }
     }
@@ -803,12 +831,12 @@ mixin PaynymWalletInterface {
     return address;
   }
 
-  Address generatePaynymReceivingAddressFromKeyPair({
+  Future<Address> generatePaynymReceivingAddressFromKeyPair({
     required btc_dart.ECPair pair,
     required int derivationIndex,
     required DerivePathType derivePathType,
     required PaymentCode fromPaymentCode,
-  }) {
+  }) async {
     final data = btc_dart.PaymentData(pubkey: pair.publicKey);
 
     String addressString;
@@ -865,6 +893,30 @@ mixin PaynymWalletInterface {
       type: addrType,
       subType: AddressSubType.paynymReceive,
       otherData: fromPaymentCode.toString(),
+    );
+
+    final myCode = await getPaymentCode(DerivePathType.bip44);
+
+    final bip32NetworkType = bip32.NetworkType(
+      wif: _network.wif,
+      bip32: bip32.Bip32Type(
+        public: _network.bip32.public,
+        private: _network.bip32.private,
+      ),
+    );
+
+    final bip32.BIP32 node = bip32.BIP32.fromPrivateKey(
+      pair.privateKey!,
+      myCode.getChain(),
+      bip32NetworkType,
+    );
+
+    await _addDerivation(
+      chain: 0,
+      address: address.value,
+      derivePathType: DerivePathType.bip44,
+      pubKey: Format.uint8listToString(node.publicKey),
+      wif: node.toWIF(),
     );
 
     return address;
