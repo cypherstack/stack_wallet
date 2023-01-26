@@ -210,17 +210,6 @@ class _SVG {
   String get namecoin => "assets/svg/coin_icons/Namecoin.svg";
   String get particl => "assets/svg/coin_icons/Particl.svg";
 
-  String get cosmos => "assets/svg/coin_icons/Cosmos.svg";
-  String get binanceusd => "assets/svg/coin_icons/BinanceUSD.svg";
-  String get dai => "assets/svg/coin_icons/Dai.svg";
-  String get dash => "assets/svg/coin_icons/Dash.svg";
-  String get eos => "assets/svg/coin_icons/EOS.svg";
-  String get ethereum => "assets/svg/coin_icons/Ethereum.svg";
-  String get tron => "assets/svg/coin_icons/Tron.svg";
-  String get tether => "assets/svg/coin_icons/Tether.svg";
-  String get stellar => "assets/svg/coin_icons/Stellar.svg";
-  String get ripple => "assets/svg/coin_icons/Ripple.svg";
-
   String get chevronRight => "assets/svg/chevron-right.svg";
   String get minimize => "assets/svg/minimize.svg";
   String get walletFa => "assets/svg/wallet-fa.svg";
@@ -266,33 +255,6 @@ class _SVG {
         return firoTestnet;
       case Coin.dogecoinTestNet:
         return dogecoinTestnet;
-    }
-  }
-
-  String? buyIconFor(String ticker) {
-    switch (ticker.toLowerCase()) {
-      case 'atom':
-        return cosmos;
-      case 'busd':
-        return binanceusd;
-      case 'dai':
-        return dai;
-      case 'dash':
-        return dash;
-      case 'eos':
-        return eos;
-      case 'eth':
-        return ethereum;
-      case 'trx':
-        return tron;
-      case 'usdt':
-        return tether;
-      case 'xlm':
-        return stellar;
-      case 'xrp':
-        return ripple;
-      default:
-        return null;
     }
   }
 }

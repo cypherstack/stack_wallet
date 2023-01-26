@@ -320,17 +320,6 @@ flutter:
     - assets/svg/coin_icons/Wownero.svg
     - assets/svg/coin_icons/Namecoin.svg
     - assets/svg/coin_icons/Particl.svg
-    # buy coin icons
-    - assets/svg/coin_icons/Cosmos.svg
-    - assets/svg/coin_icons/BinanceUSD.svg
-    - assets/svg/coin_icons/Dai.svg
-    - assets/svg/coin_icons/Dash.svg
-    - assets/svg/coin_icons/EOS.svg
-    - assets/svg/coin_icons/Ethereum.svg
-    - assets/svg/coin_icons/Tron.svg
-    - assets/svg/coin_icons/Tether.svg
-    - assets/svg/coin_icons/Stellar.svg
-    - assets/svg/coin_icons/Ripple.svg
     # lottie animations
     - assets/lottie/test.json
     - assets/lottie/test2.json
