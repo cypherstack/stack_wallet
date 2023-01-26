@@ -1,0 +1,586 @@
+{
+   "1EARTH": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/1earth.svg",
+      "name": "EarthFund"
+   },
+   "1INCH": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/1inch.svg",
+      "name": "1inch"
+   },
+   "AAVE": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/aave.svg",
+      "name": "Aave"
+   },
+   "ADA": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/ada.svg",
+      "name": "Cardano"
+   },
+   "AE": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/ae.svg",
+      "name": "Aeternity"
+   },
+   "ALGO": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/algo.svg",
+      "name": "Algorand"
+   },
+   "ARDR": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/ardr.svg",
+      "name": "Ardor"
+   },
+   "ATOM": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/atom.svg",
+      "name": "Cosmos"
+   },
+   "AVAX": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/avax.svg",
+      "name": "Avalanche"
+   },
+   "AXS-ERC20": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/axs-erc20.svg",
+      "name": "Axie Infinity"
+   },
+   "BABYDOGE": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/babydoge.svg",
+      "name": "Baby Doge Coin"
+   },
+   "BAKE": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/bake.svg",
+      "name": "BakerySwap"
+   },
+   "BAT": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/bat.svg",
+      "name": "Basic Attention Token"
+   },
+   "BCH": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/bch.svg",
+      "name": "Bitcoin Cash"
+   },
+   "BNB": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/bnb.svg",
+      "name": "Binance Coin"
+   },
+   "BNB-SC": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/bnb.svg",
+      "name": "Binance Coin"
+   },
+   "BSV": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/bsv.svg",
+      "name": "Bitcoin SV"
+   },
+   "BTC": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/btc.svg",
+      "name": "Bitcoin"
+   },
+   "BTT": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/btt.svg",
+      "name": "BitTorrent"
+   },
+   "BUSD": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/busd.svg",
+      "name": "Binance USD"
+   },
+   "BUSD-SC": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/busd.svg",
+      "name": "Binance USD (Binance pegged)"
+   },
+   "CAKE": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/cake.svg",
+      "name": "PancakeSwap"
+   },
+   "CELO": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/celo.svg",
+      "name": "Celo"
+   },
+   "CHZ": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/chz.svg",
+      "name": "Chiliz"
+   },
+   "COMP": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/comp.svg",
+      "name": "Compound"
+   },
+   "COTI": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/coti.svg",
+      "name": "COTI"
+   },
+   "CRO-ERC20": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/cro.svg",
+      "name": "Cronos"
+   },
+   "CRS": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/crs.svg",
+      "name": "Cirrus"
+   },
+   "CSPR": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/cspr.svg",
+      "name": "Casper Network"
+   },
+   "CUSD": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/cusd.svg",
+      "name": "Celo Dollar"
+   },
+   "DAG": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/dag.svg",
+      "name": "Constellation"
+   },
+   "DEP": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/dep.svg",
+      "name": "DEAPCOIN"
+   },
+   "DGB": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/dgb.svg",
+      "name": "DigiByte"
+   },
+   "DOGE": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/doge.svg",
+      "name": "Dogecoin"
+   },
+   "DOT": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/dot.svg",
+      "name": "Polkadot"
+   },
+   "DVK": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/dvk.svg",
+      "name": "Devikins"
+   },
+   "EEUR": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/eeur.svg",
+      "name": "e-Money EUR"
+   },
+   "EGC": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/egc.svg",
+      "name": "EverGrow Coin"
+   },
+   "EGLD": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/egld.svg",
+      "name": "MultiversX"
+   },
+   "ELON": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/elon.svg",
+      "name": "Dogelon Mars"
+   },
+   "ENJ": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/enj.svg",
+      "name": "Enjin Coin"
+   },
+   "EOS": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/eos.svg",
+      "name": "EOS"
+   },
+   "EQX": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/eqx.svg",
+      "name": "EQIFI"
+   },
+   "ETH": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/eth.svg",
+      "name": "Ethereum"
+   },
+   "ETH-ARBITRUM": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/eth-arbitrum.svg",
+      "name": "Ethereum"
+   },
+   "ETH-MATIC": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/eth.svg",
+      "name": "Polygon"
+   },
+   "ETH-OPTIMISM": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/eth.svg",
+      "name": "Ethereum"
+   },
+   "FIL": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/fil.svg",
+      "name": "Filecoin"
+   },
+   "FILM": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/film.svg",
+      "name": "FILMCredits"
+   },
+   "FLOKI-SC": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/floki.svg",
+      "name": "Floki Inu"
+   },
+   "FLOW": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/flow.svg",
+      "name": "Flow"
+   },
+   "FTM": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/ftm.svg",
+      "name": "Fantom"
+   },
+   "FUSD": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/fusd.svg",
+      "name": "Flow USD"
+   },
+   "GALA": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/gala.svg",
+      "name": "GALA"
+   },
+   "GAS": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/gas.svg",
+      "name": "NeoGas"
+   },
+   "GMEE": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/gmee.svg",
+      "name": "GAMEE"
+   },
+   "GMT-ERC20": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/gmt-erc20.svg",
+      "name": "GMT Token"
+   },
+   "GMT-SC": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/gmt.svg",
+      "name": "STEPN"
+   },
+   "GRS": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/grs.svg",
+      "name": "Groestlcoin"
+   },
+   "HAI": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/hai.svg",
+      "name": "Hacken Token"
+   },
+   "HBAR": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/hbar.svg",
+      "name": "Hedera Hashgraph"
+   },
+   "HEX": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/hex.svg",
+      "name": "HEX"
+   },
+   "HIVE": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/hive.svg",
+      "name": "Hive"
+   },
+   "HT": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/ht.svg",
+      "name": "Huobi Token"
+   },
+   "HTR": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/htr.svg",
+      "name": "Hathor"
+   },
+   "HZM": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/hzm.svg",
+      "name": "HZM Coin"
+   },
+   "ICP": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/icp.svg",
+      "name": "Internet Computer"
+   },
+   "ICX": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/icx.svg",
+      "name": "ICON"
+   },
+   "IGNIS": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/ignis.svg",
+      "name": "Ignis"
+   },
+   "KAI": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/kai.svg",
+      "name": "KardiaChain"
+   },
+   "KAVA": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/kava.svg",
+      "name": "Kava.io"
+   },
+   "KCS": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/kcs.svg",
+      "name": "KuCoin Token"
+   },
+   "KDA": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/kda.svg",
+      "name": "Kadena"
+   },
+   "KIN": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/kin.svg",
+      "name": "Kin"
+   },
+   "KLAY": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/klay.svg",
+      "name": "Klaytn"
+   },
+   "KLV": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/klv.svg",
+      "name": "Klever"
+   },
+   "KMON": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/kmon.svg",
+      "name": "Kryptomon"
+   },
+   "KSM": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/ksm.svg",
+      "name": "Kusama"
+   },
+   "LINK": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/link.svg",
+      "name": "Chainlink"
+   },
+   "LTC": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/ltc.svg",
+      "name": "Litecoin"
+   },
+   "LTX": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/ltx.svg",
+      "name": "Lattice Token"
+   },
+   "MANA": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/mana.svg",
+      "name": "Decentraland"
+   },
+   "MATIC": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/matic.svg",
+      "name": "Polygon"
+   },
+   "MIOTA": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/miota.svg",
+      "name": "IOTA"
+   },
+   "MKR": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/mkr.svg",
+      "name": "Maker"
+   },
+   "NANO": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/nano.svg",
+      "name": "Nano"
+   },
+   "NEAR": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/near.svg",
+      "name": "Near Protocol"
+   },
+   "NEO": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/neo.svg",
+      "name": "Neo"
+   },
+   "NIM": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/nim.svg",
+      "name": "Nimiq"
+   },
+   "ONE": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/one.svg",
+      "name": "Harmony"
+   },
+   "OP": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/op.svg",
+      "name": "Optimism"
+   },
+   "OSMO": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/osmo.svg",
+      "name": "Osmosis"
+   },
+   "OWC": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/owc.svg",
+      "name": "Oduwa Coin"
+   },
+   "PDEX": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/pdex.svg",
+      "name": "Polkadex"
+   },
+   "PLA-ERC20": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/pla.svg",
+      "name": "PlayDapp"
+   },
+   "PLA-MATIC": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/pla.svg",
+      "name": "PlayDapp"
+   },
+   "QNT": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/qnt.svg",
+      "name": "Quant"
+   },
+   "QTUM": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/qtum.svg",
+      "name": "Qtum"
+   },
+   "RFOX": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/rfox.svg",
+      "name": "RedFOX Labs"
+   },
+   "RUNE": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/rune.svg",
+      "name": "THORChain"
+   },
+   "RVN": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/rvn.svg",
+      "name": "Ravencoin"
+   },
+   "SAND": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/sand.svg",
+      "name": "SAND"
+   },
+   "SATT-ERC20": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/satt.svg",
+      "name": "SaTT"
+   },
+   "SATT-SC": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/satt.svg",
+      "name": "SaTT"
+   },
+   "SCLP": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/sclp.svg",
+      "name": "Scallop"
+   },
+   "SHIB": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/shib.svg",
+      "name": "Shiba Inu"
+   },
+   "SKL": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/skl.svg",
+      "name": "Skale Network"
+   },
+   "SOL": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/sol.svg",
+      "name": "Solana"
+   },
+   "SUSHI": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/sushi.svg",
+      "name": "Sushi"
+   },
+   "THETA": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/theta.svg",
+      "name": "Theta"
+   },
+   "TLOS": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/tlos.svg",
+      "name": "Telos"
+   },
+   "TLOS-ERC20": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/tlos.svg",
+      "name": "Telos"
+   },
+   "TLOS-EVM": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/tlos.svg",
+      "name": "Telos (EVM)"
+   },
+   "TLOS-SC": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/tlos.svg",
+      "name": "Telos"
+   },
+   "TRX": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/trx.svg",
+      "name": "TRON"
+   },
+   "TUSD": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/tusd.svg",
+      "name": "TrueUSD"
+   },
+   "ULTI": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/ulti.svg",
+      "name": "Ulti Arena"
+   },
+   "UNI": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/uni.svg",
+      "name": "Uniswap"
+   },
+   "UOS": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/uos.svg",
+      "name": "Ultra"
+   },
+   "USDC": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/usdc.svg",
+      "name": "USD Coin"
+   },
+   "USDC-HEDERA": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/usdc.svg",
+      "name": "USD Coin (Hedera)"
+   },
+   "USDC-MATIC": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/usdc.svg",
+      "name": "USD Coin (PoS)"
+   },
+   "USDC-SC": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/usdc.svg",
+      "name": "USD Coin (Binance pegged)"
+   },
+   "USDC-SOL": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/usdc.svg",
+      "name": "USD Coin (Solana)"
+   },
+   "USDC-TRC20": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/usdc.svg",
+      "name": "USD Coin (TRC20)"
+   },
+   "USDD-TRC20": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/usdd.svg",
+      "name": "Decentralized USD"
+   },
+   "USDT": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/usdt.svg",
+      "name": "Tether USD"
+   },
+   "USDT-TRC20": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/usdt.svg",
+      "name": "Tether USD"
+   },
+   "VET": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/vet.svg",
+      "name": "VeChain"
+   },
+   "VINU": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/vinu.svg",
+      "name": "Vita Inu"
+   },
+   "VINU-SC": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/vinu.svg",
+      "name": "Vita Inu"
+   },
+   "VLX": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/vlx.svg",
+      "name": "Velas"
+   },
+   "VLX-EVM": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/vlx.svg",
+      "name": "Velas (EVM)"
+   },
+   "WAXP": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/waxp.svg",
+      "name": "WAX"
+   },
+   "WBTC": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/wbtc.svg",
+      "name": "Wrapped Bitcoin"
+   },
+   "XDC": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/xdc.svg",
+      "name": "XDC Network"
+   },
+   "XLM": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/xlm.svg",
+      "name": "Stellar"
+   },
+   "XRP": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/xrp.svg",
+      "name": "XRP"
+   },
+   "XTZ": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/xtz.svg",
+      "name": "Tezos"
+   },
+   "XVS": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/xvs.svg",
+      "name": "Venus"
+   },
+   "XYO": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/xyo.svg",
+      "name": "XYO"
+   },
+   "YOSHI-ERC20": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/yoshi.svg",
+      "name": "Yoshi.exchange"
+   },
+   "YOSHI-FTM": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/yoshi.svg",
+      "name": "Yoshi.exchange"
+   },
+   "YOSHI-SC": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/yoshi.svg",
+      "name": "Yoshi.exchange"
+   },
+   "ZIL": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/zil.svg",
+      "name": "Zilliqa"
+   },
+      "XDB": {
+      "image": "https://s3.amazonaws.com/affiliate-sdk-production-configuration/assets/icons/xdb.svg",
+      "name": "DigitalBits"
+   }
+}
