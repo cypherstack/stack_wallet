@@ -131,6 +131,13 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       coins: ref.read(simplexProvider).supportedCryptos,
       onSelected: (crypto) {
         setState(() {
+          if (selectedCrypto?.ticker != _BuyFormState.boundedCryptoTicker) {
+            // Reset crypto mins and maxes ... we don't know these bounds until we request a quote
+            _BuyFormState.minCrypto = Decimal.parse((0.00000001)
+                .toString()); // lol how to go from double->Decimal more easily?
+            _BuyFormState.maxCrypto =
+                Decimal.parse((10000.00000000).toString());
+          }
           selectedCrypto = crypto;
         });
       },
