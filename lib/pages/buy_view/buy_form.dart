@@ -394,15 +394,13 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     if (mounted) {
       Navigator.of(context, rootNavigator: isDesktop).pop();
     }
+    quote = ref.read(simplexProvider).quote;
 
-    if (quote.id == 'someID') {
+    if (quote.id != 'id' && quote.id != 'someID') {
       // TODO detect default quote better
       await _showFloatingBuyQuotePreviewSheet(
         quote: ref.read(simplexProvider).quote,
         onSelected: (quote) {
-          // setState(() {
-          //   selectedFiat = fiat;
-          // });
           // TODO launch URL
         },
       );
@@ -453,7 +451,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
           } else {
             return StackDialog(
               title: "Simplex API unresponsive",
-              message: "Simplex API unresponsive, please try again later",
+              message:
+                  "Unexpected response from Simplex API, please try again later",
               rightButton: TextButton(
                 style: Theme.of(context)
                     .extension<StackColors>()!
