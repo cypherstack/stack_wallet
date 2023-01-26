@@ -92,6 +92,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   bool _hovering1 = false;
   bool _hovering2 = false;
 
+  Decimal minFiat = Decimal.fromInt(50);
+  Decimal maxFiat = Decimal.fromInt(20000);
+
   void fiatFieldOnChanged(String value) async {}
 
   void cryptoFieldOnChanged(String value) async {}
@@ -227,6 +230,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       onSelected: (fiat) {
         setState(() {
           selectedFiat = fiat;
+          minFiat = fiat.minAmount != minFiat ? fiat.minAmount : minFiat;
+          maxFiat = fiat.maxAmount != maxFiat ? fiat.maxAmount : maxFiat;
         });
       },
     );
