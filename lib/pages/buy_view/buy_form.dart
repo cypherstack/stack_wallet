@@ -1262,11 +1262,15 @@ class NumericalRangeFormatter extends TextInputFormatter {
   ) {
     if (newValue.text == '') {
       return newValue;
-    } else if (Decimal.parse(newValue.text) < min) {
-      newValue =
-          const TextEditingValue().copyWith(text: min.toStringAsFixed(2));
     } else {
-      newValue = Decimal.parse(newValue.text) > max ? oldValue : newValue;
+      if (buyWithFiat) {
+        if (Decimal.parse(newValue.text) < min) {
+          newValue =
+              const TextEditingValue().copyWith(text: min.toStringAsFixed(2));
+        } else {
+          newValue = Decimal.parse(newValue.text) > max ? oldValue : newValue;
+        }
+      }
     }
 
     final regexString = buyWithFiat
