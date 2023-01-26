@@ -266,9 +266,9 @@ class _SendViewState extends ConsumerState<SendView> {
       Decimal? balance;
       if (ref.read(publicPrivateBalanceStateProvider.state).state ==
           "Private") {
-        balance = await wallet.availablePrivateBalance();
+        balance = wallet.availablePrivateBalance();
       } else {
-        balance = await wallet.availablePublicBalance();
+        balance = wallet.availablePublicBalance();
       }
 
       return Format.localizedStringAsFixed(
@@ -442,48 +442,38 @@ class _SendViewState extends ConsumerState<SendView> {
                                   const SizedBox(
                                     width: 6,
                                   ),
-                                  if (coin != Coin.firo &&
-                                      coin != Coin.firoTestNet)
-                                    Expanded(
-                                      child: Text(
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
                                         ref.watch(provider.select(
                                             (value) => value.walletName)),
-                                        style: STextStyles.titleBold12(context),
+                                        style: STextStyles.titleBold12(context)
+                                            .copyWith(fontSize: 14),
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 1,
                                       ),
-                                    ),
-                                  if (coin == Coin.firo ||
-                                      coin == Coin.firoTestNet)
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          ref.watch(provider.select(
-                                              (value) => value.walletName)),
-                                          style:
-                                              STextStyles.titleBold12(context)
-                                                  .copyWith(fontSize: 14),
-                                        ),
-                                        // const SizedBox(
-                                        //   height: 2,
-                                        // ),
+                                      // const SizedBox(
+                                      //   height: 2,
+                                      // ),
+                                      if (coin == Coin.firo ||
+                                          coin == Coin.firoTestNet)
                                         Text(
                                           "${ref.watch(publicPrivateBalanceStateProvider.state).state} balance",
                                           style: STextStyles.label(context)
                                               .copyWith(fontSize: 10),
                                         ),
-                                      ],
-                                    ),
-                                  if (coin != Coin.firo &&
-                                      coin != Coin.firoTestNet)
-                                    const SizedBox(
-                                      width: 10,
-                                    ),
-                                  if (coin == Coin.firo ||
-                                      coin == Coin.firoTestNet)
-                                    const Spacer(),
+                                      if (coin != Coin.firo &&
+                                          coin != Coin.firoTestNet)
+                                        Text(
+                                          "Available balance",
+                                          style: STextStyles.label(context)
+                                              .copyWith(fontSize: 10),
+                                        ),
+                                    ],
+                                  ),
+                                  const Spacer(),
                                   FutureBuilder(
                                     // TODO redo this widget now that its not actually a future
                                     future: (coin != Coin.firo &&
@@ -1072,17 +1062,17 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     .state)
                                             .state ==
                                         "Private") {
-                                      cryptoAmountController.text =
-                                          (await firoWallet
-                                                  .availablePrivateBalance())
-                                              .toStringAsFixed(Constants
-                                                  .decimalPlacesForCoin(coin));
+                                      cryptoAmountController.text = firoWallet
+                                          .availablePrivateBalance()
+                                          .toStringAsFixed(
+                                              Constants.decimalPlacesForCoin(
+                                                  coin));
                                     } else {
-                                      cryptoAmountController.text =
-                                          (await firoWallet
-                                                  .availablePublicBalance())
-                                              .toStringAsFixed(Constants
-                                                  .decimalPlacesForCoin(coin));
+                                      cryptoAmountController.text = firoWallet
+                                          .availablePublicBalance()
+                                          .toStringAsFixed(
+                                              Constants.decimalPlacesForCoin(
+                                                  coin));
                                     }
                                   } else {
                                     cryptoAmountController.text = (ref
