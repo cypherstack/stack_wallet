@@ -17,6 +17,7 @@ import 'package:stackwallet/pages/buy_view/sub_widgets/fiat_selection_view.dart'
 import 'package:stackwallet/pages/exchange_view/choose_from_stack_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/address_book_address_chooser.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/services/buy/buy_response.dart';
 import 'package:stackwallet/services/buy/simplex/simplex_api.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -394,21 +395,91 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       buyWithFiat: buyWithFiat,
     );
 
-    await _loadQuote(quote);
+    BuyResponse<SimplexQuote> quoteResponse = await _loadQuote(quote);
     shouldPop = true;
     if (mounted) {
       Navigator.of(context, rootNavigator: isDesktop).pop();
     }
-    quote = ref.read(simplexProvider).quote;
+    if (quoteResponse.exception == null) {
+      quote = quoteResponse.value as SimplexQuote;
 
-    if (quote.id != 'id' && quote.id != 'someID') {
-      // TODO detect default quote better
-      await _showFloatingBuyQuotePreviewSheet(
-        quote: ref.read(simplexProvider).quote,
-        onSelected: (quote) {
-          // TODO launch URL
-        },
-      );
+      if (quote.id != 'id' && quote.id != 'someID') {
+        // TODO detect default quote better
+        await _showFloatingBuyQuotePreviewSheet(
+          quote: ref.read(simplexProvider).quote,
+          onSelected: (quote) {
+            // TODO launch URL
+          },
+        );
+      } else {
+        await showDialog<dynamic>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) {
+            if (isDesktop) {
+              return DesktopDialog(
+                maxWidth: 450,
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Simplex API unresponsive",
+                        style: STextStyles.desktopH3(context),
+                      ),
+                      const SizedBox(
+                        height: 24,
+                      ),
+                      Text(
+                        "Simplex API unresponsive, please try again later",
+                        style: STextStyles.smallMed14(context),
+                      ),
+                      const SizedBox(
+                        height: 56,
+                      ),
+                      Row(
+                        children: [
+                          const Spacer(),
+                          Expanded(
+                            child: PrimaryButton(
+                              buttonHeight: ButtonHeight.l,
+                              label: "Ok",
+                              onPressed: Navigator.of(context).pop,
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+              );
+            } else {
+              return StackDialog(
+                title: "Simplex API error",
+                message:
+                    "${quoteResponse.exception?.errorMessage.substring(19, quoteResponse.exception?.errorMessage?.length ?? 109 - (14 + 19))}",
+                rightButton: TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getSecondaryEnabledButtonStyle(context),
+                  child: Text(
+                    "Ok",
+                    style: STextStyles.button(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              );
+            }
+          },
+        );
+      }
     } else {
       await showDialog<dynamic>(
         context: context,
@@ -424,14 +495,14 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Simplex API unresponsive",
+                      "Simplex API error",
                       style: STextStyles.desktopH3(context),
                     ),
                     const SizedBox(
                       height: 24,
                     ),
                     Text(
-                      "Simplex API unresponsive, please try again later",
+                      "${quoteResponse.exception?.errorMessage.substring((quoteResponse.exception?.errorMessage?.indexOf('getQuote exception: ') ?? 19) + 20, quoteResponse.exception?.errorMessage?.indexOf(", value: null"))}",
                       style: STextStyles.smallMed14(context),
                     ),
                     const SizedBox(
@@ -455,9 +526,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
             );
           } else {
             return StackDialog(
-              title: "Simplex API unresponsive",
+              title: "Simplex API error",
               message:
-                  "Unexpected response from Simplex API, please try again later",
+                  "${quoteResponse.exception?.errorMessage.substring((quoteResponse.exception?.errorMessage?.indexOf('getQuote exception: ') ?? 19) + 20, quoteResponse.exception?.errorMessage?.indexOf(", value: null"))}",
               rightButton: TextButton(
                 style: Theme.of(context)
                     .extension<StackColors>()!
@@ -480,15 +551,23 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     }
   }
 
-  Future<void> _loadQuote(SimplexQuote quote) async {
+  Future<BuyResponse<SimplexQuote>> _loadQuote(SimplexQuote quote) async {
     final response = await SimplexAPI.instance.getQuote(quote);
 
     if (response.value != null) {
+      // TODO check for error key
       ref.read(simplexProvider).updateQuote(response.value!);
+      return BuyResponse(value: response.value!);
     } else {
       Logging.instance.log(
         "_loadQuote: $response",
         level: LogLevel.Warning,
+      );
+      return BuyResponse(
+        exception: BuyException(
+          response.toString(),
+          BuyExceptionType.generic,
+        ),
       );
     }
   }

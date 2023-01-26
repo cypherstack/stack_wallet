@@ -184,6 +184,9 @@ class SimplexAPI {
         throw Exception('getQuote exception: statusCode= ${res.statusCode}');
       }
       final jsonArray = jsonDecode(res.body);
+      if (jsonArray.containsKey('error') as bool) {
+        throw Exception('getQuote exception: ${jsonArray['error']}');
+      }
 
       jsonArray['quote'] = quote; // Add and pass this on
 
