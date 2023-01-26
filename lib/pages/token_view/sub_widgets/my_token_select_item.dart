@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/token_view/token_view.dart';
-import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
-import 'package:stackwallet/providers/global/tokens_provider.dart';
 import 'package:stackwallet/services/tokens/ethereum/ethereum_token.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -57,13 +55,15 @@ class MyTokenSelectItem extends ConsumerWidget {
           final mnemonicList = ref.read(managerProvider).mnemonic;
 
           final token = EthereumToken(
-              contractAddress: tokenData["contractAddress"] as String,
+              // contractAddress: tokenData["contractAddress"] as String,
+              tokenData: tokenData,
               walletMnemonic: mnemonicList);
 
           Navigator.of(context).pushNamed(
             TokenView.routeName,
-            arguments: Tuple3(
+            arguments: Tuple4(
                 walletId,
+                tokenData,
                 ref
                     .read(walletsChangeNotifierProvider)
                     .getManagerProvider(walletId),

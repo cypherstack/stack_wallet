@@ -10,17 +10,17 @@ abstract class TokenServiceAPI {
   TokenServiceAPI();
 
   factory TokenServiceAPI.from(
-    String contractAddress,
-    String walletId,
+    Map<dynamic, dynamic> tokenData,
+    Future<List<String>> walletMnemonic,
     SecureStorageInterface secureStorageInterface,
     TransactionNotificationTracker tracker,
     Prefs prefs,
   ) {
     return EthereumToken(
-      contractAddress: contractAddress,
-      walletId: walletId,
-      secureStore: secureStorageInterface,
-      tracker: tracker,
+      tokenData: tokenData,
+      walletMnemonic: walletMnemonic,
+      // secureStore: secureStorageInterface,
+      // tracker: tracker,
     );
   }
 
@@ -44,7 +44,6 @@ abstract class TokenServiceAPI {
   // Future<String> get currentLegacyReceivingAddress;
 
   Future<Decimal> get availableBalance;
-  Future<Decimal> get pendingBalance;
   Future<Decimal> get totalBalance;
   Future<Decimal> get balanceMinusMaxFee;
 
@@ -61,10 +60,6 @@ abstract class TokenServiceAPI {
 
   Future<void> initializeNew();
   Future<void> initializeExisting();
-
-  // void Function(bool isActive)? onIsActiveWalletChanged;
-
-  bool get isConnected;
 
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate);
 

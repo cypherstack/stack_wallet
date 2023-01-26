@@ -118,7 +118,6 @@ import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/tokens/ethereum/ethereum_token.dart';
-import 'package:stackwallet/services/tokens/token_manager.dart';
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:tuple/tuple.dart';
@@ -1328,14 +1327,15 @@ class RouteGenerator {
       //   }
 
       case TokenView.routeName:
-        if (args
-            is Tuple3<String, ChangeNotifierProvider<Manager>, EthereumToken>) {
+        if (args is Tuple4<String, Map<dynamic, dynamic>,
+            ChangeNotifierProvider<Manager>, EthereumToken>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => TokenView(
               walletId: args.item1,
-              managerProvider: args.item2,
-              token: args.item3,
+              tokenData: args.item2,
+              managerProvider: args.item3,
+              token: args.item4,
             ),
             settings: RouteSettings(
               name: settings.name,

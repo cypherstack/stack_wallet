@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:http/http.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
+import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'flutter_secure_storage_interface.dart';
 import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
@@ -27,13 +29,31 @@ class AccountModule {
   }
 }
 
-const _blockExplorer = "https://api.etherscan.io/api?";
-late SecureStorageInterface _secureStore;
+class GasTracker {
+  final int code;
+  final Map<String, dynamic> data;
+
+  const GasTracker({
+    required this.code,
+    required this.data,
+  });
+
+  factory GasTracker.fromJson(Map<String, dynamic> json) {
+    return GasTracker(
+      code: json['code'] as int,
+      data: json['data'] as Map<String, dynamic>,
+    );
+  }
+}
+
+// const blockExplorer = "https://blockscout.com/eth/mainnet/api";
+const blockExplorer = "https://api.etherscan.io/api";
 const _hdPath = "m/44'/60'/0'/0";
+const _gasTrackerUrl = "https://beaconcha.in/api/v1/execution/gasnow";
 
 Future<AccountModule> fetchAccountModule(String action, String address) async {
   final response = await get(Uri.parse(
-      "${_blockExplorer}module=account&action=$action&address=$address&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
+      "${blockExplorer}module=account&action=$action&address=$address&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
   if (response.statusCode == 200) {
     return AccountModule.fromJson(
         json.decode(response.body) as Map<String, dynamic>);
@@ -48,7 +68,6 @@ Future<List<dynamic>> getWalletTokens(String address) async {
   var tokenMap = {};
   if (tokens.message == "OK") {
     final allTxs = tokens.result;
-    print("RESULT IS $allTxs");
     allTxs.forEach((element) {
       String key = element["tokenSymbol"] as String;
       tokenMap[key] = {};
@@ -87,4 +106,42 @@ String getPrivateKey(String mnemonic) {
   final addressAtIndex = root.derivePath("$_hdPath/$index");
 
   return HEX.encode(addressAtIndex.privateKey as List<int>);
+}
+
+Future<GasTracker> getGasOracle() async {
+  final response = await get(Uri.parse(_gasTrackerUrl));
+
+  if (response.statusCode == 200) {
+    return GasTracker.fromJson(
+        json.decode(response.body) as Map<String, dynamic>);
+  } else {
+    throw Exception('Failed to load gas oracle');
+  }
+}
+
+Future<FeeObject> getFees() async {
+  GasTracker fees = await getGasOracle();
+  final feesMap = fees.data;
+  return FeeObject(
+      numberOfBlocksFast: 1,
+      numberOfBlocksAverage: 3,
+      numberOfBlocksSlow: 3,
+      fast: feesMap['fast'] as int,
+      medium: feesMap['standard'] as int,
+      slow: feesMap['slow'] as int);
+}
+
+double estimateFee(int feeRate, int gasLimit, int decimals) {
+  final gweiAmount = feeRate / (pow(10, 9));
+  final fee = gasLimit * gweiAmount;
+
+  //Convert gwei to ETH
+  final feeInWei = fee * (pow(10, 9));
+  final ethAmount = feeInWei / (pow(10, decimals));
+  return ethAmount;
+}
+
+BigInt amountToBigInt(num amount, int decimal) {
+  final amountToSendinDecimal = amount * (pow(10, decimal));
+  return BigInt.from(amountToSendinDecimal);
 }

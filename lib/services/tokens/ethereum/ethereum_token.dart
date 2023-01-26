@@ -1,16 +1,20 @@
 import 'dart:convert';
-
-import 'package:decimal/decimal.dart';
+import 'dart:math';
 import 'package:http/http.dart';
+import 'package:decimal/decimal.dart';
+import 'package:stackwallet/utilities/eth_commons.dart';
+import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart';
-import 'package:stackwallet/services/tokens/token_service.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/eth_commons.dart';
-
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
+import 'package:stackwallet/services/tokens/token_service.dart';
+import 'package:stackwallet/utilities/format.dart';
+import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:web3dart/web3dart.dart';
+import 'package:web3dart/web3dart.dart' as transaction;
 
 class AbiRequestResponse {
   final String message;
@@ -35,118 +39,222 @@ class AbiRequestResponse {
 class EthereumToken extends TokenServiceAPI {
   @override
   late bool shouldAutoSync;
-  late String _contractAddress;
+  late EthereumAddress _contractAddress;
   late EthPrivateKey _credentials;
+  late DeployedContract _contract;
+  late Map<dynamic, dynamic> _tokenData;
+  late ContractFunction _balanceFunction;
+  late ContractFunction _sendFunction;
   late Future<List<String>> _walletMnemonic;
   late SecureStorageInterface _secureStore;
   late String _tokenAbi;
+  late Web3Client _client;
   late final TransactionNotificationTracker txTracker;
 
   String rpcUrl =
       'https://mainnet.infura.io/v3/22677300bf774e49a458b73313ee56ba';
+  final _gasLimit = 200000;
 
   EthereumToken({
-    required String contractAddress,
+    required Map<dynamic, dynamic> tokenData,
     required Future<List<String>> walletMnemonic,
     // required SecureStorageInterface secureStore,
   }) {
-    _contractAddress = contractAddress;
+    _contractAddress =
+        EthereumAddress.fromHex(tokenData["contractAddress"] as String);
     _walletMnemonic = walletMnemonic;
+    _tokenData = tokenData;
     // _secureStore = secureStore;
   }
 
   Future<AbiRequestResponse> fetchTokenAbi() async {
+    print(
+        "$blockExplorer?module=contract&action=getabi&address=$_contractAddress&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP");
     final response = await get(Uri.parse(
-        "https://api.etherscan.io/api?module=contract&action=getabi&address=$_contractAddress&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
+        "$blockExplorer?module=contract&action=getabi&address=$_contractAddress&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
     if (response.statusCode == 200) {
       return AbiRequestResponse.fromJson(
           json.decode(response.body) as Map<String, dynamic>);
     } else {
-      throw Exception('Failed to load transactions');
+      throw Exception('Failed to load token abi');
     }
   }
 
   @override
-  // TODO: implement allOwnAddresses
-  Future<List<String>> get allOwnAddresses => throw UnimplementedError();
+  Future<List<String>> get allOwnAddresses =>
+      _allOwnAddresses ??= _fetchAllOwnAddresses();
+  Future<List<String>>? _allOwnAddresses;
 
-  @override
-  // TODO: implement availableBalance
-  Future<Decimal> get availableBalance => throw UnimplementedError();
-
-  @override
-  // TODO: implement balanceMinusMaxFee
-  Future<Decimal> get balanceMinusMaxFee => throw UnimplementedError();
-
-  @override
-  // TODO: implement coin
-  Coin get coin => throw UnimplementedError();
-
-  @override
-  Future<String> confirmSend({required Map<String, dynamic> txData}) {
-    // TODO: implement confirmSend
-    throw UnimplementedError();
+  Future<List<String>> _fetchAllOwnAddresses() async {
+    List<String> addresses = [];
+    final ownAddress = _credentials.address;
+    addresses.add(ownAddress.toString());
+    return addresses;
   }
 
   @override
-  // TODO: implement currentReceivingAddress
-  Future<String> get currentReceivingAddress => throw UnimplementedError();
-
-  @override
-  Future<int> estimateFeeFor(int satoshiAmount, int feeRate) {
-    // TODO: implement estimateFeeFor
-    throw UnimplementedError();
+  Future<Decimal> get availableBalance async {
+    return await totalBalance;
   }
 
   @override
-  // TODO: implement fees
-  Future<FeeObject> get fees => throw UnimplementedError();
+  Future<Decimal> get balanceMinusMaxFee async =>
+      (await availableBalance) -
+      (Decimal.fromInt((await maxFee)) /
+              Decimal.fromInt(Constants.satsPerCoin(coin)))
+          .toDecimal();
+
+  @override
+  Coin get coin => Coin.ethereum;
+
+  @override
+  Future<String> confirmSend({required Map<String, dynamic> txData}) async {
+    final amount = txData['recipientAmt'];
+    final decimalAmount =
+        Format.satoshisToAmount(amount as int, coin: Coin.ethereum);
+    final bigIntAmount = amountToBigInt(
+        decimalAmount.toDouble(), int.parse(_tokenData["decimals"] as String));
+
+    final sentTx = await _client.sendTransaction(
+        _credentials,
+        transaction.Transaction.callContract(
+            contract: _contract,
+            function: _sendFunction,
+            parameters: [
+              EthereumAddress.fromHex(txData['address'] as String),
+              bigIntAmount
+            ],
+            maxGas: _gasLimit,
+            gasPrice: EtherAmount.fromUnitAndValue(
+                EtherUnit.wei, txData['feeInWei'])));
+
+    return sentTx;
+  }
+
+  @override
+  Future<String> get currentReceivingAddress async {
+    final _currentReceivingAddress = await _credentials.extractAddress();
+    final checkSumAddress =
+        checksumEthereumAddress(_currentReceivingAddress.toString());
+    return checkSumAddress;
+  }
+
+  @override
+  Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
+    final fee = estimateFee(
+        feeRate, _gasLimit, int.parse(_tokenData["decimals"] as String));
+    return Format.decimalAmountToSatoshis(Decimal.parse(fee.toString()), coin);
+  }
+
+  @override
+  Future<FeeObject> get fees => _feeObject ??= _getFees();
+  Future<FeeObject>? _feeObject;
+
+  Future<FeeObject> _getFees() async {
+    return await getFees();
+  }
 
   @override
   Future<void> initializeExisting() async {
+    //TODO - GET abi FROM secure store
     AbiRequestResponse abi = await fetchTokenAbi();
     //Fetch token ABI so we can call token functions
     if (abi.message == "OK") {
       _tokenAbi = abi.result;
     }
-
     final mnemonic = await _walletMnemonic;
     String mnemonicString = mnemonic.join(' ');
 
     //Get private key for given mnemonic
     String privateKey = getPrivateKey(mnemonicString);
-    // TODO: implement initializeExisting
-    throw UnimplementedError();
+    _credentials = EthPrivateKey.fromHex(privateKey);
+
+    _contract = DeployedContract(
+        ContractAbi.fromJson(_tokenAbi, _tokenData["name"] as String),
+        _contractAddress);
+    _balanceFunction = _contract.function('balanceOf');
+    _sendFunction = _contract.function('transfer');
+    _client = await getEthClient();
+    print("${await totalBalance}");
   }
 
   @override
   Future<void> initializeNew() async {
-    throw UnimplementedError();
-  }
+    //TODO - Save abi in secure store
+    AbiRequestResponse abi = await fetchTokenAbi();
+    //Fetch token ABI so we can call token functions
+    if (abi.message == "OK") {
+      _tokenAbi = abi.result;
+    }
+    final mnemonic = await _walletMnemonic;
+    String mnemonicString = mnemonic.join(' ');
 
-  @override
-  // TODO: implement isConnected
-  bool get isConnected => throw UnimplementedError();
+    //Get private key for given mnemonic
+    String privateKey = getPrivateKey(mnemonicString);
+    _credentials = EthPrivateKey.fromHex(privateKey);
+
+    _contract = DeployedContract(
+        ContractAbi.fromJson(_tokenAbi, _tokenData["name"] as String),
+        _contractAddress);
+    _balanceFunction = _contract.function('balanceOf');
+    _sendFunction = _contract.function('transfer');
+    _client = await getEthClient();
+  }
 
   @override
   // TODO: implement isRefreshing
   bool get isRefreshing => throw UnimplementedError();
 
   @override
-  // TODO: implement maxFee
-  Future<int> get maxFee => throw UnimplementedError();
-
-  @override
-  // TODO: implement pendingBalance
-  Future<Decimal> get pendingBalance => throw UnimplementedError();
+  Future<int> get maxFee async {
+    final fee = (await fees).fast;
+    final feeEstimate = await estimateFeeFor(0, fee);
+    return feeEstimate;
+  }
 
   @override
   Future<Map<String, dynamic>> prepareSend(
       {required String address,
       required int satoshiAmount,
-      Map<String, dynamic>? args}) {
-    // TODO: implement prepareSend
-    throw UnimplementedError();
+      Map<String, dynamic>? args}) async {
+    final feeRateType = args?["feeRate"];
+    int fee = 0;
+    final feeObject = await fees;
+    switch (feeRateType) {
+      case FeeRateType.fast:
+        fee = feeObject.fast;
+        break;
+      case FeeRateType.average:
+        fee = feeObject.medium;
+        break;
+      case FeeRateType.slow:
+        fee = feeObject.slow;
+        break;
+    }
+
+    final feeEstimate = await estimateFeeFor(satoshiAmount, fee);
+
+    bool isSendAll = false;
+    final balance =
+        Format.decimalAmountToSatoshis(await availableBalance, coin);
+    if (satoshiAmount == balance) {
+      isSendAll = true;
+    }
+
+    if (isSendAll) {
+      //Subtract fee amount from send amount
+      satoshiAmount -= feeEstimate;
+    }
+
+    Map<String, dynamic> txData = {
+      "fee": feeEstimate,
+      "feeInWei": fee,
+      "address": address,
+      "recipientAmt": satoshiAmount,
+    };
+
+    print("TX DATA TO BE SENT IS $txData");
+    return txData;
   }
 
   @override
@@ -156,22 +264,69 @@ class EthereumToken extends TokenServiceAPI {
   }
 
   @override
-  // TODO: implement totalBalance
-  Future<Decimal> get totalBalance => throw UnimplementedError();
+  Future<Decimal> get totalBalance async {
+    final balanceRequest = await _client.call(
+        contract: _contract,
+        function: _balanceFunction,
+        params: [_credentials.address]);
+
+    String balance = balanceRequest.first.toString();
+    int tokenDecimals = int.parse(_tokenData["decimals"] as String);
+    final balanceInDecimal = (int.parse(balance) / (pow(10, tokenDecimals)));
+    return Decimal.parse(balanceInDecimal.toString());
+  }
 
   @override
   // TODO: implement transactionData
   Future<TransactionData> get transactionData => throw UnimplementedError();
 
   @override
-  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) {
-    // TODO: implement updateSentCachedTxData
-    throw UnimplementedError();
+  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
+    Decimal currentPrice = Decimal.parse(0.0 as String);
+    final locale = await Devicelocale.currentLocale;
+    final String worthNow = Format.localizedStringAsFixed(
+        value:
+            ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
+                    Decimal.fromInt(Constants.satsPerCoin(coin)))
+                .toDecimal(scaleOnInfinitePrecision: 2),
+        decimalPlaces: 2,
+        locale: locale!);
+
+    final tx = models.Transaction(
+      txid: txData["txid"] as String,
+      confirmedStatus: false,
+      timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      txType: "Sent",
+      amount: txData["recipientAmt"] as int,
+      worthNow: worthNow,
+      worthAtBlockTimestamp: worthNow,
+      fees: txData["fee"] as int,
+      inputSize: 0,
+      outputSize: 0,
+      inputs: [],
+      outputs: [],
+      address: txData["address"] as String,
+      height: -1,
+      confirmations: 0,
+    );
+
+    if (cachedTxData == null) {
+      final data = await _fetchTransactionData();
+      _transactionData = Future(() => data);
+    } else {
+      final transactions = cachedTxData!.getAllTransactions();
+      transactions[tx.txid] = tx;
+      cachedTxData = models.TransactionData.fromMap(transactions);
+      _transactionData = Future(() => cachedTxData!);
+    }
   }
 
   @override
   bool validateAddress(String address) {
-    // TODO: implement validateAddress
-    throw UnimplementedError();
+    return isValidEthereumAddress(address);
+  }
+
+  Future<Web3Client> getEthClient() async {
+    return Web3Client(rpcUrl, Client());
   }
 }

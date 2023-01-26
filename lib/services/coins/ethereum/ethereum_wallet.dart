@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
-import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
 
-import "package:hex/hex.dart";
 import 'package:decimal/decimal.dart';
 import 'package:devicelocale/devicelocale.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
@@ -22,7 +20,6 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:web3dart/web3dart.dart';
-import 'package:web3dart/web3dart.dart' as web3;
 import 'package:web3dart/web3dart.dart' as Transaction;
 import 'package:stackwallet/models/models.dart' as models;
 
@@ -66,30 +63,10 @@ class AddressTransaction {
   }
 }
 
-class GasTracker {
-  final int code;
-  final Map<String, dynamic> data;
-
-  const GasTracker({
-    required this.code,
-    required this.data,
-  });
-
-  factory GasTracker.fromJson(Map<String, dynamic> json) {
-    return GasTracker(
-      code: json['code'] as int,
-      data: json['data'] as Map<String, dynamic>,
-    );
-  }
-}
-
 class EthereumWallet extends CoinServiceAPI {
   NodeModel? _ethNode;
   final _gasLimit = 21000;
-  // final _blockExplorer = "https://blockscout.com/eth/mainnet/api?";
-  final _blockExplorer = "https://api.etherscan.io/api?";
-  final _gasTrackerUrl = "https://beaconcha.in/api/v1/execution/gasnow";
-  final _hdPath = "m/44'/60'/0'/0";
+  final _blockExplorer = "https://blockscout.com/eth/mainnet/api?";
 
   @override
   String get walletId => _walletId;
@@ -213,7 +190,8 @@ class EthereumWallet extends CoinServiceAPI {
     final amount = txData['recipientAmt'];
     final decimalAmount =
         Format.satoshisToAmount(amount as int, coin: Coin.ethereum);
-    final bigIntAmount = amountToBigInt(decimalAmount.toDouble());
+    const decimal = 18; //Eth has up to 18 decimal places
+    final bigIntAmount = amountToBigInt(decimalAmount.toDouble(), decimal);
 
     final tx = Transaction.Transaction(
         to: EthereumAddress.fromHex(txData['address'] as String),
@@ -227,12 +205,6 @@ class EthereumWallet extends CoinServiceAPI {
     return transaction;
   }
 
-  BigInt amountToBigInt(num amount) {
-    const decimal = 18; //Eth has up to 18 decimal places
-    final amountToSendinDecimal = amount * (pow(10, decimal));
-    return BigInt.from(amountToSendinDecimal);
-  }
-
   @override
   Future<String> get currentReceivingAddress async {
     final _currentReceivingAddress = _credentials.address;
@@ -243,14 +215,8 @@ class EthereumWallet extends CoinServiceAPI {
 
   @override
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
-    final gweiAmount = feeRate / (pow(10, 9));
-    final fee = _gasLimit * gweiAmount;
-
-    //Convert gwei to ETH
-    final feeInWei = fee * (pow(10, 9));
-    final ethAmount = feeInWei / (pow(10, 18));
-    return Format.decimalAmountToSatoshis(
-        Decimal.parse(ethAmount.toString()), coin);
+    final fee = estimateFee(feeRate, _gasLimit, 18);
+    return Format.decimalAmountToSatoshis(Decimal.parse(fee.toString()), coin);
   }
 
   @override
@@ -266,26 +232,7 @@ class EthereumWallet extends CoinServiceAPI {
   Future<FeeObject>? _feeObject;
 
   Future<FeeObject> _getFees() async {
-    GasTracker fees = await getGasOracle();
-    final feesMap = fees.data;
-    return FeeObject(
-        numberOfBlocksFast: 1,
-        numberOfBlocksAverage: 3,
-        numberOfBlocksSlow: 3,
-        fast: feesMap['fast'] as int,
-        medium: feesMap['standard'] as int,
-        slow: feesMap['slow'] as int);
-  }
-
-  Future<GasTracker> getGasOracle() async {
-    final response = await get(Uri.parse(_gasTrackerUrl));
-
-    if (response.statusCode == 200) {
-      return GasTracker.fromJson(
-          json.decode(response.body) as Map<String, dynamic>);
-    } else {
-      throw Exception('Failed to load gas oracle');
-    }
+    return await getFees();
   }
 
   //Full rescan is not needed for ETH since we have a balance
@@ -329,20 +276,6 @@ class EthereumWallet extends CoinServiceAPI {
     if (data != null) {
       _transactionData = Future(() => data);
     }
-  }
-
-  String getPrivateKey(String mnemonic) {
-    final isValidMnemonic = bip39.validateMnemonic(mnemonic);
-    if (!isValidMnemonic) {
-      throw 'Invalid mnemonic';
-    }
-
-    final seed = bip39.mnemonicToSeed(mnemonic);
-    final root = bip32.BIP32.fromSeed(seed);
-    const index = 0;
-    final addressAtIndex = root.derivePath("$_hdPath/$index");
-
-    return HEX.encode(addressAtIndex.privateKey as List<int>);
   }
 
   @override
@@ -467,14 +400,10 @@ class EthereumWallet extends CoinServiceAPI {
       isSendAll = true;
     }
 
-    print("SATOSHI AMOUNT BEFORE $satoshiAmount");
-    print("FEE IS $fee");
     if (isSendAll) {
       //Subtract fee amount from send amount
       satoshiAmount -= feeEstimate;
     }
-
-    print("SATOSHI AMOUNT AFTER $satoshiAmount");
 
     Map<String, dynamic> txData = {
       "fee": feeEstimate,
@@ -507,7 +436,6 @@ class EthereumWallet extends CoinServiceAPI {
       String privateKey = getPrivateKey(mnemonic);
       _credentials = EthPrivateKey.fromHex(privateKey);
 
-      // print(_credentials.address);
       //Get ERC-20 transactions for wallet (So we can get the and save wallet's ERC-20 TOKENS
       AddressTransaction tokenTransactions = await fetchAddressTransactions(
           _credentials.address.toString(), "tokentx");
@@ -515,7 +443,7 @@ class EthereumWallet extends CoinServiceAPI {
       List<Map<dynamic, dynamic>> tokensList = [];
       if (tokenTransactions.message == "OK") {
         final allTxs = tokenTransactions.result;
-        print("RESULT IS $allTxs");
+
         allTxs.forEach((element) {
           String key = element["tokenSymbol"] as String;
           tokenMap[key] = {};
@@ -543,9 +471,6 @@ class EthereumWallet extends CoinServiceAPI {
         await _secureStore.write(
             key: '${_walletId}_tokens', value: tokensList.toString());
       }
-
-      print("THIS WALLET TOKENS IS $tokenMap");
-      print("ALL TOKENS LIST IS $tokensList");
 
       await DB.instance
           .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
@@ -976,7 +901,9 @@ class EthereumWallet extends CoinServiceAPI {
 
         if (checksumEthereumAddress(element["from"].toString()) ==
             thisAddress) {
-          midSortedTx["txType"] = "Sent";
+          midSortedTx["txType"] = (int.parse(element["isError"] as String) == 0)
+              ? "Sent"
+              : "Send Failed";
         } else {
           midSortedTx["txType"] = "Received";
         }

@@ -15,6 +15,7 @@ import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_view.dart';
 import 'package:stackwallet/pages/token_view/my_tokens_view.dart';
+import 'package:stackwallet/pages/token_view/sub_widgets/token_summary.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_navigation_bar.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_summary.dart';
@@ -25,7 +26,6 @@ import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -55,6 +55,7 @@ class TokenView extends ConsumerStatefulWidget {
   const TokenView({
     Key? key,
     required this.walletId,
+    required this.tokenData,
     required this.managerProvider,
     required this.token,
     this.eventBus,
@@ -64,6 +65,7 @@ class TokenView extends ConsumerStatefulWidget {
   static const double navBarHeight = 65.0;
 
   final String walletId;
+  final Map<dynamic, dynamic> tokenData;
   final ChangeNotifierProvider<Manager> managerProvider;
   final EthereumToken token;
   final EventBus? eventBus;
@@ -209,160 +211,51 @@ class _TokenViewState extends ConsumerState<TokenView> {
     }
   }
 
-  Widget _buildNetworkIcon(WalletSyncStatus status) {
-    switch (status) {
-      case WalletSyncStatus.unableToSync:
-        return SvgPicture.asset(
-          Assets.svg.radioProblem,
-          color: Theme.of(context).extension<StackColors>()!.accentColorRed,
-          width: 20,
-          height: 20,
-        );
-      case WalletSyncStatus.synced:
-        return SvgPicture.asset(
-          Assets.svg.radio,
-          color: Theme.of(context).extension<StackColors>()!.accentColorGreen,
-          width: 20,
-          height: 20,
-        );
-      case WalletSyncStatus.syncing:
-        return SvgPicture.asset(
-          Assets.svg.radioSyncing,
-          color: Theme.of(context).extension<StackColors>()!.accentColorYellow,
-          width: 20,
-          height: 20,
-        );
-    }
-  }
-
   void _onExchangePressed(BuildContext context) async {
     unawaited(_cnLoadingService.loadAll(ref));
 
     final coin = ref.read(managerProvider).coin;
 
-    if (coin == Coin.epicCash) {
-      await showDialog<void>(
-        context: context,
-        builder: (_) => const StackOkDialog(
-          title: "Exchange not available for Epic Cash",
-        ),
-      );
-    } else if (coin.name.endsWith("TestNet")) {
-      await showDialog<void>(
-        context: context,
-        builder: (_) => const StackOkDialog(
-          title: "Exchange not available for test net coins",
-        ),
-      );
-    } else {
-      ref.read(currentExchangeNameStateProvider.state).state =
-          ChangeNowExchange.exchangeName;
-      final walletId = ref.read(managerProvider).walletId;
-      ref.read(prefsChangeNotifierProvider).exchangeRateType =
-          ExchangeRateType.estimated;
+    ref.read(currentExchangeNameStateProvider.state).state =
+        ChangeNowExchange.exchangeName;
+    final walletId = ref.read(managerProvider).walletId;
+    ref.read(prefsChangeNotifierProvider).exchangeRateType =
+        ExchangeRateType.estimated;
 
-      ref.read(exchangeFormStateProvider).exchange = ref.read(exchangeProvider);
-      ref.read(exchangeFormStateProvider).exchangeType =
-          ExchangeRateType.estimated;
+    ref.read(exchangeFormStateProvider).exchange = ref.read(exchangeProvider);
+    ref.read(exchangeFormStateProvider).exchangeType =
+        ExchangeRateType.estimated;
 
-      final currencies = ref
-          .read(availableChangeNowCurrenciesProvider)
-          .currencies
-          .where((element) =>
-              element.ticker.toLowerCase() == coin.ticker.toLowerCase());
+    final currencies = ref
+        .read(availableChangeNowCurrenciesProvider)
+        .currencies
+        .where((element) =>
+            element.ticker.toLowerCase() == coin.ticker.toLowerCase());
 
-      if (currencies.isNotEmpty) {
-        ref.read(exchangeFormStateProvider).setCurrencies(
-              currencies.first,
-              ref
-                  .read(availableChangeNowCurrenciesProvider)
-                  .currencies
-                  .firstWhere(
-                    (element) =>
-                        element.ticker.toLowerCase() !=
-                        coin.ticker.toLowerCase(),
-                  ),
-            );
-      }
-
-      if (mounted) {
-        unawaited(
-          Navigator.of(context).pushNamed(
-            WalletInitiatedExchangeView.routeName,
-            arguments: Tuple3(
-              walletId,
-              coin,
-              _loadCNData,
-            ),
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> attemptAnonymize() async {
-    bool shouldPop = false;
-    unawaited(
-      showDialog(
-        context: context,
-        builder: (context) => WillPopScope(
-          child: const CustomLoadingOverlay(
-            message: "Anonymizing balance",
-            eventBus: null,
-          ),
-          onWillPop: () async => shouldPop,
-        ),
-      ),
-    );
-    final firoWallet = ref.read(managerProvider).wallet as FiroWallet;
-
-    final publicBalance = await firoWallet.availablePublicBalance();
-    if (publicBalance <= Decimal.zero) {
-      shouldPop = true;
-      if (mounted) {
-        Navigator.of(context).popUntil(
-          ModalRoute.withName(TokenView.routeName),
-        );
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.info,
-            message: "No funds available to anonymize!",
-            context: context,
-          ),
-        );
-      }
-      return;
+    if (currencies.isNotEmpty) {
+      ref.read(exchangeFormStateProvider).setCurrencies(
+            currencies.first,
+            ref
+                .read(availableChangeNowCurrenciesProvider)
+                .currencies
+                .firstWhere(
+                  (element) =>
+                      element.ticker.toLowerCase() != coin.ticker.toLowerCase(),
+                ),
+          );
     }
 
-    try {
-      await firoWallet.anonymizeAllPublicFunds();
-      shouldPop = true;
-      if (mounted) {
-        Navigator.of(context).popUntil(
-          ModalRoute.withName(TokenView.routeName),
-        );
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.success,
-            message: "Anonymize transaction submitted",
-            context: context,
+    if (mounted) {
+      unawaited(
+        Navigator.of(context).pushNamed(
+          WalletInitiatedExchangeView.routeName,
+          arguments: Tuple3(
+            walletId,
+            coin,
+            _loadCNData,
           ),
-        );
-      }
-    } catch (e) {
-      shouldPop = true;
-      if (mounted) {
-        Navigator.of(context).popUntil(
-          ModalRoute.withName(TokenView.routeName),
-        );
-        await showDialog<dynamic>(
-          context: context,
-          builder: (_) => StackOkDialog(
-            title: "Anonymize all failed",
-            message: "Reason: $e",
-          ),
-        );
-      }
+        ),
+      );
     }
   }
 
@@ -379,6 +272,8 @@ class _TokenViewState extends ConsumerState<TokenView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
+    widget.token.initializeExisting();
+    // print("MY TOTAL BALANCE IS ${widget.token.totalBalance}");
 
     final coin = ref.watch(managerProvider.select((value) => value.coin));
 
@@ -409,146 +304,21 @@ class _TokenViewState extends ConsumerState<TokenView> {
                 ),
                 Expanded(
                   child: Text(
+                    widget.tokenData["name"] as String,
+                    style: STextStyles.navBarTitle(context),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
                     ref.watch(
-                        managerProvider.select((value) => value.walletName)),
+                        managerProvider.select((value) => value.coin.ticker)),
                     style: STextStyles.navBarTitle(context),
                     overflow: TextOverflow.ellipsis,
                   ),
                 )
               ],
             ),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 10,
-                ),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    key: const Key("TokenViewRadioButton"),
-                    size: 36,
-                    shadows: const [],
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    icon: _buildNetworkIcon(_currentSyncStatus),
-                    onPressed: () {
-                      Navigator.of(context).pushNamed(
-                        WalletNetworkSettingsView.routeName,
-                        arguments: Tuple3(
-                          walletId,
-                          _currentSyncStatus,
-                          _currentNodeStatus,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 10,
-                ),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    key: const Key("TokenViewAlertsButton"),
-                    size: 36,
-                    shadows: const [],
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    icon: SvgPicture.asset(
-                      ref.watch(notificationsProvider.select((value) =>
-                              value.hasUnreadNotificationsFor(walletId)))
-                          ? Assets.svg.bellNew(context)
-                          : Assets.svg.bell,
-                      width: 20,
-                      height: 20,
-                      color: ref.watch(notificationsProvider.select((value) =>
-                              value.hasUnreadNotificationsFor(walletId)))
-                          ? null
-                          : Theme.of(context)
-                              .extension<StackColors>()!
-                              .topNavIconPrimary,
-                    ),
-                    onPressed: () {
-                      // reset unread state
-                      ref.refresh(unreadNotificationsStateProvider);
-
-                      Navigator.of(context)
-                          .pushNamed(
-                        NotificationsView.routeName,
-                        arguments: walletId,
-                      )
-                          .then((_) {
-                        final Set<int> unreadNotificationIds = ref
-                            .read(unreadNotificationsStateProvider.state)
-                            .state;
-                        if (unreadNotificationIds.isEmpty) return;
-
-                        List<Future<dynamic>> futures = [];
-                        for (int i = 0;
-                            i < unreadNotificationIds.length - 1;
-                            i++) {
-                          futures.add(ref
-                              .read(notificationsProvider)
-                              .markAsRead(
-                                  unreadNotificationIds.elementAt(i), false));
-                        }
-
-                        // wait for multiple to update if any
-                        Future.wait(futures).then((_) {
-                          // only notify listeners once
-                          ref
-                              .read(notificationsProvider)
-                              .markAsRead(unreadNotificationIds.last, true);
-                        });
-                      });
-                    },
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 10,
-                ),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    key: const Key("TokenViewSettingsButton"),
-                    size: 36,
-                    shadows: const [],
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    icon: SvgPicture.asset(
-                      Assets.svg.bars,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
-                      width: 20,
-                      height: 20,
-                    ),
-                    onPressed: () {
-                      debugPrint("wallet view settings tapped");
-                      Navigator.of(context).pushNamed(
-                        WalletSettingsView.routeName,
-                        arguments: Tuple4(
-                          walletId,
-                          ref.read(managerProvider).coin,
-                          _currentSyncStatus,
-                          _currentNodeStatus,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ],
           ),
           body: SafeArea(
             child: Container(
@@ -561,7 +331,7 @@ class _TokenViewState extends ConsumerState<TokenView> {
                   Center(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: WalletSummary(
+                      child: TokenSummary(
                         walletId: walletId,
                         managerProvider: managerProvider,
                         initialSyncStatus: ref.watch(managerProvider
@@ -571,72 +341,6 @@ class _TokenViewState extends ConsumerState<TokenView> {
                       ),
                     ),
                   ),
-                  if (coin == Coin.firo)
-                    const SizedBox(
-                      height: 10,
-                    ),
-                  if (coin == Coin.firo)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextButton(
-                              style: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .getSecondaryEnabledButtonColor(context),
-                              onPressed: () async {
-                                await showDialog<void>(
-                                  context: context,
-                                  builder: (context) => StackDialog(
-                                    title: "Attention!",
-                                    message:
-                                        "You're about to anonymize all of your public funds.",
-                                    leftButton: TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Text(
-                                        "Cancel",
-                                        style: STextStyles.button(context)
-                                            .copyWith(
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .accentColorDark,
-                                        ),
-                                      ),
-                                    ),
-                                    rightButton: TextButton(
-                                      onPressed: () async {
-                                        Navigator.of(context).pop();
-
-                                        unawaited(attemptAnonymize());
-                                      },
-                                      style: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .getPrimaryEnabledButtonColor(
-                                              context),
-                                      child: Text(
-                                        "Continue",
-                                        style: STextStyles.button(context),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: Text(
-                                "Anonymize funds",
-                                style: STextStyles.button(context).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .buttonTextSecondary,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   const SizedBox(
                     height: 20,
                   ),
@@ -715,91 +419,91 @@ class _TokenViewState extends ConsumerState<TokenView> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                    bottom: 14,
-                                    left: 16,
-                                    right: 16,
-                                  ),
-                                  child: SizedBox(
-                                    height: TokenView.navBarHeight,
-                                    child: WalletNavigationBar(
-                                      enableExchange:
-                                          Constants.enableExchange &&
-                                              ref.watch(managerProvider.select(
-                                                      (value) => value.coin)) !=
-                                                  Coin.epicCash,
-                                      height: TokenView.navBarHeight,
-                                      onExchangePressed: () =>
-                                          _onExchangePressed(context),
-                                      onReceivePressed: () async {
-                                        final coin =
-                                            ref.read(managerProvider).coin;
-                                        if (mounted) {
-                                          unawaited(
-                                              Navigator.of(context).pushNamed(
-                                            ReceiveView.routeName,
-                                            arguments: Tuple2(
-                                              walletId,
-                                              coin,
-                                            ),
-                                          ));
-                                        }
-                                      },
-                                      onSendPressed: () {
-                                        final walletId =
-                                            ref.read(managerProvider).walletId;
-                                        final coin =
-                                            ref.read(managerProvider).coin;
-                                        switch (ref
-                                            .read(
-                                                walletBalanceToggleStateProvider
-                                                    .state)
-                                            .state) {
-                                          case WalletBalanceToggleState.full:
-                                            ref
-                                                .read(
-                                                    publicPrivateBalanceStateProvider
-                                                        .state)
-                                                .state = "Public";
-                                            break;
-                                          case WalletBalanceToggleState
-                                              .available:
-                                            ref
-                                                .read(
-                                                    publicPrivateBalanceStateProvider
-                                                        .state)
-                                                .state = "Private";
-                                            break;
-                                        }
-                                        Navigator.of(context).pushNamed(
-                                          SendView.routeName,
-                                          arguments: Tuple2(
-                                            walletId,
-                                            coin,
-                                          ),
-                                        );
-                                      },
-                                      onBuyPressed: () {},
-                                      onTokensPressed: () async {
-                                        final walletAddress = await ref
-                                            .read(managerProvider)
-                                            .currentReceivingAddress;
-
-                                        List<dynamic> tokens =
-                                            await getWalletTokens(await ref
-                                                .read(managerProvider)
-                                                .currentReceivingAddress);
-
-                                        await Navigator.of(context).pushNamed(
-                                          MyTokensView.routeName,
-                                          arguments: Tuple4(managerProvider,
-                                              walletId, walletAddress, tokens),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ),
+                                // Padding(
+                                //   padding: const EdgeInsets.only(
+                                //     bottom: 14,
+                                //     left: 16,
+                                //     right: 16,
+                                //   ),
+                                //   child: SizedBox(
+                                //     height: TokenView.navBarHeight,
+                                //     child: WalletNavigationBar(
+                                //       enableExchange:
+                                //           Constants.enableExchange &&
+                                //               ref.watch(managerProvider.select(
+                                //                       (value) => value.coin)) !=
+                                //                   Coin.epicCash,
+                                //       height: TokenView.navBarHeight,
+                                //       onExchangePressed: () =>
+                                //           _onExchangePressed(context),
+                                //       onReceivePressed: () async {
+                                //         final coin =
+                                //             ref.read(managerProvider).coin;
+                                //         if (mounted) {
+                                //           unawaited(
+                                //               Navigator.of(context).pushNamed(
+                                //             ReceiveView.routeName,
+                                //             arguments: Tuple2(
+                                //               walletId,
+                                //               coin,
+                                //             ),
+                                //           ));
+                                //         }
+                                //       },
+                                //       onSendPressed: () {
+                                //         final walletId =
+                                //             ref.read(managerProvider).walletId;
+                                //         final coin =
+                                //             ref.read(managerProvider).coin;
+                                //         switch (ref
+                                //             .read(
+                                //                 walletBalanceToggleStateProvider
+                                //                     .state)
+                                //             .state) {
+                                //           case WalletBalanceToggleState.full:
+                                //             ref
+                                //                 .read(
+                                //                     publicPrivateBalanceStateProvider
+                                //                         .state)
+                                //                 .state = "Public";
+                                //             break;
+                                //           case WalletBalanceToggleState
+                                //               .available:
+                                //             ref
+                                //                 .read(
+                                //                     publicPrivateBalanceStateProvider
+                                //                         .state)
+                                //                 .state = "Private";
+                                //             break;
+                                //         }
+                                //         Navigator.of(context).pushNamed(
+                                //           SendView.routeName,
+                                //           arguments: Tuple2(
+                                //             walletId,
+                                //             coin,
+                                //           ),
+                                //         );
+                                //       },
+                                //       onBuyPressed: () {},
+                                //       onTokensPressed: () async {
+                                //         final walletAddress = await ref
+                                //             .read(managerProvider)
+                                //             .currentReceivingAddress;
+                                //
+                                //         List<dynamic> tokens =
+                                //             await getWalletTokens(await ref
+                                //                 .read(managerProvider)
+                                //                 .currentReceivingAddress);
+                                //
+                                //         await Navigator.of(context).pushNamed(
+                                //           MyTokensView.routeName,
+                                //           arguments: Tuple4(managerProvider,
+                                //               walletId, walletAddress, tokens),
+                                //         );
+                                //       },
+                                //     ),
+                                //   ),
+                                // ),
                               ],
                             ),
                           ],
