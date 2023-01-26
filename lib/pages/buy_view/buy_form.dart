@@ -40,6 +40,7 @@ import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
@@ -360,8 +361,6 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   }
 
   Future<void> previewQuote(SimplexQuote quote) async {
-    // if (ref.read(simplexProvider).quote.id == "someID") {
-    //   // TODO make a better way of detecting a default SimplexQuote
     bool shouldPop = false;
     unawaited(
       showDialog(
@@ -395,17 +394,86 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     if (mounted) {
       Navigator.of(context, rootNavigator: isDesktop).pop();
     }
-    // }
 
-    await _showFloatingBuyQuotePreviewSheet(
-      quote: ref.read(simplexProvider).quote,
-      onSelected: (quote) {
-        // setState(() {
-        //   selectedFiat = fiat;
-        // });
-        // TODO launch URL
-      },
-    );
+    if (quote.id == 'someID') {
+      // TODO detect default quote better
+      await _showFloatingBuyQuotePreviewSheet(
+        quote: ref.read(simplexProvider).quote,
+        onSelected: (quote) {
+          // setState(() {
+          //   selectedFiat = fiat;
+          // });
+          // TODO launch URL
+        },
+      );
+    } else {
+      await showDialog<dynamic>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) {
+          if (isDesktop) {
+            return DesktopDialog(
+              maxWidth: 450,
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Simplex API unresponsive",
+                      style: STextStyles.desktopH3(context),
+                    ),
+                    const SizedBox(
+                      height: 24,
+                    ),
+                    Text(
+                      "Simplex API unresponsive, please try again later",
+                      style: STextStyles.smallMed14(context),
+                    ),
+                    const SizedBox(
+                      height: 56,
+                    ),
+                    Row(
+                      children: [
+                        const Spacer(),
+                        Expanded(
+                          child: PrimaryButton(
+                            buttonHeight: ButtonHeight.l,
+                            label: "Ok",
+                            onPressed: Navigator.of(context).pop,
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+            );
+          } else {
+            return StackDialog(
+              title: "Simplex API unresponsive",
+              message: "Simplex API unresponsive, please try again later",
+              rightButton: TextButton(
+                style: Theme.of(context)
+                    .extension<StackColors>()!
+                    .getSecondaryEnabledButtonStyle(context),
+                child: Text(
+                  "Ok",
+                  style: STextStyles.button(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            );
+          }
+        },
+      );
+    }
   }
 
   Future<void> _loadQuote(SimplexQuote quote) async {
