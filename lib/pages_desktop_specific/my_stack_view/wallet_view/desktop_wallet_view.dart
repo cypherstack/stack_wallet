@@ -19,10 +19,10 @@ import 'package:stackwallet/providers/global/paynym_api_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
-import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -209,14 +209,13 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
       ),
     );
 
-    // todo make generic and not doge specific
-    final wallet = (ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet as DogecoinWallet);
+    final manager =
+        ref.read(walletsChangeNotifierProvider).getManager(widget.walletId);
+
+    final wallet = manager.wallet as PaynymWalletInterface;
 
     final code =
-        await wallet.getPaymentCode(DerivePathTypeExt.primaryFor(wallet.coin));
+        await wallet.getPaymentCode(DerivePathTypeExt.primaryFor(manager.coin));
 
     final account = await ref.read(paynymAPIProvider).nym(code.toString());
 

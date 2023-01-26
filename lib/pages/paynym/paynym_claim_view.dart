@@ -9,8 +9,7 @@ import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/providers/global/paynym_api_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
-import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
-import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
+import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -160,17 +159,18 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                     ).then((value) => shouldCancel = value == true),
                   );
 
-                  // get wallet to access paynym calls
-                  final wallet = ref
+                  final manager = ref
                       .read(walletsChangeNotifierProvider)
-                      .getManager(widget.walletId)
-                      .wallet as DogecoinWallet;
+                      .getManager(widget.walletId);
+
+                  // get wallet to access paynym calls
+                  final wallet = manager.wallet as PaynymWalletInterface;
 
                   if (shouldCancel) return;
 
                   // get payment code
                   final pCode = await wallet.getPaymentCode(
-                      DerivePathTypeExt.primaryFor(wallet.coin));
+                      DerivePathTypeExt.primaryFor(manager.coin));
 
                   if (shouldCancel) return;
 

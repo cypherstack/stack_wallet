@@ -12,8 +12,7 @@ import 'package:stackwallet/pages/paynym/dialogs/confirm_paynym_connect_dialog.d
 import 'package:stackwallet/pages/paynym/subwidgets/paynym_bot.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
-import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
+import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -58,10 +57,10 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
       ),
     );
 
-    final wallet = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet as DogecoinWallet;
+    final manager =
+        ref.read(walletsChangeNotifierProvider).getManager(widget.walletId);
+
+    final wallet = manager.wallet as PaynymWalletInterface;
 
     if (await wallet.hasConnected(widget.accountLite.code)) {
       canPop = true;
@@ -70,7 +69,7 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
       return;
     }
 
-    final rates = await wallet.fees;
+    final rates = await manager.fees;
 
     Map<String, dynamic> preparedTx;
 
@@ -113,7 +112,7 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                   maxHeight: double.infinity,
                   maxWidth: 580,
                   child: ConfirmTransactionView(
-                    walletId: wallet.walletId,
+                    walletId: manager.walletId,
                     isPaynymNotificationTransaction: true,
                     transactionInfo: {
                       "hex": preparedTx["hex"],
@@ -142,7 +141,7 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
             );
           },
           amount: (preparedTx["amount"] as int) + (preparedTx["fee"] as int),
-          coin: wallet.coin,
+          coin: manager.coin,
         ),
       );
     }
@@ -154,10 +153,11 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
 
   @override
   Widget build(BuildContext context) {
-    final wallet = ref
-        .watch(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet as DogecoinWallet;
+    final manager = ref.watch(walletsChangeNotifierProvider
+        .select((value) => value.getManager(widget.walletId)));
+
+    final wallet = manager.wallet as PaynymWalletInterface;
+
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(0),
       child: Column(

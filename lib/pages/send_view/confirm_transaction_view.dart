@@ -12,10 +12,9 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
-import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
+import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -92,7 +91,7 @@ class _ConfirmTransactionViewState
     try {
       String txid;
       if (widget.isPaynymNotificationTransaction) {
-        txid = await (manager.wallet as DogecoinWallet)
+        txid = await (manager.wallet as PaynymWalletInterface)
             .broadcastNotificationTx(preparedTx: transactionInfo);
       } else if (widget.isPaynymTransaction) {
         //
