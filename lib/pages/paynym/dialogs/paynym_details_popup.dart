@@ -12,6 +12,7 @@ import 'package:stackwallet/pages/paynym/dialogs/confirm_paynym_connect_dialog.d
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages/paynym/subwidgets/paynym_bot.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
+import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
@@ -25,6 +26,7 @@ import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
+import 'package:tuple/tuple.dart';
 
 class PaynymDetailsPopup extends ConsumerStatefulWidget {
   const PaynymDetailsPopup({
@@ -44,7 +46,16 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
   bool _showInsufficientFundsInfo = false;
 
   Future<void> _onSend() async {
-    // todo send
+    final manager =
+        ref.read(walletsChangeNotifierProvider).getManager(widget.walletId);
+    await Navigator.of(context).pushNamed(
+      SendView.routeName,
+      arguments: Tuple3(
+        manager.walletId,
+        manager.coin,
+        widget.accountLite,
+      ),
+    );
   }
 
   Future<void> _onConnectPressed() async {

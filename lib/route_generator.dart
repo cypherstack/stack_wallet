@@ -6,6 +6,7 @@ import 'package:stackwallet/models/buy/response_objects/quote.dart';
 import 'package:stackwallet/models/contact_address_entry.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
+import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
@@ -836,6 +837,18 @@ class RouteGenerator {
               walletId: args.item1,
               coin: args.item2,
               autoFillData: args.item3,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        } else if (args is Tuple3<String, Coin, PaynymAccountLite>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SendView(
+              walletId: args.item1,
+              coin: args.item2,
+              accountLite: args.item3,
             ),
             settings: RouteSettings(
               name: settings.name,
