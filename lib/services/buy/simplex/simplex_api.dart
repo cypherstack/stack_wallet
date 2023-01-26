@@ -8,6 +8,7 @@ import 'package:stackwallet/models/buy/response_objects/fiat.dart';
 import 'package:stackwallet/models/buy/response_objects/order.dart';
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
 import 'package:stackwallet/services/buy/buy_response.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fiat_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
@@ -71,13 +72,15 @@ class SimplexAPI {
 
       for (final crypto in jsonArray as List) {
         // TODO validate jsonArray
-        cryptos.add(Crypto.fromJson({
-          'ticker': "${crypto['ticker_symbol']}",
-          'name': crypto['name'],
-          'network': "${crypto['network']}",
-          'contractAddress': "${crypto['contractAddress']}",
-          'image': "",
-        }));
+        if (isStackCoin("${crypto['ticker_symbol']}")) {
+          cryptos.add(Crypto.fromJson({
+            'ticker': "${crypto['ticker_symbol']}",
+            'name': crypto['name'],
+            'network': "${crypto['network']}",
+            'contractAddress': "${crypto['contractAddress']}",
+            'image': "",
+          }));
+        }
       }
 
       return BuyResponse(value: cryptos);
@@ -330,4 +333,15 @@ class SimplexAPI {
   // See https://github.com/dart-lang/sdk/issues/43391#issuecomment-1229656422
   String timeZoneFormatter(Duration offset) =>
       "${offset.isNegative ? "-" : "+"}${offset.inHours.abs().toString().padLeft(2, "0")}:${(offset.inMinutes - offset.inHours * 60).abs().toString().padLeft(2, "0")}";
+}
+
+bool isStackCoin(String? ticker) {
+  if (ticker == null) return false;
+
+  try {
+    coinFromTickerCaseInsensitive(ticker);
+    return true;
+  } on ArgumentError catch (_) {
+    return false;
+  }
 }
