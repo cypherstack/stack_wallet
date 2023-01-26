@@ -96,6 +96,11 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   Decimal minFiat = Decimal.fromInt(50);
   Decimal maxFiat = Decimal.fromInt(20000);
 
+  Decimal minCrypto = Decimal.parse((0.00000001)
+      .toString()); // lol how to go from double->Decimal more easily?
+  Decimal maxCrypto = Decimal.parse((10000.00000000).toString());
+  String boundedCryptoTicker = 'BTC';
+
   void fiatFieldOnChanged(String value) async {}
 
   void cryptoFieldOnChanged(String value) async {}
@@ -481,6 +486,22 @@ class _BuyFormState extends ConsumerState<BuyForm> {
         );
       }
     } else {
+      // Error; probably amount out of bounds
+      String errorMessage = "${quoteResponse.exception?.errorMessage}";
+      errorMessage = errorMessage.substring(
+          (errorMessage.indexOf('getQuote exception: ') ?? 19) + 20,
+          errorMessage.indexOf(", value: null"));
+      if (errorMessage.contains('must be between')) {
+        boundedCryptoTicker = errorMessage.substring(
+            errorMessage.indexOf('The ') + 4,
+            errorMessage.indexOf(' must be between'));
+        minCrypto = Decimal.parse(errorMessage.substring(
+            errorMessage.indexOf('must be between ') + 16,
+            errorMessage.indexOf(' and ')));
+        maxCrypto = Decimal.parse(errorMessage.substring(
+            errorMessage.indexOf("$minCrypto and ") + "$minCrypto and ".length,
+            errorMessage.length));
+      }
       await showDialog<dynamic>(
         context: context,
         barrierDismissible: true,
@@ -502,7 +523,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                       height: 24,
                     ),
                     Text(
-                      "${quoteResponse.exception?.errorMessage.substring((quoteResponse.exception?.errorMessage?.indexOf('getQuote exception: ') ?? 19) + 20, quoteResponse.exception?.errorMessage?.indexOf(", value: null"))}",
+                      errorMessage,
                       style: STextStyles.smallMed14(context),
                     ),
                     const SizedBox(
@@ -527,8 +548,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
           } else {
             return StackDialog(
               title: "Simplex API error",
-              message:
-                  "${quoteResponse.exception?.errorMessage.substring((quoteResponse.exception?.errorMessage?.indexOf('getQuote exception: ') ?? 19) + 20, quoteResponse.exception?.errorMessage?.indexOf(", value: null"))}",
+              message: errorMessage,
               rightButton: TextButton(
                 style: Theme.of(context)
                     .extension<StackColors>()!
@@ -657,10 +677,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     // quote = ref.read(simplexProvider).quote;
 
     quote = SimplexQuote(
-      crypto:
-          Crypto.fromJson({'ticker': 'BTC', 'name': 'Bitcoin', 'image': ''}),
-      fiat: Fiat.fromJson(
-          {'ticker': 'USD', 'name': 'United States Dollar', 'image': ''}),
+      crypto: Crypto.fromJson({'ticker': 'BTC', 'name': 'Bitcoin'}),
+      fiat: Fiat.fromJson({'ticker': 'USD', 'name': 'United States Dollar'}),
       youPayFiatPrice: Decimal.parse("100"),
       youReceiveCryptoAmount: Decimal.parse("1.0238917"),
       id: "someID",
@@ -669,10 +687,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     ); // TODO enum this or something
 
     // TODO set defaults better; should probably explicitly enumerate the coins & fiats used and pull the specific ones we need rather than generating them as defaults here
-    selectedFiat = Fiat.fromJson(
-        {'ticker': 'USD', 'name': 'United States Dollar', 'image': ''});
-    selectedCrypto =
-        Crypto.fromJson({'ticker': 'BTC', 'name': 'Bitcoin', 'image': ''});
+    selectedFiat =
+        Fiat.fromJson({'ticker': 'USD', 'name': 'United States Dollar'});
+    selectedCrypto = Crypto.fromJson({'ticker': 'BTC', 'name': 'Bitcoin'});
 
     // TODO set initial crypto to open wallet if a wallet is open
 
@@ -909,10 +926,13 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                     ),
               textAlign: TextAlign.left,
               inputFormatters: [
-                // regex to validate a crypto amount with 8 decimal places or
-                // 2 if fiat
                 NumericalRangeFormatter(
-                    min: minFiat, max: maxFiat, buyWithFiat: buyWithFiat)
+                  min: buyWithFiat ? minFiat : minCrypto,
+                  max: buyWithFiat ? maxFiat : maxCrypto,
+                  buyWithFiat: buyWithFiat,
+                  cryptoTicker: selectedCrypto?.ticker ?? 'BTC',
+                  boundedCryptoTicker: boundedCryptoTicker,
+                )
               ],
               decoration: InputDecoration(
                 contentPadding: const EdgeInsets.only(
@@ -1330,9 +1350,15 @@ class NumericalRangeFormatter extends TextInputFormatter {
   final Decimal min;
   final Decimal max;
   final bool buyWithFiat;
+  final String cryptoTicker;
+  final String boundedCryptoTicker;
 
   NumericalRangeFormatter(
-      {required this.min, required this.max, required this.buyWithFiat});
+      {required this.min,
+      required this.max,
+      required this.buyWithFiat,
+      required this.cryptoTicker,
+      required this.boundedCryptoTicker});
 
   @override
   TextEditingValue formatEditUpdate(
@@ -1347,7 +1373,18 @@ class NumericalRangeFormatter extends TextInputFormatter {
           newValue =
               const TextEditingValue().copyWith(text: min.toStringAsFixed(2));
         } else {
-          newValue = Decimal.parse(newValue.text) > max ? oldValue : newValue;
+          newValue = Decimal.parse(newValue.text) > max
+              ? const TextEditingValue().copyWith(text: max.toStringAsFixed(2))
+              : newValue;
+        }
+      } else if (cryptoTicker == boundedCryptoTicker) {
+        if (Decimal.parse(newValue.text) < min) {
+          newValue =
+              const TextEditingValue().copyWith(text: min.toStringAsFixed(8));
+        } else {
+          newValue = Decimal.parse(newValue.text) > max
+              ? const TextEditingValue().copyWith(text: max.toStringAsFixed(8))
+              : newValue;
         }
       }
     }
