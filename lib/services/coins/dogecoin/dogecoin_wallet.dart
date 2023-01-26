@@ -762,6 +762,8 @@ class DogecoinWallet extends CoinServiceAPI
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
         await _checkCurrentReceivingAddressesForTransactions();
 
+        await checkAllCurrentReceivingPaynymAddressesForTransactions();
+
         final fetchFuture = _refreshTransactions();
         final utxosRefreshFuture = _updateUTXOs();
         GlobalEventBus.instance

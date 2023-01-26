@@ -108,6 +108,70 @@ mixin PaynymWalletInterface {
   // convenience getter
   btc_dart.NetworkType get networkType => _network;
 
+  Future<Address> currentReceivingPaynymAddress(PaymentCode sender) async {
+    final address = await _db
+        .getAddresses(_walletId)
+        .filter()
+        .group((q) => q
+            .subTypeEqualTo(AddressSubType.paynymReceive)
+            .and()
+            .otherDataEqualTo(sender.toString()))
+        .sortByDerivationIndexDesc()
+        .findFirst();
+
+    if (address == null) {
+      final generatedAddress = await _generatePaynymReceivingAddress(sender, 0);
+      await _db.putAddress(generatedAddress);
+      return currentReceivingPaynymAddress(sender);
+    } else {
+      return address;
+    }
+  }
+
+  Future<Address> _generatePaynymReceivingAddress(
+    PaymentCode sender,
+    int index,
+  ) async {
+    final myPrivateKey =
+        await deriveNotificationPrivateKey(mnemonic: await _getMnemonic());
+    final paymentAddress = PaymentAddress.initWithPrivateKey(
+      myPrivateKey,
+      sender,
+      index,
+    );
+    final pair = paymentAddress.getReceiveAddressKeyPair();
+    final address = generatePaynymReceivingAddressFromKeyPair(
+      pair: pair,
+      derivationIndex: index,
+      derivePathType: DerivePathType.bip44,
+      fromPaymentCode: sender,
+    );
+    return address;
+  }
+
+  Future<void> checkCurrentPaynymReceivingAddressForTransactions(
+      PaymentCode sender) async {
+    final address = await currentReceivingPaynymAddress(sender);
+    final txCount = await _getTxCount(address: address.value);
+    if (txCount > 0) {
+      // generate next address and add to db
+      final nextAddress = await _generatePaynymReceivingAddress(
+        sender,
+        address.derivationIndex + 1,
+      );
+      await _db.putAddress(nextAddress);
+    }
+  }
+
+  Future<void> checkAllCurrentReceivingPaynymAddressesForTransactions() async {
+    final codes = await getAllPaymentCodesFromNotificationTransactions();
+    final List<Future<void>> futures = [];
+    for (final code in codes) {
+      futures.add(checkCurrentPaynymReceivingAddressForTransactions(code));
+    }
+    await Future.wait(futures);
+  }
+
   // generate bip32 payment code root
   Future<bip32.BIP32> getRootNode({
     required List<String> mnemonic,
