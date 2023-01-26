@@ -77,9 +77,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   Fiat? selectedFiat;
   Crypto? selectedCrypto;
   SimplexQuote quote = SimplexQuote(
-    crypto: Crypto.fromJson({'ticker': 'BTC', 'name': 'Bitcoin', 'image': ''}),
-    fiat: Fiat.fromJson(
-        {'ticker': 'USD', 'name': 'United States Dollar', 'image': ''}),
+    crypto: Crypto.fromJson({'ticker': 'BTC', 'name': 'Bitcoin'}),
+    fiat: Fiat.fromJson({'ticker': 'USD', 'name': 'United States Dollar'}),
     youPayFiatPrice: Decimal.parse("100"),
     youReceiveCryptoAmount: Decimal.parse("1.0238917"),
     id: "someID",
@@ -685,13 +684,6 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                     .accentColorDark),
                           ),
                         ),
-                        // SvgPicture.asset(
-                        //   Assets.svg.iconFor(
-                        //     coin: coinFromTickerCaseInsensitive("BTC"),
-                        //   ),
-                        //   height: 18,
-                        //   width: 18,
-                        // ),
                         const SizedBox(
                           width: 8,
                         ),

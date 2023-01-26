@@ -1,5 +1,3 @@
-// TODO use _buildUri
-
 import 'dart:async';
 import 'dart:convert';
 
@@ -16,7 +14,7 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SimplexAPI {
-  static const String authority = "sandbox-api.stackwallet.com";
+  static const String authority = "simplex-sandbox.stackwallet.com";
   // static const String authority = "localhost";
   static const String scheme = authority == "localhost" ? "http" : "https";
 
@@ -137,8 +135,8 @@ class SimplexAPI {
             'ticker': "${fiat['ticker_symbol']}",
             'name': fiatFromTickerCaseInsensitive("${fiat['ticker_symbol']}")
                 .prettyName,
-            'min_amount': "${fiat['min_amount']}",
-            'max_amount': "${fiat['max_amount']}",
+            'minAmount': "${fiat['min_amount']}",
+            'maxAmount': "${fiat['max_amount']}",
             'image': "",
           }));
         } // TODO handle else

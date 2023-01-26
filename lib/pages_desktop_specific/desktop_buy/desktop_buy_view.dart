@@ -43,15 +43,11 @@ class _DesktopBuyViewState extends State<DesktopBuyView> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Text(
-                  //   "Coming soon",
-                  //   style: STextStyles.desktopTextExtraExtraSmall(context),
-                  // ),
-                  const SizedBox(
+                children: const [
+                  SizedBox(
                     height: 16,
                   ),
-                  const RoundedWhiteContainer(
+                  RoundedWhiteContainer(
                     padding: EdgeInsets.all(24),
                     child: BuyForm(),
                   ),
