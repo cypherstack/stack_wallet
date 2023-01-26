@@ -267,7 +267,6 @@ class SimplexAPI {
             date.toIso8601String() + timeZoneFormatter(date.timeZoneOffset);
       }
       Uri url = _buildUri('api.php', data);
-      print(data);
 
       var res = await http.get(url, headers: headers);
       if (res.statusCode != 200) {
