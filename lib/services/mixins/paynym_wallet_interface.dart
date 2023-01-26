@@ -105,6 +105,9 @@ mixin PaynymWalletInterface {
     _checkChangeAddressForTransactions = checkChangeAddressForTransactions;
   }
 
+  // convenience getter
+  btc_dart.NetworkType get networkType => _network;
+
   // generate bip32 payment code root
   Future<bip32.BIP32> getRootNode({
     required List<String> mnemonic,
@@ -147,7 +150,7 @@ mixin PaynymWalletInterface {
     return Format.uint8listToString(bytes);
   }
 
-  Future<Future<Map<String, dynamic>>> preparePaymentCodeSend(
+  Future<Map<String, dynamic>> preparePaymentCodeSend(
       {required PaymentCode paymentCode,
       required int satoshiAmount,
       Map<String, dynamic>? args}) async {
@@ -163,7 +166,10 @@ mixin PaynymWalletInterface {
       );
 
       return _prepareSend(
-          address: sendToAddress.value, satoshiAmount: satoshiAmount);
+        address: sendToAddress.value,
+        satoshiAmount: satoshiAmount,
+        args: args,
+      );
     }
   }
 

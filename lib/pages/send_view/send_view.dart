@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bip47/bip47.dart';
 import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +21,7 @@ import 'package:stackwallet/providers/wallet/public_private_balance_state_provid
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
@@ -162,12 +164,17 @@ class _SendViewState extends ConsumerState<SendView> {
   }
 
   void _updatePreviewButtonState(String? address, Decimal? amount) {
-    final isValidAddress = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(walletId)
-        .validateAddress(address ?? "");
-    ref.read(previewTxButtonStateProvider.state).state =
-        (isValidAddress && amount != null && amount > Decimal.zero);
+    if (isPaynymSend) {
+      ref.read(previewTxButtonStateProvider.state).state =
+          (amount != null && amount > Decimal.zero);
+    } else {
+      final isValidAddress = ref
+          .read(walletsChangeNotifierProvider)
+          .getManager(walletId)
+          .validateAddress(address ?? "");
+      ref.read(previewTxButtonStateProvider.state).state =
+          (isValidAddress && amount != null && amount > Decimal.zero);
+    }
   }
 
   late Future<String> _calculateFeesFuture;
@@ -279,6 +286,226 @@ class _SendViewState extends ConsumerState<SendView> {
     }
 
     return null;
+  }
+
+  Future<void> _previewTransaction() async {
+    // wait for keyboard to disappear
+    FocusScope.of(context).unfocus();
+    await Future<void>.delayed(
+      const Duration(milliseconds: 100),
+    );
+    final manager =
+        ref.read(walletsChangeNotifierProvider).getManager(walletId);
+
+    // // TODO: remove the need for this!!
+    // final bool isOwnAddress =
+    //     await manager.isOwnAddress(_address!);
+    // if (isOwnAddress && coin != Coin.dogecoinTestNet) {
+    //   await showDialog<dynamic>(
+    //     context: context,
+    //     useSafeArea: false,
+    //     barrierDismissible: true,
+    //     builder: (context) {
+    //       return StackDialog(
+    //         title: "Transaction failed",
+    //         message:
+    //             "Sending to self is currently disabled",
+    //         rightButton: TextButton(
+    //           style: Theme.of(context)
+    //               .extension<StackColors>()!
+    //               .getSecondaryEnabledButtonColor(
+    //                   context),
+    //           child: Text(
+    //             "Ok",
+    //             style: STextStyles.button(
+    //                     context)
+    //                 .copyWith(
+    //                     color: Theme.of(context)
+    //                         .extension<
+    //                             StackColors>()!
+    //                         .accentColorDark),
+    //           ),
+    //           onPressed: () {
+    //             Navigator.of(context).pop();
+    //           },
+    //         ),
+    //       );
+    //     },
+    //   );
+    //   return;
+    // }
+
+    final amount = Format.decimalAmountToSatoshis(_amountToSend!, coin);
+    int availableBalance;
+    if ((coin == Coin.firo || coin == Coin.firoTestNet)) {
+      if (ref.read(publicPrivateBalanceStateProvider.state).state ==
+          "Private") {
+        availableBalance = Format.decimalAmountToSatoshis(
+            (manager.wallet as FiroWallet).availablePrivateBalance(), coin);
+      } else {
+        availableBalance = Format.decimalAmountToSatoshis(
+            (manager.wallet as FiroWallet).availablePublicBalance(), coin);
+      }
+    } else {
+      availableBalance =
+          Format.decimalAmountToSatoshis(manager.balance.getSpendable(), coin);
+    }
+
+    // confirm send all
+    if (amount == availableBalance) {
+      final bool? shouldSendAll = await showDialog<bool>(
+        context: context,
+        useSafeArea: false,
+        barrierDismissible: true,
+        builder: (context) {
+          return StackDialog(
+            title: "Confirm send all",
+            message:
+                "You are about to send your entire balance. Would you like to continue?",
+            leftButton: TextButton(
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getSecondaryEnabledButtonStyle(context),
+              child: Text(
+                "Cancel",
+                style: STextStyles.button(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+            rightButton: TextButton(
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getPrimaryEnabledButtonStyle(context),
+              child: Text(
+                "Yes",
+                style: STextStyles.button(context),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+            ),
+          );
+        },
+      );
+
+      if (shouldSendAll == null || shouldSendAll == false) {
+        // cancel preview
+        return;
+      }
+    }
+
+    try {
+      bool wasCancelled = false;
+
+      unawaited(
+        showDialog<dynamic>(
+          context: context,
+          useSafeArea: false,
+          barrierDismissible: false,
+          builder: (context) {
+            return BuildingTransactionDialog(
+              onCancel: () {
+                wasCancelled = true;
+
+                Navigator.of(context).pop();
+              },
+            );
+          },
+        ),
+      );
+
+      Map<String, dynamic> txData;
+
+      if (isPaynymSend) {
+        final wallet = manager.wallet as PaynymWalletInterface;
+        final paymentCode = PaymentCode.fromPaymentCode(
+          widget.accountLite!.code,
+          wallet.networkType,
+        );
+        final feeRate = ref.read(feeRateTypeStateProvider);
+        txData = await wallet.preparePaymentCodeSend(
+          paymentCode: paymentCode,
+          satoshiAmount: amount,
+          args: {"feeRate": feeRate},
+        );
+      } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+          ref.read(publicPrivateBalanceStateProvider.state).state !=
+              "Private") {
+        txData = await (manager.wallet as FiroWallet).prepareSendPublic(
+          address: _address!,
+          satoshiAmount: amount,
+          args: {"feeRate": ref.read(feeRateTypeStateProvider)},
+        );
+      } else {
+        txData = await manager.prepareSend(
+          address: _address!,
+          satoshiAmount: amount,
+          args: {"feeRate": ref.read(feeRateTypeStateProvider)},
+        );
+      }
+
+      if (!wasCancelled && mounted) {
+        // pop building dialog
+        Navigator.of(context).pop();
+        txData["note"] = noteController.text;
+        if (isPaynymSend) {
+          txData["paynymAccountLite"] = widget.accountLite!;
+        } else {
+          txData["address"] = _address;
+        }
+
+        unawaited(Navigator.of(context).push(
+          RouteGenerator.getRoute(
+            shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
+            builder: (_) => ConfirmTransactionView(
+              transactionInfo: txData,
+              walletId: walletId,
+              isPaynymTransaction: isPaynymSend,
+            ),
+            settings: const RouteSettings(
+              name: ConfirmTransactionView.routeName,
+            ),
+          ),
+        ));
+      }
+    } catch (e) {
+      if (mounted) {
+        // pop building dialog
+        Navigator.of(context).pop();
+
+        unawaited(showDialog<dynamic>(
+          context: context,
+          useSafeArea: false,
+          barrierDismissible: true,
+          builder: (context) {
+            return StackDialog(
+              title: "Transaction failed",
+              message: e.toString(),
+              rightButton: TextButton(
+                style: Theme.of(context)
+                    .extension<StackColors>()!
+                    .getSecondaryEnabledButtonStyle(context),
+                child: Text(
+                  "Ok",
+                  style: STextStyles.button(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            );
+          },
+        ));
+      }
+    }
   }
 
   bool get isPaynymSend => widget.accountLite != null;
@@ -1532,253 +1759,7 @@ class _SendViewState extends ConsumerState<SendView> {
                             onPressed: ref
                                     .watch(previewTxButtonStateProvider.state)
                                     .state
-                                ? () async {
-                                    // wait for keyboard to disappear
-                                    FocusScope.of(context).unfocus();
-                                    await Future<void>.delayed(
-                                      const Duration(milliseconds: 100),
-                                    );
-                                    final manager = ref
-                                        .read(walletsChangeNotifierProvider)
-                                        .getManager(walletId);
-
-                                    // // TODO: remove the need for this!!
-                                    // final bool isOwnAddress =
-                                    //     await manager.isOwnAddress(_address!);
-                                    // if (isOwnAddress && coin != Coin.dogecoinTestNet) {
-                                    //   await showDialog<dynamic>(
-                                    //     context: context,
-                                    //     useSafeArea: false,
-                                    //     barrierDismissible: true,
-                                    //     builder: (context) {
-                                    //       return StackDialog(
-                                    //         title: "Transaction failed",
-                                    //         message:
-                                    //             "Sending to self is currently disabled",
-                                    //         rightButton: TextButton(
-                                    //           style: Theme.of(context)
-                                    //               .extension<StackColors>()!
-                                    //               .getSecondaryEnabledButtonColor(
-                                    //                   context),
-                                    //           child: Text(
-                                    //             "Ok",
-                                    //             style: STextStyles.button(
-                                    //                     context)
-                                    //                 .copyWith(
-                                    //                     color: Theme.of(context)
-                                    //                         .extension<
-                                    //                             StackColors>()!
-                                    //                         .accentColorDark),
-                                    //           ),
-                                    //           onPressed: () {
-                                    //             Navigator.of(context).pop();
-                                    //           },
-                                    //         ),
-                                    //       );
-                                    //     },
-                                    //   );
-                                    //   return;
-                                    // }
-
-                                    final amount =
-                                        Format.decimalAmountToSatoshis(
-                                            _amountToSend!, coin);
-                                    int availableBalance;
-                                    if ((coin == Coin.firo ||
-                                        coin == Coin.firoTestNet)) {
-                                      if (ref
-                                              .read(
-                                                  publicPrivateBalanceStateProvider
-                                                      .state)
-                                              .state ==
-                                          "Private") {
-                                        availableBalance =
-                                            Format.decimalAmountToSatoshis(
-                                                (manager.wallet as FiroWallet)
-                                                    .availablePrivateBalance(),
-                                                coin);
-                                      } else {
-                                        availableBalance =
-                                            Format.decimalAmountToSatoshis(
-                                                (manager.wallet as FiroWallet)
-                                                    .availablePublicBalance(),
-                                                coin);
-                                      }
-                                    } else {
-                                      availableBalance =
-                                          Format.decimalAmountToSatoshis(
-                                              manager.balance.getSpendable(),
-                                              coin);
-                                    }
-
-                                    // confirm send all
-                                    if (amount == availableBalance) {
-                                      final bool? shouldSendAll =
-                                          await showDialog<bool>(
-                                        context: context,
-                                        useSafeArea: false,
-                                        barrierDismissible: true,
-                                        builder: (context) {
-                                          return StackDialog(
-                                            title: "Confirm send all",
-                                            message:
-                                                "You are about to send your entire balance. Would you like to continue?",
-                                            leftButton: TextButton(
-                                              style: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .getSecondaryEnabledButtonStyle(
-                                                      context),
-                                              child: Text(
-                                                "Cancel",
-                                                style: STextStyles.button(
-                                                        context)
-                                                    .copyWith(
-                                                        color: Theme.of(context)
-                                                            .extension<
-                                                                StackColors>()!
-                                                            .accentColorDark),
-                                              ),
-                                              onPressed: () {
-                                                Navigator.of(context)
-                                                    .pop(false);
-                                              },
-                                            ),
-                                            rightButton: TextButton(
-                                              style: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .getPrimaryEnabledButtonStyle(
-                                                      context),
-                                              child: Text(
-                                                "Yes",
-                                                style:
-                                                    STextStyles.button(context),
-                                              ),
-                                              onPressed: () {
-                                                Navigator.of(context).pop(true);
-                                              },
-                                            ),
-                                          );
-                                        },
-                                      );
-
-                                      if (shouldSendAll == null ||
-                                          shouldSendAll == false) {
-                                        // cancel preview
-                                        return;
-                                      }
-                                    }
-
-                                    try {
-                                      bool wasCancelled = false;
-
-                                      unawaited(showDialog<dynamic>(
-                                        context: context,
-                                        useSafeArea: false,
-                                        barrierDismissible: false,
-                                        builder: (context) {
-                                          return BuildingTransactionDialog(
-                                            onCancel: () {
-                                              wasCancelled = true;
-
-                                              Navigator.of(context).pop();
-                                            },
-                                          );
-                                        },
-                                      ));
-
-                                      Map<String, dynamic> txData;
-
-                                      if ((coin == Coin.firo ||
-                                              coin == Coin.firoTestNet) &&
-                                          ref
-                                                  .read(
-                                                      publicPrivateBalanceStateProvider
-                                                          .state)
-                                                  .state !=
-                                              "Private") {
-                                        txData =
-                                            await (manager.wallet as FiroWallet)
-                                                .prepareSendPublic(
-                                          address: _address!,
-                                          satoshiAmount: amount,
-                                          args: {
-                                            "feeRate": ref
-                                                .read(feeRateTypeStateProvider)
-                                          },
-                                        );
-                                      } else {
-                                        txData = await manager.prepareSend(
-                                          address: _address!,
-                                          satoshiAmount: amount,
-                                          args: {
-                                            "feeRate": ref
-                                                .read(feeRateTypeStateProvider)
-                                          },
-                                        );
-                                      }
-
-                                      if (!wasCancelled && mounted) {
-                                        // pop building dialog
-                                        Navigator.of(context).pop();
-                                        txData["note"] = noteController.text;
-                                        txData["address"] = _address;
-
-                                        unawaited(Navigator.of(context).push(
-                                          RouteGenerator.getRoute(
-                                            shouldUseMaterialRoute:
-                                                RouteGenerator
-                                                    .useMaterialPageRoute,
-                                            builder: (_) =>
-                                                ConfirmTransactionView(
-                                              transactionInfo: txData,
-                                              walletId: walletId,
-                                            ),
-                                            settings: const RouteSettings(
-                                              name: ConfirmTransactionView
-                                                  .routeName,
-                                            ),
-                                          ),
-                                        ));
-                                      }
-                                    } catch (e) {
-                                      if (mounted) {
-                                        // pop building dialog
-                                        Navigator.of(context).pop();
-
-                                        unawaited(showDialog<dynamic>(
-                                          context: context,
-                                          useSafeArea: false,
-                                          barrierDismissible: true,
-                                          builder: (context) {
-                                            return StackDialog(
-                                              title: "Transaction failed",
-                                              message: e.toString(),
-                                              rightButton: TextButton(
-                                                style: Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .getSecondaryEnabledButtonStyle(
-                                                        context),
-                                                child: Text(
-                                                  "Ok",
-                                                  style: STextStyles.button(
-                                                          context)
-                                                      .copyWith(
-                                                          color: Theme.of(
-                                                                  context)
-                                                              .extension<
-                                                                  StackColors>()!
-                                                              .accentColorDark),
-                                                ),
-                                                onPressed: () {
-                                                  Navigator.of(context).pop();
-                                                },
-                                              ),
-                                            );
-                                          },
-                                        ));
-                                      }
-                                    }
-                                  }
+                                ? _previewTransaction
                                 : null,
                             style: ref
                                     .watch(previewTxButtonStateProvider.state)

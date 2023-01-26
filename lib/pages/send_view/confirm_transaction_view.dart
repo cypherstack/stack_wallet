@@ -4,6 +4,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/sending_transaction_dialog.dart';
@@ -94,8 +95,7 @@ class _ConfirmTransactionViewState
         txid = await (manager.wallet as PaynymWalletInterface)
             .broadcastNotificationTx(preparedTx: transactionInfo);
       } else if (widget.isPaynymTransaction) {
-        //
-        throw UnimplementedError("paynym send not implemented yet");
+        txid = await manager.confirmSend(txData: transactionInfo);
       } else {
         final coin = manager.coin;
         if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
@@ -333,14 +333,20 @@ class _ConfirmTransactionViewState
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          "Recipient",
+                          widget.isPaynymTransaction
+                              ? "PayNym recipient"
+                              : "Recipient",
                           style: STextStyles.smallMed12(context),
                         ),
                         const SizedBox(
                           height: 4,
                         ),
                         Text(
-                          "${transactionInfo["address"] ?? "ERROR"}",
+                          widget.isPaynymTransaction
+                              ? (transactionInfo["paynymAccountLite"]
+                                      as PaynymAccountLite)
+                                  .nymName
+                              : "${transactionInfo["address"] ?? "ERROR"}",
                           style: STextStyles.itemSubtitle12(context),
                         ),
                       ],
