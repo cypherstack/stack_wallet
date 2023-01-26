@@ -76,8 +76,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   List<Fiat>? fiats;
   String? _address;
 
-  Fiat? selectedFiat;
-  Crypto? selectedCrypto;
+  static Fiat? selectedFiat;
+  static Crypto? selectedCrypto;
   SimplexQuote quote = SimplexQuote(
     crypto: Crypto.fromJson({'ticker': 'BTC', 'name': 'Bitcoin'}),
     fiat: Fiat.fromJson({'ticker': 'USD', 'name': 'United States Dollar'}),
@@ -88,18 +88,18 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     buyWithFiat: true,
   ); // TODO enum this or something
 
-  bool buyWithFiat = true;
+  static bool buyWithFiat = true;
   bool _addressToggleFlag = false;
   bool _hovering1 = false;
   bool _hovering2 = false;
 
-  Decimal minFiat = Decimal.fromInt(50);
-  Decimal maxFiat = Decimal.fromInt(20000);
+  static Decimal minFiat = Decimal.fromInt(50);
+  static Decimal maxFiat = Decimal.fromInt(20000);
 
-  Decimal minCrypto = Decimal.parse((0.00000001)
+  static Decimal minCrypto = Decimal.parse((0.00000001)
       .toString()); // lol how to go from double->Decimal more easily?
-  Decimal maxCrypto = Decimal.parse((10000.00000000).toString());
-  String boundedCryptoTicker = 'BTC';
+  static Decimal maxCrypto = Decimal.parse((10000.00000000).toString());
+  static String boundedCryptoTicker = 'BTC';
 
   void fiatFieldOnChanged(String value) async {}
 
@@ -492,13 +492,13 @@ class _BuyFormState extends ConsumerState<BuyForm> {
           (errorMessage.indexOf('getQuote exception: ') ?? 19) + 20,
           errorMessage.indexOf(", value: null"));
       if (errorMessage.contains('must be between')) {
-        boundedCryptoTicker = errorMessage.substring(
+        _BuyFormState.boundedCryptoTicker = errorMessage.substring(
             errorMessage.indexOf('The ') + 4,
-            errorMessage.indexOf(' must be between'));
-        minCrypto = Decimal.parse(errorMessage.substring(
+            errorMessage.indexOf(' amount must be between'));
+        _BuyFormState.minCrypto = Decimal.parse(errorMessage.substring(
             errorMessage.indexOf('must be between ') + 16,
             errorMessage.indexOf(' and ')));
-        maxCrypto = Decimal.parse(errorMessage.substring(
+        _BuyFormState.maxCrypto = Decimal.parse(errorMessage.substring(
             errorMessage.indexOf("$minCrypto and ") + "$minCrypto and ".length,
             errorMessage.length));
       }
@@ -925,15 +925,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                       decimal: true,
                     ),
               textAlign: TextAlign.left,
-              inputFormatters: [
-                NumericalRangeFormatter(
-                  min: buyWithFiat ? minFiat : minCrypto,
-                  max: buyWithFiat ? maxFiat : maxCrypto,
-                  buyWithFiat: buyWithFiat,
-                  cryptoTicker: selectedCrypto?.ticker ?? 'BTC',
-                  boundedCryptoTicker: boundedCryptoTicker,
-                )
-              ],
+              inputFormatters: [NumericalRangeFormatter()],
               decoration: InputDecoration(
                 contentPadding: const EdgeInsets.only(
                   // top: 22,
@@ -1347,18 +1339,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
 
 // See https://stackoverflow.com/a/68072967
 class NumericalRangeFormatter extends TextInputFormatter {
-  final Decimal min;
-  final Decimal max;
-  final bool buyWithFiat;
-  final String cryptoTicker;
-  final String boundedCryptoTicker;
-
-  NumericalRangeFormatter(
-      {required this.min,
-      required this.max,
-      required this.buyWithFiat,
-      required this.cryptoTicker,
-      required this.boundedCryptoTicker});
+  NumericalRangeFormatter();
 
   @override
   TextEditingValue formatEditUpdate(
@@ -1368,28 +1349,32 @@ class NumericalRangeFormatter extends TextInputFormatter {
     if (newValue.text == '') {
       return newValue;
     } else {
-      if (buyWithFiat) {
-        if (Decimal.parse(newValue.text) < min) {
-          newValue =
-              const TextEditingValue().copyWith(text: min.toStringAsFixed(2));
+      if (_BuyFormState.buyWithFiat) {
+        if (Decimal.parse(newValue.text) < _BuyFormState.minFiat) {
+          newValue = const TextEditingValue()
+              .copyWith(text: _BuyFormState.minFiat.toStringAsFixed(2));
         } else {
-          newValue = Decimal.parse(newValue.text) > max
-              ? const TextEditingValue().copyWith(text: max.toStringAsFixed(2))
+          newValue = Decimal.parse(newValue.text) > _BuyFormState.maxFiat
+              ? const TextEditingValue()
+                  .copyWith(text: _BuyFormState.maxFiat.toStringAsFixed(2))
               : newValue;
         }
-      } else if (cryptoTicker == boundedCryptoTicker) {
-        if (Decimal.parse(newValue.text) < min) {
-          newValue =
-              const TextEditingValue().copyWith(text: min.toStringAsFixed(8));
+      } else if (!_BuyFormState.buyWithFiat &&
+          _BuyFormState.selectedCrypto?.ticker ==
+              _BuyFormState.boundedCryptoTicker) {
+        if (Decimal.parse(newValue.text) < _BuyFormState.maxCrypto) {
+          newValue = const TextEditingValue()
+              .copyWith(text: _BuyFormState.minCrypto.toStringAsFixed(8));
         } else {
-          newValue = Decimal.parse(newValue.text) > max
-              ? const TextEditingValue().copyWith(text: max.toStringAsFixed(8))
+          newValue = Decimal.parse(newValue.text) > _BuyFormState.maxCrypto
+              ? const TextEditingValue()
+                  .copyWith(text: _BuyFormState.maxCrypto.toStringAsFixed(8))
               : newValue;
         }
       }
     }
 
-    final regexString = buyWithFiat
+    final regexString = _BuyFormState.buyWithFiat
         ? r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$'
         : r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$';
 
