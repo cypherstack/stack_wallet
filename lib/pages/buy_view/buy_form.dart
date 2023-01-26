@@ -819,7 +819,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
               style: STextStyles.smallMed14(context).copyWith(
                 color: Theme.of(context).extension<StackColors>()!.textDark,
               ),
-              key: const Key("amountInputFieldCryptoTextFieldKey"),
+              key: const Key("buyAmountInputFieldTextFieldKey"),
               controller: _buyAmountController,
               focusNode: _buyAmountFocusNode,
               keyboardType: Util.isDesktop
@@ -832,18 +832,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
               inputFormatters: [
                 // regex to validate a crypto amount with 8 decimal places or
                 // 2 if fiat
-                TextInputFormatter.withFunction(
-                  (oldValue, newValue) {
-                    final regexString = buyWithFiat
-                        ? r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$'
-                        : r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$';
-
-                    // return RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-                    return RegExp(regexString).hasMatch(newValue.text)
-                        ? newValue
-                        : oldValue;
-                  },
-                ),
+                NumericalRangeFormatter(
+                    min: minFiat, max: maxFiat, buyWithFiat: buyWithFiat)
               ],
               decoration: InputDecoration(
                 contentPadding: const EdgeInsets.only(
@@ -1253,5 +1243,37 @@ class _BuyFormState extends ConsumerState<BuyForm> {
         ),
       ),
     );
+  }
+}
+
+// See https://stackoverflow.com/a/68072967
+class NumericalRangeFormatter extends TextInputFormatter {
+  final Decimal min;
+  final Decimal max;
+  final bool buyWithFiat;
+
+  NumericalRangeFormatter(
+      {required this.min, required this.max, required this.buyWithFiat});
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text == '') {
+      return newValue;
+    } else if (Decimal.parse(newValue.text) < min) {
+      newValue =
+          const TextEditingValue().copyWith(text: min.toStringAsFixed(2));
+    } else {
+      newValue = Decimal.parse(newValue.text) > max ? oldValue : newValue;
+    }
+
+    final regexString = buyWithFiat
+        ? r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$'
+        : r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$';
+
+    // return RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
+    return RegExp(regexString).hasMatch(newValue.text) ? newValue : oldValue;
   }
 }
