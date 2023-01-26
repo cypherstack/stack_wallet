@@ -40,6 +40,7 @@ import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
@@ -90,6 +91,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   bool _addressToggleFlag = false;
   bool _hovering1 = false;
   bool _hovering2 = false;
+
+  Decimal minFiat = Decimal.fromInt(50);
+  Decimal maxFiat = Decimal.fromInt(20000);
 
   void fiatFieldOnChanged(String value) async {}
 
@@ -226,6 +230,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       onSelected: (fiat) {
         setState(() {
           selectedFiat = fiat;
+          minFiat = fiat.minAmount != minFiat ? fiat.minAmount : minFiat;
+          maxFiat = fiat.maxAmount != maxFiat ? fiat.maxAmount : maxFiat;
         });
       },
     );
@@ -360,8 +366,6 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   }
 
   Future<void> previewQuote(SimplexQuote quote) async {
-    // if (ref.read(simplexProvider).quote.id == "someID") {
-    //   // TODO make a better way of detecting a default SimplexQuote
     bool shouldPop = false;
     unawaited(
       showDialog(
@@ -395,17 +399,85 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     if (mounted) {
       Navigator.of(context, rootNavigator: isDesktop).pop();
     }
-    // }
+    quote = ref.read(simplexProvider).quote;
 
-    await _showFloatingBuyQuotePreviewSheet(
-      quote: ref.read(simplexProvider).quote,
-      onSelected: (quote) {
-        // setState(() {
-        //   selectedFiat = fiat;
-        // });
-        // TODO launch URL
-      },
-    );
+    if (quote.id != 'id' && quote.id != 'someID') {
+      // TODO detect default quote better
+      await _showFloatingBuyQuotePreviewSheet(
+        quote: ref.read(simplexProvider).quote,
+        onSelected: (quote) {
+          // TODO launch URL
+        },
+      );
+    } else {
+      await showDialog<dynamic>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) {
+          if (isDesktop) {
+            return DesktopDialog(
+              maxWidth: 450,
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Simplex API unresponsive",
+                      style: STextStyles.desktopH3(context),
+                    ),
+                    const SizedBox(
+                      height: 24,
+                    ),
+                    Text(
+                      "Simplex API unresponsive, please try again later",
+                      style: STextStyles.smallMed14(context),
+                    ),
+                    const SizedBox(
+                      height: 56,
+                    ),
+                    Row(
+                      children: [
+                        const Spacer(),
+                        Expanded(
+                          child: PrimaryButton(
+                            buttonHeight: ButtonHeight.l,
+                            label: "Ok",
+                            onPressed: Navigator.of(context).pop,
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+            );
+          } else {
+            return StackDialog(
+              title: "Simplex API unresponsive",
+              message:
+                  "Unexpected response from Simplex API, please try again later",
+              rightButton: TextButton(
+                style: Theme.of(context)
+                    .extension<StackColors>()!
+                    .getSecondaryEnabledButtonStyle(context),
+                child: Text(
+                  "Ok",
+                  style: STextStyles.button(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            );
+          }
+        },
+      );
+    }
   }
 
   Future<void> _loadQuote(SimplexQuote quote) async {
@@ -747,7 +819,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
               style: STextStyles.smallMed14(context).copyWith(
                 color: Theme.of(context).extension<StackColors>()!.textDark,
               ),
-              key: const Key("amountInputFieldCryptoTextFieldKey"),
+              key: const Key("buyAmountInputFieldTextFieldKey"),
               controller: _buyAmountController,
               focusNode: _buyAmountFocusNode,
               keyboardType: Util.isDesktop
@@ -760,18 +832,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
               inputFormatters: [
                 // regex to validate a crypto amount with 8 decimal places or
                 // 2 if fiat
-                TextInputFormatter.withFunction(
-                  (oldValue, newValue) {
-                    final regexString = buyWithFiat
-                        ? r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$'
-                        : r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$';
-
-                    // return RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-                    return RegExp(regexString).hasMatch(newValue.text)
-                        ? newValue
-                        : oldValue;
-                  },
-                ),
+                NumericalRangeFormatter(
+                    min: minFiat, max: maxFiat, buyWithFiat: buyWithFiat)
               ],
               decoration: InputDecoration(
                 contentPadding: const EdgeInsets.only(
@@ -1181,5 +1243,41 @@ class _BuyFormState extends ConsumerState<BuyForm> {
         ),
       ),
     );
+  }
+}
+
+// See https://stackoverflow.com/a/68072967
+class NumericalRangeFormatter extends TextInputFormatter {
+  final Decimal min;
+  final Decimal max;
+  final bool buyWithFiat;
+
+  NumericalRangeFormatter(
+      {required this.min, required this.max, required this.buyWithFiat});
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text == '') {
+      return newValue;
+    } else {
+      if (buyWithFiat) {
+        if (Decimal.parse(newValue.text) < min) {
+          newValue =
+              const TextEditingValue().copyWith(text: min.toStringAsFixed(2));
+        } else {
+          newValue = Decimal.parse(newValue.text) > max ? oldValue : newValue;
+        }
+      }
+    }
+
+    final regexString = buyWithFiat
+        ? r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$'
+        : r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$';
+
+    // return RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
+    return RegExp(regexString).hasMatch(newValue.text) ? newValue : oldValue;
   }
 }
