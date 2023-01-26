@@ -508,6 +508,10 @@ class _BuyFormState extends ConsumerState<BuyForm> {
         _BuyFormState.maxCrypto = Decimal.parse(errorMessage.substring(
             errorMessage.indexOf("$minCrypto and ") + "$minCrypto and ".length,
             errorMessage.length));
+        if (Decimal.parse(_buyAmountController.text) >
+            _BuyFormState.maxCrypto) {
+          _buyAmountController.text = _BuyFormState.maxCrypto.toString();
+        }
       }
       await showDialog<dynamic>(
         context: context,
