@@ -702,7 +702,10 @@ mixin PaynymWalletInterface {
         transaction: tx,
         myNotificationAddress: myAddress,
       );
-      if (unBlinded != null) {
+      if (unBlinded != null &&
+          unBlindedList
+              .where((e) => e.toString() == unBlinded.toString())
+              .isEmpty) {
         unBlindedList.add(unBlinded);
       }
     }
