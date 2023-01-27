@@ -137,7 +137,9 @@ class ElectrumX {
             .toString()
             .contains("No such mempool or blockchain transaction")) {
           throw NoSuchTransactionException(
-              "No such mempool or blockchain transaction: ${args.first}");
+            "No such mempool or blockchain transaction",
+            args.first.toString(),
+          );
         }
 
         throw Exception(

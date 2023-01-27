@@ -14,6 +14,7 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
@@ -611,6 +612,13 @@ class DogecoinWallet extends CoinServiceAPI
         }
       }
       return needsRefresh;
+    } on NoSuchTransactionException catch (e) {
+      // TODO: move direct transactions elsewhere
+      await db.isar.writeTxn(() async {
+        await db.isar.transactions.deleteByTxidWalletId(e.txid, walletId);
+      });
+      await txTracker.deleteTransaction(e.txid);
+      return true;
     } catch (e, s) {
       Logging.instance.log(
           "Exception caught in refreshIfThereIsNewData: $e\n$s",
