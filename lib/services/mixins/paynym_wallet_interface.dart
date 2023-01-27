@@ -1014,6 +1014,14 @@ mixin PaynymWalletInterface {
         otherData: paymentCode.toString(),
       );
 
+      await _addDerivation(
+        chain: 0,
+        address: address.value,
+        derivePathType: DerivePathType.bip44,
+        pubKey: Format.uint8listToString(node.publicKey),
+        wif: node.toWIF(),
+      );
+
       await _db.putAddress(address);
       return address;
     }
