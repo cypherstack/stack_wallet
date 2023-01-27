@@ -500,10 +500,10 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     } else {
       // Error; probably amount out of bounds
       String errorMessage = "${quoteResponse.exception?.errorMessage}";
-      errorMessage = errorMessage.substring(
-          (errorMessage.indexOf('getQuote exception: ') ?? 19) + 20,
-          errorMessage.indexOf(", value: null"));
       if (errorMessage.contains('must be between')) {
+        errorMessage = errorMessage.substring(
+            (errorMessage.indexOf('getQuote exception: ') ?? 19) + 20,
+            errorMessage.indexOf(", value: null"));
         _BuyFormState.boundedCryptoTicker = errorMessage.substring(
             errorMessage.indexOf('The ') + 4,
             errorMessage.indexOf(' amount must be between'));
