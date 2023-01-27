@@ -371,8 +371,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
 
   Widget? getIconForTicker(String ticker) {
     String? iconAsset = /*isStackCoin(ticker)
-        ?*/ Assets.svg.iconFor(coin: coinFromTickerCaseInsensitive(ticker));
-        // : Assets.svg.buyIconFor(ticker);
+        ?*/
+        Assets.svg.iconFor(coin: coinFromTickerCaseInsensitive(ticker));
+    // : Assets.svg.buyIconFor(ticker);
     return (iconAsset != null)
         ? SvgPicture.asset(iconAsset, height: 20, width: 20)
         : null;
