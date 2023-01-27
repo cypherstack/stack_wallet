@@ -98,9 +98,11 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   bool _hovering1 = false;
   bool _hovering2 = false;
 
+  // TODO actually check USD min and max, these could get updated by Simplex
   static Decimal minFiat = Decimal.fromInt(50);
   static Decimal maxFiat = Decimal.fromInt(20000);
 
+  // We can't get crypto min and max without asking for a quote
   static Decimal minCrypto = Decimal.parse((0.00000001)
       .toString()); // lol how to go from double->Decimal more easily?
   static Decimal maxCrypto = Decimal.parse((10000.00000000).toString());
