@@ -37,7 +37,7 @@ class _BuyInWalletViewState extends State<BuyInWalletView> {
             },
           ),
           title: Text(
-            "Buy ",
+            "Buy ${widget.coin?.ticker}",
             style: STextStyles.navBarTitle(context),
           ),
         ),

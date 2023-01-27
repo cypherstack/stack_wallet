@@ -23,14 +23,14 @@ class _BuyViewState extends State<BuyView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    return const SafeArea(
+    return SafeArea(
       child: Padding(
-        padding: EdgeInsets.only(
+        padding: const EdgeInsets.only(
           left: 16,
           right: 16,
           top: 16,
         ),
-        child: BuyForm(),
+        child: BuyForm(coin: widget.coin),
       ),
     );
   }
