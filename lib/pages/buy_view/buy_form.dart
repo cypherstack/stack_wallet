@@ -17,6 +17,7 @@ import 'package:stackwallet/pages/buy_view/sub_widgets/fiat_selection_view.dart'
 import 'package:stackwallet/pages/exchange_view/choose_from_stack_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/address_book_address_chooser.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/services/buy/buy_response.dart';
 import 'package:stackwallet/services/buy/simplex/simplex_api.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -40,15 +41,19 @@ import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 class BuyForm extends ConsumerStatefulWidget {
   const BuyForm({
     Key? key,
+    this.coin,
     this.clipboard = const ClipboardWrapper(),
     this.scanner = const BarcodeScannerWrapper(),
   }) : super(key: key);
+
+  final Coin? coin;
 
   final ClipboardInterface clipboard;
   final BarcodeScannerInterface scanner;
@@ -58,6 +63,8 @@ class BuyForm extends ConsumerStatefulWidget {
 }
 
 class _BuyFormState extends ConsumerState<BuyForm> {
+  late final Coin? coin;
+
   late final ClipboardInterface clipboard;
   late final BarcodeScannerInterface scanner;
 
@@ -74,8 +81,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   List<Fiat>? fiats;
   String? _address;
 
-  Fiat? selectedFiat;
-  Crypto? selectedCrypto;
+  static Fiat? selectedFiat;
+  static Crypto? selectedCrypto;
   SimplexQuote quote = SimplexQuote(
     crypto: Crypto.fromJson({'ticker': 'BTC', 'name': 'Bitcoin'}),
     fiat: Fiat.fromJson({'ticker': 'USD', 'name': 'United States Dollar'}),
@@ -86,10 +93,18 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     buyWithFiat: true,
   ); // TODO enum this or something
 
-  bool buyWithFiat = true;
+  static bool buyWithFiat = true;
   bool _addressToggleFlag = false;
   bool _hovering1 = false;
   bool _hovering2 = false;
+
+  static Decimal minFiat = Decimal.fromInt(50);
+  static Decimal maxFiat = Decimal.fromInt(20000);
+
+  static Decimal minCrypto = Decimal.parse((0.00000001)
+      .toString()); // lol how to go from double->Decimal more easily?
+  static Decimal maxCrypto = Decimal.parse((10000.00000000).toString());
+  static String boundedCryptoTicker = '';
 
   void fiatFieldOnChanged(String value) async {}
 
@@ -121,6 +136,13 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       coins: ref.read(simplexProvider).supportedCryptos,
       onSelected: (crypto) {
         setState(() {
+          if (selectedCrypto?.ticker != _BuyFormState.boundedCryptoTicker) {
+            // Reset crypto mins and maxes ... we don't know these bounds until we request a quote
+            _BuyFormState.minCrypto = Decimal.parse((0.00000001)
+                .toString()); // lol how to go from double->Decimal more easily?
+            _BuyFormState.maxCrypto =
+                Decimal.parse((10000.00000000).toString());
+          }
           selectedCrypto = crypto;
         });
       },
@@ -226,6 +248,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       onSelected: (fiat) {
         setState(() {
           selectedFiat = fiat;
+          minFiat = fiat.minAmount != minFiat ? fiat.minAmount : minFiat;
+          maxFiat = fiat.maxAmount != maxFiat ? fiat.maxAmount : maxFiat;
         });
       },
     );
@@ -351,17 +375,16 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   }
 
   Widget? getIconForTicker(String ticker) {
-    String? iconAsset = isStackCoin(ticker)
-        ? Assets.svg.iconFor(coin: coinFromTickerCaseInsensitive(ticker))
-        : Assets.svg.buyIconFor(ticker);
+    String? iconAsset = /*isStackCoin(ticker)
+        ?*/
+        Assets.svg.iconFor(coin: coinFromTickerCaseInsensitive(ticker));
+    // : Assets.svg.buyIconFor(ticker);
     return (iconAsset != null)
         ? SvgPicture.asset(iconAsset, height: 20, width: 20)
         : null;
   }
 
   Future<void> previewQuote(SimplexQuote quote) async {
-    // if (ref.read(simplexProvider).quote.id == "someID") {
-    //   // TODO make a better way of detecting a default SimplexQuote
     bool shouldPop = false;
     unawaited(
       showDialog(
@@ -390,33 +413,198 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       buyWithFiat: buyWithFiat,
     );
 
-    await _loadQuote(quote);
+    BuyResponse<SimplexQuote> quoteResponse = await _loadQuote(quote);
     shouldPop = true;
     if (mounted) {
       Navigator.of(context, rootNavigator: isDesktop).pop();
     }
-    // }
+    if (quoteResponse.exception == null) {
+      quote = quoteResponse.value as SimplexQuote;
 
-    await _showFloatingBuyQuotePreviewSheet(
-      quote: ref.read(simplexProvider).quote,
-      onSelected: (quote) {
-        // setState(() {
-        //   selectedFiat = fiat;
-        // });
-        // TODO launch URL
-      },
-    );
+      if (quote.id != 'id' && quote.id != 'someID') {
+        // TODO detect default quote better
+        await _showFloatingBuyQuotePreviewSheet(
+          quote: ref.read(simplexProvider).quote,
+          onSelected: (quote) {
+            // TODO launch URL
+          },
+        );
+      } else {
+        await showDialog<dynamic>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) {
+            if (isDesktop) {
+              return DesktopDialog(
+                maxWidth: 450,
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Simplex API unresponsive",
+                        style: STextStyles.desktopH3(context),
+                      ),
+                      const SizedBox(
+                        height: 24,
+                      ),
+                      Text(
+                        "Simplex API unresponsive, please try again later",
+                        style: STextStyles.smallMed14(context),
+                      ),
+                      const SizedBox(
+                        height: 56,
+                      ),
+                      Row(
+                        children: [
+                          const Spacer(),
+                          Expanded(
+                            child: PrimaryButton(
+                              buttonHeight: ButtonHeight.l,
+                              label: "Ok",
+                              onPressed: Navigator.of(context).pop,
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+              );
+            } else {
+              return StackDialog(
+                title: "Simplex API error",
+                message:
+                    "${quoteResponse.exception?.errorMessage.substring(19, quoteResponse.exception?.errorMessage?.length ?? 109 - (14 + 19))}",
+                rightButton: TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getSecondaryEnabledButtonStyle(context),
+                  child: Text(
+                    "Ok",
+                    style: STextStyles.button(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              );
+            }
+          },
+        );
+      }
+    } else {
+      // Error; probably amount out of bounds
+      String errorMessage = "${quoteResponse.exception?.errorMessage}";
+      errorMessage = errorMessage.substring(
+          (errorMessage.indexOf('getQuote exception: ') ?? 19) + 20,
+          errorMessage.indexOf(", value: null"));
+      if (errorMessage.contains('must be between')) {
+        _BuyFormState.boundedCryptoTicker = errorMessage.substring(
+            errorMessage.indexOf('The ') + 4,
+            errorMessage.indexOf(' amount must be between'));
+        _BuyFormState.minCrypto = Decimal.parse(errorMessage.substring(
+            errorMessage.indexOf('must be between ') + 16,
+            errorMessage.indexOf(' and ')));
+        _BuyFormState.maxCrypto = Decimal.parse(errorMessage.substring(
+            errorMessage.indexOf("$minCrypto and ") + "$minCrypto and ".length,
+            errorMessage.length));
+        if (Decimal.parse(_buyAmountController.text) >
+            _BuyFormState.maxCrypto) {
+          _buyAmountController.text = _BuyFormState.maxCrypto.toString();
+        }
+      }
+      await showDialog<dynamic>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) {
+          if (isDesktop) {
+            return DesktopDialog(
+              maxWidth: 450,
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Simplex API error",
+                      style: STextStyles.desktopH3(context),
+                    ),
+                    const SizedBox(
+                      height: 24,
+                    ),
+                    Text(
+                      errorMessage,
+                      style: STextStyles.smallMed14(context),
+                    ),
+                    const SizedBox(
+                      height: 56,
+                    ),
+                    Row(
+                      children: [
+                        const Spacer(),
+                        Expanded(
+                          child: PrimaryButton(
+                            buttonHeight: ButtonHeight.l,
+                            label: "Ok",
+                            onPressed: Navigator.of(context).pop,
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+            );
+          } else {
+            return StackDialog(
+              title: "Simplex API error",
+              message: errorMessage,
+              rightButton: TextButton(
+                style: Theme.of(context)
+                    .extension<StackColors>()!
+                    .getSecondaryEnabledButtonStyle(context),
+                child: Text(
+                  "Ok",
+                  style: STextStyles.button(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            );
+          }
+        },
+      );
+    }
   }
 
-  Future<void> _loadQuote(SimplexQuote quote) async {
+  Future<BuyResponse<SimplexQuote>> _loadQuote(SimplexQuote quote) async {
     final response = await SimplexAPI.instance.getQuote(quote);
 
     if (response.value != null) {
+      // TODO check for error key
       ref.read(simplexProvider).updateQuote(response.value!);
+      return BuyResponse(value: response.value!);
     } else {
       Logging.instance.log(
         "_loadQuote: $response",
         level: LogLevel.Warning,
+      );
+      return BuyResponse(
+        exception: BuyException(
+          response.toString(),
+          BuyExceptionType.generic,
+        ),
       );
     }
   }
@@ -506,10 +694,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     // quote = ref.read(simplexProvider).quote;
 
     quote = SimplexQuote(
-      crypto:
-          Crypto.fromJson({'ticker': 'BTC', 'name': 'Bitcoin', 'image': ''}),
-      fiat: Fiat.fromJson(
-          {'ticker': 'USD', 'name': 'United States Dollar', 'image': ''}),
+      crypto: Crypto.fromJson({'ticker': 'BTC', 'name': 'Bitcoin'}),
+      fiat: Fiat.fromJson({'ticker': 'USD', 'name': 'United States Dollar'}),
       youPayFiatPrice: Decimal.parse("100"),
       youReceiveCryptoAmount: Decimal.parse("1.0238917"),
       id: "someID",
@@ -518,10 +704,12 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     ); // TODO enum this or something
 
     // TODO set defaults better; should probably explicitly enumerate the coins & fiats used and pull the specific ones we need rather than generating them as defaults here
-    selectedFiat = Fiat.fromJson(
-        {'ticker': 'USD', 'name': 'United States Dollar', 'image': ''});
-    selectedCrypto =
-        Crypto.fromJson({'ticker': 'BTC', 'name': 'Bitcoin', 'image': ''});
+    selectedFiat =
+        Fiat.fromJson({'ticker': 'USD', 'name': 'United States Dollar'});
+    selectedCrypto = Crypto.fromJson({
+      'ticker': widget.coin?.ticker ?? 'BTC',
+      'name': widget.coin?.prettyName ?? 'Bitcoin'
+    });
 
     // TODO set initial crypto to open wallet if a wallet is open
 
@@ -588,7 +776,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                   color: _hovering1
                       ? Theme.of(context)
                           .extension<StackColors>()!
-                          .highlight
+                          .currencyListItemBG
                           .withOpacity(_hovering1 ? 0.3 : 0)
                       : Theme.of(context)
                           .extension<StackColors>()!
@@ -655,7 +843,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                   color: _hovering2
                       ? Theme.of(context)
                           .extension<StackColors>()!
-                          .highlight
+                          .currencyListItemBG
                           .withOpacity(_hovering2 ? 0.3 : 0)
                       : Theme.of(context)
                           .extension<StackColors>()!
@@ -671,7 +859,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                           decoration: BoxDecoration(
                             color: Theme.of(context)
                                 .extension<StackColors>()!
-                                .highlight,
+                                .currencyListItemBG,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -747,8 +935,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
               style: STextStyles.smallMed14(context).copyWith(
                 color: Theme.of(context).extension<StackColors>()!.textDark,
               ),
-              key: const Key("amountInputFieldCryptoTextFieldKey"),
-              controller: _buyAmountController,
+              key: const Key("buyAmountInputFieldTextFieldKey"),
+              controller: _buyAmountController..text = '50.00',
               focusNode: _buyAmountFocusNode,
               keyboardType: Util.isDesktop
                   ? null
@@ -757,22 +945,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                       decimal: true,
                     ),
               textAlign: TextAlign.left,
-              inputFormatters: [
-                // regex to validate a crypto amount with 8 decimal places or
-                // 2 if fiat
-                TextInputFormatter.withFunction(
-                  (oldValue, newValue) {
-                    final regexString = buyWithFiat
-                        ? r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$'
-                        : r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$';
-
-                    // return RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-                    return RegExp(regexString).hasMatch(newValue.text)
-                        ? newValue
-                        : oldValue;
-                  },
-                ),
-              ],
+              inputFormatters: [NumericalRangeFormatter()],
               decoration: InputDecoration(
                 contentPadding: const EdgeInsets.only(
                   // top: 22,
@@ -802,7 +975,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                               decoration: BoxDecoration(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
-                                    .highlight,
+                                    .currencyListItemBG,
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
@@ -1181,5 +1354,52 @@ class _BuyFormState extends ConsumerState<BuyForm> {
         ),
       ),
     );
+  }
+}
+
+// See https://stackoverflow.com/a/68072967
+class NumericalRangeFormatter extends TextInputFormatter {
+  NumericalRangeFormatter();
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final TextSelection newSelection = newValue.selection;
+    String newVal = newValue.text;
+    if (newValue.text == '') {
+      return newValue;
+    } else {
+      if (_BuyFormState.buyWithFiat) {
+        if (Decimal.parse(newValue.text) < _BuyFormState.minFiat) {
+          newVal = _BuyFormState.minFiat.toStringAsFixed(2);
+          // _BuyFormState._buyAmountController.selection =
+          //     TextSelection.collapsed(
+          //         offset: _BuyFormState.buyWithFiat
+          //             ? _BuyFormState._buyAmountController.text.length - 2
+          //             : _BuyFormState._buyAmountController.text.length - 8);
+        } else if (Decimal.parse(newValue.text) > _BuyFormState.maxFiat) {
+          newVal = _BuyFormState.maxFiat.toStringAsFixed(2);
+        }
+      } else if (!_BuyFormState.buyWithFiat &&
+          _BuyFormState.selectedCrypto?.ticker ==
+              _BuyFormState.boundedCryptoTicker) {
+        if (Decimal.parse(newValue.text) < _BuyFormState.minCrypto) {
+          newVal = _BuyFormState.minCrypto.toStringAsFixed(8);
+        } else if (Decimal.parse(newValue.text) > _BuyFormState.maxCrypto) {
+          newVal = _BuyFormState.maxCrypto.toStringAsFixed(8);
+        }
+      }
+    }
+
+    final regexString = _BuyFormState.buyWithFiat
+        ? r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$'
+        : r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$';
+
+    // return RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
+    return RegExp(regexString).hasMatch(newValue.text)
+        ? TextEditingValue(text: newVal, selection: newSelection)
+        : oldValue;
   }
 }
