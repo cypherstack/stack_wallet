@@ -104,7 +104,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   static Decimal minCrypto = Decimal.parse((0.00000001)
       .toString()); // lol how to go from double->Decimal more easily?
   static Decimal maxCrypto = Decimal.parse((10000.00000000).toString());
-  static String boundedCryptoTicker = 'BTC';
+  static String boundedCryptoTicker = '';
 
   void fiatFieldOnChanged(String value) async {}
 
