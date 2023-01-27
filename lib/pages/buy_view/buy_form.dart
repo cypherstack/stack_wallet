@@ -476,8 +476,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
             } else {
               return StackDialog(
                 title: "Simplex API error",
-                message:
-                    "${quoteResponse.exception?.errorMessage.substring(19, quoteResponse.exception?.errorMessage?.length ?? 109 - (14 + 19))}",
+                message: "${quoteResponse.exception?.errorMessage}",
                 rightButton: TextButton(
                   style: Theme.of(context)
                       .extension<StackColors>()!
@@ -565,7 +564,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
           } else {
             return StackDialog(
               title: "Simplex API error",
-              message: errorMessage,
+              message: "${quoteResponse.exception?.errorMessage}",
+              // "${quoteResponse.exception?.errorMessage.substring(8, (quoteResponse.exception?.errorMessage?.length ?? 109) - (8 + 6))}",
               rightButton: TextButton(
                 style: Theme.of(context)
                     .extension<StackColors>()!
