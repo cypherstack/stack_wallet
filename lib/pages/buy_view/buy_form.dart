@@ -1357,30 +1357,29 @@ class NumericalRangeFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
+    final TextSelection newSelection = newValue.selection;
+    String newVal = newValue.text;
     if (newValue.text == '') {
       return newValue;
     } else {
       if (_BuyFormState.buyWithFiat) {
         if (Decimal.parse(newValue.text) < _BuyFormState.minFiat) {
-          newValue = const TextEditingValue()
-              .copyWith(text: _BuyFormState.minFiat.toStringAsFixed(2));
-        } else {
-          newValue = Decimal.parse(newValue.text) > _BuyFormState.maxFiat
-              ? const TextEditingValue()
-                  .copyWith(text: _BuyFormState.maxFiat.toStringAsFixed(2))
-              : newValue;
+          newVal = _BuyFormState.minFiat.toStringAsFixed(2);
+          // _BuyFormState._buyAmountController.selection =
+          //     TextSelection.collapsed(
+          //         offset: _BuyFormState.buyWithFiat
+          //             ? _BuyFormState._buyAmountController.text.length - 2
+          //             : _BuyFormState._buyAmountController.text.length - 8);
+        } else if (Decimal.parse(newValue.text) > _BuyFormState.maxFiat) {
+          newVal = _BuyFormState.maxFiat.toStringAsFixed(2);
         }
       } else if (!_BuyFormState.buyWithFiat &&
           _BuyFormState.selectedCrypto?.ticker ==
               _BuyFormState.boundedCryptoTicker) {
-        if (Decimal.parse(newValue.text) < _BuyFormState.maxCrypto) {
-          newValue = const TextEditingValue()
-              .copyWith(text: _BuyFormState.minCrypto.toStringAsFixed(8));
-        } else {
-          newValue = Decimal.parse(newValue.text) > _BuyFormState.maxCrypto
-              ? const TextEditingValue()
-                  .copyWith(text: _BuyFormState.maxCrypto.toStringAsFixed(8))
-              : newValue;
+        if (Decimal.parse(newValue.text) < _BuyFormState.minCrypto) {
+          newVal = _BuyFormState.minCrypto.toStringAsFixed(8);
+        } else if (Decimal.parse(newValue.text) > _BuyFormState.maxCrypto) {
+          newVal = _BuyFormState.maxCrypto.toStringAsFixed(8);
         }
       }
     }
@@ -1390,6 +1389,8 @@ class NumericalRangeFormatter extends TextInputFormatter {
         : r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$';
 
     // return RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-    return RegExp(regexString).hasMatch(newValue.text) ? newValue : oldValue;
+    return RegExp(regexString).hasMatch(newValue.text)
+        ? TextEditingValue(text: newVal, selection: newSelection)
+        : oldValue;
   }
 }
