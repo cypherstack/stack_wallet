@@ -1400,7 +1400,7 @@ class NumericalRangeFormatter extends TextInputFormatter {
         : r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$';
 
     // return RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-    return RegExp(regexString).hasMatch(newValue.text)
+    return RegExp(regexString).hasMatch(newVal)
         ? TextEditingValue(text: newVal, selection: newSelection)
         : oldValue;
   }
