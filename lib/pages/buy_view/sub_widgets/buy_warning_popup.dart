@@ -157,7 +157,11 @@ class BuyWarningPopup extends StatelessWidget {
                                 child: PrimaryButton(
                                   buttonHeight: ButtonHeight.l,
                                   label: "Ok",
-                                  onPressed: Navigator.of(context).pop,
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                    Navigator.of(context).pop();
+                                    Navigator.of(context).pop(); // weee
+                                  },
                                 ),
                               ),
                             ],
