@@ -724,6 +724,20 @@ mixin PaynymWalletInterface {
     return unBlindedList;
   }
 
+  Future<void> restoreAllHistory({
+    required int maxUnusedAddressGap,
+    required int maxNumberOfIndexesToCheck,
+  }) async {
+    final codes = await getAllPaymentCodesFromNotificationTransactions();
+    final List<Future<void>> futures = [];
+    for (final code in codes) {
+      futures.add(restoreHistoryWith(
+          code, maxUnusedAddressGap, maxNumberOfIndexesToCheck));
+    }
+
+    await Future.wait(futures);
+  }
+
   Future<void> restoreHistoryWith(
     PaymentCode other,
     int maxUnusedAddressGap,

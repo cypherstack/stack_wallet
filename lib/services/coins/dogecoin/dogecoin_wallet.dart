@@ -545,6 +545,12 @@ class DogecoinWallet extends CoinServiceAPI
       // refresh transactions to pick up any received notification transactions
       await _refreshTransactions();
 
+      // restore paynym transactions
+      await restoreAllHistory(
+        maxUnusedAddressGap: maxUnusedAddressGap,
+        maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+      );
+
       await _updateUTXOs();
 
       await Future.wait([
