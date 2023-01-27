@@ -544,6 +544,10 @@ class ElectrumX {
           verbose,
         ],
       );
+      if (!verbose) {
+        return {"rawtx": response["result"] as String};
+      }
+
       return Map<String, dynamic>.from(response["result"] as Map);
     } catch (e) {
       rethrow;
