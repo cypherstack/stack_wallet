@@ -22,6 +22,7 @@ import 'package:stackwallet/pages/address_book_views/subviews/address_book_filte
 import 'package:stackwallet/pages/address_book_views/subviews/contact_details_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/edit_contact_address_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/edit_contact_name_emoji_view.dart';
+import 'package:stackwallet/pages/buy_view/buy_in_wallet_view.dart';
 import 'package:stackwallet/pages/buy_view/buy_quote_preview.dart';
 import 'package:stackwallet/pages/buy_view/buy_view.dart';
 import 'package:stackwallet/pages/exchange_view/choose_from_stack_view.dart';
@@ -1130,6 +1131,12 @@ class RouteGenerator {
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const BuyView(),
+            settings: RouteSettings(name: settings.name));
+
+      case BuyInWalletView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const BuyInWalletView(),
             settings: RouteSettings(name: settings.name));
 
       case DesktopBuyView.routeName:

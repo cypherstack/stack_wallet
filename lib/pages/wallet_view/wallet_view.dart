@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/buy_view/buy_view.dart';
+import 'package:stackwallet/pages/buy_view/buy_in_wallet_view.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
@@ -774,11 +774,11 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                       );
                                     },
                                     onBuyPressed: () {
-                                      // TODO set default coin to currently open wallet
+                                      // TODO set default coin to currently open wallet here by passing it as an argument
                                       // final coin = ref.read(managerProvider).coin;
 
                                       unawaited(Navigator.of(context).pushNamed(
-                                        BuyView.routeName,
+                                        BuyInWalletView.routeName,
                                       ));
                                     },
                                   ),
