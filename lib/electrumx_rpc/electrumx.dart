@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:decimal/decimal.dart';
 import 'package:stackwallet/electrumx_rpc/rpc.dart';
+import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:uuid/uuid.dart';
@@ -132,7 +133,15 @@ class ElectrumX {
       final response = await _rpcClient!.request(jsonRequestString);
 
       if (response["error"] != null) {
-        throw Exception("JSONRPC response error: $response");
+        if (response["error"]
+            .toString()
+            .contains("No such mempool or blockchain transaction")) {
+          throw NoSuchTransactionException(
+              "No such mempool or blockchain transaction: ${args.first}");
+        }
+
+        throw Exception(
+            "JSONRPC response     \ncommand: $command     \nargs: $args     \nerror: $response");
       }
 
       currentFailoverIndex = -1;
