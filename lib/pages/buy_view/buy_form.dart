@@ -768,7 +768,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                   color: _hovering1
                       ? Theme.of(context)
                           .extension<StackColors>()!
-                          .highlight
+                          .currencyListItemBG
                           .withOpacity(_hovering1 ? 0.3 : 0)
                       : Theme.of(context)
                           .extension<StackColors>()!
@@ -835,7 +835,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                   color: _hovering2
                       ? Theme.of(context)
                           .extension<StackColors>()!
-                          .highlight
+                          .currencyListItemBG
                           .withOpacity(_hovering2 ? 0.3 : 0)
                       : Theme.of(context)
                           .extension<StackColors>()!
@@ -851,7 +851,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                           decoration: BoxDecoration(
                             color: Theme.of(context)
                                 .extension<StackColors>()!
-                                .highlight,
+                                .currencyListItemBG,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -967,7 +967,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                               decoration: BoxDecoration(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
-                                    .highlight,
+                                    .currencyListItemBG,
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
