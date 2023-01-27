@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
@@ -28,7 +29,7 @@ class MainDB {
         AddressSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
-      inspector: false,
+      inspector: kDebugMode,
       name: "wallet_data",
     );
     return true;
@@ -72,6 +73,10 @@ class MainDB {
       isar.writeTxn(() async {
         await isar.transactions.putAll(transactions);
       });
+
+  Future<Transaction?> getTransaction(String walletId, String txid) async {
+    return isar.transactions.getByTxidWalletId(txid, walletId);
+  }
 
   // utxos
   QueryBuilder<UTXO, UTXO, QAfterWhereClause> getUTXOs(String walletId) =>
