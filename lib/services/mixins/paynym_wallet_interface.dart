@@ -306,8 +306,13 @@ mixin PaynymWalletInterface {
           derivePathType: DerivePathType.bip44,
           toPaymentCode: pCode,
         );
-        await _db.putAddress(address);
 
+        final storedAddress = await _db.getAddress(_walletId, address.value);
+        if (storedAddress == null) {
+          await _db.putAddress(address);
+        } else {
+          await _db.updateAddress(storedAddress, address);
+        }
         final count = await _getTxCount(address: address.value);
         // return address if unused, otherwise continue to next index
         if (count == 0) {
