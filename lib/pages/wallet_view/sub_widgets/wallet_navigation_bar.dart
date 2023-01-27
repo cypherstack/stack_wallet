@@ -412,47 +412,49 @@ class _WalletNavigationBarState extends State<WalletNavigationBar> {
                 const SizedBox(
                   width: 12,
                 ),
-                RawMaterialButton(
-                  constraints: const BoxConstraints(
-                    minWidth: 66,
-                  ),
-                  onPressed: widget.onBuyPressed,
-                  splashColor:
-                      Theme.of(context).extension<StackColors>()!.highlight,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                      widget.height / 2.0,
+                if (widget.coin.hasBuySupport)
+                  RawMaterialButton(
+                    constraints: const BoxConstraints(
+                      minWidth: 66,
                     ),
-                  ),
-                  child: Container(
-                    color: Colors.transparent,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const Spacer(),
-                          SvgPicture.asset(
-                            Assets.svg.buy(context),
-                            width: 24,
-                            height: 24,
-                          ),
-                          const SizedBox(
-                            height: 4,
-                          ),
-                          Text(
-                            "Buy",
-                            style: STextStyles.buttonSmall(context),
-                          ),
-                          const Spacer(),
-                        ],
+                    onPressed: widget.onBuyPressed,
+                    splashColor:
+                        Theme.of(context).extension<StackColors>()!.highlight,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        widget.height / 2.0,
+                      ),
+                    ),
+                    child: Container(
+                      color: Colors.transparent,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Spacer(),
+                            SvgPicture.asset(
+                              Assets.svg.buy(context),
+                              width: 24,
+                              height: 24,
+                            ),
+                            const SizedBox(
+                              height: 4,
+                            ),
+                            Text(
+                              "Buy",
+                              style: STextStyles.buttonSmall(context),
+                            ),
+                            const Spacer(),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(
-                  width: 12,
-                ),
+                if (widget.coin.hasBuySupport)
+                  const SizedBox(
+                    width: 12,
+                  ),
               ],
             ),
           ),
