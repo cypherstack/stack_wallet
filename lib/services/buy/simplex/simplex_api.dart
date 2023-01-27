@@ -188,7 +188,10 @@ class SimplexAPI {
       }
       final jsonArray = jsonDecode(res.body);
       if (jsonArray.containsKey('error') as bool) {
-        throw Exception('getQuote exception: ${jsonArray['error']}');
+        if (jsonArray['error'] == true || jsonArray['error'] == 'true') {
+          // jsonArray['error'] as bool == true?
+          throw Exception('getQuote exception: ${jsonArray['error']}');
+        }
       }
 
       jsonArray['quote'] = quote; // Add and pass this on
@@ -273,9 +276,10 @@ class SimplexAPI {
         throw Exception('newOrder exception: statusCode= ${res.statusCode}');
       }
       final jsonArray = jsonDecode(res.body); // TODO check if valid json
+      if (jsonArray.containsKey('error') as bool) {
       if (jsonArray['error'] == true || jsonArray['error'] == 'true') {
-        print('error');
         throw Exception(jsonArray['message']);
+      }
       }
 
       SimplexOrder _order = SimplexOrder(
