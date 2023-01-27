@@ -538,6 +538,12 @@ class DogecoinWallet extends CoinServiceAPI
         ...p2pkhChangeAddressArray,
       ]);
 
+      // generate to ensure notification address is in db before refreshing transactions
+      await getMyNotificationAddress(DerivePathType.bip44);
+
+      // refresh transactions to pick up any received notification transactions
+      await _refreshTransactions();
+
       await _updateUTXOs();
 
       await Future.wait([
