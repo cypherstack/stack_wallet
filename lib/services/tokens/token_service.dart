@@ -45,7 +45,6 @@ abstract class TokenServiceAPI {
 
   Future<Decimal> get availableBalance;
   Future<Decimal> get totalBalance;
-  Future<Decimal> get balanceMinusMaxFee;
 
   Future<List<String>> get allOwnAddresses;
 

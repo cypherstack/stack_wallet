@@ -103,13 +103,6 @@ class EthereumToken extends TokenServiceAPI {
   }
 
   @override
-  Future<Decimal> get balanceMinusMaxFee async =>
-      (await availableBalance) -
-      (Decimal.fromInt((await maxFee)) /
-              Decimal.fromInt(Constants.satsPerCoin(coin)))
-          .toDecimal();
-
-  @override
   Coin get coin => Coin.ethereum;
 
   @override
@@ -263,8 +256,8 @@ class EthereumToken extends TokenServiceAPI {
     }
 
     if (isSendAll) {
-      //Subtract fee amount from send amount
-      satoshiAmount -= feeEstimate;
+      //Send the full balance
+      satoshiAmount = balance;
     }
 
     Map<String, dynamic> txData = {
