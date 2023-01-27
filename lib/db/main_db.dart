@@ -48,6 +48,27 @@ class MainDB {
         await isar.addresses.putAll(addresses);
       });
 
+  Future<void> updateOrPutAddresses(List<Address> addresses) async {
+    await isar.writeTxn(() async {
+      for (final address in addresses) {
+        final storedAddress = await isar.addresses
+            .getByValueWalletId(address.value, address.walletId);
+
+        if (storedAddress == null) {
+          await isar.addresses.put(address);
+        } else {
+          address.id = storedAddress.id;
+          await storedAddress.transactions.load();
+          final txns = storedAddress.transactions.toList();
+          await isar.addresses.delete(storedAddress.id);
+          await isar.addresses.put(address);
+          address.transactions.addAll(txns);
+          await address.transactions.save();
+        }
+      }
+    });
+  }
+
   Future<Address?> getAddress(String walletId, String address) async {
     return isar.addresses.getByValueWalletId(address, walletId);
   }
