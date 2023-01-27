@@ -48,6 +48,10 @@ class MainDB {
         await isar.addresses.putAll(addresses);
       });
 
+  Future<Address?> getAddress(String walletId, String address) async {
+    return isar.addresses.getByValueWalletId(address, walletId);
+  }
+
   Future<void> updateAddress(Address oldAddress, Address newAddress) =>
       isar.writeTxn(() async {
         newAddress.id = oldAddress.id;
