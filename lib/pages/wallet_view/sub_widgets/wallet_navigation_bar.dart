@@ -433,7 +433,7 @@ class _WalletNavigationBarState extends State<WalletNavigationBar> {
                         children: [
                           const Spacer(),
                           SvgPicture.asset(
-                            Assets.svg.buyDesktop,
+                            Assets.svg.buy(context),
                             width: 24,
                             height: 24,
                           ),
