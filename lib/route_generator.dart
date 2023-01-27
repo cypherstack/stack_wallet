@@ -1134,10 +1134,16 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name));
 
       case BuyInWalletView.routeName:
-        return getRoute(
+        if (args is Coin) {
+          return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const BuyInWalletView(),
-            settings: RouteSettings(name: settings.name));
+            builder: (_) => BuyInWalletView(coin: args),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case DesktopBuyView.routeName:
         return getRoute(

@@ -779,6 +779,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
                                       unawaited(Navigator.of(context).pushNamed(
                                         BuyInWalletView.routeName,
+                                        arguments: coin,
                                       ));
                                     },
                                   ),

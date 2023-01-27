@@ -1,20 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/pages/buy_view/buy_view.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 
 class BuyInWalletView extends StatefulWidget {
-  const BuyInWalletView({Key? key}) : super(key: key);
+  const BuyInWalletView({
+    Key? key,
+    required this.coin,
+  }) : super(key: key);
 
   static const String routeName = "/stackBuyInWalletView";
+
+  final Coin? coin;
 
   @override
   State<BuyInWalletView> createState() => _BuyInWalletViewState();
 }
 
 class _BuyInWalletViewState extends State<BuyInWalletView> {
+  late final Coin? coin;
+
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
@@ -33,7 +41,7 @@ class _BuyInWalletViewState extends State<BuyInWalletView> {
             style: STextStyles.navBarTitle(context),
           ),
         ),
-        body: const BuyView(),
+        body: BuyView(coin: widget.coin),
       ),
     );
   }

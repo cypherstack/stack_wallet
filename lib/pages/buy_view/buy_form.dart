@@ -48,9 +48,12 @@ import 'package:stackwallet/widgets/textfield_icon_button.dart';
 class BuyForm extends ConsumerStatefulWidget {
   const BuyForm({
     Key? key,
+    this.coin,
     this.clipboard = const ClipboardWrapper(),
     this.scanner = const BarcodeScannerWrapper(),
   }) : super(key: key);
+
+  final Coin? coin;
 
   final ClipboardInterface clipboard;
   final BarcodeScannerInterface scanner;
@@ -60,6 +63,8 @@ class BuyForm extends ConsumerStatefulWidget {
 }
 
 class _BuyFormState extends ConsumerState<BuyForm> {
+  late final Coin? coin;
+
   late final ClipboardInterface clipboard;
   late final BarcodeScannerInterface scanner;
 
@@ -701,7 +706,10 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     // TODO set defaults better; should probably explicitly enumerate the coins & fiats used and pull the specific ones we need rather than generating them as defaults here
     selectedFiat =
         Fiat.fromJson({'ticker': 'USD', 'name': 'United States Dollar'});
-    selectedCrypto = Crypto.fromJson({'ticker': 'BTC', 'name': 'Bitcoin'});
+    selectedCrypto = Crypto.fromJson({
+      'ticker': widget.coin?.ticker ?? 'BTC',
+      'name': widget.coin?.prettyName ?? 'Bitcoin'
+    });
 
     // TODO set initial crypto to open wallet if a wallet is open
 
