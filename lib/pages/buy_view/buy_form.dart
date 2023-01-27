@@ -1016,11 +1016,20 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                         _buyAmountController.text.isNotEmpty
                             ? TextFieldIconButton(
                                 key: const Key(
-                                    "buyViewClearAddressFieldButtonKey"),
+                                    "buyViewClearAmountFieldButtonKey"),
                                 onTap: () {
-                                  _buyAmountController.text = "";
-                                  // _receiveAddress = "";
-                                  setState(() {});
+                                  if (_BuyFormState.buyWithFiat) {
+                                    _buyAmountController.text = _BuyFormState
+                                        .minFiat
+                                        .toStringAsFixed(2);
+                                  } else {
+                                    if (selectedCrypto?.ticker ==
+                                        _BuyFormState.boundedCryptoTicker) {
+                                      _buyAmountController.text = _BuyFormState
+                                          .minCrypto
+                                          .toStringAsFixed(8);
+                                    }
+                                  }
                                 },
                                 child: const XIcon(),
                               )
