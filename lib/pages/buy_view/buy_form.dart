@@ -927,7 +927,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 color: Theme.of(context).extension<StackColors>()!.textDark,
               ),
               key: const Key("buyAmountInputFieldTextFieldKey"),
-              controller: _buyAmountController,
+              controller: _buyAmountController..text = '50.00',
               focusNode: _buyAmountFocusNode,
               keyboardType: Util.isDesktop
                   ? null
