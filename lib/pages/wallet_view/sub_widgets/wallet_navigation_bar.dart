@@ -62,41 +62,41 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              AnimatedOpacity(
-                opacity: scale,
-                duration: duration,
-                child: GestureDetector(
-                  onTap: () {},
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    width: 146,
-                    decoration: BoxDecoration(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.popupBG,
-                      boxShadow: [
-                        Theme.of(context)
-                            .extension<StackColors>()!
-                            .standardBoxShadow
-                      ],
-                      borderRadius: BorderRadius.circular(
-                        widget.height / 2.0,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Whirlpool",
-                          style: STextStyles.w600_12(context),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(
-                height: 8,
-              ),
+              // AnimatedOpacity(
+              //   opacity: scale,
+              //   duration: duration,
+              //   child: GestureDetector(
+              //     onTap: () {},
+              //     child: Container(
+              //       padding: const EdgeInsets.all(16),
+              //       width: 146,
+              //       decoration: BoxDecoration(
+              //         color:
+              //             Theme.of(context).extension<StackColors>()!.popupBG,
+              //         boxShadow: [
+              //           Theme.of(context)
+              //               .extension<StackColors>()!
+              //               .standardBoxShadow
+              //         ],
+              //         borderRadius: BorderRadius.circular(
+              //           widget.height / 2.0,
+              //         ),
+              //       ),
+              //       child: Row(
+              //         mainAxisAlignment: MainAxisAlignment.center,
+              //         children: [
+              //           Text(
+              //             "Whirlpool",
+              //             style: STextStyles.w600_12(context),
+              //           ),
+              //         ],
+              //       ),
+              //     ),
+              //   ),
+              // ),
+              // const SizedBox(
+              //   height: 8,
+              // ),
               AnimatedOpacity(
                 opacity: scale,
                 duration: duration,
