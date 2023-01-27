@@ -1534,15 +1534,34 @@ class DogecoinWallet extends CoinServiceAPI
             coin: coin,
           );
 
-          // todo check here if we should mark as blocked
+          // fetch stored tx to see if paynym notification tx and block utxo
+          final storedTx = await db.getTransaction(
+            walletId,
+            fetchedUtxoList[i][j]["tx_hash"] as String,
+          );
+
+          bool shouldBlock = false;
+          String? blockReason;
+
+          if (storedTx?.subType ==
+                  isar_models.TransactionSubType.bip47Notification &&
+              storedTx?.type == isar_models.TransactionType.incoming) {
+            // probably safe to assume this is an incoming tx as it is a utxo
+            // belonging to this wallet. The extra check may be redundant but
+            // just in case...
+
+            shouldBlock = true;
+            blockReason = "Incoming paynym notification transaction.";
+          }
+
           final utxo = isar_models.UTXO(
             walletId: walletId,
             txid: txn["txid"] as String,
             vout: fetchedUtxoList[i][j]["tx_pos"] as int,
             value: fetchedUtxoList[i][j]["value"] as int,
             name: "",
-            isBlocked: false,
-            blockedReason: null,
+            isBlocked: shouldBlock,
+            blockedReason: blockReason,
             isCoinbase: txn["is_coinbase"] as bool? ?? false,
             blockHash: txn["blockhash"] as String?,
             blockHeight: fetchedUtxoList[i][j]["height"] as int?,
