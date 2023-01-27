@@ -23,6 +23,7 @@ import 'package:stackwallet/pages/address_book_views/subviews/contact_details_vi
 import 'package:stackwallet/pages/address_book_views/subviews/edit_contact_address_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/edit_contact_name_emoji_view.dart';
 import 'package:stackwallet/pages/buy_view/buy_quote_preview.dart';
+import 'package:stackwallet/pages/buy_view/buy_view.dart';
 import 'package:stackwallet/pages/exchange_view/choose_from_stack_view.dart';
 import 'package:stackwallet/pages/exchange_view/edit_trade_note_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_loading_overlay.dart';
@@ -1123,6 +1124,12 @@ class RouteGenerator {
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const DesktopExchangeView(),
+            settings: RouteSettings(name: settings.name));
+
+      case BuyView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const BuyView(),
             settings: RouteSettings(name: settings.name));
 
       case DesktopBuyView.routeName:
