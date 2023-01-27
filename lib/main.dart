@@ -343,12 +343,12 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       case "oceanBreeze":
         colorTheme = OceanBreezeColors();
         break;
-      case "light":
-        colorTheme = LightColors();
-        break;
       case "fruitSorbet":
-      default:
         colorTheme = FruitSorbetColors();
+        break;
+      case "light":
+      default:
+        colorTheme = LightColors();
     }
     loadingCompleter = Completer();
     WidgetsBinding.instance.addObserver(this);
