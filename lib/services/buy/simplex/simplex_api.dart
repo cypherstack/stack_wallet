@@ -273,6 +273,10 @@ class SimplexAPI {
         throw Exception('newOrder exception: statusCode= ${res.statusCode}');
       }
       final jsonArray = jsonDecode(res.body); // TODO check if valid json
+      if (jsonArray['error'] == true || jsonArray['error'] == 'true') {
+        print('error');
+        throw Exception(jsonArray['message']);
+      }
 
       SimplexOrder _order = SimplexOrder(
         quote: quote,

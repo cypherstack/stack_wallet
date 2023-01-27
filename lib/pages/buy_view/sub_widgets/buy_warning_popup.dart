@@ -29,18 +29,9 @@ class BuyWarningPopup extends StatelessWidget {
   SimplexOrder? order;
 
   Future<BuyResponse<SimplexOrder>> newOrder(SimplexQuote quote) async {
-    final response = await SimplexAPI.instance.newOrder(quote);
+    final orderResponse = await SimplexAPI.instance.newOrder(quote);
 
-    // if (response.value != null) {
-    //   ref.read(simplexProvider).updateOrder(response.value!);
-    // } else {
-    //   Logging.instance.log(
-    //     "_loadQuote: $response",
-    //     level: LogLevel.Warning,
-    //   );
-    // }
-
-    return response;
+    return orderResponse;
   }
 
   Future<BuyResponse<bool>> redirect(SimplexOrder order) async {
@@ -122,13 +113,86 @@ class BuyWarningPopup extends StatelessWidget {
       rightButton: PrimaryButton(
         label: "Continue",
         onPressed: () async {
-          BuyResponse<SimplexOrder> order = await newOrder(quote);
-          await redirect(order.value as SimplexOrder).then((_response) async {
-            this.order = order.value as SimplexOrder;
-            Navigator.of(context, rootNavigator: isDesktop).pop();
-            Navigator.of(context, rootNavigator: isDesktop).pop();
-            await _buyInvoice();
-          });
+          BuyResponse<SimplexOrder> orderResponse = await newOrder(quote);
+          if (orderResponse.exception == null) {
+            await redirect(orderResponse.value as SimplexOrder)
+                .then((_response) async {
+              this.order = orderResponse.value as SimplexOrder;
+              Navigator.of(context, rootNavigator: isDesktop).pop();
+              Navigator.of(context, rootNavigator: isDesktop).pop();
+              await _buyInvoice();
+            });
+          } else {
+            await showDialog<dynamic>(
+              context: context,
+              barrierDismissible: true,
+              builder: (context) {
+                if (isDesktop) {
+                  return DesktopDialog(
+                    maxWidth: 450,
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Simplex API error",
+                            style: STextStyles.desktopH3(context),
+                          ),
+                          const SizedBox(
+                            height: 24,
+                          ),
+                          Text(
+                            "${orderResponse.exception?.errorMessage}",
+                            style: STextStyles.smallMed14(context),
+                          ),
+                          const SizedBox(
+                            height: 56,
+                          ),
+                          Row(
+                            children: [
+                              const Spacer(),
+                              Expanded(
+                                child: PrimaryButton(
+                                  buttonHeight: ButtonHeight.l,
+                                  label: "Ok",
+                                  onPressed: Navigator.of(context).pop,
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                  );
+                } else {
+                  return StackDialog(
+                    title: "Simplex API error",
+                    message: "${orderResponse.exception?.errorMessage}",
+                    // "${quoteResponse.exception?.errorMessage.substring(8, (quoteResponse.exception?.errorMessage?.length ?? 109) - (8 + 6))}",
+                    rightButton: TextButton(
+                      style: Theme.of(context)
+                          .extension<StackColors>()!
+                          .getSecondaryEnabledButtonStyle(context),
+                      child: Text(
+                        "Ok",
+                        style: STextStyles.button(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop(); // weee
+                      },
+                    ),
+                  );
+                }
+              },
+            );
+          }
         },
       ),
       icon: SizedBox(
