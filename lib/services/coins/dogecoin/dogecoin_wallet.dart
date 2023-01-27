@@ -151,8 +151,16 @@ class DogecoinWallet extends CoinServiceAPI
   Future<List<isar_models.UTXO>> get utxos => db.getUTXOs(walletId).findAll();
 
   @override
-  Future<List<isar_models.Transaction>> get transactions =>
-      db.getTransactions(walletId).sortByTimestampDesc().findAll();
+  Future<List<isar_models.Transaction>> get transactions => db
+      .getTransactions(walletId)
+      .filter()
+      .not()
+      .group((q) => q
+          .subTypeEqualTo(isar_models.TransactionSubType.bip47Notification)
+          .and()
+          .typeEqualTo(isar_models.TransactionType.incoming))
+      .sortByTimestampDesc()
+      .findAll();
 
   @override
   Coin get coin => _coin;
