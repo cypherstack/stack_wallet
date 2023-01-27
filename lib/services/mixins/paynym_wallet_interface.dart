@@ -140,10 +140,9 @@ mixin PaynymWalletInterface {
     final address = await _db
         .getAddresses(_walletId)
         .filter()
-        .group((q) => q
-            .subTypeEqualTo(AddressSubType.paynymReceive)
-            .and()
-            .otherDataEqualTo(sender.toString()))
+        .subTypeEqualTo(AddressSubType.paynymReceive)
+        .and()
+        .otherDataEqualTo(sender.toString())
         .sortByDerivationIndexDesc()
         .findFirst();
 
@@ -160,12 +159,15 @@ mixin PaynymWalletInterface {
     PaymentCode sender,
     int index,
   ) async {
-    final myPrivateKey =
-        await deriveNotificationPrivateKey(mnemonic: await _getMnemonic());
+    final myPrivateKey = await deriveReceivingPrivateKey(
+      mnemonic: await _getMnemonic(),
+      index: index,
+    );
+
     final paymentAddress = PaymentAddress.initWithPrivateKey(
       myPrivateKey,
       sender,
-      index,
+      0,
     );
     final pair = paymentAddress.getReceiveAddressKeyPair();
     final address = await generatePaynymReceivingAddressFromKeyPair(
@@ -213,6 +215,15 @@ mixin PaynymWalletInterface {
   }) async {
     final root = await getRootNode(mnemonic: mnemonic);
     final node = root.derivePath(kPaynymDerivePath).derive(0);
+    return node.privateKey!;
+  }
+
+  Future<Uint8List> deriveReceivingPrivateKey({
+    required List<String> mnemonic,
+    required int index,
+  }) async {
+    final root = await getRootNode(mnemonic: mnemonic);
+    final node = root.derivePath(kPaynymDerivePath).derive(index);
     return node.privateKey!;
   }
 
@@ -722,8 +733,12 @@ mixin PaynymWalletInterface {
     const maxCount = 2147483647;
     assert(maxNumberOfIndexesToCheck < maxCount);
 
-    final myPrivateKey =
-        await deriveNotificationPrivateKey(mnemonic: await _getMnemonic());
+    final mnemonic = await _getMnemonic();
+
+    final mySendPrivateKey =
+        await deriveNotificationPrivateKey(mnemonic: mnemonic);
+    final receivingNode =
+        (await getRootNode(mnemonic: mnemonic)).derivePath(kPaynymDerivePath);
 
     List<Address> addresses = [];
     int receivingGapCounter = 0;
@@ -734,14 +749,13 @@ mixin PaynymWalletInterface {
             (receivingGapCounter < maxUnusedAddressGap ||
                 outgoingGapCounter < maxUnusedAddressGap);
         i++) {
-      final paymentAddress = PaymentAddress.initWithPrivateKey(
-        myPrivateKey,
-        other,
-        i, // index to use
-      );
-
       if (outgoingGapCounter < maxUnusedAddressGap) {
-        final pair = paymentAddress.getSendAddressKeyPair();
+        final paymentAddressSending = PaymentAddress.initWithPrivateKey(
+          mySendPrivateKey,
+          other,
+          i, // index to use
+        );
+        final pair = paymentAddressSending.getSendAddressKeyPair();
         final address = generatePaynymSendAddressFromKeyPair(
           pair: pair,
           derivationIndex: i,
@@ -753,14 +767,20 @@ mixin PaynymWalletInterface {
         final count = await _getTxCount(address: address.value);
 
         if (count > 0) {
-          outgoingGapCounter++;
-        } else {
           outgoingGapCounter = 0;
+        } else {
+          outgoingGapCounter++;
         }
       }
 
       if (receivingGapCounter < maxUnusedAddressGap) {
-        final pair = paymentAddress.getReceiveAddressKeyPair();
+        final myReceivingPrivateKey = receivingNode.derive(i).privateKey!;
+        final paymentAddressReceiving = PaymentAddress.initWithPrivateKey(
+          myReceivingPrivateKey,
+          other,
+          0,
+        );
+        final pair = paymentAddressReceiving.getReceiveAddressKeyPair();
         final address = await generatePaynymReceivingAddressFromKeyPair(
           pair: pair,
           derivationIndex: i,
@@ -772,13 +792,13 @@ mixin PaynymWalletInterface {
         final count = await _getTxCount(address: address.value);
 
         if (count > 0) {
-          receivingGapCounter++;
-        } else {
           receivingGapCounter = 0;
+        } else {
+          receivingGapCounter++;
         }
       }
     }
-    await _db.putAddresses(addresses);
+    await _db.updateOrPutAddresses(addresses);
   }
 
   Address generatePaynymSendAddressFromKeyPair({
