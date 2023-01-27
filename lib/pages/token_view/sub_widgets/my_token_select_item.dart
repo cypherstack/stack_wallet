@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/token_view/token_view.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/services/tokens/ethereum/ethereum_token.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
 
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
@@ -35,7 +35,6 @@ class MyTokenSelectItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    print("TOKEN DATA IS $tokenData");
     int balance = tokenData["balance"] as int;
     int tokenDecimals = int.parse(tokenData["decimals"] as String);
     final balanceInDecimal = (balance / (pow(10, tokenDecimals)));
@@ -55,9 +54,9 @@ class MyTokenSelectItem extends ConsumerWidget {
           final mnemonicList = ref.read(managerProvider).mnemonic;
 
           final token = EthereumToken(
-              // contractAddress: tokenData["contractAddress"] as String,
               tokenData: tokenData,
-              walletMnemonic: mnemonicList);
+              walletMnemonic: mnemonicList,
+              secureStore: ref.read(secureStoreProvider));
 
           Navigator.of(context).pushNamed(
             TokenView.routeName,

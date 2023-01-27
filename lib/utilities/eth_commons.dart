@@ -4,24 +4,23 @@ import 'dart:math';
 import 'package:http/http.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'flutter_secure_storage_interface.dart';
 import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
 import "package:hex/hex.dart";
 
-class AccountModule {
+class AddressTransaction {
   final String message;
   final List<dynamic> result;
   final String status;
 
-  const AccountModule({
+  const AddressTransaction({
     required this.message,
     required this.result,
     required this.status,
   });
 
-  factory AccountModule.fromJson(Map<String, dynamic> json) {
-    return AccountModule(
+  factory AddressTransaction.fromJson(Map<String, dynamic> json) {
+    return AddressTransaction(
       message: json['message'] as String,
       result: json['result'] as List<dynamic>,
       status: json['status'] as String,
@@ -30,32 +29,40 @@ class AccountModule {
 }
 
 class GasTracker {
-  final int code;
-  final Map<String, dynamic> data;
+  final double average;
+  final double fast;
+  final double slow;
+  // final Map<String, dynamic> data;
 
   const GasTracker({
-    required this.code,
-    required this.data,
+    required this.average,
+    required this.fast,
+    required this.slow,
   });
 
   factory GasTracker.fromJson(Map<String, dynamic> json) {
     return GasTracker(
-      code: json['code'] as int,
-      data: json['data'] as Map<String, dynamic>,
+      average: json['average'] as double,
+      fast: json['fast'] as double,
+      slow: json['slow'] as double,
     );
   }
 }
 
-// const blockExplorer = "https://blockscout.com/eth/mainnet/api";
-const blockExplorer = "https://api.etherscan.io/api";
+const blockExplorer = "https://blockscout.com/eth/mainnet/api";
+const abiUrl =
+    "https://api.etherscan.io/api"; //TODO - Once our server has abi functionality update
 const _hdPath = "m/44'/60'/0'/0";
-const _gasTrackerUrl = "https://beaconcha.in/api/v1/execution/gasnow";
+const _gasTrackerUrl =
+    "https://blockscout.com/eth/mainnet/api/v1/gas-price-oracle";
 
-Future<AccountModule> fetchAccountModule(String action, String address) async {
+Future<AddressTransaction> fetchAddressTransactions(
+    String address, String action) async {
   final response = await get(Uri.parse(
-      "${blockExplorer}module=account&action=$action&address=$address&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
+      "$blockExplorer?module=account&action=$action&address=$address"));
+
   if (response.statusCode == 200) {
-    return AccountModule.fromJson(
+    return AddressTransaction.fromJson(
         json.decode(response.body) as Map<String, dynamic>);
   } else {
     throw Exception('Failed to load transactions');
@@ -63,7 +70,8 @@ Future<AccountModule> fetchAccountModule(String action, String address) async {
 }
 
 Future<List<dynamic>> getWalletTokens(String address) async {
-  AccountModule tokens = await fetchAccountModule("tokentx", address);
+  AddressTransaction tokens =
+      await fetchAddressTransactions(address, "tokentx");
   List<dynamic> tokensList = [];
   var tokenMap = {};
   if (tokens.message == "OK") {
@@ -110,7 +118,6 @@ String getPrivateKey(String mnemonic) {
 
 Future<GasTracker> getGasOracle() async {
   final response = await get(Uri.parse(_gasTrackerUrl));
-
   if (response.statusCode == 200) {
     return GasTracker.fromJson(
         json.decode(response.body) as Map<String, dynamic>);
@@ -121,14 +128,17 @@ Future<GasTracker> getGasOracle() async {
 
 Future<FeeObject> getFees() async {
   GasTracker fees = await getGasOracle();
-  final feesMap = fees.data;
+  final feesFast = fees.fast * (pow(10, 9));
+  final feesStandard = fees.average * (pow(10, 9));
+  final feesSlow = fees.slow * (pow(10, 9));
+
   return FeeObject(
       numberOfBlocksFast: 1,
       numberOfBlocksAverage: 3,
       numberOfBlocksSlow: 3,
-      fast: feesMap['fast'] as int,
-      medium: feesMap['standard'] as int,
-      slow: feesMap['slow'] as int);
+      fast: feesFast.toInt(),
+      medium: feesStandard.toInt(),
+      slow: feesSlow.toInt());
 }
 
 double estimateFee(int feeRate, int gasLimit, int decimals) {

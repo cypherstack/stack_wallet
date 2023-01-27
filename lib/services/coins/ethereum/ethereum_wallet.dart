@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 import 'package:bip39/bip39.dart' as bip39;
 
@@ -42,31 +41,9 @@ import 'package:stackwallet/utilities/default_nodes.dart';
 
 const int MINIMUM_CONFIRMATIONS = 3;
 
-//THis is used for mapping transactions per address from the block explorer
-class AddressTransaction {
-  final String message;
-  final List<dynamic> result;
-  final String status;
-
-  const AddressTransaction({
-    required this.message,
-    required this.result,
-    required this.status,
-  });
-
-  factory AddressTransaction.fromJson(Map<String, dynamic> json) {
-    return AddressTransaction(
-      message: json['message'] as String,
-      result: json['result'] as List<dynamic>,
-      status: json['status'] as String,
-    );
-  }
-}
-
 class EthereumWallet extends CoinServiceAPI {
   NodeModel? _ethNode;
   final _gasLimit = 21000;
-  final _blockExplorer = "https://blockscout.com/eth/mainnet/api?";
 
   @override
   String get walletId => _walletId;
@@ -435,42 +412,6 @@ class EthereumWallet extends CoinServiceAPI {
 
       String privateKey = getPrivateKey(mnemonic);
       _credentials = EthPrivateKey.fromHex(privateKey);
-
-      //Get ERC-20 transactions for wallet (So we can get the and save wallet's ERC-20 TOKENS
-      AddressTransaction tokenTransactions = await fetchAddressTransactions(
-          _credentials.address.toString(), "tokentx");
-      var tokenMap = {};
-      List<Map<dynamic, dynamic>> tokensList = [];
-      if (tokenTransactions.message == "OK") {
-        final allTxs = tokenTransactions.result;
-
-        allTxs.forEach((element) {
-          String key = element["tokenSymbol"] as String;
-          tokenMap[key] = {};
-          tokenMap[key]["balance"] = 0;
-
-          if (tokenMap.containsKey(key)) {
-            tokenMap[key]["contractAddress"] = element["contractAddress"];
-            tokenMap[key]["decimals"] = element["tokenDecimal"];
-            tokenMap[key]["name"] = element["tokenName"];
-            tokenMap[key]["symbol"] = element["tokenSymbol"];
-            if (element["to"] == _credentials.address.toString()) {
-              tokenMap[key]["balance"] += int.parse(element["value"] as String);
-            } else {
-              tokenMap[key]["balance"] -= int.parse(element["value"] as String);
-            }
-          }
-        });
-
-        tokenMap.forEach((key, value) {
-          //Create New token
-
-          tokensList.add(value as Map<dynamic, dynamic>);
-        });
-
-        await _secureStore.write(
-            key: '${_walletId}_tokens', value: tokensList.toString());
-      }
 
       await DB.instance
           .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
@@ -844,19 +785,6 @@ class EthereumWallet extends CoinServiceAPI {
   @override
   bool validateAddress(String address) {
     return isValidEthereumAddress(address);
-  }
-
-  Future<AddressTransaction> fetchAddressTransactions(
-      String address, String action) async {
-    final response = await get(Uri.parse(
-        "${_blockExplorer}module=account&action=$action&address=$address&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
-
-    if (response.statusCode == 200) {
-      return AddressTransaction.fromJson(
-          json.decode(response.body) as Map<String, dynamic>);
-    } else {
-      throw Exception('Failed to load transactions');
-    }
   }
 
   Future<TransactionData> _fetchTransactionData() async {

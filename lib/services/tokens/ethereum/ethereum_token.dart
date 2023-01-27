@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:devicelocale/devicelocale.dart';
 import 'package:http/http.dart';
 import 'package:decimal/decimal.dart';
 import 'package:stackwallet/utilities/eth_commons.dart';
@@ -13,8 +14,13 @@ import 'package:stackwallet/services/tokens/token_service.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
+import 'package:stackwallet/models/paymint/transactions_model.dart' as models;
 import 'package:web3dart/web3dart.dart';
 import 'package:web3dart/web3dart.dart' as transaction;
+
+import 'package:stackwallet/models/node_model.dart';
+import 'package:stackwallet/utilities/default_nodes.dart';
+import 'package:stackwallet/services/node_service.dart';
 
 class AbiRequestResponse {
   final String message;
@@ -36,6 +42,8 @@ class AbiRequestResponse {
   }
 }
 
+const int MINIMUM_CONFIRMATIONS = 3;
+
 class EthereumToken extends TokenServiceAPI {
   @override
   late bool shouldAutoSync;
@@ -50,28 +58,25 @@ class EthereumToken extends TokenServiceAPI {
   late String _tokenAbi;
   late Web3Client _client;
   late final TransactionNotificationTracker txTracker;
+  TransactionData? cachedTxData;
 
-  String rpcUrl =
-      'https://mainnet.infura.io/v3/22677300bf774e49a458b73313ee56ba';
   final _gasLimit = 200000;
 
   EthereumToken({
     required Map<dynamic, dynamic> tokenData,
     required Future<List<String>> walletMnemonic,
-    // required SecureStorageInterface secureStore,
+    required SecureStorageInterface secureStore,
   }) {
     _contractAddress =
         EthereumAddress.fromHex(tokenData["contractAddress"] as String);
     _walletMnemonic = walletMnemonic;
     _tokenData = tokenData;
-    // _secureStore = secureStore;
+    _secureStore = secureStore;
   }
 
   Future<AbiRequestResponse> fetchTokenAbi() async {
-    print(
-        "$blockExplorer?module=contract&action=getabi&address=$_contractAddress&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP");
     final response = await get(Uri.parse(
-        "$blockExplorer?module=contract&action=getabi&address=$_contractAddress&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
+        "$abiUrl?module=contract&action=getabi&address=$_contractAddress&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
     if (response.statusCode == 200) {
       return AbiRequestResponse.fromJson(
           json.decode(response.body) as Map<String, dynamic>);
@@ -156,12 +161,24 @@ class EthereumToken extends TokenServiceAPI {
 
   @override
   Future<void> initializeExisting() async {
-    //TODO - GET abi FROM secure store
-    AbiRequestResponse abi = await fetchTokenAbi();
-    //Fetch token ABI so we can call token functions
-    if (abi.message == "OK") {
-      _tokenAbi = abi.result;
+    if ((await _secureStore.read(
+            key: '${_contractAddress.toString()}_tokenAbi')) !=
+        null) {
+      _tokenAbi = (await _secureStore.read(
+          key: '${_contractAddress.toString()}_tokenAbi'))!;
+    } else {
+      AbiRequestResponse abi = await fetchTokenAbi();
+      //Fetch token ABI so we can call token functions
+      if (abi.message == "OK") {
+        _tokenAbi = abi.result;
+        //Store abi in secure store
+        await _secureStore.write(
+            key: '${_contractAddress.toString()}_tokenAbi', value: _tokenAbi);
+      } else {
+        throw Exception('Failed to load token abi');
+      }
     }
+
     final mnemonic = await _walletMnemonic;
     String mnemonicString = mnemonic.join(' ');
 
@@ -175,17 +192,21 @@ class EthereumToken extends TokenServiceAPI {
     _balanceFunction = _contract.function('balanceOf');
     _sendFunction = _contract.function('transfer');
     _client = await getEthClient();
-    print("${await totalBalance}");
   }
 
   @override
   Future<void> initializeNew() async {
-    //TODO - Save abi in secure store
     AbiRequestResponse abi = await fetchTokenAbi();
     //Fetch token ABI so we can call token functions
     if (abi.message == "OK") {
       _tokenAbi = abi.result;
+      //Store abi in secure store
+      await _secureStore.write(
+          key: '${_contractAddress.toString()}_tokenAbi', value: _tokenAbi);
+    } else {
+      throw Exception('Failed to load token abi');
     }
+
     final mnemonic = await _walletMnemonic;
     String mnemonicString = mnemonic.join(' ');
 
@@ -253,7 +274,6 @@ class EthereumToken extends TokenServiceAPI {
       "recipientAmt": satoshiAmount,
     };
 
-    print("TX DATA TO BE SENT IS $txData");
     return txData;
   }
 
@@ -277,12 +297,13 @@ class EthereumToken extends TokenServiceAPI {
   }
 
   @override
-  // TODO: implement transactionData
-  Future<TransactionData> get transactionData => throw UnimplementedError();
+  Future<TransactionData> get transactionData =>
+      _transactionData ??= _fetchTransactionData();
+  Future<TransactionData>? _transactionData;
 
   @override
   Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
-    Decimal currentPrice = Decimal.parse(0.0 as String);
+    Decimal currentPrice = Decimal.zero;
     final locale = await Devicelocale.currentLocale;
     final String worthNow = Format.localizedStringAsFixed(
         value:
@@ -321,12 +342,134 @@ class EthereumToken extends TokenServiceAPI {
     }
   }
 
+  Future<TransactionData> _fetchTransactionData() async {
+    String thisAddress = await currentReceivingAddress;
+    // final cachedTransactions = {} as TransactionData?;
+    int latestTxnBlockHeight = 0;
+
+    // final priceData =
+    //     await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
+    Decimal currentPrice = Decimal.zero;
+    final List<Map<String, dynamic>> midSortedArray = [];
+
+    AddressTransaction txs =
+        await fetchAddressTransactions(thisAddress, "tokentx");
+
+    if (txs.message == "OK") {
+      final allTxs = txs.result;
+      allTxs.forEach((element) {
+        Map<String, dynamic> midSortedTx = {};
+        // create final tx map
+        midSortedTx["txid"] = element["hash"];
+        int confirmations = int.parse(element['confirmations'].toString());
+
+        int transactionAmount = int.parse(element['value'].toString());
+        int decimal = int.parse(
+            _tokenData["decimals"] as String); //Eth has up to 18 decimal places
+        final transactionAmountInDecimal =
+            transactionAmount / (pow(10, decimal));
+
+        //Convert to satoshi, default display for other coins
+        final satAmount = Format.decimalAmountToSatoshis(
+            Decimal.parse(transactionAmountInDecimal.toString()), coin);
+
+        midSortedTx["confirmed_status"] =
+            (confirmations != 0) && (confirmations >= MINIMUM_CONFIRMATIONS);
+        midSortedTx["confirmations"] = confirmations;
+        midSortedTx["timestamp"] = element["timeStamp"];
+
+        if (checksumEthereumAddress(element["from"].toString()) ==
+            thisAddress) {
+          midSortedTx["txType"] = "Sent";
+        } else {
+          midSortedTx["txType"] = "Received";
+        }
+
+        midSortedTx["amount"] = satAmount;
+        final String worthNow = ((currentPrice * Decimal.fromInt(satAmount)) /
+                Decimal.fromInt(Constants.satsPerCoin(coin)))
+            .toDecimal(scaleOnInfinitePrecision: 2)
+            .toStringAsFixed(2);
+
+        //Calculate fees (GasLimit * gasPrice)
+        int txFee = int.parse(element['gasPrice'].toString()) *
+            int.parse(element['gasUsed'].toString());
+        final txFeeDecimal = txFee / (pow(10, decimal));
+
+        midSortedTx["worthNow"] = worthNow;
+        midSortedTx["worthAtBlockTimestamp"] = worthNow;
+        midSortedTx["aliens"] = <dynamic>[];
+        midSortedTx["fees"] = Format.decimalAmountToSatoshis(
+            Decimal.parse(txFeeDecimal.toString()), coin);
+        midSortedTx["address"] = element["to"];
+        midSortedTx["inputSize"] = 1;
+        midSortedTx["outputSize"] = 1;
+        midSortedTx["inputs"] = <dynamic>[];
+        midSortedTx["outputs"] = <dynamic>[];
+        midSortedTx["height"] = int.parse(element['blockNumber'].toString());
+
+        midSortedArray.add(midSortedTx);
+      });
+    }
+
+    midSortedArray.sort((a, b) =>
+        (int.parse(b['timestamp'].toString())) -
+        (int.parse(a['timestamp'].toString())));
+
+    // buildDateTimeChunks
+    final Map<String, dynamic> result = {"dateTimeChunks": <dynamic>[]};
+    final dateArray = <dynamic>[];
+
+    for (int i = 0; i < midSortedArray.length; i++) {
+      final txObject = midSortedArray[i];
+      final date =
+          extractDateFromTimestamp(int.parse(txObject['timestamp'].toString()));
+      final txTimeArray = [txObject["timestamp"], date];
+
+      if (dateArray.contains(txTimeArray[1])) {
+        result["dateTimeChunks"].forEach((dynamic chunk) {
+          if (extractDateFromTimestamp(
+                  int.parse(chunk['timestamp'].toString())) ==
+              txTimeArray[1]) {
+            if (chunk["transactions"] == null) {
+              chunk["transactions"] = <Map<String, dynamic>>[];
+            }
+            chunk["transactions"].add(txObject);
+          }
+        });
+      } else {
+        dateArray.add(txTimeArray[1]);
+        final chunk = {
+          "timestamp": txTimeArray[0],
+          "transactions": [txObject],
+        };
+        result["dateTimeChunks"].add(chunk);
+      }
+    }
+
+    // final transactionsMap = {} as Map<String, models.Transaction>;
+    // transactionsMap
+    //     .addAll(TransactionData.fromJson(result).getAllTransactions());
+    final txModel = TransactionData.fromMap(
+        TransactionData.fromJson(result).getAllTransactions());
+
+    cachedTxData = txModel;
+    return txModel;
+  }
+
   @override
   bool validateAddress(String address) {
     return isValidEthereumAddress(address);
   }
 
+  Future<NodeModel> getCurrentNode() async {
+    return NodeService(secureStorageInterface: _secureStore)
+            .getPrimaryNodeFor(coin: coin) ??
+        DefaultNodes.getNodeFor(coin);
+  }
+
   Future<Web3Client> getEthClient() async {
-    return Web3Client(rpcUrl, Client());
+    final node = await getCurrentNode();
+    return Web3Client(node.host, Client());
   }
 }

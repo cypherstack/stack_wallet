@@ -19,7 +19,7 @@ abstract class TokenServiceAPI {
     return EthereumToken(
       tokenData: tokenData,
       walletMnemonic: walletMnemonic,
-      // secureStore: secureStorageInterface,
+      secureStore: secureStorageInterface,
       // tracker: tracker,
     );
   }
