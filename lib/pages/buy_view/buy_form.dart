@@ -1366,8 +1366,10 @@ class NumericalRangeFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    final TextSelection newSelection = newValue.selection;
-    String newVal = newValue.text;
+    TextSelection newSelection = newValue.selection;
+    String newVal = _BuyFormState.buyWithFiat
+        ? Decimal.parse(newValue.text).toStringAsFixed(2)
+        : Decimal.parse(newValue.text).toStringAsFixed(8);
     if (newValue.text == '') {
       return newValue;
     } else {
