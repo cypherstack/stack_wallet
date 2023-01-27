@@ -25,7 +25,6 @@ import 'package:stackwallet/services/event_bus/events/global/updated_in_backgrou
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/electrum_x_parsing.dart';
-import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
@@ -127,7 +126,7 @@ bip32.BIP32 getBip32RootWrapper(Tuple2<String, NetworkType> args) {
 }
 
 class DogecoinWallet extends CoinServiceAPI
-    with WalletCache, WalletDB, ElectrumXParsing, PaynymWalletInterface {
+    with WalletCache, WalletDB, ElectrumXParsing {
   static const integrationTestFlag =
       bool.fromEnvironment("IS_INTEGRATION_TEST");
   final _prefs = Prefs.instance;
@@ -539,17 +538,18 @@ class DogecoinWallet extends CoinServiceAPI
         ...p2pkhChangeAddressArray,
       ]);
 
-      // generate to ensure notification address is in db before refreshing transactions
-      await getMyNotificationAddress(DerivePathType.bip44);
-
-      // refresh transactions to pick up any received notification transactions
-      await _refreshTransactions();
-
-      // restore paynym transactions
-      await restoreAllHistory(
-        maxUnusedAddressGap: maxUnusedAddressGap,
-        maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
-      );
+      // paynym stuff
+      // // generate to ensure notification address is in db before refreshing transactions
+      // await getMyNotificationAddress(DerivePathType.bip44);
+      //
+      // // refresh transactions to pick up any received notification transactions
+      // await _refreshTransactions();
+      //
+      // // restore paynym transactions
+      // await restoreAllHistory(
+      //   maxUnusedAddressGap: maxUnusedAddressGap,
+      //   maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+      // );
 
       await _updateUTXOs();
 
@@ -790,7 +790,8 @@ class DogecoinWallet extends CoinServiceAPI
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
         await _checkCurrentReceivingAddressesForTransactions();
 
-        await checkAllCurrentReceivingPaynymAddressesForTransactions();
+        // paynym stuff
+        // await checkAllCurrentReceivingPaynymAddressesForTransactions();
 
         final fetchFuture = _refreshTransactions();
         final utxosRefreshFuture = _updateUTXOs();
@@ -1130,25 +1131,27 @@ class DogecoinWallet extends CoinServiceAPI
     _secureStore = secureStore;
     initCache(walletId, coin);
     initWalletDB(mockableOverride: mockableOverride);
-    initPaynymWalletInterface(
-      walletId: walletId,
-      walletName: walletName,
-      network: network,
-      coin: coin,
-      db: db,
-      electrumXClient: electrumXClient,
-      getMnemonic: () => mnemonic,
-      getChainHeight: () => chainHeight,
-      getCurrentChangeAddress: () => currentChangeAddress,
-      estimateTxFee: estimateTxFee,
-      prepareSend: prepareSend,
-      getTxCount: getTxCount,
-      fetchBuildTxData: fetchBuildTxData,
-      refresh: refresh,
-      checkChangeAddressForTransactions: checkChangeAddressForTransactions,
-      addDerivation: addDerivation,
-      addDerivations: addDerivations,
-    );
+
+    // paynym stuff
+    // initPaynymWalletInterface(
+    //   walletId: walletId,
+    //   walletName: walletName,
+    //   network: network,
+    //   coin: coin,
+    //   db: db,
+    //   electrumXClient: electrumXClient,
+    //   getMnemonic: () => mnemonic,
+    //   getChainHeight: () => chainHeight,
+    //   getCurrentChangeAddress: () => currentChangeAddress,
+    //   estimateTxFee: estimateTxFee,
+    //   prepareSend: prepareSend,
+    //   getTxCount: getTxCount,
+    //   fetchBuildTxData: fetchBuildTxData,
+    //   refresh: refresh,
+    //   checkChangeAddressForTransactions: checkChangeAddressForTransactions,
+    //   addDerivation: addDerivation,
+    //   addDerivations: addDerivations,
+    // );
   }
 
   @override

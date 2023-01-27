@@ -13,6 +13,7 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
@@ -23,6 +24,7 @@ import 'package:stackwallet/services/event_bus/events/global/updated_in_backgrou
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/electrum_x_parsing.dart';
+import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
@@ -138,7 +140,7 @@ bip32.BIP32 getBip32RootWrapper(Tuple2<String, NetworkType> args) {
 }
 
 class BitcoinWallet extends CoinServiceAPI
-    with WalletCache, WalletDB, ElectrumXParsing {
+    with WalletCache, WalletDB, ElectrumXParsing, PaynymWalletInterface {
   static const integrationTestFlag =
       bool.fromEnvironment("IS_INTEGRATION_TEST");
 
@@ -178,8 +180,16 @@ class BitcoinWallet extends CoinServiceAPI
   Future<List<isar_models.UTXO>> get utxos => db.getUTXOs(walletId).findAll();
 
   @override
-  Future<List<isar_models.Transaction>> get transactions =>
-      db.getTransactions(walletId).sortByTimestampDesc().findAll();
+  Future<List<isar_models.Transaction>> get transactions => db
+      .getTransactions(walletId)
+      .filter()
+      .not()
+      .group((q) => q
+          .subTypeEqualTo(isar_models.TransactionSubType.bip47Notification)
+          .and()
+          .typeEqualTo(isar_models.TransactionType.incoming))
+      .sortByTimestampDesc()
+      .findAll();
 
   @override
   Future<String> get currentReceivingAddress async =>
@@ -673,6 +683,18 @@ class BitcoinWallet extends CoinServiceAPI
         ...p2shChangeAddressArray,
       ]);
 
+      // generate to ensure notification address is in db before refreshing transactions
+      await getMyNotificationAddress(DerivePathType.bip44);
+
+      // refresh transactions to pick up any received notification transactions
+      await _refreshTransactions();
+
+      // restore paynym transactions
+      await restoreAllHistory(
+        maxUnusedAddressGap: maxUnusedAddressGap,
+        maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+      );
+
       await _updateUTXOs();
 
       await Future.wait([
@@ -737,6 +759,13 @@ class BitcoinWallet extends CoinServiceAPI
         }
       }
       return needsRefresh;
+    } on NoSuchTransactionException catch (e) {
+      // TODO: move direct transactions elsewhere
+      await db.isar.writeTxn(() async {
+        await db.isar.transactions.deleteByTxidWalletId(e.txid, walletId);
+      });
+      await txTracker.deleteTransaction(e.txid);
+      return true;
     } catch (e, s) {
       Logging.instance.log(
           "Exception caught in refreshIfThereIsNewData: $e\n$s",
@@ -905,6 +934,8 @@ class BitcoinWallet extends CoinServiceAPI
 
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
         await _checkCurrentReceivingAddressesForTransactions();
+
+        await checkAllCurrentReceivingPaynymAddressesForTransactions();
 
         final fetchFuture = _refreshTransactions();
         final utxosRefreshFuture = _updateUTXOs();
@@ -1264,6 +1295,25 @@ class BitcoinWallet extends CoinServiceAPI
     _secureStore = secureStore;
     initCache(walletId, coin);
     initWalletDB(mockableOverride: mockableOverride);
+    initPaynymWalletInterface(
+      walletId: walletId,
+      walletName: walletName,
+      network: _network,
+      coin: coin,
+      db: db,
+      electrumXClient: electrumXClient,
+      getMnemonic: () => mnemonic,
+      getChainHeight: () => chainHeight,
+      getCurrentChangeAddress: () => currentChangeAddress,
+      estimateTxFee: estimateTxFee,
+      prepareSend: prepareSend,
+      getTxCount: getTxCount,
+      fetchBuildTxData: fetchBuildTxData,
+      refresh: refresh,
+      checkChangeAddressForTransactions: _checkChangeAddressForTransactions,
+      addDerivation: addDerivation,
+      addDerivations: addDerivations,
+    );
   }
 
   @override
@@ -1324,62 +1374,11 @@ class BitcoinWallet extends CoinServiceAPI
         .getAddresses(walletId)
         .filter()
         .not()
-        .typeEqualTo(isar_models.AddressType.unknown)
-        .and()
-        .not()
         .typeEqualTo(isar_models.AddressType.nonWallet)
         .and()
-        .group((q) => q
-            .subTypeEqualTo(isar_models.AddressSubType.receiving)
-            .or()
-            .subTypeEqualTo(isar_models.AddressSubType.change))
+        .not()
+        .subTypeEqualTo(isar_models.AddressSubType.nonWallet)
         .findAll();
-    // final List<String> allAddresses = [];
-    // final receivingAddresses = DB.instance.get<dynamic>(
-    //     boxName: walletId, key: 'receivingAddressesP2WPKH') as List<dynamic>;
-    // final changeAddresses = DB.instance.get<dynamic>(
-    //     boxName: walletId, key: 'changeAddressesP2WPKH') as List<dynamic>;
-    // final receivingAddressesP2PKH = DB.instance.get<dynamic>(
-    //     boxName: walletId, key: 'receivingAddressesP2PKH') as List<dynamic>;
-    // final changeAddressesP2PKH =
-    //     DB.instance.get<dynamic>(boxName: walletId, key: 'changeAddressesP2PKH')
-    //         as List<dynamic>;
-    // final receivingAddressesP2SH = DB.instance.get<dynamic>(
-    //     boxName: walletId, key: 'receivingAddressesP2SH') as List<dynamic>;
-    // final changeAddressesP2SH =
-    //     DB.instance.get<dynamic>(boxName: walletId, key: 'changeAddressesP2SH')
-    //         as List<dynamic>;
-    //
-    // for (var i = 0; i < receivingAddresses.length; i++) {
-    //   if (!allAddresses.contains(receivingAddresses[i])) {
-    //     allAddresses.add(receivingAddresses[i] as String);
-    //   }
-    // }
-    // for (var i = 0; i < changeAddresses.length; i++) {
-    //   if (!allAddresses.contains(changeAddresses[i])) {
-    //     allAddresses.add(changeAddresses[i] as String);
-    //   }
-    // }
-    // for (var i = 0; i < receivingAddressesP2PKH.length; i++) {
-    //   if (!allAddresses.contains(receivingAddressesP2PKH[i])) {
-    //     allAddresses.add(receivingAddressesP2PKH[i] as String);
-    //   }
-    // }
-    // for (var i = 0; i < changeAddressesP2PKH.length; i++) {
-    //   if (!allAddresses.contains(changeAddressesP2PKH[i])) {
-    //     allAddresses.add(changeAddressesP2PKH[i] as String);
-    //   }
-    // }
-    // for (var i = 0; i < receivingAddressesP2SH.length; i++) {
-    //   if (!allAddresses.contains(receivingAddressesP2SH[i])) {
-    //     allAddresses.add(receivingAddressesP2SH[i] as String);
-    //   }
-    // }
-    // for (var i = 0; i < changeAddressesP2SH.length; i++) {
-    //   if (!allAddresses.contains(changeAddressesP2SH[i])) {
-    //     allAddresses.add(changeAddressesP2SH[i] as String);
-    //   }
-    // }
     return allAddresses;
   }
 
@@ -1754,15 +1753,34 @@ class BitcoinWallet extends CoinServiceAPI
             coin: coin,
           );
 
-          // todo check here if we should mark as blocked
+          // fetch stored tx to see if paynym notification tx and block utxo
+          final storedTx = await db.getTransaction(
+            walletId,
+            fetchedUtxoList[i][j]["tx_hash"] as String,
+          );
+
+          bool shouldBlock = false;
+          String? blockReason;
+
+          if (storedTx?.subType ==
+                  isar_models.TransactionSubType.bip47Notification &&
+              storedTx?.type == isar_models.TransactionType.incoming) {
+            // probably safe to assume this is an incoming tx as it is a utxo
+            // belonging to this wallet. The extra check may be redundant but
+            // just in case...
+
+            shouldBlock = true;
+            blockReason = "Incoming paynym notification transaction.";
+          }
+
           final utxo = isar_models.UTXO(
             walletId: walletId,
             txid: txn["txid"] as String,
             vout: fetchedUtxoList[i][j]["tx_pos"] as int,
             value: fetchedUtxoList[i][j]["value"] as int,
             name: "",
-            isBlocked: false,
-            blockedReason: null,
+            isBlocked: shouldBlock,
+            blockedReason: blockReason,
             isCoinbase: txn["is_coinbase"] as bool? ?? false,
             blockHash: txn["blockhash"] as String?,
             blockHeight: fetchedUtxoList[i][j]["height"] as int?,
