@@ -195,6 +195,29 @@ extension CoinExt on Coin {
     }
   }
 
+  bool get hasBuySupport {
+    switch (this) {
+      case Coin.bitcoin:
+      case Coin.litecoin:
+      case Coin.bitcoincash:
+      case Coin.dogecoin:
+        return true;
+
+      case Coin.firo:
+      case Coin.namecoin:
+      case Coin.particl:
+      case Coin.epicCash:
+      case Coin.monero:
+      case Coin.wownero:
+      case Coin.dogecoinTestNet:
+      case Coin.bitcoinTestNet:
+      case Coin.litecoinTestNet:
+      case Coin.bitcoincashTestnet:
+      case Coin.firoTestNet:
+        return false;
+    }
+  }
+
   int get requiredConfirmations {
     switch (this) {
       case Coin.bitcoin:
