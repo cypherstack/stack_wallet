@@ -207,7 +207,7 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
                               decoration: BoxDecoration(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
-                                    .highlight,
+                                    .currencyListItemBG,
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(

@@ -8,6 +8,7 @@ import 'package:stackwallet/models/buy/response_objects/fiat.dart';
 import 'package:stackwallet/models/buy/response_objects/order.dart';
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
 import 'package:stackwallet/services/buy/buy_response.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fiat_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
@@ -15,7 +16,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 class SimplexAPI {
   static const String authority = "simplex-sandbox.stackwallet.com";
-  // static const String authority = "localhost";
+  // static const String authority = "localhost"; // For development purposes
   static const String scheme = authority == "localhost" ? "http" : "https";
 
   final _prefs = Prefs.instance;
@@ -71,13 +72,15 @@ class SimplexAPI {
 
       for (final crypto in jsonArray as List) {
         // TODO validate jsonArray
-        cryptos.add(Crypto.fromJson({
-          'ticker': "${crypto['ticker_symbol']}",
-          'name': crypto['name'],
-          'network': "${crypto['network']}",
-          'contractAddress': "${crypto['contractAddress']}",
-          'image': "",
-        }));
+        if (isStackCoin("${crypto['ticker_symbol']}")) {
+          cryptos.add(Crypto.fromJson({
+            'ticker': "${crypto['ticker_symbol']}",
+            'name': crypto['name'],
+            'network': "${crypto['network']}",
+            'contractAddress': "${crypto['contractAddress']}",
+            'image': "",
+          }));
+        }
       }
 
       return BuyResponse(value: cryptos);
@@ -184,6 +187,12 @@ class SimplexAPI {
         throw Exception('getQuote exception: statusCode= ${res.statusCode}');
       }
       final jsonArray = jsonDecode(res.body);
+      if (jsonArray.containsKey('error') as bool) {
+        if (jsonArray['error'] == true || jsonArray['error'] == 'true') {
+          // jsonArray['error'] as bool == true?
+          throw Exception('getQuote exception: ${jsonArray['error']}');
+        }
+      }
 
       jsonArray['quote'] = quote; // Add and pass this on
 
@@ -261,13 +270,17 @@ class SimplexAPI {
             date.toIso8601String() + timeZoneFormatter(date.timeZoneOffset);
       }
       Uri url = _buildUri('api.php', data);
-      print(data);
 
       var res = await http.get(url, headers: headers);
       if (res.statusCode != 200) {
         throw Exception('newOrder exception: statusCode= ${res.statusCode}');
       }
       final jsonArray = jsonDecode(res.body); // TODO check if valid json
+      if (jsonArray.containsKey('error') as bool) {
+      if (jsonArray['error'] == true || jsonArray['error'] == 'true') {
+        throw Exception(jsonArray['message']);
+      }
+      }
 
       SimplexOrder _order = SimplexOrder(
         quote: quote,
@@ -327,4 +340,15 @@ class SimplexAPI {
   // See https://github.com/dart-lang/sdk/issues/43391#issuecomment-1229656422
   String timeZoneFormatter(Duration offset) =>
       "${offset.isNegative ? "-" : "+"}${offset.inHours.abs().toString().padLeft(2, "0")}:${(offset.inMinutes - offset.inHours * 60).abs().toString().padLeft(2, "0")}";
+}
+
+bool isStackCoin(String? ticker) {
+  if (ticker == null) return false;
+
+  try {
+    coinFromTickerCaseInsensitive(ticker);
+    return true;
+  } on ArgumentError catch (_) {
+    return false;
+  }
 }
