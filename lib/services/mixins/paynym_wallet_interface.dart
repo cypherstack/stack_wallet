@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:bip32/bip32.dart' as bip32;
@@ -18,6 +19,7 @@ import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
+import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:tuple/tuple.dart';
@@ -32,6 +34,7 @@ mixin PaynymWalletInterface {
   late final Coin _coin;
   late final MainDB _db;
   late final ElectrumX _electrumXClient;
+  late final SecureStorageInterface _secureStorage;
 
   // passed in wallet functions
   late final Future<List<String>> Function() _getMnemonic;
@@ -75,6 +78,7 @@ mixin PaynymWalletInterface {
     required Coin coin,
     required MainDB db,
     required ElectrumX electrumXClient,
+    required SecureStorageInterface secureStorage,
     required Future<List<String>> Function() getMnemonic,
     required Future<int> Function() getChainHeight,
     required Future<String> Function() getCurrentChangeAddress,
@@ -120,6 +124,7 @@ mixin PaynymWalletInterface {
     _coin = coin;
     _db = db;
     _electrumXClient = electrumXClient;
+    _secureStorage = secureStorage;
     _getMnemonic = getMnemonic;
     _getChainHeight = getChainHeight;
     _getCurrentChangeAddress = getCurrentChangeAddress;
@@ -137,12 +142,15 @@ mixin PaynymWalletInterface {
   btc_dart.NetworkType get networkType => _network;
 
   Future<Address> currentReceivingPaynymAddress(PaymentCode sender) async {
+    final key = await lookupKey(sender.toString());
     final address = await _db
         .getAddresses(_walletId)
         .filter()
         .subTypeEqualTo(AddressSubType.paynymReceive)
         .and()
-        .otherDataEqualTo(sender.toString())
+        .otherDataEqualTo(key)
+        .and()
+        .otherDataIsNotNull()
         .sortByDerivationIndexDesc()
         .findFirst();
 
@@ -232,8 +240,9 @@ mixin PaynymWalletInterface {
     DerivePathType derivePathType,
   ) async {
     final address = await getMyNotificationAddress(derivePathType);
+    final pCodeString = await paymentCodeStringByKey(address.otherData!);
     final paymentCode = PaymentCode.fromPaymentCode(
-      address.otherData!,
+      pCodeString!,
       _network,
     );
     return paymentCode;
@@ -287,12 +296,15 @@ mixin PaynymWalletInterface {
     const maxCount = 2147483647;
 
     for (int i = startIndex; i < maxCount; i++) {
+      final key = await lookupKey(pCode.toString());
       final address = await _db
           .getAddresses(_walletId)
           .filter()
           .subTypeEqualTo(AddressSubType.paynymSend)
           .and()
-          .otherDataEqualTo(pCode.toString())
+          .otherDataEqualTo(key)
+          .and()
+          .otherDataIsNotNull()
           .and()
           .derivationIndexEqualTo(i)
           .findFirst();
@@ -311,7 +323,7 @@ mixin PaynymWalletInterface {
         ).getSendAddressKeyPair();
 
         // add address to local db
-        final address = generatePaynymSendAddressFromKeyPair(
+        final address = await generatePaynymSendAddressFromKeyPair(
           pair: pair,
           derivationIndex: i,
           derivePathType: DerivePathType.bip44,
@@ -770,7 +782,7 @@ mixin PaynymWalletInterface {
           i, // index to use
         );
         final pair = paymentAddressSending.getSendAddressKeyPair();
-        final address = generatePaynymSendAddressFromKeyPair(
+        final address = await generatePaynymSendAddressFromKeyPair(
           pair: pair,
           derivationIndex: i,
           derivePathType: DerivePathType.bip44,
@@ -815,12 +827,12 @@ mixin PaynymWalletInterface {
     await _db.updateOrPutAddresses(addresses);
   }
 
-  Address generatePaynymSendAddressFromKeyPair({
+  Future<Address> generatePaynymSendAddressFromKeyPair({
     required btc_dart.ECPair pair,
     required int derivationIndex,
     required DerivePathType derivePathType,
     required PaymentCode toPaymentCode,
-  }) {
+  }) async {
     final data = btc_dart.PaymentData(pubkey: pair.publicKey);
 
     String addressString;
@@ -867,7 +879,7 @@ mixin PaynymWalletInterface {
       derivationIndex: derivationIndex,
       type: AddressType.nonWallet,
       subType: AddressSubType.paynymSend,
-      otherData: toPaymentCode.toString(),
+      otherData: await storeCode(toPaymentCode.toString()),
     );
 
     return address;
@@ -934,7 +946,7 @@ mixin PaynymWalletInterface {
       derivationIndex: derivationIndex,
       type: addrType,
       subType: AddressSubType.paynymReceive,
-      otherData: fromPaymentCode.toString(),
+      otherData: await storeCode(fromPaymentCode.toString()),
     );
 
     final myCode = await getPaymentCode(DerivePathType.bip44);
@@ -1053,7 +1065,7 @@ mixin PaynymWalletInterface {
         derivationIndex: 0,
         type: type,
         subType: AddressSubType.paynymNotification,
-        otherData: paymentCode.toString(),
+        otherData: await storeCode(paymentCode.toString()),
       );
 
       await _addDerivation(
@@ -1068,4 +1080,46 @@ mixin PaynymWalletInterface {
       return address;
     }
   }
+
+  /// look up a key that corresponds to a payment code string
+  Future<String?> lookupKey(String paymentCodeString) async {
+    final keys =
+        (await _secureStorage.keys).where((e) => e.startsWith(kPCodeKeyPrefix));
+    for (final key in keys) {
+      final value = await _secureStorage.read(key: key);
+      if (value == paymentCodeString) {
+        return key;
+      }
+    }
+    return null;
+  }
+
+  /// fetch a payment code string
+  Future<String?> paymentCodeStringByKey(String key) async {
+    final value = await _secureStorage.read(key: key);
+    return value;
+  }
+
+  /// store payment code string and return the generated key used
+  Future<String> storeCode(String paymentCodeString) async {
+    final key = _generateKey();
+    await _secureStorage.write(key: key, value: paymentCodeString);
+    return key;
+  }
+
+  /// generate a new payment code string storage key
+  String _generateKey() {
+    final bytes = _randomBytes(24);
+    return "$kPCodeKeyPrefix${bytes.toHex}";
+  }
+
+  // https://github.com/AaronFeickert/stack_wallet_backup/blob/master/lib/secure_storage.dart#L307-L311
+  /// Generate cryptographically-secure random bytes
+  Uint8List _randomBytes(int n) {
+    final Random rng = Random.secure();
+    return Uint8List.fromList(
+        List<int>.generate(n, (_) => rng.nextInt(0xFF + 1)));
+  }
 }
+
+const String kPCodeKeyPrefix = "pCode_key_";

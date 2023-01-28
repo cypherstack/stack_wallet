@@ -1302,6 +1302,7 @@ class BitcoinWallet extends CoinServiceAPI
       coin: coin,
       db: db,
       electrumXClient: electrumXClient,
+      secureStorage: secureStore,
       getMnemonic: () => mnemonic,
       getChainHeight: () => chainHeight,
       getCurrentChangeAddress: () => currentChangeAddress,
