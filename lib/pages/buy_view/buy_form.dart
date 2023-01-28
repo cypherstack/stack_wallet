@@ -98,9 +98,11 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   bool _hovering1 = false;
   bool _hovering2 = false;
 
+  // TODO actually check USD min and max, these could get updated by Simplex
   static Decimal minFiat = Decimal.fromInt(50);
   static Decimal maxFiat = Decimal.fromInt(20000);
 
+  // We can't get crypto min and max without asking for a quote
   static Decimal minCrypto = Decimal.parse((0.00000001)
       .toString()); // lol how to go from double->Decimal more easily?
   static Decimal maxCrypto = Decimal.parse((10000.00000000).toString());
@@ -476,8 +478,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
             } else {
               return StackDialog(
                 title: "Simplex API error",
-                message:
-                    "${quoteResponse.exception?.errorMessage.substring(19, quoteResponse.exception?.errorMessage?.length ?? 109 - (14 + 19))}",
+                message: "${quoteResponse.exception?.errorMessage}",
                 rightButton: TextButton(
                   style: Theme.of(context)
                       .extension<StackColors>()!
@@ -501,10 +502,10 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     } else {
       // Error; probably amount out of bounds
       String errorMessage = "${quoteResponse.exception?.errorMessage}";
-      errorMessage = errorMessage.substring(
-          (errorMessage.indexOf('getQuote exception: ') ?? 19) + 20,
-          errorMessage.indexOf(", value: null"));
       if (errorMessage.contains('must be between')) {
+        errorMessage = errorMessage.substring(
+            (errorMessage.indexOf('getQuote exception: ') ?? 19) + 20,
+            errorMessage.indexOf(", value: null"));
         _BuyFormState.boundedCryptoTicker = errorMessage.substring(
             errorMessage.indexOf('The ') + 4,
             errorMessage.indexOf(' amount must be between'));
@@ -565,7 +566,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
           } else {
             return StackDialog(
               title: "Simplex API error",
-              message: errorMessage,
+              message: "${quoteResponse.exception?.errorMessage}",
+              // "${quoteResponse.exception?.errorMessage.substring(8, (quoteResponse.exception?.errorMessage?.length ?? 109) - (8 + 6))}",
               rightButton: TextButton(
                 style: Theme.of(context)
                     .extension<StackColors>()!
@@ -936,7 +938,10 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 color: Theme.of(context).extension<StackColors>()!.textDark,
               ),
               key: const Key("buyAmountInputFieldTextFieldKey"),
-              controller: _buyAmountController..text = '50.00',
+              controller: _buyAmountController
+                ..text = _BuyFormState.buyWithFiat
+                    ? _BuyFormState.minFiat.toStringAsFixed(2) ?? '50.00'
+                    : _BuyFormState.minCrypto.toStringAsFixed(8),
               focusNode: _buyAmountFocusNode,
               keyboardType: Util.isDesktop
                   ? null
@@ -1016,11 +1021,20 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                         _buyAmountController.text.isNotEmpty
                             ? TextFieldIconButton(
                                 key: const Key(
-                                    "buyViewClearAddressFieldButtonKey"),
+                                    "buyViewClearAmountFieldButtonKey"),
                                 onTap: () {
-                                  _buyAmountController.text = "";
-                                  // _receiveAddress = "";
-                                  setState(() {});
+                                  if (_BuyFormState.buyWithFiat) {
+                                    _buyAmountController.text = _BuyFormState
+                                        .minFiat
+                                        .toStringAsFixed(2);
+                                  } else {
+                                    if (selectedCrypto?.ticker ==
+                                        _BuyFormState.boundedCryptoTicker) {
+                                      _buyAmountController.text = _BuyFormState
+                                          .minCrypto
+                                          .toStringAsFixed(8);
+                                    }
+                                  }
                                 },
                                 child: const XIcon(),
                               )
@@ -1366,8 +1380,10 @@ class NumericalRangeFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    final TextSelection newSelection = newValue.selection;
-    String newVal = newValue.text;
+    TextSelection newSelection = newValue.selection;
+    String newVal = _BuyFormState.buyWithFiat
+        ? Decimal.parse(newValue.text).toStringAsFixed(2)
+        : Decimal.parse(newValue.text).toStringAsFixed(8);
     if (newValue.text == '') {
       return newValue;
     } else {
@@ -1398,7 +1414,7 @@ class NumericalRangeFormatter extends TextInputFormatter {
         : r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$';
 
     // return RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-    return RegExp(regexString).hasMatch(newValue.text)
+    return RegExp(regexString).hasMatch(newVal)
         ? TextEditingValue(text: newVal, selection: newSelection)
         : oldValue;
   }
