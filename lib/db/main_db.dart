@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
@@ -28,7 +29,7 @@ class MainDB {
         AddressSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
-      inspector: false,
+      inspector: kDebugMode,
       name: "wallet_data",
     );
     return true;
@@ -46,6 +47,31 @@ class MainDB {
   Future<void> putAddresses(List<Address> addresses) => isar.writeTxn(() async {
         await isar.addresses.putAll(addresses);
       });
+
+  Future<void> updateOrPutAddresses(List<Address> addresses) async {
+    await isar.writeTxn(() async {
+      for (final address in addresses) {
+        final storedAddress = await isar.addresses
+            .getByValueWalletId(address.value, address.walletId);
+
+        if (storedAddress == null) {
+          await isar.addresses.put(address);
+        } else {
+          address.id = storedAddress.id;
+          await storedAddress.transactions.load();
+          final txns = storedAddress.transactions.toList();
+          await isar.addresses.delete(storedAddress.id);
+          await isar.addresses.put(address);
+          address.transactions.addAll(txns);
+          await address.transactions.save();
+        }
+      }
+    });
+  }
+
+  Future<Address?> getAddress(String walletId, String address) async {
+    return isar.addresses.getByValueWalletId(address, walletId);
+  }
 
   Future<void> updateAddress(Address oldAddress, Address newAddress) =>
       isar.writeTxn(() async {
@@ -72,6 +98,10 @@ class MainDB {
       isar.writeTxn(() async {
         await isar.transactions.putAll(transactions);
       });
+
+  Future<Transaction?> getTransaction(String walletId, String txid) async {
+    return isar.transactions.getByTxidWalletId(txid, walletId);
+  }
 
   // utxos
   QueryBuilder<UTXO, UTXO, QAfterWhereClause> getUTXOs(String walletId) =>

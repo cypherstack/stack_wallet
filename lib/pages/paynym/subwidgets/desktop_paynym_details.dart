@@ -5,14 +5,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:stackwallet/exceptions/wallet/insufficient_balance_exception.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/paynym/dialogs/confirm_paynym_connect_dialog.dart';
 import 'package:stackwallet/pages/paynym/subwidgets/paynym_bot.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
-import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
+import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -57,30 +57,24 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
       ),
     );
 
-    final wallet = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet as DogecoinWallet;
+    final manager =
+        ref.read(walletsChangeNotifierProvider).getManager(widget.walletId);
 
-    // sanity check to prevent second notification tx
-    if (wallet.hasConnectedConfirmed(widget.accountLite.code)) {
-      canPop = true;
-      Navigator.of(context, rootNavigator: true).pop();
-      // TODO show info popup
-      return;
-    } else if (wallet.hasConnected(widget.accountLite.code)) {
+    final wallet = manager.wallet as PaynymWalletInterface;
+
+    if (await wallet.hasConnected(widget.accountLite.code)) {
       canPop = true;
       Navigator.of(context, rootNavigator: true).pop();
       // TODO show info popup
       return;
     }
 
-    final rates = await wallet.fees;
+    final rates = await manager.fees;
 
     Map<String, dynamic> preparedTx;
 
     try {
-      preparedTx = await wallet.buildNotificationTx(
+      preparedTx = await wallet.prepareNotificationTx(
         selectedTxFeeRate: rates.medium,
         targetPaymentCodeString: widget.accountLite.code,
       );
@@ -118,7 +112,7 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                   maxHeight: double.infinity,
                   maxWidth: 580,
                   child: ConfirmTransactionView(
-                    walletId: wallet.walletId,
+                    walletId: manager.walletId,
                     isPaynymNotificationTransaction: true,
                     transactionInfo: {
                       "hex": preparedTx["hex"],
@@ -147,7 +141,7 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
             );
           },
           amount: (preparedTx["amount"] as int) + (preparedTx["fee"] as int),
-          coin: wallet.coin,
+          coin: manager.coin,
         ),
       );
     }
@@ -159,10 +153,11 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
 
   @override
   Widget build(BuildContext context) {
-    final wallet = ref
-        .watch(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet as DogecoinWallet;
+    final manager = ref.watch(walletsChangeNotifierProvider
+        .select((value) => value.getManager(widget.walletId)));
+
+    final wallet = manager.wallet as PaynymWalletInterface;
+
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(0),
       child: Column(
@@ -192,40 +187,53 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                 ),
                 Row(
                   children: [
-                    if (!wallet.hasConnected(widget.accountLite.code))
-                      Expanded(
-                        child: PrimaryButton(
-                          label: "Connect",
-                          buttonHeight: ButtonHeight.s,
-                          icon: SvgPicture.asset(
-                            Assets.svg.circlePlusFilled,
-                            width: 16,
-                            height: 16,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .buttonTextPrimary,
-                          ),
-                          iconSpacing: 6,
-                          onPressed: _onConnectPressed,
-                        ),
+                    Expanded(
+                      child: FutureBuilder(
+                        future: wallet.hasConnected(widget.accountLite.code),
+                        builder: (context, AsyncSnapshot<bool> snapshot) {
+                          if (snapshot.connectionState ==
+                                  ConnectionState.done &&
+                              snapshot.hasData) {
+                            if (snapshot.data!) {
+                              return PrimaryButton(
+                                label: "Send",
+                                buttonHeight: ButtonHeight.s,
+                                icon: SvgPicture.asset(
+                                  Assets.svg.circleArrowUpRight,
+                                  width: 16,
+                                  height: 16,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .buttonTextPrimary,
+                                ),
+                                iconSpacing: 6,
+                                onPressed: _onSend,
+                              );
+                            } else {
+                              return PrimaryButton(
+                                label: "Connect",
+                                buttonHeight: ButtonHeight.s,
+                                icon: SvgPicture.asset(
+                                  Assets.svg.circlePlusFilled,
+                                  width: 16,
+                                  height: 16,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .buttonTextPrimary,
+                                ),
+                                iconSpacing: 6,
+                                onPressed: _onConnectPressed,
+                              );
+                            }
+                          } else {
+                            return const SizedBox(
+                              height: 100,
+                              child: LoadingIndicator(),
+                            );
+                          }
+                        },
                       ),
-                    if (wallet.hasConnected(widget.accountLite.code))
-                      Expanded(
-                        child: PrimaryButton(
-                          label: "Send",
-                          buttonHeight: ButtonHeight.s,
-                          icon: SvgPicture.asset(
-                            Assets.svg.circleArrowUpRight,
-                            width: 16,
-                            height: 16,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .buttonTextPrimary,
-                          ),
-                          iconSpacing: 6,
-                          onPressed: _onSend,
-                        ),
-                      ),
+                    ),
                     const SizedBox(
                       width: 20,
                     ),

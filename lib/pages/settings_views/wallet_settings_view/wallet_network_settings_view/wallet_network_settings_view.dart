@@ -76,6 +76,8 @@ class _WalletNetworkSettingsViewState
   StreamSubscription<dynamic>? _blocksRemainingSubscription;
   // late StreamSubscription _nodeStatusSubscription;
 
+  late final bool isDesktop;
+
   late double _percent;
   late int _blocksRemaining;
   bool _advancedIsExpanded = false;
@@ -114,7 +116,7 @@ class _WalletNetworkSettingsViewState
 
       if (mounted) {
         // pop rescanning dialog
-        Navigator.pop(context);
+        Navigator.of(context, rootNavigator: isDesktop).pop();
 
         // show success
         await showDialog<dynamic>(
@@ -132,7 +134,7 @@ class _WalletNetworkSettingsViewState
                 style: STextStyles.itemSubtitle12(context),
               ),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context, rootNavigator: isDesktop).pop();
               },
             ),
           ),
@@ -143,7 +145,7 @@ class _WalletNetworkSettingsViewState
 
       if (mounted) {
         // pop rescanning dialog
-        Navigator.pop(context);
+        Navigator.of(context, rootNavigator: isDesktop).pop();
 
         // show error
         await showDialog<dynamic>(
@@ -162,7 +164,7 @@ class _WalletNetworkSettingsViewState
                 style: STextStyles.itemSubtitle12(context),
               ),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context, rootNavigator: isDesktop).pop();
               },
             ),
           ),
@@ -183,6 +185,7 @@ class _WalletNetworkSettingsViewState
 
   @override
   void initState() {
+    isDesktop = Util.isDesktop;
     _currentSyncStatus = widget.initialSyncStatus;
     // _currentNodeStatus = widget.initialNodeStatus;
     if (_currentSyncStatus == WalletSyncStatus.synced) {
@@ -270,7 +273,6 @@ class _WalletNetworkSettingsViewState
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final bool isDesktop = Util.isDesktop;
 
     final progressLength = isDesktop
         ? 430.0

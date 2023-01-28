@@ -100,8 +100,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: testing
-      resolved-ref: "8ed2f6245c71a4457ed4ffdd3a74e4bcb9f9d2d0"
+      ref: "87bb760be323228aed6ca7bd4532a709a4f10690"
+      resolved-ref: "87bb760be323228aed6ca7bd4532a709a4f10690"
       url: "https://github.com/cypherstack/bip47.git"
     source: git
     version: "1.0.0"
@@ -1408,8 +1408,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "93e2687bcc10fc7258c7dab038c363fc9ff8ba5d"
-      resolved-ref: "93e2687bcc10fc7258c7dab038c363fc9ff8ba5d"
+      ref: e4b08d2b8965a5ae49bd57f598fa9011dd0c25e9
+      resolved-ref: e4b08d2b8965a5ae49bd57f598fa9011dd0c25e9
       url: "https://github.com/cypherstack/stack_wallet_backup.git"
     source: git
     version: "0.0.1"
