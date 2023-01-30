@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
-import 'package:stackwallet/providers/blockchain/dogecoin/current_height_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/route_generator.dart';
@@ -85,7 +84,13 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
           children: [
             TransactionCard(
               // this may mess with combined firo transactions
-              key: Key(tx.txid + tx.type.name + tx.address.value.toString()), //
+              key: Key(tx.txid +
+                  tx.type.name +
+                  tx.address.value.toString() +
+                  ref
+                      .watch(widget.managerProvider
+                          .select((value) => value.currentHeight))
+                      .toString()), //
               transaction: tx,
               walletId: widget.walletId,
             ),
@@ -180,19 +185,18 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
         ),
         child: TransactionCard(
           // this may mess with combined firo transactions
-          key: Key(tx.txid + tx.type.name + tx.address.value.toString()), //
+          key: Key(tx.txid +
+              tx.type.name +
+              tx.address.value.toString() +
+              ref
+                  .watch(widget.managerProvider
+                      .select((value) => value.currentHeight))
+                  .toString()), //
           transaction: tx,
           walletId: widget.walletId,
         ),
       );
     }
-  }
-
-  void updateHeightProvider(Manager manager) {
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      ref.read(currentHeightProvider(manager.coin).state).state =
-          manager.currentHeight;
-    });
   }
 
   @override
@@ -203,14 +207,9 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
 
   @override
   Widget build(BuildContext context) {
-    // final managerProvider = ref
-    //     .watch(walletsChangeNotifierProvider)
-    //     .getManagerProvider(widget.walletId);
-
     final manager = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManager(widget.walletId)));
 
-    updateHeightProvider(manager);
     return FutureBuilder(
       future: manager.transactions,
       builder: (fbContext, AsyncSnapshot<List<Transaction>> snapshot) {

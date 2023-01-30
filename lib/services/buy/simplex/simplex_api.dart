@@ -210,7 +210,20 @@ class SimplexAPI {
 
   BuyResponse<SimplexQuote> _parseQuote(dynamic jsonArray) {
     try {
-      String cryptoAmount = "${jsonArray['digital_money']['amount']}";
+      // final Map<String, dynamic> lol =
+      //     Map<String, dynamic>.from(jsonArray as Map);
+
+      String? cryptoAmount = jsonArray['digital_money']?['amount'] as String?;
+
+      if (cryptoAmount == null) {
+        String error = jsonArray['error'] as String;
+        return BuyResponse(
+          exception: BuyException(
+            error,
+            BuyExceptionType.cryptoAmountOutOfRange,
+          ),
+        );
+      }
 
       SimplexQuote quote = jsonArray['quote'] as SimplexQuote;
       final SimplexQuote _quote = SimplexQuote(
@@ -277,9 +290,9 @@ class SimplexAPI {
       }
       final jsonArray = jsonDecode(res.body); // TODO check if valid json
       if (jsonArray.containsKey('error') as bool) {
-      if (jsonArray['error'] == true || jsonArray['error'] == 'true') {
-        throw Exception(jsonArray['message']);
-      }
+        if (jsonArray['error'] == true || jsonArray['error'] == 'true') {
+          throw Exception(jsonArray['message']);
+        }
       }
 
       SimplexOrder _order = SimplexOrder(

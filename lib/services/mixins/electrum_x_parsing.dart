@@ -189,14 +189,16 @@ mixin ElectrumXParsing {
 
     TransactionSubType txSubType = TransactionSubType.none;
     if (this is PaynymWalletInterface && outs.length > 1 && ins.isNotEmpty) {
-      List<String>? scriptChunks = outs[1].scriptPubKeyAsm?.split(" ");
-      if (scriptChunks?.length == 2 && scriptChunks?[0] == "OP_RETURN") {
-        final blindedPaymentCode = scriptChunks![1];
-        final bytes = blindedPaymentCode.fromHex;
+      for (int i = 0; i < outs.length; i++) {
+        List<String>? scriptChunks = outs[i].scriptPubKeyAsm?.split(" ");
+        if (scriptChunks?.length == 2 && scriptChunks?[0] == "OP_RETURN") {
+          final blindedPaymentCode = scriptChunks![1];
+          final bytes = blindedPaymentCode.fromHex;
 
-        // https://en.bitcoin.it/wiki/BIP_0047#Sending
-        if (bytes.length == 80 && bytes.first == 1) {
-          txSubType = TransactionSubType.bip47Notification;
+          // https://en.bitcoin.it/wiki/BIP_0047#Sending
+          if (bytes.length == 80 && bytes.first == 1) {
+            txSubType = TransactionSubType.bip47Notification;
+          }
         }
       }
     }

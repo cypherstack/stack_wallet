@@ -241,6 +241,14 @@ class LitecoinWallet extends CoinServiceAPI
       final result = await _electrumXClient.getBlockHeadTip();
       final height = result["height"] as int;
       await updateCachedChainHeight(height);
+      if (height > storedChainHeight) {
+        GlobalEventBus.instance.fire(
+          UpdatedInBackgroundEvent(
+            "Updated current chain height in $walletId $walletName!",
+            walletId,
+          ),
+        );
+      }
       return height;
     } catch (e, s) {
       Logging.instance.log("Exception caught in chainHeight: $e\n$s",
