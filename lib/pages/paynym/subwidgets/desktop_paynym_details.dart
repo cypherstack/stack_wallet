@@ -324,7 +324,7 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                 const SizedBox(
                   height: 8,
                 ),
-                BlueTextButton(
+                CustomTextButton(
                   text: "Copy",
                   onTap: () async {
                     await Clipboard.setData(

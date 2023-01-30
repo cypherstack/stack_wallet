@@ -118,7 +118,7 @@ class PaynymQrPopup extends StatelessWidget {
                         const SizedBox(
                           height: 6,
                         ),
-                        BlueTextButton(
+                        CustomTextButton(
                           text: "Copy",
                           textSize: isDesktop ? 18 : 10,
                           onTap: () async {

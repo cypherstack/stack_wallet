@@ -72,7 +72,7 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
                 "Recent trades",
                 style: STextStyles.desktopTextExtraExtraSmall(context),
               ),
-              BlueTextButton(
+              CustomTextButton(
                 text: "See all",
                 onTap: () {
                   Navigator.of(context)

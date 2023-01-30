@@ -1304,7 +1304,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                 style: STextStyles.smallMed12(context),
                                 textAlign: TextAlign.left,
                               ),
-                              BlueTextButton(
+                              CustomTextButton(
                                 text: "Send all ${coin.ticker}",
                                 onTap: () async {
                                   if (coin == Coin.firo ||

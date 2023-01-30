@@ -300,7 +300,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
             ),
             if (isStackCoin(ref.watch(desktopExchangeModelProvider
                 .select((value) => value!.receiveTicker))))
-              BlueTextButton(
+              CustomTextButton(
                 text: "Choose from stack",
                 onTap: selectRecipientAddressFromStack,
               ),
@@ -432,7 +432,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
             ),
             if (isStackCoin(ref.watch(desktopExchangeModelProvider
                 .select((value) => value!.sendTicker))))
-              BlueTextButton(
+              CustomTextButton(
                 text: "Choose from stack",
                 onTap: selectRefundAddressFromStack,
               ),

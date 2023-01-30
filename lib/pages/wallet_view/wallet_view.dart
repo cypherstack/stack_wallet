@@ -649,7 +649,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                 .textDark3,
                           ),
                         ),
-                        BlueTextButton(
+                        CustomTextButton(
                           text: "See all",
                           onTap: () {
                             Navigator.of(context).pushNamed(

@@ -39,7 +39,7 @@ class DesktopFavoriteWallets extends ConsumerWidget {
                     .textFieldActiveSearchIconRight,
               ),
             ),
-            BlueTextButton(
+            CustomTextButton(
               text: "Edit",
               onTap: () {
                 Navigator.of(context).pushNamed(ManageFavoritesView.routeName);

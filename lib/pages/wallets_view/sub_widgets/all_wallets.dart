@@ -24,7 +24,7 @@ class AllWallets extends StatelessWidget {
                 color: Theme.of(context).extension<StackColors>()!.textDark,
               ),
             ),
-            BlueTextButton(
+            CustomTextButton(
               text: "Add new",
               onTap: () {
                 Navigator.of(context).pushNamed(AddWalletView.routeName);

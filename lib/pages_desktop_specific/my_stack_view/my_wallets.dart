@@ -38,7 +38,7 @@ class _MyWalletsState extends ConsumerState<MyWallets> {
                 ),
               ),
               const Spacer(),
-              BlueTextButton(
+              CustomTextButton(
                 text: "Add new wallet",
                 onTap: () {
                   Navigator.of(

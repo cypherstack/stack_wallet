@@ -311,7 +311,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                         "Addresses",
                         style: STextStyles.itemSubtitle(context),
                       ),
-                      BlueTextButton(
+                      CustomTextButton(
                         text: "Add new",
                         onTap: () {
                           Navigator.of(context).pushNamed(
