@@ -41,7 +41,6 @@ abstract class TokenServiceAPI {
   Future<int> get maxFee;
 
   Future<String> get currentReceivingAddress;
-  // Future<String> get currentLegacyReceivingAddress;
 
   Future<Decimal> get availableBalance;
   Future<Decimal> get totalBalance;
@@ -52,9 +51,6 @@ abstract class TokenServiceAPI {
 
   Future<void> refresh();
 
-  // String get walletName;
-  // String get walletId;
-
   bool validateAddress(String address);
 
   Future<void> initializeNew();
@@ -62,6 +58,5 @@ abstract class TokenServiceAPI {
 
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate);
 
-  // used for electrumx coins
-  Future<void> updateSentCachedTxData(Map<String, dynamic> txData);
+  Future<bool> isValidToken(String contractAddress);
 }

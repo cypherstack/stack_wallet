@@ -58,14 +58,18 @@ const _gasTrackerUrl =
 
 Future<AddressTransaction> fetchAddressTransactions(
     String address, String action) async {
-  final response = await get(Uri.parse(
-      "$blockExplorer?module=account&action=$action&address=$address"));
-
-  if (response.statusCode == 200) {
-    return AddressTransaction.fromJson(
-        json.decode(response.body) as Map<String, dynamic>);
-  } else {
-    throw Exception('Failed to load transactions');
+  try {
+    final response = await get(Uri.parse(
+        "$blockExplorer?module=account&action=$action&address=$address"));
+    if (response.statusCode == 200) {
+      return AddressTransaction.fromJson(
+          json.decode(response.body) as Map<String, dynamic>);
+    } else {
+      throw Exception(
+          'ERROR GETTING TRANSACTIONS WITH STATUS ${response.statusCode}');
+    }
+  } catch (e, s) {
+    throw Exception('ERROR GETTING TRANSACTIONS ${e.toString()}');
   }
 }
 

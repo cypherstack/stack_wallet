@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:math';
-import 'package:devicelocale/devicelocale.dart';
 import 'package:http/http.dart';
 import 'package:decimal/decimal.dart';
 import 'package:stackwallet/utilities/eth_commons.dart';
@@ -37,6 +36,26 @@ class AbiRequestResponse {
     return AbiRequestResponse(
       message: json['message'] as String,
       result: json['result'] as String,
+      status: json['status'] as String,
+    );
+  }
+}
+
+class TokenData {
+  final String message;
+  final Map<String, dynamic> result;
+  final String status;
+
+  const TokenData({
+    required this.message,
+    required this.result,
+    required this.status,
+  });
+
+  factory TokenData.fromJson(Map<String, dynamic> json) {
+    return TokenData(
+      message: json['message'] as String,
+      result: json['result'] as Map<String, dynamic>,
       status: json['status'] as String,
     );
   }
@@ -81,7 +100,7 @@ class EthereumToken extends TokenServiceAPI {
       return AbiRequestResponse.fromJson(
           json.decode(response.body) as Map<String, dynamic>);
     } else {
-      throw Exception('Failed to load token abi');
+      throw Exception("ERROR GETTING TOKENABI ${response.reasonPhrase}");
     }
   }
 
@@ -185,6 +204,8 @@ class EthereumToken extends TokenServiceAPI {
     _balanceFunction = _contract.function('balanceOf');
     _sendFunction = _contract.function('transfer');
     _client = await getEthClient();
+
+    // print(_credentials.p)
   }
 
   @override
@@ -294,47 +315,6 @@ class EthereumToken extends TokenServiceAPI {
       _transactionData ??= _fetchTransactionData();
   Future<TransactionData>? _transactionData;
 
-  @override
-  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
-    Decimal currentPrice = Decimal.zero;
-    final locale = await Devicelocale.currentLocale;
-    final String worthNow = Format.localizedStringAsFixed(
-        value:
-            ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
-                    Decimal.fromInt(Constants.satsPerCoin(coin)))
-                .toDecimal(scaleOnInfinitePrecision: 2),
-        decimalPlaces: 2,
-        locale: locale!);
-
-    final tx = models.Transaction(
-      txid: txData["txid"] as String,
-      confirmedStatus: false,
-      timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      txType: "Sent",
-      amount: txData["recipientAmt"] as int,
-      worthNow: worthNow,
-      worthAtBlockTimestamp: worthNow,
-      fees: txData["fee"] as int,
-      inputSize: 0,
-      outputSize: 0,
-      inputs: [],
-      outputs: [],
-      address: txData["address"] as String,
-      height: -1,
-      confirmations: 0,
-    );
-
-    if (cachedTxData == null) {
-      final data = await _fetchTransactionData();
-      _transactionData = Future(() => data);
-    } else {
-      final transactions = cachedTxData!.getAllTransactions();
-      transactions[tx.txid] = tx;
-      cachedTxData = models.TransactionData.fromMap(transactions);
-      _transactionData = Future(() => cachedTxData!);
-    }
-  }
-
   Future<TransactionData> _fetchTransactionData() async {
     String thisAddress = await currentReceivingAddress;
     // final cachedTransactions = {} as TransactionData?;
@@ -440,9 +420,6 @@ class EthereumToken extends TokenServiceAPI {
       }
     }
 
-    // final transactionsMap = {} as Map<String, models.Transaction>;
-    // transactionsMap
-    //     .addAll(TransactionData.fromJson(result).getAllTransactions());
     final txModel = TransactionData.fromMap(
         TransactionData.fromJson(result).getAllTransactions());
 
@@ -453,6 +430,34 @@ class EthereumToken extends TokenServiceAPI {
   @override
   bool validateAddress(String address) {
     return isValidEthereumAddress(address);
+  }
+
+  //Validate that a custom token is valid and is ERC-20, a token will be valid
+  @override
+  Future<TokenData> getTokenByContractAddress(String contractAddress) async {
+    final response = await get(Uri.parse(
+        "$blockExplorer?module=token&action=getToken&contractaddress=$contractAddress"));
+    if (response.statusCode == 200) {
+      return TokenData.fromJson(
+          json.decode(response.body) as Map<String, dynamic>);
+    } else {
+      throw Exception("ERROR GETTING TOKEN ${response.reasonPhrase}");
+    }
+  }
+
+  //Validate that a custom token is valid and is ERC-20
+  @override
+  Future<bool> isValidToken(String contractAddress) async {
+    TokenData tokenData = await getTokenByContractAddress(contractAddress);
+
+    if (tokenData.message == "OK") {
+      final result = tokenData.result;
+      if (result["type"] == "ERC-20") {
+        return true;
+      }
+      return false;
+    }
+    return false;
   }
 
   Future<NodeModel> getCurrentNode() async {

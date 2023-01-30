@@ -741,45 +741,7 @@ class EthereumWallet extends CoinServiceAPI {
 
   @override
   Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
-    final priceData =
-        await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
-    Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
-    final locale = await Devicelocale.currentLocale;
-    final String worthNow = Format.localizedStringAsFixed(
-        value:
-            ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
-                    Decimal.fromInt(Constants.satsPerCoin(coin)))
-                .toDecimal(scaleOnInfinitePrecision: 2),
-        decimalPlaces: 2,
-        locale: locale!);
-
-    final tx = models.Transaction(
-      txid: txData["txid"] as String,
-      confirmedStatus: false,
-      timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      txType: "Sent",
-      amount: txData["recipientAmt"] as int,
-      worthNow: worthNow,
-      worthAtBlockTimestamp: worthNow,
-      fees: txData["fee"] as int,
-      inputSize: 0,
-      outputSize: 0,
-      inputs: [],
-      outputs: [],
-      address: txData["address"] as String,
-      height: -1,
-      confirmations: 0,
-    );
-
-    if (cachedTxData == null) {
-      final data = await _fetchTransactionData();
-      _transactionData = Future(() => data);
-    } else {
-      final transactions = cachedTxData!.getAllTransactions();
-      transactions[tx.txid] = tx;
-      cachedTxData = models.TransactionData.fromMap(transactions);
-      _transactionData = Future(() => cachedTxData!);
-    }
+    //Only used for Electrumx coins
   }
 
   @override
