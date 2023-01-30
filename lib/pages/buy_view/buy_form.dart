@@ -108,6 +108,37 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   static Decimal maxCrypto = Decimal.parse((10000.00000000).toString());
   static String boundedCryptoTicker = '';
 
+  String _amountOutOfRangeErrorString = "";
+  void validateAmount() {
+    if (_buyAmountController.text.isEmpty) {
+      setState(() {
+        _amountOutOfRangeErrorString = "";
+      });
+      return;
+    }
+
+    final value = Decimal.tryParse(_buyAmountController.text);
+    if (value == null) {
+      setState(() {
+        _amountOutOfRangeErrorString = "Invalid amount";
+      });
+    } else if (value > maxFiat) {
+      setState(() {
+        _amountOutOfRangeErrorString =
+            "Maximum amount: ${maxFiat.toStringAsFixed(2)}";
+      });
+    } else if (value < minFiat) {
+      setState(() {
+        _amountOutOfRangeErrorString =
+            "Minimum amount: ${minFiat.toStringAsFixed(2)}";
+      });
+    } else {
+      setState(() {
+        _amountOutOfRangeErrorString = "";
+      });
+    }
+  }
+
   void selectCrypto() async {
     if (ref.read(simplexProvider).supportedCryptos.isEmpty) {
       bool shouldPop = false;
@@ -355,11 +386,11 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     }
   }
 
-  String? _fetchIconUrlFromTicker(String? ticker) {
-    if (ticker == null) return null;
-
-    return null;
-  }
+  // String? _fetchIconUrlFromTicker(String? ticker) {
+  //   if (ticker == null) return null;
+  //
+  //   return null;
+  // }
 
   bool isStackCoin(String? ticker) {
     if (ticker == null) return false;
@@ -373,13 +404,15 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   }
 
   Widget? getIconForTicker(String ticker) {
-    String? iconAsset = /*isStackCoin(ticker)
+    String iconAsset = /*isStackCoin(ticker)
         ?*/
         Assets.svg.iconFor(coin: coinFromTickerCaseInsensitive(ticker));
     // : Assets.svg.buyIconFor(ticker);
-    return (iconAsset != null)
-        ? SvgPicture.asset(iconAsset, height: 20, width: 20)
-        : null;
+    // return (iconAsset != null)
+    //     ? SvgPicture.asset(iconAsset, height: 20, width: 20)
+    //     : null;
+
+    return SvgPicture.asset(iconAsset, height: 20, width: 20);
   }
 
   Future<void> previewQuote(SimplexQuote quote) async {
@@ -500,7 +533,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       String errorMessage = "${quoteResponse.exception?.errorMessage}";
       if (errorMessage.contains('must be between')) {
         errorMessage = errorMessage.substring(
-            (errorMessage.indexOf('getQuote exception: ') ?? 19) + 20,
+            errorMessage.indexOf('getQuote exception: ') + 20,
             errorMessage.indexOf(", value: null"));
         _BuyFormState.boundedCryptoTicker = errorMessage.substring(
             errorMessage.indexOf('The ') + 4,
@@ -848,7 +881,11 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                           .textFieldDefaultBG,
                   child: Padding(
                     padding: const EdgeInsets.only(
-                        left: 12.0, top: 12.0, right: 12.0, bottom: 12.0),
+                      left: 12.0,
+                      top: 12.0,
+                      right: 12.0,
+                      bottom: 12.0,
+                    ),
                     child: Row(
                       children: <Widget>[
                         Container(
@@ -874,7 +911,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                           width: 8,
                         ),
                         Text(
-                          "${selectedFiat?.ticker ?? 'ERR'}",
+                          selectedFiat?.ticker ?? 'ERR',
                           style: STextStyles.largeMedium14(context),
                         ),
                         const SizedBox(
@@ -882,7 +919,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                         ),
                         Expanded(
                           child: Text(
-                            "${selectedFiat?.name ?? 'Error'}",
+                            selectedFiat?.name ?? 'Error',
                             style: STextStyles.largeMedium14(context),
                           ),
                         ),
@@ -934,10 +971,11 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 color: Theme.of(context).extension<StackColors>()!.textDark,
               ),
               key: const Key("buyAmountInputFieldTextFieldKey"),
-              controller: _buyAmountController
-                ..text = _BuyFormState.buyWithFiat
-                    ? _BuyFormState.minFiat.toStringAsFixed(2) ?? '50.00'
-                    : _BuyFormState.minCrypto.toStringAsFixed(8),
+              controller: _buyAmountController,
+              // note: setting the text value here will set it every time this widget rebuilds
+              // ..text = _BuyFormState.buyWithFiat
+              //     ? _BuyFormState.minFiat.toStringAsFixed(2) ?? '50.00'
+              //     : _BuyFormState.minCrypto.toStringAsFixed(8),
               focusNode: _buyAmountFocusNode,
               keyboardType: Util.isDesktop
                   ? null
@@ -946,7 +984,10 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                       decimal: true,
                     ),
               textAlign: TextAlign.left,
-              inputFormatters: [NumericalRangeFormatter()],
+              // inputFormatters: [NumericalRangeFormatter()],
+              onChanged: (_) {
+                validateAmount();
+              },
               decoration: InputDecoration(
                 contentPadding: const EdgeInsets.only(
                   // top: 22,
@@ -981,8 +1022,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                               ),
                               child: Text(
                                 format.simpleCurrencySymbol(
-                                    selectedFiat?.ticker ??
-                                        "ERR".toUpperCase()),
+                                    selectedFiat?.ticker.toUpperCase() ??
+                                        "ERR"),
                                 textAlign: TextAlign.center,
                                 style: STextStyles.smallMed12(context).copyWith(
                                     color: Theme.of(context)
@@ -1019,18 +1060,20 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                 key: const Key(
                                     "buyViewClearAmountFieldButtonKey"),
                                 onTap: () {
-                                  if (_BuyFormState.buyWithFiat) {
-                                    _buyAmountController.text = _BuyFormState
-                                        .minFiat
-                                        .toStringAsFixed(2);
-                                  } else {
-                                    if (selectedCrypto?.ticker ==
-                                        _BuyFormState.boundedCryptoTicker) {
-                                      _buyAmountController.text = _BuyFormState
-                                          .minCrypto
-                                          .toStringAsFixed(8);
-                                    }
-                                  }
+                                  // if (_BuyFormState.buyWithFiat) {
+                                  //   _buyAmountController.text = _BuyFormState
+                                  //       .minFiat
+                                  //       .toStringAsFixed(2);
+                                  // } else {
+                                  //   if (selectedCrypto?.ticker ==
+                                  //       _BuyFormState.boundedCryptoTicker) {
+                                  //     _buyAmountController.text = _BuyFormState
+                                  //         .minCrypto
+                                  //         .toStringAsFixed(8);
+                                  //   }
+                                  // }
+                                  _buyAmountController.text = "";
+                                  validateAmount();
                                 },
                                 child: const XIcon(),
                               )
@@ -1047,7 +1090,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                     _buyAmountController.text =
                                         amountString.toString();
 
-                                    setState(() {});
+                                    validateAmount();
                                   }
                                 },
                                 child: _buyAmountController.text.isEmpty
@@ -1060,6 +1103,14 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 ),
               ),
             ),
+            SizedBox(
+              height: isDesktop ? 10 : 4,
+            ),
+            if (_amountOutOfRangeErrorString.isNotEmpty)
+              Text(
+                _amountOutOfRangeErrorString,
+                style: STextStyles.errorSmall(context),
+              ),
             SizedBox(
               height: isDesktop ? 20 : 12,
             ),
@@ -1167,7 +1218,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                     _receiveAddressController.text = "";
                                     _address = "";
                                     setState(() {
-                                      _addressToggleFlag = true;
+                                      _addressToggleFlag = false;
                                     });
                                   },
                                   child: const XIcon(),
@@ -1338,27 +1389,15 @@ class _BuyFormState extends ConsumerState<BuyForm> {
             SizedBox(
               height: isDesktop ? 20 : 12,
             ),
-            MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                  onTap: () {
-                    if (_receiveAddressController.text.isNotEmpty &&
-                        _buyAmountController.text.isNotEmpty) {
-                      previewQuote(quote);
-                    }
-                  },
-                  child: PrimaryButton(
-                    buttonHeight: isDesktop ? ButtonHeight.l : null,
-                    enabled: _receiveAddressController.text.isNotEmpty &&
-                        _buyAmountController.text.isNotEmpty,
-                    onPressed: () {
-                      if (_receiveAddressController.text.isNotEmpty &&
-                          _buyAmountController.text.isNotEmpty) {
-                        previewQuote(quote);
-                      }
-                    },
-                    label: "Preview quote",
-                  )),
+            PrimaryButton(
+              buttonHeight: isDesktop ? ButtonHeight.l : null,
+              enabled: _addressToggleFlag &&
+                  _amountOutOfRangeErrorString.isEmpty &&
+                  _buyAmountController.text.isNotEmpty,
+              onPressed: () {
+                previewQuote(quote);
+              },
+              label: "Preview quote",
             ),
           ],
         ),
@@ -1367,51 +1406,53 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   }
 }
 
-// See https://stackoverflow.com/a/68072967
-class NumericalRangeFormatter extends TextInputFormatter {
-  NumericalRangeFormatter();
+// might need this again in the future
 
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    TextSelection newSelection = newValue.selection;
-    String newVal = _BuyFormState.buyWithFiat
-        ? Decimal.parse(newValue.text).toStringAsFixed(2)
-        : Decimal.parse(newValue.text).toStringAsFixed(8);
-    if (newValue.text == '') {
-      return newValue;
-    } else {
-      if (_BuyFormState.buyWithFiat) {
-        if (Decimal.parse(newValue.text) < _BuyFormState.minFiat) {
-          newVal = _BuyFormState.minFiat.toStringAsFixed(2);
-          // _BuyFormState._buyAmountController.selection =
-          //     TextSelection.collapsed(
-          //         offset: _BuyFormState.buyWithFiat
-          //             ? _BuyFormState._buyAmountController.text.length - 2
-          //             : _BuyFormState._buyAmountController.text.length - 8);
-        } else if (Decimal.parse(newValue.text) > _BuyFormState.maxFiat) {
-          newVal = _BuyFormState.maxFiat.toStringAsFixed(2);
-        }
-      } else if (!_BuyFormState.buyWithFiat &&
-          _BuyFormState.selectedCrypto?.ticker ==
-              _BuyFormState.boundedCryptoTicker) {
-        if (Decimal.parse(newValue.text) < _BuyFormState.minCrypto) {
-          newVal = _BuyFormState.minCrypto.toStringAsFixed(8);
-        } else if (Decimal.parse(newValue.text) > _BuyFormState.maxCrypto) {
-          newVal = _BuyFormState.maxCrypto.toStringAsFixed(8);
-        }
-      }
-    }
-
-    final regexString = _BuyFormState.buyWithFiat
-        ? r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$'
-        : r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$';
-
-    // return RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-    return RegExp(regexString).hasMatch(newVal)
-        ? TextEditingValue(text: newVal, selection: newSelection)
-        : oldValue;
-  }
-}
+// // See https://stackoverflow.com/a/68072967
+// class NumericalRangeFormatter extends TextInputFormatter {
+//   NumericalRangeFormatter();
+//
+//   @override
+//   TextEditingValue formatEditUpdate(
+//     TextEditingValue oldValue,
+//     TextEditingValue newValue,
+//   ) {
+//     TextSelection newSelection = newValue.selection;
+//     String newVal = _BuyFormState.buyWithFiat
+//         ? Decimal.parse(newValue.text).toStringAsFixed(2)
+//         : Decimal.parse(newValue.text).toStringAsFixed(8);
+//     if (newValue.text == '') {
+//       return newValue;
+//     } else {
+//       if (_BuyFormState.buyWithFiat) {
+//         if (Decimal.parse(newValue.text) < _BuyFormState.minFiat) {
+//           newVal = _BuyFormState.minFiat.toStringAsFixed(2);
+//           // _BuyFormState._buyAmountController.selection =
+//           //     TextSelection.collapsed(
+//           //         offset: _BuyFormState.buyWithFiat
+//           //             ? _BuyFormState._buyAmountController.text.length - 2
+//           //             : _BuyFormState._buyAmountController.text.length - 8);
+//         } else if (Decimal.parse(newValue.text) > _BuyFormState.maxFiat) {
+//           newVal = _BuyFormState.maxFiat.toStringAsFixed(2);
+//         }
+//       } else if (!_BuyFormState.buyWithFiat &&
+//           _BuyFormState.selectedCrypto?.ticker ==
+//               _BuyFormState.boundedCryptoTicker) {
+//         if (Decimal.parse(newValue.text) < _BuyFormState.minCrypto) {
+//           newVal = _BuyFormState.minCrypto.toStringAsFixed(8);
+//         } else if (Decimal.parse(newValue.text) > _BuyFormState.maxCrypto) {
+//           newVal = _BuyFormState.maxCrypto.toStringAsFixed(8);
+//         }
+//       }
+//     }
+//
+//     final regexString = _BuyFormState.buyWithFiat
+//         ? r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$'
+//         : r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$';
+//
+//     // return RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
+//     return RegExp(regexString).hasMatch(newVal)
+//         ? TextEditingValue(text: newVal, selection: newSelection)
+//         : oldValue;
+//   }
+// }
