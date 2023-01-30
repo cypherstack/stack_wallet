@@ -122,12 +122,12 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       setState(() {
         _amountOutOfRangeErrorString = "Invalid amount";
       });
-    } else if (value > maxFiat) {
+    } else if (value > maxFiat && buyWithFiat) {
       setState(() {
         _amountOutOfRangeErrorString =
             "Maximum amount: ${maxFiat.toStringAsFixed(2)}";
       });
-    } else if (value < minFiat) {
+    } else if (value < minFiat && buyWithFiat) {
       setState(() {
         _amountOutOfRangeErrorString =
             "Minimum amount: ${minFiat.toStringAsFixed(2)}";
@@ -280,6 +280,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
           minFiat = fiat.minAmount != minFiat ? fiat.minAmount : minFiat;
           maxFiat = fiat.maxAmount != maxFiat ? fiat.maxAmount : maxFiat;
         });
+        validateAmount();
       },
     );
   }
