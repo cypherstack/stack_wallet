@@ -108,10 +108,6 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   static Decimal maxCrypto = Decimal.parse((10000.00000000).toString());
   static String boundedCryptoTicker = '';
 
-  void fiatFieldOnChanged(String value) async {}
-
-  void cryptoFieldOnChanged(String value) async {}
-
   void selectCrypto() async {
     if (ref.read(simplexProvider).supportedCryptos.isEmpty) {
       bool shouldPop = false;
