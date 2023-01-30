@@ -958,6 +958,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                     setState(() {
                       buyWithFiat = !buyWithFiat;
                     });
+                    validateAmount();
                   },
                 )
               ],
