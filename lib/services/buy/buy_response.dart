@@ -1,4 +1,8 @@
-enum BuyExceptionType { generic, serializeResponseError }
+enum BuyExceptionType {
+  generic,
+  serializeResponseError,
+  cryptoAmountOutOfRange,
+}
 
 class BuyException implements Exception {
   String errorMessage;
