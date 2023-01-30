@@ -1314,6 +1314,8 @@ class BitcoinWallet extends CoinServiceAPI
       checkChangeAddressForTransactions: _checkChangeAddressForTransactions,
       addDerivation: addDerivation,
       addDerivations: addDerivations,
+      dustLimitP2PKH: DUST_LIMIT_P2PKH,
+      minConfirms: MINIMUM_CONFIRMATIONS,
     );
   }
 

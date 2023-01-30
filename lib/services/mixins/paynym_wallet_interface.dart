@@ -15,7 +15,6 @@ import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/exceptions/wallet/insufficient_balance_exception.dart';
 import 'package:stackwallet/exceptions/wallet/paynym_send_exception.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
@@ -35,6 +34,8 @@ mixin PaynymWalletInterface {
   late final MainDB _db;
   late final ElectrumX _electrumXClient;
   late final SecureStorageInterface _secureStorage;
+  late final int _dustLimitP2PKH;
+  late final int _minConfirms;
 
   // passed in wallet functions
   late final Future<List<String>> Function() _getMnemonic;
@@ -79,6 +80,8 @@ mixin PaynymWalletInterface {
     required MainDB db,
     required ElectrumX electrumXClient,
     required SecureStorageInterface secureStorage,
+    required int dustLimitP2PKH,
+    required int minConfirms,
     required Future<List<String>> Function() getMnemonic,
     required Future<int> Function() getChainHeight,
     required Future<String> Function() getCurrentChangeAddress,
@@ -125,6 +128,8 @@ mixin PaynymWalletInterface {
     _db = db;
     _electrumXClient = electrumXClient;
     _secureStorage = secureStorage;
+    _dustLimitP2PKH = dustLimitP2PKH;
+    _minConfirms = minConfirms;
     _getMnemonic = getMnemonic;
     _getChainHeight = getChainHeight;
     _getCurrentChangeAddress = getCurrentChangeAddress;
@@ -353,7 +358,7 @@ mixin PaynymWalletInterface {
     int additionalOutputs = 0,
     List<UTXO>? utxos,
   }) async {
-    const amountToSend = DUST_LIMIT;
+    final amountToSend = _dustLimitP2PKH;
     final List<UTXO> availableOutputs =
         utxos ?? await _db.getUTXOs(_walletId).findAll();
     final List<UTXO> spendableOutputs = [];
@@ -362,8 +367,8 @@ mixin PaynymWalletInterface {
     // Build list of spendable outputs and totaling their satoshi amount
     for (var i = 0; i < availableOutputs.length; i++) {
       if (availableOutputs[i].isBlocked == false &&
-          availableOutputs[i].isConfirmed(
-                  await _getChainHeight(), MINIMUM_CONFIRMATIONS) ==
+          availableOutputs[i]
+                  .isConfirmed(await _getChainHeight(), _minConfirms) ==
               true) {
         spendableOutputs.add(availableOutputs[i]);
         spendableSatoshiValue += availableOutputs[i].value;
@@ -440,13 +445,13 @@ mixin PaynymWalletInterface {
       feeForWithChange = vSizeForWithChange * 1000;
     }
 
-    if (satoshisBeingUsed - amountToSend > feeForNoChange + DUST_LIMIT) {
+    if (satoshisBeingUsed - amountToSend > feeForNoChange + _dustLimitP2PKH) {
       // try to add change output due to "left over" amount being greater than
       // the estimated fee + the dust limit
       int changeAmount = satoshisBeingUsed - amountToSend - feeForWithChange;
 
       // check estimates are correct and build notification tx
-      if (changeAmount >= DUST_LIMIT &&
+      if (changeAmount >= _dustLimitP2PKH &&
           satoshisBeingUsed - amountToSend - changeAmount == feeForWithChange) {
         final txn = await _createNotificationTx(
           targetPaymentCodeString: targetPaymentCodeString,
@@ -572,7 +577,8 @@ mixin PaynymWalletInterface {
     );
 
     // todo: modify address once segwit support is in our bip47
-    txb.addOutput(targetPaymentCode.notificationAddressP2PKH(), DUST_LIMIT);
+    txb.addOutput(
+        targetPaymentCode.notificationAddressP2PKH(), _dustLimitP2PKH);
     txb.addOutput(opReturnScript, 0);
 
     // TODO: add possible change output and mark output as dangerous
