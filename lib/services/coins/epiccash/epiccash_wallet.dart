@@ -1416,6 +1416,14 @@ class EpicCashWallet extends CoinServiceAPI
       });
 
       await updateCachedChainHeight(latestHeight!);
+      if (latestHeight! > storedChainHeight) {
+        GlobalEventBus.instance.fire(
+          UpdatedInBackgroundEvent(
+            "Updated current chain height in $walletId $walletName!",
+            walletId,
+          ),
+        );
+      }
       return latestHeight!;
     } catch (e, s) {
       Logging.instance.log("Exception caught in chainHeight: $e\n$s",
