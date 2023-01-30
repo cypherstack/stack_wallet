@@ -133,7 +133,7 @@ class _ContactListItemState extends ConsumerState<ContactListItem> {
                                 ],
                               ),
                             ),
-                            BlueTextButton(
+                            CustomTextButton(
                               text: "Select wallet",
                               onTap: () {
                                 Navigator.of(context).pop(e);

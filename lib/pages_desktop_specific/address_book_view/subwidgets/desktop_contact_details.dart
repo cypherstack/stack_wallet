@@ -182,7 +182,7 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                             style:
                                 STextStyles.desktopTextExtraExtraSmall(context),
                           ),
-                          BlueTextButton(
+                          CustomTextButton(
                             text: "Add new",
                             onTap: () async {
                               ref.refresh(

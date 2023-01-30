@@ -233,7 +233,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                             const SizedBox(
                               height: 20,
                             ),
-                            BlueTextButton(
+                            CustomTextButton(
                               text: "Create new QR code",
                               onTap: () async {
                                 unawaited(Navigator.of(context).push(

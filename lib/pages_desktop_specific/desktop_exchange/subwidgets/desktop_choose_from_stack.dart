@@ -221,7 +221,7 @@ class _DesktopChooseFromStackState
                         const SizedBox(
                           width: 80,
                         ),
-                        BlueTextButton(
+                        CustomTextButton(
                           text: "Select wallet",
                           onTap: () async {
                             final address =
