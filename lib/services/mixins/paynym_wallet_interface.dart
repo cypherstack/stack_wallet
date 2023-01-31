@@ -696,8 +696,26 @@ mixin PaynymWalletInterface {
     }
 
     try {
-      final blindedCode =
-          transaction.outputs.elementAt(1).scriptPubKeyAsm!.split(" ")[1];
+      Uint8List? blindedCodeBytes;
+
+      for (int i = 0; i < transaction.outputs.length; i++) {
+        List<String>? scriptChunks =
+            transaction.outputs.elementAt(1).scriptPubKeyAsm?.split(" ");
+        if (scriptChunks?.length == 2 && scriptChunks?[0] == "OP_RETURN") {
+          final blindedPaymentCode = scriptChunks![1];
+          final bytes = blindedPaymentCode.fromHex;
+
+          // https://en.bitcoin.it/wiki/BIP_0047#Sending
+          if (bytes.length == 80 && bytes.first == 1) {
+            blindedCodeBytes = bytes;
+          }
+        }
+      }
+
+      // transaction does not contain a payment code
+      if (blindedCodeBytes == null) {
+        return null;
+      }
 
       final designatedInput = transaction.inputs.first;
 
@@ -718,7 +736,7 @@ mixin PaynymWalletInterface {
 
       final mask = PaymentCode.getMask(S.ecdhSecret(), rev);
 
-      final unBlindedPayload = PaymentCode.blind(blindedCode.fromHex, mask);
+      final unBlindedPayload = PaymentCode.blind(blindedCodeBytes, mask);
 
       final unBlindedPaymentCode =
           PaymentCode.initFromPayload(unBlindedPayload);
