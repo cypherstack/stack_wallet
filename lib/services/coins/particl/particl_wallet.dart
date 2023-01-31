@@ -2202,7 +2202,6 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
               Logging.instance.log(s.toString(), level: LogLevel.Warning);
             }
             // Logging.instance.log("output is transparent", level: LogLevel.Info);
-
           } else if (output.containsKey('ct_fee') as bool) {
             // or type: data
             // TODO handle CT tx
