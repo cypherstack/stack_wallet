@@ -37,7 +37,7 @@ class _RecentDesktopTransactionsState
                     .textFieldActiveSearchIconLeft,
               ),
             ),
-            BlueTextButton(
+            CustomTextButton(
               text: "See all",
               onTap: () {
                 Navigator.of(context).pushNamed(

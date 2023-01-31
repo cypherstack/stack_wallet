@@ -953,7 +953,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                         Theme.of(context).extension<StackColors>()!.textDark3,
                   ),
                 ),
-                BlueTextButton(
+                CustomTextButton(
                   text: buyWithFiat ? "Use crypto amount" : "Use fiat amount",
                   onTap: () {
                     setState(() {
@@ -1129,7 +1129,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                   ),
                 ),
                 if (isStackCoin(selectedCrypto?.ticker))
-                  BlueTextButton(
+                  CustomTextButton(
                     text: "Choose from stack",
                     onTap: () {
                       try {

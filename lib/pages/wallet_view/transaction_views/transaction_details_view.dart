@@ -1092,7 +1092,7 @@ class _TransactionDetailsViewState
                                             height: 8,
                                           ),
                                         if (coin != Coin.epicCash)
-                                          BlueTextButton(
+                                          CustomTextButton(
                                             text: "Open in block explorer",
                                             onTap: () async {
                                               final uri =
