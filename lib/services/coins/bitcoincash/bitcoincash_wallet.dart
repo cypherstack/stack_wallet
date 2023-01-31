@@ -78,7 +78,7 @@ bip32.BIP32 getBip32NodeFromRoot(
   switch (root.network.wif) {
     case 0x80: // bch mainnet wif
       coinType =
-          derivePathType == DerivePathType.slip44 ? "0" : "145"; // bch mainnet
+          derivePathType == DerivePathType.bch44 ? "145" : "0"; // bch mainnet
       break;
     case 0xef: // bch testnet wif
       coinType = "1"; // bch testnet
@@ -87,8 +87,8 @@ bip32.BIP32 getBip32NodeFromRoot(
       throw Exception("Invalid Bitcoincash network type used!");
   }
   switch (derivePathType) {
-    case DerivePathType.slip44:
     case DerivePathType.bip44:
+    case DerivePathType.bch44:
       return root.derivePath("m/44'/$coinType'/0'/$chain/$index");
     case DerivePathType.bip49:
       return root.derivePath("m/49'/$coinType'/0'/$chain/$index");
@@ -259,7 +259,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
     if (decodeBase58 != null) {
       if (decodeBase58[0] == _network.pubKeyHash) {
         // P2PKH
-        return DerivePathType.slip44;
+        return DerivePathType.bip44;
       }
 
       if (decodeBase58[0] == _network.scriptHash) {
@@ -384,8 +384,8 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
         final data = PaymentData(pubkey: node.publicKey);
         isar_models.AddressType addrType;
         switch (type) {
-          case DerivePathType.slip44:
           case DerivePathType.bip44:
+          case DerivePathType.bch44:
             addressString = P2PKH(data: data, network: _network).data.address!;
             addrType = isar_models.AddressType.p2pkh;
             addressString = bitbox.Address.toCashAddress(addressString);
@@ -494,26 +494,26 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
     longMutex = true;
 
     Map<String, Map<String, String>> bip44P2pkhReceiveDerivations = {};
-    Map<String, Map<String, String>> slip44P2pkhReceiveDerivations = {};
+    Map<String, Map<String, String>> bch44P2pkhReceiveDerivations = {};
     Map<String, Map<String, String>> p2shReceiveDerivations = {};
     Map<String, Map<String, String>> bip44P2pkhChangeDerivations = {};
-    Map<String, Map<String, String>> slip44P2pkhChangeDerivations = {};
+    Map<String, Map<String, String>> bch44P2pkhChangeDerivations = {};
     Map<String, Map<String, String>> p2shChangeDerivations = {};
 
     final root = await compute(getBip32RootWrapper, Tuple2(mnemonic, _network));
 
     List<isar_models.Address> bip44P2pkhReceiveAddressArray = [];
-    List<isar_models.Address> slip44P2pkhReceiveAddressArray = [];
+    List<isar_models.Address> bch44P2pkhReceiveAddressArray = [];
     List<isar_models.Address> p2shReceiveAddressArray = [];
+    int bch44P2pkhReceiveIndex = -1;
     int bip44P2pkhReceiveIndex = -1;
-    int slip44P2pkhReceiveIndex = -1;
     int p2shReceiveIndex = -1;
 
     List<isar_models.Address> bip44P2pkhChangeAddressArray = [];
-    List<isar_models.Address> slip44P2pkhChangeAddressArray = [];
+    List<isar_models.Address> bch44P2pkhChangeAddressArray = [];
     List<isar_models.Address> p2shChangeAddressArray = [];
+    int bch44P2pkhChangeIndex = -1;
     int bip44P2pkhChangeIndex = -1;
-    int slip44P2pkhChangeIndex = -1;
     int p2shChangeIndex = -1;
 
     // The gap limit will be capped at [maxUnusedAddressGap]
@@ -529,13 +529,8 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
           .log("checking receiving addresses...", level: LogLevel.Info);
       final resultReceiveBip44 = _checkGaps(maxNumberOfIndexesToCheck,
           maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip44, 0);
-      final resultReceiveSlip44 = _checkGaps(
-          maxNumberOfIndexesToCheck,
-          maxUnusedAddressGap,
-          txCountBatchSize,
-          root,
-          DerivePathType.slip44,
-          0);
+      final resultReceiveBch44 = _checkGaps(maxNumberOfIndexesToCheck,
+          maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bch44, 0);
 
       final resultReceive49 = _checkGaps(maxNumberOfIndexesToCheck,
           maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip49, 0);
@@ -545,36 +540,30 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       // change addresses
       final bip44ResultChange = _checkGaps(maxNumberOfIndexesToCheck,
           maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip44, 1);
-      final slip44ResultChange = _checkGaps(
-          maxNumberOfIndexesToCheck,
-          maxUnusedAddressGap,
-          txCountBatchSize,
-          root,
-          DerivePathType.slip44,
-          1);
+      final bch44ResultChange = _checkGaps(maxNumberOfIndexesToCheck,
+          maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bch44, 1);
 
       final resultChange49 = _checkGaps(maxNumberOfIndexesToCheck,
           maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip49, 1);
 
       await Future.wait([
+        resultReceiveBch44,
         resultReceiveBip44,
-        resultReceiveSlip44,
         resultReceive49,
+        bch44ResultChange,
         bip44ResultChange,
-        slip44ResultChange,
         resultChange49,
       ]);
 
-      slip44P2pkhReceiveAddressArray =
-          (await resultReceiveSlip44)['addressArray']
-              as List<isar_models.Address>;
-      slip44P2pkhReceiveIndex = (await resultReceiveSlip44)['index'] as int;
-      slip44P2pkhReceiveDerivations = (await resultReceiveSlip44)['derivations']
-          as Map<String, Map<String, String>>;
       bip44P2pkhReceiveAddressArray = (await resultReceiveBip44)['addressArray']
           as List<isar_models.Address>;
       bip44P2pkhReceiveIndex = (await resultReceiveBip44)['index'] as int;
       bip44P2pkhReceiveDerivations = (await resultReceiveBip44)['derivations']
+          as Map<String, Map<String, String>>;
+      bch44P2pkhReceiveAddressArray = (await resultReceiveBch44)['addressArray']
+          as List<isar_models.Address>;
+      bch44P2pkhReceiveIndex = (await resultReceiveBch44)['index'] as int;
+      bch44P2pkhReceiveDerivations = (await resultReceiveBch44)['derivations']
           as Map<String, Map<String, String>>;
 
       p2shReceiveAddressArray =
@@ -583,15 +572,15 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       p2shReceiveDerivations = (await resultReceive49)['derivations']
           as Map<String, Map<String, String>>;
 
-      slip44P2pkhChangeAddressArray = (await slip44ResultChange)['addressArray']
-          as List<isar_models.Address>;
-      slip44P2pkhChangeIndex = (await slip44ResultChange)['index'] as int;
-      slip44P2pkhChangeDerivations = (await slip44ResultChange)['derivations']
-          as Map<String, Map<String, String>>;
       bip44P2pkhChangeAddressArray = (await bip44ResultChange)['addressArray']
           as List<isar_models.Address>;
       bip44P2pkhChangeIndex = (await bip44ResultChange)['index'] as int;
       bip44P2pkhChangeDerivations = (await bip44ResultChange)['derivations']
+          as Map<String, Map<String, String>>;
+      bch44P2pkhChangeAddressArray = (await bch44ResultChange)['addressArray']
+          as List<isar_models.Address>;
+      bch44P2pkhChangeIndex = (await bch44ResultChange)['index'] as int;
+      bch44P2pkhChangeDerivations = (await bch44ResultChange)['derivations']
           as Map<String, Map<String, String>>;
 
       p2shChangeAddressArray =
@@ -601,17 +590,17 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
           as Map<String, Map<String, String>>;
 
       // save the derivations (if any)
-      if (slip44P2pkhReceiveDerivations.isNotEmpty) {
-        await addDerivations(
-            chain: 0,
-            derivePathType: DerivePathType.slip44,
-            derivationsToAdd: slip44P2pkhReceiveDerivations);
-      }
       if (bip44P2pkhReceiveDerivations.isNotEmpty) {
         await addDerivations(
             chain: 0,
             derivePathType: DerivePathType.bip44,
             derivationsToAdd: bip44P2pkhReceiveDerivations);
+      }
+      if (bch44P2pkhReceiveDerivations.isNotEmpty) {
+        await addDerivations(
+            chain: 0,
+            derivePathType: DerivePathType.bch44,
+            derivationsToAdd: bch44P2pkhReceiveDerivations);
       }
       if (p2shReceiveDerivations.isNotEmpty) {
         await addDerivations(
@@ -619,17 +608,17 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
             derivePathType: DerivePathType.bip49,
             derivationsToAdd: p2shReceiveDerivations);
       }
-      if (slip44P2pkhChangeDerivations.isNotEmpty) {
-        await addDerivations(
-            chain: 1,
-            derivePathType: DerivePathType.slip44,
-            derivationsToAdd: slip44P2pkhChangeDerivations);
-      }
       if (bip44P2pkhChangeDerivations.isNotEmpty) {
         await addDerivations(
             chain: 1,
             derivePathType: DerivePathType.bip44,
             derivationsToAdd: bip44P2pkhChangeDerivations);
+      }
+      if (bch44P2pkhChangeDerivations.isNotEmpty) {
+        await addDerivations(
+            chain: 1,
+            derivePathType: DerivePathType.bch44,
+            derivationsToAdd: bch44P2pkhChangeDerivations);
       }
       if (p2shChangeDerivations.isNotEmpty) {
         await addDerivations(
@@ -640,15 +629,15 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       // If restoring a wallet that never received any funds, then set receivingArray manually
       // If we didn't do this, it'd store an empty array
-      if (slip44P2pkhReceiveIndex == -1) {
-        final address =
-            await _generateAddressForChain(0, 0, DerivePathType.slip44);
-        slip44P2pkhReceiveAddressArray.add(address);
-      }
       if (bip44P2pkhReceiveIndex == -1) {
         final address =
             await _generateAddressForChain(0, 0, DerivePathType.bip44);
         bip44P2pkhReceiveAddressArray.add(address);
+      }
+      if (bch44P2pkhReceiveIndex == -1) {
+        final address =
+            await _generateAddressForChain(0, 0, DerivePathType.bch44);
+        bch44P2pkhReceiveAddressArray.add(address);
       }
       if (p2shReceiveIndex == -1) {
         final address =
@@ -658,15 +647,15 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       // If restoring a wallet that never sent any funds with change, then set changeArray
       // manually. If we didn't do this, it'd store an empty array.
-      if (slip44P2pkhChangeIndex == -1) {
-        final address =
-            await _generateAddressForChain(1, 0, DerivePathType.slip44);
-        slip44P2pkhChangeAddressArray.add(address);
-      }
       if (bip44P2pkhChangeIndex == -1) {
         final address =
             await _generateAddressForChain(1, 0, DerivePathType.bip44);
         bip44P2pkhChangeAddressArray.add(address);
+      }
+      if (bch44P2pkhChangeIndex == -1) {
+        final address =
+            await _generateAddressForChain(1, 0, DerivePathType.bch44);
+        bch44P2pkhChangeAddressArray.add(address);
       }
       if (p2shChangeIndex == -1) {
         final address =
@@ -675,10 +664,10 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       }
 
       await db.putAddresses([
-        ...slip44P2pkhReceiveAddressArray,
-        ...slip44P2pkhChangeAddressArray,
         ...bip44P2pkhReceiveAddressArray,
         ...bip44P2pkhChangeAddressArray,
+        ...bch44P2pkhReceiveAddressArray,
+        ...bch44P2pkhChangeAddressArray,
         ...p2shReceiveAddressArray,
         ...p2shChangeAddressArray,
       ]);
@@ -1437,8 +1426,8 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
     // Generate and add addresses to relevant arrays
     final initialAddresses = await Future.wait([
       // P2PKH
-      _generateAddressForChain(0, 0, DerivePathType.slip44),
-      _generateAddressForChain(1, 0, DerivePathType.slip44),
+      _generateAddressForChain(0, 0, DerivePathType.bip44),
+      _generateAddressForChain(1, 0, DerivePathType.bip44),
 
       // P2SH
       _generateAddressForChain(0, 0, DerivePathType.bip49),
@@ -1475,12 +1464,12 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
     isar_models.AddressType addrType;
 
     switch (derivePathType) {
-      case DerivePathType.slip44:
+      case DerivePathType.bip44:
         address = P2PKH(data: data, network: _network).data.address!;
         addrType = isar_models.AddressType.p2pkh;
         address = bitbox.Address.toCashAddress(address);
         break;
-      case DerivePathType.bip44:
+      case DerivePathType.bch44:
         address = P2PKH(data: data, network: _network).data.address!;
         addrType = isar_models.AddressType.unknown;
         address = bitbox.Address.toCashAddress(address);
@@ -1534,10 +1523,10 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
     isar_models.AddressType type;
     switch (derivePathType) {
-      case DerivePathType.slip44:
+      case DerivePathType.bip44:
         type = isar_models.AddressType.p2pkh;
         break;
-      case DerivePathType.bip44:
+      case DerivePathType.bch44:
         type = isar_models.AddressType.unknown;
         break;
       case DerivePathType.bip49:
@@ -1566,11 +1555,11 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
     String key;
     String chainId = chain == 0 ? "receive" : "change";
     switch (derivePathType) {
-      case DerivePathType.slip44:
-        key = "${walletId}_${chainId}DerivationsSlip44P2PKH";
-        break;
       case DerivePathType.bip44:
-        key = "${walletId}_${chainId}DerivationsBip44P2PKH";
+        key = "${walletId}_${chainId}DerivationsP2PKH";
+        break;
+      case DerivePathType.bch44:
+        key = "${walletId}_${chainId}DerivationsBch44P2PKH";
         break;
       case DerivePathType.bip49:
         key = "${walletId}_${chainId}DerivationsP2SH";
@@ -2037,7 +2026,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
         .where((e) => e.subType == isar_models.AddressSubType.receiving)
         .map((e) {
       if (bitbox.Address.detectFormat(e.value) == bitbox.Address.formatLegacy &&
-          addressType(address: e.value) == DerivePathType.bip44) {
+          addressType(address: e.value) == DerivePathType.bch44) {
         return bitbox.Address.toCashAddress(e.value);
       } else {
         return e.value;
@@ -2048,7 +2037,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
         .where((e) => e.subType == isar_models.AddressSubType.change)
         .map((e) {
       if (bitbox.Address.detectFormat(e.value) == bitbox.Address.formatLegacy &&
-          addressType(address: e.value) == DerivePathType.bip44) {
+          addressType(address: e.value) == DerivePathType.bch44) {
         return bitbox.Address.toCashAddress(e.value);
       } else {
         return e.value;
@@ -2691,8 +2680,8 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
             }
             (addressTxid[address] as List).add(txid);
             switch (addressType(address: address)) {
-              case DerivePathType.slip44:
               case DerivePathType.bip44:
+              case DerivePathType.bch44:
                 addressesP2PKH.add(address);
                 break;
               case DerivePathType.bip49:
@@ -2710,11 +2699,11 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       if (p2pkhLength > 0) {
         final receiveDerivations = await _fetchDerivations(
           chain: 0,
-          derivePathType: DerivePathType.bip44,
+          derivePathType: DerivePathType.bch44,
         );
         final changeDerivations = await _fetchDerivations(
           chain: 1,
-          derivePathType: DerivePathType.bip44,
+          derivePathType: DerivePathType.bch44,
         );
         for (int i = 0; i < p2pkhLength; i++) {
           String address = addressesP2PKH[i];
