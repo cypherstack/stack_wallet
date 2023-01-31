@@ -4,18 +4,21 @@ enum DerivePathType {
   bip44,
   bip49,
   bip84,
+  slip44,
 }
 
 extension DerivePathTypeExt on DerivePathType {
   static DerivePathType primaryFor(Coin coin) {
     switch (coin) {
-      case Coin.bitcoincash:
       case Coin.bitcoincashTestnet:
       case Coin.dogecoin:
       case Coin.dogecoinTestNet:
       case Coin.firo:
       case Coin.firoTestNet:
         return DerivePathType.bip44;
+
+      case Coin.bitcoincash:
+        return DerivePathType.slip44;
 
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
