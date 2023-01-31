@@ -1519,6 +1519,8 @@ class BitcoinWallet extends CoinServiceAPI
         address = P2WPKH(network: _network, data: data).data.address!;
         addrType = isar_models.AddressType.p2wpkh;
         break;
+      default:
+        throw Exception("DerivePathType $derivePathType not supported");
     }
 
     // add generated address & info to derivations
@@ -1565,6 +1567,8 @@ class BitcoinWallet extends CoinServiceAPI
       case DerivePathType.bip84:
         type = isar_models.AddressType.p2wpkh;
         break;
+      default:
+        throw Exception("DerivePathType unsupported");
     }
     address = await db
         .getAddresses(walletId)
@@ -1592,6 +1596,8 @@ class BitcoinWallet extends CoinServiceAPI
       case DerivePathType.bip84:
         key = "${walletId}_${chainId}DerivationsP2WPKH";
         break;
+      default:
+        throw Exception("DerivePathType unsupported");
     }
     return key;
   }
@@ -2544,6 +2550,8 @@ class BitcoinWallet extends CoinServiceAPI
               case DerivePathType.bip84:
                 addressesP2WPKH.add(address);
                 break;
+              default:
+                throw Exception("DerivePathType unsupported");
             }
           }
         }

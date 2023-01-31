@@ -1430,6 +1430,8 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
         break;
       case DerivePathType.bip84:
         throw UnsupportedError("bip84 not supported by BCH");
+      default:
+        throw Exception("DerivePathType $derivePathType not supported");
     }
 
     // add generated address & info to derivations
@@ -1474,6 +1476,8 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
         break;
       case DerivePathType.bip84:
         throw UnsupportedError("bip84 not supported by BCH");
+      default:
+        throw Exception("DerivePathType $derivePathType not supported");
     }
 
     final address = await db
