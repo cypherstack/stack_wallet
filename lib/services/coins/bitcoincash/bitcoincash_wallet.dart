@@ -1437,8 +1437,8 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
     // Generate and add addresses to relevant arrays
     final initialAddresses = await Future.wait([
       // P2PKH
-      _generateAddressForChain(0, 0, DerivePathType.bip44),
-      _generateAddressForChain(1, 0, DerivePathType.bip44),
+      _generateAddressForChain(0, 0, DerivePathType.slip44),
+      _generateAddressForChain(1, 0, DerivePathType.slip44),
 
       // P2SH
       _generateAddressForChain(0, 0, DerivePathType.bip49),
