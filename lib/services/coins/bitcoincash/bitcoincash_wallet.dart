@@ -610,7 +610,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       if (slip44P2pkhReceiveDerivations.isNotEmpty) {
         await addDerivations(
             chain: 0,
-            derivePathType: DerivePathType.bip44,
+            derivePathType: DerivePathType.slip44,
             derivationsToAdd: slip44P2pkhReceiveDerivations);
       }
       if (p2shReceiveDerivations.isNotEmpty) {
