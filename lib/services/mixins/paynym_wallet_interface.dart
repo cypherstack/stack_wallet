@@ -438,11 +438,13 @@ mixin PaynymWalletInterface {
       feeRatePerKB: selectedTxFeeRate,
     );
 
-    if (feeForNoChange < vSizeForNoChange * 1000) {
-      feeForNoChange = vSizeForNoChange * 1000;
-    }
-    if (feeForWithChange < vSizeForWithChange * 1000) {
-      feeForWithChange = vSizeForWithChange * 1000;
+    if (_coin == Coin.dogecoin || _coin == Coin.dogecoinTestNet) {
+      if (feeForNoChange < vSizeForNoChange * 1000) {
+        feeForNoChange = vSizeForNoChange * 1000;
+      }
+      if (feeForWithChange < vSizeForWithChange * 1000) {
+        feeForWithChange = vSizeForWithChange * 1000;
+      }
     }
 
     if (satoshisBeingUsed - amountToSend > feeForNoChange + _dustLimitP2PKH) {
@@ -453,7 +455,7 @@ mixin PaynymWalletInterface {
       // check estimates are correct and build notification tx
       if (changeAmount >= _dustLimitP2PKH &&
           satoshisBeingUsed - amountToSend - changeAmount == feeForWithChange) {
-        final txn = await _createNotificationTx(
+        var txn = await _createNotificationTx(
           targetPaymentCodeString: targetPaymentCodeString,
           utxosToUse: utxoObjectsToUse,
           utxoSigningData: utxoSigningData,
@@ -461,6 +463,18 @@ mixin PaynymWalletInterface {
         );
 
         int feeBeingPaid = satoshisBeingUsed - amountToSend - changeAmount;
+
+        // make sure minimum fee is accurate if that is being used
+        if (txn.item2 - feeBeingPaid == 1) {
+          changeAmount -= 1;
+          feeBeingPaid += 1;
+          txn = await _createNotificationTx(
+            targetPaymentCodeString: targetPaymentCodeString,
+            utxosToUse: utxoObjectsToUse,
+            utxoSigningData: utxoSigningData,
+            change: changeAmount,
+          );
+        }
 
         Map<String, dynamic> transactionObject = {
           "hex": txn.item1,
@@ -574,6 +588,8 @@ mixin PaynymWalletInterface {
     txb.addInput(
       utxo.txid,
       txPointIndex,
+      null,
+      utxoSigningData[utxo.txid]["output"] as Uint8List,
     );
 
     // todo: modify address once segwit support is in our bip47
@@ -592,15 +608,18 @@ mixin PaynymWalletInterface {
     txb.sign(
       vin: 0,
       keyPair: myKeyPair,
+      witnessValue: utxo.value,
+      witnessScript: utxoSigningData[utxo.txid]["redeemScript"] as Uint8List?,
     );
 
     // sign rest of possible inputs
-    for (var i = 1; i < utxosToUse.length - 1; i++) {
+    for (var i = 1; i < utxosToUse.length; i++) {
       final txid = utxosToUse[i].txid;
       txb.sign(
         vin: i,
         keyPair: utxoSigningData[txid]["keyPair"] as btc_dart.ECPair,
-        // witnessValue: utxosToUse[i].value,
+        witnessValue: utxosToUse[i].value,
+        witnessScript: utxoSigningData[utxo.txid]["redeemScript"] as Uint8List?,
       );
     }
 
