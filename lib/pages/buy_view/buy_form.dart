@@ -1130,7 +1130,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 ),
                 if (isStackCoin(selectedCrypto?.ticker))
                   CustomTextButton(
-                    text: "Choose from stack",
+                    text: "Choose from Stack",
                     onTap: () {
                       try {
                         final coin = coinFromTickerCaseInsensitive(
@@ -1153,7 +1153,11 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             _receiveAddressController.text =
                                 await manager.currentReceivingAddress;
 
-                            setState(() {});
+                            setState(() {
+                              _addressToggleFlag =
+                                  _receiveAddressController.text.isNotEmpty;
+                            });
+                            validateAmount();
                           }
                         });
                       } catch (e, s) {
