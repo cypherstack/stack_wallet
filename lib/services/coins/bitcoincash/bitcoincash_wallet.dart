@@ -628,7 +628,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       if (slip44P2pkhChangeDerivations.isNotEmpty) {
         await addDerivations(
             chain: 1,
-            derivePathType: DerivePathType.bip44,
+            derivePathType: DerivePathType.slip44,
             derivationsToAdd: slip44P2pkhChangeDerivations);
       }
       if (p2shChangeDerivations.isNotEmpty) {
@@ -647,7 +647,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       }
       if (slip44P2pkhReceiveIndex == -1) {
         final address =
-            await _generateAddressForChain(0, 0, DerivePathType.bip44);
+            await _generateAddressForChain(0, 0, DerivePathType.slip44);
         slip44P2pkhReceiveAddressArray.add(address);
       }
       if (p2shReceiveIndex == -1) {
