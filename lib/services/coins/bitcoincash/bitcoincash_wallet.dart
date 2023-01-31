@@ -1567,8 +1567,10 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
     String chainId = chain == 0 ? "receive" : "change";
     switch (derivePathType) {
       case DerivePathType.slip44:
+        key = "${walletId}_${chainId}DerivationsSlip44P2PKH";
+        break;
       case DerivePathType.bip44:
-        key = "${walletId}_${chainId}DerivationsP2PKH";
+        key = "${walletId}_${chainId}DerivationsBip44P2PKH";
         break;
       case DerivePathType.bip49:
         key = "${walletId}_${chainId}DerivationsP2SH";
