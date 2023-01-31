@@ -264,6 +264,7 @@ class _PNG {
   const _PNG();
 
   String get stack => "assets/images/stack.png";
+  String get unclaimedPaynym => "assets/images/unclaimed.png";
   String get splash => "assets/images/splash.png";
 
   String get monero => "assets/images/monero.png";
