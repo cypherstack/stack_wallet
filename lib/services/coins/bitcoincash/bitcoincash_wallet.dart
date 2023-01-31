@@ -1470,7 +1470,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       ),
     );
     final data = PaymentData(pubkey: node.publicKey);
-    print(data);
+
     String address;
     isar_models.AddressType addrType;
 
