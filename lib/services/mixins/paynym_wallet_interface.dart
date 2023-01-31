@@ -588,6 +588,8 @@ mixin PaynymWalletInterface {
     txb.addInput(
       utxo.txid,
       txPointIndex,
+      null,
+      utxoSigningData[utxo.txid]["output"] as Uint8List,
     );
 
     // todo: modify address once segwit support is in our bip47
@@ -606,15 +608,18 @@ mixin PaynymWalletInterface {
     txb.sign(
       vin: 0,
       keyPair: myKeyPair,
+      witnessValue: utxo.value,
+      witnessScript: utxoSigningData[utxo.txid]["redeemScript"] as Uint8List?,
     );
 
     // sign rest of possible inputs
-    for (var i = 1; i < utxosToUse.length - 1; i++) {
+    for (var i = 1; i < utxosToUse.length; i++) {
       final txid = utxosToUse[i].txid;
       txb.sign(
         vin: i,
         keyPair: utxoSigningData[txid]["keyPair"] as btc_dart.ECPair,
-        // witnessValue: utxosToUse[i].value,
+        witnessValue: utxosToUse[i].value,
+        witnessScript: utxoSigningData[utxo.txid]["redeemScript"] as Uint8List?,
       );
     }
 
