@@ -20,6 +20,8 @@ import 'package:stackwallet/widgets/trade_card.dart';
 import 'package:stackwallet/widgets/transaction_card.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../utilities/enums/coin_enum.dart';
+
 class TransactionsList extends ConsumerStatefulWidget {
   const TransactionsList({
     Key? key,
@@ -67,11 +69,18 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
     BuildContext context,
     Transaction tx,
     BorderRadius? radius,
+    Coin coin,
   ) {
     final matchingTrades = ref
         .read(tradesServiceProvider)
         .trades
         .where((e) => e.payInTxid == tx.txid || e.payOutTxid == tx.txid);
+
+    final isConfirmed = tx.isConfirmed(
+        ref.watch(
+            widget.managerProvider.select((value) => value.currentHeight)),
+        coin.requiredConfirmations);
+
     if (tx.type == TransactionType.outgoing && matchingTrades.isNotEmpty) {
       final trade = matchingTrades.first;
       return Container(
@@ -84,13 +93,9 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
           children: [
             TransactionCard(
               // this may mess with combined firo transactions
-              key: Key(tx.txid +
-                  tx.type.name +
-                  tx.address.value.toString() +
-                  ref
-                      .watch(widget.managerProvider
-                          .select((value) => value.currentHeight))
-                      .toString()), //
+              key: isConfirmed
+                  ? Key(tx.txid + tx.type.name + tx.address.value.toString())
+                  : UniqueKey(), //
               transaction: tx,
               walletId: widget.walletId,
             ),
@@ -185,13 +190,9 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
         ),
         child: TransactionCard(
           // this may mess with combined firo transactions
-          key: Key(tx.txid +
-              tx.type.name +
-              tx.address.value.toString() +
-              ref
-                  .watch(widget.managerProvider
-                      .select((value) => value.currentHeight))
-                  .toString()), //
+          key: isConfirmed
+              ? Key(tx.txid + tx.type.name + tx.address.value.toString())
+              : UniqueKey(),
           transaction: tx,
           walletId: widget.walletId,
         ),
@@ -263,7 +264,7 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                         radius = _borderRadiusFirst;
                       }
                       final tx = _transactions2[index];
-                      return itemBuilder(context, tx, radius);
+                      return itemBuilder(context, tx, radius, manager.coin);
                     },
                     separatorBuilder: (context, index) {
                       return Container(
@@ -290,7 +291,7 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                         radius = _borderRadiusFirst;
                       }
                       final tx = _transactions2[index];
-                      return itemBuilder(context, tx, radius);
+                      return itemBuilder(context, tx, radius, manager.coin);
                     },
                   ),
           );
