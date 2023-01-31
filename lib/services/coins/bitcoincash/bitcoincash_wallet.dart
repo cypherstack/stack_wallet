@@ -1535,8 +1535,10 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
     isar_models.AddressType type;
     switch (derivePathType) {
       case DerivePathType.slip44:
-      case DerivePathType.bip44:
         type = isar_models.AddressType.p2pkh;
+        break;
+      case DerivePathType.bip44:
+        type = isar_models.AddressType.unknown;
         break;
       case DerivePathType.bip49:
         type = isar_models.AddressType.p2sh;
