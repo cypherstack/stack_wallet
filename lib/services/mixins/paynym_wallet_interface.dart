@@ -681,6 +681,13 @@ mixin PaynymWalletInterface {
       if (paymentCodeString == unBlindedPaymentCode.toString()) {
         return true;
       }
+
+      if (tx.address.value?.otherData != null) {
+        final code = await paymentCodeStringByKey(tx.address.value!.otherData!);
+        if (code == paymentCodeString) {
+          return true;
+        }
+      }
     }
 
     // otherwise return no
