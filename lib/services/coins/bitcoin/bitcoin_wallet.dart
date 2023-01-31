@@ -104,7 +104,7 @@ bip32.BIP32 getBip32NodeFromRoot(
     case DerivePathType.bip84:
       return root.derivePath("m/84'/$coinType'/0'/$chain/$index");
     default:
-      throw Exception("DerivePathType must not be null.");
+      throw Exception("DerivePathType $derivePathType not supported");
   }
 }
 
@@ -421,7 +421,7 @@ class BitcoinWallet extends CoinServiceAPI
             addrType = isar_models.AddressType.p2wpkh;
             break;
           default:
-            throw Exception("No Path type $type exists");
+            throw Exception("DerivePathType $type not supported");
         }
 
         final address = isar_models.Address(

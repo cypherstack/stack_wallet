@@ -397,7 +397,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
             addrType = isar_models.AddressType.p2sh;
             break;
           default:
-            throw Exception("No Path type $type exists");
+            throw Exception("DerivePathType $type not supported");
         }
 
         final address = isar_models.Address(

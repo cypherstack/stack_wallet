@@ -95,7 +95,7 @@ bip32.BIP32 getBip32NodeFromRoot(
     case DerivePathType.bip84:
       return root.derivePath("m/84'/$coinType'/0'/$chain/$index");
     default:
-      throw Exception("DerivePathType must not be null.");
+      throw Exception("DerivePathType $derivePathType not supported");
   }
 }
 
@@ -401,7 +401,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
             addrType = isar_models.AddressType.p2wpkh;
             break;
           default:
-            throw Exception("No Path type $type exists");
+            throw Exception("DerivePathType $type not supported");
         }
 
         final address = isar_models.Address(
@@ -1415,7 +1415,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
         addrType = isar_models.AddressType.p2wpkh;
         break;
       default:
-        throw Exception("Unsupported DerivePathType");
+        throw Exception("DerivePathType $derivePathType not supported");
     }
 
     // add generated address & info to derivations
@@ -1460,7 +1460,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
         type = isar_models.AddressType.p2wpkh;
         break;
       default:
-        throw Exception("Unsupported DerivePathType");
+        throw Exception("DerivePathType $derivePathType not supported");
     }
     address = await db
         .getAddresses(walletId)
@@ -1487,7 +1487,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
         key = "${walletId}_${chainId}DerivationsP2WPKH";
         break;
       default:
-        throw Exception("Unsupported DerivePathType");
+        throw Exception("DerivePathType $derivePathType not supported");
     }
     return key;
   }
@@ -2757,7 +2757,8 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
                 addressesP2WPKH.add(address);
                 break;
               default:
-                throw Exception("Unsupported DerivePathType");
+                throw Exception(
+                    "DerivePathType ${addressType(address: address)} not supported");
             }
           }
         }

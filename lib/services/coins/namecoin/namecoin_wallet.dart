@@ -419,7 +419,7 @@ class NamecoinWallet extends CoinServiceAPI
             addrType = isar_models.AddressType.p2wpkh;
             break;
           default:
-            throw Exception("No Path type $type exists");
+            throw Exception("DerivePathType $type not supported");
         }
 
         final address = isar_models.Address(
