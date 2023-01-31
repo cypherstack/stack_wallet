@@ -259,7 +259,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
     if (decodeBase58 != null) {
       if (decodeBase58[0] == _network.pubKeyHash) {
         // P2PKH
-        return DerivePathType.bip44;
+        return DerivePathType.slip44;
       }
 
       if (decodeBase58[0] == _network.scriptHash) {
