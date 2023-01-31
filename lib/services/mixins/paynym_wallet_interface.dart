@@ -749,33 +749,99 @@ mixin PaynymWalletInterface {
         .subTypeEqualTo(TransactionSubType.bip47Notification)
         .findAll();
 
-    List<PaymentCode> unBlindedList = [];
+    List<PaymentCode> codes = [];
 
     for (final tx in txns) {
-      final unBlinded = await unBlindedPaymentCodeFromTransaction(
-        transaction: tx,
-        myNotificationAddress: myAddress,
-      );
-      if (unBlinded != null &&
-          unBlindedList
-              .where((e) => e.toString() == unBlinded.toString())
-              .isEmpty) {
-        unBlindedList.add(unBlinded);
+      // tx is sent so we can check the address's otherData for the code String
+      if (tx.type == TransactionType.outgoing &&
+          tx.address.value?.otherData != null) {
+        final codeString =
+            await paymentCodeStringByKey(tx.address.value!.otherData!);
+        if (codeString != null &&
+            codes.where((e) => e.toString() == codeString).isEmpty) {
+          codes.add(PaymentCode.fromPaymentCode(codeString, _network));
+        }
+      } else {
+        // otherwise we need to un blind the code
+        final unBlinded = await unBlindedPaymentCodeFromTransaction(
+          transaction: tx,
+          myNotificationAddress: myAddress,
+        );
+        if (unBlinded != null &&
+            codes.where((e) => e.toString() == unBlinded.toString()).isEmpty) {
+          codes.add(unBlinded);
+        }
       }
     }
 
-    return unBlindedList;
+    return codes;
+  }
+
+  Future<void> checkForNotificationTransactionsTo(
+      Set<String> otherCodeStrings) async {
+    final sentNotificationTransactions = await _db
+        .getTransactions(_walletId)
+        .filter()
+        .subTypeEqualTo(TransactionSubType.bip47Notification)
+        .and()
+        .typeEqualTo(TransactionType.outgoing)
+        .findAll();
+
+    final List<PaymentCode> codes = [];
+    for (final codeString in otherCodeStrings) {
+      codes.add(PaymentCode.fromPaymentCode(codeString, _network));
+    }
+
+    for (final tx in sentNotificationTransactions) {
+      if (tx.address.value != null && tx.address.value!.otherData == null) {
+        final oldAddress =
+            await _db.getAddress(_walletId, tx.address.value!.value);
+        for (final code in codes) {
+          final notificationAddress = code.notificationAddressP2PKH();
+          if (notificationAddress == oldAddress!.value) {
+            final address = Address(
+              walletId: _walletId,
+              value: notificationAddress,
+              publicKey: [],
+              derivationIndex: 0,
+              type: oldAddress.type,
+              subType: AddressSubType.paynymNotification,
+              otherData: await storeCode(code.toString()),
+            );
+            await _db.updateAddress(oldAddress, address);
+          }
+        }
+      }
+    }
   }
 
   Future<void> restoreAllHistory({
     required int maxUnusedAddressGap,
     required int maxNumberOfIndexesToCheck,
+    required Set<String> paymentCodeStrings,
   }) async {
     final codes = await getAllPaymentCodesFromNotificationTransactions();
+    final List<PaymentCode> extraCodes = [];
+    for (final codeString in paymentCodeStrings) {
+      if (codes.where((e) => e.toString() == codeString).isEmpty) {
+        final extraCode = PaymentCode.fromPaymentCode(codeString, _network);
+        if (extraCode.isValid()) {
+          extraCodes.add(extraCode);
+        }
+      }
+    }
+
+    codes.addAll(extraCodes);
+
     final List<Future<void>> futures = [];
     for (final code in codes) {
-      futures.add(restoreHistoryWith(
-          code, maxUnusedAddressGap, maxNumberOfIndexesToCheck));
+      futures.add(
+        restoreHistoryWith(
+          code,
+          maxUnusedAddressGap,
+          maxNumberOfIndexesToCheck,
+        ),
+      );
     }
 
     await Future.wait(futures);

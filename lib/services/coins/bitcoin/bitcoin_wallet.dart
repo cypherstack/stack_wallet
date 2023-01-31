@@ -40,6 +40,7 @@ import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/paynym_is_api.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
@@ -704,16 +705,28 @@ class BitcoinWallet extends CoinServiceAPI
         ...p2shChangeAddressArray,
       ]);
 
-      // generate to ensure notification address is in db before refreshing transactions
-      await getMyNotificationAddress(DerivePathType.bip44);
+      // get own payment code
+      final myCode = await getPaymentCode(DerivePathType.bip44);
 
       // refresh transactions to pick up any received notification transactions
       await _refreshTransactions();
+
+      final Set<String> codesToCheck = {};
+      final nym = await PaynymIsApi().nym(myCode.toString());
+      if (nym.value != null) {
+        for (final follower in nym.value!.followers) {
+          codesToCheck.add(follower.code);
+        }
+        for (final following in nym.value!.following) {
+          codesToCheck.add(following.code);
+        }
+      }
 
       // restore paynym transactions
       await restoreAllHistory(
         maxUnusedAddressGap: maxUnusedAddressGap,
         maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+        paymentCodeStrings: codesToCheck,
       );
 
       await _updateUTXOs();
@@ -940,6 +953,17 @@ class BitcoinWallet extends CoinServiceAPI
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.0, walletId));
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.1, walletId));
+      final myCode = await getPaymentCode(DerivePathType.bip44);
+      final Set<String> codesToCheck = {};
+      final nym = await PaynymIsApi().nym(myCode.toString());
+      if (nym.value != null) {
+        for (final follower in nym.value!.followers) {
+          codesToCheck.add(follower.code);
+        }
+        for (final following in nym.value!.following) {
+          codesToCheck.add(following.code);
+        }
+      }
 
       final currentHeight = await chainHeight;
       const storedHeight = 1; //await storedChainHeight;
@@ -976,6 +1000,7 @@ class BitcoinWallet extends CoinServiceAPI
             .fire(RefreshPercentChangedEvent(0.80, walletId));
 
         await fetchFuture;
+        await checkForNotificationTransactionsTo(codesToCheck);
         await getAllTxsToWatch();
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.90, walletId));
@@ -2828,7 +2853,6 @@ class BitcoinWallet extends CoinServiceAPI
 
     // Add transaction output
     for (var i = 0; i < recipients.length; i++) {
-      print("OURPUT VALUW: ${satoshiAmounts[i]}");
       txb.addOutput(recipients[i], satoshiAmounts[i]);
     }
 
