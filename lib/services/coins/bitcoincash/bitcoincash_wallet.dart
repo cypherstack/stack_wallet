@@ -77,7 +77,8 @@ bip32.BIP32 getBip32NodeFromRoot(
   String coinType;
   switch (root.network.wif) {
     case 0x80: // bch mainnet wif
-      coinType = "145"; // bch mainnet
+      coinType =
+          derivePathType == DerivePathType.slip44 ? "0" : "145"; // bch mainnet
       break;
     case 0xef: // bch testnet wif
       coinType = "1"; // bch testnet
@@ -86,6 +87,7 @@ bip32.BIP32 getBip32NodeFromRoot(
       throw Exception("Invalid Bitcoincash network type used!");
   }
   switch (derivePathType) {
+    case DerivePathType.slip44:
     case DerivePathType.bip44:
       return root.derivePath("m/44'/$coinType'/0'/$chain/$index");
     case DerivePathType.bip49:
@@ -382,6 +384,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
         final data = PaymentData(pubkey: node.publicKey);
         isar_models.AddressType addrType;
         switch (type) {
+          case DerivePathType.slip44:
           case DerivePathType.bip44:
             addressString = P2PKH(data: data, network: _network).data.address!;
             addrType = isar_models.AddressType.p2pkh;
@@ -1410,10 +1413,12 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       ),
     );
     final data = PaymentData(pubkey: node.publicKey);
+    print(data);
     String address;
     isar_models.AddressType addrType;
 
     switch (derivePathType) {
+      case DerivePathType.slip44:
       case DerivePathType.bip44:
         address = P2PKH(data: data, network: _network).data.address!;
         addrType = isar_models.AddressType.p2pkh;
@@ -1468,6 +1473,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
     isar_models.AddressType type;
     switch (derivePathType) {
+      case DerivePathType.slip44:
       case DerivePathType.bip44:
         type = isar_models.AddressType.p2pkh;
         break;
@@ -1497,6 +1503,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
     String key;
     String chainId = chain == 0 ? "receive" : "change";
     switch (derivePathType) {
+      case DerivePathType.slip44:
       case DerivePathType.bip44:
         key = "${walletId}_${chainId}DerivationsP2PKH";
         break;
@@ -2619,6 +2626,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
             }
             (addressTxid[address] as List).add(txid);
             switch (addressType(address: address)) {
+              case DerivePathType.slip44:
               case DerivePathType.bip44:
                 addressesP2PKH.add(address);
                 break;
