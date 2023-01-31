@@ -2360,7 +2360,10 @@ class BitcoinWallet extends CoinServiceAPI
       ],
       satoshiAmounts: [
         satoshiAmountToSend,
-        satoshisBeingUsed - satoshiAmountToSend - 1
+        // this can cause a problem where the output value is negative so commenting out for now
+        // satoshisBeingUsed - satoshiAmountToSend - 1
+        // and using dust limit instead
+        DUST_LIMIT,
       ], // dust limit is the minimum amount a change output should be
     ))["vSize"] as int;
 
@@ -2825,6 +2828,7 @@ class BitcoinWallet extends CoinServiceAPI
 
     // Add transaction output
     for (var i = 0; i < recipients.length; i++) {
+      print("OURPUT VALUW: ${satoshiAmounts[i]}");
       txb.addOutput(recipients[i], satoshiAmounts[i]);
     }
 
