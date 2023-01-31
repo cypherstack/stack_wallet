@@ -177,6 +177,14 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                             "Paynym",
                             style: STextStyles.w600_12(context),
                           ),
+                          const SizedBox(
+                            width: 16,
+                          ),
+                          SvgPicture.asset(
+                            Assets.svg.robotHead,
+                            height: 20,
+                            width: 20,
+                          ),
                         ],
                       ),
                     ),

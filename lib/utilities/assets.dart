@@ -194,6 +194,8 @@ class _SVG {
   String get exitDesktop => "assets/svg/exit-desktop.svg";
   String get keys => "assets/svg/keys.svg";
   String get arrowDown => "assets/svg/arrow-down.svg";
+  String get robotHead => "assets/svg/robot-head.svg";
+  String get whirlPool => "assets/svg/whirlpool.svg";
 
   String get ellipse1 => "assets/svg/Ellipse-43.svg";
   String get ellipse2 => "assets/svg/Ellipse-42.svg";
@@ -262,6 +264,7 @@ class _PNG {
   const _PNG();
 
   String get stack => "assets/images/stack.png";
+  String get unclaimedPaynym => "assets/images/unclaimed.png";
   String get splash => "assets/images/splash.png";
 
   String get monero => "assets/images/monero.png";

@@ -218,6 +218,19 @@ class BitcoinWallet extends CoinServiceAPI
           .findFirst()) ??
       await _generateAddressForChain(1, 0, DerivePathTypeExt.primaryFor(coin));
 
+  Future<String> get currentChangeAddressP2PKH async =>
+      (await _currentChangeAddressP2PKH).value;
+
+  Future<isar_models.Address> get _currentChangeAddressP2PKH async =>
+      (await db
+          .getAddresses(walletId)
+          .filter()
+          .typeEqualTo(isar_models.AddressType.p2pkh)
+          .subTypeEqualTo(isar_models.AddressSubType.change)
+          .sortByDerivationIndexDesc()
+          .findFirst()) ??
+      await _generateAddressForChain(1, 0, DerivePathType.bip44);
+
   @override
   Future<void> exit() async {
     _hasCalledExit = true;
@@ -1313,13 +1326,14 @@ class BitcoinWallet extends CoinServiceAPI
       secureStorage: secureStore,
       getMnemonic: () => mnemonic,
       getChainHeight: () => chainHeight,
-      getCurrentChangeAddress: () => currentChangeAddress,
+      getCurrentChangeAddress: () => currentChangeAddressP2PKH,
       estimateTxFee: estimateTxFee,
       prepareSend: prepareSend,
       getTxCount: getTxCount,
       fetchBuildTxData: fetchBuildTxData,
       refresh: refresh,
-      checkChangeAddressForTransactions: _checkChangeAddressForTransactions,
+      checkChangeAddressForTransactions:
+          _checkP2PKHChangeAddressForTransactions,
       addDerivation: addDerivation,
       addDerivations: addDerivations,
       dustLimitP2PKH: DUST_LIMIT_P2PKH,
@@ -1967,6 +1981,50 @@ class BitcoinWallet extends CoinServiceAPI
     } catch (e, s) {
       Logging.instance.log(
           "Exception rethrown from _checkReceivingAddressForTransactions(${DerivePathTypeExt.primaryFor(coin)}): $e\n$s",
+          level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
+  Future<void> _checkP2PKHChangeAddressForTransactions() async {
+    try {
+      final currentChange = await _currentChangeAddressP2PKH;
+      final int txCount = await getTxCount(address: currentChange.value);
+      Logging.instance.log(
+          'Number of txs for current change address $currentChange: $txCount',
+          level: LogLevel.Info);
+
+      if (txCount >= 1 || currentChange.derivationIndex < 0) {
+        // First increment the change index
+        final newChangeIndex = currentChange.derivationIndex + 1;
+
+        // Use new index to derive a new change address
+        final newChangeAddress = await _generateAddressForChain(
+            1, newChangeIndex, DerivePathType.bip44);
+
+        final existing = await db
+            .getAddresses(walletId)
+            .filter()
+            .valueEqualTo(newChangeAddress.value)
+            .findFirst();
+        if (existing == null) {
+          // Add that new change address
+          await db.putAddress(newChangeAddress);
+        } else {
+          // we need to update the address
+          await db.updateAddress(existing, newChangeAddress);
+        }
+        // keep checking until address with no tx history is set as current
+        await _checkP2PKHChangeAddressForTransactions();
+      }
+    } on SocketException catch (se, s) {
+      Logging.instance.log(
+          "SocketException caught in _checkReceivingAddressForTransactions(${DerivePathType.bip44}): $se\n$s",
+          level: LogLevel.Error);
+      return;
+    } catch (e, s) {
+      Logging.instance.log(
+          "Exception rethrown from _checkReceivingAddressForTransactions(${DerivePathType.bip44}): $e\n$s",
           level: LogLevel.Error);
       rethrow;
     }

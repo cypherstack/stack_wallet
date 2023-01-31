@@ -190,7 +190,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                               ),
                               if (isStackCoin(model.receiveTicker))
                                 CustomTextButton(
-                                  text: "Choose from stack",
+                                  text: "Choose from Stack",
                                   onTap: () {
                                     try {
                                       final coin =
@@ -449,7 +449,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                               ),
                               if (isStackCoin(model.sendTicker))
                                 CustomTextButton(
-                                  text: "Choose from stack",
+                                  text: "Choose from Stack",
                                   onTap: () {
                                     try {
                                       final coin =
