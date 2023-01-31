@@ -309,6 +309,8 @@ flutter:
     - assets/svg/plus-circle.svg
     - assets/svg/circle-plus-filled.svg
     - assets/svg/configuration.svg
+    - assets/svg/robot-head.svg
+    - assets/svg/whirlpool.svg
     # coin icons
     - assets/svg/coin_icons/Bitcoin.svg
     - assets/svg/coin_icons/Litecoin.svg
