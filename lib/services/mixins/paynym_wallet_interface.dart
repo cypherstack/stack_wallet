@@ -455,7 +455,7 @@ mixin PaynymWalletInterface {
       // check estimates are correct and build notification tx
       if (changeAmount >= _dustLimitP2PKH &&
           satoshisBeingUsed - amountToSend - changeAmount == feeForWithChange) {
-        final txn = await _createNotificationTx(
+        var txn = await _createNotificationTx(
           targetPaymentCodeString: targetPaymentCodeString,
           utxosToUse: utxoObjectsToUse,
           utxoSigningData: utxoSigningData,
@@ -463,6 +463,18 @@ mixin PaynymWalletInterface {
         );
 
         int feeBeingPaid = satoshisBeingUsed - amountToSend - changeAmount;
+
+        // make sure minimum fee is accurate if that is being used
+        if (txn.item2 - feeBeingPaid == 1) {
+          changeAmount -= 1;
+          feeBeingPaid += 1;
+          txn = await _createNotificationTx(
+            targetPaymentCodeString: targetPaymentCodeString,
+            utxosToUse: utxoObjectsToUse,
+            utxoSigningData: utxoSigningData,
+            change: changeAmount,
+          );
+        }
 
         Map<String, dynamic> transactionObject = {
           "hex": txn.item1,
