@@ -665,7 +665,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       }
       if (slip44P2pkhChangeIndex == -1) {
         final address =
-            await _generateAddressForChain(1, 0, DerivePathType.bip44);
+            await _generateAddressForChain(1, 0, DerivePathType.slip44);
         slip44P2pkhChangeAddressArray.add(address);
       }
       if (p2shChangeIndex == -1) {
