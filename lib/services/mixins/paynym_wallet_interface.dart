@@ -16,6 +16,7 @@ import 'package:stackwallet/exceptions/wallet/insufficient_balance_exception.dar
 import 'package:stackwallet/exceptions/wallet/paynym_send_exception.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
+import 'package:stackwallet/utilities/bip47_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -696,21 +697,8 @@ mixin PaynymWalletInterface {
     }
 
     try {
-      Uint8List? blindedCodeBytes;
-
-      for (int i = 0; i < transaction.outputs.length; i++) {
-        List<String>? scriptChunks =
-            transaction.outputs.elementAt(1).scriptPubKeyAsm?.split(" ");
-        if (scriptChunks?.length == 2 && scriptChunks?[0] == "OP_RETURN") {
-          final blindedPaymentCode = scriptChunks![1];
-          final bytes = blindedPaymentCode.fromHex;
-
-          // https://en.bitcoin.it/wiki/BIP_0047#Sending
-          if (bytes.length == 80 && bytes.first == 1) {
-            blindedCodeBytes = bytes;
-          }
-        }
-      }
+      final blindedCodeBytes =
+          Bip47Utils.getBlindedPaymentCodeBytesFrom(transaction);
 
       // transaction does not contain a payment code
       if (blindedCodeBytes == null) {
