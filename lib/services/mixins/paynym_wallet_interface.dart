@@ -438,11 +438,13 @@ mixin PaynymWalletInterface {
       feeRatePerKB: selectedTxFeeRate,
     );
 
-    if (feeForNoChange < vSizeForNoChange * 1000) {
-      feeForNoChange = vSizeForNoChange * 1000;
-    }
-    if (feeForWithChange < vSizeForWithChange * 1000) {
-      feeForWithChange = vSizeForWithChange * 1000;
+    if (_coin == Coin.dogecoin || _coin == Coin.dogecoinTestNet) {
+      if (feeForNoChange < vSizeForNoChange * 1000) {
+        feeForNoChange = vSizeForNoChange * 1000;
+      }
+      if (feeForWithChange < vSizeForWithChange * 1000) {
+        feeForWithChange = vSizeForWithChange * 1000;
+      }
     }
 
     if (satoshisBeingUsed - amountToSend > feeForNoChange + _dustLimitP2PKH) {
