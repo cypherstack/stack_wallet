@@ -213,7 +213,7 @@ class SimplexAPI {
       // final Map<String, dynamic> lol =
       //     Map<String, dynamic>.from(jsonArray as Map);
 
-      String? cryptoAmount = jsonArray['digital_money']?['amount'] as String?;
+      double? cryptoAmount = jsonArray['digital_money']?['amount'] as double?;
 
       if (cryptoAmount == null) {
         String error = jsonArray['error'] as String;
