@@ -1858,7 +1858,7 @@ class BitcoinWallet extends CoinServiceAPI
 
       // TODO move this out of here and into IDB
       await db.isar.writeTxn(() async {
-        await db.isar.utxos.clear();
+        await db.isar.utxos.where().walletIdEqualTo(walletId).deleteAll();
         await db.isar.utxos.putAll(outputArray);
       });
 
@@ -2277,6 +2277,8 @@ class BitcoinWallet extends CoinServiceAPI
     spendableOutputs.sort((a, b) => b.blockTime!.compareTo(a.blockTime!));
 
     Logging.instance.log("spendableOutputs.length: ${spendableOutputs.length}",
+        level: LogLevel.Info);
+    Logging.instance.log("availableOutputs.length: ${availableOutputs.length}",
         level: LogLevel.Info);
     Logging.instance
         .log("spendableOutputs: $spendableOutputs", level: LogLevel.Info);
