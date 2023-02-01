@@ -171,7 +171,7 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                   children: [
                     PayNymBot(
                       paymentCodeString: widget.accountLite.code,
-                      size: 32,
+                      size: 36,
                     ),
                     const SizedBox(
                       width: 12,

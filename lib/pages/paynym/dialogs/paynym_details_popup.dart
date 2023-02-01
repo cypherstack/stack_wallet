@@ -176,7 +176,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                       children: [
                         PayNymBot(
                           paymentCodeString: widget.accountLite.code,
-                          size: 32,
+                          size: 36,
                         ),
                         const SizedBox(
                           width: 12,
@@ -186,7 +186,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                           children: [
                             Text(
                               widget.accountLite.nymName,
-                              style: STextStyles.w600_12(context),
+                              style: STextStyles.w600_14(context),
                             ),
                             FutureBuilder(
                               future:
@@ -204,7 +204,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                                       ),
                                       Text(
                                         "Connected",
-                                        style: STextStyles.w500_10(context)
+                                        style: STextStyles.w500_12(context)
                                             .copyWith(
                                           color: Theme.of(context)
                                               .extension<StackColors>()!
@@ -230,33 +230,33 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                           if (snapshot.data!) {
                             return PrimaryButton(
                               label: "Send",
-                              buttonHeight: ButtonHeight.l,
+                              buttonHeight: ButtonHeight.xl,
                               icon: SvgPicture.asset(
                                 Assets.svg.circleArrowUpRight,
-                                width: 10,
-                                height: 10,
+                                width: 14,
+                                height: 14,
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .buttonTextPrimary,
                               ),
-                              iconSpacing: 4,
-                              width: 86,
+                              iconSpacing: 8,
+                              width: 100,
                               onPressed: _onSend,
                             );
                           } else {
                             return PrimaryButton(
                               label: "Connect",
-                              buttonHeight: ButtonHeight.l,
+                              buttonHeight: ButtonHeight.xl,
                               icon: SvgPicture.asset(
                                 Assets.svg.circlePlusFilled,
-                                width: 10,
-                                height: 10,
+                                width: 13,
+                                height: 13,
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .buttonTextPrimary,
                               ),
-                              iconSpacing: 4,
-                              width: 86,
+                              iconSpacing: 8,
+                              width: 128,
                               onPressed: _onConnectPressed,
                             );
                           }
@@ -291,6 +291,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                             color: Theme.of(context)
                                 .extension<StackColors>()!
                                 .warningForeground,
+                            fontSize: 12,
                           ),
                         ),
                       ),
@@ -321,7 +322,9 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                       children: [
                         Text(
                           "PayNym address",
-                          style: STextStyles.infoSmall(context),
+                          style: STextStyles.infoSmall(context).copyWith(
+                            fontSize: 12,
+                          ),
                         ),
                         const SizedBox(
                           height: 6,
@@ -332,6 +335,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                             color: Theme.of(context)
                                 .extension<StackColors>()!
                                 .textDark,
+                            fontSize: 12,
                           ),
                         ),
                         const SizedBox(
@@ -346,7 +350,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                 ),
                 QrImage(
                   padding: const EdgeInsets.all(0),
-                  size: 86,
+                  size: 100,
                   data: widget.accountLite.code,
                   foregroundColor:
                       Theme.of(context).extension<StackColors>()!.textDark,
@@ -375,16 +379,16 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                 Expanded(
                   child: SecondaryButton(
                     label: "Copy",
-                    buttonHeight: ButtonHeight.l,
+                    buttonHeight: ButtonHeight.xl,
+                    iconSpacing: 8,
                     icon: SvgPicture.asset(
                       Assets.svg.copy,
-                      width: 10,
-                      height: 10,
+                      width: 12,
+                      height: 12,
                       color: Theme.of(context)
                           .extension<StackColors>()!
                           .buttonTextSecondary,
                     ),
-                    iconSpacing: 4,
                     onPressed: () async {
                       await Clipboard.setData(
                         ClipboardData(
