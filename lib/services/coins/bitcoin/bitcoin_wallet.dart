@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:bech32/bech32.dart';
 import 'package:bip32/bip32.dart' as bip32;
@@ -2387,11 +2388,9 @@ class BitcoinWallet extends CoinServiceAPI
       ],
       satoshiAmounts: [
         satoshiAmountToSend,
-        // this can cause a problem where the output value is negative so commenting out for now
-        // satoshisBeingUsed - satoshiAmountToSend - 1
-        // and using dust limit instead
-        DUST_LIMIT,
-      ], // dust limit is the minimum amount a change output should be
+        // should/can we just set this to 0 ?
+        max(0, satoshisBeingUsed - satoshiAmountToSend - 1),
+      ],
     ))["vSize"] as int;
 
     // Assume 1 output, only for recipient and no change
