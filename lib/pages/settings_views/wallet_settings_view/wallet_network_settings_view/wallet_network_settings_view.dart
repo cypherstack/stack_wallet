@@ -749,7 +749,7 @@ class _WalletNetworkSettingsViewState
                     ? STextStyles.desktopTextExtraExtraSmall(context)
                     : STextStyles.smallMed12(context),
               ),
-              BlueTextButton(
+              CustomTextButton(
                 text: "Add new node",
                 onTap: () {
                   Navigator.of(context).pushNamed(
@@ -880,7 +880,7 @@ class _WalletNetworkSettingsViewState
                         top: 16,
                         bottom: 6,
                       ),
-                      child: BlueTextButton(
+                      child: CustomTextButton(
                         text: "Rescan",
                         onTap: () async {
                           await Navigator.of(context).push(

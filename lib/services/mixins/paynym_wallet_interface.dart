@@ -15,8 +15,8 @@ import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/exceptions/wallet/insufficient_balance_exception.dart';
 import 'package:stackwallet/exceptions/wallet/paynym_send_exception.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
+import 'package:stackwallet/utilities/bip47_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -35,6 +35,8 @@ mixin PaynymWalletInterface {
   late final MainDB _db;
   late final ElectrumX _electrumXClient;
   late final SecureStorageInterface _secureStorage;
+  late final int _dustLimitP2PKH;
+  late final int _minConfirms;
 
   // passed in wallet functions
   late final Future<List<String>> Function() _getMnemonic;
@@ -79,6 +81,8 @@ mixin PaynymWalletInterface {
     required MainDB db,
     required ElectrumX electrumXClient,
     required SecureStorageInterface secureStorage,
+    required int dustLimitP2PKH,
+    required int minConfirms,
     required Future<List<String>> Function() getMnemonic,
     required Future<int> Function() getChainHeight,
     required Future<String> Function() getCurrentChangeAddress,
@@ -125,6 +129,8 @@ mixin PaynymWalletInterface {
     _db = db;
     _electrumXClient = electrumXClient;
     _secureStorage = secureStorage;
+    _dustLimitP2PKH = dustLimitP2PKH;
+    _minConfirms = minConfirms;
     _getMnemonic = getMnemonic;
     _getChainHeight = getChainHeight;
     _getCurrentChangeAddress = getCurrentChangeAddress;
@@ -142,21 +148,33 @@ mixin PaynymWalletInterface {
   btc_dart.NetworkType get networkType => _network;
 
   Future<Address> currentReceivingPaynymAddress(PaymentCode sender) async {
-    final key = await lookupKey(sender.toString());
+    final keys = await lookupKey(sender.toString());
     final address = await _db
         .getAddresses(_walletId)
         .filter()
         .subTypeEqualTo(AddressSubType.paynymReceive)
         .and()
-        .otherDataEqualTo(key)
-        .and()
-        .otherDataIsNotNull()
+        .anyOf<String, Address>(keys, (q, String e) => q.otherDataEqualTo(e))
         .sortByDerivationIndexDesc()
         .findFirst();
 
     if (address == null) {
       final generatedAddress = await _generatePaynymReceivingAddress(sender, 0);
-      await _db.putAddress(generatedAddress);
+
+      final existing = await _db
+          .getAddresses(_walletId)
+          .filter()
+          .valueEqualTo(generatedAddress.value)
+          .findFirst();
+
+      if (existing == null) {
+        // Add that new address
+        await _db.putAddress(generatedAddress);
+      } else {
+        // we need to update the address
+        await _db.updateAddress(existing, generatedAddress);
+      }
+
       return currentReceivingPaynymAddress(sender);
     } else {
       return address;
@@ -197,7 +215,22 @@ mixin PaynymWalletInterface {
         sender,
         address.derivationIndex + 1,
       );
-      await _db.putAddress(nextAddress);
+
+      final existing = await _db
+          .getAddresses(_walletId)
+          .filter()
+          .valueEqualTo(nextAddress.value)
+          .findFirst();
+
+      if (existing == null) {
+        // Add that new address
+        await _db.putAddress(nextAddress);
+      } else {
+        // we need to update the address
+        await _db.updateAddress(existing, nextAddress);
+      }
+      // keep checking until address with no tx history is set as current
+      await checkCurrentPaynymReceivingAddressForTransactions(sender);
     }
   }
 
@@ -296,15 +329,13 @@ mixin PaynymWalletInterface {
     const maxCount = 2147483647;
 
     for (int i = startIndex; i < maxCount; i++) {
-      final key = await lookupKey(pCode.toString());
+      final keys = await lookupKey(pCode.toString());
       final address = await _db
           .getAddresses(_walletId)
           .filter()
           .subTypeEqualTo(AddressSubType.paynymSend)
           .and()
-          .otherDataEqualTo(key)
-          .and()
-          .otherDataIsNotNull()
+          .anyOf<String, Address>(keys, (q, String e) => q.otherDataEqualTo(e))
           .and()
           .derivationIndexEqualTo(i)
           .findFirst();
@@ -353,7 +384,7 @@ mixin PaynymWalletInterface {
     int additionalOutputs = 0,
     List<UTXO>? utxos,
   }) async {
-    const amountToSend = DUST_LIMIT;
+    final amountToSend = _dustLimitP2PKH;
     final List<UTXO> availableOutputs =
         utxos ?? await _db.getUTXOs(_walletId).findAll();
     final List<UTXO> spendableOutputs = [];
@@ -362,8 +393,8 @@ mixin PaynymWalletInterface {
     // Build list of spendable outputs and totaling their satoshi amount
     for (var i = 0; i < availableOutputs.length; i++) {
       if (availableOutputs[i].isBlocked == false &&
-          availableOutputs[i].isConfirmed(
-                  await _getChainHeight(), MINIMUM_CONFIRMATIONS) ==
+          availableOutputs[i]
+                  .isConfirmed(await _getChainHeight(), _minConfirms) ==
               true) {
         spendableOutputs.add(availableOutputs[i]);
         spendableSatoshiValue += availableOutputs[i].value;
@@ -433,22 +464,24 @@ mixin PaynymWalletInterface {
       feeRatePerKB: selectedTxFeeRate,
     );
 
-    if (feeForNoChange < vSizeForNoChange * 1000) {
-      feeForNoChange = vSizeForNoChange * 1000;
-    }
-    if (feeForWithChange < vSizeForWithChange * 1000) {
-      feeForWithChange = vSizeForWithChange * 1000;
+    if (_coin == Coin.dogecoin || _coin == Coin.dogecoinTestNet) {
+      if (feeForNoChange < vSizeForNoChange * 1000) {
+        feeForNoChange = vSizeForNoChange * 1000;
+      }
+      if (feeForWithChange < vSizeForWithChange * 1000) {
+        feeForWithChange = vSizeForWithChange * 1000;
+      }
     }
 
-    if (satoshisBeingUsed - amountToSend > feeForNoChange + DUST_LIMIT) {
+    if (satoshisBeingUsed - amountToSend > feeForNoChange + _dustLimitP2PKH) {
       // try to add change output due to "left over" amount being greater than
       // the estimated fee + the dust limit
       int changeAmount = satoshisBeingUsed - amountToSend - feeForWithChange;
 
       // check estimates are correct and build notification tx
-      if (changeAmount >= DUST_LIMIT &&
+      if (changeAmount >= _dustLimitP2PKH &&
           satoshisBeingUsed - amountToSend - changeAmount == feeForWithChange) {
-        final txn = await _createNotificationTx(
+        var txn = await _createNotificationTx(
           targetPaymentCodeString: targetPaymentCodeString,
           utxosToUse: utxoObjectsToUse,
           utxoSigningData: utxoSigningData,
@@ -456,6 +489,18 @@ mixin PaynymWalletInterface {
         );
 
         int feeBeingPaid = satoshisBeingUsed - amountToSend - changeAmount;
+
+        // make sure minimum fee is accurate if that is being used
+        if (txn.item2 - feeBeingPaid == 1) {
+          changeAmount -= 1;
+          feeBeingPaid += 1;
+          txn = await _createNotificationTx(
+            targetPaymentCodeString: targetPaymentCodeString,
+            utxosToUse: utxoObjectsToUse,
+            utxoSigningData: utxoSigningData,
+            change: changeAmount,
+          );
+        }
 
         Map<String, dynamic> transactionObject = {
           "hex": txn.item1,
@@ -569,10 +614,13 @@ mixin PaynymWalletInterface {
     txb.addInput(
       utxo.txid,
       txPointIndex,
+      null,
+      utxoSigningData[utxo.txid]["output"] as Uint8List,
     );
 
     // todo: modify address once segwit support is in our bip47
-    txb.addOutput(targetPaymentCode.notificationAddressP2PKH(), DUST_LIMIT);
+    txb.addOutput(
+        targetPaymentCode.notificationAddressP2PKH(), _dustLimitP2PKH);
     txb.addOutput(opReturnScript, 0);
 
     // TODO: add possible change output and mark output as dangerous
@@ -586,15 +634,18 @@ mixin PaynymWalletInterface {
     txb.sign(
       vin: 0,
       keyPair: myKeyPair,
+      witnessValue: utxo.value,
+      witnessScript: utxoSigningData[utxo.txid]["redeemScript"] as Uint8List?,
     );
 
     // sign rest of possible inputs
-    for (var i = 1; i < utxosToUse.length - 1; i++) {
+    for (var i = 1; i < utxosToUse.length; i++) {
       final txid = utxosToUse[i].txid;
       txb.sign(
         vin: i,
         keyPair: utxoSigningData[txid]["keyPair"] as btc_dart.ECPair,
-        // witnessValue: utxosToUse[i].value,
+        witnessValue: utxosToUse[i].value,
+        witnessScript: utxoSigningData[utxo.txid]["redeemScript"] as Uint8List?,
       );
     }
 
@@ -655,6 +706,13 @@ mixin PaynymWalletInterface {
       if (paymentCodeString == unBlindedPaymentCode.toString()) {
         return true;
       }
+
+      if (tx.address.value?.otherData != null) {
+        final code = await paymentCodeStringByKey(tx.address.value!.otherData!);
+        if (code == paymentCodeString) {
+          return true;
+        }
+      }
     }
 
     // otherwise return no
@@ -671,8 +729,13 @@ mixin PaynymWalletInterface {
     }
 
     try {
-      final blindedCode =
-          transaction.outputs.elementAt(1).scriptPubKeyAsm!.split(" ")[1];
+      final blindedCodeBytes =
+          Bip47Utils.getBlindedPaymentCodeBytesFrom(transaction);
+
+      // transaction does not contain a payment code
+      if (blindedCodeBytes == null) {
+        return null;
+      }
 
       final designatedInput = transaction.inputs.first;
 
@@ -693,7 +756,7 @@ mixin PaynymWalletInterface {
 
       final mask = PaymentCode.getMask(S.ecdhSecret(), rev);
 
-      final unBlindedPayload = PaymentCode.blind(blindedCode.fromHex, mask);
+      final unBlindedPayload = PaymentCode.blind(blindedCodeBytes, mask);
 
       final unBlindedPaymentCode =
           PaymentCode.initFromPayload(unBlindedPayload);
@@ -718,33 +781,99 @@ mixin PaynymWalletInterface {
         .subTypeEqualTo(TransactionSubType.bip47Notification)
         .findAll();
 
-    List<PaymentCode> unBlindedList = [];
+    List<PaymentCode> codes = [];
 
     for (final tx in txns) {
-      final unBlinded = await unBlindedPaymentCodeFromTransaction(
-        transaction: tx,
-        myNotificationAddress: myAddress,
-      );
-      if (unBlinded != null &&
-          unBlindedList
-              .where((e) => e.toString() == unBlinded.toString())
-              .isEmpty) {
-        unBlindedList.add(unBlinded);
+      // tx is sent so we can check the address's otherData for the code String
+      if (tx.type == TransactionType.outgoing &&
+          tx.address.value?.otherData != null) {
+        final codeString =
+            await paymentCodeStringByKey(tx.address.value!.otherData!);
+        if (codeString != null &&
+            codes.where((e) => e.toString() == codeString).isEmpty) {
+          codes.add(PaymentCode.fromPaymentCode(codeString, _network));
+        }
+      } else {
+        // otherwise we need to un blind the code
+        final unBlinded = await unBlindedPaymentCodeFromTransaction(
+          transaction: tx,
+          myNotificationAddress: myAddress,
+        );
+        if (unBlinded != null &&
+            codes.where((e) => e.toString() == unBlinded.toString()).isEmpty) {
+          codes.add(unBlinded);
+        }
       }
     }
 
-    return unBlindedList;
+    return codes;
+  }
+
+  Future<void> checkForNotificationTransactionsTo(
+      Set<String> otherCodeStrings) async {
+    final sentNotificationTransactions = await _db
+        .getTransactions(_walletId)
+        .filter()
+        .subTypeEqualTo(TransactionSubType.bip47Notification)
+        .and()
+        .typeEqualTo(TransactionType.outgoing)
+        .findAll();
+
+    final List<PaymentCode> codes = [];
+    for (final codeString in otherCodeStrings) {
+      codes.add(PaymentCode.fromPaymentCode(codeString, _network));
+    }
+
+    for (final tx in sentNotificationTransactions) {
+      if (tx.address.value != null && tx.address.value!.otherData == null) {
+        final oldAddress =
+            await _db.getAddress(_walletId, tx.address.value!.value);
+        for (final code in codes) {
+          final notificationAddress = code.notificationAddressP2PKH();
+          if (notificationAddress == oldAddress!.value) {
+            final address = Address(
+              walletId: _walletId,
+              value: notificationAddress,
+              publicKey: [],
+              derivationIndex: 0,
+              type: oldAddress.type,
+              subType: AddressSubType.paynymNotification,
+              otherData: await storeCode(code.toString()),
+            );
+            await _db.updateAddress(oldAddress, address);
+          }
+        }
+      }
+    }
   }
 
   Future<void> restoreAllHistory({
     required int maxUnusedAddressGap,
     required int maxNumberOfIndexesToCheck,
+    required Set<String> paymentCodeStrings,
   }) async {
     final codes = await getAllPaymentCodesFromNotificationTransactions();
+    final List<PaymentCode> extraCodes = [];
+    for (final codeString in paymentCodeStrings) {
+      if (codes.where((e) => e.toString() == codeString).isEmpty) {
+        final extraCode = PaymentCode.fromPaymentCode(codeString, _network);
+        if (extraCode.isValid()) {
+          extraCodes.add(extraCode);
+        }
+      }
+    }
+
+    codes.addAll(extraCodes);
+
     final List<Future<void>> futures = [];
     for (final code in codes) {
-      futures.add(restoreHistoryWith(
-          code, maxUnusedAddressGap, maxNumberOfIndexesToCheck));
+      futures.add(
+        restoreHistoryWith(
+          code,
+          maxUnusedAddressGap,
+          maxNumberOfIndexesToCheck,
+        ),
+      );
     }
 
     await Future.wait(futures);
@@ -1082,16 +1211,17 @@ mixin PaynymWalletInterface {
   }
 
   /// look up a key that corresponds to a payment code string
-  Future<String?> lookupKey(String paymentCodeString) async {
+  Future<List<String>> lookupKey(String paymentCodeString) async {
     final keys =
         (await _secureStorage.keys).where((e) => e.startsWith(kPCodeKeyPrefix));
+    final List<String> result = [];
     for (final key in keys) {
       final value = await _secureStorage.read(key: key);
       if (value == paymentCodeString) {
-        return key;
+        result.add(key);
       }
     }
-    return null;
+    return result;
   }
 
   /// fetch a payment code string

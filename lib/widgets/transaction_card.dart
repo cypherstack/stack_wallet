@@ -6,7 +6,6 @@ import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
-import 'package:stackwallet/providers/blockchain/dogecoin/current_height_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -121,7 +120,8 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
       }
     }
 
-    final currentHeight = ref.watch(currentHeightProvider(coin).state).state;
+    final currentHeight = ref.watch(walletsChangeNotifierProvider
+        .select((value) => value.getManager(walletId).currentHeight));
 
     return Material(
       color: Theme.of(context).extension<StackColors>()!.popupBG,

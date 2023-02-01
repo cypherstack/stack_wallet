@@ -231,6 +231,14 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
       final result = await _electrumXClient.getBlockHeadTip();
       final height = result["height"] as int;
       await updateCachedChainHeight(height);
+      if (height > storedChainHeight) {
+        GlobalEventBus.instance.fire(
+          UpdatedInBackgroundEvent(
+            "Updated current chain height in $walletId $walletName!",
+            walletId,
+          ),
+        );
+      }
       return height;
     } catch (e, s) {
       Logging.instance.log("Exception caught in chainHeight: $e\n$s",
@@ -1651,7 +1659,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       // TODO move this out of here and into IDB
       await db.isar.writeTxn(() async {
-        await db.isar.utxos.clear();
+        await db.isar.utxos.where().walletIdEqualTo(walletId).deleteAll();
         await db.isar.utxos.putAll(outputArray);
       });
 

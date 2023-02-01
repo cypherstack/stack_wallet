@@ -175,7 +175,18 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                         children: [
                           Text(
                             "Paynym",
-                            style: STextStyles.w600_12(context),
+                            style: STextStyles.buttonSmall(context),
+                          ),
+                          const SizedBox(
+                            width: 16,
+                          ),
+                          SvgPicture.asset(
+                            Assets.svg.robotHead,
+                            height: 20,
+                            width: 20,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .bottomNavIconIcon,
                           ),
                         ],
                       ),
@@ -360,62 +371,6 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                       ),
                     ),
                   ),
-                if (ref.watch(walletsChangeNotifierProvider.select((value) =>
-                    value.getManager(widget.walletId).hasPaynymSupport)))
-                  RawMaterialButton(
-                    constraints: const BoxConstraints(
-                      minWidth: 66,
-                    ),
-                    onPressed: () {
-                      if (scale == 0) {
-                        setState(() {
-                          scale = 1;
-                        });
-                      } else if (scale == 1) {
-                        setState(() {
-                          scale = 0;
-                        });
-                      }
-                    },
-                    splashColor:
-                        Theme.of(context).extension<StackColors>()!.highlight,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        widget.height / 2.0,
-                      ),
-                    ),
-                    child: Container(
-                      color: Colors.transparent,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 2.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const Spacer(),
-                            const SizedBox(
-                              height: 2,
-                            ),
-                            SvgPicture.asset(
-                              Assets.svg.bars,
-                              width: 20,
-                              height: 20,
-                            ),
-                            const SizedBox(
-                              height: 6,
-                            ),
-                            Text(
-                              "More",
-                              style: STextStyles.buttonSmall(context),
-                            ),
-                            const Spacer(),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                const SizedBox(
-                  width: 12,
-                ),
                 if (widget.coin.hasBuySupport)
                   RawMaterialButton(
                     constraints: const BoxConstraints(
@@ -455,10 +410,65 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                       ),
                     ),
                   ),
-                if (widget.coin.hasBuySupport)
-                  const SizedBox(
-                    width: 12,
+                if (ref.watch(walletsChangeNotifierProvider.select((value) =>
+                    value.getManager(widget.walletId).hasPaynymSupport)))
+                  RawMaterialButton(
+                    constraints: const BoxConstraints(
+                      minWidth: 66,
+                    ),
+                    onPressed: () {
+                      if (scale == 0) {
+                        setState(() {
+                          scale = 1;
+                        });
+                      } else if (scale == 1) {
+                        setState(() {
+                          scale = 0;
+                        });
+                      }
+                    },
+                    splashColor:
+                        Theme.of(context).extension<StackColors>()!.highlight,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        widget.height / 2.0,
+                      ),
+                    ),
+                    child: Container(
+                      color: Colors.transparent,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Spacer(),
+                            const SizedBox(
+                              height: 2,
+                            ),
+                            SvgPicture.asset(
+                              Assets.svg.bars,
+                              width: 20,
+                              height: 20,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .bottomNavIconIcon,
+                            ),
+                            const SizedBox(
+                              height: 6,
+                            ),
+                            Text(
+                              "More",
+                              style: STextStyles.buttonSmall(context),
+                            ),
+                            const Spacer(),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
+                const SizedBox(
+                  width: 12,
+                ),
               ],
             ),
           ),

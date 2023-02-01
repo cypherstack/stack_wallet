@@ -987,7 +987,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
               textAlign: TextAlign.left,
             ),
-            BlueTextButton(
+            CustomTextButton(
               text: "Send all ${coin.ticker}",
               onTap: sendAllTapped,
             ),

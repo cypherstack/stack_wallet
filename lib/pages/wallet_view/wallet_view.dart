@@ -649,7 +649,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                 .textDark3,
                           ),
                         ),
-                        BlueTextButton(
+                        CustomTextButton(
                           text: "See all",
                           onTap: () {
                             Navigator.of(context).pushNamed(
@@ -774,9 +774,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                       );
                                     },
                                     onBuyPressed: () {
-                                      // TODO set default coin to currently open wallet here by passing it as an argument
-                                      // final coin = ref.read(managerProvider).coin;
-
                                       unawaited(Navigator.of(context).pushNamed(
                                         BuyInWalletView.routeName,
                                         arguments: coin,

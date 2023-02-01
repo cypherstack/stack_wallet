@@ -14,7 +14,7 @@ import flutter_secure_storage_macos
 import isar_flutter_libs
 import package_info_plus_macos
 import path_provider_macos
-import share_plus_macos
+import share_plus
 import shared_preferences_macos
 import stack_wallet_backup
 import url_launcher_macos

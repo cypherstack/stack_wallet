@@ -484,7 +484,7 @@ class AboutView extends ConsumerWidget {
                               const SizedBox(
                                 height: 4,
                               ),
-                              BlueTextButton(
+                              CustomTextButton(
                                 text: "https://stackwallet.com",
                                 onTap: () {
                                   launchUrl(

@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
-import 'package:stackwallet/providers/blockchain/dogecoin/current_height_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/route_generator.dart';
@@ -20,6 +19,8 @@ import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/trade_card.dart';
 import 'package:stackwallet/widgets/transaction_card.dart';
 import 'package:tuple/tuple.dart';
+
+import '../../../utilities/enums/coin_enum.dart';
 
 class TransactionsList extends ConsumerStatefulWidget {
   const TransactionsList({
@@ -68,11 +69,18 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
     BuildContext context,
     Transaction tx,
     BorderRadius? radius,
+    Coin coin,
   ) {
     final matchingTrades = ref
         .read(tradesServiceProvider)
         .trades
         .where((e) => e.payInTxid == tx.txid || e.payOutTxid == tx.txid);
+
+    final isConfirmed = tx.isConfirmed(
+        ref.watch(
+            widget.managerProvider.select((value) => value.currentHeight)),
+        coin.requiredConfirmations);
+
     if (tx.type == TransactionType.outgoing && matchingTrades.isNotEmpty) {
       final trade = matchingTrades.first;
       return Container(
@@ -85,7 +93,9 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
           children: [
             TransactionCard(
               // this may mess with combined firo transactions
-              key: Key(tx.txid + tx.type.name + tx.address.value.toString()), //
+              key: isConfirmed
+                  ? Key(tx.txid + tx.type.name + tx.address.value.toString())
+                  : UniqueKey(), //
               transaction: tx,
               walletId: widget.walletId,
             ),
@@ -180,19 +190,14 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
         ),
         child: TransactionCard(
           // this may mess with combined firo transactions
-          key: Key(tx.txid + tx.type.name + tx.address.value.toString()), //
+          key: isConfirmed
+              ? Key(tx.txid + tx.type.name + tx.address.value.toString())
+              : UniqueKey(),
           transaction: tx,
           walletId: widget.walletId,
         ),
       );
     }
-  }
-
-  void updateHeightProvider(Manager manager) {
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      ref.read(currentHeightProvider(manager.coin).state).state =
-          manager.currentHeight;
-    });
   }
 
   @override
@@ -203,14 +208,9 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
 
   @override
   Widget build(BuildContext context) {
-    // final managerProvider = ref
-    //     .watch(walletsChangeNotifierProvider)
-    //     .getManagerProvider(widget.walletId);
-
     final manager = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManager(widget.walletId)));
 
-    updateHeightProvider(manager);
     return FutureBuilder(
       future: manager.transactions,
       builder: (fbContext, AsyncSnapshot<List<Transaction>> snapshot) {
@@ -264,7 +264,7 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                         radius = _borderRadiusFirst;
                       }
                       final tx = _transactions2[index];
-                      return itemBuilder(context, tx, radius);
+                      return itemBuilder(context, tx, radius, manager.coin);
                     },
                     separatorBuilder: (context, index) {
                       return Container(
@@ -291,7 +291,7 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                         radius = _borderRadiusFirst;
                       }
                       final tx = _transactions2[index];
-                      return itemBuilder(context, tx, radius);
+                      return itemBuilder(context, tx, radius, manager.coin);
                     },
                   ),
           );

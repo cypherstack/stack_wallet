@@ -80,6 +80,8 @@ void main() {
 
     when(wallets.getManager("wallet-id"))
         .thenAnswer((realInvocation) => Manager(wallet));
+
+    when(wallet.storedChainHeight).thenAnswer((_) => 6000000);
     //
     await tester.pumpWidget(
       ProviderScope(
@@ -173,6 +175,7 @@ void main() {
         .thenAnswer((realInvocation) => Tuple2(Decimal.ten, 0.00));
 
     when(wallet.coin).thenAnswer((_) => Coin.firo);
+    when(wallet.storedChainHeight).thenAnswer((_) => 6000000);
 
     when(wallets.getManager("wallet-id"))
         .thenAnswer((realInvocation) => Manager(wallet));
@@ -271,6 +274,8 @@ void main() {
     when(wallets.getManager("wallet-id"))
         .thenAnswer((realInvocation) => Manager(wallet));
 
+    when(wallet.storedChainHeight).thenAnswer((_) => 6000000);
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -358,6 +363,8 @@ void main() {
     when(wallets.getManager("wallet id"))
         .thenAnswer((realInvocation) => Manager(wallet));
 
+    when(wallet.storedChainHeight).thenAnswer((_) => 6000000);
+
     mockingjay
         .when(() => navigator.pushNamed("/transactionDetails",
             arguments: Tuple3(tx, Coin.firo, "wallet id")))
@@ -395,6 +402,7 @@ void main() {
     verify(mockPrefs.currency).called(2);
     verify(mockLocaleService.locale).called(4);
     verify(wallet.coin.ticker).called(2);
+    verify(wallet.storedChainHeight).called(2);
 
     verifyNoMoreInteractions(wallet);
     verifyNoMoreInteractions(mockLocaleService);

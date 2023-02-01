@@ -50,7 +50,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   Future<bool> _onWillPop() async {
     // go to home view when tapping back on the main exchange view
-    if (ref.read(homeViewPageIndexStateProvider.state).state == 1) {
+    if (ref.read(homeViewPageIndexStateProvider.state).state != 0) {
       ref.read(homeViewPageIndexStateProvider.state).state = 0;
       return false;
     }

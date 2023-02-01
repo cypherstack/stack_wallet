@@ -261,7 +261,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                     const SizedBox(
                       width: 66,
                     ),
-                    BlueTextButton(
+                    CustomTextButton(
                       text: "Connect",
                       enabled: _status == "Disconnected",
                       onTap: () async {
@@ -285,7 +285,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                     const SizedBox(
                       width: 48,
                     ),
-                    BlueTextButton(
+                    CustomTextButton(
                       text: "Details",
                       onTap: () {
                         Navigator.of(context).pushNamed(

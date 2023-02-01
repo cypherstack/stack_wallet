@@ -46,6 +46,7 @@ import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
+import 'package:stackwallet/pages/receive_view/receiving_addresses_view.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/about_view.dart';
@@ -812,6 +813,21 @@ class RouteGenerator {
             builder: (_) => ReceiveView(
               walletId: args.item1,
               coin: args.item2,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ReceivingAddressesView.routeName:
+        if (args is Tuple2<String, bool>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ReceivingAddressesView(
+              walletId: args.item1,
+              isDesktop: args.item2,
             ),
             settings: RouteSettings(
               name: settings.name,

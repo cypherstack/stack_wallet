@@ -272,8 +272,8 @@ class _PaynymFollowToggleButtonState
     switch (widget.style) {
       case PaynymFollowToggleButtonStyle.primary:
         return PrimaryButton(
-          width: isDesktop ? 120 : 84,
-          buttonHeight: isDesktop ? ButtonHeight.s : ButtonHeight.l,
+          width: isDesktop ? 120 : 100,
+          buttonHeight: isDesktop ? ButtonHeight.s : ButtonHeight.xl,
           label: isFollowing ? "Unfollow" : "Follow",
           onPressed: _onPressed,
         );
@@ -281,15 +281,15 @@ class _PaynymFollowToggleButtonState
       case PaynymFollowToggleButtonStyle.detailsPopup:
         return SecondaryButton(
           label: isFollowing ? "Unfollow" : "Follow",
-          buttonHeight: ButtonHeight.l,
+          buttonHeight: ButtonHeight.xl,
+          iconSpacing: 8,
           icon: SvgPicture.asset(
             isFollowing ? Assets.svg.userMinus : Assets.svg.userPlus,
-            width: 10,
-            height: 10,
+            width: 16,
+            height: 16,
             color:
                 Theme.of(context).extension<StackColors>()!.buttonTextSecondary,
           ),
-          iconSpacing: 4,
           onPressed: _onPressed,
         );
 

@@ -56,7 +56,7 @@ class PaynymQrPopup extends StatelessWidget {
               children: [
                 PayNymBot(
                   paymentCodeString: paynymAccount.codes.first.code,
-                  size: isDesktop ? 56 : 32,
+                  size: isDesktop ? 56 : 36,
                 ),
                 const SizedBox(
                   width: 12,
@@ -65,7 +65,7 @@ class PaynymQrPopup extends StatelessWidget {
                   paynymAccount.nymName,
                   style: isDesktop
                       ? STextStyles.w500_24(context)
-                      : STextStyles.w600_12(context),
+                      : STextStyles.w600_14(context),
                 ),
               ],
             ),
@@ -87,7 +87,7 @@ class PaynymQrPopup extends StatelessWidget {
               children: [
                 Expanded(
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: 107),
+                    constraints: const BoxConstraints(minHeight: 130),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -100,7 +100,9 @@ class PaynymQrPopup extends StatelessWidget {
                                       .extension<StackColors>()!
                                       .textSubtitle1,
                                 )
-                              : STextStyles.infoSmall(context),
+                              : STextStyles.infoSmall(context).copyWith(
+                                  fontSize: 12,
+                                ),
                         ),
                         const SizedBox(
                           height: 6,
@@ -113,14 +115,15 @@ class PaynymQrPopup extends StatelessWidget {
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
                                       .textDark,
+                                  fontSize: 12,
                                 ),
                         ),
                         const SizedBox(
                           height: 6,
                         ),
-                        BlueTextButton(
+                        CustomTextButton(
                           text: "Copy",
-                          textSize: isDesktop ? 18 : 10,
+                          textSize: isDesktop ? 18 : 14,
                           onTap: () async {
                             await Clipboard.setData(
                               ClipboardData(
@@ -146,7 +149,7 @@ class PaynymQrPopup extends StatelessWidget {
                 ),
                 QrImage(
                   padding: const EdgeInsets.all(0),
-                  size: 107,
+                  size: 130,
                   data: paynymAccount.codes.first.code,
                   foregroundColor:
                       Theme.of(context).extension<StackColors>()!.textDark,

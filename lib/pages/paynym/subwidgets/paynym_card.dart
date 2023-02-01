@@ -37,7 +37,7 @@ class _PaynymCardState extends State<PaynymCard> {
       child: Row(
         children: [
           PayNymBot(
-            size: 32,
+            size: 36,
             paymentCodeString: widget.paymentCodeString,
           ),
           const SizedBox(
@@ -56,7 +56,7 @@ class _PaynymCardState extends State<PaynymCard> {
                               .extension<StackColors>()!
                               .textFieldActiveText,
                         )
-                      : STextStyles.w500_12(context),
+                      : STextStyles.w500_14(context),
                 ),
                 const SizedBox(
                   height: 2,
@@ -65,7 +65,7 @@ class _PaynymCardState extends State<PaynymCard> {
                   Format.shorten(widget.paymentCodeString, 12, 5),
                   style: isDesktop
                       ? STextStyles.desktopTextExtraExtraSmall(context)
-                      : STextStyles.w500_12(context).copyWith(
+                      : STextStyles.w500_14(context).copyWith(
                           color: Theme.of(context)
                               .extension<StackColors>()!
                               .textSubtitle1,
