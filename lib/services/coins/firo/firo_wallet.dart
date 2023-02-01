@@ -3665,7 +3665,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
 
       // TODO move this out of here and into IDB
       await db.isar.writeTxn(() async {
-        await db.isar.utxos.clear();
+        await db.isar.utxos.where().walletIdEqualTo(walletId).deleteAll();
         await db.isar.utxos.putAll(outputArray);
       });
 

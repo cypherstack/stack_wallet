@@ -176,9 +176,42 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                     const SizedBox(
                       width: 12,
                     ),
-                    Text(
-                      widget.accountLite.nymName,
-                      style: STextStyles.desktopTextSmall(context),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.accountLite.nymName,
+                          style: STextStyles.desktopTextSmall(context),
+                        ),
+                        FutureBuilder(
+                          future: wallet.hasConnected(widget.accountLite.code),
+                          builder: (context, AsyncSnapshot<bool> snapshot) {
+                            if (snapshot.connectionState ==
+                                    ConnectionState.done &&
+                                snapshot.data == true) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(
+                                    height: 2,
+                                  ),
+                                  Text(
+                                    "Connected",
+                                    style: STextStyles.desktopTextSmall(context)
+                                        .copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorGreen,
+                                    ),
+                                  )
+                                ],
+                              );
+                            } else {
+                              return Container();
+                            }
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ),

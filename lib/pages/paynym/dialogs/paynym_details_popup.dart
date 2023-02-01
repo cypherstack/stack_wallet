@@ -181,9 +181,44 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                         const SizedBox(
                           width: 12,
                         ),
-                        Text(
-                          widget.accountLite.nymName,
-                          style: STextStyles.w600_12(context),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.accountLite.nymName,
+                              style: STextStyles.w600_12(context),
+                            ),
+                            FutureBuilder(
+                              future:
+                                  wallet.hasConnected(widget.accountLite.code),
+                              builder: (context, AsyncSnapshot<bool> snapshot) {
+                                if (snapshot.connectionState ==
+                                        ConnectionState.done &&
+                                    snapshot.data == true) {
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const SizedBox(
+                                        height: 2,
+                                      ),
+                                      Text(
+                                        "Connected",
+                                        style: STextStyles.w500_10(context)
+                                            .copyWith(
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .accentColorGreen,
+                                        ),
+                                      )
+                                    ],
+                                  );
+                                } else {
+                                  return Container();
+                                }
+                              },
+                            ),
+                          ],
                         ),
                       ],
                     ),
