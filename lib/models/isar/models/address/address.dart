@@ -69,6 +69,7 @@ class Address extends CryptoCurrencyAddress {
       "}";
 }
 
+// do not modify
 enum AddressType {
   p2pkh,
   p2sh,
@@ -79,6 +80,7 @@ enum AddressType {
   nonWallet,
 }
 
+// do not modify
 enum AddressSubType {
   receiving,
   change,
