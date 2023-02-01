@@ -2373,25 +2373,38 @@ class BitcoinWallet extends CoinServiceAPI
       return transactionObject;
     }
 
-    final int vSizeForOneOutput = (await buildTransaction(
-      utxosToUse: utxoObjectsToUse,
-      utxoSigningData: utxoSigningData,
-      recipients: [_recipientAddress],
-      satoshiAmounts: [satoshisBeingUsed - 1],
-    ))["vSize"] as int;
-    final int vSizeForTwoOutPuts = (await buildTransaction(
-      utxosToUse: utxoObjectsToUse,
-      utxoSigningData: utxoSigningData,
-      recipients: [
-        _recipientAddress,
-        await _getCurrentAddressForChain(1, DerivePathTypeExt.primaryFor(coin)),
-      ],
-      satoshiAmounts: [
-        satoshiAmountToSend,
-        // should/can we just set this to 0 ?
-        max(0, satoshisBeingUsed - satoshiAmountToSend - 1),
-      ],
-    ))["vSize"] as int;
+    final int vSizeForOneOutput;
+    try {
+      vSizeForOneOutput = (await buildTransaction(
+        utxosToUse: utxoObjectsToUse,
+        utxoSigningData: utxoSigningData,
+        recipients: [_recipientAddress],
+        satoshiAmounts: [satoshisBeingUsed - 1],
+      ))["vSize"] as int;
+    } catch (e) {
+      Logging.instance.log("vSizeForOneOutput: $e", level: LogLevel.Error);
+      rethrow;
+    }
+
+    final int vSizeForTwoOutPuts;
+    try {
+      vSizeForTwoOutPuts = (await buildTransaction(
+        utxosToUse: utxoObjectsToUse,
+        utxoSigningData: utxoSigningData,
+        recipients: [
+          _recipientAddress,
+          await _getCurrentAddressForChain(
+              1, DerivePathTypeExt.primaryFor(coin)),
+        ],
+        satoshiAmounts: [
+          satoshiAmountToSend,
+          max(0, satoshisBeingUsed - satoshiAmountToSend - 1),
+        ],
+      ))["vSize"] as int;
+    } catch (e) {
+      Logging.instance.log("vSizeForTwoOutPuts: $e", level: LogLevel.Error);
+      rethrow;
+    }
 
     // Assume 1 output, only for recipient and no change
     final feeForOneOutput = estimateTxFee(
