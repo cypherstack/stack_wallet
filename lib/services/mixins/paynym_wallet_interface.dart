@@ -162,7 +162,21 @@ mixin PaynymWalletInterface {
 
     if (address == null) {
       final generatedAddress = await _generatePaynymReceivingAddress(sender, 0);
-      await _db.putAddress(generatedAddress);
+
+      final existing = await _db
+          .getAddresses(_walletId)
+          .filter()
+          .valueEqualTo(generatedAddress.value)
+          .findFirst();
+
+      if (existing == null) {
+        // Add that new address
+        await _db.putAddress(generatedAddress);
+      } else {
+        // we need to update the address
+        await _db.updateAddress(existing, generatedAddress);
+      }
+
       return currentReceivingPaynymAddress(sender);
     } else {
       return address;
@@ -203,7 +217,22 @@ mixin PaynymWalletInterface {
         sender,
         address.derivationIndex + 1,
       );
-      await _db.putAddress(nextAddress);
+
+      final existing = await _db
+          .getAddresses(_walletId)
+          .filter()
+          .valueEqualTo(nextAddress.value)
+          .findFirst();
+
+      if (existing == null) {
+        // Add that new address
+        await _db.putAddress(nextAddress);
+      } else {
+        // we need to update the address
+        await _db.updateAddress(existing, nextAddress);
+      }
+      // keep checking until address with no tx history is set as current
+      await checkCurrentPaynymReceivingAddressForTransactions(sender);
     }
   }
 

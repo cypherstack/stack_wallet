@@ -126,7 +126,7 @@ dependencies:
   tuple: ^2.0.0
   flutter_riverpod: ^1.0.3
   qr_flutter: ^4.0.0
-  share_plus: ^4.0.10
+  share_plus: ^6.3.0
   emojis: ^0.9.9
   pointycastle: ^3.6.0
   package_info_plus: ^1.4.2

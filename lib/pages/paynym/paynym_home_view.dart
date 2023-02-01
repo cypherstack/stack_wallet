@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/paynym/add_new_paynym_follow_view.dart';
 import 'package:stackwallet/pages/paynym/dialogs/paynym_qr_popup.dart';
@@ -358,8 +359,25 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                                 .extension<StackColors>()!
                                 .textDark,
                           ),
-                          onPressed: () {
-                            // copy to clipboard
+                          onPressed: () async {
+                            Rect? sharePositionOrigin;
+                            if (await Util.isIPad) {
+                              final box =
+                                  context.findRenderObject() as RenderBox?;
+                              if (box != null) {
+                                sharePositionOrigin =
+                                    box.localToGlobal(Offset.zero) & box.size;
+                              }
+                            }
+
+                            await Share.share(
+                                ref
+                                    .read(myPaynymAccountStateProvider.state)
+                                    .state!
+                                    .codes
+                                    .first
+                                    .code,
+                                sharePositionOrigin: sharePositionOrigin);
                           },
                         ),
                       ),
