@@ -2705,11 +2705,11 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       if (p2pkhLength > 0) {
         final receiveDerivations = await _fetchDerivations(
           chain: 0,
-          derivePathType: DerivePathType.bch44,
+          derivePathType: DerivePathType.bip44,
         );
         final changeDerivations = await _fetchDerivations(
           chain: 1,
-          derivePathType: DerivePathType.bch44,
+          derivePathType: DerivePathType.bip44,
         );
         for (int i = 0; i < p2pkhLength; i++) {
           String address = addressesP2PKH[i];
