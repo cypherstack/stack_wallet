@@ -981,6 +981,7 @@ class BitcoinWallet extends CoinServiceAPI
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
         await _checkCurrentReceivingAddressesForTransactions();
 
+        GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.4, walletId));
         await checkAllCurrentReceivingPaynymAddressesForTransactions();
 
         final fetchFuture = _refreshTransactions();
