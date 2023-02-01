@@ -1065,7 +1065,7 @@ class STextStyles {
         );
       case ThemeType.fruitSorbet:
         return GoogleFonts.inter(
-          color: _theme(context).textDark,
+          color: _theme(context).bottomNavIconIcon,
           fontWeight: FontWeight.w500,
           fontSize: 12,
         );
