@@ -2030,7 +2030,8 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
         .where((e) => e.subType == isar_models.AddressSubType.receiving)
         .map((e) {
       if (bitbox.Address.detectFormat(e.value) == bitbox.Address.formatLegacy &&
-          addressType(address: e.value) == DerivePathType.bch44) {
+          (addressType(address: e.value) == DerivePathType.bip44 ||
+              addressType(address: e.value) == DerivePathType.bch44)) {
         return bitbox.Address.toCashAddress(e.value);
       } else {
         return e.value;
@@ -2041,7 +2042,8 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
         .where((e) => e.subType == isar_models.AddressSubType.change)
         .map((e) {
       if (bitbox.Address.detectFormat(e.value) == bitbox.Address.formatLegacy &&
-          addressType(address: e.value) == DerivePathType.bch44) {
+          (addressType(address: e.value) == DerivePathType.bip44 ||
+              addressType(address: e.value) == DerivePathType.bch44)) {
         return bitbox.Address.toCashAddress(e.value);
       } else {
         return e.value;
