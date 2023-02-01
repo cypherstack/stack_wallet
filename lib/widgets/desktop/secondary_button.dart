@@ -78,6 +78,16 @@ class SecondaryButton extends StatelessWidget {
                   .buttonTextSecondaryDisabled,
         );
       }
+      if (buttonHeight == ButtonHeight.xl) {
+        return STextStyles.button(context).copyWith(
+          fontSize: 14,
+          color: enabled
+              ? Theme.of(context).extension<StackColors>()!.buttonTextSecondary
+              : Theme.of(context)
+                  .extension<StackColors>()!
+                  .buttonTextSecondaryDisabled,
+        );
+      }
       return STextStyles.button(context).copyWith(
         color: enabled
             ? Theme.of(context).extension<StackColors>()!.buttonTextSecondary

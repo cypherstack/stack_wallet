@@ -148,15 +148,13 @@ mixin PaynymWalletInterface {
   btc_dart.NetworkType get networkType => _network;
 
   Future<Address> currentReceivingPaynymAddress(PaymentCode sender) async {
-    final key = await lookupKey(sender.toString());
+    final keys = await lookupKey(sender.toString());
     final address = await _db
         .getAddresses(_walletId)
         .filter()
         .subTypeEqualTo(AddressSubType.paynymReceive)
         .and()
-        .otherDataEqualTo(key)
-        .and()
-        .otherDataIsNotNull()
+        .anyOf<String, Address>(keys, (q, String e) => q.otherDataEqualTo(e))
         .sortByDerivationIndexDesc()
         .findFirst();
 
@@ -331,15 +329,13 @@ mixin PaynymWalletInterface {
     const maxCount = 2147483647;
 
     for (int i = startIndex; i < maxCount; i++) {
-      final key = await lookupKey(pCode.toString());
+      final keys = await lookupKey(pCode.toString());
       final address = await _db
           .getAddresses(_walletId)
           .filter()
           .subTypeEqualTo(AddressSubType.paynymSend)
           .and()
-          .otherDataEqualTo(key)
-          .and()
-          .otherDataIsNotNull()
+          .anyOf<String, Address>(keys, (q, String e) => q.otherDataEqualTo(e))
           .and()
           .derivationIndexEqualTo(i)
           .findFirst();
@@ -1215,16 +1211,17 @@ mixin PaynymWalletInterface {
   }
 
   /// look up a key that corresponds to a payment code string
-  Future<String?> lookupKey(String paymentCodeString) async {
+  Future<List<String>> lookupKey(String paymentCodeString) async {
     final keys =
         (await _secureStorage.keys).where((e) => e.startsWith(kPCodeKeyPrefix));
+    final List<String> result = [];
     for (final key in keys) {
       final value = await _secureStorage.read(key: key);
       if (value == paymentCodeString) {
-        return key;
+        result.add(key);
       }
     }
-    return null;
+    return result;
   }
 
   /// fetch a payment code string

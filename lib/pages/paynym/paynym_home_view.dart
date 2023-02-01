@@ -303,7 +303,9 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                             .code,
                         12,
                         5),
-                    style: STextStyles.label(context),
+                    style: STextStyles.label(context).copyWith(
+                      fontSize: 14,
+                    ),
                   ),
                   const SizedBox(
                     height: 11,
@@ -313,11 +315,11 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                       Expanded(
                         child: SecondaryButton(
                           label: "Copy",
-                          buttonHeight: ButtonHeight.l,
-                          iconSpacing: 4,
+                          buttonHeight: ButtonHeight.xl,
+                          iconSpacing: 8,
                           icon: CopyIcon(
-                            width: 10,
-                            height: 10,
+                            width: 12,
+                            height: 12,
                             color: Theme.of(context)
                                 .extension<StackColors>()!
                                 .textDark,
@@ -350,11 +352,11 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                       Expanded(
                         child: SecondaryButton(
                           label: "Share",
-                          buttonHeight: ButtonHeight.l,
-                          iconSpacing: 4,
+                          buttonHeight: ButtonHeight.xl,
+                          iconSpacing: 8,
                           icon: ShareIcon(
-                            width: 10,
-                            height: 10,
+                            width: 12,
+                            height: 12,
                             color: Theme.of(context)
                                 .extension<StackColors>()!
                                 .textDark,
@@ -387,11 +389,11 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                       Expanded(
                         child: SecondaryButton(
                           label: "Address",
-                          buttonHeight: ButtonHeight.l,
-                          iconSpacing: 4,
+                          buttonHeight: ButtonHeight.xl,
+                          iconSpacing: 8,
                           icon: QrCodeIcon(
-                            width: 10,
-                            height: 10,
+                            width: 12,
+                            height: 12,
                             color: Theme.of(context)
                                 .extension<StackColors>()!
                                 .textDark,
@@ -554,7 +556,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                 child: child,
               ),
               child: SizedBox(
-                height: isDesktop ? 56 : 40,
+                height: isDesktop ? 56 : 48,
                 width: isDesktop ? 490 : null,
                 child: Toggle(
                   onColor: Theme.of(context).extension<StackColors>()!.popupBG,

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:bech32/bech32.dart';
 import 'package:bip32/bip32.dart' as bip32;
@@ -980,6 +981,7 @@ class BitcoinWallet extends CoinServiceAPI
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
         await _checkCurrentReceivingAddressesForTransactions();
 
+        GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.4, walletId));
         await checkAllCurrentReceivingPaynymAddressesForTransactions();
 
         final fetchFuture = _refreshTransactions();
@@ -2372,27 +2374,38 @@ class BitcoinWallet extends CoinServiceAPI
       return transactionObject;
     }
 
-    final int vSizeForOneOutput = (await buildTransaction(
-      utxosToUse: utxoObjectsToUse,
-      utxoSigningData: utxoSigningData,
-      recipients: [_recipientAddress],
-      satoshiAmounts: [satoshisBeingUsed - 1],
-    ))["vSize"] as int;
-    final int vSizeForTwoOutPuts = (await buildTransaction(
-      utxosToUse: utxoObjectsToUse,
-      utxoSigningData: utxoSigningData,
-      recipients: [
-        _recipientAddress,
-        await _getCurrentAddressForChain(1, DerivePathTypeExt.primaryFor(coin)),
-      ],
-      satoshiAmounts: [
-        satoshiAmountToSend,
-        // this can cause a problem where the output value is negative so commenting out for now
-        // satoshisBeingUsed - satoshiAmountToSend - 1
-        // and using dust limit instead
-        DUST_LIMIT,
-      ], // dust limit is the minimum amount a change output should be
-    ))["vSize"] as int;
+    final int vSizeForOneOutput;
+    try {
+      vSizeForOneOutput = (await buildTransaction(
+        utxosToUse: utxoObjectsToUse,
+        utxoSigningData: utxoSigningData,
+        recipients: [_recipientAddress],
+        satoshiAmounts: [satoshisBeingUsed - 1],
+      ))["vSize"] as int;
+    } catch (e) {
+      Logging.instance.log("vSizeForOneOutput: $e", level: LogLevel.Error);
+      rethrow;
+    }
+
+    final int vSizeForTwoOutPuts;
+    try {
+      vSizeForTwoOutPuts = (await buildTransaction(
+        utxosToUse: utxoObjectsToUse,
+        utxoSigningData: utxoSigningData,
+        recipients: [
+          _recipientAddress,
+          await _getCurrentAddressForChain(
+              1, DerivePathTypeExt.primaryFor(coin)),
+        ],
+        satoshiAmounts: [
+          satoshiAmountToSend,
+          max(0, satoshisBeingUsed - satoshiAmountToSend - 1),
+        ],
+      ))["vSize"] as int;
+    } catch (e) {
+      Logging.instance.log("vSizeForTwoOutPuts: $e", level: LogLevel.Error);
+      rethrow;
+    }
 
     // Assume 1 output, only for recipient and no change
     final feeForOneOutput = estimateTxFee(

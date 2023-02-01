@@ -13,31 +13,31 @@ class STextStyles {
         return GoogleFonts.inter(
           color: _theme(context).textDark3,
           fontWeight: FontWeight.w500,
-          fontSize: 12,
+          fontSize: 14,
         );
       case ThemeType.oceanBreeze:
         return GoogleFonts.inter(
           color: _theme(context).textDark3,
           fontWeight: FontWeight.w500,
-          fontSize: 12,
+          fontSize: 14,
         );
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).textDark3,
           fontWeight: FontWeight.w500,
-          fontSize: 12,
+          fontSize: 14,
         );
       case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).textDark3,
           fontWeight: FontWeight.w500,
-          fontSize: 12,
+          fontSize: 14,
         );
       case ThemeType.fruitSorbet:
         return GoogleFonts.inter(
           color: _theme(context).textDark3,
           fontWeight: FontWeight.w500,
-          fontSize: 12,
+          fontSize: 14,
         );
     }
   }
@@ -928,6 +928,76 @@ class STextStyles {
           color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
           fontSize: 12,
+        );
+    }
+  }
+
+  static TextStyle w600_14(BuildContext context) {
+    switch (_theme(context).themeType) {
+      case ThemeType.light:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+        );
+      case ThemeType.oceanBreeze:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+        );
+      case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+        );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+        );
+      case ThemeType.fruitSorbet:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+        );
+    }
+  }
+
+  static TextStyle w500_14(BuildContext context) {
+    switch (_theme(context).themeType) {
+      case ThemeType.light:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+        );
+      case ThemeType.oceanBreeze:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+        );
+      case ThemeType.dark:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+        );
+      case ThemeType.oledBlack:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+        );
+      case ThemeType.fruitSorbet:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
         );
     }
   }
