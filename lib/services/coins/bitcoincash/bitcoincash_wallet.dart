@@ -669,7 +669,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       await db.putAddresses([
         ...bip44P2pkhReceiveAddressArray,
-        ...bip44P2pkhReceiveAddressArray,
+        ...bip44P2pkhChangeAddressArray,
         ...bch44P2pkhReceiveAddressArray,
         ...bch44P2pkhChangeAddressArray,
         ...p2shReceiveAddressArray,
