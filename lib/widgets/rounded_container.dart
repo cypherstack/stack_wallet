@@ -11,6 +11,7 @@ class RoundedContainer extends StatelessWidget {
     this.width,
     this.height,
     this.borderColor,
+    this.boxShadow,
   }) : super(key: key);
 
   final Widget? child;
@@ -20,6 +21,7 @@ class RoundedContainer extends StatelessWidget {
   final double? width;
   final double? height;
   final Color? borderColor;
+  final List<BoxShadow>? boxShadow;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +34,7 @@ class RoundedContainer extends StatelessWidget {
           Constants.size.circularBorderRadius * radiusMultiplier,
         ),
         border: borderColor == null ? null : Border.all(color: borderColor!),
+        boxShadow: boxShadow,
       ),
       child: Padding(
         padding: padding,

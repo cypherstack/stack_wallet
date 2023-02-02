@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/pages/receive_view/addresses/address_card.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -10,7 +12,6 @@ import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class ReceivingAddressesView extends ConsumerWidget {
   const ReceivingAddressesView({
@@ -28,6 +29,8 @@ class ReceivingAddressesView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final coin = ref.watch(walletsChangeNotifierProvider
+        .select((value) => value.getManager(walletId).coin));
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -73,7 +76,9 @@ class ReceivingAddressesView extends ConsumerWidget {
                 height: 10,
               ),
               itemBuilder: (_, index) => AddressCard(
+                walletId: walletId,
                 address: snapshot.data![index],
+                coin: coin,
               ),
             );
           } else {
@@ -85,31 +90,6 @@ class ReceivingAddressesView extends ConsumerWidget {
             );
           }
         },
-      ),
-    );
-  }
-}
-
-class AddressCard extends StatelessWidget {
-  const AddressCard({
-    Key? key,
-    required this.address,
-  }) : super(key: key);
-
-  final Address address;
-
-  @override
-  Widget build(BuildContext context) {
-    return RoundedWhiteContainer(
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              address.value,
-              style: STextStyles.itemSubtitle12(context),
-            ),
-          )
-        ],
       ),
     );
   }

@@ -6,8 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/receive_view/addresses/receiving_addresses_view.dart';
 import 'package:stackwallet/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
-import 'package:stackwallet/pages/receive_view/receiving_addresses_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -187,11 +187,21 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                                         );
                                       },
                                       child: RoundedWhiteContainer(
+                                        boxShadow: [
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .standardBoxShadow,
+                                        ],
                                         child: Material(
                                           color: Colors.transparent,
-                                          child: Text(
-                                            "Address list",
-                                            style: STextStyles.baseXS(context),
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                            ),
+                                            child: Text(
+                                              "Address list",
+                                              style: STextStyles.field(context),
+                                            ),
                                           ),
                                         ),
                                       ),
