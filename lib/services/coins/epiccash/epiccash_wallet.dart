@@ -839,6 +839,10 @@ class EpicCashWallet extends CoinServiceAPI
     isar_models.Address? address = await db
         .getAddresses(walletId)
         .filter()
+        .subTypeEqualTo(isar_models.AddressSubType.receiving)
+        .and()
+        .typeEqualTo(isar_models.AddressType.mimbleWimble)
+        .and()
         .derivationIndexEqualTo(index)
         .findFirst();
 
@@ -877,8 +881,14 @@ class EpicCashWallet extends CoinServiceAPI
       (await _currentReceivingAddress)?.value ??
       (await _getReceivingAddressForIndex(0)).value;
 
-  Future<isar_models.Address?> get _currentReceivingAddress =>
-      db.getAddresses(walletId).sortByDerivationIndexDesc().findFirst();
+  Future<isar_models.Address?> get _currentReceivingAddress => db
+      .getAddresses(walletId)
+      .filter()
+      .subTypeEqualTo(isar_models.AddressSubType.receiving)
+      .and()
+      .typeEqualTo(isar_models.AddressType.mimbleWimble)
+      .sortByDerivationIndexDesc()
+      .findFirst();
 
   @override
   Future<void> exit() async {
