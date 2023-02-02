@@ -102,7 +102,7 @@ bip32.BIP32 getBip32NodeFromRoot(
     case DerivePathType.bip84:
       return root.derivePath("m/84'/$coinType'/0'/$chain/$index");
     default:
-      throw Exception("DerivePathType must not be null.");
+      throw Exception("DerivePathType unsupported");
   }
 }
 
@@ -429,7 +429,7 @@ class LitecoinWallet extends CoinServiceAPI
             addrType = isar_models.AddressType.p2wpkh;
             break;
           default:
-            throw Exception("No Path type $type exists");
+            throw Exception("DerivePathType unsupported");
         }
 
         final address = isar_models.Address(
@@ -1540,6 +1540,8 @@ class LitecoinWallet extends CoinServiceAPI
             .address!;
         addrType = isar_models.AddressType.p2wpkh;
         break;
+      default:
+        throw Exception("DerivePathType unsupported");
     }
 
     // add generated address & info to derivations
@@ -1586,6 +1588,8 @@ class LitecoinWallet extends CoinServiceAPI
       case DerivePathType.bip84:
         type = isar_models.AddressType.p2wpkh;
         break;
+      default:
+        throw Exception("DerivePathType unsupported");
     }
     address = await db
         .getAddresses(walletId)
@@ -1613,6 +1617,8 @@ class LitecoinWallet extends CoinServiceAPI
       case DerivePathType.bip84:
         key = "${walletId}_${chainId}DerivationsP2WPKH";
         break;
+      default:
+        throw Exception("DerivePathType unsupported");
     }
     return key;
   }
@@ -2603,6 +2609,8 @@ class LitecoinWallet extends CoinServiceAPI
               case DerivePathType.bip84:
                 addressesP2WPKH.add(address);
                 break;
+              default:
+                throw Exception("DerivePathType unsupported");
             }
           }
         }

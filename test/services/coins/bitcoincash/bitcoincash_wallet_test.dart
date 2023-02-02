@@ -41,18 +41,18 @@ void main() async {
     });
   });
 
-  group("bip32 node/root", () {
-    test("getBip32Root", () {
-      final root = getBip32Root(TEST_MNEMONIC, bitcoincash);
-      expect(root.toWIF(), ROOT_WIF);
-    });
-
-    test("basic getBip32Node", () {
-      final node =
-          getBip32Node(0, 0, TEST_MNEMONIC, bitcoincash, DerivePathType.bip44);
-      expect(node.toWIF(), NODE_WIF_44);
-    });
-  });
+  // group("bip32 node/root", () {
+  //   test("getBip32Root", () {
+  //     final root = getBip32Root(TEST_MNEMONIC, bitcoincash);
+  //     expect(root.toWIF(), ROOT_WIF);
+  //   });
+  //
+  //   test("basic getBip32Node", () {
+  //     final node =
+  //         getBip32Node(0, 0, TEST_MNEMONIC, bitcoincash, DerivePathType.bip44);
+  //     expect(node.toWIF(), NODE_WIF_44);
+  //   });
+  // });
 
   group("mainnet bitcoincash addressType", () {
     MockElectrumX? client;

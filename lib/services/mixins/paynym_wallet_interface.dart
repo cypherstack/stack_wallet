@@ -1122,6 +1122,8 @@ mixin PaynymWalletInterface {
       case DerivePathType.bip84:
         type = AddressType.p2wpkh;
         break;
+      default:
+        throw Exception("DerivePathType $derivePathType not supported");
     }
 
     final storedAddress = await _db
