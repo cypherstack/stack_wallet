@@ -1338,6 +1338,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                             Constants.decimalPlacesForCoin(
                                                 coin));
                                   }
+                                  _cryptoAmountChanged();
                                 },
                               ),
                             ],
