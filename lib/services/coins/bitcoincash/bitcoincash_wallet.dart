@@ -633,6 +633,13 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
         p2shChangeAddressArray.add(address);
       }
 
+      final addressesToStore = [
+        ...bip44P2pkhReceiveAddressArray,
+        ...bip44P2pkhChangeAddressArray,
+        ...p2shReceiveAddressArray,
+        ...p2shChangeAddressArray,
+      ];
+
       if (!testnet) {
         final resultReceiveBch44 = _checkGaps(
             maxNumberOfIndexesToCheck,
@@ -691,41 +698,16 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
           bch44P2pkhChangeAddressArray.add(address);
         }
 
-        if (isRescan) {
-          await db.updateOrPutAddresses([
-            ...bip44P2pkhReceiveAddressArray,
-            ...bip44P2pkhChangeAddressArray,
-            ...bch44P2pkhReceiveAddressArray,
-            ...bch44P2pkhChangeAddressArray,
-            ...p2shReceiveAddressArray,
-            ...p2shChangeAddressArray,
-          ]);
-        } else {
-          await db.putAddresses([
-            ...bip44P2pkhReceiveAddressArray,
-            ...bip44P2pkhChangeAddressArray,
-            ...bch44P2pkhReceiveAddressArray,
-            ...bch44P2pkhChangeAddressArray,
-            ...p2shReceiveAddressArray,
-            ...p2shChangeAddressArray,
-          ]);
-        }
+        addressesToStore.addAll([
+          ...bch44P2pkhReceiveAddressArray,
+          ...bch44P2pkhChangeAddressArray,
+        ]);
+      }
+
+      if (isRescan) {
+        await db.updateOrPutAddresses(addressesToStore);
       } else {
-        if (isRescan) {
-          await db.updateOrPutAddresses([
-            ...bip44P2pkhReceiveAddressArray,
-            ...bip44P2pkhChangeAddressArray,
-            ...p2shReceiveAddressArray,
-            ...p2shChangeAddressArray,
-          ]);
-        } else {
-          await db.putAddresses([
-            ...bip44P2pkhReceiveAddressArray,
-            ...bip44P2pkhChangeAddressArray,
-            ...p2shReceiveAddressArray,
-            ...p2shChangeAddressArray,
-          ]);
-        }
+        await db.putAddresses(addressesToStore);
       }
 
       await _updateUTXOs();
