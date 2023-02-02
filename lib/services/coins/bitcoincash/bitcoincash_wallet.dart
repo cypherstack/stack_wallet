@@ -487,6 +487,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
     required String mnemonic,
     int maxUnusedAddressGap = 20,
     int maxNumberOfIndexesToCheck = 1000,
+    bool isRescan = false,
   }) async {
     longMutex = true;
 
@@ -616,12 +617,21 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
         p2shChangeAddressArray.add(address);
       }
 
-      await db.putAddresses([
-        ...p2pkhReceiveAddressArray,
-        ...p2pkhChangeAddressArray,
-        ...p2shReceiveAddressArray,
-        ...p2shChangeAddressArray,
-      ]);
+      if (isRescan) {
+        await db.updateOrPutAddresses([
+          ...p2pkhReceiveAddressArray,
+          ...p2pkhChangeAddressArray,
+          ...p2shReceiveAddressArray,
+          ...p2shChangeAddressArray,
+        ]);
+      } else {
+        await db.putAddresses([
+          ...p2pkhReceiveAddressArray,
+          ...p2pkhChangeAddressArray,
+          ...p2shReceiveAddressArray,
+          ...p2shChangeAddressArray,
+        ]);
+      }
 
       await _updateUTXOs();
 
@@ -2874,6 +2884,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
         mnemonic: mnemonic!,
         maxUnusedAddressGap: maxUnusedAddressGap,
         maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+        isRescan: true,
       );
 
       longMutex = false;
