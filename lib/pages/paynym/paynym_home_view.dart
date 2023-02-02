@@ -322,7 +322,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                             height: 12,
                             color: Theme.of(context)
                                 .extension<StackColors>()!
-                                .textDark,
+                                .buttonTextSecondary,
                           ),
                           onPressed: () async {
                             await Clipboard.setData(
@@ -359,7 +359,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                             height: 12,
                             color: Theme.of(context)
                                 .extension<StackColors>()!
-                                .textDark,
+                                .buttonTextSecondary,
                           ),
                           onPressed: () async {
                             Rect? sharePositionOrigin;
@@ -396,7 +396,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                             height: 12,
                             color: Theme.of(context)
                                 .extension<StackColors>()!
-                                .textDark,
+                                .buttonTextSecondary,
                           ),
                           onPressed: () {
                             showDialog<void>(
