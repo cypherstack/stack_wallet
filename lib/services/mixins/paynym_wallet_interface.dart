@@ -16,6 +16,7 @@ import 'package:stackwallet/exceptions/wallet/insufficient_balance_exception.dar
 import 'package:stackwallet/exceptions/wallet/paynym_send_exception.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
+import 'package:stackwallet/utilities/bip47_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -147,21 +148,33 @@ mixin PaynymWalletInterface {
   btc_dart.NetworkType get networkType => _network;
 
   Future<Address> currentReceivingPaynymAddress(PaymentCode sender) async {
-    final key = await lookupKey(sender.toString());
+    final keys = await lookupKey(sender.toString());
     final address = await _db
         .getAddresses(_walletId)
         .filter()
         .subTypeEqualTo(AddressSubType.paynymReceive)
         .and()
-        .otherDataEqualTo(key)
-        .and()
-        .otherDataIsNotNull()
+        .anyOf<String, Address>(keys, (q, String e) => q.otherDataEqualTo(e))
         .sortByDerivationIndexDesc()
         .findFirst();
 
     if (address == null) {
       final generatedAddress = await _generatePaynymReceivingAddress(sender, 0);
-      await _db.putAddress(generatedAddress);
+
+      final existing = await _db
+          .getAddresses(_walletId)
+          .filter()
+          .valueEqualTo(generatedAddress.value)
+          .findFirst();
+
+      if (existing == null) {
+        // Add that new address
+        await _db.putAddress(generatedAddress);
+      } else {
+        // we need to update the address
+        await _db.updateAddress(existing, generatedAddress);
+      }
+
       return currentReceivingPaynymAddress(sender);
     } else {
       return address;
@@ -202,7 +215,22 @@ mixin PaynymWalletInterface {
         sender,
         address.derivationIndex + 1,
       );
-      await _db.putAddress(nextAddress);
+
+      final existing = await _db
+          .getAddresses(_walletId)
+          .filter()
+          .valueEqualTo(nextAddress.value)
+          .findFirst();
+
+      if (existing == null) {
+        // Add that new address
+        await _db.putAddress(nextAddress);
+      } else {
+        // we need to update the address
+        await _db.updateAddress(existing, nextAddress);
+      }
+      // keep checking until address with no tx history is set as current
+      await checkCurrentPaynymReceivingAddressForTransactions(sender);
     }
   }
 
@@ -301,15 +329,13 @@ mixin PaynymWalletInterface {
     const maxCount = 2147483647;
 
     for (int i = startIndex; i < maxCount; i++) {
-      final key = await lookupKey(pCode.toString());
+      final keys = await lookupKey(pCode.toString());
       final address = await _db
           .getAddresses(_walletId)
           .filter()
           .subTypeEqualTo(AddressSubType.paynymSend)
           .and()
-          .otherDataEqualTo(key)
-          .and()
-          .otherDataIsNotNull()
+          .anyOf<String, Address>(keys, (q, String e) => q.otherDataEqualTo(e))
           .and()
           .derivationIndexEqualTo(i)
           .findFirst();
@@ -680,6 +706,13 @@ mixin PaynymWalletInterface {
       if (paymentCodeString == unBlindedPaymentCode.toString()) {
         return true;
       }
+
+      if (tx.address.value?.otherData != null) {
+        final code = await paymentCodeStringByKey(tx.address.value!.otherData!);
+        if (code == paymentCodeString) {
+          return true;
+        }
+      }
     }
 
     // otherwise return no
@@ -696,8 +729,13 @@ mixin PaynymWalletInterface {
     }
 
     try {
-      final blindedCode =
-          transaction.outputs.elementAt(1).scriptPubKeyAsm!.split(" ")[1];
+      final blindedCodeBytes =
+          Bip47Utils.getBlindedPaymentCodeBytesFrom(transaction);
+
+      // transaction does not contain a payment code
+      if (blindedCodeBytes == null) {
+        return null;
+      }
 
       final designatedInput = transaction.inputs.first;
 
@@ -718,7 +756,7 @@ mixin PaynymWalletInterface {
 
       final mask = PaymentCode.getMask(S.ecdhSecret(), rev);
 
-      final unBlindedPayload = PaymentCode.blind(blindedCode.fromHex, mask);
+      final unBlindedPayload = PaymentCode.blind(blindedCodeBytes, mask);
 
       final unBlindedPaymentCode =
           PaymentCode.initFromPayload(unBlindedPayload);
@@ -743,33 +781,99 @@ mixin PaynymWalletInterface {
         .subTypeEqualTo(TransactionSubType.bip47Notification)
         .findAll();
 
-    List<PaymentCode> unBlindedList = [];
+    List<PaymentCode> codes = [];
 
     for (final tx in txns) {
-      final unBlinded = await unBlindedPaymentCodeFromTransaction(
-        transaction: tx,
-        myNotificationAddress: myAddress,
-      );
-      if (unBlinded != null &&
-          unBlindedList
-              .where((e) => e.toString() == unBlinded.toString())
-              .isEmpty) {
-        unBlindedList.add(unBlinded);
+      // tx is sent so we can check the address's otherData for the code String
+      if (tx.type == TransactionType.outgoing &&
+          tx.address.value?.otherData != null) {
+        final codeString =
+            await paymentCodeStringByKey(tx.address.value!.otherData!);
+        if (codeString != null &&
+            codes.where((e) => e.toString() == codeString).isEmpty) {
+          codes.add(PaymentCode.fromPaymentCode(codeString, _network));
+        }
+      } else {
+        // otherwise we need to un blind the code
+        final unBlinded = await unBlindedPaymentCodeFromTransaction(
+          transaction: tx,
+          myNotificationAddress: myAddress,
+        );
+        if (unBlinded != null &&
+            codes.where((e) => e.toString() == unBlinded.toString()).isEmpty) {
+          codes.add(unBlinded);
+        }
       }
     }
 
-    return unBlindedList;
+    return codes;
+  }
+
+  Future<void> checkForNotificationTransactionsTo(
+      Set<String> otherCodeStrings) async {
+    final sentNotificationTransactions = await _db
+        .getTransactions(_walletId)
+        .filter()
+        .subTypeEqualTo(TransactionSubType.bip47Notification)
+        .and()
+        .typeEqualTo(TransactionType.outgoing)
+        .findAll();
+
+    final List<PaymentCode> codes = [];
+    for (final codeString in otherCodeStrings) {
+      codes.add(PaymentCode.fromPaymentCode(codeString, _network));
+    }
+
+    for (final tx in sentNotificationTransactions) {
+      if (tx.address.value != null && tx.address.value!.otherData == null) {
+        final oldAddress =
+            await _db.getAddress(_walletId, tx.address.value!.value);
+        for (final code in codes) {
+          final notificationAddress = code.notificationAddressP2PKH();
+          if (notificationAddress == oldAddress!.value) {
+            final address = Address(
+              walletId: _walletId,
+              value: notificationAddress,
+              publicKey: [],
+              derivationIndex: 0,
+              type: oldAddress.type,
+              subType: AddressSubType.paynymNotification,
+              otherData: await storeCode(code.toString()),
+            );
+            await _db.updateAddress(oldAddress, address);
+          }
+        }
+      }
+    }
   }
 
   Future<void> restoreAllHistory({
     required int maxUnusedAddressGap,
     required int maxNumberOfIndexesToCheck,
+    required Set<String> paymentCodeStrings,
   }) async {
     final codes = await getAllPaymentCodesFromNotificationTransactions();
+    final List<PaymentCode> extraCodes = [];
+    for (final codeString in paymentCodeStrings) {
+      if (codes.where((e) => e.toString() == codeString).isEmpty) {
+        final extraCode = PaymentCode.fromPaymentCode(codeString, _network);
+        if (extraCode.isValid()) {
+          extraCodes.add(extraCode);
+        }
+      }
+    }
+
+    codes.addAll(extraCodes);
+
     final List<Future<void>> futures = [];
     for (final code in codes) {
-      futures.add(restoreHistoryWith(
-          code, maxUnusedAddressGap, maxNumberOfIndexesToCheck));
+      futures.add(
+        restoreHistoryWith(
+          code,
+          maxUnusedAddressGap,
+          maxNumberOfIndexesToCheck,
+        ),
+      );
     }
 
     await Future.wait(futures);
@@ -1109,16 +1213,17 @@ mixin PaynymWalletInterface {
   }
 
   /// look up a key that corresponds to a payment code string
-  Future<String?> lookupKey(String paymentCodeString) async {
+  Future<List<String>> lookupKey(String paymentCodeString) async {
     final keys =
         (await _secureStorage.keys).where((e) => e.startsWith(kPCodeKeyPrefix));
+    final List<String> result = [];
     for (final key in keys) {
       final value = await _secureStorage.read(key: key);
       if (value == paymentCodeString) {
-        return key;
+        result.add(key);
       }
     }
-    return null;
+    return result;
   }
 
   /// fetch a payment code string

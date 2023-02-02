@@ -175,7 +175,7 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                         children: [
                           Text(
                             "Paynym",
-                            style: STextStyles.w600_12(context),
+                            style: STextStyles.buttonSmall(context),
                           ),
                           const SizedBox(
                             width: 16,
@@ -184,6 +184,9 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                             Assets.svg.robotHead,
                             height: 20,
                             width: 20,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .bottomNavIconIcon,
                           ),
                         ],
                       ),

@@ -1772,7 +1772,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       // TODO move this out of here and into IDB
       await db.isar.writeTxn(() async {
-        await db.isar.utxos.clear();
+        await db.isar.utxos.where().walletIdEqualTo(walletId).deleteAll();
         await db.isar.utxos.putAll(outputArray);
       });
 
@@ -2702,13 +2702,12 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
           final n = output["n"];
           if (n != null && n == utxosToUse[i].vout) {
             String address = output["scriptPubKey"]["addresses"][0] as String;
-            if (bitbox.Address.detectFormat(address) ==
+            if (bitbox.Address.detectFormat(address) !=
                 bitbox.Address.formatCashAddr) {
-              if (validateCashAddr(address)) {
-                address = bitbox.Address.toLegacyAddress(address);
-              } else {
-                throw Exception(
-                    "Unsupported address found during fetchBuildTxData(): $address");
+              try {
+                address = bitbox.Address.toCashAddress(address);
+              } catch (_) {
+                rethrow;
               }
             }
             if (!addressTxid.containsKey(address)) {
