@@ -489,6 +489,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
     required String mnemonic,
     int maxUnusedAddressGap = 20,
     int maxNumberOfIndexesToCheck = 1000,
+    bool isRescan = false,
   }) async {
     longMutex = true;
 
@@ -614,12 +615,21 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
         p2wpkhChangeAddressArray.add(address);
       }
 
-      await db.putAddresses([
-        ...p2wpkhReceiveAddressArray,
-        ...p2wpkhChangeAddressArray,
-        ...p2pkhReceiveAddressArray,
-        ...p2pkhChangeAddressArray,
-      ]);
+      if (isRescan) {
+        await db.updateOrPutAddresses([
+          ...p2wpkhReceiveAddressArray,
+          ...p2wpkhChangeAddressArray,
+          ...p2pkhReceiveAddressArray,
+          ...p2pkhChangeAddressArray,
+        ]);
+      } else {
+        await db.putAddresses([
+          ...p2wpkhReceiveAddressArray,
+          ...p2wpkhChangeAddressArray,
+          ...p2pkhReceiveAddressArray,
+          ...p2pkhChangeAddressArray,
+        ]);
+      }
 
       await _updateUTXOs();
 
@@ -2982,6 +2992,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
         mnemonic: mnemonic!,
         maxUnusedAddressGap: maxUnusedAddressGap,
         maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+        isRescan: true,
       );
 
       longMutex = false;

@@ -524,6 +524,7 @@ class BitcoinWallet extends CoinServiceAPI
     required String mnemonic,
     int maxUnusedAddressGap = 20,
     int maxNumberOfIndexesToCheck = 1000,
+    bool isRescan = false,
   }) async {
     longMutex = true;
 
@@ -697,14 +698,25 @@ class BitcoinWallet extends CoinServiceAPI
         p2wpkhChangeAddressArray.add(address);
       }
 
-      await db.putAddresses([
-        ...p2wpkhReceiveAddressArray,
-        ...p2wpkhChangeAddressArray,
-        ...p2pkhReceiveAddressArray,
-        ...p2pkhChangeAddressArray,
-        ...p2shReceiveAddressArray,
-        ...p2shChangeAddressArray,
-      ]);
+      if (isRescan) {
+        await db.updateOrPutAddresses([
+          ...p2wpkhReceiveAddressArray,
+          ...p2wpkhChangeAddressArray,
+          ...p2pkhReceiveAddressArray,
+          ...p2pkhChangeAddressArray,
+          ...p2shReceiveAddressArray,
+          ...p2shChangeAddressArray,
+        ]);
+      } else {
+        await db.putAddresses([
+          ...p2wpkhReceiveAddressArray,
+          ...p2wpkhChangeAddressArray,
+          ...p2pkhReceiveAddressArray,
+          ...p2pkhChangeAddressArray,
+          ...p2shReceiveAddressArray,
+          ...p2shChangeAddressArray,
+        ]);
+      }
 
       // get own payment code
       final myCode = await getPaymentCode(DerivePathType.bip44);
@@ -2932,6 +2944,7 @@ class BitcoinWallet extends CoinServiceAPI
         mnemonic: mnemonic!,
         maxUnusedAddressGap: maxUnusedAddressGap,
         maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+        isRescan: true,
       );
 
       longMutex = false;

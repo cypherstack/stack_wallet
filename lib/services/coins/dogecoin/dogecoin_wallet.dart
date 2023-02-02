@@ -465,6 +465,7 @@ class DogecoinWallet extends CoinServiceAPI
     required String mnemonic,
     int maxUnusedAddressGap = 20,
     int maxNumberOfIndexesToCheck = 1000,
+    bool isRescan = false,
   }) async {
     longMutex = true;
 
@@ -541,11 +542,17 @@ class DogecoinWallet extends CoinServiceAPI
             await _generateAddressForChain(1, 0, DerivePathType.bip44);
         p2pkhChangeAddressArray.add(address);
       }
-
-      await db.putAddresses([
-        ...p2pkhReceiveAddressArray,
-        ...p2pkhChangeAddressArray,
-      ]);
+      if (isRescan) {
+        await db.updateOrPutAddresses([
+          ...p2pkhReceiveAddressArray,
+          ...p2pkhChangeAddressArray,
+        ]);
+      } else {
+        await db.putAddresses([
+          ...p2pkhReceiveAddressArray,
+          ...p2pkhChangeAddressArray,
+        ]);
+      }
 
       // paynym stuff
       // // generate to ensure notification address is in db before refreshing transactions
@@ -2574,6 +2581,7 @@ class DogecoinWallet extends CoinServiceAPI
         mnemonic: mnemonic!,
         maxUnusedAddressGap: maxUnusedAddressGap,
         maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+        isRescan: true,
       );
 
       longMutex = false;

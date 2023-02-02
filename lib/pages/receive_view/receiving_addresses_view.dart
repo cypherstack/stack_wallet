@@ -103,9 +103,11 @@ class AddressCard extends StatelessWidget {
     return RoundedWhiteContainer(
       child: Row(
         children: [
-          Text(
-            address.value,
-            style: STextStyles.itemSubtitle12(context),
+          Expanded(
+            child: Text(
+              address.value,
+              style: STextStyles.itemSubtitle12(context),
+            ),
           )
         ],
       ),

@@ -517,6 +517,7 @@ class LitecoinWallet extends CoinServiceAPI
     required String mnemonic,
     int maxUnusedAddressGap = 20,
     int maxNumberOfIndexesToCheck = 1000,
+    bool isRescan = false,
   }) async {
     longMutex = true;
 
@@ -690,14 +691,25 @@ class LitecoinWallet extends CoinServiceAPI
         p2wpkhChangeAddressArray.add(address);
       }
 
-      await db.putAddresses([
-        ...p2wpkhReceiveAddressArray,
-        ...p2wpkhChangeAddressArray,
-        ...p2pkhReceiveAddressArray,
-        ...p2pkhChangeAddressArray,
-        ...p2shReceiveAddressArray,
-        ...p2shChangeAddressArray,
-      ]);
+      if (isRescan) {
+        await db.updateOrPutAddresses([
+          ...p2wpkhReceiveAddressArray,
+          ...p2wpkhChangeAddressArray,
+          ...p2pkhReceiveAddressArray,
+          ...p2pkhChangeAddressArray,
+          ...p2shReceiveAddressArray,
+          ...p2shChangeAddressArray,
+        ]);
+      } else {
+        await db.putAddresses([
+          ...p2wpkhReceiveAddressArray,
+          ...p2wpkhChangeAddressArray,
+          ...p2pkhReceiveAddressArray,
+          ...p2pkhChangeAddressArray,
+          ...p2shReceiveAddressArray,
+          ...p2shChangeAddressArray,
+        ]);
+      }
 
       await _updateUTXOs();
 
@@ -2895,6 +2907,7 @@ class LitecoinWallet extends CoinServiceAPI
         mnemonic: mnemonic!,
         maxUnusedAddressGap: maxUnusedAddressGap,
         maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+        isRescan: true,
       );
 
       longMutex = false;
