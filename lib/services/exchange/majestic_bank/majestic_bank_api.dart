@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:decimal/decimal.dart';
 import 'package:http/http.dart' as http;
 import 'package:stackwallet/models/exchange/majestic_bank/mb_limit.dart';
+import 'package:stackwallet/models/exchange/majestic_bank/mb_order_calculation.dart';
 import 'package:stackwallet/models/exchange/majestic_bank/mb_rate.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
@@ -123,15 +124,34 @@ class MajesticBankAPI {
     }
   }
 
-  Future<dynamic> calculateOrder() async {
+  /// If [reversed] then the amount is the expected receive_amount, otherwise
+  /// the amount is assumed to be the from_amount.
+  Future<ExchangeResponse<MBOrderCalculation>> calculateOrder({
+    required String amount,
+    required bool reversed,
+    required String fromCurrency,
+    required String receiveCurrency,
+  }) async {
     final uri = _buildUri(
       endpoint: "calculate",
     );
 
+    final params = {
+      "from_currency": fromCurrency,
+      "receive_currency": receiveCurrency,
+    };
+
+    if (reversed) {
+      params["receive_amount"] = amount;
+    } else {
+      params["from_amount"] = amount;
+    }
+
     try {
       final jsonObject = await _makeGetRequest(uri);
 
-      return getPrettyJSONString(jsonObject);
+      // return getPrettyJSONString(jsonObject);
+      return ExchangeResponse();
     } catch (e, s) {
       Logging.instance
           .log("calculateOrder exception: $e\n$s", level: LogLevel.Error);
