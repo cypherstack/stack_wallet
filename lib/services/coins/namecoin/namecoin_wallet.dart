@@ -419,7 +419,7 @@ class NamecoinWallet extends CoinServiceAPI
             addrType = isar_models.AddressType.p2wpkh;
             break;
           default:
-            throw Exception("No Path type $type exists");
+            throw Exception("DerivePathType $type not supported");
         }
 
         final address = isar_models.Address(
@@ -1529,6 +1529,8 @@ class NamecoinWallet extends CoinServiceAPI
             .address!;
         addrType = isar_models.AddressType.p2wpkh;
         break;
+      default:
+        throw Exception("DerivePathType must not be null.");
     }
 
     // add generated address & info to derivations
@@ -1575,6 +1577,9 @@ class NamecoinWallet extends CoinServiceAPI
       case DerivePathType.bip84:
         type = isar_models.AddressType.p2wpkh;
         break;
+      default:
+        throw Exception(
+            "DerivePathType null or unsupported (${DerivePathType.bip44})");
     }
     address = await db
         .getAddresses(walletId)
@@ -1602,6 +1607,8 @@ class NamecoinWallet extends CoinServiceAPI
       case DerivePathType.bip84:
         key = "${walletId}_${chainId}DerivationsP2WPKH";
         break;
+      default:
+        throw Exception("DerivePathType $derivePathType not supported");
     }
     return key;
   }

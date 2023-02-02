@@ -90,7 +90,8 @@ bip32.BIP32 getBip32NodeFromRoot(
     case DerivePathType.bip44:
       return root.derivePath("m/44'/$coinType'/0'/$chain/$index");
     default:
-      throw Exception("Unsupported DerivePathType");
+      throw Exception(
+          "DerivePathType null or unsupported (${DerivePathType.bip44})");
   }
 }
 
@@ -388,7 +389,7 @@ class DogecoinWallet extends CoinServiceAPI
             );
             break;
           default:
-            throw Exception("No Path type $type exists");
+            throw Exception("DerivePathType $type not supported");
         }
         receivingNodes.addAll({
           "${_id}_$j": {
