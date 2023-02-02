@@ -201,7 +201,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                         height: 20,
                         color: Theme.of(context)
                             .extension<StackColors>()!
-                            .textDark,
+                            .accentColorDark,
                       ),
                       onPressed: () {
                         Navigator.of(context).pushNamed(
@@ -223,7 +223,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                         height: 20,
                         color: Theme.of(context)
                             .extension<StackColors>()!
-                            .textDark,
+                            .accentColorDark,
                       ),
                       onPressed: () {
                         // todo info ?
