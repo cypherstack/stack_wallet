@@ -1,6 +1,9 @@
 import 'dart:convert';
 
+import 'package:decimal/decimal.dart';
 import 'package:http/http.dart' as http;
+import 'package:stackwallet/models/exchange/majestic_bank/mb_limit.dart';
+import 'package:stackwallet/models/exchange/majestic_bank/mb_rate.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
@@ -54,7 +57,7 @@ class MajesticBankAPI {
     }
   }
 
-  Future<dynamic> getRates() async {
+  Future<ExchangeResponse<List<MBRate>>> getRates() async {
     final uri = _buildUri(
       endpoint: "rates",
     );
@@ -62,9 +65,55 @@ class MajesticBankAPI {
     try {
       final jsonObject = await _makeGetRequest(uri);
 
-      return getPrettyJSONString(jsonObject);
+      final map = Map<String, dynamic>.from(jsonObject as Map);
+      final List<MBRate> rates = [];
+      for (final key in map.keys) {
+        final currencies = key.split("-");
+        if (currencies.length == 2) {
+          final rate = MBRate(
+            fromCurrency: currencies.first,
+            toCurrency: currencies.last,
+            rate: Decimal.parse(map[key].toString()),
+          );
+          rates.add(rate);
+        }
+      }
+      return ExchangeResponse(value: rates);
     } catch (e, s) {
       Logging.instance.log("getRates exception: $e\n$s", level: LogLevel.Error);
+      return ExchangeResponse(
+        exception: ExchangeException(
+          e.toString(),
+          ExchangeExceptionType.generic,
+        ),
+      );
+    }
+  }
+
+  Future<ExchangeResponse<List<MBLimit>>> getLimits() async {
+    final uri = _buildUri(
+      endpoint:
+          "rates", // limits are included in the rates call for some reason???
+    );
+
+    try {
+      final jsonObject = await _makeGetRequest(uri);
+
+      final map = Map<String, dynamic>.from(jsonObject as Map)["limits"] as Map;
+      final List<MBLimit> limits = [];
+      for (final key in map.keys) {
+        final limit = MBLimit(
+          currency: key as String,
+          min: Decimal.parse(map[key]["min"].toString()),
+          max: Decimal.parse(map[key]["max"].toString()),
+        );
+        limits.add(limit);
+      }
+
+      return ExchangeResponse(value: limits);
+    } catch (e, s) {
+      Logging.instance
+          .log("getLimits exception: $e\n$s", level: LogLevel.Error);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
