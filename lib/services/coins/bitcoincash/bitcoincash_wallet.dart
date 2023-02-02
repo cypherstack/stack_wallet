@@ -2736,19 +2736,28 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       // p2pkh / bip44
       final p2pkhLength = addressesP2PKH.length;
       if (p2pkhLength > 0) {
-        final receiveDerivations = await _fetchDerivations(
+        final receiveDerivationsBip44 = await _fetchDerivations(
           chain: 0,
           derivePathType: DerivePathType.bip44,
         );
-        final changeDerivations = await _fetchDerivations(
+        final changeDerivationsBip44 = await _fetchDerivations(
           chain: 1,
           derivePathType: DerivePathType.bip44,
+        );
+        final receiveDerivationsBch44 = await _fetchDerivations(
+          chain: 0,
+          derivePathType: DerivePathType.bch44,
+        );
+        final changeDerivationsBch44 = await _fetchDerivations(
+          chain: 1,
+          derivePathType: DerivePathType.bch44,
         );
         for (int i = 0; i < p2pkhLength; i++) {
           String address = addressesP2PKH[i];
 
           // receives
-          final receiveDerivation = receiveDerivations[address];
+          final receiveDerivation = receiveDerivationsBip44[address] ??
+              receiveDerivationsBch44[address];
           // if a match exists it will not be null
           if (receiveDerivation != null) {
             final data = P2PKH(
@@ -2769,7 +2778,8 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
             }
           } else {
             // if its not a receive, check change
-            final changeDerivation = changeDerivations[address];
+            final changeDerivation = changeDerivationsBip44[address] ??
+                changeDerivationsBch44[address];
             // if a match exists it will not be null
             if (changeDerivation != null) {
               final data = P2PKH(
