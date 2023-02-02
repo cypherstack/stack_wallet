@@ -1353,17 +1353,21 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
     Logging.instance
         .log("IS_INTEGRATION_TEST: $integrationTestFlag", level: LogLevel.Info);
     if (!integrationTestFlag) {
-      final features = await electrumXClient.getServerFeatures();
-      Logging.instance.log("features: $features", level: LogLevel.Info);
-      switch (coin) {
-        case Coin.particl:
-          if (features['genesis_hash'] != GENESIS_HASH_MAINNET) {
-            throw Exception("genesis hash does not match main net!");
-          }
-          break;
-        default:
-          throw Exception(
-              "Attempted to generate a ParticlWallet using a non particl coin type: ${coin.name}");
+      try {
+        final features = await electrumXClient.getServerFeatures();
+        Logging.instance.log("features: $features", level: LogLevel.Info);
+        switch (coin) {
+          case Coin.particl:
+            if (features['genesis_hash'] != GENESIS_HASH_MAINNET) {
+              throw Exception("genesis hash does not match main net!");
+            }
+            break;
+          default:
+            throw Exception(
+                "Attempted to generate a ParticlWallet using a non particl coin type: ${coin.name}");
+        }
+      } catch (e, s) {
+        Logging.instance.log("$e/n$s", level: LogLevel.Info);
       }
     }
 
