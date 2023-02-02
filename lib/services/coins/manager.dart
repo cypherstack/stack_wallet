@@ -110,8 +110,15 @@ class Manager with ChangeNotifier {
     try {
       final txid = await _currentWallet.confirmSend(txData: txData);
 
-      txData["txid"] = txid;
-      await _currentWallet.updateSentCachedTxData(txData);
+      try {
+        txData["txid"] = txid;
+        await _currentWallet.updateSentCachedTxData(txData);
+      } catch (e, s) {
+        // do not rethrow as that would get handled as a send failure further up
+        // also this is not critical code and transaction should show up on \
+        // refresh regardless
+        Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+      }
 
       notifyListeners();
       return txid;
