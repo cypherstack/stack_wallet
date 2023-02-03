@@ -52,6 +52,23 @@ import 'package:tuple/tuple.dart';
 const int MINIMUM_CONFIRMATIONS = 10;
 
 class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
+  MoneroWallet({
+    required String walletId,
+    required String walletName,
+    required Coin coin,
+    required SecureStorageInterface secureStorage,
+    Prefs? prefs,
+    MainDB? mockableOverride,
+  }) {
+    _walletId = walletId;
+    _walletName = walletName;
+    _coin = coin;
+    _secureStorage = secureStorage;
+    _prefs = prefs ?? Prefs.instance;
+    initCache(walletId, coin);
+    initWalletDB(mockableOverride: mockableOverride);
+  }
+
   late final String _walletId;
   late final Coin _coin;
   late final SecureStorageInterface _secureStorage;
@@ -77,23 +94,6 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Mutex prepareSendMutex = Mutex();
   Mutex estimateFeeMutex = Mutex();
-
-  MoneroWallet({
-    required String walletId,
-    required String walletName,
-    required Coin coin,
-    required SecureStorageInterface secureStorage,
-    Prefs? prefs,
-    MainDB? mockableOverride,
-  }) {
-    _walletId = walletId;
-    _walletName = walletName;
-    _coin = coin;
-    _secureStorage = secureStorage;
-    _prefs = prefs ?? Prefs.instance;
-    initCache(walletId, coin);
-    initWalletDB(mockableOverride: mockableOverride);
-  }
 
   @override
   set isFavorite(bool markFavorite) {

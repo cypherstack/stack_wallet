@@ -772,6 +772,37 @@ Future<void> _setTestnetWrapper(bool isTestnet) async {
 
 /// Handles a single instance of a firo wallet
 class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
+  // Constructor
+  FiroWallet({
+    required String walletId,
+    required String walletName,
+    required Coin coin,
+    required ElectrumX client,
+    required CachedElectrumX cachedClient,
+    required TransactionNotificationTracker tracker,
+    required SecureStorageInterface secureStore,
+    MainDB? mockableOverride,
+  }) {
+    txTracker = tracker;
+    _walletId = walletId;
+    _walletName = walletName;
+    _coin = coin;
+    _electrumXClient = client;
+    _cachedElectrumXClient = cachedClient;
+    _secureStore = secureStore;
+    initCache(walletId, coin);
+    initFiroHive(walletId);
+    initWalletDB(mockableOverride: mockableOverride);
+
+    Logging.instance.log("$walletName isolates length: ${isolates.length}",
+        level: LogLevel.Info);
+    // investigate possible issues killing shared isolates between multiple firo instances
+    for (final isolate in isolates.values) {
+      isolate.kill(priority: Isolate.immediate);
+    }
+    isolates.clear();
+  }
+
   static const integrationTestFlag =
       bool.fromEnvironment("IS_INTEGRATION_TEST");
 
@@ -1237,37 +1268,6 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
   late SecureStorageInterface _secureStore;
 
   late TransactionNotificationTracker txTracker;
-
-  // Constructor
-  FiroWallet({
-    required String walletId,
-    required String walletName,
-    required Coin coin,
-    required ElectrumX client,
-    required CachedElectrumX cachedClient,
-    required TransactionNotificationTracker tracker,
-    required SecureStorageInterface secureStore,
-    MainDB? mockableOverride,
-  }) {
-    txTracker = tracker;
-    _walletId = walletId;
-    _walletName = walletName;
-    _coin = coin;
-    _electrumXClient = client;
-    _cachedElectrumXClient = cachedClient;
-    _secureStore = secureStore;
-    initCache(walletId, coin);
-    initFiroHive(walletId);
-    initWalletDB(mockableOverride: mockableOverride);
-
-    Logging.instance.log("$walletName isolates length: ${isolates.length}",
-        level: LogLevel.Info);
-    // investigate possible issues killing shared isolates between multiple firo instances
-    for (final isolate in isolates.values) {
-      isolate.kill(priority: Isolate.immediate);
-    }
-    isolates.clear();
-  }
 
   int estimateTxFee({required int vSize, required int feeRatePerKB}) {
     return vSize * (feeRatePerKB / 1000).ceil();

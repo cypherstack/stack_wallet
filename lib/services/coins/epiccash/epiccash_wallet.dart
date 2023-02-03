@@ -520,15 +520,6 @@ Future<dynamic> deleteSlate(
 
 class EpicCashWallet extends CoinServiceAPI
     with WalletCache, WalletDB, EpicCashHive {
-  static const integrationTestFlag =
-      bool.fromEnvironment("IS_INTEGRATION_TEST");
-  final m = Mutex();
-  final syncMutex = Mutex();
-
-  final _prefs = Prefs.instance;
-
-  NodeModel? _epicNode;
-
   EpicCashWallet({
     required String walletId,
     required String walletName,
@@ -551,6 +542,15 @@ class EpicCashWallet extends CoinServiceAPI
     }
     isolates.clear();
   }
+
+  static const integrationTestFlag =
+      bool.fromEnvironment("IS_INTEGRATION_TEST");
+  final m = Mutex();
+  final syncMutex = Mutex();
+
+  final _prefs = Prefs.instance;
+
+  NodeModel? _epicNode;
 
   @override
   Future<void> updateNode(bool shouldRefresh) async {

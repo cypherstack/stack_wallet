@@ -86,6 +86,48 @@ String constructDerivePath({
 
 class DogecoinWallet extends CoinServiceAPI
     with WalletCache, WalletDB, ElectrumXParsing {
+  DogecoinWallet({
+    required String walletId,
+    required String walletName,
+    required Coin coin,
+    required ElectrumX client,
+    required CachedElectrumX cachedClient,
+    required TransactionNotificationTracker tracker,
+    required SecureStorageInterface secureStore,
+    MainDB? mockableOverride,
+  }) {
+    txTracker = tracker;
+    _walletId = walletId;
+    _walletName = walletName;
+    _coin = coin;
+    _electrumXClient = client;
+    _cachedElectrumXClient = cachedClient;
+    _secureStore = secureStore;
+    initCache(walletId, coin);
+    initWalletDB(mockableOverride: mockableOverride);
+
+    // paynym stuff
+    // initPaynymWalletInterface(
+    //   walletId: walletId,
+    //   walletName: walletName,
+    //   network: network,
+    //   coin: coin,
+    //   db: db,
+    //   electrumXClient: electrumXClient,
+    //   getMnemonic: () => mnemonic,
+    //   getChainHeight: () => chainHeight,
+    //   getCurrentChangeAddress: () => currentChangeAddress,
+    //   estimateTxFee: estimateTxFee,
+    //   prepareSend: prepareSend,
+    //   getTxCount: getTxCount,
+    //   fetchBuildTxData: fetchBuildTxData,
+    //   refresh: refresh,
+    //   checkChangeAddressForTransactions: checkChangeAddressForTransactions,
+    //   addDerivation: addDerivation,
+    //   addDerivations: addDerivations,
+    // );
+  }
+
   static const integrationTestFlag =
       bool.fromEnvironment("IS_INTEGRATION_TEST");
   final _prefs = Prefs.instance;
@@ -1092,48 +1134,6 @@ class DogecoinWallet extends CoinServiceAPI
   CachedElectrumX get cachedElectrumXClient => _cachedElectrumXClient;
 
   late SecureStorageInterface _secureStore;
-
-  DogecoinWallet({
-    required String walletId,
-    required String walletName,
-    required Coin coin,
-    required ElectrumX client,
-    required CachedElectrumX cachedClient,
-    required TransactionNotificationTracker tracker,
-    required SecureStorageInterface secureStore,
-    MainDB? mockableOverride,
-  }) {
-    txTracker = tracker;
-    _walletId = walletId;
-    _walletName = walletName;
-    _coin = coin;
-    _electrumXClient = client;
-    _cachedElectrumXClient = cachedClient;
-    _secureStore = secureStore;
-    initCache(walletId, coin);
-    initWalletDB(mockableOverride: mockableOverride);
-
-    // paynym stuff
-    // initPaynymWalletInterface(
-    //   walletId: walletId,
-    //   walletName: walletName,
-    //   network: network,
-    //   coin: coin,
-    //   db: db,
-    //   electrumXClient: electrumXClient,
-    //   getMnemonic: () => mnemonic,
-    //   getChainHeight: () => chainHeight,
-    //   getCurrentChangeAddress: () => currentChangeAddress,
-    //   estimateTxFee: estimateTxFee,
-    //   prepareSend: prepareSend,
-    //   getTxCount: getTxCount,
-    //   fetchBuildTxData: fetchBuildTxData,
-    //   refresh: refresh,
-    //   checkChangeAddressForTransactions: checkChangeAddressForTransactions,
-    //   addDerivation: addDerivation,
-    //   addDerivations: addDerivations,
-    // );
-  }
 
   @override
   Future<void> updateNode(bool shouldRefresh) async {
