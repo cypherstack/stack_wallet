@@ -1271,8 +1271,10 @@ class EpicCashWallet extends CoinServiceAPI
 
   Future<void> updateEpicboxConfig(String host, int port) async {
     String stringConfig = jsonEncode({
-      "domain": host,
-      "port": port,
+      "epicbox_domain": host,
+      "epicbox_port": port,
+      "epicbox_protocol_unsecure": false,
+      "epicbox_address_index": 0,
     });
     await _secureStore.write(
         key: '${_walletId}_epicboxConfig', value: stringConfig);
