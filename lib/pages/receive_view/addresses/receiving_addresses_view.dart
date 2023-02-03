@@ -64,7 +64,7 @@ class ReceivingAddressesView extends ConsumerWidget {
             .and()
             .not()
             .typeEqualTo(AddressType.nonWallet)
-            .sortByDerivationIndexDesc()
+            .sortByDerivationIndex()
             .findAll(),
         builder: (context, AsyncSnapshot<List<Address>> snapshot) {
           if (snapshot.connectionState == ConnectionState.done &&
