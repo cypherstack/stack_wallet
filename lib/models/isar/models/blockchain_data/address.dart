@@ -1,4 +1,3 @@
-import 'package:equatable/equatable.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/exceptions/address/address_exception.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/crypto_currency_address.dart';
@@ -13,7 +12,7 @@ class Address extends CryptoCurrencyAddress {
     required this.value,
     required this.publicKey,
     required this.derivationIndex,
-    // required this.derivationPath,
+    required this.derivationPath,
     required this.type,
     required this.subType,
     this.otherData,
@@ -97,7 +96,7 @@ enum AddressSubType {
 }
 
 @Embedded(inheritance: false)
-class DerivationPath extends Equatable {
+class DerivationPath {
   late final String value;
 
   List<String> getComponents() => value.split("/");
@@ -107,7 +106,11 @@ class DerivationPath extends Equatable {
   @override
   toString() => value;
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || other is DerivationPath && value == other.value;
+
   @ignore
   @override
-  List<Object?> get props => [value];
+  int get hashCode => value.hashCode;
 }

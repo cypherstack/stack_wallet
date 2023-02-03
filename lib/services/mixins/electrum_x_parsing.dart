@@ -139,6 +139,7 @@ mixin ElectrumXParsing {
           walletId: walletId,
           value: possible,
           derivationIndex: -1,
+          derivationPath: null,
           subType: AddressSubType.nonWallet,
           type: AddressType.nonWallet,
           publicKey: [],

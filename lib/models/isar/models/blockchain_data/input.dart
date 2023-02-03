@@ -9,6 +9,7 @@ class Input {
     this.vout = -1,
     this.scriptSig,
     this.scriptSigAsm,
+    this.witness,
     this.isCoinbase,
     this.sequence,
     this.innerRedeemScriptAsm,

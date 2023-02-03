@@ -182,6 +182,11 @@ Address _addressDeserialize(
 ) {
   final object = Address(
     derivationIndex: reader.readLong(offsets[0]),
+    derivationPath: reader.readObjectOrNull<DerivationPath>(
+      offsets[1],
+      DerivationPathSchema.deserialize,
+      allOffsets,
+    ),
     otherData: reader.readStringOrNull(offsets[2]),
     publicKey: reader.readByteList(offsets[3]) ?? [],
     subType: _AddresssubTypeValueEnumMap[reader.readByteOrNull(offsets[4])] ??
@@ -190,11 +195,6 @@ Address _addressDeserialize(
         AddressType.p2pkh,
     value: reader.readString(offsets[6]),
     walletId: reader.readString(offsets[7]),
-  );
-  object.derivationPath = reader.readObjectOrNull<DerivationPath>(
-    offsets[1],
-    DerivationPathSchema.deserialize,
-    allOffsets,
   );
   object.id = id;
   return object;

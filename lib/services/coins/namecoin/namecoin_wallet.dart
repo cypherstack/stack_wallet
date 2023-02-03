@@ -420,6 +420,7 @@ class NamecoinWallet extends CoinServiceAPI
           publicKey: node.publicKey,
           value: addressString,
           derivationIndex: index + j,
+          derivationPath: isar_models.DerivationPath()..value = derivePath,
         );
 
         receivingNodes.addAll({
@@ -1517,6 +1518,7 @@ class NamecoinWallet extends CoinServiceAPI
     return isar_models.Address(
       walletId: walletId,
       derivationIndex: index,
+      derivationPath: isar_models.DerivationPath()..value = derivePath,
       value: address,
       publicKey: node.publicKey,
       type: addrType,

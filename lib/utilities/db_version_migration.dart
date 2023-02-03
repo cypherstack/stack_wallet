@@ -494,6 +494,7 @@ class DbVersionMigrator with WalletDB {
             value: tx.address,
             publicKey: [],
             derivationIndex: -1,
+            derivationPath: null,
             type: isar_models.AddressType.unknown,
             subType: type == isar_models.TransactionType.incoming
                 ? isar_models.AddressSubType.receiving
@@ -529,6 +530,7 @@ class DbVersionMigrator with WalletDB {
         value: addr,
         publicKey: Format.stringToUint8List(pubKey),
         derivationIndex: index,
+        derivationPath: null, // we have no idea what the full path is
         type: type,
         subType: subType,
       );
@@ -552,6 +554,7 @@ class DbVersionMigrator with WalletDB {
         value: addr,
         publicKey: [],
         derivationIndex: -1,
+        derivationPath: null, // index unknown
         type: type,
         subType: subType,
       );

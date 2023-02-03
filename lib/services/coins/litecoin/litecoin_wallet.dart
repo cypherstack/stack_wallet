@@ -426,6 +426,7 @@ class LitecoinWallet extends CoinServiceAPI
           publicKey: node.publicKey,
           type: addrType,
           derivationIndex: index + j,
+          derivationPath: isar_models.DerivationPath()..value = derivePath,
           subType: chain == 0
               ? isar_models.AddressSubType.receiving
               : isar_models.AddressSubType.change,
@@ -1263,8 +1264,6 @@ class LitecoinWallet extends CoinServiceAPI
 
   late SecureStorageInterface _secureStore;
 
-
-
   @override
   Future<void> updateNode(bool shouldRefresh) async {
     final failovers = NodeService(secureStorageInterface: _secureStore)
@@ -1540,6 +1539,7 @@ class LitecoinWallet extends CoinServiceAPI
       publicKey: node.publicKey,
       type: addrType,
       derivationIndex: index,
+      derivationPath: isar_models.DerivationPath()..value = derivePath,
       subType: chain == 0
           ? isar_models.AddressSubType.receiving
           : isar_models.AddressSubType.change,

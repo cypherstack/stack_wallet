@@ -398,6 +398,7 @@ class DogecoinWallet extends CoinServiceAPI
               publicKey: node.publicKey,
               type: isar_models.AddressType.p2pkh,
               derivationIndex: index + j,
+              derivationPath: isar_models.DerivationPath()..value = derivePath,
               subType: chain == 0
                   ? isar_models.AddressSubType.receiving
                   : isar_models.AddressSubType.change,
@@ -1332,6 +1333,7 @@ class DogecoinWallet extends CoinServiceAPI
       publicKey: node.publicKey,
       type: isar_models.AddressType.p2pkh,
       derivationIndex: index,
+      derivationPath: isar_models.DerivationPath()..value = derivePath,
       subType: chain == 0
           ? isar_models.AddressSubType.receiving
           : isar_models.AddressSubType.change,

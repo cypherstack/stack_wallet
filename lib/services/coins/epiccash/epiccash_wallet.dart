@@ -865,6 +865,7 @@ class EpicCashWallet extends CoinServiceAPI
         walletId: walletId,
         value: walletAddress!,
         derivationIndex: index,
+        derivationPath: null,
         type: isar_models.AddressType.mimbleWimble,
         subType: isar_models.AddressSubType.receiving,
         publicKey: [], // ??

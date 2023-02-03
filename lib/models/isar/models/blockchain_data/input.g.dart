@@ -124,8 +124,8 @@ Input _inputDeserialize(
     sequence: reader.readLongOrNull(offsets[4]),
     txid: reader.readStringOrNull(offsets[5]) ?? "error",
     vout: reader.readLongOrNull(offsets[6]) ?? -1,
+    witness: reader.readStringOrNull(offsets[7]),
   );
-  object.witness = reader.readStringOrNull(offsets[7]);
   return object;
 }
 

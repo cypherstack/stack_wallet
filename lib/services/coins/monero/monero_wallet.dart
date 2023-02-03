@@ -854,6 +854,7 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     return isar_models.Address(
       walletId: walletId,
       derivationIndex: index,
+      derivationPath: null,
       value: address,
       publicKey: [],
       type: isar_models.AddressType.cryptonote,

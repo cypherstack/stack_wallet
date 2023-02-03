@@ -847,6 +847,8 @@ mixin PaynymWalletInterface {
               value: notificationAddress,
               publicKey: [],
               derivationIndex: 0,
+              derivationPath:
+                  null, // might as well use null due to complexity of context
               type: oldAddress.type,
               subType: AddressSubType.paynymNotification,
               otherData: await storeCode(code.toString()),
@@ -1023,6 +1025,8 @@ mixin PaynymWalletInterface {
       value: addressString,
       publicKey: pair.publicKey,
       derivationIndex: derivationIndex,
+      derivationPath:
+          null, // might as well use null due to complexity of context
       type: AddressType.nonWallet,
       subType: AddressSubType.paynymSend,
       otherData: await storeCode(toPaymentCode.toString()),
@@ -1090,6 +1094,8 @@ mixin PaynymWalletInterface {
       value: addressString,
       publicKey: pair.publicKey,
       derivationIndex: derivationIndex,
+      derivationPath:
+          null, // might as well use null due to complexity of context
       type: addrType,
       subType: AddressSubType.paynymReceive,
       otherData: await storeCode(fromPaymentCode.toString()),
@@ -1214,6 +1220,8 @@ mixin PaynymWalletInterface {
         value: addressString,
         publicKey: paymentCode.getPubKey(),
         derivationIndex: 0,
+        derivationPath:
+            null, // might as well use null due to complexity of context
         type: type,
         subType: AddressSubType.paynymNotification,
         otherData: await storeCode(paymentCode.toString()),

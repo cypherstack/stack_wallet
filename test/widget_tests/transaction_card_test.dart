@@ -66,6 +66,7 @@ void main() {
         value: "",
         publicKey: [],
         derivationIndex: 0,
+        derivationPath: null,
         type: AddressType.p2pkh,
         subType: AddressSubType.receiving);
 
@@ -166,6 +167,7 @@ void main() {
         value: "",
         publicKey: [],
         derivationIndex: 0,
+        derivationPath: null,
         type: AddressType.p2pkh,
         subType: AddressSubType.receiving);
 
@@ -263,6 +265,7 @@ void main() {
         value: "",
         publicKey: [],
         derivationIndex: 0,
+        derivationPath: null,
         type: AddressType.p2pkh,
         subType: AddressSubType.receiving);
 
@@ -354,6 +357,7 @@ void main() {
         value: "",
         publicKey: [],
         derivationIndex: 0,
+        derivationPath: null,
         type: AddressType.p2pkh,
         subType: AddressSubType.receiving);
 

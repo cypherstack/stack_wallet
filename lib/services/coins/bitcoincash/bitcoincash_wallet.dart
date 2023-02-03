@@ -413,6 +413,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
           publicKey: node.publicKey,
           type: addrType,
           derivationIndex: index + j,
+          derivationPath: isar_models.DerivationPath()..value = derivePath,
           subType: chain == 0
               ? isar_models.AddressSubType.receiving
               : isar_models.AddressSubType.change,
@@ -1517,6 +1518,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       publicKey: node.publicKey,
       type: addrType,
       derivationIndex: index,
+      derivationPath: isar_models.DerivationPath()..value = derivePath,
       subType: chain == 0
           ? isar_models.AddressSubType.receiving
           : isar_models.AddressSubType.change,
@@ -2216,6 +2218,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
             publicKey: [],
             type: AddressType.nonWallet,
             derivationIndex: -1,
+            derivationPath: null,
             subType: AddressSubType.nonWallet,
           );
         }

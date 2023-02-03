@@ -457,6 +457,7 @@ class BitcoinWallet extends CoinServiceAPI
           publicKey: node.publicKey,
           type: addrType,
           derivationIndex: index + j,
+          derivationPath: isar_models.DerivationPath()..value = derivePath,
           subType: chain == 0
               ? isar_models.AddressSubType.receiving
               : isar_models.AddressSubType.change,
@@ -1556,6 +1557,7 @@ class BitcoinWallet extends CoinServiceAPI
       publicKey: node.publicKey,
       type: addrType,
       derivationIndex: index,
+      derivationPath: isar_models.DerivationPath()..value = derivePath,
       subType: chain == 0
           ? isar_models.AddressSubType.receiving
           : isar_models.AddressSubType.change,

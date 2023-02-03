@@ -3066,6 +3066,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
               walletId: walletId,
               value: transactionInfo["address"] as String,
               derivationIndex: -1,
+              derivationPath: null,
               type: isar_models.AddressType.nonWallet,
               subType: isar_models.AddressSubType.nonWallet,
               publicKey: [],
@@ -3555,6 +3556,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
                     walletId: walletId,
                     value: outAddress,
                     derivationIndex: -1,
+                    derivationPath: null,
                     type: isar_models.AddressType.nonWallet,
                     subType: isar_models.AddressSubType.nonWallet,
                     publicKey: [],
@@ -3835,7 +3837,11 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       derivations = Map<String, dynamic>.from(
           jsonDecode(changeDerivationsString ?? "{}") as Map);
     }
-
+    final derivePath = constructDerivePath(
+      networkWIF: _network.wif,
+      chain: chain,
+      index: index,
+    );
     if (derivations!.isNotEmpty) {
       if (derivations["$index"] == null) {
         await fillAddresses(
@@ -3854,16 +3860,12 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
             derivations["$index"]['publicKey'] as String),
         type: isar_models.AddressType.p2pkh,
         derivationIndex: index,
+        derivationPath: isar_models.DerivationPath()..value = derivePath,
         subType: chain == 0
             ? isar_models.AddressSubType.receiving
             : isar_models.AddressSubType.change,
       );
     } else {
-      final derivePath = constructDerivePath(
-        networkWIF: _network.wif,
-        chain: chain,
-        index: index,
-      );
       final node = await Bip32Utils.getBip32Node(
         _mnemonic!,
         _mnemonicPassphrase!,
@@ -3882,6 +3884,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
         publicKey: node.publicKey,
         type: isar_models.AddressType.p2pkh,
         derivationIndex: index,
+        derivationPath: isar_models.DerivationPath()..value = derivePath,
         subType: chain == 0
             ? isar_models.AddressSubType.receiving
             : isar_models.AddressSubType.change,
@@ -4299,6 +4302,11 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           int numTxs = await futureNumTxs;
           if (numTxs >= 1) {
             receivingIndex = i;
+            final derivePath = constructDerivePath(
+              networkWIF: _network.wif,
+              chain: 0,
+              index: receivingIndex,
+            );
             final addr = isar_models.Address(
               walletId: walletId,
               value: address,
@@ -4306,6 +4314,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
                   receiveDerivation['publicKey'] as String),
               type: isar_models.AddressType.p2pkh,
               derivationIndex: i,
+              derivationPath: isar_models.DerivationPath()..value = derivePath,
               subType: isar_models.AddressSubType.receiving,
             );
             receivingAddressArray.add(addr);
@@ -4325,6 +4334,11 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           int numTxs = await _futureNumTxs;
           if (numTxs >= 1) {
             changeIndex = i;
+            final derivePath = constructDerivePath(
+              networkWIF: _network.wif,
+              chain: 1,
+              index: changeIndex,
+            );
             final addr = isar_models.Address(
               walletId: walletId,
               value: _address,
@@ -4332,6 +4346,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
                   changeDerivation['publicKey'] as String),
               type: isar_models.AddressType.p2pkh,
               derivationIndex: i,
+              derivationPath: isar_models.DerivationPath()..value = derivePath,
               subType: isar_models.AddressSubType.change,
             );
             changeAddressArray.add(addr);
@@ -4929,6 +4944,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
                 walletId: walletId,
                 value: tx["address"] as String,
                 derivationIndex: -2,
+                derivationPath: null,
                 type: isar_models.AddressType.nonWallet,
                 subType: isar_models.AddressSubType.unknown,
                 publicKey: [],

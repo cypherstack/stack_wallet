@@ -401,6 +401,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
           publicKey: node.publicKey,
           value: addressString,
           derivationIndex: index + j,
+          derivationPath: isar_models.DerivationPath()..value = derivePath,
         );
 
         receivingNodes.addAll({
@@ -1411,6 +1412,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
     return isar_models.Address(
       walletId: walletId,
       derivationIndex: index,
+      derivationPath: isar_models.DerivationPath()..value = derivePath,
       value: address,
       publicKey: node.publicKey,
       type: addrType,
@@ -2175,6 +2177,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
                       value: address,
                       publicKey: [],
                       derivationIndex: -1,
+                      derivationPath: null,
                     );
               }
             } catch (s) {
