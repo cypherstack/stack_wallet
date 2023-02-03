@@ -31,6 +31,7 @@ import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -51,31 +52,15 @@ const String GENESIS_HASH_MAINNET =
 const String GENESIS_HASH_TESTNET =
     "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943";
 
-bip32.BIP32 getBip32Node(int chain, int index, String mnemonic,
-    NetworkType network, DerivePathType derivePathType) {
-  final root = getBip32Root(mnemonic, network);
-
-  final node = getBip32NodeFromRoot(chain, index, root, derivePathType);
-  return node;
-}
-
-/// wrapper for compute()
-bip32.BIP32 getBip32NodeWrapper(
-  Tuple5<int, int, String, NetworkType, DerivePathType> args,
-) {
-  return getBip32Node(
-    args.item1,
-    args.item2,
-    args.item3,
-    args.item4,
-    args.item5,
-  );
-}
-
-bip32.BIP32 getBip32NodeFromRoot(
-    int chain, int index, bip32.BIP32 root, DerivePathType derivePathType) {
+String constructDerivePath({
+  required DerivePathType derivePathType,
+  required int networkWIF,
+  int account = 0,
+  required int chain,
+  required int index,
+}) {
   String coinType;
-  switch (root.network.wif) {
+  switch (networkWIF) {
     case 0x80: // bch mainnet wif
       coinType =
           derivePathType == DerivePathType.bch44 ? "145" : "0"; // bch mainnet
@@ -84,48 +69,23 @@ bip32.BIP32 getBip32NodeFromRoot(
       coinType = "1"; // bch testnet
       break;
     default:
-      throw Exception("Invalid Bitcoincash network type used!");
+      throw Exception("Invalid Bitcoincash network wif used!");
   }
+
+  int purpose;
   switch (derivePathType) {
     case DerivePathType.bip44:
     case DerivePathType.bch44:
-      return root.derivePath("m/44'/$coinType'/0'/$chain/$index");
-    case DerivePathType.bip49:
-      return root.derivePath("m/49'/$coinType'/0'/$chain/$index");
+      purpose = 44;
+      break;
+    case DerivePathType.bip84:
+      purpose = 84;
+      break;
     default:
-      throw Exception("DerivePathType must not be null.");
+      throw Exception("DerivePathType $derivePathType not supported");
   }
-}
 
-/// wrapper for compute()
-bip32.BIP32 getBip32NodeFromRootWrapper(
-  Tuple4<int, int, bip32.BIP32, DerivePathType> args,
-) {
-  return getBip32NodeFromRoot(
-    args.item1,
-    args.item2,
-    args.item3,
-    args.item4,
-  );
-}
-
-bip32.BIP32 getBip32Root(String mnemonic, NetworkType network) {
-  final seed = bip39.mnemonicToSeed(mnemonic);
-  final networkType = bip32.NetworkType(
-    wif: network.wif,
-    bip32: bip32.Bip32Type(
-      public: network.bip32.public,
-      private: network.bip32.private,
-    ),
-  );
-
-  final root = bip32.BIP32.fromSeed(seed, networkType);
-  return root;
-}
-
-/// wrapper for compute()
-bip32.BIP32 getBip32RootWrapper(Tuple2<String, NetworkType> args) {
-  return getBip32Root(args.item1, args.item2);
+  return "m/$purpose'/$coinType'/$account'/$chain/$index";
 }
 
 class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
@@ -214,6 +174,15 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<List<String>> get mnemonic => _getMnemonicList();
 
+  @override
+  Future<String?> get mnemonicString =>
+      _secureStore.read(key: '${_walletId}_mnemonic');
+
+  @override
+  Future<String?> get mnemonicPassphrase => _secureStore.read(
+        key: '${_walletId}_mnemonicPassphrase',
+      );
+
   Future<int> get chainHeight async {
     try {
       final result = await _electrumXClient.getBlockHeadTip();
@@ -250,7 +219,9 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
           throw ArgumentError('$address is not currently supported');
         }
       }
-    } catch (e, s) {}
+    } catch (_) {
+      // invalid cash addr format
+    }
     try {
       decodeBase58 = bs58check.decode(address);
     } catch (err) {
@@ -291,6 +262,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<void> recoverFromMnemonic({
     required String mnemonic,
+    String? mnemonicPassphrase,
     required int maxUnusedAddressGap,
     required int maxNumberOfIndexesToCheck,
     required int height,
@@ -321,14 +293,21 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       }
       // check to make sure we aren't overwriting a mnemonic
       // this should never fail
-      if ((await _secureStore.read(key: '${_walletId}_mnemonic')) != null) {
+      if ((await mnemonicString) != null ||
+          (await this.mnemonicPassphrase) != null) {
         longMutex = false;
         throw Exception("Attempted to overwrite mnemonic on restore!");
       }
       await _secureStore.write(
           key: '${_walletId}_mnemonic', value: mnemonic.trim());
+      await _secureStore.write(
+        key: '${_walletId}_mnemonicPassphrase',
+        value: mnemonicPassphrase ?? "",
+      );
+
       await _recoverWalletFromBIP32SeedPhrase(
         mnemonic: mnemonic.trim(),
+        mnemonicPassphrase: mnemonicPassphrase ?? "",
         maxUnusedAddressGap: maxUnusedAddressGap,
         maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
         coin: coin,
@@ -372,15 +351,14 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       final Map<String, dynamic> receivingNodes = {};
 
       for (int j = 0; j < txCountBatchSize; j++) {
-        final node = await compute(
-          getBip32NodeFromRootWrapper,
-          Tuple4(
-            chain,
-            index + j,
-            root,
-            type,
-          ),
+        final derivePath = constructDerivePath(
+          derivePathType: type,
+          networkWIF: root.network.wif,
+          chain: chain,
+          index: index + j,
         );
+        final node = await Bip32Utils.getBip32NodeFromRoot(root, derivePath);
+
         String addressString;
         final data = PaymentData(pubkey: node.publicKey);
         isar_models.AddressType addrType;
@@ -493,6 +471,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Future<void> _recoverWalletFromBIP32SeedPhrase({
     required String mnemonic,
+    required String mnemonicPassphrase,
     int maxUnusedAddressGap = 20,
     int maxNumberOfIndexesToCheck = 1000,
     bool isRescan = false,
@@ -507,7 +486,11 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
     Map<String, Map<String, String>> bch44P2pkhChangeDerivations = {};
     Map<String, Map<String, String>> p2shChangeDerivations = {};
 
-    final root = await compute(getBip32RootWrapper, Tuple2(mnemonic, _network));
+    final root = await Bip32Utils.getBip32Root(
+      mnemonic,
+      mnemonicPassphrase,
+      _network,
+    );
 
     List<isar_models.Address> bip44P2pkhReceiveAddressArray = [];
     List<isar_models.Address> bch44P2pkhReceiveAddressArray = [];
@@ -531,7 +514,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
     const txCountBatchSize = 12;
 
     try {
-      bool testnet = ((coin ?? null) == Coin.bitcoincashTestnet) ? true : false;
+      bool testnet = ((coin) == Coin.bitcoincashTestnet) ? true : false;
       // receiving addresses
       Logging.instance
           .log("checking receiving addresses...", level: LogLevel.Info);
@@ -1334,12 +1317,11 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   Future<List<String>> _getMnemonicList() async {
-    final mnemonicString =
-        await _secureStore.read(key: '${_walletId}_mnemonic');
-    if (mnemonicString == null) {
+    final _mnemonicString = await mnemonicString;
+    if (_mnemonicString == null) {
       return [];
     }
-    final List<String> data = mnemonicString.split(' ');
+    final List<String> data = _mnemonicString.split(' ');
     return data;
   }
 
@@ -1440,13 +1422,14 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
     }
 
     // this should never fail
-    if ((await _secureStore.read(key: '${_walletId}_mnemonic')) != null) {
+    if ((await mnemonicString) != null || (await mnemonicPassphrase) != null) {
       throw Exception(
           "Attempted to overwrite mnemonic on generate new wallet!");
     }
     await _secureStore.write(
         key: '${_walletId}_mnemonic',
         value: bip39.generateMnemonic(strength: 256));
+    await _secureStore.write(key: '${_walletId}_mnemonicPassphrase', value: "");
 
     // Generate and add addresses to relevant arrays
     final initialAddresses = await Future.wait([
@@ -1472,17 +1455,22 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
     int index,
     DerivePathType derivePathType,
   ) async {
-    final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
-    final node = await compute(
-      getBip32NodeWrapper,
-      Tuple5(
-        chain,
-        index,
-        mnemonic!,
-        _network,
-        derivePathType,
-      ),
+    final _mnemonic = await mnemonicString;
+    final _mnemonicPassphrase = await mnemonicPassphrase;
+
+    final derivePath = constructDerivePath(
+      derivePathType: derivePathType,
+      networkWIF: _network.wif,
+      chain: chain,
+      index: index,
     );
+    final node = await Bip32Utils.getBip32Node(
+      _mnemonic!,
+      _mnemonicPassphrase!,
+      _network,
+      derivePath,
+    );
+
     final data = PaymentData(pubkey: node.publicKey);
 
     String address;
@@ -2970,9 +2958,12 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
     await _deleteDerivations();
 
     try {
-      final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
+      final _mnemonic = await mnemonicString;
+      final _mnemonicPassphrase = await mnemonicPassphrase;
+
       await _recoverWalletFromBIP32SeedPhrase(
-        mnemonic: mnemonic!,
+        mnemonic: _mnemonic!,
+        mnemonicPassphrase: _mnemonicPassphrase!,
         maxUnusedAddressGap: maxUnusedAddressGap,
         maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
         isRescan: true,

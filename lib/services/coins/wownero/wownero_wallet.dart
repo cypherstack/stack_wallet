@@ -319,7 +319,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     await _prefs.init();
 
     // this should never fail
-    if ((await _secureStorage.read(key: '${_walletId}_mnemonic')) != null) {
+    if ((await mnemonicString) != null || (await mnemonicPassphrase) != null) {
       throw Exception(
           "Attempted to overwrite mnemonic on generate new wallet!");
     }
@@ -377,6 +377,10 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       await _secureStorage.write(
           key: '${_walletId}_mnemonic', value: wallet?.seed.trim());
+      await _secureStorage.write(
+        key: '${_walletId}_mnemonicPassphrase',
+        value: "",
+      );
 
       walletInfo.address = wallet?.walletAddresses.address;
       await DB.instance
@@ -427,14 +431,22 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<List<String>> get mnemonic async {
-    final mnemonicString =
-        await _secureStorage.read(key: '${_walletId}_mnemonic');
-    if (mnemonicString == null) {
+    final _mnemonicString = await mnemonicString;
+    if (_mnemonicString == null) {
       return [];
     }
-    final List<String> data = mnemonicString.split(' ');
+    final List<String> data = _mnemonicString.split(' ');
     return data;
   }
+
+  @override
+  Future<String?> get mnemonicString =>
+      _secureStorage.read(key: '${_walletId}_mnemonic');
+
+  @override
+  Future<String?> get mnemonicPassphrase => _secureStorage.read(
+        key: '${_walletId}_mnemonicPassphrase',
+      );
 
   @override
   Future<Map<String, dynamic>> prepareSend({
@@ -528,6 +540,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<void> recoverFromMnemonic({
     required String mnemonic,
+    String? mnemonicPassphrase, // not used at the moment
     required int maxUnusedAddressGap,
     required int maxNumberOfIndexesToCheck,
     required int height,
@@ -543,12 +556,17 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     try {
       // check to make sure we aren't overwriting a mnemonic
       // this should never fail
-      if ((await _secureStorage.read(key: '${_walletId}_mnemonic')) != null) {
+      if ((await mnemonicString) != null ||
+          (await this.mnemonicPassphrase) != null) {
         longMutex = false;
         throw Exception("Attempted to overwrite mnemonic on restore!");
       }
       await _secureStorage.write(
           key: '${_walletId}_mnemonic', value: mnemonic.trim());
+      await _secureStorage.write(
+        key: '${_walletId}_mnemonicPassphrase',
+        value: mnemonicPassphrase ?? "",
+      );
 
       // extract seed height from 14 word seed
       if (seedLength == 14) {

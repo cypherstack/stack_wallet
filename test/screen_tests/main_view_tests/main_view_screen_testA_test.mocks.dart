@@ -408,6 +408,11 @@ class MockManager extends _i1.Mock implements _i9.Manager {
         returnValue: _i6.Future<List<String>>.value(<String>[]),
       ) as _i6.Future<List<String>>);
   @override
+  _i6.Future<String?> get mnemonicPassphrase => (super.noSuchMethod(
+        Invocation.getter(#mnemonicPassphrase),
+        returnValue: _i6.Future<String?>.value(),
+      ) as _i6.Future<String?>);
+  @override
   bool get isConnected => (super.noSuchMethod(
         Invocation.getter(#isConnected),
         returnValue: false,
@@ -519,6 +524,7 @@ class MockManager extends _i1.Mock implements _i9.Manager {
   @override
   _i6.Future<void> recoverFromMnemonic({
     required String? mnemonic,
+    String? mnemonicPassphrase,
     required int? maxUnusedAddressGap,
     required int? maxNumberOfIndexesToCheck,
     required int? height,
@@ -529,6 +535,7 @@ class MockManager extends _i1.Mock implements _i9.Manager {
           [],
           {
             #mnemonic: mnemonic,
+            #mnemonicPassphrase: mnemonicPassphrase,
             #maxUnusedAddressGap: maxUnusedAddressGap,
             #maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
             #height: height,

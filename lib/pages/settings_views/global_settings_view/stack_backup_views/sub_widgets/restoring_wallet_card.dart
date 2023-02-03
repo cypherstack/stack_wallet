@@ -109,6 +109,8 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                       if (mnemonicList.isEmpty) {
                         await manager.recoverFromMnemonic(
                           mnemonic: ref.read(provider).mnemonic!,
+                          mnemonicPassphrase:
+                              ref.read(provider).mnemonicPassphrase!,
                           maxUnusedAddressGap: maxUnusedAddressGap,
                           maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
                           height: ref.read(provider).height ?? 0,
@@ -250,6 +252,8 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                         if (mnemonicList.isEmpty) {
                           await manager.recoverFromMnemonic(
                             mnemonic: ref.read(provider).mnemonic!,
+                            mnemonicPassphrase:
+                                ref.read(provider).mnemonicPassphrase!,
                             maxUnusedAddressGap: maxUnusedAddressGap,
                             maxNumberOfIndexesToCheck:
                                 maxNumberOfIndexesToCheck,

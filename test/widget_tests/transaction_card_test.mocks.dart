@@ -528,6 +528,11 @@ class MockManager extends _i1.Mock implements _i6.Manager {
         returnValue: _i18.Future<List<String>>.value(<String>[]),
       ) as _i18.Future<List<String>>);
   @override
+  _i18.Future<String?> get mnemonicPassphrase => (super.noSuchMethod(
+        Invocation.getter(#mnemonicPassphrase),
+        returnValue: _i18.Future<String?>.value(),
+      ) as _i18.Future<String?>);
+  @override
   bool get isConnected => (super.noSuchMethod(
         Invocation.getter(#isConnected),
         returnValue: false,
@@ -639,6 +644,7 @@ class MockManager extends _i1.Mock implements _i6.Manager {
   @override
   _i18.Future<void> recoverFromMnemonic({
     required String? mnemonic,
+    String? mnemonicPassphrase,
     required int? maxUnusedAddressGap,
     required int? maxNumberOfIndexesToCheck,
     required int? height,
@@ -649,6 +655,7 @@ class MockManager extends _i1.Mock implements _i6.Manager {
           [],
           {
             #mnemonic: mnemonic,
+            #mnemonicPassphrase: mnemonicPassphrase,
             #maxUnusedAddressGap: maxUnusedAddressGap,
             #maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
             #height: height,
@@ -845,6 +852,16 @@ class MockCoinServiceAPI extends _i1.Mock implements _i7.CoinServiceAPI {
         returnValue: _i18.Future<List<String>>.value(<String>[]),
       ) as _i18.Future<List<String>>);
   @override
+  _i18.Future<String?> get mnemonicString => (super.noSuchMethod(
+        Invocation.getter(#mnemonicString),
+        returnValue: _i18.Future<String?>.value(),
+      ) as _i18.Future<String?>);
+  @override
+  _i18.Future<String?> get mnemonicPassphrase => (super.noSuchMethod(
+        Invocation.getter(#mnemonicPassphrase),
+        returnValue: _i18.Future<String?>.value(),
+      ) as _i18.Future<String?>);
+  @override
   bool get hasCalledExit => (super.noSuchMethod(
         Invocation.getter(#hasCalledExit),
         returnValue: false,
@@ -925,6 +942,7 @@ class MockCoinServiceAPI extends _i1.Mock implements _i7.CoinServiceAPI {
   @override
   _i18.Future<void> recoverFromMnemonic({
     required String? mnemonic,
+    String? mnemonicPassphrase,
     required int? maxUnusedAddressGap,
     required int? maxNumberOfIndexesToCheck,
     required int? height,
@@ -935,6 +953,7 @@ class MockCoinServiceAPI extends _i1.Mock implements _i7.CoinServiceAPI {
           [],
           {
             #mnemonic: mnemonic,
+            #mnemonicPassphrase: mnemonicPassphrase,
             #maxUnusedAddressGap: maxUnusedAddressGap,
             #maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
             #height: height,
@@ -1129,6 +1148,16 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
         Invocation.getter(#mnemonic),
         returnValue: _i18.Future<List<String>>.value(<String>[]),
       ) as _i18.Future<List<String>>);
+  @override
+  _i18.Future<String?> get mnemonicString => (super.noSuchMethod(
+        Invocation.getter(#mnemonicString),
+        returnValue: _i18.Future<String?>.value(),
+      ) as _i18.Future<String?>);
+  @override
+  _i18.Future<String?> get mnemonicPassphrase => (super.noSuchMethod(
+        Invocation.getter(#mnemonicPassphrase),
+        returnValue: _i18.Future<String?>.value(),
+      ) as _i18.Future<String?>);
   @override
   _i18.Future<int> get maxFee => (super.noSuchMethod(
         Invocation.getter(#maxFee),
@@ -1553,14 +1582,18 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
       ) as _i18.Future<void>);
   @override
   _i18.Future<void> fillAddresses(
-    String? suppliedMnemonic, {
+    String? suppliedMnemonic,
+    String? mnemonicPassphrase, {
     int? perBatch = 50,
     int? numberOfThreads = 4,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
           #fillAddresses,
-          [suppliedMnemonic],
+          [
+            suppliedMnemonic,
+            mnemonicPassphrase,
+          ],
           {
             #perBatch: perBatch,
             #numberOfThreads: numberOfThreads,
@@ -1588,6 +1621,7 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
   @override
   _i18.Future<void> recoverFromMnemonic({
     required String? mnemonic,
+    String? mnemonicPassphrase,
     required int? maxUnusedAddressGap,
     required int? maxNumberOfIndexesToCheck,
     required int? height,
@@ -1598,6 +1632,7 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
           [],
           {
             #mnemonic: mnemonic,
+            #mnemonicPassphrase: mnemonicPassphrase,
             #maxUnusedAddressGap: maxUnusedAddressGap,
             #maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
             #height: height,

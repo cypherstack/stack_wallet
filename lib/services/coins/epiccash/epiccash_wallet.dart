@@ -1103,32 +1103,39 @@ class EpicCashWallet extends CoinServiceAPI
   bool get isRefreshing => refreshMutex;
 
   @override
-  // TODO: implement maxFee
+  // unused for epic
   Future<int> get maxFee => throw UnimplementedError();
 
   Future<List<String>> _getMnemonicList() async {
-    if ((await _secureStore.read(key: '${_walletId}_mnemonic')) != null) {
-      final mnemonicString =
-          await _secureStore.read(key: '${_walletId}_mnemonic');
-      final List<String> data = mnemonicString!.split(' ');
+    String? _mnemonicString = await mnemonicString;
+    if (_mnemonicString != null) {
+      final List<String> data = _mnemonicString.split(' ');
       return data;
     } else {
-      String? mnemonicString;
       await m.protect(() async {
-        mnemonicString = await compute(
+        _mnemonicString = await compute(
           _walletMnemonicWrapper,
           0,
         );
       });
       await _secureStore.write(
-          key: '${_walletId}_mnemonic', value: mnemonicString);
-      final List<String> data = mnemonicString!.split(' ');
+          key: '${_walletId}_mnemonic', value: _mnemonicString);
+      final List<String> data = _mnemonicString!.split(' ');
       return data;
     }
   }
 
   @override
   Future<List<String>> get mnemonic => _getMnemonicList();
+
+  @override
+  Future<String?> get mnemonicString =>
+      _secureStore.read(key: '${_walletId}_mnemonic');
+
+  @override
+  Future<String?> get mnemonicPassphrase => _secureStore.read(
+        key: '${_walletId}_mnemonicPassphrase',
+      );
 
   @override
   Future<Map<String, dynamic>> prepareSend(
@@ -1359,11 +1366,13 @@ class EpicCashWallet extends CoinServiceAPI
   double highestPercent = 0;
 
   @override
-  Future<void> recoverFromMnemonic(
-      {required String mnemonic,
-      required int maxUnusedAddressGap,
-      required int maxNumberOfIndexesToCheck,
-      required int height}) async {
+  Future<void> recoverFromMnemonic({
+    required String mnemonic,
+    required String mnemonicPassphrase, // unused in epic
+    required int maxUnusedAddressGap,
+    required int maxNumberOfIndexesToCheck,
+    required int height,
+  }) async {
     try {
       await _prefs.init();
       await updateNode(false);

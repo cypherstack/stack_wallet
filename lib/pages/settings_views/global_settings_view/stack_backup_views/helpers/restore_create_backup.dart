@@ -357,7 +357,9 @@ abstract class SWB {
     List<String> mnemonicList = (walletbackup['mnemonic'] as List<dynamic>)
         .map<String>((e) => e as String)
         .toList();
-    String mnemonic = mnemonicList.join(" ").trim();
+    final String mnemonic = mnemonicList.join(" ").trim();
+    final String mnemonicPassphrase =
+        walletbackup['mnemonicPassphrase'] as String? ?? "";
 
     uiState?.update(
       walletId: manager.walletId,
@@ -403,6 +405,7 @@ abstract class SWB {
       // without using them
       await manager.recoverFromMnemonic(
         mnemonic: mnemonic,
+        mnemonicPassphrase: mnemonicPassphrase,
         maxUnusedAddressGap: manager.coin == Coin.firo ? 50 : 20,
         maxNumberOfIndexesToCheck: 1000,
         height: restoreHeight,

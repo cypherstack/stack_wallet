@@ -160,6 +160,7 @@ class Manager with ChangeNotifier {
       _currentWallet.validateAddress(address);
 
   Future<List<String>> get mnemonic => _currentWallet.mnemonic;
+  Future<String?> get mnemonicPassphrase => _currentWallet.mnemonicPassphrase;
 
   Future<bool> testNetworkConnection() =>
       _currentWallet.testNetworkConnection();
@@ -168,6 +169,7 @@ class Manager with ChangeNotifier {
   Future<void> initializeExisting() => _currentWallet.initializeExisting();
   Future<void> recoverFromMnemonic({
     required String mnemonic,
+    String? mnemonicPassphrase,
     required int maxUnusedAddressGap,
     required int maxNumberOfIndexesToCheck,
     required int height,
@@ -175,6 +177,7 @@ class Manager with ChangeNotifier {
     try {
       await _currentWallet.recoverFromMnemonic(
         mnemonic: mnemonic,
+        mnemonicPassphrase: mnemonicPassphrase,
         maxUnusedAddressGap: maxUnusedAddressGap,
         maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
         height: height,
