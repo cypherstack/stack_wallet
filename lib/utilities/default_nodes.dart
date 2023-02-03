@@ -31,7 +31,9 @@ abstract class DefaultNodes {
   }
 
   static final String defaultEpicBoxConfig = jsonEncode({
-    "domain": "209.127.179.199",
-    "port": 13420,
+    "epicbox_domain": "epicbox.epic.tech",
+    "epicbox_port": 443,
+    "epicbox_protocol_unsecure": false,
+    "epicbox_address_index": 0,
   });
 }
