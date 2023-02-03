@@ -1368,7 +1368,7 @@ class EpicCashWallet extends CoinServiceAPI
   @override
   Future<void> recoverFromMnemonic({
     required String mnemonic,
-    required String mnemonicPassphrase, // unused in epic
+    String? mnemonicPassphrase, // unused in epic
     required int maxUnusedAddressGap,
     required int maxNumberOfIndexesToCheck,
     required int height,

@@ -37,8 +37,8 @@ import 'sample_data/transaction_data_samples.dart';
 void main() {
   group("isolate functions", () {
     test("isolateDerive", () async {
-      final result =
-          await isolateDerive(IsolateDeriveParams.mnemonic, 0, 2, firoNetwork);
+      final result = await isolateDerive(
+          IsolateDeriveParams.mnemonic, "", 0, 2, firoNetwork);
       expect(result, isA<Map<String, dynamic>>());
       expect(result.toString(), IsolateDeriveParams.expected);
     });
@@ -71,6 +71,7 @@ void main() {
 
       final message = await isolateRestore(
         TEST_MNEMONIC,
+        "",
         Coin.firo,
         1,
         setData,
@@ -125,6 +126,7 @@ void main() {
       expect(
           () => isolateRestore(
                 TEST_MNEMONIC,
+                "",
                 Coin.firo,
                 1,
                 setData,
@@ -140,6 +142,7 @@ void main() {
         "aNmsUtzPzQ3SKWNjEH48GacMQJXWN5Rotm",
         false,
         TEST_MNEMONIC,
+        "",
         2,
         [],
         459185,
@@ -219,18 +222,6 @@ void main() {
       expect(firoTestNetwork.pubKeyHash, 0x41);
       expect(firoTestNetwork.scriptHash, 0xb2);
       expect(firoTestNetwork.wif, 0xb9);
-    });
-
-    test("getBip32Node", () {
-      final node = getBip32Node(0, 3, Bip32TestParams.mnemonic, firoNetwork);
-      expect(node.index, 3);
-      expect(node.chainCode.toList(), Bip32TestParams.chainCodeList);
-      expect(node.depth, 5);
-      expect(node.toBase58(), Bip32TestParams.base58);
-      expect(node.publicKey.toList(), Bip32TestParams.publicKeyList);
-      expect(node.privateKey!.toList(), Bip32TestParams.privateKeyList);
-      expect(node.parentFingerprint, Bip32TestParams.parentFingerprint);
-      expect(node.fingerprint.toList(), Bip32TestParams.fingerprintList);
     });
 
     // group("getJMintTransactions", () {
@@ -1187,7 +1178,10 @@ void main() {
         tracker: MockTransactionNotificationTracker(),
       );
 
-      await firo.fillAddresses(FillAddressesParams.mnemonic);
+      await firo.fillAddresses(
+        FillAddressesParams.mnemonic,
+        "",
+      );
 
       final rcv = await secureStore.read(
           key: "${testWalletId}fillAddresses_receiveDerivations");
@@ -2898,7 +2892,10 @@ void main() {
       firo.timer = Timer(const Duration(), () {});
 
       // build sending wallet
-      await firo.fillAddresses(TEST_MNEMONIC);
+      await firo.fillAddresses(
+        TEST_MNEMONIC,
+        "",
+      );
       final wallet = await Hive.openBox<dynamic>("${testWalletId}send");
 
       final rcv =

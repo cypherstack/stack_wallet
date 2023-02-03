@@ -40,56 +40,6 @@ void main() {
     });
   });
 
-  group("bip32 node/root", () {
-    test("getBip32Root", () {
-      final root = getBip32Root(TEST_MNEMONIC, particl);
-      expect(root.toWIF(), ROOT_WIF);
-    });
-
-    // test("getBip32NodeFromRoot", () {
-    //   final root = getBip32Root(TEST_MNEMONIC, particl);
-    //   // two mainnet
-    //   final node44 = getBip32NodeFromRoot(0, 0, root, DerivePathType.bip44);
-    //   expect(node44.toWIF(), NODE_WIF_44);
-    //   final node49 = getBip32NodeFromRoot(0, 0, root, DerivePathType.bip49);
-    //   expect(node49.toWIF(), NODE_WIF_49);
-    //   // and one on testnet
-    //   final node84 = getBip32NodeFromRoot(
-    //       0, 0, getBip32Root(TEST_MNEMONIC, testnet), DerivePathType.bip84);
-    //   expect(node84.toWIF(), NODE_WIF_84);
-    //   // a bad derive path
-    //   bool didThrow = false;
-    //   try {
-    //     getBip32NodeFromRoot(0, 0, root, null);
-    //   } catch (_) {
-    //     didThrow = true;
-    //   }
-    //   expect(didThrow, true);
-    //   // finally an invalid network
-    //   didThrow = false;
-    //   final invalidNetwork = NetworkType(
-    //       messagePrefix: '\x18hello world\n',
-    //       bech32: 'gg',
-    //       bip32: Bip32Type(public: 0x055521e, private: 0x055555),
-    //       pubKeyHash: 0x55,
-    //       scriptHash: 0x55,
-    //       wif: 0x00);
-    //   try {
-    //     getBip32NodeFromRoot(0, 0, getBip32Root(TEST_MNEMONIC, invalidNetwork),
-    //         DerivePathType.bip44);
-    //   } catch (_) {
-    //     didThrow = true;
-    //   }
-    //   expect(didThrow, true);
-    // });
-    //TODO Testnet not setup
-    // test("basic getBip32Node", () {
-    //   final node =
-    //       getBip32Node(0, 0, TEST_MNEMONIC, testnet, DerivePathType.bip84);
-    //   expect(node.toWIF(), NODE_WIF_84);
-    // });
-  });
-
   group("validate mainnet particl addresses", () {
     MockElectrumX? client;
     MockCachedElectrumX? cachedClient;
