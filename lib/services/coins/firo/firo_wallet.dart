@@ -427,10 +427,9 @@ Future<Map<dynamic, dynamic>> staticProcessRestore(
           isLelantus: true,
           slateId: null,
           otherData: txid,
-        )
-          ..inputs.addAll(element.inputs)
-          ..outputs.addAll(element.outputs)
-          ..address.value = element.address.value;
+          inputs: element.inputs,
+          outputs: element.outputs,
+        )..address.value = element.address.value;
       }
     });
   }
@@ -831,6 +830,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       isLelantus: false,
       otherData: null,
       slateId: null,
+      inputs: [],
+      outputs: [],
     );
 
     final address = txData["address"] is String
@@ -839,7 +840,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
 
     await db.addNewTransactionData(
       [
-        Tuple4(transaction, [], [], address),
+        Tuple2(transaction, address),
       ],
       walletId,
     );
@@ -2852,9 +2853,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
 
     // TODO: optimize this whole lelantus process
 
-    final List<
-        Tuple4<isar_models.Transaction, List<isar_models.Output>,
-            List<isar_models.Input>, isar_models.Address?>> txnsData = [];
+    final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
+        [];
 
     for (final value in data.values) {
       // allow possible null address on mints as we don't display address
@@ -2869,7 +2869,9 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           value.item2.outputs.where((_) => true).toList(growable: false);
       final ins = value.item2.inputs.where((_) => true).toList(growable: false);
 
-      txnsData.add(Tuple4(value.item2, outs, ins, transactionAddress));
+      txnsData.add(Tuple2(
+          value.item2.copyWith(inputs: ins, outputs: outs).item1,
+          transactionAddress));
     }
 
     await db.addNewTransactionData(txnsData, walletId);
@@ -2992,6 +2994,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           isLelantus: true,
           slateId: null,
           otherData: transactionInfo["otherData"] as String?,
+          inputs: [],
+          outputs: [],
         );
 
         final transactionAddress = await db
@@ -3008,11 +3012,10 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
               publicKey: [],
             );
 
-        final List<
-            Tuple4<isar_models.Transaction, List<isar_models.Output>,
-                List<isar_models.Input>, isar_models.Address?>> txnsData = [];
+        final List<Tuple2<isar_models.Transaction, isar_models.Address?>>
+            txnsData = [];
 
-        txnsData.add(Tuple4(transaction, [], [], transactionAddress));
+        txnsData.add(Tuple2(transaction, transactionAddress));
 
         await db.addNewTransactionData(txnsData, walletId);
 
@@ -3344,9 +3347,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       }
     }
 
-    final List<
-        Tuple4<isar_models.Transaction, List<isar_models.Output>,
-            List<isar_models.Input>, isar_models.Address?>> txnsData = [];
+    final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
+        [];
 
     Set<String> changeAddresses = allAddresses
         .where((e) => e.subType == isar_models.AddressSubType.change)
@@ -3499,29 +3501,12 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
                     publicKey: [],
                   ));
 
-      final tx = isar_models.Transaction(
-        walletId: walletId,
-        txid: txObject["txid"] as String,
-        timestamp: txObject["blocktime"] as int? ??
-            (DateTime.now().millisecondsSinceEpoch ~/ 1000),
-        type: type,
-        subType: subType,
-        amount: amount,
-        fee: fees,
-        height: txObject["height"] as int? ?? 0,
-        isCancelled: false,
-        isLelantus: false,
-        slateId: null,
-        otherData: null,
-      );
-
       List<isar_models.Output> outs = [];
       List<isar_models.Input> ins = [];
 
       for (final json in txObject["vin"] as List) {
         bool isCoinBase = json['coinbase'] != null;
         final input = isar_models.Input(
-          walletId: walletId,
           txid: json['txid'] as String? ?? "",
           vout: json['vout'] as int? ?? -1,
           scriptSig: json['scriptSig']?['hex'] as String?,
@@ -3535,7 +3520,6 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
 
       for (final json in txObject["vout"] as List) {
         final output = isar_models.Output(
-          walletId: walletId,
           scriptPubKey: json['scriptPubKey']?['hex'] as String?,
           scriptPubKeyAsm: json['scriptPubKey']?['asm'] as String?,
           scriptPubKeyType: json['scriptPubKey']?['type'] as String?,
@@ -3550,7 +3534,25 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
         outs.add(output);
       }
 
-      txnsData.add(Tuple4(tx, outs, ins, transactionAddress));
+      final tx = isar_models.Transaction(
+        walletId: walletId,
+        txid: txObject["txid"] as String,
+        timestamp: txObject["blocktime"] as int? ??
+            (DateTime.now().millisecondsSinceEpoch ~/ 1000),
+        type: type,
+        subType: subType,
+        amount: amount,
+        fee: fees,
+        height: txObject["height"] as int? ?? 0,
+        isCancelled: false,
+        isLelantus: false,
+        slateId: null,
+        otherData: null,
+        inputs: ins,
+        outputs: outs,
+      );
+
+      txnsData.add(Tuple2(tx, transactionAddress));
     }
 
     await db.addNewTransactionData(txnsData, walletId);
@@ -4373,9 +4375,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       data[element.value.txid] = Tuple2(address, element.value);
     }
 
-    final List<
-        Tuple4<isar_models.Transaction, List<isar_models.Output>,
-            List<isar_models.Input>, isar_models.Address?>> txnsData = [];
+    final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
+        [];
 
     for (final value in data.values) {
       final transactionAddress = value.item1!;
@@ -4383,7 +4384,9 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           value.item2.outputs.where((_) => true).toList(growable: false);
       final ins = value.item2.inputs.where((_) => true).toList(growable: false);
 
-      txnsData.add(Tuple4(value.item2, outs, ins, transactionAddress));
+      txnsData.add(Tuple2(
+          value.item2.copyWith(inputs: ins, outputs: outs).item1,
+          transactionAddress));
     }
 
     await db.addNewTransactionData(txnsData, walletId);
@@ -4813,6 +4816,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
             isLelantus: true,
             slateId: null,
             otherData: null,
+            inputs: [],
+            outputs: [],
           );
 
           final address = await db

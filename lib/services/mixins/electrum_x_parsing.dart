@@ -7,8 +7,7 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:tuple/tuple.dart';
 
 mixin ElectrumXParsing {
-  Future<Tuple4<Transaction, List<Output>, List<Input>, Address>>
-      parseTransaction(
+  Future<Tuple2<Transaction, Address>> parseTransaction(
     Map<String, dynamic> txData,
     dynamic electrumxClient,
     List<Address> myAddresses,
@@ -157,7 +156,6 @@ mixin ElectrumXParsing {
     for (final json in txData["vin"] as List) {
       bool isCoinBase = json['coinbase'] != null;
       final input = Input(
-        walletId: walletId,
         txid: json['txid'] as String,
         vout: json['vout'] as int? ?? -1,
         scriptSig: json['scriptSig']?['hex'] as String?,
@@ -171,7 +169,6 @@ mixin ElectrumXParsing {
 
     for (final json in txData["vout"] as List) {
       final output = Output(
-        walletId: walletId,
         scriptPubKey: json['scriptPubKey']?['hex'] as String?,
         scriptPubKeyAsm: json['scriptPubKey']?['asm'] as String?,
         scriptPubKeyType: json['scriptPubKey']?['type'] as String?,
@@ -217,8 +214,10 @@ mixin ElectrumXParsing {
       isLelantus: false,
       slateId: null,
       otherData: null,
+      inputs: ins,
+      outputs: outs,
     );
 
-    return Tuple4(tx, outs, ins, transactionAddress);
+    return Tuple2(tx, transactionAddress);
   }
 }

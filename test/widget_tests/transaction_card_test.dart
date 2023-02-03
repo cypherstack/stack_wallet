@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockingjay/mockingjay.dart' as mockingjay;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/models/isar/models/address/address.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -47,25 +47,27 @@ void main() {
     final mockPriceService = MockPriceService();
 
     final tx = Transaction(
-        txid: "some txid",
-        timestamp: 1648595998,
-        type: TransactionType.outgoing,
-        amount: 100000000,
-        fee: 3794,
-        height: 450123,
-        subType: TransactionSubType.none,
-        isCancelled: false,
-        walletId: '',
-        isLelantus: null,
-        slateId: '',
-        otherData: '')
-      ..address.value = Address(
-          walletId: "walletId",
-          value: "",
-          publicKey: [],
-          derivationIndex: 0,
-          type: AddressType.p2pkh,
-          subType: AddressSubType.receiving);
+      txid: "some txid",
+      timestamp: 1648595998,
+      type: TransactionType.outgoing,
+      amount: 100000000,
+      fee: 3794,
+      height: 450123,
+      subType: TransactionSubType.none,
+      isCancelled: false,
+      walletId: '',
+      isLelantus: null,
+      slateId: '',
+      otherData: '',
+      inputs: [],
+      outputs: [],
+    )..address.value = Address(
+        walletId: "walletId",
+        value: "",
+        publicKey: [],
+        derivationIndex: 0,
+        type: AddressType.p2pkh,
+        subType: AddressSubType.receiving);
 
     final CoinServiceAPI wallet = MockFiroWallet();
 
@@ -145,25 +147,27 @@ void main() {
     final mockPriceService = MockPriceService();
 
     final tx = Transaction(
-        txid: "some txid",
-        timestamp: 1648595998,
-        type: TransactionType.outgoing,
-        amount: 9659,
-        fee: 3794,
-        height: 450123,
-        subType: TransactionSubType.mint,
-        isCancelled: false,
-        walletId: '',
-        isLelantus: null,
-        slateId: '',
-        otherData: '')
-      ..address.value = Address(
-          walletId: "walletId",
-          value: "",
-          publicKey: [],
-          derivationIndex: 0,
-          type: AddressType.p2pkh,
-          subType: AddressSubType.receiving);
+      txid: "some txid",
+      timestamp: 1648595998,
+      type: TransactionType.outgoing,
+      amount: 9659,
+      fee: 3794,
+      height: 450123,
+      subType: TransactionSubType.mint,
+      isCancelled: false,
+      walletId: '',
+      isLelantus: null,
+      slateId: '',
+      otherData: '',
+      inputs: [],
+      outputs: [],
+    )..address.value = Address(
+        walletId: "walletId",
+        value: "",
+        publicKey: [],
+        derivationIndex: 0,
+        type: AddressType.p2pkh,
+        subType: AddressSubType.receiving);
 
     final CoinServiceAPI wallet = MockFiroWallet();
 
@@ -240,25 +244,27 @@ void main() {
     final mockPriceService = MockPriceService();
 
     final tx = Transaction(
-        txid: "some txid",
-        timestamp: 1648595998,
-        type: TransactionType.incoming,
-        amount: 100000000,
-        fee: 3794,
-        height: 450123,
-        subType: TransactionSubType.none,
-        isCancelled: false,
-        walletId: '',
-        isLelantus: null,
-        slateId: '',
-        otherData: '')
-      ..address.value = Address(
-          walletId: "walletId",
-          value: "",
-          publicKey: [],
-          derivationIndex: 0,
-          type: AddressType.p2pkh,
-          subType: AddressSubType.receiving);
+      txid: "some txid",
+      timestamp: 1648595998,
+      type: TransactionType.incoming,
+      amount: 100000000,
+      fee: 3794,
+      height: 450123,
+      subType: TransactionSubType.none,
+      isCancelled: false,
+      walletId: '',
+      isLelantus: null,
+      slateId: '',
+      otherData: '',
+      inputs: [],
+      outputs: [],
+    )..address.value = Address(
+        walletId: "walletId",
+        value: "",
+        publicKey: [],
+        derivationIndex: 0,
+        type: AddressType.p2pkh,
+        subType: AddressSubType.receiving);
 
     final CoinServiceAPI wallet = MockFiroWallet();
 
@@ -329,25 +335,27 @@ void main() {
     final navigator = mockingjay.MockNavigator();
 
     final tx = Transaction(
-        txid: "some txid",
-        timestamp: 1648595998,
-        type: TransactionType.outgoing,
-        amount: 100000000,
-        fee: 3794,
-        height: 450123,
-        subType: TransactionSubType.none,
-        isCancelled: false,
-        walletId: '',
-        isLelantus: null,
-        slateId: '',
-        otherData: '')
-      ..address.value = Address(
-          walletId: "walletId",
-          value: "",
-          publicKey: [],
-          derivationIndex: 0,
-          type: AddressType.p2pkh,
-          subType: AddressSubType.receiving);
+      txid: "some txid",
+      timestamp: 1648595998,
+      type: TransactionType.outgoing,
+      amount: 100000000,
+      fee: 3794,
+      height: 450123,
+      subType: TransactionSubType.none,
+      isCancelled: false,
+      walletId: '',
+      isLelantus: null,
+      slateId: '',
+      otherData: '',
+      inputs: [],
+      outputs: [],
+    )..address.value = Address(
+        walletId: "walletId",
+        value: "",
+        publicKey: [],
+        derivationIndex: 0,
+        type: AddressType.p2pkh,
+        subType: AddressSubType.receiving);
 
     final CoinServiceAPI wallet = MockFiroWallet();
 

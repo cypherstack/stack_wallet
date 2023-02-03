@@ -22,35 +22,41 @@ const AddressSchema = CollectionSchema(
       name: r'derivationIndex',
       type: IsarType.long,
     ),
-    r'otherData': PropertySchema(
+    r'derivationPath': PropertySchema(
       id: 1,
+      name: r'derivationPath',
+      type: IsarType.object,
+      target: r'DerivationPath',
+    ),
+    r'otherData': PropertySchema(
+      id: 2,
       name: r'otherData',
       type: IsarType.string,
     ),
     r'publicKey': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'publicKey',
       type: IsarType.byteList,
     ),
     r'subType': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'subType',
       type: IsarType.byte,
       enumMap: _AddresssubTypeEnumValueMap,
     ),
     r'type': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'type',
       type: IsarType.byte,
       enumMap: _AddresstypeEnumValueMap,
     ),
     r'value': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'value',
       type: IsarType.string,
     ),
     r'walletId': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'walletId',
       type: IsarType.string,
     )
@@ -114,7 +120,7 @@ const AddressSchema = CollectionSchema(
       single: false,
     )
   },
-  embeddedSchemas: {},
+  embeddedSchemas: {r'DerivationPath': DerivationPathSchema},
   getId: _addressGetId,
   getLinks: _addressGetLinks,
   attach: _addressAttach,
@@ -127,6 +133,14 @@ int _addressEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.derivationPath;
+    if (value != null) {
+      bytesCount += 3 +
+          DerivationPathSchema.estimateSize(
+              value, allOffsets[DerivationPath]!, allOffsets);
+    }
+  }
   {
     final value = object.otherData;
     if (value != null) {
@@ -146,12 +160,18 @@ void _addressSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeLong(offsets[0], object.derivationIndex);
-  writer.writeString(offsets[1], object.otherData);
-  writer.writeByteList(offsets[2], object.publicKey);
-  writer.writeByte(offsets[3], object.subType.index);
-  writer.writeByte(offsets[4], object.type.index);
-  writer.writeString(offsets[5], object.value);
-  writer.writeString(offsets[6], object.walletId);
+  writer.writeObject<DerivationPath>(
+    offsets[1],
+    allOffsets,
+    DerivationPathSchema.serialize,
+    object.derivationPath,
+  );
+  writer.writeString(offsets[2], object.otherData);
+  writer.writeByteList(offsets[3], object.publicKey);
+  writer.writeByte(offsets[4], object.subType.index);
+  writer.writeByte(offsets[5], object.type.index);
+  writer.writeString(offsets[6], object.value);
+  writer.writeString(offsets[7], object.walletId);
 }
 
 Address _addressDeserialize(
@@ -162,14 +182,19 @@ Address _addressDeserialize(
 ) {
   final object = Address(
     derivationIndex: reader.readLong(offsets[0]),
-    otherData: reader.readStringOrNull(offsets[1]),
-    publicKey: reader.readByteList(offsets[2]) ?? [],
-    subType: _AddresssubTypeValueEnumMap[reader.readByteOrNull(offsets[3])] ??
+    otherData: reader.readStringOrNull(offsets[2]),
+    publicKey: reader.readByteList(offsets[3]) ?? [],
+    subType: _AddresssubTypeValueEnumMap[reader.readByteOrNull(offsets[4])] ??
         AddressSubType.receiving,
-    type: _AddresstypeValueEnumMap[reader.readByteOrNull(offsets[4])] ??
+    type: _AddresstypeValueEnumMap[reader.readByteOrNull(offsets[5])] ??
         AddressType.p2pkh,
-    value: reader.readString(offsets[5]),
-    walletId: reader.readString(offsets[6]),
+    value: reader.readString(offsets[6]),
+    walletId: reader.readString(offsets[7]),
+  );
+  object.derivationPath = reader.readObjectOrNull<DerivationPath>(
+    offsets[1],
+    DerivationPathSchema.deserialize,
+    allOffsets,
   );
   object.id = id;
   return object;
@@ -185,18 +210,24 @@ P _addressDeserializeProp<P>(
     case 0:
       return (reader.readLong(offset)) as P;
     case 1:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readObjectOrNull<DerivationPath>(
+        offset,
+        DerivationPathSchema.deserialize,
+        allOffsets,
+      )) as P;
     case 2:
-      return (reader.readByteList(offset) ?? []) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 3:
+      return (reader.readByteList(offset) ?? []) as P;
+    case 4:
       return (_AddresssubTypeValueEnumMap[reader.readByteOrNull(offset)] ??
           AddressSubType.receiving) as P;
-    case 4:
+    case 5:
       return (_AddresstypeValueEnumMap[reader.readByteOrNull(offset)] ??
           AddressType.p2pkh) as P;
-    case 5:
-      return (reader.readString(offset)) as P;
     case 6:
+      return (reader.readString(offset)) as P;
+    case 7:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -701,6 +732,23 @@ extension AddressQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> derivationPathIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'derivationPath',
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition>
+      derivationPathIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'derivationPath',
       ));
     });
   }
@@ -1411,7 +1459,14 @@ extension AddressQueryFilter
 }
 
 extension AddressQueryObject
-    on QueryBuilder<Address, Address, QFilterCondition> {}
+    on QueryBuilder<Address, Address, QFilterCondition> {
+  QueryBuilder<Address, Address, QAfterFilterCondition> derivationPath(
+      FilterQuery<DerivationPath> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'derivationPath');
+    });
+  }
+}
 
 extension AddressQueryLinks
     on QueryBuilder<Address, Address, QFilterCondition> {
@@ -1699,6 +1754,13 @@ extension AddressQueryProperty
     });
   }
 
+  QueryBuilder<Address, DerivationPath?, QQueryOperations>
+      derivationPathProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'derivationPath');
+    });
+  }
+
   QueryBuilder<Address, String?, QQueryOperations> otherDataProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'otherData');
@@ -1735,3 +1797,212 @@ extension AddressQueryProperty
     });
   }
 }
+
+// **************************************************************************
+// IsarEmbeddedGenerator
+// **************************************************************************
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
+
+const DerivationPathSchema = Schema(
+  name: r'DerivationPath',
+  id: -7377061614393881103,
+  properties: {
+    r'value': PropertySchema(
+      id: 0,
+      name: r'value',
+      type: IsarType.string,
+    )
+  },
+  estimateSize: _derivationPathEstimateSize,
+  serialize: _derivationPathSerialize,
+  deserialize: _derivationPathDeserialize,
+  deserializeProp: _derivationPathDeserializeProp,
+);
+
+int _derivationPathEstimateSize(
+  DerivationPath object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.value.length * 3;
+  return bytesCount;
+}
+
+void _derivationPathSerialize(
+  DerivationPath object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeString(offsets[0], object.value);
+}
+
+DerivationPath _derivationPathDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = DerivationPath();
+  object.value = reader.readString(offsets[0]);
+  return object;
+}
+
+P _derivationPathDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readString(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+extension DerivationPathQueryFilter
+    on QueryBuilder<DerivationPath, DerivationPath, QFilterCondition> {
+  QueryBuilder<DerivationPath, DerivationPath, QAfterFilterCondition>
+      valueEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'value',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DerivationPath, DerivationPath, QAfterFilterCondition>
+      valueGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'value',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DerivationPath, DerivationPath, QAfterFilterCondition>
+      valueLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'value',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DerivationPath, DerivationPath, QAfterFilterCondition>
+      valueBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'value',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DerivationPath, DerivationPath, QAfterFilterCondition>
+      valueStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'value',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DerivationPath, DerivationPath, QAfterFilterCondition>
+      valueEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'value',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DerivationPath, DerivationPath, QAfterFilterCondition>
+      valueContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'value',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DerivationPath, DerivationPath, QAfterFilterCondition>
+      valueMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'value',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<DerivationPath, DerivationPath, QAfterFilterCondition>
+      valueIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'value',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<DerivationPath, DerivationPath, QAfterFilterCondition>
+      valueIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'value',
+        value: '',
+      ));
+    });
+  }
+}
+
+extension DerivationPathQueryObject
+    on QueryBuilder<DerivationPath, DerivationPath, QFilterCondition> {}

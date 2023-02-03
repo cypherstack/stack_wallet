@@ -1,9 +1,10 @@
 import 'dart:math';
 
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/models/address/address.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/input.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/output.dart';
+import 'package:tuple/tuple.dart';
 
 part 'transaction.g.dart';
 
@@ -22,7 +23,48 @@ class Transaction {
     required this.isLelantus,
     required this.slateId,
     required this.otherData,
+    required this.inputs,
+    required this.outputs,
   });
+
+  Tuple2<Transaction, Address?> copyWith({
+    String? walletId,
+    String? txid,
+    int? timestamp,
+    TransactionType? type,
+    TransactionSubType? subType,
+    int? amount,
+    int? fee,
+    int? height,
+    bool? isCancelled,
+    bool? isLelantus,
+    String? slateId,
+    String? otherData,
+    List<Input>? inputs,
+    List<Output>? outputs,
+    Id? id,
+    Address? address,
+  }) {
+    return Tuple2(
+      Transaction(
+          walletId: walletId ?? this.walletId,
+          txid: txid ?? this.txid,
+          timestamp: timestamp ?? this.timestamp,
+          type: type ?? this.type,
+          subType: subType ?? this.subType,
+          amount: amount ?? this.amount,
+          fee: fee ?? this.fee,
+          height: height ?? this.height,
+          isCancelled: isCancelled ?? this.isCancelled,
+          isLelantus: isLelantus ?? this.isLelantus,
+          slateId: slateId ?? this.slateId,
+          otherData: otherData ?? this.otherData,
+          inputs: inputs ?? this.inputs,
+          outputs: outputs ?? this.outputs)
+        ..id = id ?? this.id,
+      address ?? this.address.value,
+    );
+  }
 
   Id id = Isar.autoIncrement;
 
@@ -55,12 +97,12 @@ class Transaction {
 
   late final String? otherData;
 
+  late final List<Input> inputs;
+
+  late final List<Output> outputs;
+
   @Backlink(to: "transactions")
   final address = IsarLink<Address>();
-
-  final inputs = IsarLinks<Input>();
-
-  final outputs = IsarLinks<Output>();
 
   int getConfirmations(int currentChainHeight) {
     if (height == null || height! <= 0) return 0;

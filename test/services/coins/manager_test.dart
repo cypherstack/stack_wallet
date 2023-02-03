@@ -109,6 +109,8 @@ void main() {
       isLelantus: true,
       slateId: null,
       otherData: null,
+      inputs: [],
+      outputs: [],
     );
     when(wallet.transactions).thenAnswer((_) async => [
           tx,

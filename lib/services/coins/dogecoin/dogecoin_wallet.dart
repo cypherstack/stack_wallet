@@ -1072,6 +1072,8 @@ class DogecoinWallet extends CoinServiceAPI
       isLelantus: false,
       otherData: null,
       slateId: null,
+      inputs: [],
+      outputs: [],
     );
 
     final address = txData["address"] is String
@@ -1080,7 +1082,7 @@ class DogecoinWallet extends CoinServiceAPI
 
     await db.addNewTransactionData(
       [
-        Tuple4(transaction, [], [], address),
+        Tuple2(transaction, address),
       ],
       walletId,
     );
@@ -1990,9 +1992,7 @@ class DogecoinWallet extends CoinServiceAPI
     }
     await fastFetch(vHashes.toList());
 
-    final List<
-        Tuple4<isar_models.Transaction, List<isar_models.Output>,
-            List<isar_models.Input>, isar_models.Address?>> txns = [];
+    final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txns = [];
 
     for (final txObject in allTransactions) {
       final txn = await parseTransaction(

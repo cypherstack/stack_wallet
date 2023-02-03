@@ -2034,9 +2034,8 @@ class EpicCashWallet extends CoinServiceAPI
     final String transactions = message['result'] as String;
     final jsonTransactions = json.decode(transactions) as List;
 
-    final List<
-        Tuple4<isar_models.Transaction, List<isar_models.Output>,
-            List<isar_models.Input>, isar_models.Address?>> txnsData = [];
+    final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
+        [];
 
     // int latestTxnBlockHeight =
     //     DB.instance.get<dynamic>(boxName: walletId, key: "storedTxnDataHeight")
@@ -2102,6 +2101,8 @@ class EpicCashWallet extends CoinServiceAPI
         isLelantus: false,
         slateId: slateId,
         otherData: tx["id"].toString(),
+        inputs: [],
+        outputs: [],
       );
 
       // txn.address =
@@ -2125,7 +2126,7 @@ class EpicCashWallet extends CoinServiceAPI
       //   latestTxnBlockHeight = txHeight;
       // }
 
-      txnsData.add(Tuple4(txn, [], [], transactionAddress));
+      txnsData.add(Tuple2(txn, transactionAddress));
       // cachedMap?.remove(tx["id"].toString());
       // cachedMap?.remove(commitId);
       // Logging.instance.log("cmap: $cachedMap", level: LogLevel.Info);

@@ -15,7 +15,7 @@ import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/models/address/address.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
@@ -1213,6 +1213,8 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       isLelantus: false,
       otherData: null,
       slateId: null,
+      inputs: [],
+      outputs: [],
     );
 
     final address = txData["address"] is String
@@ -1221,7 +1223,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
     await db.addNewTransactionData(
       [
-        Tuple4(transaction, [], [], address),
+        Tuple2(transaction, address),
       ],
       walletId,
     );
@@ -2110,9 +2112,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
     // Logging.instance.log("allTransactions length: ${allTransactions.length}",
     //     level: LogLevel.Info);
 
-    final List<
-        Tuple4<isar_models.Transaction, List<isar_models.Output>,
-            List<isar_models.Input>, isar_models.Address?>> txns = [];
+    final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txns = [];
 
     for (final txData in allTransactions) {
       Set<String> inputAddresses = {};
@@ -2237,29 +2237,12 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
         amount = amountReceivedInWallet;
       }
 
-      final tx = isar_models.Transaction(
-        walletId: walletId,
-        txid: txData["txid"] as String,
-        timestamp: txData["blocktime"] as int? ??
-            (DateTime.now().millisecondsSinceEpoch ~/ 1000),
-        type: type,
-        subType: isar_models.TransactionSubType.none,
-        amount: amount,
-        fee: fee,
-        height: txData["height"] as int?,
-        isCancelled: false,
-        isLelantus: false,
-        slateId: null,
-        otherData: null,
-      );
-
       List<isar_models.Input> inputs = [];
       List<isar_models.Output> outputs = [];
 
       for (final json in txData["vin"] as List) {
         bool isCoinBase = json['coinbase'] != null;
         final input = isar_models.Input(
-          walletId: walletId,
           txid: json['txid'] as String,
           vout: json['vout'] as int? ?? -1,
           scriptSig: json['scriptSig']?['hex'] as String?,
@@ -2273,7 +2256,6 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       for (final json in txData["vout"] as List) {
         final output = isar_models.Output(
-          walletId: walletId,
           scriptPubKey: json['scriptPubKey']?['hex'] as String?,
           scriptPubKeyAsm: json['scriptPubKey']?['asm'] as String?,
           scriptPubKeyType: json['scriptPubKey']?['type'] as String?,
@@ -2288,7 +2270,25 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
         outputs.add(output);
       }
 
-      txns.add(Tuple4(tx, outputs, inputs, transactionAddress));
+      final tx = isar_models.Transaction(
+        walletId: walletId,
+        txid: txData["txid"] as String,
+        timestamp: txData["blocktime"] as int? ??
+            (DateTime.now().millisecondsSinceEpoch ~/ 1000),
+        type: type,
+        subType: isar_models.TransactionSubType.none,
+        amount: amount,
+        fee: fee,
+        height: txData["height"] as int?,
+        isCancelled: false,
+        isLelantus: false,
+        slateId: null,
+        otherData: null,
+        inputs: inputs,
+        outputs: outputs,
+      );
+
+      txns.add(Tuple2(tx, transactionAddress));
     }
 
     await db.addNewTransactionData(txns, walletId);

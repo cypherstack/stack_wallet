@@ -139,6 +139,7 @@ dependencies:
   isar_flutter_libs: 3.0.5 # contains the binaries
   dropdown_button2: 1.7.2
   string_validator: ^0.3.0
+  equatable: ^2.0.5
 
 dev_dependencies:
   flutter_test:

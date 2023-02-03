@@ -1144,6 +1144,8 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
       isLelantus: false,
       otherData: null,
       slateId: null,
+      inputs: [],
+      outputs: [],
     );
 
     final address = txData["address"] is String
@@ -1152,7 +1154,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
     await db.addNewTransactionData(
       [
-        Tuple4(transaction, [], [], address),
+        Tuple2(transaction, address),
       ],
       walletId,
     );
@@ -2070,9 +2072,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
     }
     await fastFetch(vHashes.toList());
 
-    final List<
-        Tuple4<isar_models.Transaction, List<isar_models.Output>,
-            List<isar_models.Input>, isar_models.Address?>> txns = [];
+    final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txns = [];
 
     for (final txObject in allTransactions) {
       List<String> sendersArray = [];
@@ -2300,21 +2300,6 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
         amount = outputAmtAddressedToWallet;
       }
 
-      final tx = isar_models.Transaction(
-        walletId: walletId,
-        txid: midSortedTx["txid"] as String,
-        timestamp: midSortedTx["timestamp"] as int,
-        type: type,
-        subType: isar_models.TransactionSubType.none,
-        amount: amount,
-        fee: fee,
-        height: txObject["height"] as int,
-        isCancelled: false,
-        isLelantus: false,
-        slateId: null,
-        otherData: null,
-      );
-
       isar_models.Address transactionAddress =
           midSortedTx["address"] as isar_models.Address;
 
@@ -2324,7 +2309,6 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
       for (final json in txObject["vin"] as List) {
         bool isCoinBase = json['coinbase'] != null;
         final input = isar_models.Input(
-          walletId: walletId,
           txid: json['txid'] as String,
           vout: json['vout'] as int? ?? -1,
           scriptSig: json['scriptSig']?['hex'] as String?,
@@ -2338,7 +2322,6 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       for (final json in txObject["vout"] as List) {
         final output = isar_models.Output(
-          walletId: walletId,
           scriptPubKey: json['scriptPubKey']?['hex'] as String?,
           scriptPubKeyAsm: json['scriptPubKey']?['asm'] as String?,
           scriptPubKeyType: json['scriptPubKey']?['type'] as String?,
@@ -2354,7 +2337,24 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
         outputs.add(output);
       }
 
-      txns.add(Tuple4(tx, outputs, inputs, transactionAddress));
+      final tx = isar_models.Transaction(
+        walletId: walletId,
+        txid: midSortedTx["txid"] as String,
+        timestamp: midSortedTx["timestamp"] as int,
+        type: type,
+        subType: isar_models.TransactionSubType.none,
+        amount: amount,
+        fee: fee,
+        height: txObject["height"] as int,
+        inputs: inputs,
+        outputs: outputs,
+        isCancelled: false,
+        isLelantus: false,
+        slateId: null,
+        otherData: null,
+      );
+
+      txns.add(Tuple2(tx, transactionAddress));
     }
 
     await db.addNewTransactionData(txns, walletId);

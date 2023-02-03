@@ -391,12 +391,8 @@ class DbVersionMigrator with WalletDB {
           walletBox.get("latest_lelantus_tx_model") as TransactionData?;
       final txnsLelantus = txnDataLelantus?.getAllTransactions().values ?? [];
 
-      final List<
-          Tuple4<
-              isar_models.Transaction,
-              List<isar_models.Output>,
-              List<isar_models.Input>,
-              isar_models.Address?>> newTransactions = [];
+      final List<Tuple2<isar_models.Transaction, isar_models.Address?>>
+          newTransactions = [];
 
       newTransactions
           .addAll(_parseTransactions(txns, walletId, false, newAddresses));
@@ -425,17 +421,15 @@ class DbVersionMigrator with WalletDB {
     }
   }
 
-  List<
-      Tuple4<isar_models.Transaction, List<isar_models.Output>,
-          List<isar_models.Input>, isar_models.Address?>> _parseTransactions(
+  List<Tuple2<isar_models.Transaction, isar_models.Address?>>
+      _parseTransactions(
     Iterable<Transaction> txns,
     String walletId,
     bool isLelantus,
     List<isar_models.Address> parsedAddresses,
   ) {
-    List<
-        Tuple4<isar_models.Transaction, List<isar_models.Output>,
-            List<isar_models.Input>, isar_models.Address?>> transactions = [];
+    List<Tuple2<isar_models.Transaction, isar_models.Address?>> transactions =
+        [];
     for (final tx in txns) {
       final type = tx.txType.toLowerCase() == "received"
           ? isar_models.TransactionType.incoming
@@ -445,6 +439,32 @@ class DbVersionMigrator with WalletDB {
           : tx.subType.toLowerCase() == "join"
               ? isar_models.TransactionSubType.join
               : isar_models.TransactionSubType.none;
+
+      final List<isar_models.Input> inputs = [];
+      final List<isar_models.Output> outputs = [];
+
+      for (final inp in tx.inputs) {
+        final input = isar_models.Input(
+          txid: inp.txid,
+          vout: inp.vout,
+          scriptSig: inp.scriptsig,
+          scriptSigAsm: inp.scriptsigAsm,
+          isCoinbase: inp.isCoinbase,
+          sequence: inp.sequence,
+          innerRedeemScriptAsm: inp.innerRedeemscriptAsm,
+        );
+        inputs.add(input);
+      }
+      for (final out in tx.outputs) {
+        final output = isar_models.Output(
+          scriptPubKey: out.scriptpubkey,
+          scriptPubKeyAsm: out.scriptpubkeyAsm,
+          scriptPubKeyType: out.scriptpubkeyType,
+          scriptPubKeyAddress: out.scriptpubkeyAddress,
+          value: out.value,
+        );
+        outputs.add(output);
+      }
 
       final transaction = isar_models.Transaction(
         walletId: walletId,
@@ -459,35 +479,9 @@ class DbVersionMigrator with WalletDB {
         isLelantus: false,
         slateId: tx.slateId,
         otherData: tx.otherData,
+        inputs: inputs,
+        outputs: outputs,
       );
-
-      final List<isar_models.Input> inputs = [];
-      final List<isar_models.Output> outputs = [];
-
-      for (final inp in tx.inputs) {
-        final input = isar_models.Input(
-          walletId: walletId,
-          txid: inp.txid,
-          vout: inp.vout,
-          scriptSig: inp.scriptsig,
-          scriptSigAsm: inp.scriptsigAsm,
-          isCoinbase: inp.isCoinbase,
-          sequence: inp.sequence,
-          innerRedeemScriptAsm: inp.innerRedeemscriptAsm,
-        );
-        inputs.add(input);
-      }
-      for (final out in tx.outputs) {
-        final output = isar_models.Output(
-          walletId: walletId,
-          scriptPubKey: out.scriptpubkey,
-          scriptPubKeyAsm: out.scriptpubkeyAsm,
-          scriptPubKeyType: out.scriptpubkeyType,
-          scriptPubKeyAddress: out.scriptpubkeyAddress,
-          value: out.value,
-        );
-        outputs.add(output);
-      }
 
       isar_models.Address? address;
       if (tx.address.isNotEmpty) {
@@ -508,7 +502,7 @@ class DbVersionMigrator with WalletDB {
         }
       }
 
-      transactions.add(Tuple4(transaction, outputs, inputs, address));
+      transactions.add(Tuple2(transaction, address));
     }
     return transactions;
   }

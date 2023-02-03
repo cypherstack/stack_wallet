@@ -901,9 +901,8 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     //   }
     // }
 
-    final List<
-        Tuple4<isar_models.Transaction, List<isar_models.Output>,
-            List<isar_models.Input>, isar_models.Address?>> txnsData = [];
+    final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
+        [];
 
     if (transactions != null) {
       for (var tx in transactions.entries) {
@@ -994,9 +993,11 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
           isLelantus: false,
           slateId: null,
           otherData: null,
+          inputs: [],
+          outputs: [],
         );
 
-        txnsData.add(Tuple4(txn, [], [], address));
+        txnsData.add(Tuple2(txn, address));
       }
     }
 
