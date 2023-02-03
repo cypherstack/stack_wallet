@@ -78,8 +78,8 @@ String constructDerivePath({
     case DerivePathType.bch44:
       purpose = 44;
       break;
-    case DerivePathType.bip84:
-      purpose = 84;
+    case DerivePathType.bip49:
+      purpose = 49;
       break;
     default:
       throw Exception("DerivePathType $derivePathType not supported");
