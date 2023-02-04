@@ -3,19 +3,18 @@ import 'dart:convert';
 import 'package:decimal/decimal.dart';
 import 'package:http/http.dart' as http;
 import 'package:stackwallet/models/exchange/majestic_bank/mb_limit.dart';
+import 'package:stackwallet/models/exchange/majestic_bank/mb_order.dart';
 import 'package:stackwallet/models/exchange/majestic_bank/mb_order_calculation.dart';
+import 'package:stackwallet/models/exchange/majestic_bank/mb_order_status.dart';
 import 'package:stackwallet/models/exchange/majestic_bank/mb_rate.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
-import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/utilities/logger.dart';
-import 'package:uuid/uuid.dart';
 
 class MajesticBankAPI {
   static const String scheme = "https";
   static const String authority = "majesticbank.sc";
   static const String version = "v1";
-  static const String refCode = "";
+  static const String refCode = "fixme";
 
   MajesticBankAPI._();
 
@@ -28,11 +27,6 @@ class MajesticBankAPI {
 
   Uri _buildUri({required String endpoint, Map<String, String>? params}) {
     return Uri.https(authority, "/api/$version/$endpoint", params);
-  }
-
-  String getPrettyJSONString(jsonObject) {
-    var encoder = const JsonEncoder.withIndent("     ");
-    return encoder.convert(jsonObject);
   }
 
   Future<dynamic> _makeGetRequest(Uri uri) async {
@@ -132,10 +126,6 @@ class MajesticBankAPI {
     required String fromCurrency,
     required String receiveCurrency,
   }) async {
-    final uri = _buildUri(
-      endpoint: "calculate",
-    );
-
     final params = {
       "from_currency": fromCurrency,
       "receive_currency": receiveCurrency,
@@ -147,11 +137,22 @@ class MajesticBankAPI {
       params["from_amount"] = amount;
     }
 
+    final uri = _buildUri(
+      endpoint: "calculate",
+      params: params,
+    );
+
     try {
       final jsonObject = await _makeGetRequest(uri);
+      final map = Map<String, dynamic>.from(jsonObject as Map);
+      final result = MBOrderCalculation(
+        fromCurrency: map["from_currency"] as String,
+        fromAmount: Decimal.parse(map["from_amount"].toString()),
+        receiveCurrency: map["receive_currency"] as String,
+        receiveAmount: Decimal.parse(map["receive_amount"].toString()),
+      );
 
-      // return getPrettyJSONString(jsonObject);
-      return ExchangeResponse();
+      return ExchangeResponse(value: result);
     } catch (e, s) {
       Logging.instance
           .log("calculateOrder exception: $e\n$s", level: LogLevel.Error);
@@ -164,52 +165,40 @@ class MajesticBankAPI {
     }
   }
 
-  Future<ExchangeResponse<Trade>> createOrder({
-    required String amount,
+  Future<ExchangeResponse<MBOrder>> createOrder({
+    required String fromAmount,
     required String fromCurrency,
     required String receiveCurrency,
     required String receiveAddress,
   }) async {
     final params = {
-      "from_amount": amount,
+      "from_amount": fromAmount,
       "from_currency": fromCurrency,
       "receive_currency": receiveCurrency,
       "receive_address": receiveAddress,
       "referral_code": refCode,
     };
 
-    final uri = _buildUri(endpoint: "create", params: params);
+    final uri = _buildUri(endpoint: "exchange", params: params);
 
     try {
       final now = DateTime.now();
       final jsonObject = await _makeGetRequest(uri);
       final json = Map<String, dynamic>.from(jsonObject as Map);
 
-      final trade = Trade(
-        uuid: const Uuid().v1(),
-        tradeId: json["trx"] as String,
-        rateType: "floating-rate",
-        direction: "direct",
-        timestamp: now,
-        updatedAt: now,
-        payInCurrency: json["from_currency"] as String,
-        payInAmount: json["from_amount"] as String,
-        payInAddress: json["address"] as String,
-        payInNetwork: "",
-        payInExtraId: "",
-        payInTxid: "",
-        payOutCurrency: json["receive_currency"] as String,
-        payOutAmount: json["receive_amount"] as String,
-        payOutAddress: json["receive_address"] as String,
-        payOutNetwork: "",
-        payOutExtraId: "",
-        payOutTxid: "",
-        refundAddress: "",
-        refundExtraId: "",
-        status: "Waiting",
-        exchangeName: MajesticBankExchange.exchangeName,
+      final order = MBOrder(
+        orderId: json["trx"] as String,
+        fromCurrency: json["from_currency"] as String,
+        fromAmount: Decimal.parse(json["from_amount"].toString()),
+        receiveCurrency: json["receive_currency"] as String,
+        receiveAmount: Decimal.parse(json["receive_amount"].toString()),
+        address: json["address"] as String,
+        orderType: MBOrderType.floating,
+        expiration: json["expiration"] as int,
+        createdAt: now,
       );
-      return ExchangeResponse(value: trade);
+
+      return ExchangeResponse(value: order);
     } catch (e, s) {
       Logging.instance
           .log("createOrder exception: $e\n$s", level: LogLevel.Error);
@@ -222,7 +211,10 @@ class MajesticBankAPI {
     }
   }
 
-  Future<ExchangeResponse<Trade>> createFixedRateOrder({
+  /// Fixed rate for 10 minutes, useful for payments.
+  /// If [reversed] then the amount is the expected receive_amount, otherwise
+  /// the amount is assumed to be the from_amount.
+  Future<ExchangeResponse<MBOrder>> createFixedRateOrder({
     required String amount,
     required String fromCurrency,
     required String receiveCurrency,
@@ -249,31 +241,19 @@ class MajesticBankAPI {
       final jsonObject = await _makeGetRequest(uri);
       final json = Map<String, dynamic>.from(jsonObject as Map);
 
-      final trade = Trade(
-        uuid: const Uuid().v1(),
-        tradeId: json["trx"] as String,
-        rateType: "fixed-rate",
-        direction: reversed ? "reversed" : "direct",
-        timestamp: now,
-        updatedAt: now,
-        payInCurrency: json["from_currency"] as String,
-        payInAmount: json["from_amount"] as String,
-        payInAddress: json["address"] as String,
-        payInNetwork: "",
-        payInExtraId: "",
-        payInTxid: "",
-        payOutCurrency: json["receive_currency"] as String,
-        payOutAmount: json["receive_amount"] as String,
-        payOutAddress: json["receive_address"] as String,
-        payOutNetwork: "",
-        payOutExtraId: "",
-        payOutTxid: "",
-        refundAddress: "",
-        refundExtraId: "",
-        status: "Waiting",
-        exchangeName: MajesticBankExchange.exchangeName,
+      final order = MBOrder(
+        orderId: json["trx"] as String,
+        fromCurrency: json["from_currency"] as String,
+        fromAmount: Decimal.parse(json["from_amount"].toString()),
+        receiveCurrency: json["receive_currency"] as String,
+        receiveAmount: Decimal.parse(json["receive_amount"].toString()),
+        address: json["address"] as String,
+        orderType: MBOrderType.fixed,
+        expiration: json["expiration"] as int,
+        createdAt: now,
       );
-      return ExchangeResponse(value: trade);
+
+      return ExchangeResponse(value: order);
     } catch (e, s) {
       Logging.instance
           .log("createFixedRateOrder exception: $e\n$s", level: LogLevel.Error);
@@ -286,15 +266,29 @@ class MajesticBankAPI {
     }
   }
 
-  Future<dynamic> trackOrder({required String orderId}) async {
-    final uri = _buildUri(
-      endpoint: "track",
-    );
+  Future<ExchangeResponse<MBOrderStatus>> trackOrder(
+      {required String orderId}) async {
+    final uri = _buildUri(endpoint: "track", params: {
+      "trx": orderId,
+    });
 
     try {
       final jsonObject = await _makeGetRequest(uri);
+      final json = Map<String, dynamic>.from(jsonObject as Map);
 
-      return getPrettyJSONString(jsonObject);
+      final status = MBOrderStatus(
+        orderId: json["trx"] as String,
+        status: json["status"] as String,
+        fromCurrency: json["from_currency"] as String,
+        fromAmount: Decimal.parse(json["from_amount"].toString()),
+        receiveCurrency: json["receive_currency"] as String,
+        receiveAmount: Decimal.parse(json["receive_amount"].toString()),
+        address: json["address"] as String,
+        received: Decimal.parse(json["received"].toString()),
+        confirmed: Decimal.parse(json["confirmed"].toString()),
+      );
+
+      return ExchangeResponse(value: status);
     } catch (e, s) {
       Logging.instance
           .log("createOrder exception: $e\n$s", level: LogLevel.Error);
