@@ -59,14 +59,24 @@ String constructDerivePath({
   required int chain,
   required int index,
 }) {
-  String coinType;
+  int coinType;
   switch (networkWIF) {
     case 0x80: // bch mainnet wif
-      coinType =
-          derivePathType == DerivePathType.bch44 ? "145" : "0"; // bch mainnet
+      switch (derivePathType) {
+        case DerivePathType.bip44:
+        case DerivePathType.bip49:
+          coinType = 145; // bch mainnet
+          break;
+        case DerivePathType.bch44: // bitcoin.com wallet specific
+          coinType = 0; // bch mainnet
+          break;
+        default:
+          throw Exception(
+              "DerivePathType $derivePathType not supported for coinType");
+      }
       break;
     case 0xef: // bch testnet wif
-      coinType = "1"; // bch testnet
+      coinType = 1; // bch testnet
       break;
     default:
       throw Exception("Invalid Bitcoincash network wif used!");
