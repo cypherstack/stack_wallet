@@ -1228,6 +1228,9 @@ void main() {
       await secureStore.write(
           key: "${testWalletId}buildMintTransaction_mnemonic",
           value: BuildMintTxTestParams.mnemonic);
+      await secureStore.write(
+          key: "${testWalletId}buildMintTransaction_mnemonicPassphrase",
+          value: "");
 
       when(cachedClient.getTransaction(
         txHash: BuildMintTxTestParams.utxoInfo["txid"] as String,

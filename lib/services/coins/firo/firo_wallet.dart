@@ -234,7 +234,7 @@ Future<Map<String, dynamic>> isolateDerive(
 
     final derivePathChange = constructDerivePath(
       networkWIF: _network.wif,
-      chain: 0,
+      chain: 1,
       index: i,
     );
     currentNode = await Bip32Utils.getBip32NodeFromRoot(
