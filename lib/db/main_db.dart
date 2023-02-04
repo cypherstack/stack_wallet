@@ -257,30 +257,62 @@ class MainDB {
 
       // transactions
       for (int i = 0; i < transactionCount; i += paginateLimit) {
-        final txns = await getTransactions(walletId)
+        final txnIds = await getTransactions(walletId)
             .offset(i)
             .limit(paginateLimit)
+            .idProperty()
             .findAll();
-        await isar.transactions
-            .deleteAll(txns.map((e) => e.id).toList(growable: false));
+        await isar.transactions.deleteAll(txnIds);
       }
 
       // addresses
       for (int i = 0; i < addressCount; i += paginateLimit) {
-        final addresses = await getAddresses(walletId)
+        final addressIds = await getAddresses(walletId)
             .offset(i)
             .limit(paginateLimit)
+            .idProperty()
             .findAll();
-        await isar.addresses
-            .deleteAll(addresses.map((e) => e.id).toList(growable: false));
+        await isar.addresses.deleteAll(addressIds);
       }
 
       // utxos
       for (int i = 0; i < utxoCount; i += paginateLimit) {
-        final utxos =
-            await getUTXOs(walletId).offset(i).limit(paginateLimit).findAll();
-        await isar.utxos
-            .deleteAll(utxos.map((e) => e.id).toList(growable: false));
+        final utxoIds = await getUTXOs(walletId)
+            .offset(i)
+            .limit(paginateLimit)
+            .idProperty()
+            .findAll();
+        await isar.utxos.deleteAll(utxoIds);
+      }
+    });
+  }
+
+  Future<void> deleteAddressLabels(String walletId) async {
+    final addressLabelCount = await getAddressLabels(walletId).count();
+    await isar.writeTxn(() async {
+      const paginateLimit = 50;
+      for (int i = 0; i < addressLabelCount; i += paginateLimit) {
+        final labelIds = await getAddressLabels(walletId)
+            .offset(i)
+            .limit(paginateLimit)
+            .idProperty()
+            .findAll();
+        await isar.addressLabels.deleteAll(labelIds);
+      }
+    });
+  }
+
+  Future<void> deleteTransactionNotes(String walletId) async {
+    final noteCount = await getTransactionNotes(walletId).count();
+    await isar.writeTxn(() async {
+      const paginateLimit = 50;
+      for (int i = 0; i < noteCount; i += paginateLimit) {
+        final labelIds = await getTransactionNotes(walletId)
+            .offset(i)
+            .limit(paginateLimit)
+            .idProperty()
+            .findAll();
+        await isar.transactionNotes.deleteAll(labelIds);
       }
     });
   }
