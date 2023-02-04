@@ -86,6 +86,40 @@ class MajesticBankAPI {
     }
   }
 
+  Future<ExchangeResponse<MBLimit>> getLimit({
+    required String fromCurrency,
+  }) async {
+    final uri = _buildUri(
+      endpoint: "limits",
+      params: {
+        "from_currency": fromCurrency,
+      },
+    );
+
+    try {
+      final jsonObject = await _makeGetRequest(uri);
+
+      final map = Map<String, dynamic>.from(jsonObject as Map);
+
+      final limit = MBLimit(
+        currency: fromCurrency,
+        min: Decimal.parse(map["min"].toString()),
+        max: Decimal.parse(map["max"].toString()),
+      );
+
+      return ExchangeResponse(value: limit);
+    } catch (e, s) {
+      Logging.instance
+          .log("getLimits exception: $e\n$s", level: LogLevel.Error);
+      return ExchangeResponse(
+        exception: ExchangeException(
+          e.toString(),
+          ExchangeExceptionType.generic,
+        ),
+      );
+    }
+  }
+
   Future<ExchangeResponse<List<MBLimit>>> getLimits() async {
     final uri = _buildUri(
       endpoint:
@@ -267,8 +301,9 @@ class MajesticBankAPI {
     }
   }
 
-  Future<ExchangeResponse<MBOrderStatus>> trackOrder(
-      {required String orderId}) async {
+  Future<ExchangeResponse<MBOrderStatus>> trackOrder({
+    required String orderId,
+  }) async {
     final uri = _buildUri(endpoint: "track", params: {
       "trx": orderId,
     });
