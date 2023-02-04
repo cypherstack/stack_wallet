@@ -160,6 +160,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
           .filter()
           .typeEqualTo(isar_models.AddressType.p2pkh)
           .subTypeEqualTo(isar_models.AddressSubType.receiving)
+          .derivationPath((q) => q.not().valueStartsWith("m/44'/0'"))
           .sortByDerivationIndexDesc()
           .findFirst()) ??
       await _generateAddressForChain(0, 0, DerivePathTypeExt.primaryFor(coin));
@@ -173,6 +174,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
           .filter()
           .typeEqualTo(isar_models.AddressType.p2pkh)
           .subTypeEqualTo(isar_models.AddressSubType.change)
+          .derivationPath((q) => q.not().valueStartsWith("m/44'/0'"))
           .sortByDerivationIndexDesc()
           .findFirst()) ??
       await _generateAddressForChain(1, 0, DerivePathTypeExt.primaryFor(coin));
@@ -395,13 +397,9 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
         isar_models.AddressType addrType;
         switch (type) {
           case DerivePathType.bip44:
-            addressString = P2PKH(data: data, network: _network).data.address!;
-            addrType = isar_models.AddressType.p2pkh;
-            addressString = bitbox.Address.toCashAddress(addressString);
-            break;
           case DerivePathType.bch44:
             addressString = P2PKH(data: data, network: _network).data.address!;
-            addrType = isar_models.AddressType.unknown;
+            addrType = isar_models.AddressType.p2pkh;
             addressString = bitbox.Address.toCashAddress(addressString);
             break;
           case DerivePathType.bip49:
@@ -1489,13 +1487,9 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
     switch (derivePathType) {
       case DerivePathType.bip44:
-        address = P2PKH(data: data, network: _network).data.address!;
-        addrType = isar_models.AddressType.p2pkh;
-        address = bitbox.Address.toCashAddress(address);
-        break;
       case DerivePathType.bch44:
         address = P2PKH(data: data, network: _network).data.address!;
-        addrType = isar_models.AddressType.unknown;
+        addrType = isar_models.AddressType.p2pkh;
         address = bitbox.Address.toCashAddress(address);
         break;
       case DerivePathType.bip49:
@@ -1547,15 +1541,23 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
         : isar_models.AddressSubType.change;
 
     isar_models.AddressType type;
+    String coinType;
+    String purpose;
     switch (derivePathType) {
       case DerivePathType.bip44:
         type = isar_models.AddressType.p2pkh;
+        coinType = coin == Coin.bitcoincash ? "145" : "1";
+        purpose = "44";
         break;
       case DerivePathType.bch44:
-        type = isar_models.AddressType.unknown;
+        type = isar_models.AddressType.p2pkh;
+        coinType = coin == Coin.bitcoincash ? "0" : "1";
+        purpose = "44";
         break;
       case DerivePathType.bip49:
         type = isar_models.AddressType.p2sh;
+        coinType = coin == Coin.bitcoincash ? "145" : "1";
+        purpose = "49";
         break;
       case DerivePathType.bip84:
         throw UnsupportedError("bip84 not supported by BCH");
@@ -1568,6 +1570,7 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
         .filter()
         .typeEqualTo(type)
         .subTypeEqualTo(subType)
+        .derivationPath((q) => q.valueStartsWith("m/$purpose'/$coinType"))
         .sortByDerivationIndexDesc()
         .findFirst();
     return address!.value;
