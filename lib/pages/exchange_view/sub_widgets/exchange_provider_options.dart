@@ -60,7 +60,11 @@ class ExchangeProviderOptions extends ConsumerWidget {
                     ChangeNowExchange.exchangeName) {
                   ref.read(currentExchangeNameStateProvider.state).state =
                       ChangeNowExchange.exchangeName;
-                  ref.read(exchangeFormStateProvider).exchange =
+                  ref
+                          .read(exchangeFormStateProvider(ref
+                              .read(prefsChangeNotifierProvider)
+                              .exchangeRateType))
+                          .exchange =
                       Exchange.fromName(ref
                           .read(currentExchangeNameStateProvider.state)
                           .state);
@@ -95,7 +99,11 @@ class ExchangeProviderOptions extends ConsumerWidget {
                                     .read(
                                         currentExchangeNameStateProvider.state)
                                     .state = value;
-                                ref.read(exchangeFormStateProvider).exchange =
+                                ref
+                                        .read(exchangeFormStateProvider(ref
+                                            .read(prefsChangeNotifierProvider)
+                                            .exchangeRateType))
+                                        .exchange =
                                     Exchange.fromName(ref
                                         .read(currentExchangeNameStateProvider
                                             .state)
@@ -274,7 +282,11 @@ class ExchangeProviderOptions extends ConsumerWidget {
                     MajesticBankExchange.exchangeName) {
                   ref.read(currentExchangeNameStateProvider.state).state =
                       MajesticBankExchange.exchangeName;
-                  ref.read(exchangeFormStateProvider).exchange =
+                  ref
+                          .read(exchangeFormStateProvider(ref
+                              .read(prefsChangeNotifierProvider)
+                              .exchangeRateType))
+                          .exchange =
                       Exchange.fromName(ref
                           .read(currentExchangeNameStateProvider.state)
                           .state);
@@ -309,7 +321,11 @@ class ExchangeProviderOptions extends ConsumerWidget {
                                     .read(
                                         currentExchangeNameStateProvider.state)
                                     .state = value;
-                                ref.read(exchangeFormStateProvider).exchange =
+                                ref
+                                        .read(exchangeFormStateProvider(ref
+                                            .read(prefsChangeNotifierProvider)
+                                            .exchangeRateType))
+                                        .exchange =
                                     Exchange.fromName(ref
                                         .read(currentExchangeNameStateProvider
                                             .state)

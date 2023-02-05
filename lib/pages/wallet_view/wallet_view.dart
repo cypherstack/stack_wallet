@@ -254,7 +254,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
       ref.read(prefsChangeNotifierProvider).exchangeRateType =
           ExchangeRateType.estimated;
 
-      ref.read(exchangeFormStateProvider).exchange = ref.read(exchangeProvider);
+      ref.read(exchangeFormStateProvider(ExchangeRateType.estimated)).exchange =
+          ref.read(exchangeProvider);
 
       final currencies = ref
           .read(availableChangeNowCurrenciesProvider)
@@ -263,7 +264,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
               element.ticker.toLowerCase() == coin.ticker.toLowerCase());
 
       if (currencies.isNotEmpty) {
-        ref.read(exchangeFormStateProvider).setCurrencies(
+        ref
+            .read(exchangeFormStateProvider(ExchangeRateType.estimated))
+            .setCurrencies(
               currencies.first,
               ref
                   .read(availableChangeNowCurrenciesProvider)
