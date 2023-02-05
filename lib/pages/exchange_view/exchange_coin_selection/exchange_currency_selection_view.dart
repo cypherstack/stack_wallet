@@ -52,7 +52,9 @@ class _ExchangeCurrencySelectionViewState
           .where()
           .exchangeNameEqualTo(widget.exchangeName)
           .filter()
-          .supportsFixedRateEqualTo(widget.isFixedRate)
+          .group((q) => widget.isFixedRate
+              ? q.supportsFixedRateEqualTo(true)
+              : q.supportsEstimatedRateEqualTo(true))
           .and()
           .group((q) => q
               .nameContains(text, caseSensitive: false)
@@ -81,7 +83,9 @@ class _ExchangeCurrencySelectionViewState
         .where()
         .exchangeNameEqualTo(widget.exchangeName)
         .filter()
-        .supportsFixedRateEqualTo(widget.isFixedRate);
+        .group((q) => widget.isFixedRate
+            ? q.supportsFixedRateEqualTo(true)
+            : q.supportsEstimatedRateEqualTo(true));
 
     if (widget.paired != null) {
       _currencies = query

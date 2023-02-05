@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/buy_view/buy_in_wallet_view.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/notification_views/notifications_view.dart';
@@ -30,7 +29,6 @@ import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -248,36 +246,33 @@ class _WalletViewState extends ConsumerState<WalletView> {
         ),
       );
     } else {
-      ref.read(currentExchangeNameStateProvider.state).state =
-          ChangeNowExchange.exchangeName;
-      final walletId = ref.read(managerProvider).walletId;
-      ref.read(prefsChangeNotifierProvider).exchangeRateType =
-          ExchangeRateType.estimated;
-
-      ref.read(exchangeFormStateProvider(ExchangeRateType.estimated)).exchange =
-          ref.read(exchangeProvider);
-
-      final currencies = ref
-          .read(availableChangeNowCurrenciesProvider)
-          .currencies
-          .where((element) =>
-              element.ticker.toLowerCase() == coin.ticker.toLowerCase());
-
-      if (currencies.isNotEmpty) {
-        ref
-            .read(exchangeFormStateProvider(ExchangeRateType.estimated))
-            .setCurrencies(
-              currencies.first,
-              ref
-                  .read(availableChangeNowCurrenciesProvider)
-                  .currencies
-                  .firstWhere(
-                    (element) =>
-                        element.ticker.toLowerCase() !=
-                        coin.ticker.toLowerCase(),
-                  ),
-            );
-      }
+      // ref.read(currentExchangeNameStateProvider.state).state =
+      //     ChangeNowExchange.exchangeName;
+      // final walletId = ref.read(managerProvider).walletId;
+      // ref.read(prefsChangeNotifierProvider).exchangeRateType =
+      //     ExchangeRateType.estimated;
+      //
+      // final currencies = ref
+      //     .read(availableChangeNowCurrenciesProvider)
+      //     .currencies
+      //     .where((element) =>
+      //         element.ticker.toLowerCase() == coin.ticker.toLowerCase());
+      //
+      // if (currencies.isNotEmpty) {
+      //   ref
+      //       .read(exchangeFormStateProvider(ExchangeRateType.estimated))
+      //       .setCurrencies(
+      //         currencies.first,
+      //         ref
+      //             .read(availableChangeNowCurrenciesProvider)
+      //             .currencies
+      //             .firstWhere(
+      //               (element) =>
+      //                   element.ticker.toLowerCase() !=
+      //                   coin.ticker.toLowerCase(),
+      //             ),
+      //       );
+      // }
 
       if (mounted) {
         unawaited(

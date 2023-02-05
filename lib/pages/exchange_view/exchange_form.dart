@@ -17,11 +17,9 @@ import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_provider_op
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/rate_type_toggle.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
-import 'package:stackwallet/providers/exchange/available_majesticbank_currencies_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
-import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 // import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -527,44 +525,24 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         ref.read(exchangeFormStateProvider(rateType)).sendAmount!;
     final estimate = ref.read(exchangeFormStateProvider(rateType)).estimate!;
 
+    final exchangeName = ref.read(currentExchangeNameStateProvider.state).state;
+
     String rate;
 
     switch (rateType) {
       case ExchangeRateType.estimated:
-        bool isAvailable = false;
-        late final Iterable<Pair> availableFloatingPairs;
+        final pair = await ExchangeDataLoadingService.instance.isar.pairs
+            .where()
+            .exchangeNameEqualTo(exchangeName)
+            .filter()
+            .floatingRateEqualTo(true)
+            .and()
+            .fromEqualTo(fromTicker, caseSensitive: false)
+            .and()
+            .toEqualTo(toTicker, caseSensitive: false)
+            .findFirst();
 
-        switch (ref.read(currentExchangeNameStateProvider.state).state) {
-          case ChangeNowExchange.exchangeName:
-            availableFloatingPairs = ref
-                .read(availableChangeNowCurrenciesProvider)
-                .pairs
-                .where((e) => e.to == toTicker && e.from == fromTicker);
-            break;
-          case MajesticBankExchange.exchangeName:
-            availableFloatingPairs = ref
-                .read(availableMajesticBankCurrenciesProvider)
-                .pairs
-                .where((e) => e.to == toTicker && e.from == fromTicker);
-            break;
-          // case SimpleSwapExchange.exchangeName:
-          //   availableFloatingPairs = ref
-          //       .read(availableSimpleswapCurrenciesProvider)
-          //       .floatingRatePairs
-          //       .where((e) => e.to == toTicker && e.from == fromTicker);
-          //   break;
-          default:
-            availableFloatingPairs = [];
-        }
-
-        for (final pair in availableFloatingPairs) {
-          if (pair.from == fromTicker && pair.to == toTicker) {
-            isAvailable = true;
-            break;
-          }
-        }
-
-        if (!isAvailable) {
+        if (pair == null) {
           unawaited(
             showDialog<dynamic>(
               context: context,
@@ -885,8 +863,11 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
     // provider for simpleswap; not called rn
     ref.listen<String>(currentExchangeNameStateProvider, (previous, next) {
-      ref.read(exchangeFormStateProvider(rateType)).exchange =
-          ref.read(exchangeProvider);
+      ref.read(exchangeFormStateProvider(rateType)).updateExchange(
+            exchange: ref.read(exchangeProvider),
+            shouldUpdateData: true,
+            shouldNotifyListeners: true,
+          );
     });
 
     final isEstimated = ref.watch(prefsChangeNotifierProvider

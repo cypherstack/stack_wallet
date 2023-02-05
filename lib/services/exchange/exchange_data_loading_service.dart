@@ -39,8 +39,9 @@ class ExchangeDataLoadingService {
       final time = DateTime.now();
       try {
         await Future.wait([
-          _loadFixedRateMarkets(),
-          _loadChangeNowStandardCurrencies(),
+          _loadChangeNowCurrencies(),
+          _loadChangeNowFixedRatePairs(),
+          _loadChangeNowEstimatedRatePairs(),
           // loadSimpleswapFixedRateCurrencies(ref),
           // loadSimpleswapFloatingRateCurrencies(ref),
           loadMajesticBankCurrencies(),
@@ -57,78 +58,72 @@ class ExchangeDataLoadingService {
     }
   }
 
-  Future<void> _loadFixedRateMarkets() async {
+  Future<void> _loadChangeNowCurrencies() async {
     final exchange = ChangeNowExchange.instance;
-    final responseCurrencies = await exchange.getAllCurrencies(true);
+    final responseCurrencies = await exchange.getAllCurrencies(false);
     if (responseCurrencies.value != null) {
-      final responsePairs = await exchange.getAllPairs(true);
-
-      if (responsePairs.value != null) {
-        await isar.writeTxn(() async {
-          final idsToDelete = await isar.currencies
-              .where()
-              .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
-              .idProperty()
-              .findAll();
-          await isar.currencies.deleteAll(idsToDelete);
-          await isar.currencies.putAll(responseCurrencies.value!);
-
-          final idsToDelete2 = await isar.pairs
-              .where()
-              .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
-              .idProperty()
-              .findAll();
-          await isar.pairs.deleteAll(idsToDelete2);
-          await isar.pairs.putAll(responsePairs.value!);
-        });
-      } else {
-        Logging.instance.log(
-            "Failed to load changeNOW available fixed rate pairs: ${responsePairs.exception?.message}",
-            level: LogLevel.Error);
-        return;
-      }
+      await isar.writeTxn(() async {
+        final idsToDelete = await isar.currencies
+            .where()
+            .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
+            .idProperty()
+            .findAll();
+        await isar.currencies.deleteAll(idsToDelete);
+        await isar.currencies.putAll(responseCurrencies.value!);
+      });
     } else {
       Logging.instance.log(
-          "Failed to load changeNOW fixed rate currencies: ${responseCurrencies.exception?.message}",
+          "Failed to load changeNOW currencies: ${responseCurrencies.exception?.message}",
           level: LogLevel.Error);
       return;
     }
   }
 
-  Future<void> _loadChangeNowStandardCurrencies() async {
+  Future<void> _loadChangeNowFixedRatePairs() async {
     final exchange = ChangeNowExchange.instance;
-    final responseCurrencies = await exchange.getAllCurrencies(false);
 
-    if (responseCurrencies.value != null) {
-      final responsePairs = await exchange.getAllPairs(false);
+    final responsePairs = await exchange.getAllPairs(true);
 
-      if (responsePairs.value != null) {
-        await isar.writeTxn(() async {
-          final idsToDelete = await isar.currencies
-              .where()
-              .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
-              .idProperty()
-              .findAll();
-          await isar.currencies.deleteAll(idsToDelete);
-          await isar.currencies.putAll(responseCurrencies.value!);
-
-          final idsToDelete2 = await isar.pairs
-              .where()
-              .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
-              .idProperty()
-              .findAll();
-          await isar.pairs.deleteAll(idsToDelete2);
-          await isar.pairs.putAll(responsePairs.value!);
-        });
-      } else {
-        Logging.instance.log(
-            "Failed to load changeNOW available floating rate pairs: ${responsePairs.exception?.message}",
-            level: LogLevel.Error);
-        return;
-      }
+    if (responsePairs.value != null) {
+      await isar.writeTxn(() async {
+        final idsToDelete2 = await isar.pairs
+            .where()
+            .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
+            .filter()
+            .fixedRateEqualTo(true)
+            .idProperty()
+            .findAll();
+        await isar.pairs.deleteAll(idsToDelete2);
+        await isar.pairs.putAll(responsePairs.value!);
+      });
     } else {
       Logging.instance.log(
-          "Failed to load changeNOW currencies: ${responseCurrencies.exception?.message}",
+          "Failed to load changeNOW available fixed rate pairs: ${responsePairs.exception?.message}",
+          level: LogLevel.Error);
+      return;
+    }
+  }
+
+  Future<void> _loadChangeNowEstimatedRatePairs() async {
+    final exchange = ChangeNowExchange.instance;
+
+    final responsePairs = await exchange.getAllPairs(false);
+
+    if (responsePairs.value != null) {
+      await isar.writeTxn(() async {
+        final idsToDelete = await isar.pairs
+            .where()
+            .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
+            .filter()
+            .floatingRateEqualTo(true)
+            .idProperty()
+            .findAll();
+        await isar.pairs.deleteAll(idsToDelete);
+        await isar.pairs.putAll(responsePairs.value!);
+      });
+    } else {
+      Logging.instance.log(
+          "Failed to load changeNOW available floating rate pairs: ${responsePairs.exception?.message}",
           level: LogLevel.Error);
       return;
     }

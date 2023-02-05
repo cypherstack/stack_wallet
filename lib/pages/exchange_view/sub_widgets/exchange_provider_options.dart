@@ -5,7 +5,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
-import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -60,14 +59,6 @@ class ExchangeProviderOptions extends ConsumerWidget {
                     ChangeNowExchange.exchangeName) {
                   ref.read(currentExchangeNameStateProvider.state).state =
                       ChangeNowExchange.exchangeName;
-                  ref
-                          .read(exchangeFormStateProvider(ref
-                              .read(prefsChangeNotifierProvider)
-                              .exchangeRateType))
-                          .exchange =
-                      Exchange.fromName(ref
-                          .read(currentExchangeNameStateProvider.state)
-                          .state);
                 }
               },
               child: Container(
@@ -94,21 +85,21 @@ class ExchangeProviderOptions extends ConsumerWidget {
                                 .watch(currentExchangeNameStateProvider.state)
                                 .state,
                             onChanged: (value) {
-                              if (value is String) {
-                                ref
-                                    .read(
-                                        currentExchangeNameStateProvider.state)
-                                    .state = value;
-                                ref
-                                        .read(exchangeFormStateProvider(ref
-                                            .read(prefsChangeNotifierProvider)
-                                            .exchangeRateType))
-                                        .exchange =
-                                    Exchange.fromName(ref
-                                        .read(currentExchangeNameStateProvider
-                                            .state)
-                                        .state);
-                              }
+                              // if (value is String) {
+                              //   ref
+                              //       .read(
+                              //           currentExchangeNameStateProvider.state)
+                              //       .state = value;
+                              //   ref
+                              //           .read(exchangeFormStateProvider(ref
+                              //               .read(prefsChangeNotifierProvider)
+                              //               .exchangeRateType))
+                              //           .exchange =
+                              //       Exchange.fromName(ref
+                              //           .read(currentExchangeNameStateProvider
+                              //               .state)
+                              //           .state);
+                              // }
                             },
                           ),
                         ),
@@ -282,14 +273,6 @@ class ExchangeProviderOptions extends ConsumerWidget {
                     MajesticBankExchange.exchangeName) {
                   ref.read(currentExchangeNameStateProvider.state).state =
                       MajesticBankExchange.exchangeName;
-                  ref
-                          .read(exchangeFormStateProvider(ref
-                              .read(prefsChangeNotifierProvider)
-                              .exchangeRateType))
-                          .exchange =
-                      Exchange.fromName(ref
-                          .read(currentExchangeNameStateProvider.state)
-                          .state);
                 }
               },
               child: Container(
@@ -316,21 +299,21 @@ class ExchangeProviderOptions extends ConsumerWidget {
                                 .watch(currentExchangeNameStateProvider.state)
                                 .state,
                             onChanged: (value) {
-                              if (value is String) {
-                                ref
-                                    .read(
-                                        currentExchangeNameStateProvider.state)
-                                    .state = value;
-                                ref
-                                        .read(exchangeFormStateProvider(ref
-                                            .read(prefsChangeNotifierProvider)
-                                            .exchangeRateType))
-                                        .exchange =
-                                    Exchange.fromName(ref
-                                        .read(currentExchangeNameStateProvider
-                                            .state)
-                                        .state);
-                              }
+                              //   if (value is String) {
+                              //     ref
+                              //         .read(
+                              //             currentExchangeNameStateProvider.state)
+                              //         .state = value;
+                              //     ref
+                              //             .read(exchangeFormStateProvider(ref
+                              //                 .read(prefsChangeNotifierProvider)
+                              //                 .exchangeRateType))
+                              //             .exchange =
+                              //         Exchange.fromName(ref
+                              //             .read(currentExchangeNameStateProvider
+                              //                 .state)
+                              //             .state);
+                              //   }
                             },
                           ),
                         ),

@@ -189,8 +189,9 @@ class MajesticBankAPI {
 
       return ExchangeResponse(value: result);
     } catch (e, s) {
-      Logging.instance
-          .log("calculateOrder exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.log(
+          "calculateOrder $fromCurrency-$receiveCurrency exception: $e\n$s",
+          level: LogLevel.Error);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
