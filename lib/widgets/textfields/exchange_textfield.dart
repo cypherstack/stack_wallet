@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -156,12 +157,18 @@ class _ExchangeTextFieldState extends State<ExchangeTextField> {
                           ),
                           child: Builder(
                             builder: (context) {
-                              final image = widget.image;
-
-                              if (image != null && image.isNotEmpty) {
+                              if (isStackCoin(widget.ticker)) {
+                                return Center(
+                                  child: getIconForTicker(
+                                    widget.ticker!,
+                                    size: 18,
+                                  ),
+                                );
+                              } else if (widget.image != null &&
+                                  widget.image!.isNotEmpty) {
                                 return Center(
                                   child: SvgPicture.network(
-                                    image,
+                                    widget.image!,
                                     height: 18,
                                     placeholderBuilder: (_) => Container(
                                       width: 18,

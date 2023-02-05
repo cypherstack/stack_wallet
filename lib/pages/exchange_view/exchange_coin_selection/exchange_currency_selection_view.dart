@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/exchange/response_objects/currency.dart';
-import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
+import 'package:isar/isar.dart';
+import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
+import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dart';
+import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -17,97 +18,82 @@ import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
-import 'package:tuple/tuple.dart';
 
-class FixedRateMarketPairCoinSelectionView extends ConsumerStatefulWidget {
-  const FixedRateMarketPairCoinSelectionView({
+class ExchangeCurrencySelectionView extends StatefulWidget {
+  const ExchangeCurrencySelectionView({
     Key? key,
-    required this.markets,
-    required this.currencies,
-    required this.isFrom,
+    required this.exchangeName,
+    required this.willChange,
+    required this.paired,
+    required this.isFixedRate,
   }) : super(key: key);
 
-  final List<FixedRateMarket> markets;
-  final List<Currency> currencies;
-  final bool isFrom;
+  final String exchangeName;
+  final Currency? willChange;
+  final Currency? paired;
+  final bool isFixedRate;
 
   @override
-  ConsumerState<FixedRateMarketPairCoinSelectionView> createState() =>
-      _FixedRateMarketPairCoinSelectionViewState();
+  State<ExchangeCurrencySelectionView> createState() =>
+      _ExchangeCurrencySelectionViewState();
 }
 
-class _FixedRateMarketPairCoinSelectionViewState
-    extends ConsumerState<FixedRateMarketPairCoinSelectionView> {
+class _ExchangeCurrencySelectionViewState
+    extends State<ExchangeCurrencySelectionView> {
   late TextEditingController _searchController;
   final _searchFocusNode = FocusNode();
+  final isDesktop = Util.isDesktop;
 
-  late final List<FixedRateMarket> markets;
-  late List<FixedRateMarket> _markets;
-
-  late final bool isFrom;
-
-  Tuple2<String, String> _imageUrlAndNameFor(String ticker) {
-    final matches = widget.currencies.where(
-        (element) => element.ticker.toLowerCase() == ticker.toLowerCase());
-
-    if (matches.isNotEmpty) {
-      return Tuple2(matches.first.image, matches.first.name);
-    }
-    return Tuple2("", ticker);
-  }
+  late List<Currency> _currencies;
 
   void filter(String text) {
     setState(() {
-      _markets = [
-        ...markets.where((e) {
-          final String ticker = isFrom ? e.from : e.to;
-          final __currencies = widget.currencies
-              .where((e) => e.ticker.toLowerCase() == ticker.toLowerCase());
-          if (__currencies.isNotEmpty) {
-            return __currencies.first.name
-                    .toLowerCase()
-                    .contains(text.toLowerCase()) ||
-                ticker.toLowerCase().contains(text.toLowerCase());
-          }
-          return ticker.toLowerCase().contains(text.toLowerCase());
-        })
-      ];
+      final query = ExchangeDataLoadingService.instance.isar.currencies
+          .where()
+          .exchangeNameEqualTo(widget.exchangeName)
+          .filter()
+          .supportsFixedRateEqualTo(widget.isFixedRate)
+          .and()
+          .group((q) => q
+              .nameContains(text, caseSensitive: false)
+              .or()
+              .tickerContains(text, caseSensitive: false));
+
+      if (widget.paired != null) {
+        _currencies = query
+            .and()
+            .not()
+            .tickerEqualTo(widget.paired!.ticker)
+            .sortByIsStackCoin()
+            .thenByTicker()
+            .findAllSync();
+      } else {
+        _currencies = query.sortByIsStackCoin().thenByTicker().findAllSync();
+      }
     });
   }
 
   @override
   void initState() {
     _searchController = TextEditingController();
-    isFrom = widget.isFrom;
 
-    markets = [...widget.markets];
-    if (isFrom) {
-      markets.sort(
-        (a, b) => a.from.toLowerCase().compareTo(b.from.toLowerCase()),
-      );
-      for (Coin coin in Coin.values.reversed) {
-        int index = markets.indexWhere((element) =>
-            element.from.toLowerCase() == coin.ticker.toLowerCase());
-        if (index > 0) {
-          final market = markets.removeAt(index);
-          markets.insert(0, market);
-        }
-      }
+    final query = ExchangeDataLoadingService.instance.isar.currencies
+        .where()
+        .exchangeNameEqualTo(widget.exchangeName)
+        .filter()
+        .supportsFixedRateEqualTo(widget.isFixedRate);
+
+    if (widget.paired != null) {
+      _currencies = query
+          .and()
+          .not()
+          .tickerEqualTo(widget.paired!.ticker)
+          .sortByIsStackCoin()
+          .thenByTicker()
+          .findAllSync();
     } else {
-      markets.sort(
-        (a, b) => a.to.toLowerCase().compareTo(b.to.toLowerCase()),
-      );
-      for (Coin coin in Coin.values.reversed) {
-        int index = markets.indexWhere(
-            (element) => element.to.toLowerCase() == coin.ticker.toLowerCase());
-        if (index > 0) {
-          final market = markets.removeAt(index);
-          markets.insert(0, market);
-        }
-      }
+      _currencies = query.sortByIsStackCoin().thenByTicker().findAllSync();
     }
-
-    _markets = [...markets];
 
     super.initState();
   }
@@ -121,7 +107,11 @@ class _FixedRateMarketPairCoinSelectionViewState
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = Util.isDesktop;
+    print("==================================================");
+    print("${widget.exchangeName}");
+    print("${widget.isFixedRate}");
+    print("==================================================");
+
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) {
@@ -158,6 +148,7 @@ class _FixedRateMarketPairCoinSelectionViewState
       },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: isDesktop ? MainAxisSize.min : MainAxisSize.max,
         children: [
           if (!isDesktop)
             const SizedBox(
@@ -179,6 +170,7 @@ class _FixedRateMarketPairCoinSelectionViewState
                 "Search",
                 _searchFocusNode,
                 context,
+                desktopMed: isDesktop,
               ).copyWith(
                 prefixIcon: Padding(
                   padding: const EdgeInsets.symmetric(
@@ -203,6 +195,7 @@ class _FixedRateMarketPairCoinSelectionViewState
                                   setState(() {
                                     _searchController.text = "";
                                   });
+                                  filter("");
                                 },
                               ),
                             ],
@@ -225,11 +218,10 @@ class _FixedRateMarketPairCoinSelectionViewState
           ),
           Flexible(
             child: Builder(builder: (context) {
-              final items = _markets
+              final items = _currencies
                   .where((e) => Coin.values
                       .where((coin) =>
-                          coin.ticker.toLowerCase() ==
-                          (isFrom ? e.from.toLowerCase() : e.to.toLowerCase()))
+                          coin.ticker.toLowerCase() == e.ticker.toLowerCase())
                       .isNotEmpty)
                   .toList(growable: false);
 
@@ -240,15 +232,11 @@ class _FixedRateMarketPairCoinSelectionViewState
                   primary: isDesktop ? false : null,
                   itemCount: items.length,
                   itemBuilder: (builderContext, index) {
-                    final String ticker =
-                        isFrom ? items[index].from : items[index].to;
-
-                    final tuple = _imageUrlAndNameFor(ticker);
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),
                       child: GestureDetector(
                         onTap: () {
-                          Navigator.of(context).pop(ticker);
+                          Navigator.of(context).pop(items[index]);
                         },
                         child: RoundedWhiteContainer(
                           child: Row(
@@ -256,13 +244,18 @@ class _FixedRateMarketPairCoinSelectionViewState
                               SizedBox(
                                 width: 24,
                                 height: 24,
-                                child: SvgPicture.network(
-                                  tuple.item1,
-                                  width: 24,
-                                  height: 24,
-                                  placeholderBuilder: (_) =>
-                                      const LoadingIndicator(),
-                                ),
+                                child: isStackCoin(items[index].ticker)
+                                    ? getIconForTicker(
+                                        items[index].ticker,
+                                        size: 24,
+                                      )
+                                    : SvgPicture.network(
+                                        items[index].image,
+                                        width: 24,
+                                        height: 24,
+                                        placeholderBuilder: (_) =>
+                                            const LoadingIndicator(),
+                                      ),
                               ),
                               const SizedBox(
                                 width: 10,
@@ -272,14 +265,14 @@ class _FixedRateMarketPairCoinSelectionViewState
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      tuple.item2,
+                                      items[index].name,
                                       style: STextStyles.largeMedium14(context),
                                     ),
                                     const SizedBox(
                                       height: 2,
                                     ),
                                     Text(
-                                      ticker.toUpperCase(),
+                                      items[index].ticker.toUpperCase(),
                                       style: STextStyles.smallMed12(context)
                                           .copyWith(
                                         color: Theme.of(context)
@@ -316,17 +309,13 @@ class _FixedRateMarketPairCoinSelectionViewState
               child: ListView.builder(
                 shrinkWrap: true,
                 primary: isDesktop ? false : null,
-                itemCount: _markets.length,
+                itemCount: _currencies.length,
                 itemBuilder: (builderContext, index) {
-                  final String ticker =
-                      isFrom ? _markets[index].from : _markets[index].to;
-
-                  final tuple = _imageUrlAndNameFor(ticker);
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: GestureDetector(
                       onTap: () {
-                        Navigator.of(context).pop(ticker);
+                        Navigator.of(context).pop(_currencies[index]);
                       },
                       child: RoundedWhiteContainer(
                         child: Row(
@@ -334,13 +323,18 @@ class _FixedRateMarketPairCoinSelectionViewState
                             SizedBox(
                               width: 24,
                               height: 24,
-                              child: SvgPicture.network(
-                                tuple.item1,
-                                width: 24,
-                                height: 24,
-                                placeholderBuilder: (_) =>
-                                    const LoadingIndicator(),
-                              ),
+                              child: isStackCoin(_currencies[index].ticker)
+                                  ? getIconForTicker(
+                                      _currencies[index].ticker,
+                                      size: 24,
+                                    )
+                                  : SvgPicture.network(
+                                      _currencies[index].image,
+                                      width: 24,
+                                      height: 24,
+                                      placeholderBuilder: (_) =>
+                                          const LoadingIndicator(),
+                                    ),
                             ),
                             const SizedBox(
                               width: 10,
@@ -350,14 +344,14 @@ class _FixedRateMarketPairCoinSelectionViewState
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    tuple.item2,
+                                    _currencies[index].name,
                                     style: STextStyles.largeMedium14(context),
                                   ),
                                   const SizedBox(
                                     height: 2,
                                   ),
                                   Text(
-                                    ticker.toUpperCase(),
+                                    _currencies[index].ticker.toUpperCase(),
                                     style: STextStyles.smallMed12(context)
                                         .copyWith(
                                       color: Theme.of(context)

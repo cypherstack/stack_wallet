@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class HomeViewButtonBar extends ConsumerStatefulWidget {
   const HomeViewButtonBar({Key? key}) : super(key: key);
@@ -19,16 +17,16 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
 
   @override
   void initState() {
-    ref.read(exchangeFormStateProvider).setOnError(
-          onError: (String message) => showDialog<dynamic>(
-            context: context,
-            barrierDismissible: true,
-            builder: (_) => StackDialog(
-              title: "Exchange API Call Failed",
-              message: message,
-            ),
-          ),
-        );
+    // ref.read(exchangeFormStateProvider).setOnError(
+    //       onError: (String message) => showDialog<dynamic>(
+    //         context: context,
+    //         barrierDismissible: true,
+    //         builder: (_) => StackDialog(
+    //           title: "Exchange API Call Failed",
+    //           message: message,
+    //         ),
+    //       ),
+    //     );
     super.initState();
   }
 
@@ -106,7 +104,7 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
               // DateTime now = DateTime.now();
               // if (ref.read(prefsChangeNotifierProvider).externalCalls) {
               //   print("loading?");
-              await ExchangeDataLoadingService().loadAll(ref);
+              // await ExchangeDataLoadingService().loadAll(ref);
               // }
               // if (now.difference(_lastRefreshed) > _refreshInterval) {
               //   await ExchangeDataLoadingService().loadAll(ref);

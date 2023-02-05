@@ -9,13 +9,15 @@ import 'package:stackwallet/models/exchange/change_now/cn_exchange_estimate.dart
 import 'package:stackwallet/models/exchange/change_now/estimated_exchange_amount.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
-import 'package:stackwallet/models/exchange/response_objects/currency.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
-import 'package:stackwallet/models/exchange/response_objects/pair.dart';
 import 'package:stackwallet/models/exchange/response_objects/range.dart';
+import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
+import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:tuple/tuple.dart';
 
 class ChangeNowAPI {
   static const String scheme = "https";
@@ -127,7 +129,9 @@ class ChangeNowAPI {
 
       try {
         final result = await compute(
-            _parseAvailableCurrenciesJson, jsonArray as List<dynamic>);
+          _parseAvailableCurrenciesJson,
+          Tuple2(jsonArray as List<dynamic>, fixedRate == true),
+        );
         return result;
       } catch (e, s) {
         Logging.instance.log("getAvailableCurrencies exception: $e\n$s",
@@ -152,14 +156,21 @@ class ChangeNowAPI {
   }
 
   ExchangeResponse<List<Currency>> _parseAvailableCurrenciesJson(
-      List<dynamic> jsonArray) {
+    Tuple2<List<dynamic>, bool> args,
+  ) {
     try {
       List<Currency> currencies = [];
 
-      for (final json in jsonArray) {
+      for (final json in args.item1) {
         try {
-          currencies
-              .add(Currency.fromJson(Map<String, dynamic>.from(json as Map)));
+          final map = Map<String, dynamic>.from(json as Map);
+          map["supportsEstimatedRate"] = !args.item2;
+          currencies.add(
+            Currency.fromJson(
+              map,
+              exchangeName: ChangeNowExchange.exchangeName,
+            ),
+          );
         } catch (_) {
           return ExchangeResponse(
               exception: ExchangeException("Failed to serialize $json",
@@ -199,8 +210,14 @@ class ChangeNowAPI {
       try {
         for (final json in jsonArray) {
           try {
-            currencies
-                .add(Currency.fromJson(Map<String, dynamic>.from(json as Map)));
+            final map = Map<String, dynamic>.from(json as Map);
+            map["supportsEstimatedRate"] = !(fixedRate == true);
+            currencies.add(
+              Currency.fromJson(
+                map,
+                exchangeName: ChangeNowExchange.exchangeName,
+              ),
+            );
           } catch (_) {
             return ExchangeResponse(
               exception: ExchangeException(
@@ -823,6 +840,7 @@ class ChangeNowAPI {
           final List<String> stringPair = (json as String).split("_");
           pairs.add(
             Pair(
+              exchangeName: ChangeNowExchange.exchangeName,
               from: stringPair[0],
               to: stringPair[1],
               fromNetwork: "",

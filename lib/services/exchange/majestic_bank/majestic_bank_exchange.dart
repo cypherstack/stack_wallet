@@ -2,18 +2,24 @@ import 'package:decimal/decimal.dart';
 import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
 import 'package:stackwallet/exceptions/exchange/majestic_bank/mb_exception.dart';
 import 'package:stackwallet/models/exchange/majestic_bank/mb_order.dart';
-import 'package:stackwallet/models/exchange/response_objects/currency.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
-import 'package:stackwallet/models/exchange/response_objects/pair.dart';
 import 'package:stackwallet/models/exchange/response_objects/range.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
+import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
+import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_api.dart';
 import 'package:uuid/uuid.dart';
 
 class MajesticBankExchange extends Exchange {
-  static const exchangeName = "MajesticBank";
+  MajesticBankExchange._();
+
+  static MajesticBankExchange? _instance;
+  static MajesticBankExchange get instance =>
+      _instance ??= MajesticBankExchange._();
+
+  static const exchangeName = "Majestic Bank";
 
   @override
   Future<ExchangeResponse<Trade>> createTrade({
@@ -102,15 +108,16 @@ class MajesticBankExchange extends Exchange {
 
     for (final limit in limits) {
       final currency = Currency(
+        exchangeName: MajesticBankExchange.exchangeName,
         ticker: limit.currency,
-        name: limit.currency,
+        name: limit.currency, // todo: get full coin name
         network: "",
         image: "",
-        hasExternalId: false,
         isFiat: false,
-        featured: false,
-        isStable: false,
         supportsFixedRate: true,
+        supportsEstimatedRate: true,
+        isAvailable: true,
+        isStackCoin: Currency.checkIsStackCoin(limit.currency),
       );
       currencies.add(currency);
     }
@@ -130,6 +137,7 @@ class MajesticBankExchange extends Exchange {
 
     for (final rate in rates) {
       final pair = Pair(
+        exchangeName: MajesticBankExchange.exchangeName,
         from: rate.fromCurrency,
         fromNetwork: "",
         to: rate.toCurrency,

@@ -604,6 +604,24 @@ class MockPrefs extends _i1.Mock implements _i11.Prefs {
         returnValue: _i10.Future<bool>.value(false),
       ) as _i10.Future<bool>);
   @override
+  _i10.Future<void> saveUserID(String? userId) => (super.noSuchMethod(
+        Invocation.method(
+          #saveUserID,
+          [userId],
+        ),
+        returnValue: _i10.Future<void>.value(),
+        returnValueForMissingStub: _i10.Future<void>.value(),
+      ) as _i10.Future<void>);
+  @override
+  _i10.Future<void> saveSignupEpoch(int? signupEpoch) => (super.noSuchMethod(
+        Invocation.method(
+          #saveSignupEpoch,
+          [signupEpoch],
+        ),
+        returnValue: _i10.Future<void>.value(),
+        returnValueForMissingStub: _i10.Future<void>.value(),
+      ) as _i10.Future<void>);
+  @override
   void addListener(_i12.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,

@@ -1,6 +1,6 @@
-import 'package:stackwallet/models/exchange/response_objects/currency.dart';
 import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
-import 'package:stackwallet/models/exchange/response_objects/pair.dart';
+import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
+import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 
 class CNAvailableCurrencies {
   final List<Currency> currencies = [];

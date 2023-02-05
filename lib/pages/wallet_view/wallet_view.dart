@@ -37,7 +37,6 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
-import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -79,8 +78,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
   late StreamSubscription<dynamic> _syncStatusSubscription;
   late StreamSubscription<dynamic> _nodeStatusSubscription;
-
-  final _cnLoadingService = ExchangeDataLoadingService();
 
   @override
   void initState() {
@@ -231,7 +228,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
   }
 
   void _onExchangePressed(BuildContext context) async {
-    unawaited(_cnLoadingService.loadAll(ref));
+    // too expensive
+    // unawaited(ExchangeDataLoadingService.instance.loadAll(ref));
 
     final coin = ref.read(managerProvider).coin;
 
@@ -257,8 +255,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
           ExchangeRateType.estimated;
 
       ref.read(exchangeFormStateProvider).exchange = ref.read(exchangeProvider);
-      ref.read(exchangeFormStateProvider).exchangeType =
-          ExchangeRateType.estimated;
 
       final currencies = ref
           .read(availableChangeNowCurrenciesProvider)
@@ -311,7 +307,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
     );
     final firoWallet = ref.read(managerProvider).wallet as FiroWallet;
 
-    final publicBalance = await firoWallet.availablePublicBalance();
+    final publicBalance = firoWallet.availablePublicBalance();
     if (publicBalance <= Decimal.zero) {
       shouldPop = true;
       if (mounted) {
@@ -363,12 +359,13 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
   void _loadCNData() {
     // unawaited future
-    if (ref.read(prefsChangeNotifierProvider).externalCalls) {
-      _cnLoadingService.loadAll(ref, coin: ref.read(managerProvider).coin);
-    } else {
-      Logging.instance.log("User does not want to use external calls",
-          level: LogLevel.Info);
-    }
+    // if (ref.read(prefsChangeNotifierProvider).externalCalls) {
+    ExchangeDataLoadingService.instance.loadAll();
+    // .loadAll(ref, coin: ref.read(managerProvider).coin);
+    // } else {
+    //   Logging.instance.log("User does not want to use external calls",
+    //       level: LogLevel.Info);
+    // }
   }
 
   @override

@@ -5,21 +5,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:isar/isar.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
-import 'package:stackwallet/models/exchange/response_objects/currency.dart';
-import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
-import 'package:stackwallet/models/exchange/response_objects/pair.dart';
+import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
+import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/exchange_view/exchange_coin_selection/fixed_rate_pair_coin_selection_view.dart';
-import 'package:stackwallet/pages/exchange_view/exchange_coin_selection/floating_rate_currency_selection_view.dart';
+import 'package:stackwallet/pages/exchange_view/exchange_coin_selection/exchange_currency_selection_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_1_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_2_view.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_provider_options.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/rate_type_toggle.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
+import 'package:stackwallet/providers/exchange/available_majesticbank_currencies_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
+import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
+import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 // import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -74,268 +76,15 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
       await ref
           .read(exchangeFormStateProvider)
-          .setFromAmountAndCalculateToAmount(
+          .setSendAmountAndCalculateReceiveAmount(
               newFromAmount ?? Decimal.zero, true);
 
       if (newFromAmount == null) {
-        _receiveController.text =
-            ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-                    ExchangeRateType.estimated
-                ? "-"
-                : "";
-      }
-    }
-  }
-
-  void selectSendCurrency() async {
-    if (ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-        ExchangeRateType.estimated) {
-      final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "-";
-      // ref.read(estimatedRateExchangeFormProvider).from?.ticker ?? "-";
-
-      if (walletInitiated &&
-          fromTicker.toLowerCase() == coin!.ticker.toLowerCase()) {
-        // do not allow changing away from wallet coin
-        return;
-      }
-
-      List<Currency> currencies;
-      switch (ref.read(currentExchangeNameStateProvider.state).state) {
-        case ChangeNowExchange.exchangeName:
-          currencies =
-              ref.read(availableChangeNowCurrenciesProvider).currencies;
-          break;
-        // case SimpleSwapExchange.exchangeName:
-        //   currencies = ref
-        //       .read(availableSimpleswapCurrenciesProvider)
-        //       .floatingRateCurrencies;
-        //   break;
-        default:
-          currencies = [];
-      }
-
-      await _showFloatingRateSelectionSheet(
-          currencies: currencies,
-          excludedTicker: ref.read(exchangeFormStateProvider).toTicker ?? "-",
-          fromTicker: fromTicker,
-          onSelected: (from) =>
-              ref.read(exchangeFormStateProvider).updateFrom(from, true));
-
-      unawaited(
-        showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => WillPopScope(
-            onWillPop: () async => false,
-            child: Container(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .overlay
-                  .withOpacity(0.6),
-              child: const CustomLoadingOverlay(
-                message: "Updating exchange rate",
-                eventBus: null,
-              ),
-            ),
-          ),
-        ),
-      );
-
-      await Future<void>.delayed(const Duration(milliseconds: 300));
-
-      Navigator.of(context, rootNavigator: true).pop();
-    } else {
-      final toTicker = ref.read(exchangeFormStateProvider).toTicker ?? "";
-      final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "";
-
-      if (walletInitiated &&
-          fromTicker.toLowerCase() == coin!.ticker.toLowerCase()) {
-        // do not allow changing away from wallet coin
-        return;
-      }
-
-      switch (ref.read(currentExchangeNameStateProvider.state).state) {
-        case ChangeNowExchange.exchangeName:
-          await _showFixedRateSelectionSheet(
-            excludedTicker: toTicker,
-            fromTicker: fromTicker,
-            onSelected: (selectedFromTicker) async {
-              try {
-                final market = ref
-                    .read(availableChangeNowCurrenciesProvider)
-                    .markets
-                    .firstWhere(
-                      (e) => e.to == toTicker && e.from == selectedFromTicker,
-                    );
-
-                await ref
-                    .read(exchangeFormStateProvider)
-                    .updateMarket(market, true);
-              } catch (e) {
-                unawaited(
-                  showDialog<dynamic>(
-                    context: context,
-                    builder: (_) {
-                      if (isDesktop) {
-                        return const SimpleDesktopDialog(
-                          title: "Fixed rate market error",
-                          message:
-                              "Could not find the specified fixed rate trade pair",
-                        );
-                      } else {
-                        return const StackDialog(
-                          title: "Fixed rate market error",
-                          message:
-                              "Could not find the specified fixed rate trade pair",
-                        );
-                      }
-                    },
-                  ),
-                );
-
-                return;
-              }
-            },
-          );
-          break;
-        // case SimpleSwapExchange.exchangeName:
-        //   await _showFloatingRateSelectionSheet(
-        //       currencies: ref
-        //           .read(availableSimpleswapCurrenciesProvider)
-        //           .fixedRateCurrencies,
-        //       excludedTicker:
-        //           ref.read(exchangeFormStateProvider).toTicker ?? "-",
-        //       fromTicker: fromTicker,
-        //       onSelected: (from) =>
-        //           ref.read(exchangeFormStateProvider).updateFrom(from, true));
-        //   break;
-        default:
-        // TODO show error?
-      }
-    }
-  }
-
-  void selectReceiveCurrency() async {
-    if (ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-        ExchangeRateType.estimated) {
-      final toTicker = ref.read(exchangeFormStateProvider).toTicker ?? "";
-
-      if (walletInitiated &&
-          toTicker.toLowerCase() == coin!.ticker.toLowerCase()) {
-        // do not allow changing away from wallet coin
-        return;
-      }
-
-      List<Currency> currencies;
-      switch (ref.read(currentExchangeNameStateProvider.state).state) {
-        case ChangeNowExchange.exchangeName:
-          currencies =
-              ref.read(availableChangeNowCurrenciesProvider).currencies;
-          break;
-        // case SimpleSwapExchange.exchangeName:
-        //   currencies = ref
-        //       .read(availableSimpleswapCurrenciesProvider)
-        //       .floatingRateCurrencies;
-        //   break;
-        default:
-          currencies = [];
-      }
-
-      await _showFloatingRateSelectionSheet(
-          currencies: currencies,
-          excludedTicker: ref.read(exchangeFormStateProvider).fromTicker ?? "",
-          fromTicker: ref.read(exchangeFormStateProvider).fromTicker ?? "",
-          onSelected: (to) =>
-              ref.read(exchangeFormStateProvider).updateTo(to, true));
-
-      unawaited(
-        showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => WillPopScope(
-            onWillPop: () async => false,
-            child: Container(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .overlay
-                  .withOpacity(0.6),
-              child: const CustomLoadingOverlay(
-                message: "Updating exchange rate",
-                eventBus: null,
-              ),
-            ),
-          ),
-        ),
-      );
-
-      await Future<void>.delayed(const Duration(milliseconds: 300));
-      Navigator.of(context).pop();
-    } else {
-      final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "";
-      final toTicker = ref.read(exchangeFormStateProvider).toTicker ?? "";
-
-      if (walletInitiated &&
-          toTicker.toLowerCase() == coin!.ticker.toLowerCase()) {
-        // do not allow changing away from wallet coin
-        return;
-      }
-
-      switch (ref.read(currentExchangeNameStateProvider.state).state) {
-        case ChangeNowExchange.exchangeName:
-          await _showFixedRateSelectionSheet(
-            excludedTicker: fromTicker,
-            fromTicker: fromTicker,
-            onSelected: (selectedToTicker) async {
-              try {
-                final market = ref
-                    .read(availableChangeNowCurrenciesProvider)
-                    .markets
-                    .firstWhere(
-                      (e) => e.to == selectedToTicker && e.from == fromTicker,
-                    );
-
-                await ref
-                    .read(exchangeFormStateProvider)
-                    .updateMarket(market, true);
-              } catch (e) {
-                unawaited(
-                  showDialog<dynamic>(
-                    context: context,
-                    builder: (_) {
-                      if (isDesktop) {
-                        return const SimpleDesktopDialog(
-                          title: "Fixed rate market error",
-                          message:
-                              "Could not find the specified fixed rate trade pair",
-                        );
-                      } else {
-                        return const StackDialog(
-                          title: "Fixed rate market error",
-                          message:
-                              "Could not find the specified fixed rate trade pair",
-                        );
-                      }
-                    },
-                  ),
-                );
-                return;
-              }
-            },
-          );
-          break;
-        // case SimpleSwapExchange.exchangeName:
-        //   await _showFloatingRateSelectionSheet(
-        //       currencies: ref
-        //           .read(availableSimpleswapCurrenciesProvider)
-        //           .fixedRateCurrencies,
-        //       excludedTicker:
-        //           ref.read(exchangeFormStateProvider).fromTicker ?? "",
-        //       fromTicker: ref.read(exchangeFormStateProvider).fromTicker ?? "",
-        //       onSelected: (to) =>
-        //           ref.read(exchangeFormStateProvider).updateTo(to, true));
-        //   break;
-        default:
-        // TODO show error?
+        _receiveController.text = "LOLOK";
+        // ref.read(prefsChangeNotifierProvider).exchangeRateType ==
+        //         ExchangeRateType.estimated
+        //     ? "-"
+        //     : "";
       }
     }
   }
@@ -345,12 +94,103 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     final isEstimated =
         ref.read(prefsChangeNotifierProvider).exchangeRateType ==
             ExchangeRateType.estimated;
-    if (!isEstimated) {
-      ref.read(exchangeFormStateProvider).toAmount =
-          newToAmount ?? Decimal.zero;
+    if (!(isEstimated &&
+        ref.read(currentExchangeNameStateProvider.state).state ==
+            ChangeNowExchange.exchangeName)) {
+      ref.read(exchangeFormStateProvider).receiveAmount = newToAmount;
     }
     if (newToAmount == null) {
       _sendController.text = "";
+    }
+  }
+
+  void selectSendCurrency() async {
+    final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "";
+
+    if (walletInitiated &&
+        fromTicker.toLowerCase() == coin!.ticker.toLowerCase()) {
+      // do not allow changing away from wallet coin
+      return;
+    }
+
+    await _showCurrencySelectionSheet(
+      willChange: ref.read(exchangeFormStateProvider).sendCurrency,
+      paired: ref.read(exchangeFormStateProvider).receiveCurrency,
+      isFixedRate: ref.read(prefsChangeNotifierProvider).exchangeRateType ==
+          ExchangeRateType.fixed,
+      onSelected: (to) =>
+          ref.read(exchangeFormStateProvider).updateTo(to, true),
+    );
+
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => WillPopScope(
+          onWillPop: () async => false,
+          child: Container(
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .overlay
+                .withOpacity(0.6),
+            child: const CustomLoadingOverlay(
+              message: "Updating exchange rate",
+              eventBus: null,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+
+    if (mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+  }
+
+  void selectReceiveCurrency() async {
+    final toTicker = ref.read(exchangeFormStateProvider).toTicker ?? "";
+
+    if (walletInitiated &&
+        toTicker.toLowerCase() == coin!.ticker.toLowerCase()) {
+      // do not allow changing away from wallet coin
+      return;
+    }
+
+    await _showCurrencySelectionSheet(
+      willChange: ref.read(exchangeFormStateProvider).receiveCurrency,
+      paired: ref.read(exchangeFormStateProvider).sendCurrency,
+      isFixedRate: ref.read(prefsChangeNotifierProvider).exchangeRateType ==
+          ExchangeRateType.fixed,
+      onSelected: (to) =>
+          ref.read(exchangeFormStateProvider).updateTo(to, true),
+    );
+
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => WillPopScope(
+          onWillPop: () async => false,
+          child: Container(
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .overlay
+                .withOpacity(0.6),
+            child: const CustomLoadingOverlay(
+              message: "Updating exchange rate",
+              eventBus: null,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+
+    if (mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
     }
   }
 
@@ -393,7 +233,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             .where((e) => e.from == to && e.to == from);
 
         if (markets.isNotEmpty) {
-          await ref.read(exchangeFormStateProvider).swap(market: markets.first);
+          await ref
+              .read(exchangeFormStateProvider)
+              .swap(shouldNotifyListeners: true);
         } else {
           Logging.instance.log(
             "swap to fixed rate market failed",
@@ -402,7 +244,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         }
       }
     } else {
-      await ref.read(exchangeFormStateProvider).swap();
+      await ref
+          .read(exchangeFormStateProvider)
+          .swap(shouldNotifyListeners: true);
     }
     if (mounted) {
       Navigator.of(context, rootNavigator: isDesktop).pop();
@@ -410,55 +254,14 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     _swapLock = false;
   }
 
-  Future<void> _showFloatingRateSelectionSheet({
-    required List<Currency> currencies,
-    required String excludedTicker,
-    required String fromTicker,
+  Future<void> _showCurrencySelectionSheet({
+    required Currency? willChange,
+    required Currency? paired,
+    required bool isFixedRate,
     required void Function(Currency) onSelected,
   }) async {
     _sendFocusNode.unfocus();
     _receiveFocusNode.unfocus();
-
-    List<Pair> allPairs;
-
-    switch (ref.read(currentExchangeNameStateProvider.state).state) {
-      case ChangeNowExchange.exchangeName:
-        allPairs = ref.read(availableChangeNowCurrenciesProvider).pairs;
-        break;
-      // case SimpleSwapExchange.exchangeName:
-      //   allPairs = ref.read(exchangeFormStateProvider).exchangeType ==
-      //           ExchangeRateType.fixed
-      //       ? ref.read(availableSimpleswapCurrenciesProvider).fixedRatePairs
-      //       : ref.read(availableSimpleswapCurrenciesProvider).floatingRatePairs;
-      //   break;
-      default:
-        allPairs = [];
-    }
-
-    List<Pair> availablePairs;
-    if (fromTicker.isEmpty ||
-        fromTicker == "-" ||
-        excludedTicker.isEmpty ||
-        excludedTicker == "-") {
-      availablePairs = allPairs;
-    } else if (excludedTicker == fromTicker) {
-      availablePairs = allPairs
-          .where((e) => e.from == excludedTicker)
-          .toList(growable: false);
-    } else {
-      availablePairs =
-          allPairs.where((e) => e.to == excludedTicker).toList(growable: false);
-    }
-
-    final List<Currency> tickers = currencies.where((e) {
-      if (excludedTicker == fromTicker) {
-        return e.ticker != excludedTicker &&
-            availablePairs.where((e2) => e2.to == e.ticker).isNotEmpty;
-      } else {
-        return e.ticker != excludedTicker &&
-            availablePairs.where((e2) => e2.from == e.ticker).isNotEmpty;
-      }
-    }).toList(growable: false);
 
     final result = isDesktop
         ? await showDialog<Currency?>(
@@ -499,8 +302,14 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                                 borderColor: Theme.of(context)
                                     .extension<StackColors>()!
                                     .background,
-                                child: FloatingRateCurrencySelectionView(
-                                  currencies: tickers,
+                                child: ExchangeCurrencySelectionView(
+                                  exchangeName: ref
+                                      .read(currentExchangeNameStateProvider
+                                          .state)
+                                      .state,
+                                  willChange: willChange,
+                                  paired: paired,
+                                  isFixedRate: isFixedRate,
                                 ),
                               ),
                             ),
@@ -514,8 +323,12 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             })
         : await Navigator.of(context).push(
             MaterialPageRoute<dynamic>(
-              builder: (_) => FloatingRateCurrencySelectionView(
-                currencies: tickers,
+              builder: (_) => ExchangeCurrencySelectionView(
+                exchangeName:
+                    ref.read(currentExchangeNameStateProvider.state).state,
+                willChange: willChange,
+                paired: paired,
+                isFixedRate: isFixedRate,
               ),
             ),
           );
@@ -525,147 +338,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     }
   }
 
-  String? _fetchIconUrlFromTicker(String? ticker) {
-    if (ticker == null) return null;
-
-    Iterable<Currency> possibleCurrencies;
-
-    switch (ref.read(currentExchangeNameStateProvider.state).state) {
-      case ChangeNowExchange.exchangeName:
-        possibleCurrencies = ref
-            .read(availableChangeNowCurrenciesProvider)
-            .currencies
-            .where((e) => e.ticker.toUpperCase() == ticker.toUpperCase());
-        break;
-      // case SimpleSwapExchange.exchangeName:
-      //   possibleCurrencies = [
-      //     ...ref
-      //         .read(availableSimpleswapCurrenciesProvider)
-      //         .fixedRateCurrencies
-      //         .where((e) => e.ticker.toUpperCase() == ticker.toUpperCase()),
-      //     ...ref
-      //         .read(availableSimpleswapCurrenciesProvider)
-      //         .floatingRateCurrencies
-      //         .where((e) => e.ticker.toUpperCase() == ticker.toUpperCase()),
-      //   ];
-      //   break;
-      default:
-        possibleCurrencies = [];
-    }
-
-    for (final currency in possibleCurrencies) {
-      if (currency.image.isNotEmpty) {
-        return currency.image;
-      }
-    }
-
-    return null;
-  }
-
-  Future<void> _showFixedRateSelectionSheet({
-    required String excludedTicker,
-    required String fromTicker,
-    required void Function(String) onSelected,
-  }) async {
-    _sendFocusNode.unfocus();
-    _receiveFocusNode.unfocus();
-
-    List<FixedRateMarket> marketsThatPairWithExcludedTicker = [];
-
-    if (excludedTicker == "" ||
-        excludedTicker == "-" ||
-        fromTicker == "" ||
-        fromTicker == "-") {
-      marketsThatPairWithExcludedTicker =
-          ref.read(availableChangeNowCurrenciesProvider).markets;
-    } else if (excludedTicker == fromTicker) {
-      marketsThatPairWithExcludedTicker = ref
-          .read(availableChangeNowCurrenciesProvider)
-          .markets
-          .where((e) => e.from == excludedTicker && e.to != excludedTicker)
-          .toList(growable: false);
-    } else {
-      marketsThatPairWithExcludedTicker = ref
-          .read(availableChangeNowCurrenciesProvider)
-          .markets
-          .where((e) => e.to == excludedTicker && e.from != excludedTicker)
-          .toList(growable: false);
-    }
-
-    final result = isDesktop
-        ? await showDialog<String?>(
-            context: context,
-            builder: (context) {
-              return DesktopDialog(
-                maxHeight: 700,
-                maxWidth: 580,
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            left: 32,
-                          ),
-                          child: Text(
-                            "Choose a coin to exchange",
-                            style: STextStyles.desktopH3(context),
-                          ),
-                        ),
-                        const DesktopDialogCloseButton(),
-                      ],
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          left: 32,
-                          right: 32,
-                          bottom: 32,
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: RoundedWhiteContainer(
-                                padding: const EdgeInsets.all(16),
-                                borderColor: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .background,
-                                child: FixedRateMarketPairCoinSelectionView(
-                                  markets: marketsThatPairWithExcludedTicker,
-                                  currencies: ref
-                                      .read(
-                                          availableChangeNowCurrenciesProvider)
-                                      .currencies,
-                                  isFrom: excludedTicker != fromTicker,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            })
-        : await Navigator.of(context).push(
-            MaterialPageRoute<dynamic>(
-              builder: (_) => FixedRateMarketPairCoinSelectionView(
-                markets: marketsThatPairWithExcludedTicker,
-                currencies:
-                    ref.read(availableChangeNowCurrenciesProvider).currencies,
-                isFrom: excludedTicker != fromTicker,
-              ),
-            ),
-          );
-
-    if (mounted && result is String) {
-      onSelected(result);
-    }
-  }
-
-  void onRateTypeChanged(ExchangeRateType rateType) async {
+  void onRateTypeChanged() async {
     _receiveFocusNode.unfocus();
     _sendFocusNode.unfocus();
 
@@ -692,193 +365,173 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "-";
     final toTicker = ref.read(exchangeFormStateProvider).toTicker ?? "-";
 
-    ref.read(exchangeFormStateProvider).exchangeType = rateType;
     ref.read(exchangeFormStateProvider).reversed = false;
-    switch (rateType) {
-      case ExchangeRateType.estimated:
-        if (!(toTicker == "-" || fromTicker == "-")) {
-          late final Iterable<Pair> available;
+    // switch (rateType) {
+    //   case ExchangeRateType.estimated:
+    if (!(toTicker == "-" || fromTicker == "-")) {
+      final available = await ExchangeDataLoadingService.instance.isar.pairs
+          .where()
+          .exchangeNameEqualTo(
+              ref.read(currentExchangeNameStateProvider.state).state)
+          .filter()
+          .fromEqualTo(fromTicker)
+          .and()
+          .toEqualTo(toTicker)
+          .findAll();
 
-          switch (ref.read(currentExchangeNameStateProvider.state).state) {
-            case ChangeNowExchange.exchangeName:
-              available = ref
-                  .read(availableChangeNowCurrenciesProvider)
-                  .pairs
-                  .where((e) => e.to == toTicker && e.from == fromTicker);
-              break;
-            // case SimpleSwapExchange.exchangeName:
-            //   available = ref
-            //       .read(availableSimpleswapCurrenciesProvider)
-            //       .floatingRatePairs
-            //       .where((e) => e.to == toTicker && e.from == fromTicker);
-            //   break;
-            default:
-              available = [];
+      if (available.isNotEmpty) {
+        final availableCurrencies = await ExchangeDataLoadingService
+            .instance.isar.currencies
+            .where()
+            .exchangeNameEqualTo(
+                ref.read(currentExchangeNameStateProvider.state).state)
+            .filter()
+            .tickerEqualTo(fromTicker)
+            .or()
+            .tickerEqualTo(toTicker)
+            .findAll();
+
+        if (availableCurrencies.length > 1) {
+          final from =
+              availableCurrencies.firstWhere((e) => e.ticker == fromTicker);
+          final to =
+              availableCurrencies.firstWhere((e) => e.ticker == toTicker);
+
+          final newFromAmount = Decimal.tryParse(_sendController.text);
+          ref.read(exchangeFormStateProvider).receiveAmount = newFromAmount;
+          if (newFromAmount == null) {
+            _receiveController.text = "";
           }
 
-          if (available.isNotEmpty) {
-            late final Iterable<Currency> availableCurrencies;
-            switch (ref.read(currentExchangeNameStateProvider.state).state) {
-              case ChangeNowExchange.exchangeName:
-                availableCurrencies = ref
-                    .read(availableChangeNowCurrenciesProvider)
-                    .currencies
-                    .where(
-                        (e) => e.ticker == fromTicker || e.ticker == toTicker);
-                break;
-              // case SimpleSwapExchange.exchangeName:
-              //   availableCurrencies = ref
-              //       .read(availableSimpleswapCurrenciesProvider)
-              //       .floatingRateCurrencies
-              //       .where(
-              //           (e) => e.ticker == fromTicker || e.ticker == toTicker);
-              //   break;
-              default:
-                availableCurrencies = [];
-            }
+          await ref.read(exchangeFormStateProvider).updateTo(to, false);
+          await ref.read(exchangeFormStateProvider).updateFrom(from, true);
 
-            if (availableCurrencies.length > 1) {
-              final from =
-                  availableCurrencies.firstWhere((e) => e.ticker == fromTicker);
-              final to =
-                  availableCurrencies.firstWhere((e) => e.ticker == toTicker);
-
-              final newFromAmount = Decimal.tryParse(_sendController.text);
-              ref.read(exchangeFormStateProvider).fromAmount =
-                  newFromAmount ?? Decimal.zero;
-              if (newFromAmount == null) {
-                _receiveController.text = "";
-              }
-
-              await ref.read(exchangeFormStateProvider).updateTo(to, false);
-              await ref.read(exchangeFormStateProvider).updateFrom(from, true);
-
-              _receiveController.text =
-                  ref.read(exchangeFormStateProvider).toAmountString.isEmpty
-                      ? "-"
-                      : ref.read(exchangeFormStateProvider).toAmountString;
-              if (mounted) {
-                Navigator.of(context, rootNavigator: isDesktop).pop();
-              }
-              return;
-            }
+          _receiveController.text =
+              ref.read(exchangeFormStateProvider).toAmountString.isEmpty
+                  ? "-"
+                  : ref.read(exchangeFormStateProvider).toAmountString;
+          if (mounted) {
+            Navigator.of(context, rootNavigator: isDesktop).pop();
           }
+          return;
         }
-        if (mounted) {
-          Navigator.of(context, rootNavigator: isDesktop).pop();
-        }
-        if (!(fromTicker == "-" || toTicker == "-")) {
-          unawaited(
-            showFloatingFlushBar(
-              type: FlushBarType.warning,
-              message:
-                  "Estimated rate trade pair \"$fromTicker-$toTicker\" unavailable. Reverting to last estimated rate pair.",
-              context: context,
-            ),
-          );
-        }
-        break;
-      case ExchangeRateType.fixed:
-        if (!(toTicker == "-" || fromTicker == "-")) {
-          switch (ref.read(currentExchangeNameStateProvider.state).state) {
-            case ChangeNowExchange.exchangeName:
-              FixedRateMarket? market;
-              try {
-                market = ref
-                    .read(availableChangeNowCurrenciesProvider)
-                    .markets
-                    .firstWhere(
-                        (e) => e.from == fromTicker && e.to == toTicker);
-              } catch (_) {
-                market = null;
-              }
-
-              final newFromAmount = Decimal.tryParse(_sendController.text);
-              ref.read(exchangeFormStateProvider).fromAmount =
-                  newFromAmount ?? Decimal.zero;
-
-              if (newFromAmount == null) {
-                _receiveController.text = "";
-              }
-
-              await ref
-                  .read(exchangeFormStateProvider)
-                  .updateMarket(market, false);
-              await ref
-                  .read(exchangeFormStateProvider)
-                  .setFromAmountAndCalculateToAmount(
-                    Decimal.tryParse(_sendController.text) ?? Decimal.zero,
-                    true,
-                  );
-              if (mounted) {
-                Navigator.of(context, rootNavigator: isDesktop).pop();
-              }
-              return;
-            // case SimpleSwapExchange.exchangeName:
-            //   final available = ref
-            //       .read(availableSimpleswapCurrenciesProvider)
-            //       .floatingRatePairs
-            //       .where((e) => e.to == toTicker && e.from == fromTicker);
-            //   if (available.isNotEmpty) {
-            //     final availableCurrencies = ref
-            //         .read(availableSimpleswapCurrenciesProvider)
-            //         .fixedRateCurrencies
-            //         .where(
-            //             (e) => e.ticker == fromTicker || e.ticker == toTicker);
-            //     if (availableCurrencies.length > 1) {
-            //       final from = availableCurrencies
-            //           .firstWhere((e) => e.ticker == fromTicker);
-            //       final to = availableCurrencies
-            //           .firstWhere((e) => e.ticker == toTicker);
-            //
-            //       final newFromAmount = Decimal.tryParse(_sendController.text);
-            //       ref.read(exchangeFormStateProvider).fromAmount =
-            //           newFromAmount ?? Decimal.zero;
-            //       if (newFromAmount == null) {
-            //         _receiveController.text = "";
-            //       }
-            //
-            //       await ref.read(exchangeFormStateProvider).updateTo(to, false);
-            //       await ref
-            //           .read(exchangeFormStateProvider)
-            //           .updateFrom(from, true);
-            //
-            //       _receiveController.text =
-            //           ref.read(exchangeFormStateProvider).toAmountString.isEmpty
-            //               ? "-"
-            //               : ref.read(exchangeFormStateProvider).toAmountString;
-            //       if (mounted) {
-            //         Navigator.of(context, rootNavigator: isDesktop).pop();
-            //       }
-            //       return;
-            //     }
-            //   }
-            //
-            //   break;
-            default:
-            //
-          }
-        }
-        if (mounted) {
-          Navigator.of(context, rootNavigator: isDesktop).pop();
-        }
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.warning,
-            message:
-                "Fixed rate trade pair \"$fromTicker-$toTicker\" unavailable. Reverting to last fixed rate pair.",
-            context: context,
-          ),
-        );
-        break;
+      }
     }
+    if (mounted) {
+      Navigator.of(context, rootNavigator: isDesktop).pop();
+    }
+    if (!(fromTicker == "-" || toTicker == "-")) {
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message:
+              "${ref.read(exchangeFormStateProvider).exchangeRateType.name} rate trade pair \"$fromTicker-$toTicker\" unavailable. Reverting to last estimated rate pair.",
+          context: context,
+        ),
+      );
+    }
+    //   break;
+    // case ExchangeRateType.fixed:
+    //   if (!(toTicker == "-" || fromTicker == "-")) {
+    //     switch (ref.read(currentExchangeNameStateProvider.state).state) {
+    //       case ChangeNowExchange.exchangeName:
+    //         FixedRateMarket? market;
+    //         try {
+    //           market = ref
+    //               .read(availableChangeNowCurrenciesProvider)
+    //               .markets
+    //               .firstWhere(
+    //                   (e) => e.from == fromTicker && e.to == toTicker);
+    //         } catch (_) {
+    //           market = null;
+    //         }
+    //
+    //         final newFromAmount = Decimal.tryParse(_sendController.text);
+    //         ref.read(exchangeFormStateProvider).fromAmount =
+    //             newFromAmount ?? Decimal.zero;
+    //
+    //         if (newFromAmount == null) {
+    //           _receiveController.text = "";
+    //         }
+    //
+    //         await ref
+    //             .read(exchangeFormStateProvider)
+    //             .updateMarket(market, false);
+    //         await ref
+    //             .read(exchangeFormStateProvider)
+    //             .setSendAmountAndCalculateReceiveAmount(
+    //               Decimal.tryParse(_sendController.text) ?? Decimal.zero,
+    //               true,
+    //             );
+    //         if (mounted) {
+    //           Navigator.of(context, rootNavigator: isDesktop).pop();
+    //         }
+    //         return;
+    // case SimpleSwapExchange.exchangeName:
+    //   final available = ref
+    //       .read(availableSimpleswapCurrenciesProvider)
+    //       .floatingRatePairs
+    //       .where((e) => e.to == toTicker && e.from == fromTicker);
+    //   if (available.isNotEmpty) {
+    //     final availableCurrencies = ref
+    //         .read(availableSimpleswapCurrenciesProvider)
+    //         .fixedRateCurrencies
+    //         .where(
+    //             (e) => e.ticker == fromTicker || e.ticker == toTicker);
+    //     if (availableCurrencies.length > 1) {
+    //       final from = availableCurrencies
+    //           .firstWhere((e) => e.ticker == fromTicker);
+    //       final to = availableCurrencies
+    //           .firstWhere((e) => e.ticker == toTicker);
+    //
+    //       final newFromAmount = Decimal.tryParse(_sendController.text);
+    //       ref.read(exchangeFormStateProvider).fromAmount =
+    //           newFromAmount ?? Decimal.zero;
+    //       if (newFromAmount == null) {
+    //         _receiveController.text = "";
+    //       }
+    //
+    //       await ref.read(exchangeFormStateProvider).updateTo(to, false);
+    //       await ref
+    //           .read(exchangeFormStateProvider)
+    //           .updateFrom(from, true);
+    //
+    //       _receiveController.text =
+    //           ref.read(exchangeFormStateProvider).toAmountString.isEmpty
+    //               ? "-"
+    //               : ref.read(exchangeFormStateProvider).toAmountString;
+    //       if (mounted) {
+    //         Navigator.of(context, rootNavigator: isDesktop).pop();
+    //       }
+    //       return;
+    //     }
+    //   }
+    //
+    //   break;
+    //         default:
+    //         //
+    //       }
+    //     }
+    //     if (mounted) {
+    //       Navigator.of(context, rootNavigator: isDesktop).pop();
+    //     }
+    //     unawaited(
+    //       showFloatingFlushBar(
+    //         type: FlushBarType.warning,
+    //         message:
+    //             "Fixed rate trade pair \"$fromTicker-$toTicker\" unavailable. Reverting to last fixed rate pair.",
+    //         context: context,
+    //       ),
+    //     );
+    //     break;
+    // }
   }
 
   void onExchangePressed() async {
     final rateType = ref.read(prefsChangeNotifierProvider).exchangeRateType;
     final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "";
     final toTicker = ref.read(exchangeFormStateProvider).toTicker ?? "";
-    final sendAmount = ref.read(exchangeFormStateProvider).fromAmount!;
+    final sendAmount = ref.read(exchangeFormStateProvider).sendAmount!;
     final estimate = ref.read(exchangeFormStateProvider).estimate!;
 
     String rate;
@@ -892,6 +545,12 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           case ChangeNowExchange.exchangeName:
             availableFloatingPairs = ref
                 .read(availableChangeNowCurrenciesProvider)
+                .pairs
+                .where((e) => e.to == toTicker && e.from == fromTicker);
+            break;
+          case MajesticBankExchange.exchangeName:
+            availableFloatingPairs = ref
+                .read(availableMajesticBankCurrenciesProvider)
                 .pairs
                 .where((e) => e.to == toTicker && e.from == fromTicker);
             break;
@@ -1059,7 +718,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       rateInfo: rate,
       sendAmount: estimate.reversed ? estimate.estimatedAmount : sendAmount,
       receiveAmount: estimate.reversed
-          ? ref.read(exchangeFormStateProvider).toAmount!
+          ? ref.read(exchangeFormStateProvider).receiveAmount!
           : estimate.estimatedAmount,
       rateType: rateType,
       rateId: estimate.rateId,
@@ -1154,7 +813,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
     if (walletInitiated) {
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-        ref.read(exchangeFormStateProvider).clearAmounts(true);
+        ref.read(exchangeFormStateProvider).reset(shouldNotifyListeners: true);
         // ref.read(fixedRateExchangeFormProvider);
       });
     } else {
@@ -1293,8 +952,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           onChanged: sendFieldOnChanged,
           onButtonTap: selectSendCurrency,
           isWalletCoin: isWalletCoin(coin, true),
-          image: _fetchIconUrlFromTicker(ref.watch(
-              exchangeFormStateProvider.select((value) => value.fromTicker))),
+          image: ref.watch(exchangeFormStateProvider
+              .select((value) => value.receiveCurrency?.image)),
           ticker: ref.watch(
               exchangeFormStateProvider.select((value) => value.fromTicker)),
         ),
@@ -1383,8 +1042,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           onChanged: receiveFieldOnChanged,
           onButtonTap: selectReceiveCurrency,
           isWalletCoin: isWalletCoin(coin, true),
-          image: _fetchIconUrlFromTicker(ref.watch(
-              exchangeFormStateProvider.select((value) => value.toTicker))),
+          image: ref.watch(exchangeFormStateProvider
+                  .select((value) => value.receiveCurrency?.image)) ??
+              "",
           ticker: ref.watch(
               exchangeFormStateProvider.select((value) => value.toTicker)),
           readOnly: ref.watch(prefsChangeNotifierProvider
@@ -1415,19 +1075,19 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           ),
         ),
         // these reads should be watch
-        if (ref.watch(exchangeFormStateProvider).fromAmount != null &&
-            ref.watch(exchangeFormStateProvider).fromAmount != Decimal.zero)
+        if (ref.watch(exchangeFormStateProvider).sendAmount != null &&
+            ref.watch(exchangeFormStateProvider).sendAmount != Decimal.zero)
           SizedBox(
             height: isDesktop ? 20 : 12,
           ),
         // these reads should be watch
-        if (ref.watch(exchangeFormStateProvider).fromAmount != null &&
-            ref.watch(exchangeFormStateProvider).fromAmount != Decimal.zero)
+        if (ref.watch(exchangeFormStateProvider).sendAmount != null &&
+            ref.watch(exchangeFormStateProvider).sendAmount != Decimal.zero)
           ExchangeProviderOptions(
             from: ref.watch(exchangeFormStateProvider).fromTicker,
             to: ref.watch(exchangeFormStateProvider).toTicker,
-            fromAmount: ref.watch(exchangeFormStateProvider).fromAmount,
-            toAmount: ref.watch(exchangeFormStateProvider).toAmount,
+            fromAmount: ref.watch(exchangeFormStateProvider).sendAmount,
+            toAmount: ref.watch(exchangeFormStateProvider).receiveAmount,
             fixedRate: ref.watch(prefsChangeNotifierProvider
                     .select((value) => value.exchangeRateType)) ==
                 ExchangeRateType.fixed,
@@ -1441,10 +1101,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           buttonHeight: isDesktop ? ButtonHeight.l : null,
           enabled: ref.watch(
               exchangeFormStateProvider.select((value) => value.canExchange)),
-          onPressed: ref.watch(exchangeFormStateProvider
-                  .select((value) => value.canExchange))
-              ? onExchangePressed
-              : null,
+          onPressed: onExchangePressed,
           label: "Exchange",
         )
       ],

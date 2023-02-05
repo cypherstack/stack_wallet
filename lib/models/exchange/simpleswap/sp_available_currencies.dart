@@ -1,5 +1,5 @@
-import 'package:stackwallet/models/exchange/response_objects/currency.dart';
-import 'package:stackwallet/models/exchange/response_objects/pair.dart';
+import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
+import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 
 class SPAvailableCurrencies {
   final List<Currency> floatingRateCurrencies = [];

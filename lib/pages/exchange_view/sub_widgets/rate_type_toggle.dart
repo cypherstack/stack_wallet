@@ -14,28 +14,27 @@ class RateTypeToggle extends ConsumerWidget {
     this.onChanged,
   }) : super(key: key);
 
-  final void Function(ExchangeRateType)? onChanged;
+  final void Function()? onChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: $runtimeType");
     final isDesktop = Util.isDesktop;
 
-    final estimated = ref.watch(prefsChangeNotifierProvider
-            .select((value) => value.exchangeRateType)) ==
-        ExchangeRateType.estimated;
-
     return Toggle(
       onValueChanged: (value) {
-        if (!estimated) {
+        if (value) {
+          ref.read(prefsChangeNotifierProvider).exchangeRateType =
+              ExchangeRateType.fixed;
+        } else {
           ref.read(prefsChangeNotifierProvider).exchangeRateType =
               ExchangeRateType.estimated;
-          onChanged?.call(ExchangeRateType.estimated);
-        } else {
-          onChanged?.call(ExchangeRateType.fixed);
         }
+        onChanged?.call();
       },
-      isOn: !estimated,
+      isOn: ref.watch(prefsChangeNotifierProvider
+              .select((value) => value.exchangeRateType)) ==
+          ExchangeRateType.fixed,
       onColor: isDesktop
           ? Theme.of(context)
               .extension<StackColors>()!

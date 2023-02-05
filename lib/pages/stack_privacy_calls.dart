@@ -230,8 +230,13 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                                       value: isEasy)
                                   .then((_) {
                                 if (isEasy) {
-                                  unawaited(ExchangeDataLoadingService()
-                                      .loadAll(ref));
+                                  unawaited(
+                                    ExchangeDataLoadingService.instance
+                                        .init()
+                                        .then((_) => ExchangeDataLoadingService
+                                            .instance
+                                            .loadAll()),
+                                  );
                                   // unawaited(
                                   //     BuyDataLoadingService().loadAll(ref));
                                   ref
