@@ -121,10 +121,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     await _showCurrencySelectionSheet(
       willChange: ref.read(exchangeFormStateProvider(type)).sendCurrency,
       paired: ref.read(exchangeFormStateProvider(type)).receiveCurrency,
-      isFixedRate: ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-          ExchangeRateType.fixed,
-      onSelected: (to) =>
-          ref.read(exchangeFormStateProvider(type)).updateTo(to, true),
+      isFixedRate: type == ExchangeRateType.fixed,
+      onSelected: (selectedCurrency) => ref
+          .read(exchangeFormStateProvider(type))
+          .updateSendCurrency(selectedCurrency, true),
     );
 
     unawaited(
@@ -167,10 +167,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     await _showCurrencySelectionSheet(
       willChange: ref.read(exchangeFormStateProvider(type)).receiveCurrency,
       paired: ref.read(exchangeFormStateProvider(type)).sendCurrency,
-      isFixedRate: ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-          ExchangeRateType.fixed,
-      onSelected: (to) =>
-          ref.read(exchangeFormStateProvider(type)).updateTo(to, true),
+      isFixedRate: type == ExchangeRateType.fixed,
+      onSelected: (selectedCurrency) => ref
+          .read(exchangeFormStateProvider(type))
+          .updateReceivingCurrency(selectedCurrency, true),
     );
 
     unawaited(
@@ -389,10 +389,12 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             _receiveController.text = "";
           }
 
-          await ref.read(exchangeFormStateProvider(type)).updateTo(to, false);
           await ref
               .read(exchangeFormStateProvider(type))
-              .updateFrom(from, true);
+              .updateReceivingCurrency(to, false);
+          await ref
+              .read(exchangeFormStateProvider(type))
+              .updateSendCurrency(from, true);
 
           _receiveController.text =
               ref.read(exchangeFormStateProvider(type)).toAmountString.isEmpty

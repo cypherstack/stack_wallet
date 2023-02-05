@@ -654,7 +654,7 @@ class ExchangeFormState extends ChangeNotifier {
     }
   }
 
-  Future<void> updateFrom(
+  Future<void> updateSendCurrency(
     Currency sendCurrency,
     bool shouldNotifyListeners,
   ) async {
@@ -667,15 +667,15 @@ class ExchangeFormState extends ChangeNotifier {
           shouldNotifyListeners: false,
         );
       }
+      if (shouldNotifyListeners) {
+        notifyListeners();
+      }
     } catch (e, s) {
       Logging.instance.log("$e\n$s", level: LogLevel.Error);
     }
-    if (shouldNotifyListeners) {
-      notifyListeners();
-    }
   }
 
-  Future<void> updateTo(
+  Future<void> updateReceivingCurrency(
     Currency receiveCurrency,
     bool shouldNotifyListeners,
   ) async {
@@ -689,11 +689,11 @@ class ExchangeFormState extends ChangeNotifier {
           shouldNotifyListeners: false,
         );
       }
+      if (shouldNotifyListeners) {
+        notifyListeners();
+      }
     } catch (e, s) {
       Logging.instance.log("$e\n$s", level: LogLevel.Error);
-    }
-    if (shouldNotifyListeners) {
-      notifyListeners();
     }
   }
 
