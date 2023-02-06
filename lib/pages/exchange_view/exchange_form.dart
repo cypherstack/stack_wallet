@@ -682,16 +682,15 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     if (walletInitiated) {
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
         ref.read(exchangeFormStateProvider).reset(shouldNotifyListeners: true);
-        // ref.read(fixedRateExchangeFormProvider);
       });
     } else {
-      final rateType = (ref.read(prefsChangeNotifierProvider).exchangeRateType);
-      final isEstimated = rateType == ExchangeRateType.estimated;
       _sendController.text =
           ref.read(exchangeFormStateProvider).fromAmountString;
-      _receiveController.text = isEstimated
-          ? "-" //ref.read(estimatedRateExchangeFormProvider).toAmountString
-          : ref.read(exchangeFormStateProvider).toAmountString;
+      _receiveController.text =
+          ref.read(exchangeFormStateProvider).toAmountString;
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        ref.read(exchangeFormStateProvider).refresh();
+      });
     }
 
     super.initState();

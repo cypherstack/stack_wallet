@@ -406,6 +406,10 @@ class ExchangeFormState extends ChangeNotifier {
     }
   }
 
+  Future<void> refresh() => _updateRangesAndEstimate(
+        shouldNotifyListeners: true,
+      );
+
   //============================================================================
   // private state updaters
   //============================================================================
