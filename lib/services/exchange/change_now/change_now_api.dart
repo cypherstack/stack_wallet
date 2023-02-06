@@ -4,6 +4,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
+import 'package:stackwallet/exceptions/exchange/pair_unavailable_exception.dart';
 import 'package:stackwallet/external_api_keys.dart';
 import 'package:stackwallet/models/exchange/change_now/cn_exchange_estimate.dart';
 import 'package:stackwallet/models/exchange/change_now/estimated_exchange_amount.dart';
@@ -350,8 +351,27 @@ class ChangeNowAPI {
       final json = await _makeGetRequest(uri);
 
       try {
-        final value = EstimatedExchangeAmount.fromJson(
-            Map<String, dynamic>.from(json as Map));
+        final map = Map<String, dynamic>.from(json as Map);
+
+        if (map["error"] != null) {
+          if (map["error"] == "pair_is_inactive") {
+            return ExchangeResponse(
+              exception: PairUnavailableException(
+                map["message"] as String,
+                ExchangeExceptionType.generic,
+              ),
+            );
+          } else {
+            return ExchangeResponse(
+              exception: ExchangeException(
+                map["message"] as String,
+                ExchangeExceptionType.generic,
+              ),
+            );
+          }
+        }
+
+        final value = EstimatedExchangeAmount.fromJson(map);
         return ExchangeResponse(
           value: Estimate(
             estimatedAmount: value.estimatedAmount,

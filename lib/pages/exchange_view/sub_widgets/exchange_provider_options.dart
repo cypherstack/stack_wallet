@@ -2,6 +2,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/exceptions/exchange/pair_unavailable_exception.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
@@ -84,7 +85,7 @@ class ExchangeProviderOptions extends ConsumerWidget {
                             groupValue: ref
                                 .watch(currentExchangeNameStateProvider.state)
                                 .state,
-                            onChanged: (value) {
+                            onChanged: (_) {
                               // if (value is String) {
                               //   ref
                               //       .read(
@@ -186,6 +187,18 @@ class ExchangeProviderOptions extends ConsumerWidget {
                                               Constants.decimalPlacesForCoin(
                                                   coin),
                                         )} ${to!.toUpperCase()}",
+                                        style:
+                                            STextStyles.itemSubtitle12(context)
+                                                .copyWith(
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textSubtitle1,
+                                        ),
+                                      );
+                                    } else if (snapshot.data?.exception
+                                        is PairUnavailableException) {
+                                      return Text(
+                                        "Unsupported pair",
                                         style:
                                             STextStyles.itemSubtitle12(context)
                                                 .copyWith(
@@ -298,7 +311,7 @@ class ExchangeProviderOptions extends ConsumerWidget {
                             groupValue: ref
                                 .watch(currentExchangeNameStateProvider.state)
                                 .state,
-                            onChanged: (value) {
+                            onChanged: (_) {
                               //   if (value is String) {
                               //     ref
                               //         .read(
@@ -401,6 +414,18 @@ class ExchangeProviderOptions extends ConsumerWidget {
                                               Constants.decimalPlacesForCoin(
                                                   coin),
                                         )} ${to!.toUpperCase()}",
+                                        style:
+                                            STextStyles.itemSubtitle12(context)
+                                                .copyWith(
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textSubtitle1,
+                                        ),
+                                      );
+                                    } else if (snapshot.data?.exception
+                                        is PairUnavailableException) {
+                                      return Text(
+                                        "Unsupported pair",
                                         style:
                                             STextStyles.itemSubtitle12(context)
                                                 .copyWith(

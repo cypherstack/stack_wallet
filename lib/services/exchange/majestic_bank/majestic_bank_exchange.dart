@@ -162,6 +162,7 @@ class MajesticBankExchange extends Exchange {
       receiveCurrency: to,
     );
     if (response.value == null) {
+      print("AAAAAAAAAAAAAAAAAAAA ${response.exception}");
       return ExchangeResponse(exception: response.exception);
     }
 

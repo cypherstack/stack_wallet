@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:decimal/decimal.dart';
 import 'package:http/http.dart' as http;
 import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
+import 'package:stackwallet/exceptions/exchange/pair_unavailable_exception.dart';
 import 'package:stackwallet/models/exchange/majestic_bank/mb_limit.dart';
 import 'package:stackwallet/models/exchange/majestic_bank/mb_order.dart';
 import 'package:stackwallet/models/exchange/majestic_bank/mb_order_calculation.dart';
@@ -39,7 +40,6 @@ class MajesticBankAPI {
       );
 
       code = response.statusCode;
-      print(response.body);
 
       final parsed = jsonDecode(response.body);
 
@@ -180,6 +180,28 @@ class MajesticBankAPI {
     try {
       final jsonObject = await _makeGetRequest(uri);
       final map = Map<String, dynamic>.from(jsonObject as Map);
+
+      if (map["error"] != null) {
+        final errorMessage = map["extra"] as String?;
+        if (errorMessage != null &&
+            errorMessage.startsWith("Bad") &&
+            errorMessage.endsWith("currency symbol")) {
+          return ExchangeResponse(
+            exception: PairUnavailableException(
+              errorMessage,
+              ExchangeExceptionType.generic,
+            ),
+          );
+        } else {
+          return ExchangeResponse(
+            exception: ExchangeException(
+              errorMessage ?? "Error: ${map["error"]}",
+              ExchangeExceptionType.generic,
+            ),
+          );
+        }
+      }
+
       final result = MBOrderCalculation(
         fromCurrency: map["from_currency"] as String,
         fromAmount: Decimal.parse(map["from_amount"].toString()),
