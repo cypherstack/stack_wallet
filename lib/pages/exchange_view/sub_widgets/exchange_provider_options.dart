@@ -110,10 +110,14 @@ class ExchangeProviderOptions extends ConsumerWidget {
                       ),
                       Padding(
                         padding: const EdgeInsets.only(top: 5.0),
-                        child: SvgPicture.asset(
-                          Assets.exchange.changeNow,
+                        child: SizedBox(
                           width: isDesktop ? 32 : 24,
                           height: isDesktop ? 32 : 24,
+                          child: SvgPicture.asset(
+                            Assets.exchange.changeNow,
+                            width: isDesktop ? 32 : 24,
+                            height: isDesktop ? 32 : 24,
+                          ),
                         ),
                       ),
                       const SizedBox(
@@ -336,10 +340,14 @@ class ExchangeProviderOptions extends ConsumerWidget {
                       ),
                       Padding(
                         padding: const EdgeInsets.only(top: 5.0),
-                        child: SvgPicture.asset(
-                          Assets.exchange.majesticBankBlue,
+                        child: SizedBox(
                           width: isDesktop ? 32 : 24,
                           height: isDesktop ? 32 : 24,
+                          child: SvgPicture.asset(
+                            Assets.exchange.majesticBankBlue,
+                            width: isDesktop ? 32 : 24,
+                            height: isDesktop ? 32 : 24,
+                          ),
                         ),
                       ),
                       const SizedBox(
