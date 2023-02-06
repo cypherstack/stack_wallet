@@ -66,38 +66,35 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
   bool _swapLock = false;
 
+  // todo: check and adjust this value?
+  static const _valueCheckInterval = Duration(milliseconds: 500);
+
+  Timer? _sendFieldOnChangedTimer;
   void sendFieldOnChanged(String value) async {
     if (_sendFocusNode.hasFocus) {
-      final newFromAmount = Decimal.tryParse(value);
+      _sendFieldOnChangedTimer?.cancel();
 
-      await ref
-          .read(exchangeFormStateProvider)
-          .setSendAmountAndCalculateReceiveAmount(
-              newFromAmount ?? Decimal.zero, true);
+      _sendFieldOnChangedTimer = Timer(_valueCheckInterval, () async {
+        final newFromAmount = Decimal.tryParse(value);
 
-      if (newFromAmount == null) {
-        _receiveController.text = "LOLOK";
-        // ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-        //         ExchangeRateType.estimated
-        //     ? "-"
-        //     : "";
-      }
+        await ref
+            .read(exchangeFormStateProvider)
+            .setSendAmountAndCalculateReceiveAmount(newFromAmount, true);
+      });
     }
   }
 
+  Timer? _receiveFieldOnChangedTimer;
   void receiveFieldOnChanged(String value) async {
-    final newToAmount = Decimal.tryParse(value);
-    final isEstimated =
-        ref.read(prefsChangeNotifierProvider).exchangeRateType ==
-            ExchangeRateType.estimated;
-    if (!(isEstimated &&
-        ref.read(currentExchangeNameStateProvider.state).state ==
-            ChangeNowExchange.exchangeName)) {
-      ref.read(exchangeFormStateProvider).receiveAmount = newToAmount;
-    }
-    if (newToAmount == null) {
-      _sendController.text = "";
-    }
+    _receiveFieldOnChangedTimer?.cancel();
+
+    _receiveFieldOnChangedTimer = Timer(_valueCheckInterval, () async {
+      final newToAmount = Decimal.tryParse(value);
+
+      await ref
+          .read(exchangeFormStateProvider)
+          .setReceivingAmountAndCalculateSendAmount(newToAmount, true);
+    });
   }
 
   void selectSendCurrency() async {
@@ -110,6 +107,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       return;
     }
 
+    // TODO: return currency and await update while showing loading
     await _showCurrencySelectionSheet(
       willChange: ref.read(exchangeFormStateProvider).sendCurrency,
       willChangeIsSend: true,
@@ -140,7 +138,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       ),
     );
 
-    await Future<void>.delayed(const Duration(milliseconds: 300));
+    // await Future<void>.delayed(const Duration(milliseconds: 300));
 
     if (mounted) {
       Navigator.of(context, rootNavigator: true).pop();
@@ -157,9 +155,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       return;
     }
 
+    // TODO: return currency and await update while showing loading
     await _showCurrencySelectionSheet(
       willChange: ref.read(exchangeFormStateProvider).receiveCurrency,
-        willChangeIsSend: false,
+      willChangeIsSend: false,
       paired: ref.read(exchangeFormStateProvider).sendCurrency,
       isFixedRate: type == ExchangeRateType.fixed,
       onSelected: (selectedCurrency) => ref
@@ -187,7 +186,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       ),
     );
 
-    await Future<void>.delayed(const Duration(milliseconds: 300));
+    // await Future<void>.delayed(const Duration(milliseconds: 300));
 
     if (mounted) {
       Navigator.of(context, rootNavigator: true).pop();
@@ -712,7 +711,6 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     final rateType = ref.watch(
         prefsChangeNotifierProvider.select((value) => value.exchangeRateType));
 
-    // provider for simpleswap; not called rn
     ref.listen<String>(currentExchangeNameStateProvider, (previous, next) {
       ref.read(exchangeFormStateProvider).updateExchange(
             exchange: ref.read(exchangeProvider),
@@ -729,11 +727,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         exchangeFormStateProvider.select((value) => value.toAmountString),
         (previous, String next) {
       if (!_receiveFocusNode.hasFocus) {
-        // ref.watch(exchangeProvider).name ==
-        //     SimpleSwapExchange.exchangeName &&
         _receiveController.text = isEstimated && next.isEmpty ? "-" : next;
-        //todo: check if print needed
-        // debugPrint("RECEIVE AMOUNT LISTENER ACTIVATED");
         if (_swapLock) {
           _sendController.text =
               ref.read(exchangeFormStateProvider).fromAmountString;
@@ -745,8 +739,6 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         (previous, String next) {
       if (!_sendFocusNode.hasFocus) {
         _sendController.text = next;
-        //todo: check if print needed
-        // debugPrint("SEND AMOUNT LISTENER ACTIVATED");
         if (_swapLock) {
           _receiveController.text = isEstimated
               ? ref.read(exchangeFormStateProvider).toAmountString.isEmpty
@@ -884,10 +876,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
               "",
           ticker: ref.watch(
               exchangeFormStateProvider.select((value) => value.toTicker)),
-          readOnly: (rateType) == ExchangeRateType.estimated,
-          // ||
-          // ref.watch(exchangeProvider).name ==
-          //     SimpleSwapExchange.exchangeName,
+          readOnly: (rateType) == ExchangeRateType.estimated &&
+              ref.watch(exchangeProvider).name ==
+                  ChangeNowExchange.exchangeName,
         ),
         if (ref
                 .watch(
