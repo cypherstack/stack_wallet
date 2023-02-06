@@ -90,7 +90,7 @@ class ExchangeDataLoadingService {
             .where()
             .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
             .filter()
-            .fixedRateEqualTo(true)
+            .rateTypeEqualTo(SupportedRateType.fixed)
             .idProperty()
             .findAll();
         await isar.pairs.deleteAll(idsToDelete2);
@@ -115,7 +115,7 @@ class ExchangeDataLoadingService {
             .where()
             .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
             .filter()
-            .floatingRateEqualTo(true)
+            .rateTypeEqualTo(SupportedRateType.estimated)
             .idProperty()
             .findAll();
         await isar.pairs.deleteAll(idsToDelete);

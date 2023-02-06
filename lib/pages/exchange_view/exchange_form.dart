@@ -535,7 +535,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             .where()
             .exchangeNameEqualTo(exchangeName)
             .filter()
-            .floatingRateEqualTo(true)
+            .group((q) => q
+                .rateTypeEqualTo(SupportedRateType.estimated)
+                .or()
+                .rateTypeEqualTo(SupportedRateType.both))
             .and()
             .fromEqualTo(fromTicker, caseSensitive: false)
             .and()

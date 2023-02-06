@@ -62,8 +62,9 @@ class SimpleSwapExchange extends Exchange {
               image: e.image,
               externalId: e.extraId,
               isFiat: false,
-              supportsFixedRate: fixedRate,
-              supportsEstimatedRate: true,
+              rateType: fixedRate
+                  ? SupportedRateType.both
+                  : SupportedRateType.estimated,
               isAvailable: true,
               isStackCoin: Currency.checkIsStackCoin(e.symbol),
             ),

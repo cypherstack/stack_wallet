@@ -1,4 +1,5 @@
 import 'package:isar/isar.dart';
+import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 part 'currency.g.dart';
@@ -33,12 +34,8 @@ class Currency {
   final bool isFiat;
 
   /// Indicates if a currency is available on a fixed-rate flow
-  @Index()
-  final bool supportsFixedRate;
-
-  /// Indicates if a currency is available on a fixed-rate flow
-  @Index()
-  final bool supportsEstimatedRate;
+  @enumerated
+  final SupportedRateType rateType;
 
   /// (Optional - based on api call) Indicates whether the pair is
   /// currently supported by change now
@@ -55,8 +52,7 @@ class Currency {
     required this.image,
     this.externalId,
     required this.isFiat,
-    required this.supportsFixedRate,
-    required this.supportsEstimatedRate,
+    required this.rateType,
     this.isAvailable,
     required this.isStackCoin,
   });
@@ -64,6 +60,7 @@ class Currency {
   factory Currency.fromJson(
     Map<String, dynamic> json, {
     required String exchangeName,
+    required SupportedRateType rateType,
   }) {
     try {
       final ticker = (json["ticker"] as String).toUpperCase();
@@ -76,8 +73,7 @@ class Currency {
         image: json["image"] as String,
         externalId: json["externalId"] as String?,
         isFiat: json["isFiat"] as bool,
-        supportsFixedRate: json["supportsFixedRate"] as bool,
-        supportsEstimatedRate: json["supportsEstimatedRate"] as bool,
+        rateType: rateType,
         isAvailable: json["isAvailable"] as bool?,
         isStackCoin:
             json["isStackCoin"] as bool? ?? Currency.checkIsStackCoin(ticker),
@@ -97,8 +93,7 @@ class Currency {
       "image": image,
       "externalId": externalId,
       "isFiat": isFiat,
-      "supportsFixedRate": supportsFixedRate,
-      "supportsEstimatedRate": supportsEstimatedRate,
+      "rateType": rateType,
       "isAvailable": isAvailable,
       "isStackCoin": isStackCoin,
     };
@@ -115,8 +110,7 @@ class Currency {
     String? image,
     String? externalId,
     bool? isFiat,
-    bool? supportsFixedRate,
-    bool? supportsEstimatedRate,
+    SupportedRateType? rateType,
     bool? isAvailable,
     bool? isStackCoin,
   }) {
@@ -128,9 +122,7 @@ class Currency {
       image: image ?? this.image,
       externalId: externalId ?? this.externalId,
       isFiat: isFiat ?? this.isFiat,
-      supportsFixedRate: supportsFixedRate ?? this.supportsFixedRate,
-      supportsEstimatedRate:
-          supportsEstimatedRate ?? this.supportsEstimatedRate,
+      rateType: rateType ?? this.rateType,
       isAvailable: isAvailable ?? this.isAvailable,
       isStackCoin: isStackCoin ?? this.isStackCoin,
     )..id = id ?? this.id;

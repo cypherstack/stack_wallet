@@ -22,39 +22,25 @@ const PairSchema = CollectionSchema(
       name: r'exchangeName',
       type: IsarType.string,
     ),
-    r'fixedRate': PropertySchema(
-      id: 1,
-      name: r'fixedRate',
-      type: IsarType.bool,
-    ),
-    r'floatingRate': PropertySchema(
-      id: 2,
-      name: r'floatingRate',
-      type: IsarType.bool,
-    ),
     r'from': PropertySchema(
-      id: 3,
+      id: 1,
       name: r'from',
       type: IsarType.string,
     ),
-    r'fromNetwork': PropertySchema(
-      id: 4,
-      name: r'fromNetwork',
-      type: IsarType.string,
-    ),
     r'hashCode': PropertySchema(
-      id: 5,
+      id: 2,
       name: r'hashCode',
       type: IsarType.long,
     ),
-    r'to': PropertySchema(
-      id: 6,
-      name: r'to',
-      type: IsarType.string,
+    r'rateType': PropertySchema(
+      id: 3,
+      name: r'rateType',
+      type: IsarType.byte,
+      enumMap: _PairrateTypeEnumValueMap,
     ),
-    r'toNetwork': PropertySchema(
-      id: 7,
-      name: r'toNetwork',
+    r'to': PropertySchema(
+      id: 4,
+      name: r'to',
       type: IsarType.string,
     )
   },
@@ -117,9 +103,7 @@ int _pairEstimateSize(
   var bytesCount = offsets.last;
   bytesCount += 3 + object.exchangeName.length * 3;
   bytesCount += 3 + object.from.length * 3;
-  bytesCount += 3 + object.fromNetwork.length * 3;
   bytesCount += 3 + object.to.length * 3;
-  bytesCount += 3 + object.toNetwork.length * 3;
   return bytesCount;
 }
 
@@ -130,13 +114,10 @@ void _pairSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.exchangeName);
-  writer.writeBool(offsets[1], object.fixedRate);
-  writer.writeBool(offsets[2], object.floatingRate);
-  writer.writeString(offsets[3], object.from);
-  writer.writeString(offsets[4], object.fromNetwork);
-  writer.writeLong(offsets[5], object.hashCode);
-  writer.writeString(offsets[6], object.to);
-  writer.writeString(offsets[7], object.toNetwork);
+  writer.writeString(offsets[1], object.from);
+  writer.writeLong(offsets[2], object.hashCode);
+  writer.writeByte(offsets[3], object.rateType.index);
+  writer.writeString(offsets[4], object.to);
 }
 
 Pair _pairDeserialize(
@@ -147,12 +128,10 @@ Pair _pairDeserialize(
 ) {
   final object = Pair(
     exchangeName: reader.readString(offsets[0]),
-    fixedRate: reader.readBool(offsets[1]),
-    floatingRate: reader.readBool(offsets[2]),
-    from: reader.readString(offsets[3]),
-    fromNetwork: reader.readString(offsets[4]),
-    to: reader.readString(offsets[6]),
-    toNetwork: reader.readString(offsets[7]),
+    from: reader.readString(offsets[1]),
+    rateType: _PairrateTypeValueEnumMap[reader.readByteOrNull(offsets[3])] ??
+        SupportedRateType.fixed,
+    to: reader.readString(offsets[4]),
   );
   object.id = id;
   return object;
@@ -168,23 +147,29 @@ P _pairDeserializeProp<P>(
     case 0:
       return (reader.readString(offset)) as P;
     case 1:
-      return (reader.readBool(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 2:
-      return (reader.readBool(offset)) as P;
-    case 3:
-      return (reader.readString(offset)) as P;
-    case 4:
-      return (reader.readString(offset)) as P;
-    case 5:
       return (reader.readLong(offset)) as P;
-    case 6:
-      return (reader.readString(offset)) as P;
-    case 7:
+    case 3:
+      return (_PairrateTypeValueEnumMap[reader.readByteOrNull(offset)] ??
+          SupportedRateType.fixed) as P;
+    case 4:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
+
+const _PairrateTypeEnumValueMap = {
+  'fixed': 0,
+  'estimated': 1,
+  'both': 2,
+};
+const _PairrateTypeValueEnumMap = {
+  0: SupportedRateType.fixed,
+  1: SupportedRateType.estimated,
+  2: SupportedRateType.both,
+};
 
 Id _pairGetId(Pair object) {
   return object.id ?? Isar.autoIncrement;
@@ -585,25 +570,6 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> fixedRateEqualTo(bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'fixedRate',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> floatingRateEqualTo(
-      bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'floatingRate',
-        value: value,
-      ));
-    });
-  }
-
   QueryBuilder<Pair, Pair, QAfterFilterCondition> fromEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -732,136 +698,6 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> fromNetworkEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'fromNetwork',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> fromNetworkGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'fromNetwork',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> fromNetworkLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'fromNetwork',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> fromNetworkBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'fromNetwork',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> fromNetworkStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'fromNetwork',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> fromNetworkEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'fromNetwork',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> fromNetworkContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'fromNetwork',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> fromNetworkMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'fromNetwork',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> fromNetworkIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'fromNetwork',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> fromNetworkIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'fromNetwork',
-        value: '',
-      ));
-    });
-  }
-
   QueryBuilder<Pair, Pair, QAfterFilterCondition> hashCodeEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -974,6 +810,59 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Pair, Pair, QAfterFilterCondition> rateTypeEqualTo(
+      SupportedRateType value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'rateType',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Pair, Pair, QAfterFilterCondition> rateTypeGreaterThan(
+    SupportedRateType value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'rateType',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Pair, Pair, QAfterFilterCondition> rateTypeLessThan(
+    SupportedRateType value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'rateType',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Pair, Pair, QAfterFilterCondition> rateTypeBetween(
+    SupportedRateType lower,
+    SupportedRateType upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'rateType',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -1109,136 +998,6 @@ extension PairQueryFilter on QueryBuilder<Pair, Pair, QFilterCondition> {
       ));
     });
   }
-
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> toNetworkEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'toNetwork',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> toNetworkGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'toNetwork',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> toNetworkLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'toNetwork',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> toNetworkBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'toNetwork',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> toNetworkStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'toNetwork',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> toNetworkEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'toNetwork',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> toNetworkContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'toNetwork',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> toNetworkMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'toNetwork',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> toNetworkIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'toNetwork',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterFilterCondition> toNetworkIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'toNetwork',
-        value: '',
-      ));
-    });
-  }
 }
 
 extension PairQueryObject on QueryBuilder<Pair, Pair, QFilterCondition> {}
@@ -1258,30 +1017,6 @@ extension PairQuerySortBy on QueryBuilder<Pair, Pair, QSortBy> {
     });
   }
 
-  QueryBuilder<Pair, Pair, QAfterSortBy> sortByFixedRate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'fixedRate', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterSortBy> sortByFixedRateDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'fixedRate', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterSortBy> sortByFloatingRate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'floatingRate', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterSortBy> sortByFloatingRateDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'floatingRate', Sort.desc);
-    });
-  }
-
   QueryBuilder<Pair, Pair, QAfterSortBy> sortByFrom() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'from', Sort.asc);
@@ -1291,18 +1026,6 @@ extension PairQuerySortBy on QueryBuilder<Pair, Pair, QSortBy> {
   QueryBuilder<Pair, Pair, QAfterSortBy> sortByFromDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'from', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterSortBy> sortByFromNetwork() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'fromNetwork', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterSortBy> sortByFromNetworkDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'fromNetwork', Sort.desc);
     });
   }
 
@@ -1318,6 +1041,18 @@ extension PairQuerySortBy on QueryBuilder<Pair, Pair, QSortBy> {
     });
   }
 
+  QueryBuilder<Pair, Pair, QAfterSortBy> sortByRateType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'rateType', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Pair, Pair, QAfterSortBy> sortByRateTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'rateType', Sort.desc);
+    });
+  }
+
   QueryBuilder<Pair, Pair, QAfterSortBy> sortByTo() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'to', Sort.asc);
@@ -1327,18 +1062,6 @@ extension PairQuerySortBy on QueryBuilder<Pair, Pair, QSortBy> {
   QueryBuilder<Pair, Pair, QAfterSortBy> sortByToDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'to', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterSortBy> sortByToNetwork() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'toNetwork', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterSortBy> sortByToNetworkDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'toNetwork', Sort.desc);
     });
   }
 }
@@ -1356,30 +1079,6 @@ extension PairQuerySortThenBy on QueryBuilder<Pair, Pair, QSortThenBy> {
     });
   }
 
-  QueryBuilder<Pair, Pair, QAfterSortBy> thenByFixedRate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'fixedRate', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterSortBy> thenByFixedRateDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'fixedRate', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterSortBy> thenByFloatingRate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'floatingRate', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterSortBy> thenByFloatingRateDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'floatingRate', Sort.desc);
-    });
-  }
-
   QueryBuilder<Pair, Pair, QAfterSortBy> thenByFrom() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'from', Sort.asc);
@@ -1389,18 +1088,6 @@ extension PairQuerySortThenBy on QueryBuilder<Pair, Pair, QSortThenBy> {
   QueryBuilder<Pair, Pair, QAfterSortBy> thenByFromDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'from', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterSortBy> thenByFromNetwork() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'fromNetwork', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterSortBy> thenByFromNetworkDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'fromNetwork', Sort.desc);
     });
   }
 
@@ -1428,6 +1115,18 @@ extension PairQuerySortThenBy on QueryBuilder<Pair, Pair, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Pair, Pair, QAfterSortBy> thenByRateType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'rateType', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Pair, Pair, QAfterSortBy> thenByRateTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'rateType', Sort.desc);
+    });
+  }
+
   QueryBuilder<Pair, Pair, QAfterSortBy> thenByTo() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'to', Sort.asc);
@@ -1437,18 +1136,6 @@ extension PairQuerySortThenBy on QueryBuilder<Pair, Pair, QSortThenBy> {
   QueryBuilder<Pair, Pair, QAfterSortBy> thenByToDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'to', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterSortBy> thenByToNetwork() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'toNetwork', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QAfterSortBy> thenByToNetworkDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'toNetwork', Sort.desc);
     });
   }
 }
@@ -1461,29 +1148,10 @@ extension PairQueryWhereDistinct on QueryBuilder<Pair, Pair, QDistinct> {
     });
   }
 
-  QueryBuilder<Pair, Pair, QDistinct> distinctByFixedRate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'fixedRate');
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QDistinct> distinctByFloatingRate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'floatingRate');
-    });
-  }
-
   QueryBuilder<Pair, Pair, QDistinct> distinctByFrom(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'from', caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QDistinct> distinctByFromNetwork(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'fromNetwork', caseSensitive: caseSensitive);
     });
   }
 
@@ -1493,17 +1161,16 @@ extension PairQueryWhereDistinct on QueryBuilder<Pair, Pair, QDistinct> {
     });
   }
 
+  QueryBuilder<Pair, Pair, QDistinct> distinctByRateType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'rateType');
+    });
+  }
+
   QueryBuilder<Pair, Pair, QDistinct> distinctByTo(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'to', caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Pair, Pair, QDistinct> distinctByToNetwork(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'toNetwork', caseSensitive: caseSensitive);
     });
   }
 }
@@ -1521,27 +1188,9 @@ extension PairQueryProperty on QueryBuilder<Pair, Pair, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Pair, bool, QQueryOperations> fixedRateProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'fixedRate');
-    });
-  }
-
-  QueryBuilder<Pair, bool, QQueryOperations> floatingRateProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'floatingRate');
-    });
-  }
-
   QueryBuilder<Pair, String, QQueryOperations> fromProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'from');
-    });
-  }
-
-  QueryBuilder<Pair, String, QQueryOperations> fromNetworkProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'fromNetwork');
     });
   }
 
@@ -1551,15 +1200,15 @@ extension PairQueryProperty on QueryBuilder<Pair, Pair, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Pair, String, QQueryOperations> toProperty() {
+  QueryBuilder<Pair, SupportedRateType, QQueryOperations> rateTypeProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'to');
+      return query.addPropertyName(r'rateType');
     });
   }
 
-  QueryBuilder<Pair, String, QQueryOperations> toNetworkProperty() {
+  QueryBuilder<Pair, String, QQueryOperations> toProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'toNetwork');
+      return query.addPropertyName(r'to');
     });
   }
 }

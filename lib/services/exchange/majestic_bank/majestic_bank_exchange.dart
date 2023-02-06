@@ -114,8 +114,7 @@ class MajesticBankExchange extends Exchange {
         network: "",
         image: "",
         isFiat: false,
-        supportsFixedRate: true,
-        supportsEstimatedRate: true,
+        rateType: SupportedRateType.both,
         isAvailable: true,
         isStackCoin: Currency.checkIsStackCoin(limit.currency),
       );

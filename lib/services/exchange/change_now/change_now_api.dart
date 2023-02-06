@@ -164,10 +164,12 @@ class ChangeNowAPI {
       for (final json in args.item1) {
         try {
           final map = Map<String, dynamic>.from(json as Map);
-          map["supportsEstimatedRate"] = !args.item2;
           currencies.add(
             Currency.fromJson(
               map,
+              rateType: (map["supportsFixedRate"] as bool)
+                  ? SupportedRateType.both
+                  : SupportedRateType.estimated,
               exchangeName: ChangeNowExchange.exchangeName,
             ),
           );
@@ -211,10 +213,12 @@ class ChangeNowAPI {
         for (final json in jsonArray) {
           try {
             final map = Map<String, dynamic>.from(json as Map);
-            map["supportsEstimatedRate"] = !(fixedRate == true);
             currencies.add(
               Currency.fromJson(
                 map,
+                rateType: (map["supportsFixedRate"] as bool)
+                    ? SupportedRateType.both
+                    : SupportedRateType.estimated,
                 exchangeName: ChangeNowExchange.exchangeName,
               ),
             );

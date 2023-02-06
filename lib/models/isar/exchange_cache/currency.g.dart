@@ -57,18 +57,14 @@ const CurrencySchema = CollectionSchema(
       name: r'network',
       type: IsarType.string,
     ),
-    r'supportsEstimatedRate': PropertySchema(
+    r'rateType': PropertySchema(
       id: 8,
-      name: r'supportsEstimatedRate',
-      type: IsarType.bool,
-    ),
-    r'supportsFixedRate': PropertySchema(
-      id: 9,
-      name: r'supportsFixedRate',
-      type: IsarType.bool,
+      name: r'rateType',
+      type: IsarType.byte,
+      enumMap: _CurrencyrateTypeEnumValueMap,
     ),
     r'ticker': PropertySchema(
-      id: 10,
+      id: 9,
       name: r'ticker',
       type: IsarType.string,
     )
@@ -112,32 +108,6 @@ const CurrencySchema = CollectionSchema(
           name: r'name',
           type: IndexType.hash,
           caseSensitive: true,
-        )
-      ],
-    ),
-    r'supportsFixedRate': IndexSchema(
-      id: 444054599534256333,
-      name: r'supportsFixedRate',
-      unique: false,
-      replace: false,
-      properties: [
-        IndexPropertySchema(
-          name: r'supportsFixedRate',
-          type: IndexType.value,
-          caseSensitive: false,
-        )
-      ],
-    ),
-    r'supportsEstimatedRate': IndexSchema(
-      id: 4184033449468624530,
-      name: r'supportsEstimatedRate',
-      unique: false,
-      replace: false,
-      properties: [
-        IndexPropertySchema(
-          name: r'supportsEstimatedRate',
-          type: IndexType.value,
-          caseSensitive: false,
         )
       ],
     ),
@@ -197,9 +167,8 @@ void _currencySerialize(
   writer.writeBool(offsets[5], object.isStackCoin);
   writer.writeString(offsets[6], object.name);
   writer.writeString(offsets[7], object.network);
-  writer.writeBool(offsets[8], object.supportsEstimatedRate);
-  writer.writeBool(offsets[9], object.supportsFixedRate);
-  writer.writeString(offsets[10], object.ticker);
+  writer.writeByte(offsets[8], object.rateType.index);
+  writer.writeString(offsets[9], object.ticker);
 }
 
 Currency _currencyDeserialize(
@@ -217,9 +186,10 @@ Currency _currencyDeserialize(
     isStackCoin: reader.readBool(offsets[5]),
     name: reader.readString(offsets[6]),
     network: reader.readString(offsets[7]),
-    supportsEstimatedRate: reader.readBool(offsets[8]),
-    supportsFixedRate: reader.readBool(offsets[9]),
-    ticker: reader.readString(offsets[10]),
+    rateType:
+        _CurrencyrateTypeValueEnumMap[reader.readByteOrNull(offsets[8])] ??
+            SupportedRateType.fixed,
+    ticker: reader.readString(offsets[9]),
   );
   object.id = id;
   return object;
@@ -249,15 +219,25 @@ P _currencyDeserializeProp<P>(
     case 7:
       return (reader.readString(offset)) as P;
     case 8:
-      return (reader.readBool(offset)) as P;
+      return (_CurrencyrateTypeValueEnumMap[reader.readByteOrNull(offset)] ??
+          SupportedRateType.fixed) as P;
     case 9:
-      return (reader.readBool(offset)) as P;
-    case 10:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
+
+const _CurrencyrateTypeEnumValueMap = {
+  'fixed': 0,
+  'estimated': 1,
+  'both': 2,
+};
+const _CurrencyrateTypeValueEnumMap = {
+  0: SupportedRateType.fixed,
+  1: SupportedRateType.estimated,
+  2: SupportedRateType.both,
+};
 
 Id _currencyGetId(Currency object) {
   return object.id ?? Isar.autoIncrement;
@@ -275,22 +255,6 @@ extension CurrencyQueryWhereSort on QueryBuilder<Currency, Currency, QWhere> {
   QueryBuilder<Currency, Currency, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
-    });
-  }
-
-  QueryBuilder<Currency, Currency, QAfterWhere> anySupportsFixedRate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        const IndexWhereClause.any(indexName: r'supportsFixedRate'),
-      );
-    });
-  }
-
-  QueryBuilder<Currency, Currency, QAfterWhere> anySupportsEstimatedRate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        const IndexWhereClause.any(indexName: r'supportsEstimatedRate'),
-      );
     });
   }
 
@@ -546,96 +510,6 @@ extension CurrencyQueryWhere on QueryBuilder<Currency, Currency, QWhereClause> {
               indexName: r'ticker_exchangeName_name',
               lower: [ticker, exchangeName],
               upper: [ticker, exchangeName, name],
-              includeUpper: false,
-            ));
-      }
-    });
-  }
-
-  QueryBuilder<Currency, Currency, QAfterWhereClause> supportsFixedRateEqualTo(
-      bool supportsFixedRate) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'supportsFixedRate',
-        value: [supportsFixedRate],
-      ));
-    });
-  }
-
-  QueryBuilder<Currency, Currency, QAfterWhereClause>
-      supportsFixedRateNotEqualTo(bool supportsFixedRate) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'supportsFixedRate',
-              lower: [],
-              upper: [supportsFixedRate],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'supportsFixedRate',
-              lower: [supportsFixedRate],
-              includeLower: false,
-              upper: [],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'supportsFixedRate',
-              lower: [supportsFixedRate],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'supportsFixedRate',
-              lower: [],
-              upper: [supportsFixedRate],
-              includeUpper: false,
-            ));
-      }
-    });
-  }
-
-  QueryBuilder<Currency, Currency, QAfterWhereClause>
-      supportsEstimatedRateEqualTo(bool supportsEstimatedRate) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'supportsEstimatedRate',
-        value: [supportsEstimatedRate],
-      ));
-    });
-  }
-
-  QueryBuilder<Currency, Currency, QAfterWhereClause>
-      supportsEstimatedRateNotEqualTo(bool supportsEstimatedRate) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'supportsEstimatedRate',
-              lower: [],
-              upper: [supportsEstimatedRate],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'supportsEstimatedRate',
-              lower: [supportsEstimatedRate],
-              includeLower: false,
-              upper: [],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'supportsEstimatedRate',
-              lower: [supportsEstimatedRate],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'supportsEstimatedRate',
-              lower: [],
-              upper: [supportsEstimatedRate],
               includeUpper: false,
             ));
       }
@@ -1477,22 +1351,55 @@ extension CurrencyQueryFilter
     });
   }
 
-  QueryBuilder<Currency, Currency, QAfterFilterCondition>
-      supportsEstimatedRateEqualTo(bool value) {
+  QueryBuilder<Currency, Currency, QAfterFilterCondition> rateTypeEqualTo(
+      SupportedRateType value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'supportsEstimatedRate',
+        property: r'rateType',
         value: value,
       ));
     });
   }
 
-  QueryBuilder<Currency, Currency, QAfterFilterCondition>
-      supportsFixedRateEqualTo(bool value) {
+  QueryBuilder<Currency, Currency, QAfterFilterCondition> rateTypeGreaterThan(
+    SupportedRateType value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'supportsFixedRate',
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'rateType',
         value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Currency, Currency, QAfterFilterCondition> rateTypeLessThan(
+    SupportedRateType value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'rateType',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Currency, Currency, QAfterFilterCondition> rateTypeBetween(
+    SupportedRateType lower,
+    SupportedRateType upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'rateType',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -1731,28 +1638,15 @@ extension CurrencyQuerySortBy on QueryBuilder<Currency, Currency, QSortBy> {
     });
   }
 
-  QueryBuilder<Currency, Currency, QAfterSortBy> sortBySupportsEstimatedRate() {
+  QueryBuilder<Currency, Currency, QAfterSortBy> sortByRateType() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'supportsEstimatedRate', Sort.asc);
+      return query.addSortBy(r'rateType', Sort.asc);
     });
   }
 
-  QueryBuilder<Currency, Currency, QAfterSortBy>
-      sortBySupportsEstimatedRateDesc() {
+  QueryBuilder<Currency, Currency, QAfterSortBy> sortByRateTypeDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'supportsEstimatedRate', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Currency, Currency, QAfterSortBy> sortBySupportsFixedRate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'supportsFixedRate', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Currency, Currency, QAfterSortBy> sortBySupportsFixedRateDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'supportsFixedRate', Sort.desc);
+      return query.addSortBy(r'rateType', Sort.desc);
     });
   }
 
@@ -1879,28 +1773,15 @@ extension CurrencyQuerySortThenBy
     });
   }
 
-  QueryBuilder<Currency, Currency, QAfterSortBy> thenBySupportsEstimatedRate() {
+  QueryBuilder<Currency, Currency, QAfterSortBy> thenByRateType() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'supportsEstimatedRate', Sort.asc);
+      return query.addSortBy(r'rateType', Sort.asc);
     });
   }
 
-  QueryBuilder<Currency, Currency, QAfterSortBy>
-      thenBySupportsEstimatedRateDesc() {
+  QueryBuilder<Currency, Currency, QAfterSortBy> thenByRateTypeDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'supportsEstimatedRate', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Currency, Currency, QAfterSortBy> thenBySupportsFixedRate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'supportsFixedRate', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Currency, Currency, QAfterSortBy> thenBySupportsFixedRateDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'supportsFixedRate', Sort.desc);
+      return query.addSortBy(r'rateType', Sort.desc);
     });
   }
 
@@ -1972,16 +1853,9 @@ extension CurrencyQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Currency, Currency, QDistinct>
-      distinctBySupportsEstimatedRate() {
+  QueryBuilder<Currency, Currency, QDistinct> distinctByRateType() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'supportsEstimatedRate');
-    });
-  }
-
-  QueryBuilder<Currency, Currency, QDistinct> distinctBySupportsFixedRate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'supportsFixedRate');
+      return query.addDistinctBy(r'rateType');
     });
   }
 
@@ -2049,16 +1923,10 @@ extension CurrencyQueryProperty
     });
   }
 
-  QueryBuilder<Currency, bool, QQueryOperations>
-      supportsEstimatedRateProperty() {
+  QueryBuilder<Currency, SupportedRateType, QQueryOperations>
+      rateTypeProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'supportsEstimatedRate');
-    });
-  }
-
-  QueryBuilder<Currency, bool, QQueryOperations> supportsFixedRateProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'supportsFixedRate');
+      return query.addPropertyName(r'rateType');
     });
   }
 

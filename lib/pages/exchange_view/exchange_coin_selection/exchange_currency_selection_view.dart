@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
+import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -53,8 +54,14 @@ class _ExchangeCurrencySelectionViewState
           .exchangeNameEqualTo(widget.exchangeName)
           .filter()
           .group((q) => widget.isFixedRate
-              ? q.supportsFixedRateEqualTo(true)
-              : q.supportsEstimatedRateEqualTo(true))
+              ? q
+                  .rateTypeEqualTo(SupportedRateType.both)
+                  .or()
+                  .rateTypeEqualTo(SupportedRateType.fixed)
+              : q
+                  .rateTypeEqualTo(SupportedRateType.both)
+                  .or()
+                  .rateTypeEqualTo(SupportedRateType.estimated))
           .and()
           .group((q) => q
               .nameContains(text, caseSensitive: false)
@@ -84,8 +91,14 @@ class _ExchangeCurrencySelectionViewState
         .exchangeNameEqualTo(widget.exchangeName)
         .filter()
         .group((q) => widget.isFixedRate
-            ? q.supportsFixedRateEqualTo(true)
-            : q.supportsEstimatedRateEqualTo(true));
+            ? q
+                .rateTypeEqualTo(SupportedRateType.both)
+                .or()
+                .rateTypeEqualTo(SupportedRateType.fixed)
+            : q
+                .rateTypeEqualTo(SupportedRateType.both)
+                .or()
+                .rateTypeEqualTo(SupportedRateType.estimated));
 
     if (widget.paired != null) {
       _currencies = query
@@ -236,6 +249,8 @@ class _ExchangeCurrencySelectionViewState
                   primary: isDesktop ? false : null,
                   itemCount: items.length,
                   itemBuilder: (builderContext, index) {
+                    final bool hasImageUrl =
+                        items[index].image.startsWith("http");
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),
                       child: GestureDetector(
@@ -253,13 +268,18 @@ class _ExchangeCurrencySelectionViewState
                                         items[index].ticker,
                                         size: 24,
                                       )
-                                    : SvgPicture.network(
-                                        items[index].image,
-                                        width: 24,
-                                        height: 24,
-                                        placeholderBuilder: (_) =>
-                                            const LoadingIndicator(),
-                                      ),
+                                    : hasImageUrl
+                                        ? SvgPicture.network(
+                                            items[index].image,
+                                            width: 24,
+                                            height: 24,
+                                            placeholderBuilder: (_) =>
+                                                const LoadingIndicator(),
+                                          )
+                                        : const SizedBox(
+                                            width: 24,
+                                            height: 24,
+                                          ),
                               ),
                               const SizedBox(
                                 width: 10,
@@ -315,6 +335,8 @@ class _ExchangeCurrencySelectionViewState
                 primary: isDesktop ? false : null,
                 itemCount: _currencies.length,
                 itemBuilder: (builderContext, index) {
+                  final bool hasImageUrl =
+                      _currencies[index].image.startsWith("http");
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: GestureDetector(
@@ -332,13 +354,18 @@ class _ExchangeCurrencySelectionViewState
                                       _currencies[index].ticker,
                                       size: 24,
                                     )
-                                  : SvgPicture.network(
-                                      _currencies[index].image,
-                                      width: 24,
-                                      height: 24,
-                                      placeholderBuilder: (_) =>
-                                          const LoadingIndicator(),
-                                    ),
+                                  : hasImageUrl
+                                      ? SvgPicture.network(
+                                          _currencies[index].image,
+                                          width: 24,
+                                          height: 24,
+                                          placeholderBuilder: (_) =>
+                                              const LoadingIndicator(),
+                                        )
+                                      : const SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                        ),
                             ),
                             const SizedBox(
                               width: 10,
