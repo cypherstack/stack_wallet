@@ -763,6 +763,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           height: isDesktop ? 10 : 4,
         ),
         ExchangeTextField(
+          key: Key(
+              "exchangeTextFieldKeyFor_${Theme.of(context).extension<StackColors>()!.themeType.name}"),
           controller: _sendController,
           focusNode: _sendFocusNode,
           textStyle: STextStyles.smallMed14(context).copyWith(
@@ -851,6 +853,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           height: isDesktop ? 10 : 7,
         ),
         ExchangeTextField(
+          key: Key(
+              "exchangeTextFieldKeyFor1_${Theme.of(context).extension<StackColors>()!.themeType.name}"),
           focusNode: _receiveFocusNode,
           controller: _receiveController,
           textStyle: STextStyles.smallMed14(context).copyWith(
@@ -897,6 +901,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         SizedBox(
           height: 60,
           child: RateTypeToggle(
+            key: UniqueKey(),
             onChanged: onRateTypeChanged,
           ),
         ),
