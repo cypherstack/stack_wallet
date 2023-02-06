@@ -1,9 +1,14 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
+import 'package:isar/isar.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
+import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
+import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
+import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 class ExchangeFormState extends ChangeNotifier {
@@ -119,10 +124,10 @@ class ExchangeFormState extends ChangeNotifier {
         if (_minReceiveAmount != null &&
             _receiveAmount! < _minReceiveAmount! &&
             _receiveAmount! > Decimal.zero) {
-          return "Minimum amount ${_minReceiveAmount!.toString()} ${_receiveCurrency!.ticker.toUpperCase()}";
+          return "Min receive amount ${_minReceiveAmount!.toString()} ${_receiveCurrency!.ticker.toUpperCase()}";
         } else if (_maxReceiveAmount != null &&
             _receiveAmount! > _maxReceiveAmount!) {
-          return "Maximum amount ${_maxReceiveAmount!.toString()} ${_receiveCurrency!.ticker.toUpperCase()}";
+          return "Max receive amount ${_maxReceiveAmount!.toString()} ${_receiveCurrency!.ticker.toUpperCase()}";
         }
       }
     } else {
@@ -130,9 +135,9 @@ class ExchangeFormState extends ChangeNotifier {
         if (_minSendAmount != null &&
             _sendAmount! < _minSendAmount! &&
             _sendAmount! > Decimal.zero) {
-          return "Minimum amount ${_minSendAmount!.toString()} ${_sendCurrency!.ticker.toUpperCase()}";
+          return "Min send amount ${_minSendAmount!.toString()} ${_sendCurrency!.ticker.toUpperCase()}";
         } else if (_maxSendAmount != null && _sendAmount! > _maxSendAmount!) {
-          return "Maximum amount ${_maxSendAmount!.toString()} ${_sendCurrency!.ticker.toUpperCase()}";
+          return "Max send amount ${_maxSendAmount!.toString()} ${_sendCurrency!.ticker.toUpperCase()}";
         }
       }
     }
@@ -151,6 +156,73 @@ class ExchangeFormState extends ChangeNotifier {
   }) async {
     _exchange = exchange;
     if (shouldUpdateData) {
+      if (_sendCurrency != null) {
+        _sendCurrency = await ExchangeDataLoadingService
+            .instance.isar.currencies
+            .where()
+            .exchangeNameEqualTo(exchange.name)
+            .filter()
+            .tickerEqualTo(_sendCurrency!.ticker)
+            .and()
+            .group((q) => exchangeRateType == ExchangeRateType.fixed
+                ? q
+                    .rateTypeEqualTo(SupportedRateType.both)
+                    .or()
+                    .rateTypeEqualTo(SupportedRateType.fixed)
+                : q
+                    .rateTypeEqualTo(SupportedRateType.both)
+                    .or()
+                    .rateTypeEqualTo(SupportedRateType.estimated))
+            .findFirst();
+      }
+      if (_sendCurrency == null) {
+        switch (exchange.name) {
+          case ChangeNowExchange.exchangeName:
+            _sendCurrency = _cachedSendCN;
+            break;
+          case MajesticBankExchange.exchangeName:
+            _sendCurrency = _cachedSendMB;
+            break;
+        }
+      }
+
+      if (_receiveCurrency != null) {
+        _receiveCurrency = await ExchangeDataLoadingService
+            .instance.isar.currencies
+            .where()
+            .exchangeNameEqualTo(exchange.name)
+            .filter()
+            .tickerEqualTo(_receiveCurrency!.ticker)
+            .and()
+            .group((q) => exchangeRateType == ExchangeRateType.fixed
+                ? q
+                    .rateTypeEqualTo(SupportedRateType.both)
+                    .or()
+                    .rateTypeEqualTo(SupportedRateType.fixed)
+                : q
+                    .rateTypeEqualTo(SupportedRateType.both)
+                    .or()
+                    .rateTypeEqualTo(SupportedRateType.estimated))
+            .findFirst();
+      }
+
+      if (_receiveCurrency == null) {
+        switch (exchange.name) {
+          case ChangeNowExchange.exchangeName:
+            _receiveCurrency = _cachedReceivingCN;
+            break;
+          case MajesticBankExchange.exchangeName:
+            _receiveCurrency = _cachedReceivingMB;
+            break;
+        }
+      }
+
+      _updateCachedCurrencies(
+        exchangeName: exchange.name,
+        send: _sendCurrency,
+        receiving: _receiveCurrency,
+      );
+
       await _updateRangesAndEstimate(
         shouldNotifyListeners: false,
       );
@@ -164,6 +236,11 @@ class ExchangeFormState extends ChangeNotifier {
   void setCurrencies(Currency from, Currency to) {
     _sendCurrency = from;
     _receiveCurrency = to;
+    _updateCachedCurrencies(
+      exchangeName: exchange.name,
+      send: _sendCurrency,
+      receiving: _receiveCurrency,
+    );
   }
 
   void reset({
@@ -247,6 +324,12 @@ class ExchangeFormState extends ChangeNotifier {
       _minSendAmount = null;
       _maxSendAmount = null;
 
+      _updateCachedCurrencies(
+        exchangeName: exchange.name,
+        send: _sendCurrency,
+        receiving: _receiveCurrency,
+      );
+
       if (_receiveCurrency == null) {
         _rate = null;
       } else {
@@ -270,6 +353,12 @@ class ExchangeFormState extends ChangeNotifier {
       _receiveCurrency = receiveCurrency;
       _minReceiveAmount = null;
       _maxReceiveAmount = null;
+
+      _updateCachedCurrencies(
+        exchangeName: exchange.name,
+        send: _sendCurrency,
+        receiving: _receiveCurrency,
+      );
 
       if (_sendCurrency == null) {
         _rate = null;
@@ -301,6 +390,12 @@ class ExchangeFormState extends ChangeNotifier {
     final Currency? tmp = sendCurrency;
     _sendCurrency = receiveCurrency;
     _receiveCurrency = tmp;
+
+    _updateCachedCurrencies(
+      exchangeName: exchange.name,
+      send: _sendCurrency,
+      receiving: _receiveCurrency,
+    );
 
     await _updateRangesAndEstimate(
       shouldNotifyListeners: false,
@@ -442,6 +537,34 @@ class ExchangeFormState extends ChangeNotifier {
   }
 
   //============================================================================
+
+  Currency? _cachedReceivingMB;
+  Currency? _cachedSendMB;
+  Currency? _cachedReceivingCN;
+  Currency? _cachedSendCN;
+
+  void _updateCachedCurrencies({
+    required String exchangeName,
+    required Currency? send,
+    required Currency? receiving,
+  }) {
+    switch (exchangeName) {
+      case ChangeNowExchange.exchangeName:
+        _cachedSendCN = send ?? _cachedSendCN;
+        _cachedReceivingCN = receiving ?? _cachedReceivingCN;
+        break;
+      case MajesticBankExchange.exchangeName:
+        _cachedSendMB = send ?? _cachedSendMB;
+        _cachedReceivingMB = receiving ?? _cachedReceivingMB;
+        break;
+    }
+  }
+
+  void _notify() {
+    debugPrint("ExFState NOTIFY: ${toString()}");
+    notifyListeners();
+  }
+
   @override
   String toString() {
     return "{"
@@ -461,10 +584,5 @@ class ExchangeFormState extends ChangeNotifier {
         "\n\t canExchange: $canExchange,"
         "\n\t warning: $warning,"
         "\n}";
-  }
-
-  void _notify() {
-    debugPrint("ExFState NOTIFY: ${toString()}");
-    notifyListeners();
   }
 }
