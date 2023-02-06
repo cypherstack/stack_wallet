@@ -112,6 +112,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
     await _showCurrencySelectionSheet(
       willChange: ref.read(exchangeFormStateProvider).sendCurrency,
+      willChangeIsSend: true,
       paired: ref.read(exchangeFormStateProvider).receiveCurrency,
       isFixedRate: type == ExchangeRateType.fixed,
       onSelected: (selectedCurrency) => ref
@@ -158,6 +159,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
     await _showCurrencySelectionSheet(
       willChange: ref.read(exchangeFormStateProvider).receiveCurrency,
+        willChangeIsSend: false,
       paired: ref.read(exchangeFormStateProvider).sendCurrency,
       isFixedRate: type == ExchangeRateType.fixed,
       onSelected: (selectedCurrency) => ref
@@ -229,6 +231,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     required Currency? willChange,
     required Currency? paired,
     required bool isFixedRate,
+    required bool willChangeIsSend,
     required void Function(Currency) onSelected,
   }) async {
     _sendFocusNode.unfocus();
@@ -281,6 +284,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                                   willChange: willChange,
                                   paired: paired,
                                   isFixedRate: isFixedRate,
+                                  willChangeIsSend: willChangeIsSend,
                                 ),
                               ),
                             ),
@@ -300,6 +304,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                 willChange: willChange,
                 paired: paired,
                 isFixedRate: isFixedRate,
+                willChangeIsSend: willChangeIsSend,
               ),
             ),
           );

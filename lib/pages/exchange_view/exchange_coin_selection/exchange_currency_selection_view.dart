@@ -27,12 +27,14 @@ class ExchangeCurrencySelectionView extends StatefulWidget {
     required this.willChange,
     required this.paired,
     required this.isFixedRate,
+    required this.willChangeIsSend,
   }) : super(key: key);
 
   final String exchangeName;
   final Currency? willChange;
   final Currency? paired;
   final bool isFixedRate;
+  final bool willChangeIsSend;
 
   @override
   State<ExchangeCurrencySelectionView> createState() =>
@@ -46,6 +48,34 @@ class _ExchangeCurrencySelectionViewState
   final isDesktop = Util.isDesktop;
 
   late List<Currency> _currencies;
+  late final List<Pair> pairs;
+
+  List<Pair> getAvailablePairs() {
+    final filter = ExchangeDataLoadingService.instance.isar.pairs
+        .where()
+        .exchangeNameEqualTo(widget.exchangeName)
+        .filter()
+        .group((q) => widget.isFixedRate
+            ? q
+                .rateTypeEqualTo(SupportedRateType.both)
+                .or()
+                .rateTypeEqualTo(SupportedRateType.fixed)
+            : q
+                .rateTypeEqualTo(SupportedRateType.both)
+                .or()
+                .rateTypeEqualTo(SupportedRateType.estimated));
+
+    if (widget.paired != null) {
+      return filter
+          .and()
+          .group((q) => widget.willChangeIsSend
+              ? q.toEqualTo(widget.paired!.ticker, caseSensitive: false)
+              : q.fromEqualTo(widget.paired!.ticker, caseSensitive: false))
+          .findAllSync();
+    } else {
+      return filter.findAllSync();
+    }
+  }
 
   void filter(String text) {
     setState(() {
@@ -53,6 +83,10 @@ class _ExchangeCurrencySelectionViewState
           .where()
           .exchangeNameEqualTo(widget.exchangeName)
           .filter()
+          .anyOf<String, Currency>(
+            pairs.map((e) => widget.willChangeIsSend ? e.to : e.from),
+            (q, ticker) => q.tickerEqualTo(ticker),
+          )
           .group((q) => widget.isFixedRate
               ? q
                   .rateTypeEqualTo(SupportedRateType.both)
@@ -85,6 +119,7 @@ class _ExchangeCurrencySelectionViewState
   @override
   void initState() {
     _searchController = TextEditingController();
+    pairs = getAvailablePairs();
 
     final query = ExchangeDataLoadingService.instance.isar.currencies
         .where()
