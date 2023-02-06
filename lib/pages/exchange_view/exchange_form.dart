@@ -646,17 +646,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     final rateType = ref.watch(
         prefsChangeNotifierProvider.select((value) => value.exchangeRateType));
 
-    ref.listen<String>(currentExchangeNameStateProvider, (previous, next) {
-      ref.read(exchangeFormStateProvider).updateExchange(
-            exchange: ref.read(exchangeProvider),
-            shouldUpdateData: true,
-            shouldNotifyListeners: true,
-          );
-    });
-
-    final isEstimated = ref.watch(prefsChangeNotifierProvider
-            .select((pref) => pref.exchangeRateType)) ==
-        ExchangeRateType.estimated;
+    final isEstimated = rateType == ExchangeRateType.estimated;
 
     ref.listen(
         exchangeFormStateProvider.select((value) => value.toAmountString),
@@ -854,9 +844,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             to: ref.watch(exchangeFormStateProvider).toTicker,
             fromAmount: ref.watch(exchangeFormStateProvider).sendAmount,
             toAmount: ref.watch(exchangeFormStateProvider).receiveAmount,
-            fixedRate: ref.watch(prefsChangeNotifierProvider
-                    .select((value) => value.exchangeRateType)) ==
-                ExchangeRateType.fixed,
+            fixedRate: rateType == ExchangeRateType.fixed,
             reversed: ref.watch(
                 exchangeFormStateProvider.select((value) => value.reversed)),
           ),

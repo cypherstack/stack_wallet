@@ -60,6 +60,11 @@ class ExchangeProviderOptions extends ConsumerWidget {
                     ChangeNowExchange.exchangeName) {
                   ref.read(currentExchangeNameStateProvider.state).state =
                       ChangeNowExchange.exchangeName;
+                  ref.read(exchangeFormStateProvider).updateExchange(
+                        exchange: ref.read(exchangeProvider),
+                        shouldUpdateData: true,
+                        shouldNotifyListeners: true,
+                      );
                 }
               },
               child: Container(
@@ -290,6 +295,11 @@ class ExchangeProviderOptions extends ConsumerWidget {
                     MajesticBankExchange.exchangeName) {
                   ref.read(currentExchangeNameStateProvider.state).state =
                       MajesticBankExchange.exchangeName;
+                  ref.read(exchangeFormStateProvider).updateExchange(
+                        exchange: ref.read(exchangeProvider),
+                        shouldUpdateData: true,
+                        shouldNotifyListeners: true,
+                      );
                 }
               },
               child: Container(
