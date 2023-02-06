@@ -7,11 +7,15 @@ import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 class ExchangeFormState extends ChangeNotifier {
-  ExchangeFormState(this.exchangeRateType);
-  final ExchangeRateType exchangeRateType;
-
   Exchange? _exchange;
   Exchange get exchange => _exchange ??= Exchange.defaultExchange;
+
+  ExchangeRateType _exchangeRateType = ExchangeRateType.estimated;
+  ExchangeRateType get exchangeRateType => _exchangeRateType;
+  set exchangeRateType(ExchangeRateType exchangeRateType) {
+    _exchangeRateType = exchangeRateType;
+    //
+  }
 
   Estimate? _estimate;
   Estimate? get estimate => _estimate;
@@ -104,6 +108,8 @@ class ExchangeFormState extends ChangeNotifier {
         receiveAmount != null &&
         rate != null &&
         rate! >= Decimal.zero &&
+        exchange.name == sendCurrency!.exchangeName &&
+        exchange.name == receiveCurrency!.exchangeName &&
         warning.isEmpty;
   }
 
@@ -206,7 +212,7 @@ class ExchangeFormState extends ChangeNotifier {
     }
   }
 
-  Future<void> setToAmountAndCalculateFromAmount(
+  Future<void> setReceivingAmountAndCalculateSendAmount(
     Decimal? newReceiveAmount,
     bool shouldNotifyListeners,
   ) async {

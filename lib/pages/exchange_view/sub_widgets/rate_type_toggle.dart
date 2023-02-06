@@ -14,7 +14,7 @@ class RateTypeToggle extends ConsumerWidget {
     this.onChanged,
   }) : super(key: key);
 
-  final void Function()? onChanged;
+  final void Function(ExchangeRateType)? onChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -26,11 +26,12 @@ class RateTypeToggle extends ConsumerWidget {
         if (value) {
           ref.read(prefsChangeNotifierProvider).exchangeRateType =
               ExchangeRateType.fixed;
+          onChanged?.call(ExchangeRateType.fixed);
         } else {
           ref.read(prefsChangeNotifierProvider).exchangeRateType =
               ExchangeRateType.estimated;
+          onChanged?.call(ExchangeRateType.estimated);
         }
-        onChanged?.call();
       },
       isOn: ref.watch(prefsChangeNotifierProvider
               .select((value) => value.exchangeRateType)) ==
@@ -55,178 +56,5 @@ class RateTypeToggle extends ConsumerWidget {
       offIcon: Assets.svg.lock,
       offText: "Fixed rate",
     );
-    //
-    // return RoundedContainer(
-    //   padding: const EdgeInsets.all(0),
-    //   color: isDesktop
-    //       ? Theme.of(context).extension<StackColors>()!.buttonBackSecondary
-    //       : Theme.of(context).extension<StackColors>()!.popupBG,
-    //   child: Row(
-    //     children: [
-    //       Expanded(
-    //         child: ConditionalParent(
-    //           condition: isDesktop,
-    //           builder: (child) => MouseRegion(
-    //             cursor: estimated
-    //                 ? SystemMouseCursors.basic
-    //                 : SystemMouseCursors.click,
-    //             child: child,
-    //           ),
-    //           child: GestureDetector(
-    //             onTap: () {
-    //               if (!estimated) {
-    //                 ref.read(prefsChangeNotifierProvider).exchangeRateType =
-    //                     ExchangeRateType.estimated;
-    //                 onChanged?.call(ExchangeRateType.estimated);
-    //               }
-    //             },
-    //             child: RoundedContainer(
-    //               padding: isDesktop
-    //                   ? const EdgeInsets.all(17)
-    //                   : const EdgeInsets.all(12),
-    //               color: estimated
-    //                   ? Theme.of(context)
-    //                       .extension<StackColors>()!
-    //                       .textFieldDefaultBG
-    //                   : Colors.transparent,
-    //               child: Row(
-    //                 mainAxisAlignment: MainAxisAlignment.center,
-    //                 children: [
-    //                   SvgPicture.asset(
-    //                     Assets.svg.lockOpen,
-    //                     width: 12,
-    //                     height: 14,
-    //                     color: isDesktop
-    //                         ? estimated
-    //                             ? Theme.of(context)
-    //                                 .extension<StackColors>()!
-    //                                 .accentColorBlue
-    //                             : Theme.of(context)
-    //                                 .extension<StackColors>()!
-    //                                 .buttonTextSecondary
-    //                         : estimated
-    //                             ? Theme.of(context)
-    //                                 .extension<StackColors>()!
-    //                                 .textDark
-    //                             : Theme.of(context)
-    //                                 .extension<StackColors>()!
-    //                                 .textSubtitle1,
-    //                   ),
-    //                   const SizedBox(
-    //                     width: 5,
-    //                   ),
-    //                   Text(
-    //                     "Estimate rate",
-    //                     style: isDesktop
-    //                         ? STextStyles.desktopTextExtraExtraSmall(context)
-    //                             .copyWith(
-    //                             color: estimated
-    //                                 ? Theme.of(context)
-    //                                     .extension<StackColors>()!
-    //                                     .accentColorBlue
-    //                                 : Theme.of(context)
-    //                                     .extension<StackColors>()!
-    //                                     .buttonTextSecondary,
-    //                           )
-    //                         : STextStyles.smallMed12(context).copyWith(
-    //                             color: estimated
-    //                                 ? Theme.of(context)
-    //                                     .extension<StackColors>()!
-    //                                     .textDark
-    //                                 : Theme.of(context)
-    //                                     .extension<StackColors>()!
-    //                                     .textSubtitle1,
-    //                           ),
-    //                   ),
-    //                 ],
-    //               ),
-    //             ),
-    //           ),
-    //         ),
-    //       ),
-    //       Expanded(
-    //         child: ConditionalParent(
-    //           condition: isDesktop,
-    //           builder: (child) => MouseRegion(
-    //             cursor: !estimated
-    //                 ? SystemMouseCursors.basic
-    //                 : SystemMouseCursors.click,
-    //             child: child,
-    //           ),
-    //           child: GestureDetector(
-    //             onTap: () {
-    //               if (estimated) {
-    //                 ref.read(prefsChangeNotifierProvider).exchangeRateType =
-    //                     ExchangeRateType.fixed;
-    //                 onChanged?.call(ExchangeRateType.fixed);
-    //               }
-    //             },
-    //             child: RoundedContainer(
-    //               padding: isDesktop
-    //                   ? const EdgeInsets.all(17)
-    //                   : const EdgeInsets.all(12),
-    //               color: !estimated
-    //                   ? Theme.of(context)
-    //                       .extension<StackColors>()!
-    //                       .textFieldDefaultBG
-    //                   : Colors.transparent,
-    //               child: Row(
-    //                 mainAxisAlignment: MainAxisAlignment.center,
-    //                 children: [
-    //                   SvgPicture.asset(
-    //                     Assets.svg.lock,
-    //                     width: 12,
-    //                     height: 14,
-    //                     color: isDesktop
-    //                         ? !estimated
-    //                             ? Theme.of(context)
-    //                                 .extension<StackColors>()!
-    //                                 .accentColorBlue
-    //                             : Theme.of(context)
-    //                                 .extension<StackColors>()!
-    //                                 .buttonTextSecondary
-    //                         : !estimated
-    //                             ? Theme.of(context)
-    //                                 .extension<StackColors>()!
-    //                                 .textDark
-    //                             : Theme.of(context)
-    //                                 .extension<StackColors>()!
-    //                                 .textSubtitle1,
-    //                   ),
-    //                   const SizedBox(
-    //                     width: 5,
-    //                   ),
-    //                   Text(
-    //                     "Fixed rate",
-    //                     style: isDesktop
-    //                         ? STextStyles.desktopTextExtraExtraSmall(context)
-    //                             .copyWith(
-    //                             color: !estimated
-    //                                 ? Theme.of(context)
-    //                                     .extension<StackColors>()!
-    //                                     .accentColorBlue
-    //                                 : Theme.of(context)
-    //                                     .extension<StackColors>()!
-    //                                     .buttonTextSecondary,
-    //                           )
-    //                         : STextStyles.smallMed12(context).copyWith(
-    //                             color: !estimated
-    //                                 ? Theme.of(context)
-    //                                     .extension<StackColors>()!
-    //                                     .textDark
-    //                                 : Theme.of(context)
-    //                                     .extension<StackColors>()!
-    //                                     .textSubtitle1,
-    //                           ),
-    //                   ),
-    //                 ],
-    //               ),
-    //             ),
-    //           ),
-    //         ),
-    //       ),
-    //     ],
-    //   ),
-    // );
   }
 }
