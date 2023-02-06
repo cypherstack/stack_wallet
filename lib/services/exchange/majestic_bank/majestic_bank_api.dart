@@ -4,6 +4,7 @@ import 'package:decimal/decimal.dart';
 import 'package:http/http.dart' as http;
 import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
 import 'package:stackwallet/exceptions/exchange/pair_unavailable_exception.dart';
+import 'package:stackwallet/external_api_keys.dart';
 import 'package:stackwallet/models/exchange/majestic_bank/mb_limit.dart';
 import 'package:stackwallet/models/exchange/majestic_bank/mb_order.dart';
 import 'package:stackwallet/models/exchange/majestic_bank/mb_order_calculation.dart';
@@ -16,7 +17,6 @@ class MajesticBankAPI {
   static const String scheme = "https";
   static const String authority = "majesticbank.sc";
   static const String version = "v1";
-  static const String refCode = "fixme";
 
   MajesticBankAPI._();
 
@@ -234,7 +234,7 @@ class MajesticBankAPI {
       "from_currency": fromCurrency,
       "receive_currency": receiveCurrency,
       "receive_address": receiveAddress,
-      "referral_code": refCode,
+      "referral_code": kMajesticBankRefCode,
     };
 
     final uri = _buildUri(endpoint: "exchange", params: params);
@@ -283,7 +283,7 @@ class MajesticBankAPI {
       "from_currency": fromCurrency,
       "receive_currency": receiveCurrency,
       "receive_address": receiveAddress,
-      "referral_code": refCode,
+      "referral_code": kMajesticBankRefCode,
     };
 
     if (reversed) {

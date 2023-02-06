@@ -26,6 +26,8 @@ class _EXCHANGE {
 
   String get changeNow => "assets/svg/exchange_icons/change_now_logo_1.svg";
   String get simpleSwap => "assets/svg/exchange_icons/simpleswap-icon.svg";
+  String get majesticBankBlue => "assets/svg/exchange_icons/mb_blue.svg";
+  String get majesticBankGreen => "assets/svg/exchange_icons/mb_green.svg";
 }
 
 class _BUY {

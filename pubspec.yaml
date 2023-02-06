@@ -343,6 +343,8 @@ flutter:
     # exchange icons
     - assets/svg/exchange_icons/change_now_logo_1.svg
     - assets/svg/exchange_icons/simpleswap-icon.svg
+    - assets/svg/exchange_icons/mb_green.svg
+    - assets/svg/exchange_icons/mb_blue.svg
 
     # theme selectors
     - assets/svg/dark-theme.svg
