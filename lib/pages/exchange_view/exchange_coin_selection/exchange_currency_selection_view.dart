@@ -124,11 +124,6 @@ class _ExchangeCurrencySelectionViewState
 
   @override
   Widget build(BuildContext context) {
-    print("==================================================");
-    print("${widget.exchangeName}");
-    print("${widget.isFixedRate}");
-    print("==================================================");
-
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) {

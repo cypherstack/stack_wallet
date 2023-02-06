@@ -151,7 +151,7 @@ class ExchangeFormState extends ChangeNotifier {
     }
 
     if (shouldNotifyListeners) {
-      notifyListeners();
+      _notify();
     }
   }
 
@@ -176,7 +176,7 @@ class ExchangeFormState extends ChangeNotifier {
     _maxReceiveAmount = null;
 
     if (shouldNotifyListeners) {
-      notifyListeners();
+      _notify();
     }
   }
 
@@ -202,7 +202,7 @@ class ExchangeFormState extends ChangeNotifier {
     }
 
     if (shouldNotifyListeners) {
-      notifyListeners();
+      _notify();
     }
   }
 
@@ -228,7 +228,7 @@ class ExchangeFormState extends ChangeNotifier {
     }
 
     if (shouldNotifyListeners) {
-      notifyListeners();
+      _notify();
     }
   }
 
@@ -249,7 +249,7 @@ class ExchangeFormState extends ChangeNotifier {
         );
       }
       if (shouldNotifyListeners) {
-        notifyListeners();
+        _notify();
       }
     } catch (e, s) {
       Logging.instance.log("$e\n$s", level: LogLevel.Error);
@@ -273,7 +273,7 @@ class ExchangeFormState extends ChangeNotifier {
         );
       }
       if (shouldNotifyListeners) {
-        notifyListeners();
+        _notify();
       }
     } catch (e, s) {
       Logging.instance.log("$e\n$s", level: LogLevel.Error);
@@ -299,6 +299,10 @@ class ExchangeFormState extends ChangeNotifier {
     await _updateRangesAndEstimate(
       shouldNotifyListeners: false,
     );
+
+    if (shouldNotifyListeners) {
+      _notify();
+    }
   }
 
   //============================================================================
@@ -312,7 +316,7 @@ class ExchangeFormState extends ChangeNotifier {
       await _updateRanges(shouldNotifyListeners: false);
       await _updateEstimate(shouldNotifyListeners: false);
       if (shouldNotifyListeners) {
-        notifyListeners();
+        _notify();
       }
     } catch (_) {
       //
@@ -374,7 +378,7 @@ class ExchangeFormState extends ChangeNotifier {
     //     "updated range for: $exchange for $_fromTicker-$_toTicker: $range");
 
     if (shouldNotifyListeners) {
-      notifyListeners();
+      _notify();
     }
   }
 
@@ -427,7 +431,34 @@ class ExchangeFormState extends ChangeNotifier {
     //     "updated estimate for: $exchange for $fromTicker-$toTicker: $estimate");
 
     if (shouldNotifyListeners) {
-      notifyListeners();
+      _notify();
     }
+  }
+
+  //============================================================================
+  @override
+  String toString() {
+    return "{"
+        "\n\t exchange: $exchange,"
+        "\n\t exchangeRateType: $exchangeRateType,"
+        "\n\t sendCurrency: $sendCurrency,"
+        "\n\t receiveCurrency: $receiveCurrency,"
+        "\n\t rate: $rate,"
+        "\n\t reversed: $reversed,"
+        "\n\t sendAmount: $sendAmount,"
+        "\n\t receiveAmount: $receiveAmount,"
+        "\n\t estimate: $estimate,"
+        "\n\t minSendAmount: $minSendAmount,"
+        "\n\t maxSendAmount: $maxSendAmount,"
+        "\n\t minReceiveAmount: $minReceiveAmount,"
+        "\n\t maxReceiveAmount: $maxReceiveAmount,"
+        "\n\t canExchange: $canExchange,"
+        "\n\t warning: $warning,"
+        "\n}";
+  }
+
+  void _notify() {
+    debugPrint("ExFState NOTIFY: ${toString()}");
+    notifyListeners();
   }
 }
