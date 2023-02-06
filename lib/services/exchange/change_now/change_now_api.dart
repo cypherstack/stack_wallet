@@ -843,10 +843,7 @@ class ChangeNowAPI {
               exchangeName: ChangeNowExchange.exchangeName,
               from: stringPair[0],
               to: stringPair[1],
-              fromNetwork: "",
-              toNetwork: "",
-              fixedRate: false,
-              floatingRate: true,
+              rateType: SupportedRateType.estimated,
             ),
           );
         } catch (_) {

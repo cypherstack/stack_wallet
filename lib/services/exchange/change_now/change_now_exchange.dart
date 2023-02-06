@@ -104,11 +104,8 @@ class ChangeNowExchange extends Exchange {
           Pair(
             exchangeName: ChangeNowExchange.exchangeName,
             from: market.from,
-            fromNetwork: "",
             to: market.to,
-            toNetwork: "",
-            fixedRate: true,
-            floatingRate: false,
+            rateType: SupportedRateType.fixed,
           ),
         );
       }

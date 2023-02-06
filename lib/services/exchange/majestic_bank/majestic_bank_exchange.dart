@@ -139,11 +139,8 @@ class MajesticBankExchange extends Exchange {
       final pair = Pair(
         exchangeName: MajesticBankExchange.exchangeName,
         from: rate.fromCurrency,
-        fromNetwork: "",
         to: rate.toCurrency,
-        toNetwork: "",
-        fixedRate: true,
-        floatingRate: true,
+        rateType: SupportedRateType.both,
       );
       pairs.add(pair);
     }

@@ -274,11 +274,8 @@ class SimpleSwapAPI {
               Pair(
                 exchangeName: SimpleSwapExchange.exchangeName,
                 from: from,
-                fromNetwork: "",
                 to: to as String,
-                toNetwork: "",
-                fixedRate: args.item2,
-                floatingRate: !args.item2,
+                rateType: SupportedRateType.estimated,
               ),
             );
           }
