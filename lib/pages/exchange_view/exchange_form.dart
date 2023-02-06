@@ -19,7 +19,6 @@ import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_ste
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
-// import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -67,7 +66,39 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   bool _swapLock = false;
 
   // todo: check and adjust this value?
-  static const _valueCheckInterval = Duration(milliseconds: 500);
+  static const _valueCheckInterval = Duration(milliseconds: 300);
+
+  Future<T> showUpdatingExchangeRate<T>({
+    required Future<T> whileFuture,
+  }) async {
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => WillPopScope(
+          onWillPop: () async => false,
+          child: Container(
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .overlay
+                .withOpacity(0.6),
+            child: const CustomLoadingOverlay(
+              message: "Updating exchange rate",
+              eventBus: null,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final result = await whileFuture;
+
+    if (mounted) {
+      Navigator.of(context, rootNavigator: isDesktop).pop();
+    }
+
+    return result;
+  }
 
   Timer? _sendFieldOnChangedTimer;
   void sendFieldOnChanged(String value) async {
@@ -115,33 +146,11 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     );
 
     if (selectedCurrency != null) {
-      unawaited(
-        showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => WillPopScope(
-            onWillPop: () async => false,
-            child: Container(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .overlay
-                  .withOpacity(0.6),
-              child: const CustomLoadingOverlay(
-                message: "Updating exchange rate",
-                eventBus: null,
-              ),
-            ),
-          ),
-        ),
+      await showUpdatingExchangeRate(
+        whileFuture: ref
+            .read(exchangeFormStateProvider)
+            .updateSendCurrency(selectedCurrency, true),
       );
-
-      await ref
-          .read(exchangeFormStateProvider)
-          .updateSendCurrency(selectedCurrency, true);
-    }
-
-    if (mounted) {
-      Navigator.of(context, rootNavigator: true).pop();
     }
   }
 
@@ -162,33 +171,11 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     );
 
     if (selectedCurrency != null) {
-      unawaited(
-        showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => WillPopScope(
-            onWillPop: () async => false,
-            child: Container(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .overlay
-                  .withOpacity(0.6),
-              child: const CustomLoadingOverlay(
-                message: "Updating exchange rate",
-                eventBus: null,
-              ),
-            ),
-          ),
-        ),
+      await showUpdatingExchangeRate(
+        whileFuture: ref
+            .read(exchangeFormStateProvider)
+            .updateReceivingCurrency(selectedCurrency, true),
       );
-
-      await ref
-          .read(exchangeFormStateProvider)
-          .updateReceivingCurrency(selectedCurrency, true);
-    }
-
-    if (mounted) {
-      Navigator.of(context, rootNavigator: true).pop();
     }
   }
 
@@ -197,31 +184,11 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     _sendFocusNode.unfocus();
     _receiveFocusNode.unfocus();
 
-    unawaited(
-      showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => WillPopScope(
-          onWillPop: () async => false,
-          child: Container(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .overlay
-                .withOpacity(0.6),
-            child: const CustomLoadingOverlay(
-              message: "Updating exchange rate",
-              eventBus: null,
-            ),
-          ),
-        ),
-      ),
+    await showUpdatingExchangeRate(
+      whileFuture:
+          ref.read(exchangeFormStateProvider).swap(shouldNotifyListeners: true),
     );
 
-    await ref.read(exchangeFormStateProvider).swap(shouldNotifyListeners: true);
-
-    if (mounted) {
-      Navigator.of(context, rootNavigator: isDesktop).pop();
-    }
     _swapLock = false;
   }
 
@@ -317,26 +284,12 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     _receiveFocusNode.unfocus();
     _sendFocusNode.unfocus();
 
-    unawaited(
-      showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => WillPopScope(
-          onWillPop: () async => false,
-          child: Container(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .overlay
-                .withOpacity(0.6),
-            child: const CustomLoadingOverlay(
-              message: "Updating exchange rate",
-              eventBus: null,
-            ),
-          ),
-        ),
-      ),
+    await showUpdatingExchangeRate(
+      whileFuture: _onRateTypeChangedFuture(newType),
     );
+  }
 
+  Future<void> _onRateTypeChangedFuture(ExchangeRateType newType) async {
     ref.read(exchangeFormStateProvider).exchangeRateType = newType;
 
     final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "-";
@@ -397,19 +350,6 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         }
       }
     }
-    if (mounted) {
-      Navigator.of(context, rootNavigator: isDesktop).pop();
-    }
-    // if (!(fromTicker == "-" || toTicker == "-")) {
-    //   unawaited(
-    //     showFloatingFlushBar(
-    //       type: FlushBarType.warning,
-    //       message:
-    //           "${ref.read(exchangeFormStateProvider).exchangeRateType.name} rate trade pair \"$fromTicker-$toTicker\" unavailable. Reverting to last estimated rate pair.",
-    //       context: context,
-    //     ),
-    //   );
-    // }
   }
 
   void onExchangePressed() async {
@@ -655,13 +595,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       return false;
     }
 
-    String? ticker;
-
-    if (isSend) {
-      ticker = ref.read(exchangeFormStateProvider).fromTicker;
-    } else {
-      ticker = ref.read(exchangeFormStateProvider).toTicker;
-    }
+    String? ticker = isSend
+        ? ref.read(exchangeFormStateProvider).fromTicker
+        : ref.read(exchangeFormStateProvider).toTicker;
 
     if (ticker == null) {
       return false;
