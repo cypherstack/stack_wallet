@@ -107,38 +107,38 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       return;
     }
 
-    // TODO: return currency and await update while showing loading
-    await _showCurrencySelectionSheet(
+    final selectedCurrency = await _showCurrencySelectionSheet(
       willChange: ref.read(exchangeFormStateProvider).sendCurrency,
       willChangeIsSend: true,
       paired: ref.read(exchangeFormStateProvider).receiveCurrency,
       isFixedRate: type == ExchangeRateType.fixed,
-      onSelected: (selectedCurrency) => ref
-          .read(exchangeFormStateProvider)
-          .updateSendCurrency(selectedCurrency, true),
     );
 
-    unawaited(
-      showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => WillPopScope(
-          onWillPop: () async => false,
-          child: Container(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .overlay
-                .withOpacity(0.6),
-            child: const CustomLoadingOverlay(
-              message: "Updating exchange rate",
-              eventBus: null,
+    if (selectedCurrency != null) {
+      unawaited(
+        showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => WillPopScope(
+            onWillPop: () async => false,
+            child: Container(
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .overlay
+                  .withOpacity(0.6),
+              child: const CustomLoadingOverlay(
+                message: "Updating exchange rate",
+                eventBus: null,
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
-    // await Future<void>.delayed(const Duration(milliseconds: 300));
+      await ref
+          .read(exchangeFormStateProvider)
+          .updateSendCurrency(selectedCurrency, true);
+    }
 
     if (mounted) {
       Navigator.of(context, rootNavigator: true).pop();
@@ -146,47 +146,46 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   }
 
   void selectReceiveCurrency() async {
-    final type = (ref.read(prefsChangeNotifierProvider).exchangeRateType);
     final toTicker = ref.read(exchangeFormStateProvider).toTicker ?? "";
-
     if (walletInitiated &&
         toTicker.toLowerCase() == coin!.ticker.toLowerCase()) {
       // do not allow changing away from wallet coin
       return;
     }
 
-    // TODO: return currency and await update while showing loading
-    await _showCurrencySelectionSheet(
+    final selectedCurrency = await _showCurrencySelectionSheet(
       willChange: ref.read(exchangeFormStateProvider).receiveCurrency,
       willChangeIsSend: false,
       paired: ref.read(exchangeFormStateProvider).sendCurrency,
-      isFixedRate: type == ExchangeRateType.fixed,
-      onSelected: (selectedCurrency) => ref
-          .read(exchangeFormStateProvider)
-          .updateReceivingCurrency(selectedCurrency, true),
+      isFixedRate: ref.read(prefsChangeNotifierProvider).exchangeRateType ==
+          ExchangeRateType.fixed,
     );
 
-    unawaited(
-      showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => WillPopScope(
-          onWillPop: () async => false,
-          child: Container(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .overlay
-                .withOpacity(0.6),
-            child: const CustomLoadingOverlay(
-              message: "Updating exchange rate",
-              eventBus: null,
+    if (selectedCurrency != null) {
+      unawaited(
+        showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => WillPopScope(
+            onWillPop: () async => false,
+            child: Container(
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .overlay
+                  .withOpacity(0.6),
+              child: const CustomLoadingOverlay(
+                message: "Updating exchange rate",
+                eventBus: null,
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
-    // await Future<void>.delayed(const Duration(milliseconds: 300));
+      await ref
+          .read(exchangeFormStateProvider)
+          .updateReceivingCurrency(selectedCurrency, true);
+    }
 
     if (mounted) {
       Navigator.of(context, rootNavigator: true).pop();
@@ -226,12 +225,11 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     _swapLock = false;
   }
 
-  Future<void> _showCurrencySelectionSheet({
+  Future<Currency?> _showCurrencySelectionSheet({
     required Currency? willChange,
     required Currency? paired,
     required bool isFixedRate,
     required bool willChangeIsSend,
-    required void Function(Currency) onSelected,
   }) async {
     _sendFocusNode.unfocus();
     _receiveFocusNode.unfocus();
@@ -309,7 +307,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           );
 
     if (mounted && result is Currency) {
-      onSelected(result);
+      return result;
+    } else {
+      return null;
     }
   }
 
