@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:decimal/decimal.dart';
 import 'package:http/http.dart' as http;
 import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
+import 'package:stackwallet/exceptions/exchange/pair_unavailable_exception.dart';
+import 'package:stackwallet/external_api_keys.dart';
 import 'package:stackwallet/models/exchange/majestic_bank/mb_limit.dart';
 import 'package:stackwallet/models/exchange/majestic_bank/mb_order.dart';
 import 'package:stackwallet/models/exchange/majestic_bank/mb_order_calculation.dart';
@@ -15,7 +17,6 @@ class MajesticBankAPI {
   static const String scheme = "https";
   static const String authority = "majesticbank.sc";
   static const String version = "v1";
-  static const String refCode = "fixme";
 
   MajesticBankAPI._();
 
@@ -39,7 +40,6 @@ class MajesticBankAPI {
       );
 
       code = response.statusCode;
-      print(response.body);
 
       final parsed = jsonDecode(response.body);
 
@@ -180,6 +180,28 @@ class MajesticBankAPI {
     try {
       final jsonObject = await _makeGetRequest(uri);
       final map = Map<String, dynamic>.from(jsonObject as Map);
+
+      if (map["error"] != null) {
+        final errorMessage = map["extra"] as String?;
+        if (errorMessage != null &&
+            errorMessage.startsWith("Bad") &&
+            errorMessage.endsWith("currency symbol")) {
+          return ExchangeResponse(
+            exception: PairUnavailableException(
+              errorMessage,
+              ExchangeExceptionType.generic,
+            ),
+          );
+        } else {
+          return ExchangeResponse(
+            exception: ExchangeException(
+              errorMessage ?? "Error: ${map["error"]}",
+              ExchangeExceptionType.generic,
+            ),
+          );
+        }
+      }
+
       final result = MBOrderCalculation(
         fromCurrency: map["from_currency"] as String,
         fromAmount: Decimal.parse(map["from_amount"].toString()),
@@ -189,8 +211,9 @@ class MajesticBankAPI {
 
       return ExchangeResponse(value: result);
     } catch (e, s) {
-      Logging.instance
-          .log("calculateOrder exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.log(
+          "calculateOrder $fromCurrency-$receiveCurrency exception: $e\n$s",
+          level: LogLevel.Error);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -211,7 +234,7 @@ class MajesticBankAPI {
       "from_currency": fromCurrency,
       "receive_currency": receiveCurrency,
       "receive_address": receiveAddress,
-      "referral_code": refCode,
+      "referral_code": kMajesticBankRefCode,
     };
 
     final uri = _buildUri(endpoint: "exchange", params: params);
@@ -260,7 +283,7 @@ class MajesticBankAPI {
       "from_currency": fromCurrency,
       "receive_currency": receiveCurrency,
       "receive_address": receiveAddress,
-      "referral_code": refCode,
+      "referral_code": kMajesticBankRefCode,
     };
 
     if (reversed) {

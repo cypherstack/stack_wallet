@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/exceptions/main_db/main_db_exception.dart';
 import 'package:stackwallet/exceptions/sw_exception.dart';
@@ -30,7 +29,8 @@ class MainDB {
         AddressLabelSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
-      inspector: kDebugMode,
+      // inspector: kDebugMode,
+      inspector: false,
       name: "wallet_data",
     );
     return true;

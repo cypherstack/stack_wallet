@@ -5,13 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_api.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-
-import '../../../services/exchange/majestic_bank/majestic_bank_api.dart';
 
 class HiddenSettings extends StatelessWidget {
   const HiddenSettings({Key? key}) : super(key: key);
@@ -157,8 +156,8 @@ class HiddenSettings extends StatelessWidget {
                         Consumer(builder: (_, ref, __) {
                           return GestureDetector(
                             onTap: () async {
-                              final x =
-                                  await MajesticBankAPI.instance.getLimits();
+                              final x = await MajesticBankAPI.instance
+                                  .getLimit(fromCurrency: 'btc');
                               print(x);
                             },
                             child: RoundedWhiteContainer(

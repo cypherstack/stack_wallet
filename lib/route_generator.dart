@@ -29,7 +29,6 @@ import 'package:stackwallet/pages/buy_view/buy_quote_preview.dart';
 import 'package:stackwallet/pages/buy_view/buy_view.dart';
 import 'package:stackwallet/pages/exchange_view/choose_from_stack_view.dart';
 import 'package:stackwallet/pages/exchange_view/edit_trade_note_view.dart';
-import 'package:stackwallet/pages/exchange_view/exchange_loading_overlay.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_1_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_2_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_3_view.dart';
@@ -907,7 +906,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case WalletInitiatedExchangeView.routeName:
-        if (args is Tuple3<String, Coin, VoidCallback>) {
+        if (args is Tuple2<String, Coin>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => Stack(
@@ -916,9 +915,9 @@ class RouteGenerator {
                   walletId: args.item1,
                   coin: args.item2,
                 ),
-                ExchangeLoadingOverlayView(
-                  unawaitedLoad: args.item3,
-                ),
+                // ExchangeLoadingOverlayView(
+                //   unawaitedLoad: args.item3,
+                // ),
               ],
             ),
             settings: RouteSettings(
