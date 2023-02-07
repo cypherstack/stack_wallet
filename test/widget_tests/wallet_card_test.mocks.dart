@@ -3,8 +3,8 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i15;
-import 'dart:ui' as _i17;
+import 'dart:async' as _i16;
+import 'dart:ui' as _i18;
 
 import 'package:flutter/foundation.dart' as _i4;
 import 'package:flutter_riverpod/flutter_riverpod.dart' as _i5;
@@ -13,18 +13,20 @@ import 'package:stackwallet/db/main_db.dart' as _i12;
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i10;
 import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i9;
 import 'package:stackwallet/models/balance.dart' as _i11;
-import 'package:stackwallet/models/isar/models/isar_models.dart' as _i19;
+import 'package:stackwallet/models/isar/models/isar_models.dart' as _i20;
 import 'package:stackwallet/models/paymint/fee_object_model.dart' as _i8;
-import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart' as _i18;
+import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart' as _i19;
 import 'package:stackwallet/services/coins/manager.dart' as _i6;
-import 'package:stackwallet/services/locale_service.dart' as _i20;
+import 'package:stackwallet/services/locale_service.dart' as _i22;
 import 'package:stackwallet/services/node_service.dart' as _i3;
 import 'package:stackwallet/services/transaction_notification_tracker.dart'
     as _i7;
-import 'package:stackwallet/services/wallets.dart' as _i13;
+import 'package:stackwallet/services/wallets.dart' as _i14;
 import 'package:stackwallet/services/wallets_service.dart' as _i2;
-import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i14;
-import 'package:stackwallet/utilities/prefs.dart' as _i16;
+import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i15;
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart' as _i21;
+import 'package:stackwallet/utilities/prefs.dart' as _i17;
+import 'package:tuple/tuple.dart' as _i13;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -151,10 +153,21 @@ class _FakeElectrumXNode_10 extends _i1.SmartFake implements _i9.ElectrumXNode {
         );
 }
 
+class _FakeTuple4_11<T1, T2, T3, T4> extends _i1.SmartFake
+    implements _i13.Tuple4<T1, T2, T3, T4> {
+  _FakeTuple4_11(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
 /// A class which mocks [Wallets].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockWallets extends _i1.Mock implements _i13.Wallets {
+class MockWallets extends _i1.Mock implements _i14.Wallets {
   MockWallets() {
     _i1.throwOnMissingStub(this);
   }
@@ -221,7 +234,7 @@ class MockWallets extends _i1.Mock implements _i13.Wallets {
         returnValueForMissingStub: null,
       );
   @override
-  List<String> getWalletIdsFor({required _i14.Coin? coin}) =>
+  List<String> getWalletIdsFor({required _i15.Coin? coin}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getWalletIdsFor,
@@ -231,18 +244,18 @@ class MockWallets extends _i1.Mock implements _i13.Wallets {
         returnValue: <String>[],
       ) as List<String>);
   @override
-  Map<_i14.Coin, List<_i5.ChangeNotifierProvider<_i6.Manager>>>
+  Map<_i15.Coin, List<_i5.ChangeNotifierProvider<_i6.Manager>>>
       getManagerProvidersByCoin() => (super.noSuchMethod(
             Invocation.method(
               #getManagerProvidersByCoin,
               [],
             ),
-            returnValue: <_i14.Coin,
+            returnValue: <_i15.Coin,
                 List<_i5.ChangeNotifierProvider<_i6.Manager>>>{},
-          ) as Map<_i14.Coin, List<_i5.ChangeNotifierProvider<_i6.Manager>>>);
+          ) as Map<_i15.Coin, List<_i5.ChangeNotifierProvider<_i6.Manager>>>);
   @override
   List<_i5.ChangeNotifierProvider<_i6.Manager>> getManagerProvidersForCoin(
-          _i14.Coin? coin) =>
+          _i15.Coin? coin) =>
       (super.noSuchMethod(
         Invocation.method(
           #getManagerProvidersForCoin,
@@ -306,17 +319,17 @@ class MockWallets extends _i1.Mock implements _i13.Wallets {
         returnValueForMissingStub: null,
       );
   @override
-  _i15.Future<void> load(_i16.Prefs? prefs) => (super.noSuchMethod(
+  _i16.Future<void> load(_i17.Prefs? prefs) => (super.noSuchMethod(
         Invocation.method(
           #load,
           [prefs],
         ),
-        returnValue: _i15.Future<void>.value(),
-        returnValueForMissingStub: _i15.Future<void>.value(),
-      ) as _i15.Future<void>);
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
   @override
-  _i15.Future<void> loadAfterStackRestore(
-    _i16.Prefs? prefs,
+  _i16.Future<void> loadAfterStackRestore(
+    _i17.Prefs? prefs,
     List<_i6.Manager>? managers,
   ) =>
       (super.noSuchMethod(
@@ -327,11 +340,11 @@ class MockWallets extends _i1.Mock implements _i13.Wallets {
             managers,
           ],
         ),
-        returnValue: _i15.Future<void>.value(),
-        returnValueForMissingStub: _i15.Future<void>.value(),
-      ) as _i15.Future<void>);
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
   @override
-  void addListener(_i17.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i18.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -339,7 +352,7 @@ class MockWallets extends _i1.Mock implements _i13.Wallets {
         returnValueForMissingStub: null,
       );
   @override
-  void removeListener(_i17.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i18.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],
@@ -359,13 +372,13 @@ class MockWallets extends _i1.Mock implements _i13.Wallets {
 /// A class which mocks [BitcoinWallet].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
+class MockBitcoinWallet extends _i1.Mock implements _i19.BitcoinWallet {
   MockBitcoinWallet() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  set timer(_i15.Timer? _timer) => super.noSuchMethod(
+  set timer(_i16.Timer? _timer) => super.noSuchMethod(
         Invocation.setter(
           #timer,
           _timer,
@@ -442,59 +455,59 @@ class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
         returnValue: false,
       ) as bool);
   @override
-  _i14.Coin get coin => (super.noSuchMethod(
+  _i15.Coin get coin => (super.noSuchMethod(
         Invocation.getter(#coin),
-        returnValue: _i14.Coin.bitcoin,
-      ) as _i14.Coin);
+        returnValue: _i15.Coin.bitcoin,
+      ) as _i15.Coin);
   @override
-  _i15.Future<List<_i19.UTXO>> get utxos => (super.noSuchMethod(
+  _i16.Future<List<_i20.UTXO>> get utxos => (super.noSuchMethod(
         Invocation.getter(#utxos),
-        returnValue: _i15.Future<List<_i19.UTXO>>.value(<_i19.UTXO>[]),
-      ) as _i15.Future<List<_i19.UTXO>>);
+        returnValue: _i16.Future<List<_i20.UTXO>>.value(<_i20.UTXO>[]),
+      ) as _i16.Future<List<_i20.UTXO>>);
   @override
-  _i15.Future<List<_i19.Transaction>> get transactions => (super.noSuchMethod(
+  _i16.Future<List<_i20.Transaction>> get transactions => (super.noSuchMethod(
         Invocation.getter(#transactions),
         returnValue:
-            _i15.Future<List<_i19.Transaction>>.value(<_i19.Transaction>[]),
-      ) as _i15.Future<List<_i19.Transaction>>);
+            _i16.Future<List<_i20.Transaction>>.value(<_i20.Transaction>[]),
+      ) as _i16.Future<List<_i20.Transaction>>);
   @override
-  _i15.Future<String> get currentReceivingAddress => (super.noSuchMethod(
+  _i16.Future<String> get currentReceivingAddress => (super.noSuchMethod(
         Invocation.getter(#currentReceivingAddress),
-        returnValue: _i15.Future<String>.value(''),
-      ) as _i15.Future<String>);
+        returnValue: _i16.Future<String>.value(''),
+      ) as _i16.Future<String>);
   @override
-  _i15.Future<String> get currentChangeAddress => (super.noSuchMethod(
+  _i16.Future<String> get currentChangeAddress => (super.noSuchMethod(
         Invocation.getter(#currentChangeAddress),
-        returnValue: _i15.Future<String>.value(''),
-      ) as _i15.Future<String>);
+        returnValue: _i16.Future<String>.value(''),
+      ) as _i16.Future<String>);
   @override
   bool get hasCalledExit => (super.noSuchMethod(
         Invocation.getter(#hasCalledExit),
         returnValue: false,
       ) as bool);
   @override
-  _i15.Future<_i8.FeeObject> get fees => (super.noSuchMethod(
+  _i16.Future<_i8.FeeObject> get fees => (super.noSuchMethod(
         Invocation.getter(#fees),
-        returnValue: _i15.Future<_i8.FeeObject>.value(_FakeFeeObject_5(
+        returnValue: _i16.Future<_i8.FeeObject>.value(_FakeFeeObject_5(
           this,
           Invocation.getter(#fees),
         )),
-      ) as _i15.Future<_i8.FeeObject>);
+      ) as _i16.Future<_i8.FeeObject>);
   @override
-  _i15.Future<int> get maxFee => (super.noSuchMethod(
+  _i16.Future<int> get maxFee => (super.noSuchMethod(
         Invocation.getter(#maxFee),
-        returnValue: _i15.Future<int>.value(0),
-      ) as _i15.Future<int>);
+        returnValue: _i16.Future<int>.value(0),
+      ) as _i16.Future<int>);
   @override
-  _i15.Future<List<String>> get mnemonic => (super.noSuchMethod(
+  _i16.Future<List<String>> get mnemonic => (super.noSuchMethod(
         Invocation.getter(#mnemonic),
-        returnValue: _i15.Future<List<String>>.value(<String>[]),
-      ) as _i15.Future<List<String>>);
+        returnValue: _i16.Future<List<String>>.value(<String>[]),
+      ) as _i16.Future<List<String>>);
   @override
-  _i15.Future<int> get chainHeight => (super.noSuchMethod(
+  _i16.Future<int> get chainHeight => (super.noSuchMethod(
         Invocation.getter(#chainHeight),
-        returnValue: _i15.Future<int>.value(0),
-      ) as _i15.Future<int>);
+        returnValue: _i16.Future<int>.value(0),
+      ) as _i16.Future<int>);
   @override
   int get storedChainHeight => (super.noSuchMethod(
         Invocation.getter(#storedChainHeight),
@@ -583,26 +596,26 @@ class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
         ),
       ) as _i12.MainDB);
   @override
-  _i15.Future<void> exit() => (super.noSuchMethod(
+  _i16.Future<void> exit() => (super.noSuchMethod(
         Invocation.method(
           #exit,
           [],
         ),
-        returnValue: _i15.Future<void>.value(),
-        returnValueForMissingStub: _i15.Future<void>.value(),
-      ) as _i15.Future<void>);
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
   @override
-  _i18.DerivePathType addressType({required String? address}) =>
+  _i21.DerivePathType addressType({required String? address}) =>
       (super.noSuchMethod(
         Invocation.method(
           #addressType,
           [],
           {#address: address},
         ),
-        returnValue: _i18.DerivePathType.bip44,
-      ) as _i18.DerivePathType);
+        returnValue: _i21.DerivePathType.bip44,
+      ) as _i21.DerivePathType);
   @override
-  _i15.Future<void> recoverFromMnemonic({
+  _i16.Future<void> recoverFromMnemonic({
     required String? mnemonic,
     required int? maxUnusedAddressGap,
     required int? maxNumberOfIndexesToCheck,
@@ -619,47 +632,47 @@ class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
             #height: height,
           },
         ),
-        returnValue: _i15.Future<void>.value(),
-        returnValueForMissingStub: _i15.Future<void>.value(),
-      ) as _i15.Future<void>);
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
   @override
-  _i15.Future<void> getTransactionCacheEarly(List<String>? allAddresses) =>
+  _i16.Future<void> getTransactionCacheEarly(List<String>? allAddresses) =>
       (super.noSuchMethod(
         Invocation.method(
           #getTransactionCacheEarly,
           [allAddresses],
         ),
-        returnValue: _i15.Future<void>.value(),
-        returnValueForMissingStub: _i15.Future<void>.value(),
-      ) as _i15.Future<void>);
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
   @override
-  _i15.Future<bool> refreshIfThereIsNewData() => (super.noSuchMethod(
+  _i16.Future<bool> refreshIfThereIsNewData() => (super.noSuchMethod(
         Invocation.method(
           #refreshIfThereIsNewData,
           [],
         ),
-        returnValue: _i15.Future<bool>.value(false),
-      ) as _i15.Future<bool>);
+        returnValue: _i16.Future<bool>.value(false),
+      ) as _i16.Future<bool>);
   @override
-  _i15.Future<void> getAllTxsToWatch() => (super.noSuchMethod(
+  _i16.Future<void> getAllTxsToWatch() => (super.noSuchMethod(
         Invocation.method(
           #getAllTxsToWatch,
           [],
         ),
-        returnValue: _i15.Future<void>.value(),
-        returnValueForMissingStub: _i15.Future<void>.value(),
-      ) as _i15.Future<void>);
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
   @override
-  _i15.Future<void> refresh() => (super.noSuchMethod(
+  _i16.Future<void> refresh() => (super.noSuchMethod(
         Invocation.method(
           #refresh,
           [],
         ),
-        returnValue: _i15.Future<void>.value(),
-        returnValueForMissingStub: _i15.Future<void>.value(),
-      ) as _i15.Future<void>);
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
   @override
-  _i15.Future<Map<String, dynamic>> prepareSend({
+  _i16.Future<Map<String, dynamic>> prepareSend({
     required String? address,
     required int? satoshiAmount,
     Map<String, dynamic>? args,
@@ -675,26 +688,26 @@ class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
           },
         ),
         returnValue:
-            _i15.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
-      ) as _i15.Future<Map<String, dynamic>>);
+            _i16.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+      ) as _i16.Future<Map<String, dynamic>>);
   @override
-  _i15.Future<String> confirmSend({required Map<String, dynamic>? txData}) =>
+  _i16.Future<String> confirmSend({required Map<String, dynamic>? txData}) =>
       (super.noSuchMethod(
         Invocation.method(
           #confirmSend,
           [],
           {#txData: txData},
         ),
-        returnValue: _i15.Future<String>.value(''),
-      ) as _i15.Future<String>);
+        returnValue: _i16.Future<String>.value(''),
+      ) as _i16.Future<String>);
   @override
-  _i15.Future<bool> testNetworkConnection() => (super.noSuchMethod(
+  _i16.Future<bool> testNetworkConnection() => (super.noSuchMethod(
         Invocation.method(
           #testNetworkConnection,
           [],
         ),
-        returnValue: _i15.Future<bool>.value(false),
-      ) as _i15.Future<bool>);
+        returnValue: _i16.Future<bool>.value(false),
+      ) as _i16.Future<bool>);
   @override
   void startNetworkAlivePinging() => super.noSuchMethod(
         Invocation.method(
@@ -712,33 +725,33 @@ class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
         returnValueForMissingStub: null,
       );
   @override
-  _i15.Future<void> initializeNew() => (super.noSuchMethod(
+  _i16.Future<void> initializeNew() => (super.noSuchMethod(
         Invocation.method(
           #initializeNew,
           [],
         ),
-        returnValue: _i15.Future<void>.value(),
-        returnValueForMissingStub: _i15.Future<void>.value(),
-      ) as _i15.Future<void>);
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
   @override
-  _i15.Future<void> initializeExisting() => (super.noSuchMethod(
+  _i16.Future<void> initializeExisting() => (super.noSuchMethod(
         Invocation.method(
           #initializeExisting,
           [],
         ),
-        returnValue: _i15.Future<void>.value(),
-        returnValueForMissingStub: _i15.Future<void>.value(),
-      ) as _i15.Future<void>);
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
   @override
-  _i15.Future<void> updateSentCachedTxData(Map<String, dynamic>? txData) =>
+  _i16.Future<void> updateSentCachedTxData(Map<String, dynamic>? txData) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateSentCachedTxData,
           [txData],
         ),
-        returnValue: _i15.Future<void>.value(),
-        returnValueForMissingStub: _i15.Future<void>.value(),
-      ) as _i15.Future<void>);
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
   @override
   bool validateAddress(String? address) => (super.noSuchMethod(
         Invocation.method(
@@ -748,35 +761,35 @@ class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
         returnValue: false,
       ) as bool);
   @override
-  _i15.Future<void> updateNode(bool? shouldRefresh) => (super.noSuchMethod(
+  _i16.Future<void> updateNode(bool? shouldRefresh) => (super.noSuchMethod(
         Invocation.method(
           #updateNode,
           [shouldRefresh],
         ),
-        returnValue: _i15.Future<void>.value(),
-        returnValueForMissingStub: _i15.Future<void>.value(),
-      ) as _i15.Future<void>);
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
   @override
-  _i15.Future<_i9.ElectrumXNode> getCurrentNode() => (super.noSuchMethod(
+  _i16.Future<_i9.ElectrumXNode> getCurrentNode() => (super.noSuchMethod(
         Invocation.method(
           #getCurrentNode,
           [],
         ),
-        returnValue: _i15.Future<_i9.ElectrumXNode>.value(_FakeElectrumXNode_10(
+        returnValue: _i16.Future<_i9.ElectrumXNode>.value(_FakeElectrumXNode_10(
           this,
           Invocation.method(
             #getCurrentNode,
             [],
           ),
         )),
-      ) as _i15.Future<_i9.ElectrumXNode>);
+      ) as _i16.Future<_i9.ElectrumXNode>);
   @override
-  _i15.Future<void> addDerivation({
+  _i16.Future<void> addDerivation({
     required int? chain,
     required String? address,
     required String? pubKey,
     required String? wif,
-    required _i18.DerivePathType? derivePathType,
+    required _i21.DerivePathType? derivePathType,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -790,13 +803,13 @@ class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
             #derivePathType: derivePathType,
           },
         ),
-        returnValue: _i15.Future<void>.value(),
-        returnValueForMissingStub: _i15.Future<void>.value(),
-      ) as _i15.Future<void>);
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
   @override
-  _i15.Future<void> addDerivations({
+  _i16.Future<void> addDerivations({
     required int? chain,
-    required _i18.DerivePathType? derivePathType,
+    required _i21.DerivePathType? derivePathType,
     required Map<String, dynamic>? derivationsToAdd,
   }) =>
       (super.noSuchMethod(
@@ -809,50 +822,50 @@ class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
             #derivationsToAdd: derivationsToAdd,
           },
         ),
-        returnValue: _i15.Future<void>.value(),
-        returnValueForMissingStub: _i15.Future<void>.value(),
-      ) as _i15.Future<void>);
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
   @override
-  _i15.Future<List<Map<String, dynamic>>> fastFetch(
+  _i16.Future<List<Map<String, dynamic>>> fastFetch(
           List<String>? allTxHashes) =>
       (super.noSuchMethod(
         Invocation.method(
           #fastFetch,
           [allTxHashes],
         ),
-        returnValue: _i15.Future<List<Map<String, dynamic>>>.value(
+        returnValue: _i16.Future<List<Map<String, dynamic>>>.value(
             <Map<String, dynamic>>[]),
-      ) as _i15.Future<List<Map<String, dynamic>>>);
+      ) as _i16.Future<List<Map<String, dynamic>>>);
   @override
-  _i15.Future<int> getTxCount({required String? address}) =>
+  _i16.Future<int> getTxCount({required String? address}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getTxCount,
           [],
           {#address: address},
         ),
-        returnValue: _i15.Future<int>.value(0),
-      ) as _i15.Future<int>);
+        returnValue: _i16.Future<int>.value(0),
+      ) as _i16.Future<int>);
   @override
-  _i15.Future<void> checkCurrentReceivingAddressesForTransactions() =>
+  _i16.Future<void> checkCurrentReceivingAddressesForTransactions() =>
       (super.noSuchMethod(
         Invocation.method(
           #checkCurrentReceivingAddressesForTransactions,
           [],
         ),
-        returnValue: _i15.Future<void>.value(),
-        returnValueForMissingStub: _i15.Future<void>.value(),
-      ) as _i15.Future<void>);
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
   @override
-  _i15.Future<void> checkCurrentChangeAddressesForTransactions() =>
+  _i16.Future<void> checkCurrentChangeAddressesForTransactions() =>
       (super.noSuchMethod(
         Invocation.method(
           #checkCurrentChangeAddressesForTransactions,
           [],
         ),
-        returnValue: _i15.Future<void>.value(),
-        returnValueForMissingStub: _i15.Future<void>.value(),
-      ) as _i15.Future<void>);
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
   @override
   int estimateTxFee({
     required int? vSize,
@@ -876,7 +889,7 @@ class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
     String? _recipientAddress,
     bool? isSendAll, {
     int? additionalOutputs = 0,
-    List<_i19.UTXO>? utxos,
+    List<_i20.UTXO>? utxos,
   }) =>
       super.noSuchMethod(Invocation.method(
         #coinSelection,
@@ -892,19 +905,19 @@ class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
         },
       ));
   @override
-  _i15.Future<Map<String, dynamic>> fetchBuildTxData(
-          List<_i19.UTXO>? utxosToUse) =>
+  _i16.Future<Map<String, dynamic>> fetchBuildTxData(
+          List<_i20.UTXO>? utxosToUse) =>
       (super.noSuchMethod(
         Invocation.method(
           #fetchBuildTxData,
           [utxosToUse],
         ),
         returnValue:
-            _i15.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
-      ) as _i15.Future<Map<String, dynamic>>);
+            _i16.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+      ) as _i16.Future<Map<String, dynamic>>);
   @override
-  _i15.Future<Map<String, dynamic>> buildTransaction({
-    required List<_i19.UTXO>? utxosToUse,
+  _i16.Future<Map<String, dynamic>> buildTransaction({
+    required List<_i20.UTXO>? utxosToUse,
     required Map<String, dynamic>? utxoSigningData,
     required List<String>? recipients,
     required List<int>? satoshiAmounts,
@@ -921,10 +934,10 @@ class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
           },
         ),
         returnValue:
-            _i15.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
-      ) as _i15.Future<Map<String, dynamic>>);
+            _i16.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+      ) as _i16.Future<Map<String, dynamic>>);
   @override
-  _i15.Future<void> fullRescan(
+  _i16.Future<void> fullRescan(
     int? maxUnusedAddressGap,
     int? maxNumberOfIndexesToCheck,
   ) =>
@@ -936,11 +949,11 @@ class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
             maxNumberOfIndexesToCheck,
           ],
         ),
-        returnValue: _i15.Future<void>.value(),
-        returnValueForMissingStub: _i15.Future<void>.value(),
-      ) as _i15.Future<void>);
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
   @override
-  _i15.Future<int> estimateFeeFor(
+  _i16.Future<int> estimateFeeFor(
     int? satoshiAmount,
     int? feeRate,
   ) =>
@@ -952,8 +965,8 @@ class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
             feeRate,
           ],
         ),
-        returnValue: _i15.Future<int>.value(0),
-      ) as _i15.Future<int>);
+        returnValue: _i16.Future<int>.value(0),
+      ) as _i16.Future<int>);
   @override
   int roughFeeEstimate(
     int? inputCount,
@@ -972,25 +985,25 @@ class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
         returnValue: 0,
       ) as int);
   @override
-  _i15.Future<int> sweepAllEstimate(int? feeRate) => (super.noSuchMethod(
+  _i16.Future<int> sweepAllEstimate(int? feeRate) => (super.noSuchMethod(
         Invocation.method(
           #sweepAllEstimate,
           [feeRate],
         ),
-        returnValue: _i15.Future<int>.value(0),
-      ) as _i15.Future<int>);
+        returnValue: _i16.Future<int>.value(0),
+      ) as _i16.Future<int>);
   @override
-  _i15.Future<bool> generateNewAddress() => (super.noSuchMethod(
+  _i16.Future<bool> generateNewAddress() => (super.noSuchMethod(
         Invocation.method(
           #generateNewAddress,
           [],
         ),
-        returnValue: _i15.Future<bool>.value(false),
-      ) as _i15.Future<bool>);
+        returnValue: _i16.Future<bool>.value(false),
+      ) as _i16.Future<bool>);
   @override
   void initCache(
     String? walletId,
-    _i14.Coin? coin,
+    _i15.Coin? coin,
   ) =>
       super.noSuchMethod(
         Invocation.method(
@@ -1003,14 +1016,14 @@ class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
         returnValueForMissingStub: null,
       );
   @override
-  _i15.Future<void> updateCachedId(String? id) => (super.noSuchMethod(
+  _i16.Future<void> updateCachedId(String? id) => (super.noSuchMethod(
         Invocation.method(
           #updateCachedId,
           [id],
         ),
-        returnValue: _i15.Future<void>.value(),
-        returnValueForMissingStub: _i15.Future<void>.value(),
-      ) as _i15.Future<void>);
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
   @override
   int getCachedChainHeight() => (super.noSuchMethod(
         Invocation.method(
@@ -1020,14 +1033,14 @@ class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
         returnValue: 0,
       ) as int);
   @override
-  _i15.Future<void> updateCachedChainHeight(int? height) => (super.noSuchMethod(
+  _i16.Future<void> updateCachedChainHeight(int? height) => (super.noSuchMethod(
         Invocation.method(
           #updateCachedChainHeight,
           [height],
         ),
-        returnValue: _i15.Future<void>.value(),
-        returnValueForMissingStub: _i15.Future<void>.value(),
-      ) as _i15.Future<void>);
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
   @override
   bool getCachedIsFavorite() => (super.noSuchMethod(
         Invocation.method(
@@ -1037,15 +1050,15 @@ class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
         returnValue: false,
       ) as bool);
   @override
-  _i15.Future<void> updateCachedIsFavorite(bool? isFavorite) =>
+  _i16.Future<void> updateCachedIsFavorite(bool? isFavorite) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateCachedIsFavorite,
           [isFavorite],
         ),
-        returnValue: _i15.Future<void>.value(),
-        returnValueForMissingStub: _i15.Future<void>.value(),
-      ) as _i15.Future<void>);
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
   @override
   _i11.Balance getCachedBalance() => (super.noSuchMethod(
         Invocation.method(
@@ -1061,15 +1074,15 @@ class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
         ),
       ) as _i11.Balance);
   @override
-  _i15.Future<void> updateCachedBalance(_i11.Balance? balance) =>
+  _i16.Future<void> updateCachedBalance(_i11.Balance? balance) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateCachedBalance,
           [balance],
         ),
-        returnValue: _i15.Future<void>.value(),
-        returnValueForMissingStub: _i15.Future<void>.value(),
-      ) as _i15.Future<void>);
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
   @override
   _i11.Balance getCachedBalanceSecondary() => (super.noSuchMethod(
         Invocation.method(
@@ -1085,15 +1098,15 @@ class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
         ),
       ) as _i11.Balance);
   @override
-  _i15.Future<void> updateCachedBalanceSecondary(_i11.Balance? balance) =>
+  _i16.Future<void> updateCachedBalanceSecondary(_i11.Balance? balance) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateCachedBalanceSecondary,
           [balance],
         ),
-        returnValue: _i15.Future<void>.value(),
-        returnValueForMissingStub: _i15.Future<void>.value(),
-      ) as _i15.Future<void>);
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
   @override
   void initWalletDB({_i12.MainDB? mockableOverride}) => super.noSuchMethod(
         Invocation.method(
@@ -1103,12 +1116,55 @@ class MockBitcoinWallet extends _i1.Mock implements _i18.BitcoinWallet {
         ),
         returnValueForMissingStub: null,
       );
+  @override
+  _i16.Future<
+      _i13.Tuple4<_i20.Transaction, List<_i20.Output>, List<_i20.Input>,
+          _i20.Address>> parseTransaction(
+    Map<String, dynamic>? txData,
+    dynamic electrumxClient,
+    List<_i20.Address>? myAddresses,
+    _i15.Coin? coin,
+    int? minConfirms,
+    String? walletId,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #parseTransaction,
+          [
+            txData,
+            electrumxClient,
+            myAddresses,
+            coin,
+            minConfirms,
+            walletId,
+          ],
+        ),
+        returnValue: _i16.Future<
+            _i13.Tuple4<_i20.Transaction, List<_i20.Output>, List<_i20.Input>,
+                _i20.Address>>.value(_FakeTuple4_11<_i20.Transaction,
+            List<_i20.Output>, List<_i20.Input>, _i20.Address>(
+          this,
+          Invocation.method(
+            #parseTransaction,
+            [
+              txData,
+              electrumxClient,
+              myAddresses,
+              coin,
+              minConfirms,
+              walletId,
+            ],
+          ),
+        )),
+      ) as _i16.Future<
+          _i13.Tuple4<_i20.Transaction, List<_i20.Output>, List<_i20.Input>,
+              _i20.Address>>);
 }
 
 /// A class which mocks [LocaleService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockLocaleService extends _i1.Mock implements _i20.LocaleService {
+class MockLocaleService extends _i1.Mock implements _i22.LocaleService {
   MockLocaleService() {
     _i1.throwOnMissingStub(this);
   }
@@ -1124,17 +1180,17 @@ class MockLocaleService extends _i1.Mock implements _i20.LocaleService {
         returnValue: false,
       ) as bool);
   @override
-  _i15.Future<void> loadLocale({bool? notify = true}) => (super.noSuchMethod(
+  _i16.Future<void> loadLocale({bool? notify = true}) => (super.noSuchMethod(
         Invocation.method(
           #loadLocale,
           [],
           {#notify: notify},
         ),
-        returnValue: _i15.Future<void>.value(),
-        returnValueForMissingStub: _i15.Future<void>.value(),
-      ) as _i15.Future<void>);
+        returnValue: _i16.Future<void>.value(),
+        returnValueForMissingStub: _i16.Future<void>.value(),
+      ) as _i16.Future<void>);
   @override
-  void addListener(_i17.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i18.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -1142,7 +1198,7 @@ class MockLocaleService extends _i1.Mock implements _i20.LocaleService {
         returnValueForMissingStub: null,
       );
   @override
-  void removeListener(_i17.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i18.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],

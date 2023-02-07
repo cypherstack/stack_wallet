@@ -122,12 +122,12 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       setState(() {
         _amountOutOfRangeErrorString = "Invalid amount";
       });
-    } else if (value > maxFiat) {
+    } else if (value > maxFiat && buyWithFiat) {
       setState(() {
         _amountOutOfRangeErrorString =
             "Maximum amount: ${maxFiat.toStringAsFixed(2)}";
       });
-    } else if (value < minFiat) {
+    } else if (value < minFiat && buyWithFiat) {
       setState(() {
         _amountOutOfRangeErrorString =
             "Minimum amount: ${minFiat.toStringAsFixed(2)}";
@@ -280,6 +280,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
           minFiat = fiat.minAmount != minFiat ? fiat.minAmount : minFiat;
           maxFiat = fiat.maxAmount != maxFiat ? fiat.maxAmount : maxFiat;
         });
+        validateAmount();
       },
     );
   }
@@ -530,25 +531,25 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       }
     } else {
       // Error; probably amount out of bounds
-      String errorMessage = "${quoteResponse.exception?.errorMessage}";
-      if (errorMessage.contains('must be between')) {
-        errorMessage = errorMessage.substring(
-            errorMessage.indexOf('getQuote exception: ') + 20,
-            errorMessage.indexOf(", value: null"));
-        _BuyFormState.boundedCryptoTicker = errorMessage.substring(
-            errorMessage.indexOf('The ') + 4,
-            errorMessage.indexOf(' amount must be between'));
-        _BuyFormState.minCrypto = Decimal.parse(errorMessage.substring(
-            errorMessage.indexOf('must be between ') + 16,
-            errorMessage.indexOf(' and ')));
-        _BuyFormState.maxCrypto = Decimal.parse(errorMessage.substring(
-            errorMessage.indexOf("$minCrypto and ") + "$minCrypto and ".length,
-            errorMessage.length));
-        if (Decimal.parse(_buyAmountController.text) >
-            _BuyFormState.maxCrypto) {
-          _buyAmountController.text = _BuyFormState.maxCrypto.toString();
-        }
-      }
+      // String errorMessage = "${quoteResponse.exception?.errorMessage}";
+      // if (errorMessage.contains('must be between')) {
+      //   errorMessage = errorMessage.substring(
+      //       errorMessage.indexOf('getQuote exception: ') + 20,
+      //       errorMessage.indexOf(", value: null"));
+      //   _BuyFormState.boundedCryptoTicker = errorMessage.substring(
+      //       errorMessage.indexOf('The ') + 4,
+      //       errorMessage.indexOf(' amount must be between'));
+      //   _BuyFormState.minCrypto = Decimal.parse(errorMessage.substring(
+      //       errorMessage.indexOf('must be between ') + 16,
+      //       errorMessage.indexOf(' and ')));
+      //   _BuyFormState.maxCrypto = Decimal.parse(errorMessage.substring(
+      //       errorMessage.indexOf("$minCrypto and ") + "$minCrypto and ".length,
+      //       errorMessage.length));
+      //   if (Decimal.parse(_buyAmountController.text) >
+      //       _BuyFormState.maxCrypto) {
+      //     _buyAmountController.text = _BuyFormState.maxCrypto.toString();
+      //   }
+      // }
       await showDialog<dynamic>(
         context: context,
         barrierDismissible: true,
@@ -570,7 +571,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                       height: 24,
                     ),
                     Text(
-                      errorMessage,
+                      quoteResponse.exception!.errorMessage,
                       style: STextStyles.smallMed14(context),
                     ),
                     const SizedBox(
@@ -632,10 +633,11 @@ class _BuyFormState extends ConsumerState<BuyForm> {
         level: LogLevel.Warning,
       );
       return BuyResponse(
-        exception: BuyException(
-          response.toString(),
-          BuyExceptionType.generic,
-        ),
+        exception: response.exception ??
+            BuyException(
+              response.toString(),
+              BuyExceptionType.generic,
+            ),
       );
     }
   }
@@ -951,12 +953,13 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                         Theme.of(context).extension<StackColors>()!.textDark3,
                   ),
                 ),
-                BlueTextButton(
+                CustomTextButton(
                   text: buyWithFiat ? "Use crypto amount" : "Use fiat amount",
                   onTap: () {
                     setState(() {
                       buyWithFiat = !buyWithFiat;
                     });
+                    validateAmount();
                   },
                 )
               ],
@@ -1126,8 +1129,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                   ),
                 ),
                 if (isStackCoin(selectedCrypto?.ticker))
-                  BlueTextButton(
-                    text: "Choose from stack",
+                  CustomTextButton(
+                    text: "Choose from Stack",
                     onTap: () {
                       try {
                         final coin = coinFromTickerCaseInsensitive(
@@ -1150,7 +1153,11 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             _receiveAddressController.text =
                                 await manager.currentReceivingAddress;
 
-                            setState(() {});
+                            setState(() {
+                              _addressToggleFlag =
+                                  _receiveAddressController.text.isNotEmpty;
+                            });
+                            validateAmount();
                           }
                         });
                       } catch (e, s) {

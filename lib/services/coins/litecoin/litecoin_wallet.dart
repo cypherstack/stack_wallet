@@ -17,13 +17,13 @@ import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/mixins/electrum_x_parsing.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
@@ -33,6 +33,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
@@ -49,8 +50,6 @@ const String GENESIS_HASH_MAINNET =
     "12a765e31ffd4059bada1e25190f6e98c99d9714d334efa41a195a7e7e04bfe2";
 const String GENESIS_HASH_TESTNET =
     "4966625a4b2851d9fdee139e56211a0d88575f59ed816ff5e6a63deb4e3e29a0";
-
-enum DerivePathType { bip44, bip49, bip84 }
 
 bip32.BIP32 getBip32Node(
   int chain,
@@ -103,7 +102,7 @@ bip32.BIP32 getBip32NodeFromRoot(
     case DerivePathType.bip84:
       return root.derivePath("m/84'/$coinType'/0'/$chain/$index");
     default:
-      throw Exception("DerivePathType must not be null.");
+      throw Exception("DerivePathType unsupported");
   }
 }
 
@@ -138,7 +137,8 @@ bip32.BIP32 getBip32RootWrapper(Tuple2<String, NetworkType> args) {
   return getBip32Root(args.item1, args.item2);
 }
 
-class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
+class LitecoinWallet extends CoinServiceAPI
+    with WalletCache, WalletDB, ElectrumXParsing {
   static const integrationTestFlag =
       bool.fromEnvironment("IS_INTEGRATION_TEST");
 
@@ -193,7 +193,7 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
           .subTypeEqualTo(isar_models.AddressSubType.receiving)
           .sortByDerivationIndexDesc()
           .findFirst()) ??
-      await _generateAddressForChain(0, 0, DerivePathType.bip84);
+      await _generateAddressForChain(0, 0, DerivePathTypeExt.primaryFor(coin));
 
   Future<String> get currentChangeAddress async =>
       (await _currentChangeAddress).value;
@@ -206,7 +206,7 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
           .subTypeEqualTo(isar_models.AddressSubType.change)
           .sortByDerivationIndexDesc()
           .findFirst()) ??
-      await _generateAddressForChain(1, 0, DerivePathType.bip84);
+      await _generateAddressForChain(1, 0, DerivePathTypeExt.primaryFor(coin));
 
   @override
   Future<void> exit() async {
@@ -241,6 +241,14 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       final result = await _electrumXClient.getBlockHeadTip();
       final height = result["height"] as int;
       await updateCachedChainHeight(height);
+      if (height > storedChainHeight) {
+        GlobalEventBus.instance.fire(
+          UpdatedInBackgroundEvent(
+            "Updated current chain height in $walletId $walletName!",
+            walletId,
+          ),
+        );
+      }
       return height;
     } catch (e, s) {
       Logging.instance.log("Exception caught in chainHeight: $e\n$s",
@@ -421,7 +429,7 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
             addrType = isar_models.AddressType.p2wpkh;
             break;
           default:
-            throw Exception("No Path type $type exists");
+            throw Exception("DerivePathType unsupported");
         }
 
         final address = isar_models.Address(
@@ -509,6 +517,7 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     required String mnemonic,
     int maxUnusedAddressGap = 20,
     int maxNumberOfIndexesToCheck = 1000,
+    bool isRescan = false,
   }) async {
     longMutex = true;
 
@@ -682,14 +691,25 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
         p2wpkhChangeAddressArray.add(address);
       }
 
-      await db.putAddresses([
-        ...p2wpkhReceiveAddressArray,
-        ...p2wpkhChangeAddressArray,
-        ...p2pkhReceiveAddressArray,
-        ...p2pkhChangeAddressArray,
-        ...p2shReceiveAddressArray,
-        ...p2shChangeAddressArray,
-      ]);
+      if (isRescan) {
+        await db.updateOrPutAddresses([
+          ...p2wpkhReceiveAddressArray,
+          ...p2wpkhChangeAddressArray,
+          ...p2pkhReceiveAddressArray,
+          ...p2pkhChangeAddressArray,
+          ...p2shReceiveAddressArray,
+          ...p2shChangeAddressArray,
+        ]);
+      } else {
+        await db.putAddresses([
+          ...p2wpkhReceiveAddressArray,
+          ...p2wpkhChangeAddressArray,
+          ...p2pkhReceiveAddressArray,
+          ...p2pkhChangeAddressArray,
+          ...p2shReceiveAddressArray,
+          ...p2shChangeAddressArray,
+        ]);
+      }
 
       await _updateUTXOs();
 
@@ -1194,46 +1214,31 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
   // transactions locally in a good way
   @override
   Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
-    // final priceData =
-    //     await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
-    // Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
-    // final locale =
-    //     Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
-    // final String worthNow = Format.localizedStringAsFixed(
-    //     value:
-    //         ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
-    //                 Decimal.fromInt(Constants.satsPerCoin(coin)))
-    //             .toDecimal(scaleOnInfinitePrecision: 2),
-    //     decimalPlaces: 2,
-    //     locale: locale!);
-    //
-    // final tx = models.Transaction(
-    //   txid: txData["txid"] as String,
-    //   confirmedStatus: false,
-    //   timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-    //   txType: "Sent",
-    //   amount: txData["recipientAmt"] as int,
-    //   worthNow: worthNow,
-    //   worthAtBlockTimestamp: worthNow,
-    //   fees: txData["fee"] as int,
-    //   inputSize: 0,
-    //   outputSize: 0,
-    //   inputs: [],
-    //   outputs: [],
-    //   address: txData["address"] as String,
-    //   height: -1,
-    //   confirmations: 0,
-    // );
-    //
-    // if (cachedTxData == null) {
-    //   final data = await _refreshTransactions();
-    //   _transactionData = Future(() => data);
-    // }
-    //
-    // final transactions = cachedTxData!.getAllTransactions();
-    // transactions[tx.txid] = tx;
-    // cachedTxData = models.TransactionData.fromMap(transactions);
-    // _transactionData = Future(() => cachedTxData!);
+    final transaction = isar_models.Transaction(
+      walletId: walletId,
+      txid: txData["txid"] as String,
+      timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      type: isar_models.TransactionType.outgoing,
+      subType: isar_models.TransactionSubType.none,
+      amount: txData["recipientAmt"] as int,
+      fee: txData["fee"] as int,
+      height: null,
+      isCancelled: false,
+      isLelantus: false,
+      otherData: null,
+      slateId: null,
+    );
+
+    final address = txData["address"] is String
+        ? await db.getAddress(walletId, txData["address"] as String)
+        : null;
+
+    await db.addNewTransactionData(
+      [
+        Tuple4(transaction, [], [], address),
+      ],
+      walletId,
+    );
   }
 
   @override
@@ -1532,6 +1537,8 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
             .address!;
         addrType = isar_models.AddressType.p2wpkh;
         break;
+      default:
+        throw Exception("DerivePathType unsupported");
     }
 
     // add generated address & info to derivations
@@ -1578,6 +1585,8 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       case DerivePathType.bip84:
         type = isar_models.AddressType.p2wpkh;
         break;
+      default:
+        throw Exception("DerivePathType unsupported");
     }
     address = await db
         .getAddresses(walletId)
@@ -1605,6 +1614,8 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       case DerivePathType.bip84:
         key = "${walletId}_${chainId}DerivationsP2WPKH";
         break;
+      default:
+        throw Exception("DerivePathType unsupported");
     }
     return key;
   }
@@ -1776,7 +1787,7 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       // TODO move this out of here and into IDB
       await db.isar.writeTxn(() async {
-        await db.isar.utxos.clear();
+        await db.isar.utxos.where().walletIdEqualTo(walletId).deleteAll();
         await db.isar.utxos.putAll(outputArray);
       });
 
@@ -1891,7 +1902,7 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
         // Use new index to derive a new receiving address
         final newReceivingAddress = await _generateAddressForChain(
-            0, newReceivingIndex, DerivePathType.bip84);
+            0, newReceivingIndex, DerivePathTypeExt.primaryFor(coin));
 
         final existing = await db
             .getAddresses(walletId)
@@ -1910,7 +1921,7 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       }
     } catch (e, s) {
       Logging.instance.log(
-          "Exception rethrown from _checkReceivingAddressForTransactions(${DerivePathType.bip84}): $e\n$s",
+          "Exception rethrown from _checkReceivingAddressForTransactions(${DerivePathTypeExt.primaryFor(coin)}): $e\n$s",
           level: LogLevel.Error);
       rethrow;
     }
@@ -1930,7 +1941,7 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
         // Use new index to derive a new change address
         final newChangeAddress = await _generateAddressForChain(
-            1, newChangeIndex, DerivePathType.bip84);
+            1, newChangeIndex, DerivePathTypeExt.primaryFor(coin));
 
         final existing = await db
             .getAddresses(walletId)
@@ -1949,12 +1960,12 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       }
     } on SocketException catch (se, s) {
       Logging.instance.log(
-          "SocketException caught in _checkReceivingAddressForTransactions(${DerivePathType.bip84}): $se\n$s",
+          "SocketException caught in _checkReceivingAddressForTransactions(${DerivePathTypeExt.primaryFor(coin)}): $se\n$s",
           level: LogLevel.Error);
       return;
     } catch (e, s) {
       Logging.instance.log(
-          "Exception rethrown from _checkReceivingAddressForTransactions(${DerivePathType.bip84}): $e\n$s",
+          "Exception rethrown from _checkReceivingAddressForTransactions(${DerivePathTypeExt.primaryFor(coin)}): $e\n$s",
           level: LogLevel.Error);
       rethrow;
     }
@@ -2349,7 +2360,7 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       utxoSigningData: utxoSigningData,
       recipients: [
         _recipientAddress,
-        await _getCurrentAddressForChain(1, DerivePathType.bip84),
+        await _getCurrentAddressForChain(1, DerivePathTypeExt.primaryFor(coin)),
       ],
       satoshiAmounts: [
         satoshiAmountToSend,
@@ -2388,8 +2399,8 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
                 feeForTwoOutputs) {
           // generate new change address if current change address has been used
           await _checkChangeAddressForTransactions();
-          final String newChangeAddress =
-              await _getCurrentAddressForChain(1, DerivePathType.bip84);
+          final String newChangeAddress = await _getCurrentAddressForChain(
+              1, DerivePathTypeExt.primaryFor(coin));
 
           int feeBeingPaid =
               satoshisBeingUsed - satoshiAmountToSend - changeOutputSize;
@@ -2595,6 +2606,8 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
               case DerivePathType.bip84:
                 addressesP2WPKH.add(address);
                 break;
+              default:
+                throw Exception("DerivePathType unsupported");
             }
           }
         }
@@ -2879,6 +2892,7 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
         mnemonic: mnemonic!,
         maxUnusedAddressGap: maxUnusedAddressGap,
         maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+        isRescan: true,
       );
 
       longMutex = false;
@@ -3345,7 +3359,7 @@ class LitecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       // Use new index to derive a new receiving address
       final newReceivingAddress = await _generateAddressForChain(
-          0, newReceivingIndex, DerivePathType.bip84);
+          0, newReceivingIndex, DerivePathTypeExt.primaryFor(coin));
 
       // Add that new receiving address
       await db.putAddress(newReceivingAddress);

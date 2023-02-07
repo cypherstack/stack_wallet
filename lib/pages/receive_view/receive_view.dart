@@ -6,11 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/receive_view/addresses/receiving_addresses_view.dart';
 import 'package:stackwallet/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -19,6 +21,7 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:tuple/tuple.dart';
 
 class ReceiveView extends ConsumerStatefulWidget {
   const ReceiveView({
@@ -128,6 +131,94 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
             "Receive ${coin.ticker}",
             style: STextStyles.navBarTitle(context),
           ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(
+                top: 10,
+                bottom: 10,
+                right: 10,
+              ),
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: AppBarIconButton(
+                  key: const Key("walletNetworkSettingsAddNewNodeViewButton"),
+                  size: 36,
+                  shadows: const [],
+                  color: Theme.of(context).extension<StackColors>()!.background,
+                  icon: SvgPicture.asset(
+                    Assets.svg.verticalEllipsis,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
+                    width: 20,
+                    height: 20,
+                  ),
+                  onPressed: () {
+                    showDialog<dynamic>(
+                      barrierColor: Colors.transparent,
+                      barrierDismissible: true,
+                      context: context,
+                      builder: (_) {
+                        return Stack(
+                          children: [
+                            Positioned(
+                              top: 9,
+                              right: 10,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .popupBG,
+                                  borderRadius: BorderRadius.circular(
+                                    Constants.size.circularBorderRadius,
+                                  ),
+                                  // boxShadow: [CFColors.standardBoxShadow],
+                                  boxShadow: const [],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.of(context).pop();
+                                        Navigator.of(context).pushNamed(
+                                          ReceivingAddressesView.routeName,
+                                          arguments: Tuple2(walletId, false),
+                                        );
+                                      },
+                                      child: RoundedWhiteContainer(
+                                        boxShadow: [
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .standardBoxShadow,
+                                        ],
+                                        child: Material(
+                                          color: Colors.transparent,
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                            ),
+                                            child: Text(
+                                              "Address list",
+                                              style: STextStyles.field(context),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
         ),
         body: Padding(
           padding: const EdgeInsets.all(12),
@@ -233,7 +324,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                             const SizedBox(
                               height: 20,
                             ),
-                            BlueTextButton(
+                            CustomTextButton(
                               text: "Create new QR code",
                               onTap: () async {
                                 unawaited(Navigator.of(context).push(

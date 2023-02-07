@@ -10,6 +10,7 @@ import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/particl/particl_wallet.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 
 import 'particl_wallet_test.mocks.dart';
@@ -37,12 +38,6 @@ void main() {
       expect(GENESIS_HASH_TESTNET,
           "0000594ada5310b367443ee0afd4fa3d0bbd5850ea4e33cdc7d6a904a7ec7c90");
     });
-  });
-
-  test("particl DerivePathType enum", () {
-    expect(DerivePathType.values.length, 2);
-    expect(DerivePathType.values.toString(),
-        "[DerivePathType.bip44, DerivePathType.bip84]");
   });
 
   group("bip32 node/root", () {

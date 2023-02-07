@@ -10,7 +10,6 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_search_filter_view.dart';
-import 'package:stackwallet/providers/blockchain/dogecoin/current_height_provider.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
@@ -131,7 +130,9 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
     // check if address book name contains
     contains |= contacts
         .where((e) =>
-            e.addresses.where((a) => a.address == tx.address).isNotEmpty &&
+            e.addresses
+                .where((a) => a.address == tx.address.value?.value)
+                .isNotEmpty &&
             e.name.toLowerCase().contains(keyword))
         .isNotEmpty;
 
@@ -853,7 +854,8 @@ class _DesktopTransactionCardRowState
       prefix = "";
     }
 
-    final currentHeight = ref.watch(currentHeightProvider(coin).state).state;
+    final currentHeight = ref.watch(walletsChangeNotifierProvider
+        .select((value) => value.getManager(walletId).currentHeight));
 
     return Material(
       color: Theme.of(context).extension<StackColors>()!.popupBG,

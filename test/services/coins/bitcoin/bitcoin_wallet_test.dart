@@ -11,6 +11,7 @@ import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 
 import 'bitcoin_wallet_test.mocks.dart';
@@ -37,12 +38,6 @@ void main() async {
       expect(GENESIS_HASH_TESTNET,
           "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943");
     });
-  });
-
-  test("bitcoin DerivePathType enum", () {
-    expect(DerivePathType.values.length, 3);
-    expect(DerivePathType.values.toString(),
-        "[DerivePathType.bip44, DerivePathType.bip49, DerivePathType.bip84]");
   });
 
   group("bip32 node/root", () {

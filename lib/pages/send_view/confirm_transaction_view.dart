@@ -4,6 +4,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/sending_transaction_dialog.dart';
@@ -12,10 +13,9 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
-import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
+import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -92,11 +92,10 @@ class _ConfirmTransactionViewState
     try {
       String txid;
       if (widget.isPaynymNotificationTransaction) {
-        txid = await (manager.wallet as DogecoinWallet)
-            .confirmNotificationTx(preparedTx: transactionInfo);
+        txid = await (manager.wallet as PaynymWalletInterface)
+            .broadcastNotificationTx(preparedTx: transactionInfo);
       } else if (widget.isPaynymTransaction) {
-        //
-        throw UnimplementedError("paynym send not implemented yet");
+        txid = await manager.confirmSend(txData: transactionInfo);
       } else {
         final coin = manager.coin;
         if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
@@ -334,14 +333,20 @@ class _ConfirmTransactionViewState
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          "Recipient",
+                          widget.isPaynymTransaction
+                              ? "PayNym recipient"
+                              : "Recipient",
                           style: STextStyles.smallMed12(context),
                         ),
                         const SizedBox(
                           height: 4,
                         ),
                         Text(
-                          "${transactionInfo["address"] ?? "ERROR"}",
+                          widget.isPaynymTransaction
+                              ? (transactionInfo["paynymAccountLite"]
+                                      as PaynymAccountLite)
+                                  .nymName
+                              : "${transactionInfo["address"] ?? "ERROR"}",
                           style: STextStyles.itemSubtitle12(context),
                         ),
                       ],

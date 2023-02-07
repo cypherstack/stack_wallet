@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
+import 'package:stackwallet/exceptions/main_db/main_db_exception.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:tuple/tuple.dart';
@@ -28,7 +30,7 @@ class MainDB {
         AddressSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
-      inspector: false,
+      inspector: kDebugMode,
       name: "wallet_data",
     );
     return true;
@@ -39,39 +41,105 @@ class MainDB {
           String walletId) =>
       isar.addresses.where().walletIdEqualTo(walletId);
 
-  Future<void> putAddress(Address address) => isar.writeTxn(() async {
-        await isar.addresses.put(address);
+  Future<int> putAddress(Address address) async {
+    try {
+      return await isar.writeTxn(() async {
+        return await isar.addresses.put(address);
       });
+    } catch (e) {
+      throw MainDBException("failed putAddress: $address", e);
+    }
+  }
 
-  Future<void> putAddresses(List<Address> addresses) => isar.writeTxn(() async {
-        await isar.addresses.putAll(addresses);
+  Future<List<int>> putAddresses(List<Address> addresses) async {
+    try {
+      return await isar.writeTxn(() async {
+        return await isar.addresses.putAll(addresses);
       });
+    } catch (e) {
+      throw MainDBException("failed putAddresses: $addresses", e);
+    }
+  }
 
-  Future<void> updateAddress(Address oldAddress, Address newAddress) =>
-      isar.writeTxn(() async {
+  Future<List<int>> updateOrPutAddresses(List<Address> addresses) async {
+    try {
+      List<int> ids = [];
+      await isar.writeTxn(() async {
+        for (final address in addresses) {
+          final storedAddress = await isar.addresses
+              .getByValueWalletId(address.value, address.walletId);
+
+          int id;
+          if (storedAddress == null) {
+            id = await isar.addresses.put(address);
+          } else {
+            address.id = storedAddress.id;
+            await storedAddress.transactions.load();
+            final txns = storedAddress.transactions.toList();
+            await isar.addresses.delete(storedAddress.id);
+            id = await isar.addresses.put(address);
+            address.transactions.addAll(txns);
+            await address.transactions.save();
+          }
+          ids.add(id);
+        }
+      });
+      return ids;
+    } catch (e) {
+      throw MainDBException("failed updateOrPutAddresses: $addresses", e);
+    }
+  }
+
+  Future<Address?> getAddress(String walletId, String address) async {
+    return isar.addresses.getByValueWalletId(address, walletId);
+  }
+
+  Future<int> updateAddress(Address oldAddress, Address newAddress) async {
+    try {
+      return await isar.writeTxn(() async {
         newAddress.id = oldAddress.id;
         await oldAddress.transactions.load();
         final txns = oldAddress.transactions.toList();
         await isar.addresses.delete(oldAddress.id);
-        await isar.addresses.put(newAddress);
+        final id = await isar.addresses.put(newAddress);
         newAddress.transactions.addAll(txns);
         await newAddress.transactions.save();
+        return id;
       });
+    } catch (e) {
+      throw MainDBException(
+          "failed updateAddress: from=$oldAddress to=$newAddress", e);
+    }
+  }
 
   // transactions
   QueryBuilder<Transaction, Transaction, QAfterWhereClause> getTransactions(
           String walletId) =>
       isar.transactions.where().walletIdEqualTo(walletId);
 
-  Future<void> putTransaction(Transaction transaction) =>
-      isar.writeTxn(() async {
-        await isar.transactions.put(transaction);
+  Future<int> putTransaction(Transaction transaction) async {
+    try {
+      return await isar.writeTxn(() async {
+        return await isar.transactions.put(transaction);
       });
+    } catch (e) {
+      throw MainDBException("failed putTransaction: $transaction", e);
+    }
+  }
 
-  Future<void> putTransactions(List<Transaction> transactions) =>
-      isar.writeTxn(() async {
-        await isar.transactions.putAll(transactions);
+  Future<List<int>> putTransactions(List<Transaction> transactions) async {
+    try {
+      return await isar.writeTxn(() async {
+        return await isar.transactions.putAll(transactions);
       });
+    } catch (e) {
+      throw MainDBException("failed putTransactions: $transactions", e);
+    }
+  }
+
+  Future<Transaction?> getTransaction(String walletId, String txid) async {
+    return isar.transactions.getByTxidWalletId(txid, walletId);
+  }
 
   // utxos
   QueryBuilder<UTXO, UTXO, QAfterWhereClause> getUTXOs(String walletId) =>
@@ -182,55 +250,60 @@ class MainDB {
   }
 
   Future<void> addNewTransactionData(
-      List<Tuple4<Transaction, List<Output>, List<Input>, Address?>>
-          transactionsData,
-      String walletId) async {
-    await isar.writeTxn(() async {
-      for (final data in transactionsData) {
-        final tx = data.item1;
+    List<Tuple4<Transaction, List<Output>, List<Input>, Address?>>
+        transactionsData,
+    String walletId,
+  ) async {
+    try {
+      await isar.writeTxn(() async {
+        for (final data in transactionsData) {
+          final tx = data.item1;
 
-        final potentiallyUnconfirmedTx = await getTransactions(walletId)
-            .filter()
-            .txidEqualTo(tx.txid)
-            .findFirst();
-        if (potentiallyUnconfirmedTx != null) {
-          // update use id to replace tx
-          tx.id = potentiallyUnconfirmedTx.id;
-          await isar.transactions.delete(potentiallyUnconfirmedTx.id);
-        }
-        // save transaction
-        await isar.transactions.put(tx);
-
-        // link and save outputs
-        if (data.item2.isNotEmpty) {
-          await isar.outputs.putAll(data.item2);
-          tx.outputs.addAll(data.item2);
-          await tx.outputs.save();
-        }
-
-        // link and save inputs
-        if (data.item3.isNotEmpty) {
-          await isar.inputs.putAll(data.item3);
-          tx.inputs.addAll(data.item3);
-          await tx.inputs.save();
-        }
-
-        if (data.item4 != null) {
-          final address = await getAddresses(walletId)
+          final potentiallyUnconfirmedTx = await getTransactions(walletId)
               .filter()
-              .valueEqualTo(data.item4!.value)
+              .txidEqualTo(tx.txid)
               .findFirst();
+          if (potentiallyUnconfirmedTx != null) {
+            // update use id to replace tx
+            tx.id = potentiallyUnconfirmedTx.id;
+            await isar.transactions.delete(potentiallyUnconfirmedTx.id);
+          }
+          // save transaction
+          await isar.transactions.put(tx);
 
-          // check if address exists in db and add if it does not
-          if (address == null) {
-            await isar.addresses.put(data.item4!);
+          // link and save outputs
+          if (data.item2.isNotEmpty) {
+            await isar.outputs.putAll(data.item2);
+            tx.outputs.addAll(data.item2);
+            await tx.outputs.save();
           }
 
-          // link and save address
-          tx.address.value = address ?? data.item4!;
-          await tx.address.save();
+          // link and save inputs
+          if (data.item3.isNotEmpty) {
+            await isar.inputs.putAll(data.item3);
+            tx.inputs.addAll(data.item3);
+            await tx.inputs.save();
+          }
+
+          if (data.item4 != null) {
+            final address = await getAddresses(walletId)
+                .filter()
+                .valueEqualTo(data.item4!.value)
+                .findFirst();
+
+            // check if address exists in db and add if it does not
+            if (address == null) {
+              await isar.addresses.put(data.item4!);
+            }
+
+            // link and save address
+            tx.address.value = address ?? data.item4!;
+            await tx.address.save();
+          }
         }
-      }
-    });
+      });
+    } catch (e) {
+      throw MainDBException("failed addNewTransactionData", e);
+    }
   }
 }

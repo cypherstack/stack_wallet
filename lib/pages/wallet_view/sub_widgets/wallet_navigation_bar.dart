@@ -8,16 +8,16 @@ import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/providers/global/paynym_api_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
-import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
-import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
+import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 
-class WalletNavigationBar extends StatefulWidget {
+class WalletNavigationBar extends ConsumerStatefulWidget {
   const WalletNavigationBar({
     Key? key,
     required this.onReceivePressed,
@@ -40,10 +40,11 @@ class WalletNavigationBar extends StatefulWidget {
   final String walletId;
 
   @override
-  State<WalletNavigationBar> createState() => _WalletNavigationBarState();
+  ConsumerState<WalletNavigationBar> createState() =>
+      _WalletNavigationBarState();
 }
 
-class _WalletNavigationBarState extends State<WalletNavigationBar> {
+class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
   double scale = 0;
   final duration = const Duration(milliseconds: 200);
 
@@ -61,41 +62,41 @@ class _WalletNavigationBarState extends State<WalletNavigationBar> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              AnimatedOpacity(
-                opacity: scale,
-                duration: duration,
-                child: GestureDetector(
-                  onTap: () {},
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    width: 146,
-                    decoration: BoxDecoration(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.popupBG,
-                      boxShadow: [
-                        Theme.of(context)
-                            .extension<StackColors>()!
-                            .standardBoxShadow
-                      ],
-                      borderRadius: BorderRadius.circular(
-                        widget.height / 2.0,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Whirlpool",
-                          style: STextStyles.w600_12(context),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(
-                height: 8,
-              ),
+              // AnimatedOpacity(
+              //   opacity: scale,
+              //   duration: duration,
+              //   child: GestureDetector(
+              //     onTap: () {},
+              //     child: Container(
+              //       padding: const EdgeInsets.all(16),
+              //       width: 146,
+              //       decoration: BoxDecoration(
+              //         color:
+              //             Theme.of(context).extension<StackColors>()!.popupBG,
+              //         boxShadow: [
+              //           Theme.of(context)
+              //               .extension<StackColors>()!
+              //               .standardBoxShadow
+              //         ],
+              //         borderRadius: BorderRadius.circular(
+              //           widget.height / 2.0,
+              //         ),
+              //       ),
+              //       child: Row(
+              //         mainAxisAlignment: MainAxisAlignment.center,
+              //         children: [
+              //           Text(
+              //             "Whirlpool",
+              //             style: STextStyles.w600_12(context),
+              //           ),
+              //         ],
+              //       ),
+              //     ),
+              //   ),
+              // ),
+              // const SizedBox(
+              //   height: 8,
+              // ),
               AnimatedOpacity(
                 opacity: scale,
                 duration: duration,
@@ -114,13 +115,15 @@ class _WalletNavigationBarState extends State<WalletNavigationBar> {
                         ),
                       );
 
-                      // todo make generic and not doge specific
-                      final wallet = (ref
+                      final manager = ref
                           .read(walletsChangeNotifierProvider)
-                          .getManager(widget.walletId)
-                          .wallet as DogecoinWallet);
+                          .getManager(widget.walletId);
 
-                      final code = await wallet.getPaymentCode();
+                      final paynymInterface =
+                          manager.wallet as PaynymWalletInterface;
+
+                      final code = await paynymInterface.getPaymentCode(
+                          DerivePathTypeExt.primaryFor(manager.coin));
 
                       final account = await ref
                           .read(paynymAPIProvider)
@@ -172,7 +175,18 @@ class _WalletNavigationBarState extends State<WalletNavigationBar> {
                         children: [
                           Text(
                             "Paynym",
-                            style: STextStyles.w600_12(context),
+                            style: STextStyles.buttonSmall(context),
+                          ),
+                          const SizedBox(
+                            width: 16,
+                          ),
+                          SvgPicture.asset(
+                            Assets.svg.robotHead,
+                            height: 20,
+                            width: 20,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .bottomNavIconIcon,
                           ),
                         ],
                       ),
@@ -357,61 +371,6 @@ class _WalletNavigationBarState extends State<WalletNavigationBar> {
                       ),
                     ),
                   ),
-                if (widget.coin.hasPaynymSupport)
-                  RawMaterialButton(
-                    constraints: const BoxConstraints(
-                      minWidth: 66,
-                    ),
-                    onPressed: () {
-                      if (scale == 0) {
-                        setState(() {
-                          scale = 1;
-                        });
-                      } else if (scale == 1) {
-                        setState(() {
-                          scale = 0;
-                        });
-                      }
-                    },
-                    splashColor:
-                        Theme.of(context).extension<StackColors>()!.highlight,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        widget.height / 2.0,
-                      ),
-                    ),
-                    child: Container(
-                      color: Colors.transparent,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 2.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const Spacer(),
-                            const SizedBox(
-                              height: 2,
-                            ),
-                            SvgPicture.asset(
-                              Assets.svg.bars,
-                              width: 20,
-                              height: 20,
-                            ),
-                            const SizedBox(
-                              height: 6,
-                            ),
-                            Text(
-                              "More",
-                              style: STextStyles.buttonSmall(context),
-                            ),
-                            const Spacer(),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                const SizedBox(
-                  width: 12,
-                ),
                 if (widget.coin.hasBuySupport)
                   RawMaterialButton(
                     constraints: const BoxConstraints(
@@ -451,10 +410,65 @@ class _WalletNavigationBarState extends State<WalletNavigationBar> {
                       ),
                     ),
                   ),
-                if (widget.coin.hasBuySupport)
-                  const SizedBox(
-                    width: 12,
+                if (ref.watch(walletsChangeNotifierProvider.select((value) =>
+                    value.getManager(widget.walletId).hasPaynymSupport)))
+                  RawMaterialButton(
+                    constraints: const BoxConstraints(
+                      minWidth: 66,
+                    ),
+                    onPressed: () {
+                      if (scale == 0) {
+                        setState(() {
+                          scale = 1;
+                        });
+                      } else if (scale == 1) {
+                        setState(() {
+                          scale = 0;
+                        });
+                      }
+                    },
+                    splashColor:
+                        Theme.of(context).extension<StackColors>()!.highlight,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        widget.height / 2.0,
+                      ),
+                    ),
+                    child: Container(
+                      color: Colors.transparent,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Spacer(),
+                            const SizedBox(
+                              height: 2,
+                            ),
+                            SvgPicture.asset(
+                              Assets.svg.bars,
+                              width: 20,
+                              height: 20,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .bottomNavIconIcon,
+                            ),
+                            const SizedBox(
+                              height: 6,
+                            ),
+                            Text(
+                              "More",
+                              style: STextStyles.buttonSmall(context),
+                            ),
+                            const Spacer(),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
+                const SizedBox(
+                  width: 12,
+                ),
               ],
             ),
           ),

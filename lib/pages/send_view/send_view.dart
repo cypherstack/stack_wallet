@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:bip47/bip47.dart';
 import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
@@ -19,6 +21,7 @@ import 'package:stackwallet/providers/wallet/public_private_balance_state_provid
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
@@ -52,6 +55,7 @@ class SendView extends ConsumerStatefulWidget {
     this.autoFillData,
     this.clipboard = const ClipboardWrapper(),
     this.barcodeScanner = const BarcodeScannerWrapper(),
+    this.accountLite,
   }) : super(key: key);
 
   static const String routeName = "/sendView";
@@ -61,6 +65,7 @@ class SendView extends ConsumerStatefulWidget {
   final SendViewAutoFillData? autoFillData;
   final ClipboardInterface clipboard;
   final BarcodeScannerInterface barcodeScanner;
+  final PaynymAccountLite? accountLite;
 
   @override
   ConsumerState<SendView> createState() => _SendViewState();
@@ -159,12 +164,17 @@ class _SendViewState extends ConsumerState<SendView> {
   }
 
   void _updatePreviewButtonState(String? address, Decimal? amount) {
-    final isValidAddress = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(walletId)
-        .validateAddress(address ?? "");
-    ref.read(previewTxButtonStateProvider.state).state =
-        (isValidAddress && amount != null && amount > Decimal.zero);
+    if (isPaynymSend) {
+      ref.read(previewTxButtonStateProvider.state).state =
+          (amount != null && amount > Decimal.zero);
+    } else {
+      final isValidAddress = ref
+          .read(walletsChangeNotifierProvider)
+          .getManager(walletId)
+          .validateAddress(address ?? "");
+      ref.read(previewTxButtonStateProvider.state).state =
+          (isValidAddress && amount != null && amount > Decimal.zero);
+    }
   }
 
   late Future<String> _calculateFeesFuture;
@@ -266,9 +276,9 @@ class _SendViewState extends ConsumerState<SendView> {
       Decimal? balance;
       if (ref.read(publicPrivateBalanceStateProvider.state).state ==
           "Private") {
-        balance = await wallet.availablePrivateBalance();
+        balance = wallet.availablePrivateBalance();
       } else {
-        balance = await wallet.availablePublicBalance();
+        balance = wallet.availablePublicBalance();
       }
 
       return Format.localizedStringAsFixed(
@@ -277,6 +287,228 @@ class _SendViewState extends ConsumerState<SendView> {
 
     return null;
   }
+
+  Future<void> _previewTransaction() async {
+    // wait for keyboard to disappear
+    FocusScope.of(context).unfocus();
+    await Future<void>.delayed(
+      const Duration(milliseconds: 100),
+    );
+    final manager =
+        ref.read(walletsChangeNotifierProvider).getManager(walletId);
+
+    // // TODO: remove the need for this!!
+    // final bool isOwnAddress =
+    //     await manager.isOwnAddress(_address!);
+    // if (isOwnAddress && coin != Coin.dogecoinTestNet) {
+    //   await showDialog<dynamic>(
+    //     context: context,
+    //     useSafeArea: false,
+    //     barrierDismissible: true,
+    //     builder: (context) {
+    //       return StackDialog(
+    //         title: "Transaction failed",
+    //         message:
+    //             "Sending to self is currently disabled",
+    //         rightButton: TextButton(
+    //           style: Theme.of(context)
+    //               .extension<StackColors>()!
+    //               .getSecondaryEnabledButtonColor(
+    //                   context),
+    //           child: Text(
+    //             "Ok",
+    //             style: STextStyles.button(
+    //                     context)
+    //                 .copyWith(
+    //                     color: Theme.of(context)
+    //                         .extension<
+    //                             StackColors>()!
+    //                         .accentColorDark),
+    //           ),
+    //           onPressed: () {
+    //             Navigator.of(context).pop();
+    //           },
+    //         ),
+    //       );
+    //     },
+    //   );
+    //   return;
+    // }
+
+    final amount = Format.decimalAmountToSatoshis(_amountToSend!, coin);
+    int availableBalance;
+    if ((coin == Coin.firo || coin == Coin.firoTestNet)) {
+      if (ref.read(publicPrivateBalanceStateProvider.state).state ==
+          "Private") {
+        availableBalance = Format.decimalAmountToSatoshis(
+            (manager.wallet as FiroWallet).availablePrivateBalance(), coin);
+      } else {
+        availableBalance = Format.decimalAmountToSatoshis(
+            (manager.wallet as FiroWallet).availablePublicBalance(), coin);
+      }
+    } else {
+      availableBalance =
+          Format.decimalAmountToSatoshis(manager.balance.getSpendable(), coin);
+    }
+
+    // confirm send all
+    if (amount == availableBalance) {
+      final bool? shouldSendAll = await showDialog<bool>(
+        context: context,
+        useSafeArea: false,
+        barrierDismissible: true,
+        builder: (context) {
+          return StackDialog(
+            title: "Confirm send all",
+            message:
+                "You are about to send your entire balance. Would you like to continue?",
+            leftButton: TextButton(
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getSecondaryEnabledButtonStyle(context),
+              child: Text(
+                "Cancel",
+                style: STextStyles.button(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+            rightButton: TextButton(
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getPrimaryEnabledButtonStyle(context),
+              child: Text(
+                "Yes",
+                style: STextStyles.button(context),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+            ),
+          );
+        },
+      );
+
+      if (shouldSendAll == null || shouldSendAll == false) {
+        // cancel preview
+        return;
+      }
+    }
+
+    try {
+      bool wasCancelled = false;
+
+      unawaited(
+        showDialog<dynamic>(
+          context: context,
+          useSafeArea: false,
+          barrierDismissible: false,
+          builder: (context) {
+            return BuildingTransactionDialog(
+              onCancel: () {
+                wasCancelled = true;
+
+                Navigator.of(context).pop();
+              },
+            );
+          },
+        ),
+      );
+
+      Map<String, dynamic> txData;
+
+      if (isPaynymSend) {
+        final wallet = manager.wallet as PaynymWalletInterface;
+        final paymentCode = PaymentCode.fromPaymentCode(
+          widget.accountLite!.code,
+          wallet.networkType,
+        );
+        final feeRate = ref.read(feeRateTypeStateProvider);
+        txData = await wallet.preparePaymentCodeSend(
+          paymentCode: paymentCode,
+          satoshiAmount: amount,
+          args: {"feeRate": feeRate},
+        );
+      } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+          ref.read(publicPrivateBalanceStateProvider.state).state !=
+              "Private") {
+        txData = await (manager.wallet as FiroWallet).prepareSendPublic(
+          address: _address!,
+          satoshiAmount: amount,
+          args: {"feeRate": ref.read(feeRateTypeStateProvider)},
+        );
+      } else {
+        txData = await manager.prepareSend(
+          address: _address!,
+          satoshiAmount: amount,
+          args: {"feeRate": ref.read(feeRateTypeStateProvider)},
+        );
+      }
+
+      if (!wasCancelled && mounted) {
+        // pop building dialog
+        Navigator.of(context).pop();
+        txData["note"] = noteController.text;
+        if (isPaynymSend) {
+          txData["paynymAccountLite"] = widget.accountLite!;
+        } else {
+          txData["address"] = _address;
+        }
+
+        unawaited(Navigator.of(context).push(
+          RouteGenerator.getRoute(
+            shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
+            builder: (_) => ConfirmTransactionView(
+              transactionInfo: txData,
+              walletId: walletId,
+              isPaynymTransaction: isPaynymSend,
+            ),
+            settings: const RouteSettings(
+              name: ConfirmTransactionView.routeName,
+            ),
+          ),
+        ));
+      }
+    } catch (e) {
+      if (mounted) {
+        // pop building dialog
+        Navigator.of(context).pop();
+
+        unawaited(showDialog<dynamic>(
+          context: context,
+          useSafeArea: false,
+          barrierDismissible: true,
+          builder: (context) {
+            return StackDialog(
+              title: "Transaction failed",
+              message: e.toString(),
+              rightButton: TextButton(
+                style: Theme.of(context)
+                    .extension<StackColors>()!
+                    .getSecondaryEnabledButtonStyle(context),
+                child: Text(
+                  "Ok",
+                  style: STextStyles.button(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            );
+          },
+        ));
+      }
+    }
+  }
+
+  bool get isPaynymSend => widget.accountLite != null;
 
   @override
   void initState() {
@@ -305,6 +537,11 @@ class _SendViewState extends ConsumerState<SendView> {
       sendToController.text = _data!.contactLabel;
       _address = _data!.address;
       _addressToggleFlag = true;
+    }
+
+    if (isPaynymSend) {
+      sendToController.text = widget.accountLite!.nymName;
+      noteController.text = "PayNym send";
     }
 
     if (coin != Coin.epicCash) {
@@ -442,48 +679,38 @@ class _SendViewState extends ConsumerState<SendView> {
                                   const SizedBox(
                                     width: 6,
                                   ),
-                                  if (coin != Coin.firo &&
-                                      coin != Coin.firoTestNet)
-                                    Expanded(
-                                      child: Text(
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
                                         ref.watch(provider.select(
                                             (value) => value.walletName)),
-                                        style: STextStyles.titleBold12(context),
+                                        style: STextStyles.titleBold12(context)
+                                            .copyWith(fontSize: 14),
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 1,
                                       ),
-                                    ),
-                                  if (coin == Coin.firo ||
-                                      coin == Coin.firoTestNet)
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          ref.watch(provider.select(
-                                              (value) => value.walletName)),
-                                          style:
-                                              STextStyles.titleBold12(context)
-                                                  .copyWith(fontSize: 14),
-                                        ),
-                                        // const SizedBox(
-                                        //   height: 2,
-                                        // ),
+                                      // const SizedBox(
+                                      //   height: 2,
+                                      // ),
+                                      if (coin == Coin.firo ||
+                                          coin == Coin.firoTestNet)
                                         Text(
                                           "${ref.watch(publicPrivateBalanceStateProvider.state).state} balance",
                                           style: STextStyles.label(context)
                                               .copyWith(fontSize: 10),
                                         ),
-                                      ],
-                                    ),
-                                  if (coin != Coin.firo &&
-                                      coin != Coin.firoTestNet)
-                                    const SizedBox(
-                                      width: 10,
-                                    ),
-                                  if (coin == Coin.firo ||
-                                      coin == Coin.firoTestNet)
-                                    const Spacer(),
+                                      if (coin != Coin.firo &&
+                                          coin != Coin.firoTestNet)
+                                        Text(
+                                          "Available balance",
+                                          style: STextStyles.label(context)
+                                              .copyWith(fontSize: 10),
+                                        ),
+                                    ],
+                                  ),
+                                  const Spacer(),
                                   FutureBuilder(
                                     // TODO redo this widget now that its not actually a future
                                     future: (coin != Coin.firo &&
@@ -609,102 +836,253 @@ class _SendViewState extends ConsumerState<SendView> {
                             height: 16,
                           ),
                           Text(
-                            "Send to",
+                            isPaynymSend ? "Send to PayNym address" : "Send to",
                             style: STextStyles.smallMed12(context),
                             textAlign: TextAlign.left,
                           ),
                           const SizedBox(
                             height: 8,
                           ),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(
-                              Constants.size.circularBorderRadius,
-                            ),
-                            child: TextField(
-                              key: const Key("sendViewAddressFieldKey"),
+                          if (isPaynymSend)
+                            TextField(
+                              key: const Key("sendViewPaynymAddressFieldKey"),
                               controller: sendToController,
-                              readOnly: false,
-                              autocorrect: false,
-                              enableSuggestions: false,
-                              // inputFormatters: <TextInputFormatter>[
-                              //   FilteringTextInputFormatter.allow(
-                              //       RegExp("[a-zA-Z0-9]{34}")),
-                              // ],
-                              toolbarOptions: const ToolbarOptions(
-                                copy: false,
-                                cut: false,
-                                paste: true,
-                                selectAll: false,
+                              enabled: false,
+                              readOnly: true,
+                              style: STextStyles.fieldLabel(context),
+                            ),
+                          if (!isPaynymSend)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(
+                                Constants.size.circularBorderRadius,
                               ),
-                              onChanged: (newValue) {
-                                _address = newValue;
-                                _updatePreviewButtonState(
-                                    _address, _amountToSend);
-
-                                setState(() {
-                                  _addressToggleFlag = newValue.isNotEmpty;
-                                });
-                              },
-                              focusNode: _addressFocusNode,
-                              style: STextStyles.field(context),
-                              decoration: standardInputDecoration(
-                                "Enter ${coin.ticker} address",
-                                _addressFocusNode,
-                                context,
-                              ).copyWith(
-                                contentPadding: const EdgeInsets.only(
-                                  left: 16,
-                                  top: 6,
-                                  bottom: 8,
-                                  right: 5,
+                              child: TextField(
+                                key: const Key("sendViewAddressFieldKey"),
+                                controller: sendToController,
+                                readOnly: false,
+                                autocorrect: false,
+                                enableSuggestions: false,
+                                // inputFormatters: <TextInputFormatter>[
+                                //   FilteringTextInputFormatter.allow(
+                                //       RegExp("[a-zA-Z0-9]{34}")),
+                                // ],
+                                toolbarOptions: const ToolbarOptions(
+                                  copy: false,
+                                  cut: false,
+                                  paste: true,
+                                  selectAll: false,
                                 ),
-                                suffixIcon: Padding(
-                                  padding: sendToController.text.isEmpty
-                                      ? const EdgeInsets.only(right: 8)
-                                      : const EdgeInsets.only(right: 0),
-                                  child: UnconstrainedBox(
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
-                                      children: [
-                                        _addressToggleFlag
-                                            ? TextFieldIconButton(
-                                                key: const Key(
-                                                    "sendViewClearAddressFieldButtonKey"),
-                                                onTap: () {
-                                                  sendToController.text = "";
-                                                  _address = "";
-                                                  _updatePreviewButtonState(
-                                                      _address, _amountToSend);
-                                                  setState(() {
-                                                    _addressToggleFlag = false;
-                                                  });
-                                                },
-                                                child: const XIcon(),
-                                              )
-                                            : TextFieldIconButton(
-                                                key: const Key(
-                                                    "sendViewPasteAddressFieldButtonKey"),
-                                                onTap: () async {
-                                                  final ClipboardData? data =
-                                                      await clipboard.getData(
-                                                          Clipboard.kTextPlain);
-                                                  if (data?.text != null &&
-                                                      data!.text!.isNotEmpty) {
-                                                    String content =
-                                                        data.text!.trim();
-                                                    if (content
-                                                        .contains("\n")) {
-                                                      content =
-                                                          content.substring(
-                                                              0,
-                                                              content.indexOf(
-                                                                  "\n"));
+                                onChanged: (newValue) {
+                                  _address = newValue;
+                                  _updatePreviewButtonState(
+                                      _address, _amountToSend);
+
+                                  setState(() {
+                                    _addressToggleFlag = newValue.isNotEmpty;
+                                  });
+                                },
+                                focusNode: _addressFocusNode,
+                                style: STextStyles.field(context),
+                                decoration: standardInputDecoration(
+                                  "Enter ${coin.ticker} address",
+                                  _addressFocusNode,
+                                  context,
+                                ).copyWith(
+                                  contentPadding: const EdgeInsets.only(
+                                    left: 16,
+                                    top: 6,
+                                    bottom: 8,
+                                    right: 5,
+                                  ),
+                                  suffixIcon: Padding(
+                                    padding: sendToController.text.isEmpty
+                                        ? const EdgeInsets.only(right: 8)
+                                        : const EdgeInsets.only(right: 0),
+                                    child: UnconstrainedBox(
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceAround,
+                                        children: [
+                                          _addressToggleFlag
+                                              ? TextFieldIconButton(
+                                                  key: const Key(
+                                                      "sendViewClearAddressFieldButtonKey"),
+                                                  onTap: () {
+                                                    sendToController.text = "";
+                                                    _address = "";
+                                                    _updatePreviewButtonState(
+                                                        _address,
+                                                        _amountToSend);
+                                                    setState(() {
+                                                      _addressToggleFlag =
+                                                          false;
+                                                    });
+                                                  },
+                                                  child: const XIcon(),
+                                                )
+                                              : TextFieldIconButton(
+                                                  key: const Key(
+                                                      "sendViewPasteAddressFieldButtonKey"),
+                                                  onTap: () async {
+                                                    final ClipboardData? data =
+                                                        await clipboard.getData(
+                                                            Clipboard
+                                                                .kTextPlain);
+                                                    if (data?.text != null &&
+                                                        data!
+                                                            .text!.isNotEmpty) {
+                                                      String content =
+                                                          data.text!.trim();
+                                                      if (content
+                                                          .contains("\n")) {
+                                                        content =
+                                                            content.substring(
+                                                                0,
+                                                                content.indexOf(
+                                                                    "\n"));
+                                                      }
+
+                                                      sendToController.text =
+                                                          content;
+                                                      _address = content;
+
+                                                      _updatePreviewButtonState(
+                                                          _address,
+                                                          _amountToSend);
+                                                      setState(() {
+                                                        _addressToggleFlag =
+                                                            sendToController
+                                                                .text
+                                                                .isNotEmpty;
+                                                      });
+                                                    }
+                                                  },
+                                                  child: sendToController
+                                                          .text.isEmpty
+                                                      ? const ClipboardIcon()
+                                                      : const XIcon(),
+                                                ),
+                                          if (sendToController.text.isEmpty)
+                                            TextFieldIconButton(
+                                              key: const Key(
+                                                  "sendViewAddressBookButtonKey"),
+                                              onTap: () {
+                                                Navigator.of(context).pushNamed(
+                                                  AddressBookView.routeName,
+                                                  arguments: widget.coin,
+                                                );
+                                              },
+                                              child: const AddressBookIcon(),
+                                            ),
+                                          if (sendToController.text.isEmpty)
+                                            TextFieldIconButton(
+                                              key: const Key(
+                                                  "sendViewScanQrButtonKey"),
+                                              onTap: () async {
+                                                try {
+                                                  // ref
+                                                  //     .read(
+                                                  //         shouldShowLockscreenOnResumeStateProvider
+                                                  //             .state)
+                                                  //     .state = false;
+                                                  if (FocusScope.of(context)
+                                                      .hasFocus) {
+                                                    FocusScope.of(context)
+                                                        .unfocus();
+                                                    await Future<void>.delayed(
+                                                        const Duration(
+                                                            milliseconds: 75));
+                                                  }
+
+                                                  final qrResult =
+                                                      await scanner.scan();
+
+                                                  // Future<void>.delayed(
+                                                  //   const Duration(seconds: 2),
+                                                  //   () => ref
+                                                  //       .read(
+                                                  //           shouldShowLockscreenOnResumeStateProvider
+                                                  //               .state)
+                                                  //       .state = true,
+                                                  // );
+
+                                                  Logging.instance.log(
+                                                      "qrResult content: ${qrResult.rawContent}",
+                                                      level: LogLevel.Info);
+
+                                                  final results =
+                                                      AddressUtils.parseUri(
+                                                          qrResult.rawContent);
+
+                                                  Logging.instance.log(
+                                                      "qrResult parsed: $results",
+                                                      level: LogLevel.Info);
+
+                                                  if (results.isNotEmpty &&
+                                                      results["scheme"] ==
+                                                          coin.uriScheme) {
+                                                    // auto fill address
+                                                    _address =
+                                                        results["address"] ??
+                                                            "";
+                                                    sendToController.text =
+                                                        _address!;
+
+                                                    // autofill notes field
+                                                    if (results["message"] !=
+                                                        null) {
+                                                      noteController.text =
+                                                          results["message"]!;
+                                                    } else if (results[
+                                                            "label"] !=
+                                                        null) {
+                                                      noteController.text =
+                                                          results["label"]!;
                                                     }
 
+                                                    // autofill amount field
+                                                    if (results["amount"] !=
+                                                        null) {
+                                                      final amount =
+                                                          Decimal.parse(results[
+                                                              "amount"]!);
+                                                      cryptoAmountController
+                                                              .text =
+                                                          Format
+                                                              .localizedStringAsFixed(
+                                                        value: amount,
+                                                        locale: ref
+                                                            .read(
+                                                                localeServiceChangeNotifierProvider)
+                                                            .locale,
+                                                        decimalPlaces: Constants
+                                                            .decimalPlacesForCoin(
+                                                                coin),
+                                                      );
+                                                      amount.toString();
+                                                      _amountToSend = amount;
+                                                    }
+
+                                                    _updatePreviewButtonState(
+                                                        _address,
+                                                        _amountToSend);
+                                                    setState(() {
+                                                      _addressToggleFlag =
+                                                          sendToController
+                                                              .text.isNotEmpty;
+                                                    });
+
+                                                    // now check for non standard encoded basic address
+                                                  } else if (ref
+                                                      .read(
+                                                          walletsChangeNotifierProvider)
+                                                      .getManager(walletId)
+                                                      .validateAddress(qrResult
+                                                          .rawContent)) {
+                                                    _address =
+                                                        qrResult.rawContent;
                                                     sendToController.text =
-                                                        content;
-                                                    _address = content;
+                                                        _address ?? "";
 
                                                     _updatePreviewButtonState(
                                                         _address,
@@ -715,161 +1093,28 @@ class _SendViewState extends ConsumerState<SendView> {
                                                               .text.isNotEmpty;
                                                     });
                                                   }
-                                                },
-                                                child: sendToController
-                                                        .text.isEmpty
-                                                    ? const ClipboardIcon()
-                                                    : const XIcon(),
-                                              ),
-                                        if (sendToController.text.isEmpty)
-                                          TextFieldIconButton(
-                                            key: const Key(
-                                                "sendViewAddressBookButtonKey"),
-                                            onTap: () {
-                                              Navigator.of(context).pushNamed(
-                                                AddressBookView.routeName,
-                                                arguments: widget.coin,
-                                              );
-                                            },
-                                            child: const AddressBookIcon(),
-                                          ),
-                                        if (sendToController.text.isEmpty)
-                                          TextFieldIconButton(
-                                            key: const Key(
-                                                "sendViewScanQrButtonKey"),
-                                            onTap: () async {
-                                              try {
-                                                // ref
-                                                //     .read(
-                                                //         shouldShowLockscreenOnResumeStateProvider
-                                                //             .state)
-                                                //     .state = false;
-                                                if (FocusScope.of(context)
-                                                    .hasFocus) {
-                                                  FocusScope.of(context)
-                                                      .unfocus();
-                                                  await Future<void>.delayed(
-                                                      const Duration(
-                                                          milliseconds: 75));
+                                                } on PlatformException catch (e, s) {
+                                                  // ref
+                                                  //     .read(
+                                                  //         shouldShowLockscreenOnResumeStateProvider
+                                                  //             .state)
+                                                  //     .state = true;
+                                                  // here we ignore the exception caused by not giving permission
+                                                  // to use the camera to scan a qr code
+                                                  Logging.instance.log(
+                                                      "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
+                                                      level: LogLevel.Warning);
                                                 }
-
-                                                final qrResult =
-                                                    await scanner.scan();
-
-                                                // Future<void>.delayed(
-                                                //   const Duration(seconds: 2),
-                                                //   () => ref
-                                                //       .read(
-                                                //           shouldShowLockscreenOnResumeStateProvider
-                                                //               .state)
-                                                //       .state = true,
-                                                // );
-
-                                                Logging.instance.log(
-                                                    "qrResult content: ${qrResult.rawContent}",
-                                                    level: LogLevel.Info);
-
-                                                final results =
-                                                    AddressUtils.parseUri(
-                                                        qrResult.rawContent);
-
-                                                Logging.instance.log(
-                                                    "qrResult parsed: $results",
-                                                    level: LogLevel.Info);
-
-                                                if (results.isNotEmpty &&
-                                                    results["scheme"] ==
-                                                        coin.uriScheme) {
-                                                  // auto fill address
-                                                  _address =
-                                                      results["address"] ?? "";
-                                                  sendToController.text =
-                                                      _address!;
-
-                                                  // autofill notes field
-                                                  if (results["message"] !=
-                                                      null) {
-                                                    noteController.text =
-                                                        results["message"]!;
-                                                  } else if (results["label"] !=
-                                                      null) {
-                                                    noteController.text =
-                                                        results["label"]!;
-                                                  }
-
-                                                  // autofill amount field
-                                                  if (results["amount"] !=
-                                                      null) {
-                                                    final amount =
-                                                        Decimal.parse(
-                                                            results["amount"]!);
-                                                    cryptoAmountController
-                                                            .text =
-                                                        Format
-                                                            .localizedStringAsFixed(
-                                                      value: amount,
-                                                      locale: ref
-                                                          .read(
-                                                              localeServiceChangeNotifierProvider)
-                                                          .locale,
-                                                      decimalPlaces: Constants
-                                                          .decimalPlacesForCoin(
-                                                              coin),
-                                                    );
-                                                    amount.toString();
-                                                    _amountToSend = amount;
-                                                  }
-
-                                                  _updatePreviewButtonState(
-                                                      _address, _amountToSend);
-                                                  setState(() {
-                                                    _addressToggleFlag =
-                                                        sendToController
-                                                            .text.isNotEmpty;
-                                                  });
-
-                                                  // now check for non standard encoded basic address
-                                                } else if (ref
-                                                    .read(
-                                                        walletsChangeNotifierProvider)
-                                                    .getManager(walletId)
-                                                    .validateAddress(
-                                                        qrResult.rawContent)) {
-                                                  _address =
-                                                      qrResult.rawContent;
-                                                  sendToController.text =
-                                                      _address ?? "";
-
-                                                  _updatePreviewButtonState(
-                                                      _address, _amountToSend);
-                                                  setState(() {
-                                                    _addressToggleFlag =
-                                                        sendToController
-                                                            .text.isNotEmpty;
-                                                  });
-                                                }
-                                              } on PlatformException catch (e, s) {
-                                                // ref
-                                                //     .read(
-                                                //         shouldShowLockscreenOnResumeStateProvider
-                                                //             .state)
-                                                //     .state = true;
-                                                // here we ignore the exception caused by not giving permission
-                                                // to use the camera to scan a qr code
-                                                Logging.instance.log(
-                                                    "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
-                                                    level: LogLevel.Warning);
-                                              }
-                                            },
-                                            child: const QrCodeIcon(),
-                                          )
-                                      ],
+                                              },
+                                              child: const QrCodeIcon(),
+                                            )
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
                           Builder(
                             builder: (_) {
                               final error = _updateInvalidAddressText(
@@ -1059,7 +1304,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                 style: STextStyles.smallMed12(context),
                                 textAlign: TextAlign.left,
                               ),
-                              BlueTextButton(
+                              CustomTextButton(
                                 text: "Send all ${coin.ticker}",
                                 onTap: () async {
                                   if (coin == Coin.firo ||
@@ -1072,17 +1317,17 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     .state)
                                             .state ==
                                         "Private") {
-                                      cryptoAmountController.text =
-                                          (await firoWallet
-                                                  .availablePrivateBalance())
-                                              .toStringAsFixed(Constants
-                                                  .decimalPlacesForCoin(coin));
+                                      cryptoAmountController.text = firoWallet
+                                          .availablePrivateBalance()
+                                          .toStringAsFixed(
+                                              Constants.decimalPlacesForCoin(
+                                                  coin));
                                     } else {
-                                      cryptoAmountController.text =
-                                          (await firoWallet
-                                                  .availablePublicBalance())
-                                              .toStringAsFixed(Constants
-                                                  .decimalPlacesForCoin(coin));
+                                      cryptoAmountController.text = firoWallet
+                                          .availablePublicBalance()
+                                          .toStringAsFixed(
+                                              Constants.decimalPlacesForCoin(
+                                                  coin));
                                     }
                                   } else {
                                     cryptoAmountController.text = (ref
@@ -1093,6 +1338,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                             Constants.decimalPlacesForCoin(
                                                 coin));
                                   }
+                                  _cryptoAmountChanged();
                                 },
                               ),
                             ],
@@ -1514,253 +1760,7 @@ class _SendViewState extends ConsumerState<SendView> {
                             onPressed: ref
                                     .watch(previewTxButtonStateProvider.state)
                                     .state
-                                ? () async {
-                                    // wait for keyboard to disappear
-                                    FocusScope.of(context).unfocus();
-                                    await Future<void>.delayed(
-                                      const Duration(milliseconds: 100),
-                                    );
-                                    final manager = ref
-                                        .read(walletsChangeNotifierProvider)
-                                        .getManager(walletId);
-
-                                    // // TODO: remove the need for this!!
-                                    // final bool isOwnAddress =
-                                    //     await manager.isOwnAddress(_address!);
-                                    // if (isOwnAddress && coin != Coin.dogecoinTestNet) {
-                                    //   await showDialog<dynamic>(
-                                    //     context: context,
-                                    //     useSafeArea: false,
-                                    //     barrierDismissible: true,
-                                    //     builder: (context) {
-                                    //       return StackDialog(
-                                    //         title: "Transaction failed",
-                                    //         message:
-                                    //             "Sending to self is currently disabled",
-                                    //         rightButton: TextButton(
-                                    //           style: Theme.of(context)
-                                    //               .extension<StackColors>()!
-                                    //               .getSecondaryEnabledButtonColor(
-                                    //                   context),
-                                    //           child: Text(
-                                    //             "Ok",
-                                    //             style: STextStyles.button(
-                                    //                     context)
-                                    //                 .copyWith(
-                                    //                     color: Theme.of(context)
-                                    //                         .extension<
-                                    //                             StackColors>()!
-                                    //                         .accentColorDark),
-                                    //           ),
-                                    //           onPressed: () {
-                                    //             Navigator.of(context).pop();
-                                    //           },
-                                    //         ),
-                                    //       );
-                                    //     },
-                                    //   );
-                                    //   return;
-                                    // }
-
-                                    final amount =
-                                        Format.decimalAmountToSatoshis(
-                                            _amountToSend!, coin);
-                                    int availableBalance;
-                                    if ((coin == Coin.firo ||
-                                        coin == Coin.firoTestNet)) {
-                                      if (ref
-                                              .read(
-                                                  publicPrivateBalanceStateProvider
-                                                      .state)
-                                              .state ==
-                                          "Private") {
-                                        availableBalance =
-                                            Format.decimalAmountToSatoshis(
-                                                (manager.wallet as FiroWallet)
-                                                    .availablePrivateBalance(),
-                                                coin);
-                                      } else {
-                                        availableBalance =
-                                            Format.decimalAmountToSatoshis(
-                                                (manager.wallet as FiroWallet)
-                                                    .availablePublicBalance(),
-                                                coin);
-                                      }
-                                    } else {
-                                      availableBalance =
-                                          Format.decimalAmountToSatoshis(
-                                              manager.balance.getSpendable(),
-                                              coin);
-                                    }
-
-                                    // confirm send all
-                                    if (amount == availableBalance) {
-                                      final bool? shouldSendAll =
-                                          await showDialog<bool>(
-                                        context: context,
-                                        useSafeArea: false,
-                                        barrierDismissible: true,
-                                        builder: (context) {
-                                          return StackDialog(
-                                            title: "Confirm send all",
-                                            message:
-                                                "You are about to send your entire balance. Would you like to continue?",
-                                            leftButton: TextButton(
-                                              style: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .getSecondaryEnabledButtonStyle(
-                                                      context),
-                                              child: Text(
-                                                "Cancel",
-                                                style: STextStyles.button(
-                                                        context)
-                                                    .copyWith(
-                                                        color: Theme.of(context)
-                                                            .extension<
-                                                                StackColors>()!
-                                                            .accentColorDark),
-                                              ),
-                                              onPressed: () {
-                                                Navigator.of(context)
-                                                    .pop(false);
-                                              },
-                                            ),
-                                            rightButton: TextButton(
-                                              style: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .getPrimaryEnabledButtonStyle(
-                                                      context),
-                                              child: Text(
-                                                "Yes",
-                                                style:
-                                                    STextStyles.button(context),
-                                              ),
-                                              onPressed: () {
-                                                Navigator.of(context).pop(true);
-                                              },
-                                            ),
-                                          );
-                                        },
-                                      );
-
-                                      if (shouldSendAll == null ||
-                                          shouldSendAll == false) {
-                                        // cancel preview
-                                        return;
-                                      }
-                                    }
-
-                                    try {
-                                      bool wasCancelled = false;
-
-                                      unawaited(showDialog<dynamic>(
-                                        context: context,
-                                        useSafeArea: false,
-                                        barrierDismissible: false,
-                                        builder: (context) {
-                                          return BuildingTransactionDialog(
-                                            onCancel: () {
-                                              wasCancelled = true;
-
-                                              Navigator.of(context).pop();
-                                            },
-                                          );
-                                        },
-                                      ));
-
-                                      Map<String, dynamic> txData;
-
-                                      if ((coin == Coin.firo ||
-                                              coin == Coin.firoTestNet) &&
-                                          ref
-                                                  .read(
-                                                      publicPrivateBalanceStateProvider
-                                                          .state)
-                                                  .state !=
-                                              "Private") {
-                                        txData =
-                                            await (manager.wallet as FiroWallet)
-                                                .prepareSendPublic(
-                                          address: _address!,
-                                          satoshiAmount: amount,
-                                          args: {
-                                            "feeRate": ref
-                                                .read(feeRateTypeStateProvider)
-                                          },
-                                        );
-                                      } else {
-                                        txData = await manager.prepareSend(
-                                          address: _address!,
-                                          satoshiAmount: amount,
-                                          args: {
-                                            "feeRate": ref
-                                                .read(feeRateTypeStateProvider)
-                                          },
-                                        );
-                                      }
-
-                                      if (!wasCancelled && mounted) {
-                                        // pop building dialog
-                                        Navigator.of(context).pop();
-                                        txData["note"] = noteController.text;
-                                        txData["address"] = _address;
-
-                                        unawaited(Navigator.of(context).push(
-                                          RouteGenerator.getRoute(
-                                            shouldUseMaterialRoute:
-                                                RouteGenerator
-                                                    .useMaterialPageRoute,
-                                            builder: (_) =>
-                                                ConfirmTransactionView(
-                                              transactionInfo: txData,
-                                              walletId: walletId,
-                                            ),
-                                            settings: const RouteSettings(
-                                              name: ConfirmTransactionView
-                                                  .routeName,
-                                            ),
-                                          ),
-                                        ));
-                                      }
-                                    } catch (e) {
-                                      if (mounted) {
-                                        // pop building dialog
-                                        Navigator.of(context).pop();
-
-                                        unawaited(showDialog<dynamic>(
-                                          context: context,
-                                          useSafeArea: false,
-                                          barrierDismissible: true,
-                                          builder: (context) {
-                                            return StackDialog(
-                                              title: "Transaction failed",
-                                              message: e.toString(),
-                                              rightButton: TextButton(
-                                                style: Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .getSecondaryEnabledButtonStyle(
-                                                        context),
-                                                child: Text(
-                                                  "Ok",
-                                                  style: STextStyles.button(
-                                                          context)
-                                                      .copyWith(
-                                                          color: Theme.of(
-                                                                  context)
-                                                              .extension<
-                                                                  StackColors>()!
-                                                              .accentColorDark),
-                                                ),
-                                                onPressed: () {
-                                                  Navigator.of(context).pop();
-                                                },
-                                              ),
-                                            );
-                                          },
-                                        ));
-                                      }
-                                    }
-                                  }
+                                ? _previewTransaction
                                 : null,
                             style: ref
                                     .watch(previewTxButtonStateProvider.state)
