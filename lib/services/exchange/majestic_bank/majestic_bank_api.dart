@@ -4,7 +4,6 @@ import 'package:decimal/decimal.dart';
 import 'package:http/http.dart' as http;
 import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
 import 'package:stackwallet/exceptions/exchange/pair_unavailable_exception.dart';
-import 'package:stackwallet/external_api_keys.dart';
 import 'package:stackwallet/models/exchange/majestic_bank/mb_limit.dart';
 import 'package:stackwallet/models/exchange/majestic_bank/mb_order.dart';
 import 'package:stackwallet/models/exchange/majestic_bank/mb_order_calculation.dart';
@@ -17,6 +16,7 @@ class MajesticBankAPI {
   static const String scheme = "https";
   static const String authority = "majesticbank.sc";
   static const String version = "v1";
+  static const kMajesticBankRefCode = "rjWugM";
 
   MajesticBankAPI._();
 
