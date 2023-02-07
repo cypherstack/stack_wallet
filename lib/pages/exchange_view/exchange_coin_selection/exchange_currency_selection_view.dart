@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
@@ -14,6 +16,7 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -47,11 +50,82 @@ class _ExchangeCurrencySelectionViewState
   final _searchFocusNode = FocusNode();
   final isDesktop = Util.isDesktop;
 
-  late List<Currency> _currencies;
-  late final List<Pair> pairs;
+  List<Currency> _currencies = [];
+  List<Pair> pairs = [];
 
-  List<Pair> getAvailablePairs() {
-    final filter = ExchangeDataLoadingService.instance.isar.pairs
+  bool _loaded = false;
+  String _searchString = "";
+
+  Future<T> _showUpdatingCurrencies<T>({
+    required Future<T> whileFuture,
+  }) async {
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => WillPopScope(
+          onWillPop: () async => false,
+          child: Container(
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .overlay
+                .withOpacity(0.6),
+            child: const CustomLoadingOverlay(
+              message: "Loading currencies",
+              eventBus: null,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final result = await whileFuture;
+
+    if (mounted) {
+      Navigator.of(context, rootNavigator: isDesktop).pop();
+    }
+
+    return result;
+  }
+
+  Future<List<Currency>> _loadCurrencies() async {
+    if (widget.paired == null) {
+      return await _getCurrencies();
+    }
+
+    final pairs = await _loadAvailablePairs();
+    List<Currency> currencies = [];
+    for (final pair in pairs) {
+      final currency =
+          await _getCurrency(widget.willChangeIsSend ? pair.from : pair.to);
+      if (currency != null) {
+        currencies.add(currency);
+      }
+    }
+
+    return currencies;
+  }
+
+  Future<Currency?> _getCurrency(String ticker) {
+    return ExchangeDataLoadingService.instance.isar.currencies
+        .where()
+        .exchangeNameEqualTo(widget.exchangeName)
+        .filter()
+        .tickerEqualTo(ticker, caseSensitive: false)
+        .group((q) => widget.isFixedRate
+            ? q
+                .rateTypeEqualTo(SupportedRateType.both)
+                .or()
+                .rateTypeEqualTo(SupportedRateType.fixed)
+            : q
+                .rateTypeEqualTo(SupportedRateType.both)
+                .or()
+                .rateTypeEqualTo(SupportedRateType.estimated))
+        .findFirst();
+  }
+
+  Future<List<Pair>> _loadAvailablePairs() {
+    final query = ExchangeDataLoadingService.instance.isar.pairs
         .where()
         .exchangeNameEqualTo(widget.exchangeName)
         .filter()
@@ -63,89 +137,62 @@ class _ExchangeCurrencySelectionViewState
             : q
                 .rateTypeEqualTo(SupportedRateType.both)
                 .or()
-                .rateTypeEqualTo(SupportedRateType.estimated));
+                .rateTypeEqualTo(SupportedRateType.estimated))
+        .and()
+        .group((q) => widget.willChangeIsSend
+            ? q.toEqualTo(widget.paired!.ticker, caseSensitive: false)
+            : q.fromEqualTo(widget.paired!.ticker, caseSensitive: false));
 
-    if (widget.paired != null) {
-      return filter
-          .and()
-          .group((q) => widget.willChangeIsSend
-              ? q.toEqualTo(widget.paired!.ticker, caseSensitive: false)
-              : q.fromEqualTo(widget.paired!.ticker, caseSensitive: false))
-          .findAllSync();
+    if (widget.willChangeIsSend) {
+      return query.sortByFrom().findAll();
     } else {
-      return filter.findAllSync();
+      return query.sortByTo().findAll();
     }
   }
 
-  void filter(String text) {
-    setState(() {
-      final query = ExchangeDataLoadingService.instance.isar.currencies
-          .where()
-          .exchangeNameEqualTo(widget.exchangeName)
-          .filter()
-          .anyOf<String, Currency>(
-            pairs.map((e) => widget.willChangeIsSend ? e.to : e.from),
-            (q, ticker) => q.tickerEqualTo(ticker),
-          )
-          .group((q) => widget.isFixedRate
-              ? q
-                  .rateTypeEqualTo(SupportedRateType.both)
-                  .or()
-                  .rateTypeEqualTo(SupportedRateType.fixed)
-              : q
-                  .rateTypeEqualTo(SupportedRateType.both)
-                  .or()
-                  .rateTypeEqualTo(SupportedRateType.estimated))
-          .and()
-          .group((q) => q
-              .nameContains(text, caseSensitive: false)
-              .or()
-              .tickerContains(text, caseSensitive: false));
+  Future<List<Currency>> _getCurrencies() async {
+    return ExchangeDataLoadingService.instance.isar.currencies
+        .where()
+        .exchangeNameEqualTo(widget.exchangeName)
+        .filter()
+        .group((q) => widget.isFixedRate
+            ? q
+                .rateTypeEqualTo(SupportedRateType.both)
+                .or()
+                .rateTypeEqualTo(SupportedRateType.fixed)
+            : q
+                .rateTypeEqualTo(SupportedRateType.both)
+                .or()
+                .rateTypeEqualTo(SupportedRateType.estimated))
+        .sortByIsStackCoin()
+        .thenByName()
+        .findAll();
+  }
 
-      if (widget.paired != null) {
-        _currencies = query
-            .and()
-            .not()
-            .tickerEqualTo(widget.paired!.ticker)
-            .sortByIsStackCoin()
-            .thenByTicker()
-            .findAllSync();
-      } else {
-        _currencies = query.sortByIsStackCoin().thenByTicker().findAllSync();
-      }
-    });
+  List<Currency> filter(String text) {
+    if (text.isEmpty) {
+      return _currencies;
+    }
+
+    if (widget.paired == null) {
+      return _currencies
+          .where((e) =>
+              e.name.toLowerCase().contains(text.toLowerCase()) ||
+              e.ticker.toLowerCase().contains(text.toLowerCase()))
+          .toList(growable: false);
+    } else {
+      return _currencies
+          .where((e) =>
+              e.ticker.toLowerCase() != widget.paired!.ticker.toLowerCase() &&
+              (e.name.toLowerCase().contains(text.toLowerCase()) ||
+                  e.ticker.toLowerCase().contains(text.toLowerCase())))
+          .toList(growable: false);
+    }
   }
 
   @override
   void initState() {
     _searchController = TextEditingController();
-    pairs = getAvailablePairs();
-
-    final query = ExchangeDataLoadingService.instance.isar.currencies
-        .where()
-        .exchangeNameEqualTo(widget.exchangeName)
-        .filter()
-        .group((q) => widget.isFixedRate
-            ? q
-                .rateTypeEqualTo(SupportedRateType.both)
-                .or()
-                .rateTypeEqualTo(SupportedRateType.fixed)
-            : q
-                .rateTypeEqualTo(SupportedRateType.both)
-                .or()
-                .rateTypeEqualTo(SupportedRateType.estimated));
-
-    if (widget.paired != null) {
-      _currencies = query
-          .and()
-          .not()
-          .tickerEqualTo(widget.paired!.ticker)
-          .sortByIsStackCoin()
-          .thenByTicker()
-          .findAllSync();
-    } else {
-      _currencies = query.sortByIsStackCoin().thenByTicker().findAllSync();
-    }
 
     super.initState();
   }
@@ -159,6 +206,15 @@ class _ExchangeCurrencySelectionViewState
 
   @override
   Widget build(BuildContext context) {
+    if (!_loaded) {
+      _loaded = true;
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+        _currencies =
+            await _showUpdatingCurrencies(whileFuture: _loadCurrencies());
+        setState(() {});
+      });
+    }
+
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) {
@@ -211,7 +267,7 @@ class _ExchangeCurrencySelectionViewState
               enableSuggestions: !isDesktop,
               controller: _searchController,
               focusNode: _searchFocusNode,
-              onChanged: filter,
+              onChanged: (value) => setState(() => _searchString = value),
               style: STextStyles.field(context),
               decoration: standardInputDecoration(
                 "Search",
@@ -241,8 +297,8 @@ class _ExchangeCurrencySelectionViewState
                                 onTap: () async {
                                   setState(() {
                                     _searchController.text = "";
+                                    _searchString = "";
                                   });
-                                  filter("");
                                 },
                               ),
                             ],
@@ -265,8 +321,12 @@ class _ExchangeCurrencySelectionViewState
           ),
           Flexible(
             child: Builder(builder: (context) {
-              final items = _currencies
-                  .where((e) => Coin.values
+              final coins = Coin.values.where((e) =>
+                  e.ticker.toLowerCase() !=
+                  widget.paired?.ticker.toLowerCase());
+
+              final items = filter(_searchString)
+                  .where((e) => coins
                       .where((coin) =>
                           coin.ticker.toLowerCase() == e.ticker.toLowerCase())
                       .isNotEmpty)
@@ -358,79 +418,82 @@ class _ExchangeCurrencySelectionViewState
             height: 12,
           ),
           Flexible(
-            child: RoundedWhiteContainer(
-              padding: const EdgeInsets.all(0),
-              child: ListView.builder(
-                shrinkWrap: true,
-                primary: isDesktop ? false : null,
-                itemCount: _currencies.length,
-                itemBuilder: (builderContext, index) {
-                  final bool hasImageUrl =
-                      _currencies[index].image.startsWith("http");
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).pop(_currencies[index]);
-                      },
-                      child: RoundedWhiteContainer(
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: isStackCoin(_currencies[index].ticker)
-                                  ? getIconForTicker(
-                                      _currencies[index].ticker,
-                                      size: 24,
-                                    )
-                                  : hasImageUrl
-                                      ? SvgPicture.network(
-                                          _currencies[index].image,
-                                          width: 24,
-                                          height: 24,
-                                          placeholderBuilder: (_) =>
-                                              const LoadingIndicator(),
-                                        )
-                                      : const SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                        ),
-                            ),
-                            const SizedBox(
-                              width: 10,
-                            ),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _currencies[index].name,
-                                    style: STextStyles.largeMedium14(context),
-                                  ),
-                                  const SizedBox(
-                                    height: 2,
-                                  ),
-                                  Text(
-                                    _currencies[index].ticker.toUpperCase(),
-                                    style: STextStyles.smallMed12(context)
-                                        .copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textSubtitle1,
-                                    ),
-                                  ),
-                                ],
+            child: Builder(builder: (context) {
+              final filtered = filter(_searchString);
+              return RoundedWhiteContainer(
+                padding: const EdgeInsets.all(0),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  primary: isDesktop ? false : null,
+                  itemCount: filtered.length,
+                  itemBuilder: (builderContext, index) {
+                    final bool hasImageUrl =
+                        filtered[index].image.startsWith("http");
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).pop(filtered[index]);
+                        },
+                        child: RoundedWhiteContainer(
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: isStackCoin(filtered[index].ticker)
+                                    ? getIconForTicker(
+                                        filtered[index].ticker,
+                                        size: 24,
+                                      )
+                                    : hasImageUrl
+                                        ? SvgPicture.network(
+                                            filtered[index].image,
+                                            width: 24,
+                                            height: 24,
+                                            placeholderBuilder: (_) =>
+                                                const LoadingIndicator(),
+                                          )
+                                        : const SizedBox(
+                                            width: 24,
+                                            height: 24,
+                                          ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      filtered[index].name,
+                                      style: STextStyles.largeMedium14(context),
+                                    ),
+                                    const SizedBox(
+                                      height: 2,
+                                    ),
+                                    Text(
+                                      filtered[index].ticker.toUpperCase(),
+                                      style: STextStyles.smallMed12(context)
+                                          .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textSubtitle1,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
-            ),
+                    );
+                  },
+                ),
+              );
+            }),
           ),
         ],
       ),
