@@ -15,7 +15,7 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SimplexAPI {
-  static const String authority = "simplex-sandbox.stackwallet.com";
+  static const String authority = "buycrypto.stackwallet.com";
   // static const String authority = "localhost"; // For development purposes
   static const String scheme = authority == "localhost" ? "http" : "https";
 
