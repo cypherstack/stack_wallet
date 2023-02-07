@@ -39,7 +39,8 @@ mixin PaynymWalletInterface {
   late final int _minConfirms;
 
   // passed in wallet functions
-  late final Future<List<String>> Function() _getMnemonic;
+  late final Future<String?> Function() _getMnemonicString;
+  late final Future<String?> Function() _getMnemonicPassphrase;
   late final Future<int> Function() _getChainHeight;
   late final Future<String> Function() _getCurrentChangeAddress;
   late final int Function({
@@ -66,11 +67,6 @@ mixin PaynymWalletInterface {
     required String wif,
     required DerivePathType derivePathType,
   }) _addDerivation;
-  late final Future<void> Function({
-    required int chain,
-    required DerivePathType derivePathType,
-    required Map<String, dynamic> derivationsToAdd,
-  }) _addDerivations;
 
   // initializer
   void initPaynymWalletInterface({
@@ -83,7 +79,8 @@ mixin PaynymWalletInterface {
     required SecureStorageInterface secureStorage,
     required int dustLimitP2PKH,
     required int minConfirms,
-    required Future<List<String>> Function() getMnemonic,
+    required Future<String?> Function() getMnemonicString,
+    required Future<String?> Function() getMnemonicPassphrase,
     required Future<int> Function() getChainHeight,
     required Future<String> Function() getCurrentChangeAddress,
     required int Function({
@@ -115,12 +112,6 @@ mixin PaynymWalletInterface {
       required DerivePathType derivePathType,
     })
         addDerivation,
-    required Future<void> Function({
-      required int chain,
-      required DerivePathType derivePathType,
-      required Map<String, dynamic> derivationsToAdd,
-    })
-        addDerivations,
   }) {
     _walletId = walletId;
     _walletName = walletName;
@@ -131,7 +122,8 @@ mixin PaynymWalletInterface {
     _secureStorage = secureStorage;
     _dustLimitP2PKH = dustLimitP2PKH;
     _minConfirms = minConfirms;
-    _getMnemonic = getMnemonic;
+    _getMnemonicString = getMnemonicString;
+    _getMnemonicPassphrase = getMnemonicPassphrase;
     _getChainHeight = getChainHeight;
     _getCurrentChangeAddress = getCurrentChangeAddress;
     _estimateTxFee = estimateTxFee;
@@ -141,7 +133,6 @@ mixin PaynymWalletInterface {
     _refresh = refresh;
     _checkChangeAddressForTransactions = checkChangeAddressForTransactions;
     _addDerivation = addDerivation;
-    _addDerivations = addDerivations;
   }
 
   // convenience getter
@@ -186,7 +177,8 @@ mixin PaynymWalletInterface {
     int index,
   ) async {
     final myPrivateKey = await deriveReceivingPrivateKey(
-      mnemonic: await _getMnemonic(),
+      mnemonic: (await _getMnemonicString())!,
+      mnemonicPassphrase: (await _getMnemonicPassphrase())!,
       index: index,
     );
 
@@ -244,26 +236,39 @@ mixin PaynymWalletInterface {
   }
 
   // generate bip32 payment code root
-  Future<bip32.BIP32> getRootNode({
-    required List<String> mnemonic,
+  Future<bip32.BIP32> _getRootNode({
+    required String mnemonic,
+    required String mnemonicPassphrase,
   }) async {
-    final root = await Bip32Utils.getBip32Root(mnemonic.join(" "), _network);
+    final root = await Bip32Utils.getBip32Root(
+      mnemonic,
+      mnemonicPassphrase,
+      _network,
+    );
     return root;
   }
 
   Future<Uint8List> deriveNotificationPrivateKey({
-    required List<String> mnemonic,
+    required String mnemonic,
+    required String mnemonicPassphrase,
   }) async {
-    final root = await getRootNode(mnemonic: mnemonic);
+    final root = await _getRootNode(
+      mnemonic: mnemonic,
+      mnemonicPassphrase: mnemonicPassphrase,
+    );
     final node = root.derivePath(kPaynymDerivePath).derive(0);
     return node.privateKey!;
   }
 
   Future<Uint8List> deriveReceivingPrivateKey({
-    required List<String> mnemonic,
+    required String mnemonic,
+    required String mnemonicPassphrase,
     required int index,
   }) async {
-    final root = await getRootNode(mnemonic: mnemonic);
+    final root = await _getRootNode(
+      mnemonic: mnemonic,
+      mnemonicPassphrase: mnemonicPassphrase,
+    );
     final node = root.derivePath(kPaynymDerivePath).derive(index);
     return node.privateKey!;
   }
@@ -282,8 +287,10 @@ mixin PaynymWalletInterface {
   }
 
   Future<Uint8List> signWithNotificationKey(Uint8List data) async {
-    final privateKey =
-        await deriveNotificationPrivateKey(mnemonic: await _getMnemonic());
+    final privateKey = await deriveNotificationPrivateKey(
+      mnemonic: (await _getMnemonicString())!,
+      mnemonicPassphrase: (await _getMnemonicPassphrase())!,
+    );
     final pair = btc_dart.ECPair.fromPrivateKey(privateKey, network: _network);
     final signed = pair.sign(SHA256Digest().process(data));
     return signed;
@@ -303,8 +310,10 @@ mixin PaynymWalletInterface {
       throw PaynymSendException(
           "No notification transaction sent to $paymentCode");
     } else {
-      final myPrivateKey =
-          await deriveNotificationPrivateKey(mnemonic: await _getMnemonic());
+      final myPrivateKey = await deriveNotificationPrivateKey(
+        mnemonic: (await _getMnemonicString())!,
+        mnemonicPassphrase: (await _getMnemonicPassphrase())!,
+      );
       final sendToAddress = await nextUnusedSendAddressFrom(
         pCode: paymentCode,
         privateKey: myPrivateKey,
@@ -749,8 +758,10 @@ mixin PaynymWalletInterface {
 
       final pubKey = designatedInput.scriptSigAsm!.split(" ")[1].fromHex;
 
-      final myPrivateKey =
-          await deriveNotificationPrivateKey(mnemonic: await _getMnemonic());
+      final myPrivateKey = await deriveNotificationPrivateKey(
+        mnemonic: (await _getMnemonicString())!,
+        mnemonicPassphrase: (await _getMnemonicPassphrase())!,
+      );
 
       final S = SecretPoint(myPrivateKey, pubKey);
 
@@ -836,6 +847,8 @@ mixin PaynymWalletInterface {
               value: notificationAddress,
               publicKey: [],
               derivationIndex: 0,
+              derivationPath:
+                  null, // might as well use null due to complexity of context
               type: oldAddress.type,
               subType: AddressSubType.paynymNotification,
               otherData: await storeCode(code.toString()),
@@ -888,12 +901,18 @@ mixin PaynymWalletInterface {
     const maxCount = 2147483647;
     assert(maxNumberOfIndexesToCheck < maxCount);
 
-    final mnemonic = await _getMnemonic();
+    final mnemonic = (await _getMnemonicString())!;
+    final mnemonicPassphrase = (await _getMnemonicPassphrase())!;
 
-    final mySendPrivateKey =
-        await deriveNotificationPrivateKey(mnemonic: mnemonic);
-    final receivingNode =
-        (await getRootNode(mnemonic: mnemonic)).derivePath(kPaynymDerivePath);
+    final mySendPrivateKey = await deriveNotificationPrivateKey(
+      mnemonic: mnemonic,
+      mnemonicPassphrase: mnemonicPassphrase,
+    );
+    final receivingNode = (await _getRootNode(
+      mnemonic: mnemonic,
+      mnemonicPassphrase: mnemonicPassphrase,
+    ))
+        .derivePath(kPaynymDerivePath);
 
     List<Address> addresses = [];
     int receivingGapCounter = 0;
@@ -1006,6 +1025,8 @@ mixin PaynymWalletInterface {
       value: addressString,
       publicKey: pair.publicKey,
       derivationIndex: derivationIndex,
+      derivationPath:
+          null, // might as well use null due to complexity of context
       type: AddressType.nonWallet,
       subType: AddressSubType.paynymSend,
       otherData: await storeCode(toPaymentCode.toString()),
@@ -1073,6 +1094,8 @@ mixin PaynymWalletInterface {
       value: addressString,
       publicKey: pair.publicKey,
       derivationIndex: derivationIndex,
+      derivationPath:
+          null, // might as well use null due to complexity of context
       type: addrType,
       subType: AddressSubType.paynymReceive,
       otherData: await storeCode(fromPaymentCode.toString()),
@@ -1140,7 +1163,10 @@ mixin PaynymWalletInterface {
     if (storedAddress != null) {
       return storedAddress;
     } else {
-      final root = await getRootNode(mnemonic: await _getMnemonic());
+      final root = await _getRootNode(
+        mnemonic: (await _getMnemonicString())!,
+        mnemonicPassphrase: (await _getMnemonicPassphrase())!,
+      );
       final node = root.derivePath(kPaynymDerivePath);
       final paymentCode = PaymentCode.initFromPubKey(
         node.publicKey,
@@ -1194,6 +1220,8 @@ mixin PaynymWalletInterface {
         value: addressString,
         publicKey: paymentCode.getPubKey(),
         derivationIndex: 0,
+        derivationPath:
+            null, // might as well use null due to complexity of context
         type: type,
         subType: AddressSubType.paynymNotification,
         otherData: await storeCode(paymentCode.toString()),

@@ -4,7 +4,6 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
 
-import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:bitcoindart/bitcoindart.dart';
 import 'package:decimal/decimal.dart';
@@ -25,6 +24,7 @@ import 'package:stackwallet/services/event_bus/events/global/refresh_percent_cha
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/mixins/firo_hive.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
@@ -32,6 +32,7 @@ import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -42,8 +43,6 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
-
-import '../../mixins/firo_hive.dart';
 
 const DUST_LIMIT = 1000;
 const MINIMUM_CONFIRMATIONS = 1;
@@ -102,6 +101,7 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
       final address = arguments['address'] as String;
       final subtractFeeFromAmount = arguments['subtractFeeFromAmount'] as bool;
       final mnemonic = arguments['mnemonic'] as String;
+      final mnemonicPassphrase = arguments['mnemonicPassphrase'] as String;
       final index = arguments['index'] as int;
       final lelantusEntries =
           arguments['lelantusEntries'] as List<DartLelantusEntry>;
@@ -115,6 +115,7 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
           address,
           subtractFeeFromAmount,
           mnemonic,
+          mnemonicPassphrase,
           index,
           lelantusEntries,
           locktime,
@@ -143,11 +144,13 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
       final setDataMap = arguments['setDataMap'] as Map;
       final usedSerialNumbers = arguments['usedSerialNumbers'] as List?;
       final mnemonic = arguments['mnemonic'] as String;
+      final mnemonicPassphrase = arguments['mnemonicPassphrase'] as String;
       final coin = arguments['coin'] as Coin;
       final network = arguments['network'] as NetworkType?;
       if (!(usedSerialNumbers == null || network == null)) {
         var restoreData = await isolateRestore(
           mnemonic,
+          mnemonicPassphrase,
           coin,
           latestSetId,
           setDataMap,
@@ -159,11 +162,13 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
       }
     } else if (function == "isolateDerive") {
       final mnemonic = arguments['mnemonic'] as String;
+      final mnemonicPassphrase = arguments['mnemonicPassphrase'] as String;
       final from = arguments['from'] as int;
       final to = arguments['to'] as int;
       final network = arguments['network'] as NetworkType?;
       if (!(network == null)) {
-        var derived = await isolateDerive(mnemonic, from, to, network);
+        var derived = await isolateDerive(
+            mnemonic, mnemonicPassphrase, from, to, network);
         sendPort.send(derived);
         return;
       }
@@ -192,13 +197,31 @@ void stop(ReceivePort port) {
 }
 
 Future<Map<String, dynamic>> isolateDerive(
-    String mnemonic, int from, int to, NetworkType _network) async {
+  String mnemonic,
+  String mnemonicPassphrase,
+  int from,
+  int to,
+  NetworkType _network,
+) async {
   Map<String, dynamic> result = {};
   Map<String, dynamic> allReceive = {};
   Map<String, dynamic> allChange = {};
-  final root = getBip32Root(mnemonic, _network);
+  final root = await Bip32Utils.getBip32Root(
+    mnemonic,
+    mnemonicPassphrase,
+    _network,
+  );
+
   for (int i = from; i < to; i++) {
-    var currentNode = getBip32NodeFromRoot(0, i, root);
+    final derivePathReceiving = constructDerivePath(
+      networkWIF: _network.wif,
+      chain: 0,
+      index: i,
+    );
+    var currentNode = await Bip32Utils.getBip32NodeFromRoot(
+      root,
+      derivePathReceiving,
+    );
     var address = P2PKH(
             network: _network, data: PaymentData(pubkey: currentNode.publicKey))
         .data
@@ -209,7 +232,15 @@ Future<Map<String, dynamic>> isolateDerive(
       "address": address,
     };
 
-    currentNode = getBip32NodeFromRoot(1, i, root);
+    final derivePathChange = constructDerivePath(
+      networkWIF: _network.wif,
+      chain: 1,
+      index: i,
+    );
+    currentNode = await Bip32Utils.getBip32NodeFromRoot(
+      root,
+      derivePathChange,
+    );
     address = P2PKH(
             network: _network, data: PaymentData(pubkey: currentNode.publicKey))
         .data
@@ -230,6 +261,7 @@ Future<Map<String, dynamic>> isolateDerive(
 
 Future<Map<String, dynamic>> isolateRestore(
   String mnemonic,
+  String mnemonicPassphrase,
   Coin coin,
   int _latestSetId,
   Map<dynamic, dynamic> _setDataMap,
@@ -250,9 +282,19 @@ Future<Map<String, dynamic>> isolateRestore(
       usedSerialNumbersSet.add(usedSerialNumbers[ind]);
     }
 
-    final root = getBip32Root(mnemonic, network);
+    final root = await Bip32Utils.getBip32Root(
+      mnemonic,
+      mnemonicPassphrase,
+      network,
+    );
     while (currentIndex < lastFoundIndex + 50) {
-      final mintKeyPair = getBip32NodeFromRoot(MINT_INDEX, currentIndex, root);
+      final _derivePath = constructDerivePath(
+        networkWIF: network.wif,
+        chain: MINT_INDEX,
+        index: currentIndex,
+      );
+      final mintKeyPair =
+          await Bip32Utils.getBip32NodeFromRoot(root, _derivePath);
       final mintTag = CreateTag(
           Format.uint8listToString(mintKeyPair.privateKey!),
           currentIndex,
@@ -300,7 +342,14 @@ Future<Map<String, dynamic>> isolateRestore(
                 .log("amount $amount used $isUsed", level: LogLevel.Info);
           } else {
             final keyPath = GetAesKeyPath(foundCoin[0] as String);
-            final aesKeyPair = getBip32NodeFromRoot(JMINT_INDEX, keyPath, root);
+            final derivePath = constructDerivePath(
+              networkWIF: network.wif,
+              chain: JMINT_INDEX,
+              index: keyPath,
+            );
+            final aesKeyPair =
+                await Bip32Utils.getBip32NodeFromRoot(root, derivePath);
+
             if (aesKeyPair.privateKey != null) {
               final aesPrivateKey =
                   Format.uint8listToString(aesKeyPair.privateKey!);
@@ -427,10 +476,9 @@ Future<Map<dynamic, dynamic>> staticProcessRestore(
           isLelantus: true,
           slateId: null,
           otherData: txid,
-        )
-          ..inputs.addAll(element.inputs)
-          ..outputs.addAll(element.outputs)
-          ..address.value = element.address.value;
+          inputs: element.inputs,
+          outputs: element.outputs,
+        )..address.value = element.address.value;
       }
     });
   }
@@ -492,6 +540,7 @@ Future<dynamic> isolateCreateJoinSplitTransaction(
   String address,
   bool subtractFeeFromAmount,
   String mnemonic,
+  String mnemonicPassphrase,
   int index,
   List<DartLelantusEntry> lelantusEntries,
   int locktime,
@@ -522,8 +571,17 @@ Future<dynamic> isolateCreateJoinSplitTransaction(
     4294967295,
     Uint8List(0),
   );
-
-  final jmintKeyPair = getBip32Node(MINT_INDEX, index, mnemonic, _network);
+  final derivePath = constructDerivePath(
+    networkWIF: _network.wif,
+    chain: MINT_INDEX,
+    index: index,
+  );
+  final jmintKeyPair = await Bip32Utils.getBip32Node(
+    mnemonic,
+    mnemonicPassphrase,
+    _network,
+    derivePath,
+  );
 
   final String jmintprivatekey =
       Format.uint8listToString(jmintKeyPair.privateKey!);
@@ -531,7 +589,17 @@ Future<dynamic> isolateCreateJoinSplitTransaction(
   final keyPath = getMintKeyPath(changeToMint, jmintprivatekey, index,
       isTestnet: coin == Coin.firoTestNet);
 
-  final aesKeyPair = getBip32Node(JMINT_INDEX, keyPath, mnemonic, _network);
+  final _derivePath = constructDerivePath(
+    networkWIF: _network.wif,
+    chain: JMINT_INDEX,
+    index: keyPath,
+  );
+  final aesKeyPair = await Bip32Utils.getBip32Node(
+    mnemonic,
+    mnemonicPassphrase,
+    _network,
+    _derivePath,
+  );
   final aesPrivateKey = Format.uint8listToString(aesKeyPair.privateKey!);
 
   final jmintData = createJMintScript(
@@ -660,29 +728,15 @@ Future<int> getBlockHead(ElectrumX client) async {
 }
 // end of isolates
 
-bip32.BIP32 getBip32Node(
-    int chain, int index, String mnemonic, NetworkType network) {
-  final root = getBip32Root(mnemonic, network);
-
-  final node = getBip32NodeFromRoot(chain, index, root);
-  return node;
-}
-
-/// wrapper for compute()
-bip32.BIP32 getBip32NodeWrapper(
-  Tuple4<int, int, String, NetworkType> args,
-) {
-  return getBip32Node(
-    args.item1,
-    args.item2,
-    args.item3,
-    args.item4,
-  );
-}
-
-bip32.BIP32 getBip32NodeFromRoot(int chain, int index, bip32.BIP32 root) {
+String constructDerivePath({
+  // required DerivePathType derivePathType,
+  required int networkWIF,
+  int account = 0,
+  required int chain,
+  required int index,
+}) {
   String coinType;
-  switch (root.network.wif) {
+  switch (networkWIF) {
     case 0xd2: // firo mainnet wif
       coinType = "136"; // firo mainnet
       break;
@@ -690,41 +744,19 @@ bip32.BIP32 getBip32NodeFromRoot(int chain, int index, bip32.BIP32 root) {
       coinType = "1"; // firo testnet
       break;
     default:
-      throw Exception("Invalid Bitcoin network type used!");
+      throw Exception("Invalid Firo network wif used!");
   }
 
-  final node = root.derivePath("m/44'/$coinType'/0'/$chain/$index");
-  return node;
-}
+  int purpose;
+  // switch (derivePathType) {
+  //   case DerivePathType.bip44:
+  purpose = 44;
+  //     break;
+  //   default:
+  //     throw Exception("DerivePathType $derivePathType not supported");
+  // }
 
-/// wrapper for compute()
-bip32.BIP32 getBip32NodeFromRootWrapper(
-  Tuple3<int, int, bip32.BIP32> args,
-) {
-  return getBip32NodeFromRoot(
-    args.item1,
-    args.item2,
-    args.item3,
-  );
-}
-
-bip32.BIP32 getBip32Root(String mnemonic, NetworkType network) {
-  final seed = bip39.mnemonicToSeed(mnemonic);
-  final firoNetworkType = bip32.NetworkType(
-    wif: network.wif,
-    bip32: bip32.Bip32Type(
-      public: network.bip32.public,
-      private: network.bip32.private,
-    ),
-  );
-
-  final root = bip32.BIP32.fromSeed(seed, firoNetworkType);
-  return root;
-}
-
-/// wrapper for compute()
-bip32.BIP32 getBip32RootWrapper(Tuple2<String, NetworkType> args) {
-  return getBip32Root(args.item1, args.item2);
+  return "m/$purpose'/$coinType'/$account'/$chain/$index";
 }
 
 Future<String> _getMintScriptWrapper(
@@ -740,6 +772,37 @@ Future<void> _setTestnetWrapper(bool isTestnet) async {
 
 /// Handles a single instance of a firo wallet
 class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
+  // Constructor
+  FiroWallet({
+    required String walletId,
+    required String walletName,
+    required Coin coin,
+    required ElectrumX client,
+    required CachedElectrumX cachedClient,
+    required TransactionNotificationTracker tracker,
+    required SecureStorageInterface secureStore,
+    MainDB? mockableOverride,
+  }) {
+    txTracker = tracker;
+    _walletId = walletId;
+    _walletName = walletName;
+    _coin = coin;
+    _electrumXClient = client;
+    _cachedElectrumXClient = cachedClient;
+    _secureStore = secureStore;
+    initCache(walletId, coin);
+    initFiroHive(walletId);
+    initWalletDB(mockableOverride: mockableOverride);
+
+    Logging.instance.log("$walletName isolates length: ${isolates.length}",
+        level: LogLevel.Info);
+    // investigate possible issues killing shared isolates between multiple firo instances
+    for (final isolate in isolates.values) {
+      isolate.kill(priority: Isolate.immediate);
+    }
+    isolates.clear();
+  }
+
   static const integrationTestFlag =
       bool.fromEnvironment("IS_INTEGRATION_TEST");
 
@@ -797,6 +860,15 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
   Future<List<String>> get mnemonic => _getMnemonicList();
 
   @override
+  Future<String?> get mnemonicString =>
+      _secureStore.read(key: '${_walletId}_mnemonic');
+
+  @override
+  Future<String?> get mnemonicPassphrase => _secureStore.read(
+        key: '${_walletId}_mnemonicPassphrase',
+      );
+
+  @override
   bool validateAddress(String address) {
     return Address.validateAddress(address, _network);
   }
@@ -831,6 +903,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       isLelantus: false,
       otherData: null,
       slateId: null,
+      inputs: [],
+      outputs: [],
     );
 
     final address = txData["address"] is String
@@ -839,7 +913,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
 
     await db.addNewTransactionData(
       [
-        Tuple4(transaction, [], [], address),
+        Tuple2(transaction, address),
       ],
       walletId,
     );
@@ -1177,12 +1251,11 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
   // }
 
   Future<List<String>> _getMnemonicList() async {
-    final mnemonicString =
-        await _secureStore.read(key: '${_walletId}_mnemonic');
-    if (mnemonicString == null) {
+    final _mnemonicString = await mnemonicString;
+    if (_mnemonicString == null) {
       return [];
     }
-    final List<String> data = mnemonicString.split(' ');
+    final List<String> data = _mnemonicString.split(' ');
     return data;
   }
 
@@ -1195,37 +1268,6 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
   late SecureStorageInterface _secureStore;
 
   late TransactionNotificationTracker txTracker;
-
-  // Constructor
-  FiroWallet({
-    required String walletId,
-    required String walletName,
-    required Coin coin,
-    required ElectrumX client,
-    required CachedElectrumX cachedClient,
-    required TransactionNotificationTracker tracker,
-    required SecureStorageInterface secureStore,
-    MainDB? mockableOverride,
-  }) {
-    txTracker = tracker;
-    _walletId = walletId;
-    _walletName = walletName;
-    _coin = coin;
-    _electrumXClient = client;
-    _cachedElectrumXClient = cachedClient;
-    _secureStore = secureStore;
-    initCache(walletId, coin);
-    initFiroHive(walletId);
-    initWalletDB(mockableOverride: mockableOverride);
-
-    Logging.instance.log("$walletName isolates length: ${isolates.length}",
-        level: LogLevel.Info);
-    // investigate possible issues killing shared isolates between multiple firo instances
-    for (final isolate in isolates.values) {
-      isolate.kill(priority: Isolate.immediate);
-    }
-    isolates.clear();
-  }
 
   int estimateTxFee({required int vSize, required int feeRatePerKB}) {
     return vSize * (feeRatePerKB / 1000).ceil();
@@ -2084,10 +2126,17 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
     }
 
     // this should never fail as overwriting a mnemonic is big bad
-    assert((await _secureStore.read(key: '${_walletId}_mnemonic')) == null);
+    if ((await mnemonicString) != null || (await mnemonicPassphrase) != null) {
+      longMutex = false;
+      throw Exception("Attempted to overwrite mnemonic on initialize new!");
+    }
     await _secureStore.write(
         key: '${_walletId}_mnemonic',
         value: bip39.generateMnemonic(strength: 256));
+    await _secureStore.write(
+      key: '${_walletId}_mnemonicPassphrase',
+      value: "",
+    );
 
     await firoUpdateJIndex(<dynamic>[]);
     // Generate and add addresses to relevant arrays
@@ -2133,9 +2182,14 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           receiveDerivationsString == "{}") {
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.05, walletId));
-        final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
-        await fillAddresses(mnemonic!,
-            numberOfThreads: Platform.numberOfProcessors - isolates.length - 1);
+        final mnemonic = await mnemonicString;
+        final mnemonicPassphrase =
+            await _secureStore.read(key: '${_walletId}_mnemonicPassphrase');
+        await fillAddresses(
+          mnemonic!,
+          mnemonicPassphrase!,
+          numberOfThreads: Platform.numberOfProcessors - isolates.length - 1,
+        );
       }
 
       await checkReceivingAddressForTransactions();
@@ -2225,24 +2279,25 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
   }
 
   Future<List<DartLelantusEntry>> _getLelantusEntry() async {
-    final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
+    final _mnemonic = await mnemonicString;
+    final _mnemonicPassphrase = await mnemonicPassphrase;
+
     final List<LelantusCoin> lelantusCoins = await _getUnspentCoins();
-    final root = await compute(
-      getBip32RootWrapper,
-      Tuple2(
-        mnemonic!,
-        _network,
-      ),
+
+    final root = await Bip32Utils.getBip32Root(
+      _mnemonic!,
+      _mnemonicPassphrase!,
+      _network,
     );
+
     final waitLelantusEntries = lelantusCoins.map((coin) async {
-      final keyPair = await compute(
-        getBip32NodeFromRootWrapper,
-        Tuple3(
-          MINT_INDEX,
-          coin.index,
-          root,
-        ),
+      final derivePath = constructDerivePath(
+        networkWIF: _network.wif,
+        chain: MINT_INDEX,
+        index: coin.index,
       );
+      final keyPair = await Bip32Utils.getBip32NodeFromRoot(root, derivePath);
+
       if (keyPair.privateKey == null) {
         Logging.instance.log("error bad key", level: LogLevel.Error);
         return DartLelantusEntry(1, 0, 0, 0, 0, '');
@@ -2852,9 +2907,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
 
     // TODO: optimize this whole lelantus process
 
-    final List<
-        Tuple4<isar_models.Transaction, List<isar_models.Output>,
-            List<isar_models.Input>, isar_models.Address?>> txnsData = [];
+    final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
+        [];
 
     for (final value in data.values) {
       // allow possible null address on mints as we don't display address
@@ -2869,7 +2923,9 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           value.item2.outputs.where((_) => true).toList(growable: false);
       final ins = value.item2.inputs.where((_) => true).toList(growable: false);
 
-      txnsData.add(Tuple4(value.item2, outs, ins, transactionAddress));
+      txnsData.add(Tuple2(
+          value.item2.copyWith(inputs: ins, outputs: outs).item1,
+          transactionAddress));
     }
 
     await db.addNewTransactionData(txnsData, walletId);
@@ -2885,16 +2941,21 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
   }
 
   Future<String> _getMintHex(int amount, int index) async {
-    final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
-    final mintKeyPair = await compute(
-      getBip32NodeWrapper,
-      Tuple4(
-        MINT_INDEX,
-        index,
-        mnemonic!,
-        _network,
-      ),
+    final _mnemonic = await mnemonicString;
+    final _mnemonicPassphrase = await mnemonicPassphrase;
+
+    final derivePath = constructDerivePath(
+      networkWIF: _network.wif,
+      chain: MINT_INDEX,
+      index: index,
     );
+    final mintKeyPair = await Bip32Utils.getBip32Node(
+      _mnemonic!,
+      _mnemonicPassphrase!,
+      _network,
+      derivePath,
+    );
+
     String keydata = Format.uint8listToString(mintKeyPair.privateKey!);
     String seedID = Format.uint8listToString(mintKeyPair.identifier);
 
@@ -2992,6 +3053,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           isLelantus: true,
           slateId: null,
           otherData: transactionInfo["otherData"] as String?,
+          inputs: [],
+          outputs: [],
         );
 
         final transactionAddress = await db
@@ -3003,16 +3066,16 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
               walletId: walletId,
               value: transactionInfo["address"] as String,
               derivationIndex: -1,
+              derivationPath: null,
               type: isar_models.AddressType.nonWallet,
               subType: isar_models.AddressSubType.nonWallet,
               publicKey: [],
             );
 
-        final List<
-            Tuple4<isar_models.Transaction, List<isar_models.Output>,
-                List<isar_models.Input>, isar_models.Address?>> txnsData = [];
+        final List<Tuple2<isar_models.Transaction, isar_models.Address?>>
+            txnsData = [];
 
-        txnsData.add(Tuple4(transaction, [], [], transactionAddress));
+        txnsData.add(Tuple2(transaction, transactionAddress));
 
         await db.addNewTransactionData(txnsData, walletId);
 
@@ -3344,9 +3407,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       }
     }
 
-    final List<
-        Tuple4<isar_models.Transaction, List<isar_models.Output>,
-            List<isar_models.Input>, isar_models.Address?>> txnsData = [];
+    final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
+        [];
 
     Set<String> changeAddresses = allAddresses
         .where((e) => e.subType == isar_models.AddressSubType.change)
@@ -3494,10 +3556,44 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
                     walletId: walletId,
                     value: outAddress,
                     derivationIndex: -1,
+                    derivationPath: null,
                     type: isar_models.AddressType.nonWallet,
                     subType: isar_models.AddressSubType.nonWallet,
                     publicKey: [],
                   ));
+
+      List<isar_models.Output> outs = [];
+      List<isar_models.Input> ins = [];
+
+      for (final json in txObject["vin"] as List) {
+        bool isCoinBase = json['coinbase'] != null;
+        final input = isar_models.Input(
+          txid: json['txid'] as String? ?? "",
+          vout: json['vout'] as int? ?? -1,
+          scriptSig: json['scriptSig']?['hex'] as String?,
+          scriptSigAsm: json['scriptSig']?['asm'] as String?,
+          isCoinbase: isCoinBase ? isCoinBase : json['is_coinbase'] as bool?,
+          sequence: json['sequence'] as int?,
+          innerRedeemScriptAsm: json['innerRedeemscriptAsm'] as String?,
+        );
+        ins.add(input);
+      }
+
+      for (final json in txObject["vout"] as List) {
+        final output = isar_models.Output(
+          scriptPubKey: json['scriptPubKey']?['hex'] as String?,
+          scriptPubKeyAsm: json['scriptPubKey']?['asm'] as String?,
+          scriptPubKeyType: json['scriptPubKey']?['type'] as String?,
+          scriptPubKeyAddress:
+              json["scriptPubKey"]?["addresses"]?[0] as String? ??
+                  json['scriptPubKey']['type'] as String,
+          value: Format.decimalAmountToSatoshis(
+            Decimal.parse(json["value"].toString()),
+            coin,
+          ),
+        );
+        outs.add(output);
+      }
 
       final tx = isar_models.Transaction(
         walletId: walletId,
@@ -3513,44 +3609,11 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
         isLelantus: false,
         slateId: null,
         otherData: null,
+        inputs: ins,
+        outputs: outs,
       );
 
-      List<isar_models.Output> outs = [];
-      List<isar_models.Input> ins = [];
-
-      for (final json in txObject["vin"] as List) {
-        bool isCoinBase = json['coinbase'] != null;
-        final input = isar_models.Input(
-          walletId: walletId,
-          txid: json['txid'] as String? ?? "",
-          vout: json['vout'] as int? ?? -1,
-          scriptSig: json['scriptSig']?['hex'] as String?,
-          scriptSigAsm: json['scriptSig']?['asm'] as String?,
-          isCoinbase: isCoinBase ? isCoinBase : json['is_coinbase'] as bool?,
-          sequence: json['sequence'] as int?,
-          innerRedeemScriptAsm: json['innerRedeemscriptAsm'] as String?,
-        );
-        ins.add(input);
-      }
-
-      for (final json in txObject["vout"] as List) {
-        final output = isar_models.Output(
-          walletId: walletId,
-          scriptPubKey: json['scriptPubKey']?['hex'] as String?,
-          scriptPubKeyAsm: json['scriptPubKey']?['asm'] as String?,
-          scriptPubKeyType: json['scriptPubKey']?['type'] as String?,
-          scriptPubKeyAddress:
-              json["scriptPubKey"]?["addresses"]?[0] as String? ??
-                  json['scriptPubKey']['type'] as String,
-          value: Format.decimalAmountToSatoshis(
-            Decimal.parse(json["value"].toString()),
-            coin,
-          ),
-        );
-        outs.add(output);
-      }
-
-      txnsData.add(Tuple4(tx, outs, ins, transactionAddress));
+      txnsData.add(Tuple2(tx, transactionAddress));
     }
 
     await db.addNewTransactionData(txnsData, walletId);
@@ -3689,8 +3752,12 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
     return address!.value;
   }
 
-  Future<void> fillAddresses(String suppliedMnemonic,
-      {int perBatch = 50, int numberOfThreads = 4}) async {
+  Future<void> fillAddresses(
+    String suppliedMnemonic,
+    String mnemonicPassphrase, {
+    int perBatch = 50,
+    int numberOfThreads = 4,
+  }) async {
     if (numberOfThreads <= 0) {
       numberOfThreads = 1;
     }
@@ -3716,6 +3783,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       ReceivePort receivePort = await getIsolate({
         "function": "isolateDerive",
         "mnemonic": suppliedMnemonic,
+        "mnemonicPassphrase": mnemonicPassphrase,
         "from": start + i * perBatch,
         "to": start + (i + 1) * perBatch,
         "network": _network,
@@ -3755,8 +3823,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
   /// [index] - This can be any integer >= 0
   Future<isar_models.Address> _generateAddressForChain(
       int chain, int index) async {
-    // final wallet = await Hive.openBox(this._walletId);
-    final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
+    final _mnemonic = await mnemonicString;
+    final _mnemonicPassphrase = await mnemonicPassphrase;
     Map<String, dynamic>? derivations;
     if (chain == 0) {
       final receiveDerivationsString =
@@ -3769,11 +3837,18 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       derivations = Map<String, dynamic>.from(
           jsonDecode(changeDerivationsString ?? "{}") as Map);
     }
-
+    final derivePath = constructDerivePath(
+      networkWIF: _network.wif,
+      chain: chain,
+      index: index,
+    );
     if (derivations!.isNotEmpty) {
       if (derivations["$index"] == null) {
-        await fillAddresses(mnemonic!,
-            numberOfThreads: Platform.numberOfProcessors - isolates.length - 1);
+        await fillAddresses(
+          _mnemonic!,
+          _mnemonicPassphrase!,
+          numberOfThreads: Platform.numberOfProcessors - isolates.length - 1,
+        );
         Logging.instance.log("calling _generateAddressForChain recursively",
             level: LogLevel.Info);
         return _generateAddressForChain(chain, index);
@@ -3785,13 +3860,19 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
             derivations["$index"]['publicKey'] as String),
         type: isar_models.AddressType.p2pkh,
         derivationIndex: index,
+        derivationPath: isar_models.DerivationPath()..value = derivePath,
         subType: chain == 0
             ? isar_models.AddressSubType.receiving
             : isar_models.AddressSubType.change,
       );
     } else {
-      final node = await compute(
-          getBip32NodeWrapper, Tuple4(chain, index, mnemonic!, _network));
+      final node = await Bip32Utils.getBip32Node(
+        _mnemonic!,
+        _mnemonicPassphrase!,
+        _network,
+        derivePath,
+      );
+
       final address =
           P2PKH(network: _network, data: PaymentData(pubkey: node.publicKey))
               .data
@@ -3803,6 +3884,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
         publicKey: node.publicKey,
         type: isar_models.AddressType.p2pkh,
         derivationIndex: index,
+        derivationPath: isar_models.DerivationPath()..value = derivePath,
         subType: chain == 0
             ? isar_models.AddressSubType.receiving
             : isar_models.AddressSubType.change,
@@ -3880,8 +3962,13 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
     await _deleteDerivations();
 
     try {
-      final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
-      await _recoverWalletFromBIP32SeedPhrase(mnemonic!, maxUnusedAddressGap);
+      final _mnemonic = await mnemonicString;
+      final _mnemonicPassphrase = await mnemonicPassphrase;
+      await _recoverWalletFromBIP32SeedPhrase(
+        _mnemonic!,
+        _mnemonicPassphrase!,
+        maxUnusedAddressGap,
+      );
 
       longMutex = false;
       await refresh();
@@ -4067,6 +4154,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
   @override
   Future<void> recoverFromMnemonic({
     required String mnemonic,
+    String? mnemonicPassphrase,
     required int maxUnusedAddressGap,
     required int maxNumberOfIndexesToCheck,
     required int height,
@@ -4107,13 +4195,22 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
         // }
       }
       // this should never fail
-      if ((await _secureStore.read(key: '${_walletId}_mnemonic')) != null) {
+      if ((await mnemonicString) != null ||
+          (await this.mnemonicPassphrase) != null) {
+        longMutex = false;
         throw Exception("Attempted to overwrite mnemonic on restore!");
       }
       await _secureStore.write(
           key: '${_walletId}_mnemonic', value: mnemonic.trim());
+      await _secureStore.write(
+        key: '${_walletId}_mnemonicPassphrase',
+        value: mnemonicPassphrase ?? "",
+      );
       await _recoverWalletFromBIP32SeedPhrase(
-          mnemonic.trim(), maxUnusedAddressGap);
+        mnemonic.trim(),
+        mnemonicPassphrase ?? "",
+        maxUnusedAddressGap,
+      );
 
       await compute(
         _setTestnetWrapper,
@@ -4149,6 +4246,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
 
   Future<void> _makeDerivations(
     String suppliedMnemonic,
+    String mnemonicPassphrase,
     int maxUnusedAddressGap,
   ) async {
     List<isar_models.Address> receivingAddressArray = [];
@@ -4161,7 +4259,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
     int receivingGapCounter = 0;
     int changeGapCounter = 0;
 
-    await fillAddresses(suppliedMnemonic,
+    await fillAddresses(suppliedMnemonic, mnemonicPassphrase,
         numberOfThreads: Platform.numberOfProcessors - isolates.length - 1);
 
     final receiveDerivationsString =
@@ -4204,6 +4302,11 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           int numTxs = await futureNumTxs;
           if (numTxs >= 1) {
             receivingIndex = i;
+            final derivePath = constructDerivePath(
+              networkWIF: _network.wif,
+              chain: 0,
+              index: receivingIndex,
+            );
             final addr = isar_models.Address(
               walletId: walletId,
               value: address,
@@ -4211,6 +4314,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
                   receiveDerivation['publicKey'] as String),
               type: isar_models.AddressType.p2pkh,
               derivationIndex: i,
+              derivationPath: isar_models.DerivationPath()..value = derivePath,
               subType: isar_models.AddressSubType.receiving,
             );
             receivingAddressArray.add(addr);
@@ -4230,6 +4334,11 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           int numTxs = await _futureNumTxs;
           if (numTxs >= 1) {
             changeIndex = i;
+            final derivePath = constructDerivePath(
+              networkWIF: _network.wif,
+              chain: 1,
+              index: changeIndex,
+            );
             final addr = isar_models.Address(
               walletId: walletId,
               value: _address,
@@ -4237,6 +4346,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
                   changeDerivation['publicKey'] as String),
               type: isar_models.AddressType.p2pkh,
               derivationIndex: i,
+              derivationPath: isar_models.DerivationPath()..value = derivePath,
               subType: isar_models.AddressSubType.change,
             );
             changeAddressArray.add(addr);
@@ -4274,7 +4384,10 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
 
   /// Recovers wallet from [suppliedMnemonic]. Expects a valid mnemonic.
   Future<void> _recoverWalletFromBIP32SeedPhrase(
-      String suppliedMnemonic, int maxUnusedAddressGap) async {
+    String suppliedMnemonic,
+    String mnemonicPassphrase,
+    int maxUnusedAddressGap,
+  ) async {
     longMutex = true;
     Logging.instance
         .log("PROCESSORS ${Platform.numberOfProcessors}", level: LogLevel.Info);
@@ -4282,8 +4395,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       final latestSetId = await getLatestSetId();
       final setDataMap = getSetDataMap(latestSetId);
       final usedSerialNumbers = getUsedCoinSerials();
-      final makeDerivations =
-          _makeDerivations(suppliedMnemonic, maxUnusedAddressGap);
+      final makeDerivations = _makeDerivations(
+          suppliedMnemonic, mnemonicPassphrase, maxUnusedAddressGap);
 
       await Future.wait([
         updateCachedId(walletId),
@@ -4305,12 +4418,15 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
 
   Future<void> _restore(int latestSetId, Map<dynamic, dynamic> setDataMap,
       dynamic usedSerialNumbers) async {
-    final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
+    final _mnemonic = await mnemonicString;
+    final _mnemonicPassphrase = await mnemonicPassphrase;
+
     final dataFuture = _refreshTransactions();
 
     ReceivePort receivePort = await getIsolate({
       "function": "restore",
-      "mnemonic": mnemonic,
+      "mnemonic": _mnemonic,
+      "mnemonicPassphrase": _mnemonicPassphrase,
       "coin": coin,
       "latestSetId": latestSetId,
       "setDataMap": setDataMap,
@@ -4373,9 +4489,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       data[element.value.txid] = Tuple2(address, element.value);
     }
 
-    final List<
-        Tuple4<isar_models.Transaction, List<isar_models.Output>,
-            List<isar_models.Input>, isar_models.Address?>> txnsData = [];
+    final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
+        [];
 
     for (final value in data.values) {
       final transactionAddress = value.item1!;
@@ -4383,7 +4498,9 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           value.item2.outputs.where((_) => true).toList(growable: false);
       final ins = value.item2.inputs.where((_) => true).toList(growable: false);
 
-      txnsData.add(Tuple4(value.item2, outs, ins, transactionAddress));
+      txnsData.add(Tuple2(
+          value.item2.copyWith(inputs: ins, outputs: outs).item1,
+          transactionAddress));
     }
 
     await db.addNewTransactionData(txnsData, walletId);
@@ -4419,8 +4536,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
 
   Future<dynamic> _createJoinSplitTransaction(
       int spendAmount, String address, bool subtractFeeFromAmount) async {
-    // final price = await firoPrice;
-    final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
+    final _mnemonic = await mnemonicString;
+    final _mnemonicPassphrase = await mnemonicPassphrase;
     final index = firoGetMintIndex();
     final lelantusEntry = await _getLelantusEntry();
     final anonymitySets = await fetchAnonymitySets();
@@ -4433,7 +4550,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       "spendAmount": spendAmount,
       "address": address,
       "subtractFeeFromAmount": subtractFeeFromAmount,
-      "mnemonic": mnemonic,
+      "mnemonic": _mnemonic,
+      "mnemonicPassphrase": _mnemonicPassphrase,
       "index": index,
       // "price": price,
       "lelantusEntries": lelantusEntry,
@@ -4813,6 +4931,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
             isLelantus: true,
             slateId: null,
             otherData: null,
+            inputs: [],
+            outputs: [],
           );
 
           final address = await db
@@ -4824,6 +4944,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
                 walletId: walletId,
                 value: tx["address"] as String,
                 derivationIndex: -2,
+                derivationPath: null,
                 type: isar_models.AddressType.nonWallet,
                 subType: isar_models.AddressSubType.unknown,
                 publicKey: [],

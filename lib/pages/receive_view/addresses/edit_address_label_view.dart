@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/isar/models/address/address.dart';
+import 'package:stackwallet/db/main_db.dart';
+import 'package:stackwallet/models/isar/models/address_label.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -17,14 +18,12 @@ import 'package:stackwallet/widgets/textfield_icon_button.dart';
 class EditAddressLabelView extends ConsumerStatefulWidget {
   const EditAddressLabelView({
     Key? key,
-    required this.address,
-    required this.walletId,
+    required this.addressLabel,
   }) : super(key: key);
 
   static const String routeName = "/editAddressLabel";
 
-  final Address address;
-  final String walletId;
+  final AddressLabel addressLabel;
 
   @override
   ConsumerState<EditAddressLabelView> createState() =>
@@ -41,7 +40,7 @@ class _EditAddressLabelViewState extends ConsumerState<EditAddressLabelView> {
   void initState() {
     isDesktop = Util.isDesktop;
     _labelFieldController = TextEditingController();
-    _labelFieldController.text = "todo: address.label";
+    _labelFieldController.text = widget.addressLabel.value;
     super.initState();
   }
 
@@ -195,34 +194,28 @@ class _EditAddressLabelViewState extends ConsumerState<EditAddressLabelView> {
                   child: PrimaryButton(
                     label: "Save",
                     onPressed: () async {
-                      // todo: update address
-                      // await ref
-                      //     .read(notesServiceChangeNotifierProvider(
-                      //         widget.walletId))
-                      //     .editOrAddNote(
-                      //       txid: widget.txid,
-                      //       note: _labelFieldController.text,
-                      //     );
-                      // if (mounted) {
-                      //   Navigator.of(context).pop();
-                      // }
+                      await MainDB.instance.updateAddressLabel(
+                        widget.addressLabel.copyWith(
+                          label: _labelFieldController.text,
+                        ),
+                      );
+                      if (mounted) {
+                        Navigator.of(context).pop();
+                      }
                     },
                   ),
                 ),
               if (!isDesktop)
                 TextButton(
                   onPressed: () async {
-                    // todo: update address
-                    // await ref
-                    //     .read(
-                    //         notesServiceChangeNotifierProvider(widget.walletId))
-                    //     .editOrAddNote(
-                    //       txid: widget.txid,
-                    //       note: _labelFieldController.text,
-                    //     );
-                    // if (mounted) {
-                    //   Navigator.of(context).pop();
-                    // }
+                    await MainDB.instance.updateAddressLabel(
+                      widget.addressLabel.copyWith(
+                        label: _labelFieldController.text,
+                      ),
+                    );
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                    }
                   },
                   style: Theme.of(context)
                       .extension<StackColors>()!

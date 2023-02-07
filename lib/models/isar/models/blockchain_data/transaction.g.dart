@@ -32,50 +32,62 @@ const TransactionSchema = CollectionSchema(
       name: r'height',
       type: IsarType.long,
     ),
-    r'isCancelled': PropertySchema(
+    r'inputs': PropertySchema(
       id: 3,
+      name: r'inputs',
+      type: IsarType.objectList,
+      target: r'Input',
+    ),
+    r'isCancelled': PropertySchema(
+      id: 4,
       name: r'isCancelled',
       type: IsarType.bool,
     ),
     r'isLelantus': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'isLelantus',
       type: IsarType.bool,
     ),
     r'otherData': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'otherData',
       type: IsarType.string,
     ),
+    r'outputs': PropertySchema(
+      id: 7,
+      name: r'outputs',
+      type: IsarType.objectList,
+      target: r'Output',
+    ),
     r'slateId': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'slateId',
       type: IsarType.string,
     ),
     r'subType': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'subType',
       type: IsarType.byte,
       enumMap: _TransactionsubTypeEnumValueMap,
     ),
     r'timestamp': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'timestamp',
       type: IsarType.long,
     ),
     r'txid': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'txid',
       type: IsarType.string,
     ),
     r'type': PropertySchema(
-      id: 10,
+      id: 12,
       name: r'type',
       type: IsarType.byte,
       enumMap: _TransactiontypeEnumValueMap,
     ),
     r'walletId': PropertySchema(
-      id: 11,
+      id: 13,
       name: r'walletId',
       type: IsarType.string,
     )
@@ -138,21 +150,9 @@ const TransactionSchema = CollectionSchema(
       target: r'Address',
       single: true,
       linkName: r'transactions',
-    ),
-    r'inputs': LinkSchema(
-      id: 4634425919890543640,
-      name: r'inputs',
-      target: r'Input',
-      single: false,
-    ),
-    r'outputs': LinkSchema(
-      id: 1341997944984495532,
-      name: r'outputs',
-      target: r'Output',
-      single: false,
     )
   },
-  embeddedSchemas: {},
+  embeddedSchemas: {r'Input': InputSchema, r'Output': OutputSchema},
   getId: _transactionGetId,
   getLinks: _transactionGetLinks,
   attach: _transactionAttach,
@@ -165,10 +165,26 @@ int _transactionEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.inputs.length * 3;
+  {
+    final offsets = allOffsets[Input]!;
+    for (var i = 0; i < object.inputs.length; i++) {
+      final value = object.inputs[i];
+      bytesCount += InputSchema.estimateSize(value, offsets, allOffsets);
+    }
+  }
   {
     final value = object.otherData;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
+    }
+  }
+  bytesCount += 3 + object.outputs.length * 3;
+  {
+    final offsets = allOffsets[Output]!;
+    for (var i = 0; i < object.outputs.length; i++) {
+      final value = object.outputs[i];
+      bytesCount += OutputSchema.estimateSize(value, offsets, allOffsets);
     }
   }
   {
@@ -191,15 +207,27 @@ void _transactionSerialize(
   writer.writeLong(offsets[0], object.amount);
   writer.writeLong(offsets[1], object.fee);
   writer.writeLong(offsets[2], object.height);
-  writer.writeBool(offsets[3], object.isCancelled);
-  writer.writeBool(offsets[4], object.isLelantus);
-  writer.writeString(offsets[5], object.otherData);
-  writer.writeString(offsets[6], object.slateId);
-  writer.writeByte(offsets[7], object.subType.index);
-  writer.writeLong(offsets[8], object.timestamp);
-  writer.writeString(offsets[9], object.txid);
-  writer.writeByte(offsets[10], object.type.index);
-  writer.writeString(offsets[11], object.walletId);
+  writer.writeObjectList<Input>(
+    offsets[3],
+    allOffsets,
+    InputSchema.serialize,
+    object.inputs,
+  );
+  writer.writeBool(offsets[4], object.isCancelled);
+  writer.writeBool(offsets[5], object.isLelantus);
+  writer.writeString(offsets[6], object.otherData);
+  writer.writeObjectList<Output>(
+    offsets[7],
+    allOffsets,
+    OutputSchema.serialize,
+    object.outputs,
+  );
+  writer.writeString(offsets[8], object.slateId);
+  writer.writeByte(offsets[9], object.subType.index);
+  writer.writeLong(offsets[10], object.timestamp);
+  writer.writeString(offsets[11], object.txid);
+  writer.writeByte(offsets[12], object.type.index);
+  writer.writeString(offsets[13], object.walletId);
 }
 
 Transaction _transactionDeserialize(
@@ -212,18 +240,32 @@ Transaction _transactionDeserialize(
     amount: reader.readLong(offsets[0]),
     fee: reader.readLong(offsets[1]),
     height: reader.readLongOrNull(offsets[2]),
-    isCancelled: reader.readBool(offsets[3]),
-    isLelantus: reader.readBoolOrNull(offsets[4]),
-    otherData: reader.readStringOrNull(offsets[5]),
-    slateId: reader.readStringOrNull(offsets[6]),
+    inputs: reader.readObjectList<Input>(
+          offsets[3],
+          InputSchema.deserialize,
+          allOffsets,
+          Input(),
+        ) ??
+        [],
+    isCancelled: reader.readBool(offsets[4]),
+    isLelantus: reader.readBoolOrNull(offsets[5]),
+    otherData: reader.readStringOrNull(offsets[6]),
+    outputs: reader.readObjectList<Output>(
+          offsets[7],
+          OutputSchema.deserialize,
+          allOffsets,
+          Output(),
+        ) ??
+        [],
+    slateId: reader.readStringOrNull(offsets[8]),
     subType:
-        _TransactionsubTypeValueEnumMap[reader.readByteOrNull(offsets[7])] ??
+        _TransactionsubTypeValueEnumMap[reader.readByteOrNull(offsets[9])] ??
             TransactionSubType.none,
-    timestamp: reader.readLong(offsets[8]),
-    txid: reader.readString(offsets[9]),
-    type: _TransactiontypeValueEnumMap[reader.readByteOrNull(offsets[10])] ??
+    timestamp: reader.readLong(offsets[10]),
+    txid: reader.readString(offsets[11]),
+    type: _TransactiontypeValueEnumMap[reader.readByteOrNull(offsets[12])] ??
         TransactionType.outgoing,
-    walletId: reader.readString(offsets[11]),
+    walletId: reader.readString(offsets[13]),
   );
   object.id = id;
   return object;
@@ -243,24 +285,40 @@ P _transactionDeserializeProp<P>(
     case 2:
       return (reader.readLongOrNull(offset)) as P;
     case 3:
-      return (reader.readBool(offset)) as P;
+      return (reader.readObjectList<Input>(
+            offset,
+            InputSchema.deserialize,
+            allOffsets,
+            Input(),
+          ) ??
+          []) as P;
     case 4:
-      return (reader.readBoolOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset)) as P;
     case 6:
       return (reader.readStringOrNull(offset)) as P;
     case 7:
+      return (reader.readObjectList<Output>(
+            offset,
+            OutputSchema.deserialize,
+            allOffsets,
+            Output(),
+          ) ??
+          []) as P;
+    case 8:
+      return (reader.readStringOrNull(offset)) as P;
+    case 9:
       return (_TransactionsubTypeValueEnumMap[reader.readByteOrNull(offset)] ??
           TransactionSubType.none) as P;
-    case 8:
-      return (reader.readLong(offset)) as P;
-    case 9:
-      return (reader.readString(offset)) as P;
     case 10:
+      return (reader.readLong(offset)) as P;
+    case 11:
+      return (reader.readString(offset)) as P;
+    case 12:
       return (_TransactiontypeValueEnumMap[reader.readByteOrNull(offset)] ??
           TransactionType.outgoing) as P;
-    case 11:
+    case 13:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -297,15 +355,13 @@ Id _transactionGetId(Transaction object) {
 }
 
 List<IsarLinkBase<dynamic>> _transactionGetLinks(Transaction object) {
-  return [object.address, object.inputs, object.outputs];
+  return [object.address];
 }
 
 void _transactionAttach(
     IsarCollection<dynamic> col, Id id, Transaction object) {
   object.id = id;
   object.address.attach(col, col.isar.collection<Address>(), r'address', id);
-  object.inputs.attach(col, col.isar.collection<Input>(), r'inputs', id);
-  object.outputs.attach(col, col.isar.collection<Output>(), r'outputs', id);
 }
 
 extension TransactionByIndex on IsarCollection<Transaction> {
@@ -941,6 +997,95 @@ extension TransactionQueryFilter
   }
 
   QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      inputsLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'inputs',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      inputsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'inputs',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      inputsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'inputs',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      inputsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'inputs',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      inputsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'inputs',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      inputsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'inputs',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
       isCancelledEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -1129,6 +1274,95 @@ extension TransactionQueryFilter
         property: r'otherData',
         value: '',
       ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      outputsLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'outputs',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      outputsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'outputs',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      outputsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'outputs',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      outputsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'outputs',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      outputsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'outputs',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      outputsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'outputs',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
     });
   }
 
@@ -1715,7 +1949,21 @@ extension TransactionQueryFilter
 }
 
 extension TransactionQueryObject
-    on QueryBuilder<Transaction, Transaction, QFilterCondition> {}
+    on QueryBuilder<Transaction, Transaction, QFilterCondition> {
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> inputsElement(
+      FilterQuery<Input> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'inputs');
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> outputsElement(
+      FilterQuery<Output> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'outputs');
+    });
+  }
+}
 
 extension TransactionQueryLinks
     on QueryBuilder<Transaction, Transaction, QFilterCondition> {
@@ -1730,128 +1978,6 @@ extension TransactionQueryLinks
       addressIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(r'address', 0, true, 0, true);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> inputs(
-      FilterQuery<Input> q) {
-    return QueryBuilder.apply(this, (query) {
-      return query.link(q, r'inputs');
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      inputsLengthEqualTo(int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'inputs', length, true, length, true);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      inputsIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'inputs', 0, true, 0, true);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      inputsIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'inputs', 0, false, 999999, true);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      inputsLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'inputs', 0, true, length, include);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      inputsLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'inputs', length, include, 999999, true);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      inputsLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(
-          r'inputs', lower, includeLower, upper, includeUpper);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> outputs(
-      FilterQuery<Output> q) {
-    return QueryBuilder.apply(this, (query) {
-      return query.link(q, r'outputs');
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      outputsLengthEqualTo(int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'outputs', length, true, length, true);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      outputsIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'outputs', 0, true, 0, true);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      outputsIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'outputs', 0, false, 999999, true);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      outputsLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'outputs', 0, true, length, include);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      outputsLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'outputs', length, include, 999999, true);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      outputsLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(
-          r'outputs', lower, includeLower, upper, includeUpper);
     });
   }
 }
@@ -2267,6 +2393,12 @@ extension TransactionQueryProperty
     });
   }
 
+  QueryBuilder<Transaction, List<Input>, QQueryOperations> inputsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'inputs');
+    });
+  }
+
   QueryBuilder<Transaction, bool, QQueryOperations> isCancelledProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isCancelled');
@@ -2282,6 +2414,12 @@ extension TransactionQueryProperty
   QueryBuilder<Transaction, String?, QQueryOperations> otherDataProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'otherData');
+    });
+  }
+
+  QueryBuilder<Transaction, List<Output>, QQueryOperations> outputsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'outputs');
     });
   }
 

@@ -290,6 +290,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           // without using them
           await manager.recoverFromMnemonic(
             mnemonic: mnemonic,
+            mnemonicPassphrase: "", // TODO add ui for certain coins
             maxUnusedAddressGap: widget.coin == Coin.firo ? 50 : 20,
             maxNumberOfIndexesToCheck: 1000,
             height: height,

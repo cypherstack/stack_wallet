@@ -1,6 +1,6 @@
 import 'package:isar/isar.dart';
 import 'package:stackwallet/exceptions/address/address_exception.dart';
-import 'package:stackwallet/models/isar/models/address/crypto_currency_address.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/crypto_currency_address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 
 part 'address.g.dart';
@@ -12,6 +12,7 @@ class Address extends CryptoCurrencyAddress {
     required this.value,
     required this.publicKey,
     required this.derivationIndex,
+    required this.derivationPath,
     required this.type,
     required this.subType,
     this.otherData,
@@ -35,6 +36,8 @@ class Address extends CryptoCurrencyAddress {
 
   @enumerated
   late final AddressSubType subType;
+
+  late final DerivationPath? derivationPath;
 
   late final String? otherData;
 
@@ -65,6 +68,7 @@ class Address extends CryptoCurrencyAddress {
       "type: ${type.name}, "
       "subType: ${subType.name}, "
       "transactionsLength: ${transactions.length} "
+      "derivationPath: $derivationPath, "
       "otherData: $otherData, "
       "}";
 }
@@ -89,4 +93,24 @@ enum AddressSubType {
   paynymReceive,
   unknown,
   nonWallet,
+}
+
+@Embedded(inheritance: false)
+class DerivationPath {
+  late final String value;
+
+  List<String> getComponents() => value.split("/");
+
+  String getPurpose() => getComponents()[1];
+
+  @override
+  toString() => value;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || other is DerivationPath && value == other.value;
+
+  @ignore
+  @override
+  int get hashCode => value.hashCode;
 }

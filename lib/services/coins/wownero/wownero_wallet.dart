@@ -54,6 +54,23 @@ import 'package:tuple/tuple.dart';
 const int MINIMUM_CONFIRMATIONS = 10;
 
 class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
+  WowneroWallet({
+    required String walletId,
+    required String walletName,
+    required Coin coin,
+    required SecureStorageInterface secureStorage,
+    Prefs? prefs,
+    MainDB? mockableOverride,
+  }) {
+    _walletId = walletId;
+    _walletName = walletName;
+    _coin = coin;
+    _secureStorage = secureStorage;
+    _prefs = prefs ?? Prefs.instance;
+    initCache(walletId, coin);
+    initWalletDB(mockableOverride: mockableOverride);
+  }
+
   late final String _walletId;
   late final Coin _coin;
   late final SecureStorageInterface _secureStorage;
@@ -79,23 +96,6 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Mutex prepareSendMutex = Mutex();
   Mutex estimateFeeMutex = Mutex();
-
-  WowneroWallet({
-    required String walletId,
-    required String walletName,
-    required Coin coin,
-    required SecureStorageInterface secureStorage,
-    Prefs? prefs,
-    MainDB? mockableOverride,
-  }) {
-    _walletId = walletId;
-    _walletName = walletName;
-    _coin = coin;
-    _secureStorage = secureStorage;
-    _prefs = prefs ?? Prefs.instance;
-    initCache(walletId, coin);
-    initWalletDB(mockableOverride: mockableOverride);
-  }
 
   @override
   set isFavorite(bool markFavorite) {
@@ -319,7 +319,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     await _prefs.init();
 
     // this should never fail
-    if ((await _secureStorage.read(key: '${_walletId}_mnemonic')) != null) {
+    if ((await mnemonicString) != null || (await mnemonicPassphrase) != null) {
       throw Exception(
           "Attempted to overwrite mnemonic on generate new wallet!");
     }
@@ -377,6 +377,10 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       await _secureStorage.write(
           key: '${_walletId}_mnemonic', value: wallet?.seed.trim());
+      await _secureStorage.write(
+        key: '${_walletId}_mnemonicPassphrase',
+        value: "",
+      );
 
       walletInfo.address = wallet?.walletAddresses.address;
       await DB.instance
@@ -427,14 +431,22 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<List<String>> get mnemonic async {
-    final mnemonicString =
-        await _secureStorage.read(key: '${_walletId}_mnemonic');
-    if (mnemonicString == null) {
+    final _mnemonicString = await mnemonicString;
+    if (_mnemonicString == null) {
       return [];
     }
-    final List<String> data = mnemonicString.split(' ');
+    final List<String> data = _mnemonicString.split(' ');
     return data;
   }
+
+  @override
+  Future<String?> get mnemonicString =>
+      _secureStorage.read(key: '${_walletId}_mnemonic');
+
+  @override
+  Future<String?> get mnemonicPassphrase => _secureStorage.read(
+        key: '${_walletId}_mnemonicPassphrase',
+      );
 
   @override
   Future<Map<String, dynamic>> prepareSend({
@@ -528,6 +540,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<void> recoverFromMnemonic({
     required String mnemonic,
+    String? mnemonicPassphrase, // not used at the moment
     required int maxUnusedAddressGap,
     required int maxNumberOfIndexesToCheck,
     required int height,
@@ -543,12 +556,17 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     try {
       // check to make sure we aren't overwriting a mnemonic
       // this should never fail
-      if ((await _secureStorage.read(key: '${_walletId}_mnemonic')) != null) {
+      if ((await mnemonicString) != null ||
+          (await this.mnemonicPassphrase) != null) {
         longMutex = false;
         throw Exception("Attempted to overwrite mnemonic on restore!");
       }
       await _secureStorage.write(
           key: '${_walletId}_mnemonic', value: mnemonic.trim());
+      await _secureStorage.write(
+        key: '${_walletId}_mnemonicPassphrase',
+        value: mnemonicPassphrase ?? "",
+      );
 
       // extract seed height from 14 word seed
       if (seedLength == 14) {
@@ -844,6 +862,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     return isar_models.Address(
       walletId: walletId,
       derivationIndex: index,
+      derivationPath: null,
       value: address,
       publicKey: [],
       type: isar_models.AddressType.cryptonote,
@@ -901,9 +920,8 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     //   }
     // }
 
-    final List<
-        Tuple4<isar_models.Transaction, List<isar_models.Output>,
-            List<isar_models.Input>, isar_models.Address?>> txnsData = [];
+    final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
+        [];
 
     if (transactions != null) {
       for (var tx in transactions.entries) {
@@ -994,9 +1012,11 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
           isLelantus: false,
           slateId: null,
           otherData: null,
+          inputs: [],
+          outputs: [],
         );
 
-        txnsData.add(Tuple4(txn, [], [], address));
+        txnsData.add(Tuple2(txn, address));
       }
     }
 

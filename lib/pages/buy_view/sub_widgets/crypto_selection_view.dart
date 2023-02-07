@@ -252,12 +252,15 @@ bool isStackCoin(String? ticker) {
   }
 }
 
-Widget? getIconForTicker(String ticker) {
+Widget? getIconForTicker(
+  String ticker, {
+  double size = 20,
+}) {
   String? iconAsset = /*isStackCoin(ticker)
       ?*/
       Assets.svg.iconFor(coin: coinFromTickerCaseInsensitive(ticker));
   // : Assets.svg.buyIconFor(ticker);
   return (iconAsset != null)
-      ? SvgPicture.asset(iconAsset, height: 20, width: 20)
+      ? SvgPicture.asset(iconAsset, height: size, width: size)
       : null;
 }

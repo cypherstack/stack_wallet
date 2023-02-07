@@ -169,7 +169,9 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
                               value: isEasy)
                           .then((_) {
                         if (isEasy) {
-                          unawaited(ExchangeDataLoadingService().loadAll(ref));
+                          unawaited(
+                            ExchangeDataLoadingService.instance.loadAll(),
+                          );
                           ref
                               .read(priceAnd24hChangeNotifierProvider)
                               .start(true);

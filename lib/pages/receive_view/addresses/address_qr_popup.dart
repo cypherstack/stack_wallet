@@ -10,7 +10,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -26,12 +25,12 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 class AddressQrPopup extends StatefulWidget {
   const AddressQrPopup({
     Key? key,
-    required this.address,
+    required this.addressString,
     required this.coin,
     this.clipboard = const ClipboardWrapper(),
   }) : super(key: key);
 
-  final Address address;
+  final String addressString;
   final Coin coin;
   final ClipboardInterface clipboard;
 
@@ -118,7 +117,7 @@ class _AddressQrPopupState extends State<AddressQrPopup> {
             height: 8,
           ),
           Text(
-            widget.address.value,
+            widget.addressString,
             style: STextStyles.itemSubtitle(context),
           ),
           const SizedBox(
@@ -130,7 +129,7 @@ class _AddressQrPopupState extends State<AddressQrPopup> {
               child: QrImage(
                 data: AddressUtils.buildUriString(
                   widget.coin,
-                  widget.address.value,
+                  widget.addressString,
                   {},
                 ),
                 size: 220,

@@ -139,6 +139,7 @@ dependencies:
   isar_flutter_libs: 3.0.5 # contains the binaries
   dropdown_button2: 1.7.2
   string_validator: ^0.3.0
+  equatable: ^2.0.5
 
 dev_dependencies:
   flutter_test:
@@ -343,6 +344,8 @@ flutter:
     # exchange icons
     - assets/svg/exchange_icons/change_now_logo_1.svg
     - assets/svg/exchange_icons/simpleswap-icon.svg
+    - assets/svg/exchange_icons/mb_green.svg
+    - assets/svg/exchange_icons/mb_blue.svg
 
     # theme selectors
     - assets/svg/dark-theme.svg

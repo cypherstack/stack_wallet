@@ -263,11 +263,14 @@ abstract class CoinServiceAPI {
   bool validateAddress(String address);
 
   Future<List<String>> get mnemonic;
+  Future<String?> get mnemonicString;
+  Future<String?> get mnemonicPassphrase;
 
   Future<bool> testNetworkConnection();
 
   Future<void> recoverFromMnemonic({
     required String mnemonic,
+    String? mnemonicPassphrase,
     required int maxUnusedAddressGap,
     required int maxNumberOfIndexesToCheck,
     required int height,

@@ -33,6 +33,7 @@ import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -55,40 +56,15 @@ const String GENESIS_HASH_MAINNET =
 const String GENESIS_HASH_TESTNET =
     "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943";
 
-bip32.BIP32 getBip32Node(
-  int chain,
-  int index,
-  String mnemonic,
-  NetworkType network,
-  DerivePathType derivePathType,
-) {
-  final root = getBip32Root(mnemonic, network);
-
-  final node = getBip32NodeFromRoot(chain, index, root, derivePathType);
-  return node;
-}
-
-/// wrapper for compute()
-bip32.BIP32 getBip32NodeWrapper(
-  Tuple5<int, int, String, NetworkType, DerivePathType> args,
-) {
-  return getBip32Node(
-    args.item1,
-    args.item2,
-    args.item3,
-    args.item4,
-    args.item5,
-  );
-}
-
-bip32.BIP32 getBip32NodeFromRoot(
-  int chain,
-  int index,
-  bip32.BIP32 root,
-  DerivePathType derivePathType,
-) {
+String constructDerivePath({
+  required DerivePathType derivePathType,
+  required int networkWIF,
+  int account = 0,
+  required int chain,
+  required int index,
+}) {
   String coinType;
-  switch (root.network.wif) {
+  switch (networkWIF) {
     case 0x80: // btc mainnet wif
       coinType = "0"; // btc mainnet
       break;
@@ -96,53 +72,73 @@ bip32.BIP32 getBip32NodeFromRoot(
       coinType = "1"; // btc testnet
       break;
     default:
-      throw Exception("Invalid Bitcoin network type used!");
+      throw Exception("Invalid Bitcoin network wif used!");
   }
+
+  int purpose;
   switch (derivePathType) {
     case DerivePathType.bip44:
-      return root.derivePath("m/44'/$coinType'/0'/$chain/$index");
+      purpose = 44;
+      break;
     case DerivePathType.bip49:
-      return root.derivePath("m/49'/$coinType'/0'/$chain/$index");
+      purpose = 49;
+      break;
     case DerivePathType.bip84:
-      return root.derivePath("m/84'/$coinType'/0'/$chain/$index");
+      purpose = 84;
+      break;
     default:
       throw Exception("DerivePathType $derivePathType not supported");
   }
-}
 
-/// wrapper for compute()
-bip32.BIP32 getBip32NodeFromRootWrapper(
-  Tuple4<int, int, bip32.BIP32, DerivePathType> args,
-) {
-  return getBip32NodeFromRoot(
-    args.item1,
-    args.item2,
-    args.item3,
-    args.item4,
-  );
-}
-
-bip32.BIP32 getBip32Root(String mnemonic, NetworkType network) {
-  final seed = bip39.mnemonicToSeed(mnemonic);
-  final networkType = bip32.NetworkType(
-    wif: network.wif,
-    bip32: bip32.Bip32Type(
-      public: network.bip32.public,
-      private: network.bip32.private,
-    ),
-  );
-
-  final root = bip32.BIP32.fromSeed(seed, networkType);
-  return root;
-}
-
-/// wrapper for compute()
-bip32.BIP32 getBip32RootWrapper(Tuple2<String, NetworkType> args) {
-  return getBip32Root(args.item1, args.item2);
+  return "m/$purpose'/$coinType'/$account'/$chain/$index";
 }
 
 class BitcoinWallet extends CoinServiceAPI
     with WalletCache, WalletDB, ElectrumXParsing, PaynymWalletInterface {
+  BitcoinWallet({
+    required String walletId,
+    required String walletName,
+    required Coin coin,
+    required ElectrumX client,
+    required CachedElectrumX cachedClient,
+    required TransactionNotificationTracker tracker,
+    required SecureStorageInterface secureStore,
+    MainDB? mockableOverride,
+  }) {
+    txTracker = tracker;
+    _walletId = walletId;
+    _walletName = walletName;
+    _coin = coin;
+    _electrumXClient = client;
+    _cachedElectrumXClient = cachedClient;
+    _secureStore = secureStore;
+    initCache(walletId, coin);
+    initWalletDB(mockableOverride: mockableOverride);
+    initPaynymWalletInterface(
+      walletId: walletId,
+      walletName: walletName,
+      network: _network,
+      coin: coin,
+      db: db,
+      electrumXClient: electrumXClient,
+      secureStorage: secureStore,
+      getMnemonicString: () => mnemonicString,
+      getMnemonicPassphrase: () => mnemonicPassphrase,
+      getChainHeight: () => chainHeight,
+      getCurrentChangeAddress: () => currentChangeAddressP2PKH,
+      estimateTxFee: estimateTxFee,
+      prepareSend: prepareSend,
+      getTxCount: getTxCount,
+      fetchBuildTxData: fetchBuildTxData,
+      refresh: refresh,
+      checkChangeAddressForTransactions:
+          _checkP2PKHChangeAddressForTransactions,
+      addDerivation: addDerivation,
+      dustLimitP2PKH: DUST_LIMIT_P2PKH,
+      minConfirms: MINIMUM_CONFIRMATIONS,
+    );
+  }
+
   static const integrationTestFlag =
       bool.fromEnvironment("IS_INTEGRATION_TEST");
 
@@ -261,6 +257,15 @@ class BitcoinWallet extends CoinServiceAPI
   @override
   Future<List<String>> get mnemonic => _getMnemonicList();
 
+  @override
+  Future<String?> get mnemonicString =>
+      _secureStore.read(key: '${_walletId}_mnemonic');
+
+  @override
+  Future<String?> get mnemonicPassphrase => _secureStore.read(
+        key: '${_walletId}_mnemonicPassphrase',
+      );
+
   Future<int> get chainHeight async {
     try {
       final result = await _electrumXClient.getBlockHeadTip();
@@ -325,6 +330,7 @@ class BitcoinWallet extends CoinServiceAPI
   @override
   Future<void> recoverFromMnemonic({
     required String mnemonic,
+    String? mnemonicPassphrase,
     required int maxUnusedAddressGap,
     required int maxNumberOfIndexesToCheck,
     required int height,
@@ -355,14 +361,21 @@ class BitcoinWallet extends CoinServiceAPI
       }
       // check to make sure we aren't overwriting a mnemonic
       // this should never fail
-      if ((await _secureStore.read(key: '${_walletId}_mnemonic')) != null) {
+      if ((await mnemonicString) != null ||
+          (await this.mnemonicPassphrase) != null) {
         longMutex = false;
         throw Exception("Attempted to overwrite mnemonic on restore!");
       }
       await _secureStore.write(
           key: '${_walletId}_mnemonic', value: mnemonic.trim());
+      await _secureStore.write(
+        key: '${_walletId}_mnemonicPassphrase',
+        value: mnemonicPassphrase ?? "",
+      );
+
       await _recoverWalletFromBIP32SeedPhrase(
         mnemonic: mnemonic.trim(),
+        mnemonicPassphrase: mnemonicPassphrase ?? "",
         maxUnusedAddressGap: maxUnusedAddressGap,
         maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
       );
@@ -405,15 +418,14 @@ class BitcoinWallet extends CoinServiceAPI
       final Map<String, dynamic> receivingNodes = {};
 
       for (int j = 0; j < txCountBatchSize; j++) {
-        final node = await compute(
-          getBip32NodeFromRootWrapper,
-          Tuple4(
-            chain,
-            index + j,
-            root,
-            type,
-          ),
+        final derivePath = constructDerivePath(
+          derivePathType: type,
+          networkWIF: root.network.wif,
+          chain: chain,
+          index: index + j,
         );
+        final node = await Bip32Utils.getBip32NodeFromRoot(root, derivePath);
+
         String addressString;
         final data = PaymentData(pubkey: node.publicKey);
         isar_models.AddressType addrType;
@@ -445,6 +457,7 @@ class BitcoinWallet extends CoinServiceAPI
           publicKey: node.publicKey,
           type: addrType,
           derivationIndex: index + j,
+          derivationPath: isar_models.DerivationPath()..value = derivePath,
           subType: chain == 0
               ? isar_models.AddressSubType.receiving
               : isar_models.AddressSubType.change,
@@ -522,6 +535,7 @@ class BitcoinWallet extends CoinServiceAPI
 
   Future<void> _recoverWalletFromBIP32SeedPhrase({
     required String mnemonic,
+    required String mnemonicPassphrase,
     int maxUnusedAddressGap = 20,
     int maxNumberOfIndexesToCheck = 1000,
     bool isRescan = false,
@@ -535,7 +549,11 @@ class BitcoinWallet extends CoinServiceAPI
     Map<String, Map<String, String>> p2shChangeDerivations = {};
     Map<String, Map<String, String>> p2wpkhChangeDerivations = {};
 
-    final root = await compute(getBip32RootWrapper, Tuple2(mnemonic, _network));
+    final root = await Bip32Utils.getBip32Root(
+      mnemonic,
+      mnemonicPassphrase,
+      _network,
+    );
 
     List<isar_models.Address> p2pkhReceiveAddressArray = [];
     List<isar_models.Address> p2shReceiveAddressArray = [];
@@ -1280,6 +1298,8 @@ class BitcoinWallet extends CoinServiceAPI
       isLelantus: false,
       otherData: null,
       slateId: null,
+      inputs: [],
+      outputs: [],
     );
 
     final address = txData["address"] is String
@@ -1288,7 +1308,7 @@ class BitcoinWallet extends CoinServiceAPI
 
     await db.addNewTransactionData(
       [
-        Tuple4(transaction, [], [], address),
+        Tuple2(transaction, address),
       ],
       walletId,
     );
@@ -1321,50 +1341,6 @@ class BitcoinWallet extends CoinServiceAPI
 
   late SecureStorageInterface _secureStore;
 
-  BitcoinWallet({
-    required String walletId,
-    required String walletName,
-    required Coin coin,
-    required ElectrumX client,
-    required CachedElectrumX cachedClient,
-    required TransactionNotificationTracker tracker,
-    required SecureStorageInterface secureStore,
-    MainDB? mockableOverride,
-  }) {
-    txTracker = tracker;
-    _walletId = walletId;
-    _walletName = walletName;
-    _coin = coin;
-    _electrumXClient = client;
-    _cachedElectrumXClient = cachedClient;
-    _secureStore = secureStore;
-    initCache(walletId, coin);
-    initWalletDB(mockableOverride: mockableOverride);
-    initPaynymWalletInterface(
-      walletId: walletId,
-      walletName: walletName,
-      network: _network,
-      coin: coin,
-      db: db,
-      electrumXClient: electrumXClient,
-      secureStorage: secureStore,
-      getMnemonic: () => mnemonic,
-      getChainHeight: () => chainHeight,
-      getCurrentChangeAddress: () => currentChangeAddressP2PKH,
-      estimateTxFee: estimateTxFee,
-      prepareSend: prepareSend,
-      getTxCount: getTxCount,
-      fetchBuildTxData: fetchBuildTxData,
-      refresh: refresh,
-      checkChangeAddressForTransactions:
-          _checkP2PKHChangeAddressForTransactions,
-      addDerivation: addDerivation,
-      addDerivations: addDerivations,
-      dustLimitP2PKH: DUST_LIMIT_P2PKH,
-      minConfirms: MINIMUM_CONFIRMATIONS,
-    );
-  }
-
   @override
   Future<void> updateNode(bool shouldRefresh) async {
     final failovers = NodeService(secureStorageInterface: _secureStore)
@@ -1395,12 +1371,11 @@ class BitcoinWallet extends CoinServiceAPI
   }
 
   Future<List<String>> _getMnemonicList() async {
-    final mnemonicString =
-        await _secureStore.read(key: '${_walletId}_mnemonic');
-    if (mnemonicString == null) {
+    final _mnemonicString = await mnemonicString;
+    if (_mnemonicString == null) {
       return [];
     }
-    final List<String> data = mnemonicString.split(' ');
+    final List<String> data = _mnemonicString.split(' ');
     return data;
   }
 
@@ -1488,13 +1463,14 @@ class BitcoinWallet extends CoinServiceAPI
     }
 
     // this should never fail
-    if ((await _secureStore.read(key: '${_walletId}_mnemonic')) != null) {
+    if ((await mnemonicString) != null || (await mnemonicPassphrase) != null) {
       throw Exception(
           "Attempted to overwrite mnemonic on generate new wallet!");
     }
     await _secureStore.write(
         key: '${_walletId}_mnemonic',
         value: bip39.generateMnemonic(strength: 256));
+    await _secureStore.write(key: '${_walletId}_mnemonicPassphrase', value: "");
 
     // Generate and add addresses to relevant arrays
     final initialAddresses = await Future.wait([
@@ -1524,17 +1500,22 @@ class BitcoinWallet extends CoinServiceAPI
     int index,
     DerivePathType derivePathType,
   ) async {
-    final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
-    final node = await compute(
-      getBip32NodeWrapper,
-      Tuple5(
-        chain,
-        index,
-        mnemonic!,
-        _network,
-        derivePathType,
-      ),
+    final _mnemonic = await mnemonicString;
+    final _mnemonicPassphrase = await mnemonicPassphrase;
+
+    final derivePath = constructDerivePath(
+      derivePathType: derivePathType,
+      networkWIF: _network.wif,
+      chain: chain,
+      index: index,
     );
+    final node = await Bip32Utils.getBip32Node(
+      _mnemonic!,
+      _mnemonicPassphrase!,
+      _network,
+      derivePath,
+    );
+
     final data = PaymentData(pubkey: node.publicKey);
     String address;
     isar_models.AddressType addrType;
@@ -1576,6 +1557,7 @@ class BitcoinWallet extends CoinServiceAPI
       publicKey: node.publicKey,
       type: addrType,
       derivationIndex: index,
+      derivationPath: isar_models.DerivationPath()..value = derivePath,
       subType: chain == 0
           ? isar_models.AddressSubType.receiving
           : isar_models.AddressSubType.change,
@@ -2214,9 +2196,8 @@ class BitcoinWallet extends CoinServiceAPI
     // }
     // await fastFetch(vHashes.toList());
 
-    final List<
-        Tuple4<isar_models.Transaction, List<isar_models.Output>,
-            List<isar_models.Input>, isar_models.Address?>> txnsData = [];
+    final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
+        [];
 
     for (final txObject in allTransactions) {
       final data = await parseTransaction(
@@ -2924,9 +2905,12 @@ class BitcoinWallet extends CoinServiceAPI
     await _deleteDerivations();
 
     try {
-      final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
+      final _mnemonic = await mnemonicString;
+      final _mnemonicPassphrase = await mnemonicPassphrase;
+
       await _recoverWalletFromBIP32SeedPhrase(
-        mnemonic: mnemonic!,
+        mnemonic: _mnemonic!,
+        mnemonicPassphrase: _mnemonicPassphrase!,
         maxUnusedAddressGap: maxUnusedAddressGap,
         maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
         isRescan: true,
