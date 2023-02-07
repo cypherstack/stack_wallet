@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
 import 'package:stackwallet/external_api_keys.dart';
 import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
 import 'package:stackwallet/models/exchange/response_objects/pair.dart';

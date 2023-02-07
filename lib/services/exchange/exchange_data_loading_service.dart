@@ -55,7 +55,7 @@ class ExchangeDataLoadingService {
       }
     } else {
       Logging.instance.log(
-          "Failed to load changeNOW fixed rate markets: ${response3.exception?.errorMessage}",
+          "Failed to load changeNOW fixed rate markets: ${response3.exception?.message}",
           level: LogLevel.Error);
 
       ref.read(changeNowFixedInitialLoadStatusStateProvider.state).state =
@@ -122,7 +122,7 @@ class ExchangeDataLoadingService {
         }
       } else {
         Logging.instance.log(
-            "Failed to load changeNOW available floating rate pairs: ${response2.exception?.errorMessage}",
+            "Failed to load changeNOW available floating rate pairs: ${response2.exception?.message}",
             level: LogLevel.Error);
         ref.read(changeNowEstimatedInitialLoadStatusStateProvider.state).state =
             ChangeNowLoadStatus.failed;
@@ -130,7 +130,7 @@ class ExchangeDataLoadingService {
       }
     } else {
       Logging.instance.log(
-          "Failed to load changeNOW currencies: ${response.exception?.errorMessage}",
+          "Failed to load changeNOW currencies: ${response.exception?.message}",
           level: LogLevel.Error);
       await Future<void>.delayed(const Duration(seconds: 3));
       ref.read(changeNowEstimatedInitialLoadStatusStateProvider.state).state =

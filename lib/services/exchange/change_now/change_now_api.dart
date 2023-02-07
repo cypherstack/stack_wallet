@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
 import 'package:stackwallet/external_api_keys.dart';
 import 'package:stackwallet/models/exchange/change_now/cn_exchange_estimate.dart';
 import 'package:stackwallet/models/exchange/change_now/estimated_exchange_amount.dart';

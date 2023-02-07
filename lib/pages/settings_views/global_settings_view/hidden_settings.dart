@@ -11,6 +11,8 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
+import '../../../services/exchange/majestic_bank/majestic_bank_api.dart';
+
 class HiddenSettings extends StatelessWidget {
   const HiddenSettings({Key? key}) : super(key: key);
 
@@ -120,6 +122,48 @@ class HiddenSettings extends StatelessWidget {
                             child: RoundedWhiteContainer(
                               child: Text(
                                 "Delete Debug Logs",
+                                style: STextStyles.button(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark),
+                              ),
+                            ),
+                          );
+                        }),
+                        // const SizedBox(
+                        //   height: 12,
+                        // ),
+                        // Consumer(builder: (_, ref, __) {
+                        //   return GestureDetector(
+                        //     onTap: () async {
+                        //       final x =
+                        //           await MajesticBankAPI.instance.getRates();
+                        //       print(x);
+                        //     },
+                        //     child: RoundedWhiteContainer(
+                        //       child: Text(
+                        //         "Click me",
+                        //         style: STextStyles.button(context).copyWith(
+                        //             color: Theme.of(context)
+                        //                 .extension<StackColors>()!
+                        //                 .accentColorDark),
+                        //       ),
+                        //     ),
+                        //   );
+                        // }),
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        Consumer(builder: (_, ref, __) {
+                          return GestureDetector(
+                            onTap: () async {
+                              final x =
+                                  await MajesticBankAPI.instance.getLimits();
+                              print(x);
+                            },
+                            child: RoundedWhiteContainer(
+                              child: Text(
+                                "Click me",
                                 style: STextStyles.button(context).copyWith(
                                     color: Theme.of(context)
                                         .extension<StackColors>()!
