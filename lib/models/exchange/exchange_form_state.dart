@@ -3,7 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:stackwallet/models/exchange/aggregate_currency.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
+import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 class ExchangeFormState extends ChangeNotifier {
@@ -323,6 +325,29 @@ class ExchangeFormState extends ChangeNotifier {
     required bool shouldNotifyListeners,
   }) async {
     try {
+      switch (exchange.name) {
+        case ChangeNowExchange.exchangeName:
+          if (!_exchangeSupported(
+            exchangeName: exchange.name,
+            sendCurrency: sendCurrency,
+            receiveCurrency: receiveCurrency,
+            exchangeRateType: exchangeRateType,
+          )) {
+            _exchange = MajesticBankExchange.instance;
+          }
+          break;
+        case MajesticBankExchange.exchangeName:
+          if (!_exchangeSupported(
+            exchangeName: exchange.name,
+            sendCurrency: sendCurrency,
+            receiveCurrency: receiveCurrency,
+            exchangeRateType: exchangeRateType,
+          )) {
+            _exchange = ChangeNowExchange.instance;
+          }
+          break;
+      }
+
       await _updateRanges(shouldNotifyListeners: false);
       await _updateEstimate(shouldNotifyListeners: false);
       if (shouldNotifyListeners) {
@@ -450,6 +475,25 @@ class ExchangeFormState extends ChangeNotifier {
   void _notify() {
     debugPrint("ExFState NOTIFY: ${toString()}");
     notifyListeners();
+  }
+
+  bool _exchangeSupported({
+    required String exchangeName,
+    required AggregateCurrency? sendCurrency,
+    required AggregateCurrency? receiveCurrency,
+    required ExchangeRateType exchangeRateType,
+  }) {
+    final send = sendCurrency?.forExchange(exchangeName);
+    if (send == null) return false;
+
+    final rcv = receiveCurrency?.forExchange(exchangeName);
+    if (rcv == null) return false;
+
+    if (exchangeRateType == ExchangeRateType.fixed) {
+      return send.supportsFixedRate && rcv.supportsFixedRate;
+    } else {
+      return send.supportsEstimatedRate && rcv.supportsEstimatedRate;
+    }
   }
 
   @override

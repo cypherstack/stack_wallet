@@ -862,10 +862,6 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         if (ref.watch(exchangeFormStateProvider).sendAmount != null &&
             ref.watch(exchangeFormStateProvider).sendAmount != Decimal.zero)
           ExchangeProviderOptions(
-            from: ref.watch(exchangeFormStateProvider).fromTicker,
-            to: ref.watch(exchangeFormStateProvider).toTicker,
-            fromAmount: ref.watch(exchangeFormStateProvider).sendAmount,
-            toAmount: ref.watch(exchangeFormStateProvider).receiveAmount,
             fixedRate: rateType == ExchangeRateType.fixed,
             reversed: ref.watch(
                 exchangeFormStateProvider.select((value) => value.reversed)),
