@@ -241,10 +241,6 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                                     .extension<StackColors>()!
                                     .background,
                                 child: ExchangeCurrencySelectionView(
-                                  exchangeName: ref
-                                      .read(currentExchangeNameStateProvider
-                                          .state)
-                                      .state,
                                   willChange: willChange,
                                   paired: paired,
                                   isFixedRate: isFixedRate,
@@ -263,8 +259,6 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         : await Navigator.of(context).push(
             MaterialPageRoute<dynamic>(
               builder: (_) => ExchangeCurrencySelectionView(
-                exchangeName:
-                    ref.read(currentExchangeNameStateProvider.state).state,
                 willChange: willChange,
                 paired: paired,
                 isFixedRate: isFixedRate,

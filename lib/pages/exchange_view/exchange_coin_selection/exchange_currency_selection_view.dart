@@ -26,14 +26,12 @@ import 'package:stackwallet/widgets/textfield_icon_button.dart';
 class ExchangeCurrencySelectionView extends StatefulWidget {
   const ExchangeCurrencySelectionView({
     Key? key,
-    required this.exchangeName,
     required this.willChange,
     required this.paired,
     required this.isFixedRate,
     required this.willChangeIsSend,
   }) : super(key: key);
 
-  final String exchangeName;
   final Currency? willChange;
   final Currency? paired;
   final bool isFixedRate;
@@ -109,7 +107,6 @@ class _ExchangeCurrencySelectionViewState
   Future<Currency?> _getCurrency(String ticker) {
     return ExchangeDataLoadingService.instance.isar.currencies
         .where()
-        .exchangeNameEqualTo(widget.exchangeName)
         .filter()
         .tickerEqualTo(ticker, caseSensitive: false)
         .group((q) => widget.isFixedRate
@@ -127,7 +124,6 @@ class _ExchangeCurrencySelectionViewState
   Future<List<Pair>> _loadAvailablePairs() {
     final query = ExchangeDataLoadingService.instance.isar.pairs
         .where()
-        .exchangeNameEqualTo(widget.exchangeName)
         .filter()
         .group((q) => widget.isFixedRate
             ? q
@@ -153,7 +149,6 @@ class _ExchangeCurrencySelectionViewState
   Future<List<Currency>> _getCurrencies() async {
     return ExchangeDataLoadingService.instance.isar.currencies
         .where()
-        .exchangeNameEqualTo(widget.exchangeName)
         .filter()
         .group((q) => widget.isFixedRate
             ? q
@@ -166,6 +161,7 @@ class _ExchangeCurrencySelectionViewState
                 .rateTypeEqualTo(SupportedRateType.estimated))
         .sortByIsStackCoin()
         .thenByName()
+        .distinctByTicker(caseSensitive: false)
         .findAll();
   }
 
