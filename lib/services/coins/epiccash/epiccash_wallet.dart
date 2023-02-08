@@ -871,7 +871,7 @@ class EpicCashWallet extends CoinServiceAPI
         publicKey: [], // ??
       );
 
-      await db.putAddress(address);
+      await db.updateOrPutAddresses([address]);
     }
 
     return address;
