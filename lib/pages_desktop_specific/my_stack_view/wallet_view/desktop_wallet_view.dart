@@ -24,12 +24,15 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/background.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -63,6 +66,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
   late final EventBus eventBus;
 
   late final bool _shouldDisableAutoSyncOnLogOut;
+  bool _rescanningOnOpen = false;
 
   Future<void> onBackPressed() async {
     await _logout();
@@ -265,7 +269,18 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
       _shouldDisableAutoSyncOnLogOut = false;
     }
 
-    ref.read(managerProvider).refresh();
+    if (ref.read(managerProvider).rescanOnOpenVersion == Constants.rescanV1) {
+      _rescanningOnOpen = true;
+      ref.read(managerProvider).fullRescan(20, 1000).then(
+            (_) => ref.read(managerProvider).resetRescanOnOpen().then(
+                  (_) => WidgetsBinding.instance.addPostFrameCallback(
+                    (_) => setState(() => _rescanningOnOpen = false),
+                  ),
+                ),
+          );
+    } else {
+      ref.read(managerProvider).refresh();
+    }
 
     super.initState();
   }
@@ -284,240 +299,262 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
     final managerProvider = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManagerProvider(widget.walletId)));
 
-    return DesktopScaffold(
-      appBar: DesktopAppBar(
-        background: Theme.of(context).extension<StackColors>()!.popupBG,
-        leading: Expanded(
-          child: Row(
-            children: [
-              const SizedBox(
-                width: 32,
+    return ConditionalParent(
+      condition: _rescanningOnOpen,
+      builder: (child) {
+        return Stack(
+          children: [
+            child,
+            Background(
+              child: CustomLoadingOverlay(
+                message:
+                    "Migration in progress\nThis could take a while\nPlease don't leave this screen",
+                subMessage: "This only needs to run once per wallet",
+                eventBus: null,
+                textColor: Theme.of(context).extension<StackColors>()!.textDark,
               ),
-              AppBarIconButton(
-                size: 32,
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultBG,
-                shadows: const [],
-                icon: SvgPicture.asset(
-                  Assets.svg.arrowLeft,
-                  width: 18,
-                  height: 18,
+            )
+          ],
+        );
+      },
+      child: DesktopScaffold(
+        appBar: DesktopAppBar(
+          background: Theme.of(context).extension<StackColors>()!.popupBG,
+          leading: Expanded(
+            child: Row(
+              children: [
+                const SizedBox(
+                  width: 32,
+                ),
+                AppBarIconButton(
+                  size: 32,
                   color: Theme.of(context)
                       .extension<StackColors>()!
-                      .topNavIconPrimary,
+                      .textFieldDefaultBG,
+                  shadows: const [],
+                  icon: SvgPicture.asset(
+                    Assets.svg.arrowLeft,
+                    width: 18,
+                    height: 18,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .topNavIconPrimary,
+                  ),
+                  onPressed: onBackPressed,
                 ),
-                onPressed: onBackPressed,
+                const SizedBox(
+                  width: 15,
+                ),
+                SvgPicture.asset(
+                  Assets.svg.iconFor(coin: coin),
+                  width: 32,
+                  height: 32,
+                ),
+                const SizedBox(
+                  width: 12,
+                ),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minWidth: 48,
+                  ),
+                  child: IntrinsicWidth(
+                    child: DesktopWalletNameField(
+                      walletId: widget.walletId,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                Row(
+                  children: [
+                    NetworkInfoButton(
+                      walletId: widget.walletId,
+                      eventBus: eventBus,
+                    ),
+                    const SizedBox(
+                      width: 2,
+                    ),
+                    WalletKeysButton(
+                      walletId: widget.walletId,
+                    ),
+                    const SizedBox(
+                      width: 2,
+                    ),
+                    DeleteWalletButton(
+                      walletId: widget.walletId,
+                    ),
+                    const SizedBox(
+                      width: 12,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          useSpacers: false,
+          isCompactHeight: true,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              RoundedWhiteContainer(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    SvgPicture.asset(
+                      Assets.svg.iconFor(coin: coin),
+                      width: 40,
+                      height: 40,
+                    ),
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    DesktopWalletSummary(
+                      walletId: widget.walletId,
+                      managerProvider: managerProvider,
+                      initialSyncStatus: ref.watch(managerProvider
+                              .select((value) => value.isRefreshing))
+                          ? WalletSyncStatus.syncing
+                          : WalletSyncStatus.synced,
+                    ),
+                    const Spacer(),
+                    if (coin == Coin.firo) const SizedBox(width: 10),
+                    if (coin == Coin.firo)
+                      SecondaryButton(
+                        width: 180,
+                        buttonHeight: ButtonHeight.l,
+                        label: "Anonymize funds",
+                        onPressed: () async {
+                          await showDialog<void>(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) => DesktopDialog(
+                              maxWidth: 500,
+                              maxHeight: 210,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 32, vertical: 20),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      "Attention!",
+                                      style: STextStyles.desktopH2(context),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      "You're about to anonymize all of your public funds.",
+                                      style:
+                                          STextStyles.desktopTextSmall(context),
+                                    ),
+                                    const SizedBox(height: 32),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        SecondaryButton(
+                                          width: 200,
+                                          buttonHeight: ButtonHeight.l,
+                                          label: "Cancel",
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                        const SizedBox(width: 20),
+                                        PrimaryButton(
+                                          width: 200,
+                                          buttonHeight: ButtonHeight.l,
+                                          label: "Continue",
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+
+                                            unawaited(attemptAnonymize());
+                                          },
+                                        )
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    if (ref.watch(walletsChangeNotifierProvider.select(
+                        (value) => value
+                            .getManager(widget.walletId)
+                            .hasPaynymSupport)))
+                      SecondaryButton(
+                        label: "PayNym",
+                        width: 160,
+                        buttonHeight: ButtonHeight.l,
+                        icon: SvgPicture.asset(
+                          Assets.svg.user,
+                          height: 20,
+                          width: 20,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonTextSecondary,
+                        ),
+                        onPressed: onPaynymButtonPressed,
+                      ),
+                    // if (coin == Coin.firo) const SizedBox(width: 16),
+                    // SecondaryButton(
+                    //   width: 180,
+                    //   buttonHeight: ButtonHeight.l,
+                    //   onPressed: () {
+                    //     _onExchangePressed(context);
+                    //   },
+                    //   label: "Exchange",
+                    //   icon: Container(
+                    //     width: 24,
+                    //     height: 24,
+                    //     decoration: BoxDecoration(
+                    //       borderRadius: BorderRadius.circular(24),
+                    //       color: Theme.of(context)
+                    //           .extension<StackColors>()!
+                    //           .buttonBackPrimary
+                    //           .withOpacity(0.2),
+                    //     ),
+                    //     child: Center(
+                    //       child: SvgPicture.asset(
+                    //         Assets.svg.arrowRotate2,
+                    //         width: 14,
+                    //         height: 14,
+                    //         color: Theme.of(context)
+                    //             .extension<StackColors>()!
+                    //             .buttonTextSecondary,
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                  ],
+                ),
               ),
               const SizedBox(
-                width: 15,
+                height: 24,
               ),
-              SvgPicture.asset(
-                Assets.svg.iconFor(coin: coin),
-                width: 32,
-                height: 32,
-              ),
-              const SizedBox(
-                width: 12,
-              ),
-              ConstrainedBox(
-                constraints: const BoxConstraints(
-                  minWidth: 48,
+              Expanded(
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 450,
+                      child: MyWallet(
+                        walletId: widget.walletId,
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 16,
+                    ),
+                    Expanded(
+                      child: RecentDesktopTransactions(
+                        walletId: widget.walletId,
+                      ),
+                    ),
+                  ],
                 ),
-                child: IntrinsicWidth(
-                  child: DesktopWalletNameField(
-                    walletId: widget.walletId,
-                  ),
-                ),
-              ),
-              const Spacer(),
-              Row(
-                children: [
-                  NetworkInfoButton(
-                    walletId: widget.walletId,
-                    eventBus: eventBus,
-                  ),
-                  const SizedBox(
-                    width: 2,
-                  ),
-                  WalletKeysButton(
-                    walletId: widget.walletId,
-                  ),
-                  const SizedBox(
-                    width: 2,
-                  ),
-                  DeleteWalletButton(
-                    walletId: widget.walletId,
-                  ),
-                  const SizedBox(
-                    width: 12,
-                  ),
-                ],
               ),
             ],
           ),
-        ),
-        useSpacers: false,
-        isCompactHeight: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            RoundedWhiteContainer(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                children: [
-                  SvgPicture.asset(
-                    Assets.svg.iconFor(coin: coin),
-                    width: 40,
-                    height: 40,
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  DesktopWalletSummary(
-                    walletId: widget.walletId,
-                    managerProvider: managerProvider,
-                    initialSyncStatus: ref.watch(managerProvider
-                            .select((value) => value.isRefreshing))
-                        ? WalletSyncStatus.syncing
-                        : WalletSyncStatus.synced,
-                  ),
-                  const Spacer(),
-                  if (coin == Coin.firo) const SizedBox(width: 10),
-                  if (coin == Coin.firo)
-                    SecondaryButton(
-                      width: 180,
-                      buttonHeight: ButtonHeight.l,
-                      label: "Anonymize funds",
-                      onPressed: () async {
-                        await showDialog<void>(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (context) => DesktopDialog(
-                            maxWidth: 500,
-                            maxHeight: 210,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 32, vertical: 20),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    "Attention!",
-                                    style: STextStyles.desktopH2(context),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    "You're about to anonymize all of your public funds.",
-                                    style:
-                                        STextStyles.desktopTextSmall(context),
-                                  ),
-                                  const SizedBox(height: 32),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      SecondaryButton(
-                                        width: 200,
-                                        buttonHeight: ButtonHeight.l,
-                                        label: "Cancel",
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                      const SizedBox(width: 20),
-                                      PrimaryButton(
-                                        width: 200,
-                                        buttonHeight: ButtonHeight.l,
-                                        label: "Continue",
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-
-                                          unawaited(attemptAnonymize());
-                                        },
-                                      )
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  if (ref.watch(walletsChangeNotifierProvider.select((value) =>
-                      value.getManager(widget.walletId).hasPaynymSupport)))
-                    SecondaryButton(
-                      label: "PayNym",
-                      width: 160,
-                      buttonHeight: ButtonHeight.l,
-                      icon: SvgPicture.asset(
-                        Assets.svg.user,
-                        height: 20,
-                        width: 20,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .buttonTextSecondary,
-                      ),
-                      onPressed: onPaynymButtonPressed,
-                    ),
-                  // if (coin == Coin.firo) const SizedBox(width: 16),
-                  // SecondaryButton(
-                  //   width: 180,
-                  //   buttonHeight: ButtonHeight.l,
-                  //   onPressed: () {
-                  //     _onExchangePressed(context);
-                  //   },
-                  //   label: "Exchange",
-                  //   icon: Container(
-                  //     width: 24,
-                  //     height: 24,
-                  //     decoration: BoxDecoration(
-                  //       borderRadius: BorderRadius.circular(24),
-                  //       color: Theme.of(context)
-                  //           .extension<StackColors>()!
-                  //           .buttonBackPrimary
-                  //           .withOpacity(0.2),
-                  //     ),
-                  //     child: Center(
-                  //       child: SvgPicture.asset(
-                  //         Assets.svg.arrowRotate2,
-                  //         width: 14,
-                  //         height: 14,
-                  //         color: Theme.of(context)
-                  //             .extension<StackColors>()!
-                  //             .buttonTextSecondary,
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
-                ],
-              ),
-            ),
-            const SizedBox(
-              height: 24,
-            ),
-            Expanded(
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 450,
-                    child: MyWallet(
-                      walletId: widget.walletId,
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 16,
-                  ),
-                  Expanded(
-                    child: RecentDesktopTransactions(
-                      walletId: widget.walletId,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
         ),
       ),
     );

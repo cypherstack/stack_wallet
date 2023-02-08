@@ -21,7 +21,8 @@ abstract class Constants {
   }
 
   static bool enableExchange = Util.isDesktop || !Platform.isIOS;
-  static bool enableBuy = true; // true for development, TODO change to "Util.isDesktop || !Platform.isIOS;" as above or even just = enableExchange
+  static bool enableBuy =
+      true; // true for development, TODO change to "Util.isDesktop || !Platform.isIOS;" as above or even just = enableExchange
 
   //TODO: correct for monero?
   static const int _satsPerCoinMonero = 1000000000000;
@@ -40,6 +41,8 @@ abstract class Constants {
   static const bool disableLogger = false;
 
   static const int currentHiveDbVersion = 5;
+
+  static const int rescanV1 = 1;
 
   static int satsPerCoin(Coin coin) {
     switch (coin) {

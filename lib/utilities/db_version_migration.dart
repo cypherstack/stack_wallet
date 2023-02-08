@@ -8,6 +8,7 @@ import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets_service.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -222,6 +223,13 @@ class DbVersionMigrator with WalletDB {
         await secureStore.write(
             key: '${walletId}_mnemonicPassphrase', value: "");
       }
+
+      // set flag to initiate full rescan on opening wallet
+      await DB.instance.put<dynamic>(
+        boxName: DB.boxNameDBInfo,
+        key: "rescan_on_open_$walletId",
+        value: Constants.rescanV1,
+      );
     }
   }
 }
