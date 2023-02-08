@@ -5,10 +5,8 @@ import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
-import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 class ExchangeFormState extends ChangeNotifier {
@@ -175,16 +173,6 @@ class ExchangeFormState extends ChangeNotifier {
                     .rateTypeEqualTo(SupportedRateType.estimated))
             .findFirst();
       }
-      if (_sendCurrency == null) {
-        switch (exchange.name) {
-          case ChangeNowExchange.exchangeName:
-            _sendCurrency = _cachedSendCN;
-            break;
-          case MajesticBankExchange.exchangeName:
-            _sendCurrency = _cachedSendMB;
-            break;
-        }
-      }
 
       if (_receiveCurrency != null) {
         _receiveCurrency = await ExchangeDataLoadingService
@@ -206,23 +194,6 @@ class ExchangeFormState extends ChangeNotifier {
             .findFirst();
       }
 
-      if (_receiveCurrency == null) {
-        switch (exchange.name) {
-          case ChangeNowExchange.exchangeName:
-            _receiveCurrency = _cachedReceivingCN;
-            break;
-          case MajesticBankExchange.exchangeName:
-            _receiveCurrency = _cachedReceivingMB;
-            break;
-        }
-      }
-
-      _updateCachedCurrencies(
-        exchangeName: exchange.name,
-        send: _sendCurrency,
-        receiving: _receiveCurrency,
-      );
-
       await _updateRangesAndEstimate(
         shouldNotifyListeners: false,
       );
@@ -236,11 +207,6 @@ class ExchangeFormState extends ChangeNotifier {
   void setCurrencies(Currency from, Currency to) {
     _sendCurrency = from;
     _receiveCurrency = to;
-    _updateCachedCurrencies(
-      exchangeName: exchange.name,
-      send: _sendCurrency,
-      receiving: _receiveCurrency,
-    );
   }
 
   void reset({
@@ -324,12 +290,6 @@ class ExchangeFormState extends ChangeNotifier {
       _minSendAmount = null;
       _maxSendAmount = null;
 
-      _updateCachedCurrencies(
-        exchangeName: exchange.name,
-        send: _sendCurrency,
-        receiving: _receiveCurrency,
-      );
-
       if (_receiveCurrency == null) {
         _rate = null;
       } else {
@@ -353,12 +313,6 @@ class ExchangeFormState extends ChangeNotifier {
       _receiveCurrency = receiveCurrency;
       _minReceiveAmount = null;
       _maxReceiveAmount = null;
-
-      _updateCachedCurrencies(
-        exchangeName: exchange.name,
-        send: _sendCurrency,
-        receiving: _receiveCurrency,
-      );
 
       if (_sendCurrency == null) {
         _rate = null;
@@ -390,12 +344,6 @@ class ExchangeFormState extends ChangeNotifier {
     final Currency? tmp = sendCurrency;
     _sendCurrency = receiveCurrency;
     _receiveCurrency = tmp;
-
-    _updateCachedCurrencies(
-      exchangeName: exchange.name,
-      send: _sendCurrency,
-      receiving: _receiveCurrency,
-    );
 
     await _updateRangesAndEstimate(
       shouldNotifyListeners: false,
@@ -541,28 +489,6 @@ class ExchangeFormState extends ChangeNotifier {
   }
 
   //============================================================================
-
-  Currency? _cachedReceivingMB;
-  Currency? _cachedSendMB;
-  Currency? _cachedReceivingCN;
-  Currency? _cachedSendCN;
-
-  void _updateCachedCurrencies({
-    required String exchangeName,
-    required Currency? send,
-    required Currency? receiving,
-  }) {
-    switch (exchangeName) {
-      case ChangeNowExchange.exchangeName:
-        _cachedSendCN = send ?? _cachedSendCN;
-        _cachedReceivingCN = receiving ?? _cachedReceivingCN;
-        break;
-      case MajesticBankExchange.exchangeName:
-        _cachedSendMB = send ?? _cachedSendMB;
-        _cachedReceivingMB = receiving ?? _cachedReceivingMB;
-        break;
-    }
-  }
 
   void _notify() {
     debugPrint("ExFState NOTIFY: ${toString()}");
