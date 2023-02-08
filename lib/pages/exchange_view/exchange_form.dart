@@ -130,7 +130,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   }
 
   Future<AggregateCurrency> _getAggregateCurrency(Currency currency) async {
-    final rateType = ref.read(prefsChangeNotifierProvider).exchangeRateType;
+    final rateType = ref.read(exchangeFormStateProvider).exchangeRateType;
     final currencies = await ExchangeDataLoadingService.instance.isar.currencies
         .filter()
         .group((q) => rateType == ExchangeRateType.fixed
@@ -159,7 +159,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   }
 
   void selectSendCurrency() async {
-    final type = (ref.read(prefsChangeNotifierProvider).exchangeRateType);
+    final type = (ref.read(exchangeFormStateProvider).exchangeRateType);
     final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "";
 
     if (walletInitiated &&
@@ -197,7 +197,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       willChange: ref.read(exchangeFormStateProvider).receiveCurrency?.ticker,
       willChangeIsSend: false,
       paired: ref.read(exchangeFormStateProvider).sendCurrency?.ticker,
-      isFixedRate: ref.read(prefsChangeNotifierProvider).exchangeRateType ==
+      isFixedRate: ref.read(exchangeFormStateProvider).exchangeRateType ==
           ExchangeRateType.fixed,
     );
 
@@ -380,7 +380,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   }
 
   void onExchangePressed() async {
-    final rateType = ref.read(prefsChangeNotifierProvider).exchangeRateType;
+    final rateType = ref.read(exchangeFormStateProvider).exchangeRateType;
     final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "";
     final toTicker = ref.read(exchangeFormStateProvider).toTicker ?? "";
     final sendAmount = ref.read(exchangeFormStateProvider).sendAmount!;
@@ -671,7 +671,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     debugPrint("BUILD: $runtimeType");
 
     final rateType = ref.watch(
-        prefsChangeNotifierProvider.select((value) => value.exchangeRateType));
+        exchangeFormStateProvider.select((value) => value.exchangeRateType));
 
     final isEstimated = rateType == ExchangeRateType.estimated;
 
@@ -816,7 +816,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           background:
               Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
           onTap: () {
-            if (!(ref.read(prefsChangeNotifierProvider).exchangeRateType ==
+            if (!(ref.read(exchangeFormStateProvider).exchangeRateType ==
                     ExchangeRateType.estimated) &&
                 _receiveController.text == "-") {
               _receiveController.text = "";

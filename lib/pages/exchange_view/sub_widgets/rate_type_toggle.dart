@@ -24,16 +24,12 @@ class RateTypeToggle extends ConsumerWidget {
     return Toggle(
       onValueChanged: (value) {
         if (value) {
-          ref.read(prefsChangeNotifierProvider).exchangeRateType =
-              ExchangeRateType.fixed;
           onChanged?.call(ExchangeRateType.fixed);
         } else {
-          ref.read(prefsChangeNotifierProvider).exchangeRateType =
-              ExchangeRateType.estimated;
           onChanged?.call(ExchangeRateType.estimated);
         }
       },
-      isOn: ref.watch(prefsChangeNotifierProvider
+      isOn: ref.watch(exchangeFormStateProvider
               .select((value) => value.exchangeRateType)) ==
           ExchangeRateType.fixed,
       onColor: isDesktop
