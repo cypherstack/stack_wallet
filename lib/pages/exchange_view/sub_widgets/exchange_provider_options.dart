@@ -93,12 +93,10 @@ class _ExchangeProviderOptionsState
               ),
               child: GestureDetector(
                 onTap: () {
-                  if (ref.read(currentExchangeNameStateProvider.state).state !=
+                  if (ref.read(exchangeFormStateProvider).exchange.name !=
                       ChangeNowExchange.exchangeName) {
-                    ref.read(currentExchangeNameStateProvider.state).state =
-                        ChangeNowExchange.exchangeName;
                     ref.read(exchangeFormStateProvider).updateExchange(
-                          exchange: ref.read(exchangeProvider),
+                          exchange: ChangeNowExchange.instance,
                           shouldUpdateData: true,
                           shouldNotifyListeners: true,
                         );
@@ -124,23 +122,18 @@ class _ExchangeProviderOptionsState
                                   .extension<StackColors>()!
                                   .radioButtonIconEnabled,
                               value: ChangeNowExchange.exchangeName,
-                              groupValue: ref
-                                  .watch(currentExchangeNameStateProvider.state)
-                                  .state,
+                              groupValue: ref.watch(exchangeFormStateProvider
+                                  .select((value) => value.exchange.name)),
                               onChanged: (_) {
                                 if (ref
-                                        .read(currentExchangeNameStateProvider
-                                            .state)
-                                        .state !=
+                                        .read(exchangeFormStateProvider)
+                                        .exchange
+                                        .name !=
                                     ChangeNowExchange.exchangeName) {
-                                  ref
-                                      .read(currentExchangeNameStateProvider
-                                          .state)
-                                      .state = ChangeNowExchange.exchangeName;
                                   ref
                                       .read(exchangeFormStateProvider)
                                       .updateExchange(
-                                        exchange: ref.read(exchangeProvider),
+                                        exchange: ChangeNowExchange.instance,
                                         shouldUpdateData: true,
                                         shouldNotifyListeners: true,
                                       );
@@ -337,12 +330,10 @@ class _ExchangeProviderOptionsState
               ),
               child: GestureDetector(
                 onTap: () {
-                  if (ref.read(currentExchangeNameStateProvider.state).state !=
+                  if (ref.read(exchangeFormStateProvider).exchange.name !=
                       MajesticBankExchange.exchangeName) {
-                    ref.read(currentExchangeNameStateProvider.state).state =
-                        MajesticBankExchange.exchangeName;
                     ref.read(exchangeFormStateProvider).updateExchange(
-                          exchange: ref.read(exchangeProvider),
+                          exchange: MajesticBankExchange.instance,
                           shouldUpdateData: true,
                           shouldNotifyListeners: true,
                         );
@@ -368,24 +359,18 @@ class _ExchangeProviderOptionsState
                                   .extension<StackColors>()!
                                   .radioButtonIconEnabled,
                               value: MajesticBankExchange.exchangeName,
-                              groupValue: ref
-                                  .watch(currentExchangeNameStateProvider.state)
-                                  .state,
+                              groupValue: ref.watch(exchangeFormStateProvider
+                                  .select((value) => value.exchange.name)),
                               onChanged: (_) {
                                 if (ref
-                                        .read(currentExchangeNameStateProvider
-                                            .state)
-                                        .state !=
+                                        .read(exchangeFormStateProvider)
+                                        .exchange
+                                        .name !=
                                     MajesticBankExchange.exchangeName) {
-                                  ref
-                                          .read(currentExchangeNameStateProvider
-                                              .state)
-                                          .state =
-                                      MajesticBankExchange.exchangeName;
                                   ref
                                       .read(exchangeFormStateProvider)
                                       .updateExchange(
-                                        exchange: ref.read(exchangeProvider),
+                                        exchange: MajesticBankExchange.instance,
                                         shouldUpdateData: true,
                                         shouldNotifyListeners: true,
                                       );

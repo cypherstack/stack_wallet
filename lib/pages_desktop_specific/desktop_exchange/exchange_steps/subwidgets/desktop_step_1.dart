@@ -38,7 +38,8 @@ class DesktopStep1 extends ConsumerWidget {
             children: [
               DesktopStepItem(
                 label: "Exchange",
-                value: ref.watch(currentExchangeNameStateProvider.state).state,
+                value: ref.watch(exchangeFormStateProvider
+                    .select((value) => value.exchange.name)),
               ),
               Container(
                 height: 1,

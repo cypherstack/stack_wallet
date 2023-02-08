@@ -13,7 +13,7 @@ import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_ste
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_3.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_4.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/subwidgets/desktop_exchange_steps_indicator.dart';
-import 'package:stackwallet/providers/exchange/exchange_provider.dart';
+import 'package:stackwallet/providers/exchange/exchange_form_state_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
@@ -83,7 +83,8 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
     );
 
     final ExchangeResponse<Trade> response = await ref
-        .read(exchangeProvider)
+        .read(exchangeFormStateProvider)
+        .exchange
         .createTrade(
           from: ref.read(desktopExchangeModelProvider)!.sendTicker,
           to: ref.read(desktopExchangeModelProvider)!.receiveTicker,

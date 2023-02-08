@@ -7,9 +7,8 @@ import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_4_view.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
-import 'package:stackwallet/providers/exchange/current_exchange_name_state_provider.dart';
-import 'package:stackwallet/providers/exchange/exchange_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
+import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/services/notifications_api.dart';
@@ -53,9 +52,9 @@ class _Step3ViewState extends ConsumerState<Step3View> {
 
   @override
   Widget build(BuildContext context) {
-    final supportsRefund =
-        ref.watch(currentExchangeNameStateProvider.state).state !=
-            MajesticBankExchange.exchangeName;
+    final supportsRefund = ref.watch(
+            exchangeFormStateProvider.select((value) => value.exchange.name)) !=
+        MajesticBankExchange.exchangeName;
 
     return Background(
       child: Scaffold(
@@ -255,7 +254,8 @@ class _Step3ViewState extends ConsumerState<Step3View> {
 
                                     final ExchangeResponse<Trade> response =
                                         await ref
-                                            .read(exchangeProvider)
+                                            .read(exchangeFormStateProvider)
+                                            .exchange
                                             .createTrade(
                                               from: model.sendTicker,
                                               to: model.receiveTicker,

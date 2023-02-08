@@ -65,8 +65,10 @@ class _Step4ViewState extends ConsumerState<Step4View> {
   }
 
   Future<void> _updateStatus() async {
-    final statusResponse =
-        await ref.read(exchangeProvider).updateTrade(model.trade!);
+    final statusResponse = await ref
+        .read(exchangeFormStateProvider)
+        .exchange
+        .updateTrade(model.trade!);
     String status = "Waiting";
     if (statusResponse.value != null) {
       status = statusResponse.value!.status;

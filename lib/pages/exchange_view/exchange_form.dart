@@ -386,7 +386,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     final sendAmount = ref.read(exchangeFormStateProvider).sendAmount!;
     final estimate = ref.read(exchangeFormStateProvider).estimate!;
 
-    final exchangeName = ref.read(currentExchangeNameStateProvider.state).state;
+    final exchangeName = ref.read(exchangeFormStateProvider).exchange.name;
 
     String rate;
 
@@ -828,7 +828,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           currency: ref.watch(exchangeFormStateProvider
               .select((value) => value.receiveCurrency)),
           readOnly: (rateType) == ExchangeRateType.estimated &&
-              ref.watch(exchangeProvider).name ==
+              ref.watch(exchangeFormStateProvider
+                      .select((value) => value.exchange.name)) ==
                   ChangeNowExchange.exchangeName,
         ),
         if (ref

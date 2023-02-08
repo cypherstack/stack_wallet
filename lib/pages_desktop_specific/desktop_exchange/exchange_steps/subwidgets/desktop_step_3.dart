@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_item.dart';
-import 'package:stackwallet/providers/exchange/current_exchange_name_state_provider.dart';
+import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -36,7 +36,8 @@ class _DesktopStep3State extends ConsumerState<DesktopStep3> {
             children: [
               DesktopStepItem(
                 label: "Exchange",
-                value: ref.watch(currentExchangeNameStateProvider.state).state,
+                value: ref.watch(exchangeFormStateProvider
+                    .select((value) => value.exchange.name)),
               ),
               Container(
                 height: 1,
