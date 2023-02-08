@@ -708,10 +708,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           onChanged: sendFieldOnChanged,
           onButtonTap: selectSendCurrency,
           isWalletCoin: isWalletCoin(coin, true),
-          image: ref.watch(exchangeFormStateProvider
-              .select((value) => value.sendCurrency?.image)),
-          ticker: ref.watch(
-              exchangeFormStateProvider.select((value) => value.fromTicker)),
+          currency: ref.watch(
+              exchangeFormStateProvider.select((value) => value.sendCurrency)),
         ),
         SizedBox(
           height: isDesktop ? 10 : 4,
@@ -800,11 +798,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           onChanged: receiveFieldOnChanged,
           onButtonTap: selectReceiveCurrency,
           isWalletCoin: isWalletCoin(coin, true),
-          image: ref.watch(exchangeFormStateProvider
-                  .select((value) => value.receiveCurrency?.image)) ??
-              "",
-          ticker: ref.watch(
-              exchangeFormStateProvider.select((value) => value.toTicker)),
+          currency: ref.watch(exchangeFormStateProvider
+              .select((value) => value.receiveCurrency)),
           readOnly: (rateType) == ExchangeRateType.estimated &&
               ref.watch(exchangeProvider).name ==
                   ChangeNowExchange.exchangeName,
