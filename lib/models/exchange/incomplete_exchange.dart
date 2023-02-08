@@ -1,7 +1,7 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
+import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
 
 class IncompleteExchangeModel extends ChangeNotifier {
   final String sendTicker;

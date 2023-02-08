@@ -14,7 +14,6 @@ import 'package:stackwallet/pages/exchange_view/exchange_coin_selection/exchange
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_1_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_2_view.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_provider_options.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/rate_type_toggle.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -23,6 +22,7 @@ import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';

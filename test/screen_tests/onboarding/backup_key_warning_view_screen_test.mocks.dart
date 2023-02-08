@@ -426,6 +426,11 @@ class MockManager extends _i1.Mock implements _i9.Manager {
         returnValue: false,
       ) as bool);
   @override
+  int get rescanOnOpenVersion => (super.noSuchMethod(
+        Invocation.getter(#rescanOnOpenVersion),
+        returnValue: 0,
+      ) as int);
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
@@ -590,6 +595,15 @@ class MockManager extends _i1.Mock implements _i9.Manager {
         ),
         returnValue: _i6.Future<bool>.value(false),
       ) as _i6.Future<bool>);
+  @override
+  _i6.Future<void> resetRescanOnOpen() => (super.noSuchMethod(
+        Invocation.method(
+          #resetRescanOnOpen,
+          [],
+        ),
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
   @override
   void addListener(_i8.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(

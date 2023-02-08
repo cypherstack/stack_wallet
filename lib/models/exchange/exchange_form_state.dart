@@ -2,10 +2,10 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:stackwallet/models/exchange/aggregate_currency.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
+import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 class ExchangeFormState extends ChangeNotifier {
