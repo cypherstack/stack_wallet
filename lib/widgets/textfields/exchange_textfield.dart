@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
+import 'package:stackwallet/models/exchange/aggregate_currency.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -42,7 +42,7 @@ class ExchangeTextField extends StatefulWidget {
 
   final bool isWalletCoin;
   final bool readOnly;
-  final Currency? currency;
+  final AggregateCurrency? currency;
 
   @override
   State<ExchangeTextField> createState() => _ExchangeTextFieldState();

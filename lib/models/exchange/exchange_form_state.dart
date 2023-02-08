@@ -1,12 +1,9 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
-import 'package:isar/isar.dart';
+import 'package:stackwallet/models/exchange/aggregate_currency.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
-import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
-import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
-import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 class ExchangeFormState extends ChangeNotifier {
@@ -51,15 +48,15 @@ class ExchangeFormState extends ChangeNotifier {
     //
   }
 
-  Currency? _sendCurrency;
-  Currency? get sendCurrency => _sendCurrency;
+  AggregateCurrency? _sendCurrency;
+  AggregateCurrency? get sendCurrency => _sendCurrency;
   // set sendCurrency(Currency? sendCurrency) {
   //   _sendCurrency = sendCurrency;
   //   //
   // }
 
-  Currency? _receiveCurrency;
-  Currency? get receiveCurrency => _receiveCurrency;
+  AggregateCurrency? _receiveCurrency;
+  AggregateCurrency? get receiveCurrency => _receiveCurrency;
   // set receiveCurrency(Currency? receiveCurrency) {
   //   _receiveCurrency = receiveCurrency;
   //   //
@@ -111,8 +108,8 @@ class ExchangeFormState extends ChangeNotifier {
         receiveAmount != null &&
         rate != null &&
         rate! >= Decimal.zero &&
-        exchange.name == sendCurrency!.exchangeName &&
-        exchange.name == receiveCurrency!.exchangeName &&
+        sendCurrency!.forExchange(exchange.name) != null &&
+        receiveCurrency!.forExchange(exchange.name) != null &&
         warning.isEmpty;
   }
 
@@ -154,46 +151,6 @@ class ExchangeFormState extends ChangeNotifier {
   }) async {
     _exchange = exchange;
     if (shouldUpdateData) {
-      if (_sendCurrency != null) {
-        _sendCurrency = await ExchangeDataLoadingService
-            .instance.isar.currencies
-            .where()
-            .exchangeNameEqualTo(exchange.name)
-            .filter()
-            .tickerEqualTo(_sendCurrency!.ticker)
-            .and()
-            .group((q) => exchangeRateType == ExchangeRateType.fixed
-                ? q
-                    .rateTypeEqualTo(SupportedRateType.both)
-                    .or()
-                    .rateTypeEqualTo(SupportedRateType.fixed)
-                : q
-                    .rateTypeEqualTo(SupportedRateType.both)
-                    .or()
-                    .rateTypeEqualTo(SupportedRateType.estimated))
-            .findFirst();
-      }
-
-      if (_receiveCurrency != null) {
-        _receiveCurrency = await ExchangeDataLoadingService
-            .instance.isar.currencies
-            .where()
-            .exchangeNameEqualTo(exchange.name)
-            .filter()
-            .tickerEqualTo(_receiveCurrency!.ticker)
-            .and()
-            .group((q) => exchangeRateType == ExchangeRateType.fixed
-                ? q
-                    .rateTypeEqualTo(SupportedRateType.both)
-                    .or()
-                    .rateTypeEqualTo(SupportedRateType.fixed)
-                : q
-                    .rateTypeEqualTo(SupportedRateType.both)
-                    .or()
-                    .rateTypeEqualTo(SupportedRateType.estimated))
-            .findFirst();
-      }
-
       await _updateRangesAndEstimate(
         shouldNotifyListeners: false,
       );
@@ -204,7 +161,7 @@ class ExchangeFormState extends ChangeNotifier {
     }
   }
 
-  void setCurrencies(Currency from, Currency to) {
+  void setCurrencies(AggregateCurrency from, AggregateCurrency to) {
     _sendCurrency = from;
     _receiveCurrency = to;
   }
@@ -282,7 +239,7 @@ class ExchangeFormState extends ChangeNotifier {
   }
 
   Future<void> updateSendCurrency(
-    Currency sendCurrency,
+    AggregateCurrency sendCurrency,
     bool shouldNotifyListeners,
   ) async {
     try {
@@ -306,7 +263,7 @@ class ExchangeFormState extends ChangeNotifier {
   }
 
   Future<void> updateReceivingCurrency(
-    Currency receiveCurrency,
+    AggregateCurrency receiveCurrency,
     bool shouldNotifyListeners,
   ) async {
     try {
@@ -341,7 +298,7 @@ class ExchangeFormState extends ChangeNotifier {
     _minReceiveAmount = null;
     _maxReceiveAmount = null;
 
-    final Currency? tmp = sendCurrency;
+    final AggregateCurrency? tmp = sendCurrency;
     _sendCurrency = receiveCurrency;
     _receiveCurrency = tmp;
 

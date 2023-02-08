@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
+import 'package:stackwallet/models/exchange/aggregate_currency.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
@@ -128,6 +129,35 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     });
   }
 
+  Future<AggregateCurrency> _getAggregateCurrency(Currency currency) async {
+    final rateType = ref.read(prefsChangeNotifierProvider).exchangeRateType;
+    final currencies = await ExchangeDataLoadingService.instance.isar.currencies
+        .filter()
+        .group((q) => rateType == ExchangeRateType.fixed
+            ? q
+                .rateTypeEqualTo(SupportedRateType.both)
+                .or()
+                .rateTypeEqualTo(SupportedRateType.fixed)
+            : q
+                .rateTypeEqualTo(SupportedRateType.both)
+                .or()
+                .rateTypeEqualTo(SupportedRateType.estimated))
+        .and()
+        .tickerEqualTo(
+          currency.ticker,
+          caseSensitive: false,
+        )
+        .findAll();
+
+    final items = [Tuple2(currency.exchangeName, currency)];
+
+    for (final currency in currencies) {
+      items.add(Tuple2(currency.exchangeName, currency));
+    }
+
+    return AggregateCurrency(exchangeCurrencyPairs: items);
+  }
+
   void selectSendCurrency() async {
     final type = (ref.read(prefsChangeNotifierProvider).exchangeRateType);
     final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "";
@@ -139,17 +169,18 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     }
 
     final selectedCurrency = await _showCurrencySelectionSheet(
-      willChange: ref.read(exchangeFormStateProvider).sendCurrency,
+      willChange: ref.read(exchangeFormStateProvider).sendCurrency?.ticker,
       willChangeIsSend: true,
-      paired: ref.read(exchangeFormStateProvider).receiveCurrency,
+      paired: ref.read(exchangeFormStateProvider).receiveCurrency?.ticker,
       isFixedRate: type == ExchangeRateType.fixed,
     );
 
     if (selectedCurrency != null) {
       await showUpdatingExchangeRate(
-        whileFuture: ref
-            .read(exchangeFormStateProvider)
-            .updateSendCurrency(selectedCurrency, true),
+        whileFuture: _getAggregateCurrency(selectedCurrency).then(
+            (aggregateSelected) => ref
+                .read(exchangeFormStateProvider)
+                .updateSendCurrency(aggregateSelected, true)),
       );
     }
   }
@@ -163,18 +194,19 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     }
 
     final selectedCurrency = await _showCurrencySelectionSheet(
-      willChange: ref.read(exchangeFormStateProvider).receiveCurrency,
+      willChange: ref.read(exchangeFormStateProvider).receiveCurrency?.ticker,
       willChangeIsSend: false,
-      paired: ref.read(exchangeFormStateProvider).sendCurrency,
+      paired: ref.read(exchangeFormStateProvider).sendCurrency?.ticker,
       isFixedRate: ref.read(prefsChangeNotifierProvider).exchangeRateType ==
           ExchangeRateType.fixed,
     );
 
     if (selectedCurrency != null) {
       await showUpdatingExchangeRate(
-        whileFuture: ref
-            .read(exchangeFormStateProvider)
-            .updateReceivingCurrency(selectedCurrency, true),
+        whileFuture: _getAggregateCurrency(selectedCurrency).then(
+            (aggregateSelected) => ref
+                .read(exchangeFormStateProvider)
+                .updateReceivingCurrency(aggregateSelected, true)),
       );
     }
   }
@@ -193,8 +225,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   }
 
   Future<Currency?> _showCurrencySelectionSheet({
-    required Currency? willChange,
-    required Currency? paired,
+    required String? willChange,
+    required String? paired,
     required bool isFixedRate,
     required bool willChangeIsSend,
   }) async {
@@ -241,8 +273,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                                     .extension<StackColors>()!
                                     .background,
                                 child: ExchangeCurrencySelectionView(
-                                  willChange: willChange,
-                                  paired: paired,
+                                  willChangeTicker: willChange,
+                                  pairedTicker: paired,
                                   isFixedRate: isFixedRate,
                                   willChangeIsSend: willChangeIsSend,
                                 ),
@@ -259,8 +291,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         : await Navigator.of(context).push(
             MaterialPageRoute<dynamic>(
               builder: (_) => ExchangeCurrencySelectionView(
-                willChange: willChange,
-                paired: paired,
+                willChangeTicker: willChange,
+                pairedTicker: paired,
                 isFixedRate: isFixedRate,
                 willChangeIsSend: willChangeIsSend,
               ),
@@ -292,57 +324,58 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     ref.read(exchangeFormStateProvider).reversed = false;
 
     if (!(toTicker == "-" || fromTicker == "-")) {
-      final available = await ExchangeDataLoadingService.instance.isar.pairs
-          .where()
-          .exchangeNameEqualTo(
-              ref.read(currentExchangeNameStateProvider.state).state)
-          .filter()
-          .fromEqualTo(fromTicker)
-          .and()
-          .toEqualTo(toTicker)
-          .findAll();
+      // final available = await ExchangeDataLoadingService.instance.isar.pairs
+      //     .where()
+      //     .exchangeNameEqualTo(
+      //         ref.read(currentExchangeNameStateProvider.state).state)
+      //     .filter()
+      //     .fromEqualTo(fromTicker)
+      //     .and()
+      //     .toEqualTo(toTicker)
+      //     .findAll();
+      await ref.read(exchangeFormStateProvider).refresh();
 
-      if (available.isNotEmpty) {
-        final availableCurrencies = await ExchangeDataLoadingService
-            .instance.isar.currencies
-            .where()
-            .exchangeNameEqualTo(
-                ref.read(currentExchangeNameStateProvider.state).state)
-            .filter()
-            .tickerEqualTo(fromTicker)
-            .or()
-            .tickerEqualTo(toTicker)
-            .findAll();
-
-        if (availableCurrencies.length > 1) {
-          final from =
-              availableCurrencies.firstWhere((e) => e.ticker == fromTicker);
-          final to =
-              availableCurrencies.firstWhere((e) => e.ticker == toTicker);
-
-          final newFromAmount = Decimal.tryParse(_sendController.text);
-          ref.read(exchangeFormStateProvider).receiveAmount = newFromAmount;
-          if (newFromAmount == null) {
-            _receiveController.text = "";
-          }
-
-          await ref
-              .read(exchangeFormStateProvider)
-              .updateReceivingCurrency(to, false);
-          await ref
-              .read(exchangeFormStateProvider)
-              .updateSendCurrency(from, true);
-
-          _receiveController.text =
-              ref.read(exchangeFormStateProvider).toAmountString.isEmpty
-                  ? "-"
-                  : ref.read(exchangeFormStateProvider).toAmountString;
-          if (mounted) {
-            Navigator.of(context, rootNavigator: isDesktop).pop();
-          }
-          return;
-        }
-      }
+      // if (available.isNotEmpty) {
+      //   final availableCurrencies = await ExchangeDataLoadingService
+      //       .instance.isar.currencies
+      //       .where()
+      //       .exchangeNameEqualTo(
+      //           ref.read(currentExchangeNameStateProvider.state).state)
+      //       .filter()
+      //       .tickerEqualTo(fromTicker)
+      //       .or()
+      //       .tickerEqualTo(toTicker)
+      //       .findAll();
+      //
+      //   if (availableCurrencies.length > 1) {
+      //     final from =
+      //         availableCurrencies.firstWhere((e) => e.ticker == fromTicker);
+      //     final to =
+      //         availableCurrencies.firstWhere((e) => e.ticker == toTicker);
+      //
+      //     final newFromAmount = Decimal.tryParse(_sendController.text);
+      //     ref.read(exchangeFormStateProvider).receiveAmount = newFromAmount;
+      //     if (newFromAmount == null) {
+      //       _receiveController.text = "";
+      //     }
+      //
+      //     await ref
+      //         .read(exchangeFormStateProvider)
+      //         .updateReceivingCurrency(to, false);
+      //     await ref
+      //         .read(exchangeFormStateProvider)
+      //         .updateSendCurrency(from, true);
+      //
+      //     _receiveController.text =
+      //         ref.read(exchangeFormStateProvider).toAmountString.isEmpty
+      //             ? "-"
+      //             : ref.read(exchangeFormStateProvider).toAmountString;
+      //     if (mounted) {
+      //       Navigator.of(context, rootNavigator: isDesktop).pop();
+      //     }
+      //     return;
+      //   }
+      // }
     }
   }
 

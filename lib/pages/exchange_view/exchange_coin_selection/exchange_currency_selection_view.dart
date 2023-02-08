@@ -26,14 +26,14 @@ import 'package:stackwallet/widgets/textfield_icon_button.dart';
 class ExchangeCurrencySelectionView extends StatefulWidget {
   const ExchangeCurrencySelectionView({
     Key? key,
-    required this.willChange,
-    required this.paired,
+    required this.willChangeTicker,
+    required this.pairedTicker,
     required this.isFixedRate,
     required this.willChangeIsSend,
   }) : super(key: key);
 
-  final Currency? willChange;
-  final Currency? paired;
+  final String? willChangeTicker;
+  final String? pairedTicker;
   final bool isFixedRate;
   final bool willChangeIsSend;
 
@@ -87,7 +87,7 @@ class _ExchangeCurrencySelectionViewState
   }
 
   Future<List<Currency>> _loadCurrencies() async {
-    if (widget.paired == null) {
+    if (widget.pairedTicker == null) {
       return await _getCurrencies();
     }
 
@@ -136,8 +136,8 @@ class _ExchangeCurrencySelectionViewState
                 .rateTypeEqualTo(SupportedRateType.estimated))
         .and()
         .group((q) => widget.willChangeIsSend
-            ? q.toEqualTo(widget.paired!.ticker, caseSensitive: false)
-            : q.fromEqualTo(widget.paired!.ticker, caseSensitive: false));
+            ? q.toEqualTo(widget.pairedTicker!, caseSensitive: false)
+            : q.fromEqualTo(widget.pairedTicker!, caseSensitive: false));
 
     if (widget.willChangeIsSend) {
       return query.sortByFrom().findAll();
@@ -170,7 +170,7 @@ class _ExchangeCurrencySelectionViewState
       return _currencies;
     }
 
-    if (widget.paired == null) {
+    if (widget.pairedTicker == null) {
       return _currencies
           .where((e) =>
               e.name.toLowerCase().contains(text.toLowerCase()) ||
@@ -179,7 +179,7 @@ class _ExchangeCurrencySelectionViewState
     } else {
       return _currencies
           .where((e) =>
-              e.ticker.toLowerCase() != widget.paired!.ticker.toLowerCase() &&
+              e.ticker.toLowerCase() != widget.pairedTicker!.toLowerCase() &&
               (e.name.toLowerCase().contains(text.toLowerCase()) ||
                   e.ticker.toLowerCase().contains(text.toLowerCase())))
           .toList(growable: false);
@@ -318,8 +318,7 @@ class _ExchangeCurrencySelectionViewState
           Flexible(
             child: Builder(builder: (context) {
               final coins = Coin.values.where((e) =>
-                  e.ticker.toLowerCase() !=
-                  widget.paired?.ticker.toLowerCase());
+                  e.ticker.toLowerCase() != widget.pairedTicker?.toLowerCase());
 
               final items = filter(_searchString)
                   .where((e) => coins
