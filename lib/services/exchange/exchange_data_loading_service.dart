@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
+import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
@@ -16,6 +17,25 @@ class ExchangeDataLoadingService {
   Isar? _isar;
   Isar get isar => _isar!;
 
+  VoidCallback? onLoadingError;
+  VoidCallback? onLoadingComplete;
+
+  static const int cacheVersion = 1;
+
+  static int get currentCacheVersion =>
+      DB.instance.get<dynamic>(
+          boxName: DB.boxNameDBInfo,
+          key: "exchange_data_cache_version") as int? ??
+      0;
+
+  Future<void> _updateCurrentCacheVersion(int version) async {
+    await DB.instance.put<dynamic>(
+      boxName: DB.boxNameDBInfo,
+      key: "exchange_data_cache_version",
+      value: version,
+    );
+  }
+
   Future<void> init() async {
     if (_isar != null && isar.isOpen) return;
     _isar = await Isar.open(
@@ -25,18 +45,23 @@ class ExchangeDataLoadingService {
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       inspector: kDebugMode,
+      // inspector: false,
       name: "exchange_cache",
     );
   }
 
+  bool get isLoading => _locked;
+
   bool _locked = false;
 
   Future<void> loadAll() async {
-    print("LOADINGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG: LOCKED=$_locked");
     if (!_locked) {
       _locked = true;
-      print("LOADINGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG");
-      final time = DateTime.now();
+      Logging.instance.log(
+        "ExchangeDataLoadingService.loadAll starting...",
+        level: LogLevel.Info,
+      );
+      final start = DateTime.now();
       try {
         await Future.wait([
           _loadChangeNowCurrencies(),
@@ -46,13 +71,18 @@ class ExchangeDataLoadingService {
           // loadSimpleswapFloatingRateCurrencies(ref),
           loadMajesticBankCurrencies(),
         ]);
-
-        print(
-            "LOADINGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG done in ${DateTime.now().difference(time).inSeconds} seconds");
+        Logging.instance.log(
+          "ExchangeDataLoadingService.loadAll finished in ${DateTime.now().difference(start).inSeconds} seconds",
+          level: LogLevel.Info,
+        );
+        onLoadingComplete?.call();
+        await _updateCurrentCacheVersion(cacheVersion);
       } catch (e, s) {
         Logging.instance.log(
-            "ExchangeDataLoadingService.loadAll failed: $e\n$s",
-            level: LogLevel.Error);
+          "ExchangeDataLoadingService.loadAll failed after ${DateTime.now().difference(start).inSeconds} seconds: $e\n$s",
+          level: LogLevel.Error,
+        );
+        onLoadingError?.call();
       }
       _locked = false;
     }
@@ -82,7 +112,7 @@ class ExchangeDataLoadingService {
   Future<void> _loadChangeNowFixedRatePairs() async {
     final exchange = ChangeNowExchange.instance;
 
-    final responsePairs = await exchange.getAllPairs(true);
+    final responsePairs = await compute(exchange.getAllPairs, true);
 
     if (responsePairs.value != null) {
       await isar.writeTxn(() async {
@@ -107,7 +137,7 @@ class ExchangeDataLoadingService {
   Future<void> _loadChangeNowEstimatedRatePairs() async {
     final exchange = ChangeNowExchange.instance;
 
-    final responsePairs = await exchange.getAllPairs(false);
+    final responsePairs = await compute(exchange.getAllPairs, false);
 
     if (responsePairs.value != null) {
       await isar.writeTxn(() async {
