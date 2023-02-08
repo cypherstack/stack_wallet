@@ -29,7 +29,6 @@ import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
@@ -292,10 +291,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
         unawaited(
           Navigator.of(context).pushNamed(
             WalletInitiatedExchangeView.routeName,
-            arguments: Tuple3(
+            arguments: Tuple2(
               walletId,
               coin,
-              _loadCNData,
             ),
           ),
         );
@@ -367,17 +365,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
         );
       }
     }
-  }
-
-  void _loadCNData() {
-    // unawaited future
-    // if (ref.read(prefsChangeNotifierProvider).externalCalls) {
-    ExchangeDataLoadingService.instance.loadAll();
-    // .loadAll(ref, coin: ref.read(managerProvider).coin);
-    // } else {
-    //   Logging.instance.log("User does not want to use external calls",
-    //       level: LogLevel.Info);
-    // }
   }
 
   @override
