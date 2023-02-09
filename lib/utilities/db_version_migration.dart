@@ -1,8 +1,10 @@
 import 'package:hive/hive.dart';
+import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/models.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
@@ -14,6 +16,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:tuple/tuple.dart';
 
 class DbVersionMigrator with WalletDB {
   Future<void> migrate(
@@ -195,6 +198,7 @@ class DbVersionMigrator with WalletDB {
     final prefs = Prefs.instance;
     final walletInfoList = await walletsService.walletNames;
     await prefs.init();
+    await MainDB.instance.initMainDB();
 
     for (final walletId in walletInfoList.keys) {
       final info = walletInfoList[walletId]!;
@@ -204,6 +208,64 @@ class DbVersionMigrator with WalletDB {
 
       const receiveAddressesPrefix = "receivingAddresses";
       const changeAddressesPrefix = "changeAddresses";
+
+      // we need to manually migrate epic cash transactions as they are not
+      // stored on the epic cash blockchain
+      if (info.coin == Coin.epicCash) {
+        final txnData = walletBox.get("latest_tx_model") as TransactionData?;
+
+        // we ever only used index 0 in the past
+        const rcvIndex = 0;
+
+        final List<Tuple2<isar_models.Transaction, isar_models.Address?>>
+            transactionsData = [];
+        if (txnData != null) {
+          final txns = txnData.getAllTransactions();
+
+          for (final tx in txns.values) {
+            bool isIncoming = tx.txType == "Received";
+
+            final iTx = isar_models.Transaction(
+              walletId: walletId,
+              txid: tx.txid,
+              timestamp: tx.timestamp,
+              type: isIncoming
+                  ? isar_models.TransactionType.incoming
+                  : isar_models.TransactionType.outgoing,
+              subType: isar_models.TransactionSubType.none,
+              amount: tx.amount,
+              fee: tx.fees,
+              height: tx.height,
+              isCancelled: tx.isCancelled,
+              isLelantus: false,
+              slateId: tx.slateId,
+              otherData: tx.otherData,
+              inputs: [],
+              outputs: [],
+            );
+
+            if (tx.address.isEmpty) {
+              transactionsData.add(Tuple2(iTx, null));
+            } else {
+              final address = isar_models.Address(
+                walletId: walletId,
+                value: tx.address,
+                publicKey: [],
+                derivationIndex: isIncoming ? rcvIndex : -1,
+                derivationPath: null,
+                type: isIncoming
+                    ? isar_models.AddressType.mimbleWimble
+                    : isar_models.AddressType.unknown,
+                subType: isIncoming
+                    ? isar_models.AddressSubType.receiving
+                    : isar_models.AddressSubType.unknown,
+              );
+              transactionsData.add(Tuple2(iTx, address));
+            }
+          }
+        }
+        await MainDB.instance.addNewTransactionData(transactionsData, walletId);
+      }
 
       // delete data from hive
       await walletBox.delete(receiveAddressesPrefix);
@@ -224,12 +286,16 @@ class DbVersionMigrator with WalletDB {
             key: '${walletId}_mnemonicPassphrase', value: "");
       }
 
-      // set flag to initiate full rescan on opening wallet
-      await DB.instance.put<dynamic>(
-        boxName: DB.boxNameDBInfo,
-        key: "rescan_on_open_$walletId",
-        value: Constants.rescanV1,
-      );
+      // doing this for epic cash will delete transaction history as it is not
+      // stored on the epic cash blockchain
+      if (info.coin != Coin.epicCash) {
+        // set flag to initiate full rescan on opening wallet
+        await DB.instance.put<dynamic>(
+          boxName: DB.boxNameDBInfo,
+          key: "rescan_on_open_$walletId",
+          value: Constants.rescanV1,
+        );
+      }
     }
   }
 }
