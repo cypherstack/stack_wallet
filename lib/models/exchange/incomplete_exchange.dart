@@ -15,6 +15,7 @@ class IncompleteExchangeModel extends ChangeNotifier {
   final ExchangeRateType rateType;
 
   final bool reversed;
+  final bool walletInitiated;
 
   String? _recipientAddress;
 
@@ -68,6 +69,7 @@ class IncompleteExchangeModel extends ChangeNotifier {
     required this.receiveAmount,
     required this.rateType,
     required this.reversed,
+    required this.walletInitiated,
     String? rateId,
   }) : _rateId = rateId;
 }

@@ -558,6 +558,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       rateType: rateType,
       rateId: estimate.rateId,
       reversed: estimate.reversed,
+      walletInitiated: walletInitiated,
     );
 
     if (mounted) {
