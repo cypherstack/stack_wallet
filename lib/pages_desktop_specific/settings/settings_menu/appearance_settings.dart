@@ -27,7 +27,8 @@ class _AppearanceOptionSettings
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    return Column(
+    return SingleChildScrollView(
+        child: Column(
       children: [
         Padding(
           padding: const EdgeInsets.only(
@@ -145,7 +146,7 @@ class _AppearanceOptionSettings
           ),
         ),
       ],
-    );
+    ));
   }
 }
 
