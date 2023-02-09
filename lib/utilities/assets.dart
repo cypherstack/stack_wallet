@@ -92,6 +92,7 @@ class _SVG {
       "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/tx-exchange-icon-failed.svg";
 
   String get themeFruit => "assets/svg/fruit-sorbet-theme.svg";
+  String get themeForest => "assets/svg/forest-theme.svg";
   String get themeOledBlack => "assets/svg/oled-black-theme.svg";
   String get themeOcean => "assets/svg/ocean-breeze-theme.svg";
   String get themeLight => "assets/svg/light-mode.svg";
@@ -260,6 +261,8 @@ class _SVG {
 
 class _PNG {
   const _PNG();
+
+  // String get themeFruit => "assets/svg/fruit-sorbet-theme.png";
 
   String get stack => "assets/images/stack.png";
   String get splash => "assets/images/splash.png";
