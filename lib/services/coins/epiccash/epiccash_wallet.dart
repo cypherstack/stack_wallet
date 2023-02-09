@@ -2094,12 +2094,14 @@ class EpicCashWallet extends CoinServiceAPI
         height = null;
       }
 
+      final isIncoming = (tx["tx_type"] == "TxReceived" ||
+          tx["tx_type"] == "TxReceivedCancelled");
+
       final txn = isar_models.Transaction(
         walletId: walletId,
         txid: commitId ?? tx["id"].toString(),
         timestamp: (dt.millisecondsSinceEpoch ~/ 1000),
-        type: (tx["tx_type"] == "TxReceived" ||
-                tx["tx_type"] == "TxReceivedCancelled")
+        type: isIncoming
             ? isar_models.TransactionType.incoming
             : isar_models.TransactionType.outgoing,
         subType: isar_models.TransactionSubType.none,
@@ -2122,6 +2124,38 @@ class EpicCashWallet extends CoinServiceAPI
           .filter()
           .valueEqualTo(address)
           .findFirst();
+
+      if (transactionAddress == null) {
+        if (isIncoming) {
+          transactionAddress = isar_models.Address(
+            walletId: walletId,
+            value: address,
+            publicKey: [],
+            derivationIndex: 0,
+            derivationPath: null,
+            type: isar_models.AddressType.mimbleWimble,
+            subType: isar_models.AddressSubType.receiving,
+          );
+        } else {
+          final myRcvAddr = await currentReceivingAddress;
+          final isSentToSelf = myRcvAddr == address;
+
+          transactionAddress = isar_models.Address(
+            walletId: walletId,
+            value: address,
+            publicKey: [],
+            derivationIndex: isSentToSelf ? 0 : -1,
+            derivationPath: null,
+            type: isSentToSelf
+                ? isar_models.AddressType.mimbleWimble
+                : isar_models.AddressType.nonWallet,
+            subType: isSentToSelf
+                ? isar_models.AddressSubType.receiving
+                : isar_models.AddressSubType.nonWallet,
+          );
+        }
+      }
+
       //
       // midSortedTx["inputSize"] = tx["num_inputs"];
       // midSortedTx["outputSize"] = tx["num_outputs"];
