@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:isar/isar.dart';
@@ -133,6 +134,60 @@ class Transaction {
       "inputsLength: ${inputs.length}, "
       "outputsLength: ${outputs.length}, "
       "}";
+
+  String toJsonString() {
+    final Map<String, dynamic> result = {
+      "walletId": walletId,
+      "txid": txid,
+      "timestamp": timestamp,
+      "type": type.name,
+      "subType": subType.name,
+      "amount": amount,
+      "fee": fee,
+      "height": height,
+      "isCancelled": isCancelled,
+      "isLelantus": isLelantus,
+      "slateId": slateId,
+      "otherData": otherData,
+      "address": address.value?.toJsonString(),
+      "inputs": inputs.map((e) => e.toJsonString()).toList(),
+      "outputs": outputs.map((e) => e.toJsonString()).toList(),
+    };
+    return jsonEncode(result);
+  }
+
+  static Tuple2<Transaction, Address?> fromJsonString(
+    String jsonString, {
+    String? overrideWalletId,
+  }) {
+    final json = jsonDecode(jsonString);
+    final transaction = Transaction(
+      walletId: overrideWalletId ?? json["walletId"] as String,
+      txid: json["txid"] as String,
+      timestamp: json["timestamp"] as int,
+      type: TransactionType.values.byName(json["type"] as String),
+      subType: TransactionSubType.values.byName(json["subType"] as String),
+      amount: json["amount"] as int,
+      fee: json["fee"] as int,
+      height: json["height"] as int?,
+      isCancelled: json["isCancelled"] as bool,
+      isLelantus: json["isLelantus"] as bool?,
+      slateId: json["slateId"] as String?,
+      otherData: json["otherData"] as String?,
+      inputs: List<String>.from(json["inputs"] as List)
+          .map((e) => Input.fromJsonString(e))
+          .toList(),
+      outputs: List<String>.from(json["outputs"] as List)
+          .map((e) => Output.fromJsonString(e))
+          .toList(),
+    );
+    if (json["address"] == null) {
+      return Tuple2(transaction, null);
+    } else {
+      final address = Address.fromJsonString(json["address"] as String);
+      return Tuple2(transaction, address);
+    }
+  }
 }
 
 // Used in Isar db and stored there as int indexes so adding/removing values
