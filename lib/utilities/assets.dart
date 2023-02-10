@@ -296,34 +296,34 @@ class _PNG {
   String get glasses => "assets/images/glasses.png";
   String get glassesHidden => "assets/images/glasses-hidden.png";
 
-  String Function(BuildContext context) imageFor({required Coin coin}) {
+  String imageFor({required BuildContext context, required Coin coin}) {
     switch (coin) {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
-        return bitcoin;
+        return bitcoin(context);
       case Coin.litecoin:
       case Coin.litecoinTestNet:
-        return litecoin;
+        return litecoin(context);
       case Coin.bitcoincash:
       case Coin.bitcoincashTestnet:
-        return bitcoincash;
+        return bitcoincash(context);
       case Coin.dogecoin:
       case Coin.dogecoinTestNet:
-        return dogecoin;
+        return dogecoin(context);
       case Coin.epicCash:
-        return epicCash;
+        return epicCash(context);
       case Coin.firo:
-        return firo;
+        return firo(context);
       case Coin.firoTestNet:
-        return firo;
+        return firo(context);
       case Coin.monero:
-        return monero;
+        return monero(context);
       case Coin.wownero:
-        return wownero;
+        return wownero(context);
       case Coin.namecoin:
-        return namecoin;
+        return namecoin(context);
       case Coin.particl:
-        return particl;
+        return particl(context);
     }
   }
 }
