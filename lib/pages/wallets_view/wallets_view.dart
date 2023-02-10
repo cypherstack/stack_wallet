@@ -5,6 +5,8 @@ import 'package:stackwallet/pages/wallets_view/sub_widgets/all_wallets.dart';
 import 'package:stackwallet/pages/wallets_view/sub_widgets/empty_wallets.dart';
 import 'package:stackwallet/pages/wallets_view/sub_widgets/favorite_wallets.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/providers/ui/color_theme_provider.dart';
+import 'package:stackwallet/utilities/theme/color_theme.dart';
 
 class WalletsView extends ConsumerWidget {
   const WalletsView({Key? key}) : super(key: key);
@@ -22,8 +24,11 @@ class WalletsView extends ConsumerWidget {
     return SafeArea(
       child: hasWallets
           ? Padding(
-              padding: const EdgeInsets.only(
-                top: 20,
+              padding: EdgeInsets.only(
+                top: ref.watch(colorThemeProvider).themeType ==
+                        ThemeType.fruitSorbet
+                    ? 6
+                    : 20,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
