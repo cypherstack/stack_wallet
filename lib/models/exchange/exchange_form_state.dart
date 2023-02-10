@@ -163,7 +163,7 @@ class ExchangeFormState extends ChangeNotifier {
     }
   }
 
-  void setCurrencies(AggregateCurrency from, AggregateCurrency to) {
+  void setCurrencies(AggregateCurrency? from, AggregateCurrency? to) {
     _sendCurrency = from;
     _receiveCurrency = to;
   }

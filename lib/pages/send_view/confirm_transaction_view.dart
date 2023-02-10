@@ -586,7 +586,9 @@ class _ConfirmTransactionViewState
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Send to",
+                              widget.isPaynymTransaction
+                                  ? "PayNym recipient"
+                                  : "Send to",
                               style: STextStyles.desktopTextExtraExtraSmall(
                                   context),
                             ),
@@ -594,7 +596,11 @@ class _ConfirmTransactionViewState
                               height: 2,
                             ),
                             Text(
-                              "${transactionInfo["address"] ?? "ERROR"}",
+                              widget.isPaynymTransaction
+                                  ? (transactionInfo["paynymAccountLite"]
+                                          as PaynymAccountLite)
+                                      .nymName
+                                  : "${transactionInfo["address"] ?? "ERROR"}",
                               style: STextStyles.desktopTextExtraExtraSmall(
                                       context)
                                   .copyWith(
@@ -606,6 +612,64 @@ class _ConfirmTransactionViewState
                           ],
                         ),
                       ),
+                      if (widget.isPaynymTransaction)
+                        Container(
+                          height: 1,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
+                        ),
+                      if (widget.isPaynymTransaction)
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Transaction fee",
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                    context),
+                              ),
+                              const SizedBox(
+                                height: 2,
+                              ),
+                              Builder(
+                                builder: (context) {
+                                  final coin = ref
+                                      .watch(walletsChangeNotifierProvider
+                                          .select((value) =>
+                                              value.getManager(walletId)))
+                                      .coin;
+
+                                  final fee = Format.satoshisToAmount(
+                                    transactionInfo["fee"] as int,
+                                    coin: coin,
+                                  );
+
+                                  return Text(
+                                    "${Format.localizedStringAsFixed(
+                                      value: fee,
+                                      locale: ref.watch(
+                                          localeServiceChangeNotifierProvider
+                                              .select((value) => value.locale)),
+                                      decimalPlaces:
+                                          Constants.decimalPlacesForCoin(coin),
+                                    )} ${coin.ticker}",
+                                    style:
+                                        STextStyles.desktopTextExtraExtraSmall(
+                                                context)
+                                            .copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
                       // Container(
                       //   height: 1,
                       //   color: Theme.of(context)
@@ -725,7 +789,7 @@ class _ConfirmTransactionViewState
                   ],
                 ),
               ),
-            if (isDesktop)
+            if (isDesktop && !widget.isPaynymTransaction)
               Padding(
                 padding: const EdgeInsets.only(
                   left: 32,
@@ -735,22 +799,23 @@ class _ConfirmTransactionViewState
                   style: STextStyles.desktopTextExtraExtraSmall(context),
                 ),
               ),
-            if (isDesktop)
+            if (isDesktop && !widget.isPaynymTransaction)
               Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    left: 32,
-                    right: 32,
+                padding: const EdgeInsets.only(
+                  top: 10,
+                  left: 32,
+                  right: 32,
+                ),
+                child: RoundedContainer(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 18,
                   ),
-                  child: RoundedContainer(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 18,
-                    ),
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultBG,
-                    child: Builder(builder: (context) {
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
+                  child: Builder(
+                    builder: (context) {
                       final coin = ref
                           .watch(walletsChangeNotifierProvider
                               .select((value) => value.getManager(walletId)))
@@ -770,64 +835,10 @@ class _ConfirmTransactionViewState
                         )} ${coin.ticker}",
                         style: STextStyles.itemSubtitle(context),
                       );
-                    }),
-                  )
-                  // DropdownButtonHideUnderline(
-                  //   child: DropdownButton2(
-                  //     offset: const Offset(0, -10),
-                  //     isExpanded: true,
-                  //
-                  //     dropdownElevation: 0,
-                  //     value: _fee,
-                  //     items: [
-                  //       ..._dropDownItems.map(
-                  //         (e) {
-                  //           String message = _fee.toString();
-                  //
-                  //           return DropdownMenuItem(
-                  //             value: e,
-                  //             child: Text(message),
-                  //           );
-                  //         },
-                  //       ),
-                  //     ],
-                  //     onChanged: (value) {
-                  //       if (value is int) {
-                  //         setState(() {
-                  //           _fee = value;
-                  //         });
-                  //       }
-                  //     },
-                  //     icon: SvgPicture.asset(
-                  //       Assets.svg.chevronDown,
-                  //       width: 12,
-                  //       height: 6,
-                  //       color:
-                  //           Theme.of(context).extension<StackColors>()!.textDark3,
-                  //     ),
-                  //     buttonPadding: const EdgeInsets.symmetric(
-                  //       horizontal: 16,
-                  //       vertical: 8,
-                  //     ),
-                  //     buttonDecoration: BoxDecoration(
-                  //       color: Theme.of(context)
-                  //           .extension<StackColors>()!
-                  //           .textFieldDefaultBG,
-                  //       borderRadius: BorderRadius.circular(
-                  //         Constants.size.circularBorderRadius,
-                  //       ),
-                  //     ),
-                  //     dropdownDecoration: BoxDecoration(
-                  //       color: Theme.of(context)
-                  //           .extension<StackColors>()!
-                  //           .textFieldDefaultBG,
-                  //       borderRadius: BorderRadius.circular(
-                  //         Constants.size.circularBorderRadius,
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
+                    },
                   ),
+                ),
+              ),
             if (!isDesktop) const Spacer(),
             SizedBox(
               height: isDesktop ? 23 : 12,

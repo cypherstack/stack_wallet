@@ -468,9 +468,10 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                   header: Container(
                     color: Colors.transparent,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 8.0,
-                        horizontal: 16,
+                      padding: const EdgeInsets.only(
+                        top: 8.0,
+                        bottom: 8.0,
+                        right: 10,
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -504,67 +505,90 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                   ),
                   body: Container(
                     color: Colors.transparent,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
-                      ),
-                      child: TextField(
-                        key: const Key("mnemonicPassphraseFieldKey1"),
-                        focusNode: passwordFocusNode,
-                        controller: passwordController,
-                        style: isDesktop
-                            ? STextStyles.desktopTextMedium(context).copyWith(
-                                height: 2,
-                              )
-                            : STextStyles.field(context),
-                        obscureText: hidePassword,
-                        enableSuggestions: false,
-                        autocorrect: false,
-                        decoration: standardInputDecoration(
-                          "Recovery phrase password",
-                          passwordFocusNode,
-                          context,
-                        ).copyWith(
-                          suffixIcon: UnconstrainedBox(
-                            child: ConditionalParent(
-                              condition: isDesktop,
-                              builder: (child) => SizedBox(
-                                height: 70,
-                                child: child,
-                              ),
-                              child: Row(
-                                children: [
-                                  SizedBox(
-                                    width: isDesktop ? 24 : 16,
+                    child: Column(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                          child: TextField(
+                            key: const Key("mnemonicPassphraseFieldKey1"),
+                            focusNode: passwordFocusNode,
+                            controller: passwordController,
+                            style: isDesktop
+                                ? STextStyles.desktopTextMedium(context)
+                                    .copyWith(
+                                    height: 2,
+                                  )
+                                : STextStyles.field(context),
+                            obscureText: hidePassword,
+                            enableSuggestions: false,
+                            autocorrect: false,
+                            decoration: standardInputDecoration(
+                              "Recovery phrase password",
+                              passwordFocusNode,
+                              context,
+                            ).copyWith(
+                              suffixIcon: UnconstrainedBox(
+                                child: ConditionalParent(
+                                  condition: isDesktop,
+                                  builder: (child) => SizedBox(
+                                    height: 70,
+                                    child: child,
                                   ),
-                                  GestureDetector(
-                                    key: const Key(
-                                        "mnemonicPassphraseFieldShowPasswordButtonKey"),
-                                    onTap: () async {
-                                      setState(() {
-                                        hidePassword = !hidePassword;
-                                      });
-                                    },
-                                    child: SvgPicture.asset(
-                                      hidePassword
-                                          ? Assets.svg.eye
-                                          : Assets.svg.eyeSlash,
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textDark3,
-                                      width: isDesktop ? 24 : 16,
-                                      height: isDesktop ? 24 : 16,
-                                    ),
+                                  child: Row(
+                                    children: [
+                                      SizedBox(
+                                        width: isDesktop ? 24 : 16,
+                                      ),
+                                      GestureDetector(
+                                        key: const Key(
+                                            "mnemonicPassphraseFieldShowPasswordButtonKey"),
+                                        onTap: () async {
+                                          setState(() {
+                                            hidePassword = !hidePassword;
+                                          });
+                                        },
+                                        child: SvgPicture.asset(
+                                          hidePassword
+                                              ? Assets.svg.eye
+                                              : Assets.svg.eyeSlash,
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textDark3,
+                                          width: isDesktop ? 24 : 16,
+                                          height: isDesktop ? 24 : 16,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        width: 12,
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(
-                                    width: 12,
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
+                        const SizedBox(
+                          height: 8,
+                        ),
+                        RoundedWhiteContainer(
+                          child: Center(
+                            child: Text(
+                              "If the recovery phrase you are about to restore was created with an optional passphrase you can enter it here.",
+                              style: isDesktop
+                                  ? STextStyles.desktopTextExtraSmall(context)
+                                      .copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textSubtitle1,
+                                    )
+                                  : STextStyles.itemSubtitle(context),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),

@@ -21,7 +21,7 @@ class AllWallets extends StatelessWidget {
             Text(
               "All wallets",
               style: STextStyles.itemSubtitle(context).copyWith(
-                color: Theme.of(context).extension<StackColors>()!.textDark,
+                color: Theme.of(context).extension<StackColors>()!.textDark3,
               ),
             ),
             CustomTextButton(

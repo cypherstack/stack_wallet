@@ -306,7 +306,7 @@ mixin PaynymWalletInterface {
       {required PaymentCode paymentCode,
       required int satoshiAmount,
       Map<String, dynamic>? args}) async {
-    if (!(await hasConnected(paymentCode.notificationAddressP2PKH()))) {
+    if (!(await hasConnected(paymentCode.toString()))) {
       throw PaynymSendException(
           "No notification transaction sent to $paymentCode");
     } else {
