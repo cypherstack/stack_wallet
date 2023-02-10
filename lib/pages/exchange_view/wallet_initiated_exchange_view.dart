@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_form.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
+import 'package:stackwallet/providers/exchange/exchange_form_state_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -48,7 +49,10 @@ class _WalletInitiatedExchangeViewState
           ExchangeDataLoadingService.cacheVersion) {
         _initialCachePopulationUnderway = true;
         ExchangeDataLoadingService.instance.onLoadingComplete = () {
-          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+          WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+            await ExchangeDataLoadingService.instance.setCurrenciesIfEmpty(
+              ref.read(exchangeFormStateProvider),
+            );
             setState(() {
               _initialCachePopulationUnderway = false;
             });
@@ -63,7 +67,10 @@ class _WalletInitiatedExchangeViewState
             ExchangeDataLoadingService.cacheVersion) {
       _initialCachePopulationUnderway = true;
       ExchangeDataLoadingService.instance.onLoadingComplete = () {
-        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+          await ExchangeDataLoadingService.instance.setCurrenciesIfEmpty(
+            ref.read(exchangeFormStateProvider),
+          );
           setState(() {
             _initialCachePopulationUnderway = false;
           });
