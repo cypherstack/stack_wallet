@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_form.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/subwidgets/desktop_trade_history.dart';
+import 'package:stackwallet/providers/exchange/exchange_form_state_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -32,7 +33,10 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
           ExchangeDataLoadingService.cacheVersion) {
         _initialCachePopulationUnderway = true;
         ExchangeDataLoadingService.instance.onLoadingComplete = () {
-          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+          WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+            await ExchangeDataLoadingService.instance.setCurrenciesIfEmpty(
+              ref.read(exchangeFormStateProvider),
+            );
             setState(() {
               _initialCachePopulationUnderway = false;
             });
@@ -47,7 +51,10 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
             ExchangeDataLoadingService.cacheVersion) {
       _initialCachePopulationUnderway = true;
       ExchangeDataLoadingService.instance.onLoadingComplete = () {
-        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+          await ExchangeDataLoadingService.instance.setCurrenciesIfEmpty(
+            ref.read(exchangeFormStateProvider),
+          );
           setState(() {
             _initialCachePopulationUnderway = false;
           });

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bip47/bip47.dart';
 import 'package:decimal/decimal.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/models/contact_address_entry.dart';
+import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
@@ -20,6 +22,7 @@ import 'package:stackwallet/providers/ui/preview_tx_button_state_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
@@ -51,12 +54,14 @@ class DesktopSend extends ConsumerStatefulWidget {
     this.autoFillData,
     this.clipboard = const ClipboardWrapper(),
     this.barcodeScanner = const BarcodeScannerWrapper(),
+    this.accountLite,
   }) : super(key: key);
 
   final String walletId;
   final SendViewAutoFillData? autoFillData;
   final ClipboardInterface clipboard;
   final BarcodeScannerInterface barcodeScanner;
+  final PaynymAccountLite? accountLite;
 
   @override
   ConsumerState<DesktopSend> createState() => _DesktopSendState();
@@ -93,77 +98,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   bool _cryptoAmountChangeLock = false;
   late VoidCallback onCryptoAmountChanged;
 
+  bool get isPaynymSend => widget.accountLite != null;
+
   Future<void> previewSend() async {
     final manager =
         ref.read(walletsChangeNotifierProvider).getManager(walletId);
-
-    // // TODO: remove the need for this!!
-    // final bool isOwnAddress = await manager.isOwnAddress(_address!);
-    // if (isOwnAddress) {
-    //   await showDialog<dynamic>(
-    //     context: context,
-    //     useSafeArea: false,
-    //     barrierDismissible: true,
-    //     builder: (context) {
-    //       return DesktopDialog(
-    //         maxWidth: 400,
-    //         maxHeight: double.infinity,
-    //         child: Padding(
-    //           padding: const EdgeInsets.only(
-    //             left: 32,
-    //             bottom: 32,
-    //           ),
-    //           child: Column(
-    //             crossAxisAlignment: CrossAxisAlignment.start,
-    //             children: [
-    //               Row(
-    //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    //                 children: [
-    //                   Text(
-    //                     "Transaction failed",
-    //                     style: STextStyles.desktopH3(context),
-    //                   ),
-    //                   const DesktopDialogCloseButton(),
-    //                 ],
-    //               ),
-    //               const SizedBox(
-    //                 height: 12,
-    //               ),
-    //               Text(
-    //                 "Sending to self is currently disabled",
-    //                 textAlign: TextAlign.left,
-    //                 style: STextStyles.desktopTextExtraExtraSmall(context)
-    //                     .copyWith(
-    //                   fontSize: 18,
-    //                 ),
-    //               ),
-    //               const SizedBox(
-    //                 height: 40,
-    //               ),
-    //               Row(
-    //                 children: [
-    //                   Expanded(
-    //                     child: SecondaryButton(
-    //                       buttonHeight: ButtonHeight.l,
-    //                       label: "Ok",
-    //                       onPressed: () {
-    //                         Navigator.of(context).pop();
-    //                       },
-    //                     ),
-    //                   ),
-    //                   const SizedBox(
-    //                     width: 32,
-    //                   ),
-    //                 ],
-    //               ),
-    //             ],
-    //           ),
-    //         ),
-    //       );
-    //     },
-    //   );
-    //   return;
-    // }
 
     final amount = Format.decimalAmountToSatoshis(_amountToSend!, coin);
     int availableBalance;
@@ -304,7 +243,19 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       Map<String, dynamic> txData;
 
-      if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+      if (isPaynymSend) {
+        final wallet = manager.wallet as PaynymWalletInterface;
+        final paymentCode = PaymentCode.fromPaymentCode(
+          widget.accountLite!.code,
+          wallet.networkType,
+        );
+        final feeRate = ref.read(feeRateTypeStateProvider);
+        txData = await wallet.preparePaymentCodeSend(
+          paymentCode: paymentCode,
+          satoshiAmount: amount,
+          args: {"feeRate": feeRate},
+        );
+      } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
           ref.read(publicPrivateBalanceStateProvider.state).state !=
               "Private") {
         txData = await (manager.wallet as FiroWallet).prepareSendPublic(
@@ -321,8 +272,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       }
 
       if (!wasCancelled && mounted) {
-        txData["note"] = _note ?? "";
-        txData["address"] = _address;
+        if (isPaynymSend) {
+          txData["paynymAccountLite"] = widget.accountLite!;
+          txData["note"] = _note ?? "PayNym send";
+        } else {
+          txData["address"] = _address;
+          txData["note"] = _note ?? "";
+        }
         // pop building dialog
         Navigator.of(
           context,
@@ -338,6 +294,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               child: ConfirmTransactionView(
                 transactionInfo: txData,
                 walletId: walletId,
+                isPaynymTransaction: isPaynymSend,
                 routeOnSuccessName: DesktopHomeView.routeName,
               ),
             ),
@@ -439,9 +396,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             _cachedAmountToSend == _amountToSend) {
           return;
         }
-        _cachedAmountToSend = _amountToSend;
         Logging.instance.log("it changed $_amountToSend $_cachedAmountToSend",
             level: LogLevel.Info);
+        _cachedAmountToSend = _amountToSend;
 
         final price =
             ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
@@ -457,6 +414,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         }
       } else {
         _amountToSend = null;
+        _cachedAmountToSend = null;
         baseAmountController.text = "";
       }
 
@@ -475,86 +433,18 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   void _updatePreviewButtonState(String? address, Decimal? amount) {
-    final isValidAddress = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(walletId)
-        .validateAddress(address ?? "");
-    ref.read(previewTxButtonStateProvider.state).state =
-        (isValidAddress && amount != null && amount > Decimal.zero);
+    if (isPaynymSend) {
+      ref.read(previewTxButtonStateProvider.state).state =
+          (amount != null && amount > Decimal.zero);
+    } else {
+      final isValidAddress = ref
+          .read(walletsChangeNotifierProvider)
+          .getManager(walletId)
+          .validateAddress(address ?? "");
+      ref.read(previewTxButtonStateProvider.state).state =
+          (isValidAddress && amount != null && amount > Decimal.zero);
+    }
   }
-
-  // late Future<String> _calculateFeesFuture;
-
-  // Map<int, String> cachedFees = {};
-  // Map<int, String> cachedFiroPrivateFees = {};
-  // Map<int, String> cachedFiroPublicFees = {};
-
-  // Future<String> calculateFees(int amount) async {
-  //   if (amount <= 0) {
-  //     return "0";
-  //   }
-  //
-  //   if (coin == Coin.firo || coin == Coin.firoTestNet) {
-  //     if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-  //         "Private") {
-  //       if (cachedFiroPrivateFees[amount] != null) {
-  //         return cachedFiroPrivateFees[amount]!;
-  //       }
-  //     } else {
-  //       if (cachedFiroPublicFees[amount] != null) {
-  //         return cachedFiroPublicFees[amount]!;
-  //       }
-  //     }
-  //   } else if (cachedFees[amount] != null) {
-  //     return cachedFees[amount]!;
-  //   }
-  //
-  //   final manager =
-  //       ref.read(walletsChangeNotifierProvider).getManager(walletId);
-  //   final feeObject = await manager.fees;
-  //
-  //   late final int feeRate;
-  //
-  //   switch (ref.read(feeRateTypeStateProvider.state).state) {
-  //     case FeeRateType.fast:
-  //       feeRate = feeObject.fast;
-  //       break;
-  //     case FeeRateType.average:
-  //       feeRate = feeObject.medium;
-  //       break;
-  //     case FeeRateType.slow:
-  //       feeRate = feeObject.slow;
-  //       break;
-  //   }
-  //
-  //   int fee;
-  //
-  //   if (coin == Coin.firo || coin == Coin.firoTestNet) {
-  //     if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-  //         "Private") {
-  //       fee = await manager.estimateFeeFor(amount, feeRate);
-  //
-  //       cachedFiroPrivateFees[amount] = Format.satoshisToAmount(fee)
-  //           .toStringAsFixed(Constants.decimalPlaces);
-  //
-  //       return cachedFiroPrivateFees[amount]!;
-  //     } else {
-  //       fee = await (manager.wallet as FiroWallet)
-  //           .estimateFeeForPublic(amount, feeRate);
-  //
-  //       cachedFiroPublicFees[amount] = Format.satoshisToAmount(fee)
-  //           .toStringAsFixed(Constants.decimalPlaces);
-  //
-  //       return cachedFiroPublicFees[amount]!;
-  //     }
-  //   } else {
-  //     fee = await manager.estimateFeeFor(amount, feeRate);
-  //     cachedFees[amount] =
-  //         Format.satoshisToAmount(fee).toStringAsFixed(Constants.decimalPlaces);
-  //
-  //     return cachedFees[amount]!;
-  //   }
-  // }
 
   Future<String?> _firoBalanceFuture(
     ChangeNotifierProvider<Manager> provider,
@@ -773,7 +663,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   @override
   void initState() {
-    ref.refresh(feeSheetSessionCacheProvider);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.refresh(feeSheetSessionCacheProvider);
+      ref.read(previewTxButtonStateProvider.state).state = false;
+    });
 
     // _calculateFeesFuture = calculateFees(0);
     _data = widget.autoFillData;
@@ -797,6 +690,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       sendToController.text = _data!.contactLabel;
       _address = _data!.address;
       _addressToggleFlag = true;
+    }
+
+    if (isPaynymSend) {
+      sendToController.text = widget.accountLite!.nymName;
     }
 
     _cryptoFocus.addListener(() {
@@ -844,21 +741,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         .select((value) => value.getManagerProvider(walletId)));
     final String locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
-
-    // if (coin == Coin.firo || coin == Coin.firoTestNet) {
-    //   ref.listen(publicPrivateBalanceStateProvider, (previous, next) {
-    //     if (_amountToSend == null) {
-    //       setState(() {
-    //         _calculateFeesFuture = calculateFees(0);
-    //       });
-    //     } else {
-    //       setState(() {
-    //         _calculateFeesFuture =
-    //             calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
-    //       });
-    //     }
-    //   });
-    // }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -975,6 +857,36 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           const SizedBox(
             height: 20,
           ),
+        if (isPaynymSend)
+          Text(
+            "Send to PayNym address",
+            style: STextStyles.smallMed12(context),
+            textAlign: TextAlign.left,
+          ),
+        if (isPaynymSend)
+          const SizedBox(
+            height: 10,
+          ),
+        if (isPaynymSend)
+          TextField(
+            key: const Key("sendViewPaynymAddressFieldKey"),
+            controller: sendToController,
+            enabled: false,
+            readOnly: true,
+            style: STextStyles.desktopTextFieldLabel(context).copyWith(
+              fontSize: 16,
+            ),
+            decoration: const InputDecoration(
+              contentPadding: EdgeInsets.symmetric(
+                vertical: 18,
+                horizontal: 16,
+              ),
+            ),
+          ),
+        if (isPaynymSend)
+          const SizedBox(
+            height: 20,
+          ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -1020,6 +932,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     ? newValue
                     : oldValue),
           ],
+          onChanged: (newValue) {},
           decoration: InputDecoration(
             contentPadding: const EdgeInsets.only(
               top: 22,
@@ -1108,199 +1021,204 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         const SizedBox(
           height: 20,
         ),
-        Text(
-          "Send to",
-          style: STextStyles.desktopTextExtraSmall(context).copyWith(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .textFieldActiveSearchIconRight,
-          ),
-          textAlign: TextAlign.left,
-        ),
-        const SizedBox(
-          height: 10,
-        ),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(
-            Constants.size.circularBorderRadius,
-          ),
-          child: TextField(
-            minLines: 1,
-            maxLines: 5,
-            key: const Key("sendViewAddressFieldKey"),
-            controller: sendToController,
-            readOnly: false,
-            autocorrect: false,
-            enableSuggestions: false,
-            // inputFormatters: <TextInputFormatter>[
-            //   FilteringTextInputFormatter.allow(
-            //       RegExp("[a-zA-Z0-9]{34}")),
-            // ],
-            toolbarOptions: const ToolbarOptions(
-              copy: false,
-              cut: false,
-              paste: true,
-              selectAll: false,
-            ),
-            onChanged: (newValue) {
-              _address = newValue;
-              _updatePreviewButtonState(_address, _amountToSend);
-
-              setState(() {
-                _addressToggleFlag = newValue.isNotEmpty;
-              });
-            },
-            focusNode: _addressFocusNode,
+        if (!isPaynymSend)
+          Text(
+            "Send to",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
               color: Theme.of(context)
                   .extension<StackColors>()!
-                  .textFieldActiveText,
-              height: 1.8,
+                  .textFieldActiveSearchIconRight,
             ),
-            decoration: standardInputDecoration(
-              "Enter ${coin.ticker} address",
-              _addressFocusNode,
-              context,
-              desktopMed: true,
-            ).copyWith(
-              contentPadding: const EdgeInsets.only(
-                left: 16,
-                top: 11,
-                bottom: 12,
-                right: 5,
+            textAlign: TextAlign.left,
+          ),
+        if (!isPaynymSend)
+          const SizedBox(
+            height: 10,
+          ),
+        if (!isPaynymSend)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+            child: TextField(
+              minLines: 1,
+              maxLines: 5,
+              key: const Key("sendViewAddressFieldKey"),
+              controller: sendToController,
+              readOnly: false,
+              autocorrect: false,
+              enableSuggestions: false,
+              // inputFormatters: <TextInputFormatter>[
+              //   FilteringTextInputFormatter.allow(
+              //       RegExp("[a-zA-Z0-9]{34}")),
+              // ],
+              toolbarOptions: const ToolbarOptions(
+                copy: false,
+                cut: false,
+                paste: true,
+                selectAll: false,
               ),
-              suffixIcon: Padding(
-                padding: sendToController.text.isEmpty
-                    ? const EdgeInsets.only(right: 8)
-                    : const EdgeInsets.only(right: 0),
-                child: UnconstrainedBox(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _addressToggleFlag
-                          ? TextFieldIconButton(
-                              key: const Key(
-                                  "sendViewClearAddressFieldButtonKey"),
-                              onTap: () {
-                                sendToController.text = "";
-                                _address = "";
-                                _updatePreviewButtonState(
-                                    _address, _amountToSend);
-                                setState(() {
-                                  _addressToggleFlag = false;
-                                });
-                              },
-                              child: const XIcon(),
-                            )
-                          : TextFieldIconButton(
-                              key: const Key(
-                                  "sendViewPasteAddressFieldButtonKey"),
-                              onTap: pasteAddress,
-                              child: sendToController.text.isEmpty
-                                  ? const ClipboardIcon()
-                                  : const XIcon(),
-                            ),
-                      if (sendToController.text.isEmpty)
-                        TextFieldIconButton(
-                          key: const Key("sendViewAddressBookButtonKey"),
-                          onTap: () async {
-                            final entry =
-                                await showDialog<ContactAddressEntry?>(
-                              context: context,
-                              builder: (context) => DesktopDialog(
-                                maxWidth: 696,
-                                maxHeight: 600,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 32,
-                                          ),
-                                          child: Text(
-                                            "Address book",
-                                            style:
-                                                STextStyles.desktopH3(context),
-                                          ),
-                                        ),
-                                        const DesktopDialogCloseButton(),
-                                      ],
-                                    ),
-                                    Expanded(
-                                      child: AddressBookAddressChooser(
-                                        coin: coin,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+              onChanged: (newValue) {
+                _address = newValue;
+                _updatePreviewButtonState(_address, _amountToSend);
+
+                setState(() {
+                  _addressToggleFlag = newValue.isNotEmpty;
+                });
+              },
+              focusNode: _addressFocusNode,
+              style: STextStyles.desktopTextExtraSmall(context).copyWith(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveText,
+                height: 1.8,
+              ),
+              decoration: standardInputDecoration(
+                "Enter ${coin.ticker} address",
+                _addressFocusNode,
+                context,
+                desktopMed: true,
+              ).copyWith(
+                contentPadding: const EdgeInsets.only(
+                  left: 16,
+                  top: 11,
+                  bottom: 12,
+                  right: 5,
+                ),
+                suffixIcon: Padding(
+                  padding: sendToController.text.isEmpty
+                      ? const EdgeInsets.only(right: 8)
+                      : const EdgeInsets.only(right: 0),
+                  child: UnconstrainedBox(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _addressToggleFlag
+                            ? TextFieldIconButton(
+                                key: const Key(
+                                    "sendViewClearAddressFieldButtonKey"),
+                                onTap: () {
+                                  sendToController.text = "";
+                                  _address = "";
+                                  _updatePreviewButtonState(
+                                      _address, _amountToSend);
+                                  setState(() {
+                                    _addressToggleFlag = false;
+                                  });
+                                },
+                                child: const XIcon(),
+                              )
+                            : TextFieldIconButton(
+                                key: const Key(
+                                    "sendViewPasteAddressFieldButtonKey"),
+                                onTap: pasteAddress,
+                                child: sendToController.text.isEmpty
+                                    ? const ClipboardIcon()
+                                    : const XIcon(),
                               ),
-                            );
-
-                            if (entry != null) {
-                              sendToController.text =
-                                  entry.other ?? entry.label;
-
-                              _address = entry.address;
-
-                              _updatePreviewButtonState(
-                                _address,
-                                _amountToSend,
+                        if (sendToController.text.isEmpty)
+                          TextFieldIconButton(
+                            key: const Key("sendViewAddressBookButtonKey"),
+                            onTap: () async {
+                              final entry =
+                                  await showDialog<ContactAddressEntry?>(
+                                context: context,
+                                builder: (context) => DesktopDialog(
+                                  maxWidth: 696,
+                                  maxHeight: 600,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              left: 32,
+                                            ),
+                                            child: Text(
+                                              "Address book",
+                                              style: STextStyles.desktopH3(
+                                                  context),
+                                            ),
+                                          ),
+                                          const DesktopDialogCloseButton(),
+                                        ],
+                                      ),
+                                      Expanded(
+                                        child: AddressBookAddressChooser(
+                                          coin: coin,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               );
 
-                              setState(() {
-                                _addressToggleFlag = true;
-                              });
-                            }
-                          },
-                          child: const AddressBookIcon(),
-                        ),
-                      // if (sendToController.text.isEmpty)
-                      //   TextFieldIconButton(
-                      //     key: const Key("sendViewScanQrButtonKey"),
-                      //     onTap: scanQr,
-                      //     child: const QrCodeIcon(),
-                      //   )
-                    ],
+                              if (entry != null) {
+                                sendToController.text =
+                                    entry.other ?? entry.label;
+
+                                _address = entry.address;
+
+                                _updatePreviewButtonState(
+                                  _address,
+                                  _amountToSend,
+                                );
+
+                                setState(() {
+                                  _addressToggleFlag = true;
+                                });
+                              }
+                            },
+                            child: const AddressBookIcon(),
+                          ),
+                        // if (sendToController.text.isEmpty)
+                        //   TextFieldIconButton(
+                        //     key: const Key("sendViewScanQrButtonKey"),
+                        //     onTap: scanQr,
+                        //     child: const QrCodeIcon(),
+                        //   )
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-        Builder(
-          builder: (_) {
-            final error = _updateInvalidAddressText(
-              _address ?? "",
-              ref.read(walletsChangeNotifierProvider).getManager(walletId),
-            );
+        if (!isPaynymSend)
+          Builder(
+            builder: (_) {
+              final error = _updateInvalidAddressText(
+                _address ?? "",
+                ref.read(walletsChangeNotifierProvider).getManager(walletId),
+              );
 
-            if (error == null || error.isEmpty) {
-              return Container();
-            } else {
-              return Align(
-                alignment: Alignment.topLeft,
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    left: 12.0,
-                    top: 4.0,
-                  ),
-                  child: Text(
-                    error,
-                    textAlign: TextAlign.left,
-                    style: STextStyles.label(context).copyWith(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.textError,
+              if (error == null || error.isEmpty) {
+                return Container();
+              } else {
+                return Align(
+                  alignment: Alignment.topLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      left: 12.0,
+                      top: 4.0,
+                    ),
+                    child: Text(
+                      error,
+                      textAlign: TextAlign.left,
+                      style: STextStyles.label(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textError,
+                      ),
                     ),
                   ),
-                ),
-              );
-            }
-          },
-        ),
+                );
+              }
+            },
+          ),
         // const SizedBox(
         //   height: 20,
         // ),
@@ -1368,9 +1286,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         //     ),
         //   ),
         // ),
-        const SizedBox(
-          height: 20,
-        ),
+        if (!isPaynymSend)
+          const SizedBox(
+            height: 20,
+          ),
         if (coin != Coin.epicCash)
           Text(
             "Transaction fee (estimated)",

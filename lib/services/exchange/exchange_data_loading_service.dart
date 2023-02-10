@@ -1,12 +1,16 @@
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/models/exchange/aggregate_currency.dart';
+import 'package:stackwallet/models/exchange/exchange_form_state.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
+import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
+import 'package:tuple/tuple.dart';
 
 class ExchangeDataLoadingService {
   ExchangeDataLoadingService._();
@@ -48,6 +52,51 @@ class ExchangeDataLoadingService {
       // inspector: false,
       name: "exchange_cache",
     );
+  }
+
+  Future<void> setCurrenciesIfEmpty(ExchangeFormState state) async {
+    if (state.sendCurrency == null && state.receiveCurrency == null) {
+      if (await isar.currencies.count() > 0) {
+        final sendCurrency = await getAggregateCurrency(
+          "BTC",
+          state.exchangeRateType,
+        );
+        final receiveCurrency = await getAggregateCurrency(
+          "XMR",
+          state.exchangeRateType,
+        );
+        state.setCurrencies(sendCurrency, receiveCurrency);
+      }
+    }
+  }
+
+  Future<AggregateCurrency?> getAggregateCurrency(
+      String ticker, ExchangeRateType rateType) async {
+    final currencies = await ExchangeDataLoadingService.instance.isar.currencies
+        .filter()
+        .group((q) => rateType == ExchangeRateType.fixed
+            ? q
+                .rateTypeEqualTo(SupportedRateType.both)
+                .or()
+                .rateTypeEqualTo(SupportedRateType.fixed)
+            : q
+                .rateTypeEqualTo(SupportedRateType.both)
+                .or()
+                .rateTypeEqualTo(SupportedRateType.estimated))
+        .and()
+        .tickerEqualTo(
+          ticker,
+          caseSensitive: false,
+        )
+        .findAll();
+
+    final items = currencies
+        .map((e) => Tuple2(e.exchangeName, e))
+        .toList(growable: false);
+
+    return items.isNotEmpty
+        ? AggregateCurrency(exchangeCurrencyPairs: items)
+        : null;
   }
 
   bool get isLoading => _locked;

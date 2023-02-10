@@ -36,7 +36,10 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
           ExchangeDataLoadingService.cacheVersion) {
         _initialCachePopulationUnderway = true;
         ExchangeDataLoadingService.instance.onLoadingComplete = () {
-          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+          WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+            await ExchangeDataLoadingService.instance.setCurrenciesIfEmpty(
+              ref.read(exchangeFormStateProvider),
+            );
             setState(() {
               _initialCachePopulationUnderway = false;
             });
@@ -51,7 +54,10 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
             ExchangeDataLoadingService.cacheVersion) {
       _initialCachePopulationUnderway = true;
       ExchangeDataLoadingService.instance.onLoadingComplete = () {
-        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+          await ExchangeDataLoadingService.instance.setCurrenciesIfEmpty(
+            ref.read(exchangeFormStateProvider),
+          );
           setState(() {
             _initialCachePopulationUnderway = false;
           });

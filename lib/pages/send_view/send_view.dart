@@ -297,44 +297,6 @@ class _SendViewState extends ConsumerState<SendView> {
     final manager =
         ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
-    // // TODO: remove the need for this!!
-    // final bool isOwnAddress =
-    //     await manager.isOwnAddress(_address!);
-    // if (isOwnAddress && coin != Coin.dogecoinTestNet) {
-    //   await showDialog<dynamic>(
-    //     context: context,
-    //     useSafeArea: false,
-    //     barrierDismissible: true,
-    //     builder: (context) {
-    //       return StackDialog(
-    //         title: "Transaction failed",
-    //         message:
-    //             "Sending to self is currently disabled",
-    //         rightButton: TextButton(
-    //           style: Theme.of(context)
-    //               .extension<StackColors>()!
-    //               .getSecondaryEnabledButtonColor(
-    //                   context),
-    //           child: Text(
-    //             "Ok",
-    //             style: STextStyles.button(
-    //                     context)
-    //                 .copyWith(
-    //                     color: Theme.of(context)
-    //                         .extension<
-    //                             StackColors>()!
-    //                         .accentColorDark),
-    //           ),
-    //           onPressed: () {
-    //             Navigator.of(context).pop();
-    //           },
-    //         ),
-    //       );
-    //     },
-    //   );
-    //   return;
-    // }
-
     final amount = Format.decimalAmountToSatoshis(_amountToSend!, coin);
     int availableBalance;
     if ((coin == Coin.firo || coin == Coin.firoTestNet)) {

@@ -108,6 +108,8 @@ class _ExchangeCurrencySelectionViewState
     return ExchangeDataLoadingService.instance.isar.currencies
         .where()
         .filter()
+        .isFiatEqualTo(false)
+        .and()
         .tickerEqualTo(ticker, caseSensitive: false)
         .group((q) => widget.isFixedRate
             ? q
@@ -150,6 +152,8 @@ class _ExchangeCurrencySelectionViewState
     return ExchangeDataLoadingService.instance.isar.currencies
         .where()
         .filter()
+        .isFiatEqualTo(false)
+        .and()
         .group((q) => widget.isFixedRate
             ? q
                 .rateTypeEqualTo(SupportedRateType.both)
