@@ -105,6 +105,8 @@ abstract class StackColorTheme {
   Color get numberTextDefault;
   Color get numpadTextDefault;
   Color get bottomNavText;
+  Color get customTextButtonEnabledText;
+  Color get customTextButtonDisabledText;
 
 // switch background
   Color get switchBGOn;

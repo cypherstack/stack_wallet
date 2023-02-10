@@ -107,6 +107,10 @@ class OledBlackColors extends StackColorTheme {
   Color get numpadTextDefault => const Color(0xFF000000);
   @override
   Color get bottomNavText => const Color(0xFFDEDEDE);
+  @override
+  Color get customTextButtonEnabledText => buttonTextBorderless;
+  @override
+  Color get customTextButtonDisabledText => textSubtitle1;
 
   // switch
   @override

@@ -31,7 +31,7 @@ class EmptyWallets extends StatelessWidget {
               ),
               Image(
                 image: AssetImage(
-                  Assets.png.stack,
+                  Assets.png.stack(context),
                 ),
                 width: isDesktop ? 324 : MediaQuery.of(context).size.width / 3,
               ),
