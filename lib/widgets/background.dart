@@ -23,6 +23,7 @@ class Background extends StatelessWidget {
       case ThemeType.light:
       case ThemeType.dark:
       case ThemeType.oledBlack:
+      case ThemeType.forest:
         color = Theme.of(context).extension<StackColors>()!.background;
         break;
       case ThemeType.oceanBreeze:

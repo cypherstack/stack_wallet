@@ -55,6 +55,7 @@ class _SVG {
       case ThemeType.light:
       case ThemeType.dark:
       case ThemeType.oledBlack:
+      case ThemeType.forest:
         return null;
 
       case ThemeType.oceanBreeze:
@@ -94,6 +95,7 @@ class _SVG {
       "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/tx-exchange-icon-failed.svg";
 
   String get themeFruit => "assets/svg/fruit-sorbet-theme.svg";
+  String get themeForest => "assets/svg/forest-theme.svg";
   String get themeOledBlack => "assets/svg/oled-black-theme.svg";
   String get themeOcean => "assets/svg/ocean-breeze-theme.svg";
   String get themeLight => "assets/svg/light-mode.svg";
@@ -264,6 +266,8 @@ class _SVG {
 
 class _PNG {
   const _PNG();
+
+  // String get themeFruit => "assets/svg/fruit-sorbet-theme.png";
 
   String get stack => "assets/images/stack.png";
   String get unclaimedPaynym => "assets/images/unclaimed.png";

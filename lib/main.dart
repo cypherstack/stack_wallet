@@ -58,6 +58,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/dark_colors.dart';
+import 'package:stackwallet/utilities/theme/forest_colors.dart';
 import 'package:stackwallet/utilities/theme/fruit_sorbet_colors.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
@@ -346,6 +347,9 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         break;
       case "fruitSorbet":
         colorTheme = FruitSorbetColors();
+        break;
+      case "forest":
+        colorTheme = ForestColors();
         break;
       case "light":
       default:
