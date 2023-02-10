@@ -432,6 +432,21 @@ flutter:
     - assets/svg/fruitSorbet/buy-coins-icon.svg
     - assets/svg/fruitSorbet/bg.svg
 
+    # fruit forest theme specific
+    - assets/svg/forest/tx-exchange-icon.svg
+    - assets/svg/forest/tx-exchange-icon-pending.svg
+    - assets/svg/forest/tx-exchange-icon-failed.svg
+    - assets/svg/forest/tx-icon-send.svg
+    - assets/svg/forest/tx-icon-send-pending.svg
+    - assets/svg/forest/tx-icon-send-failed.svg
+    - assets/svg/forest/tx-icon-receive.svg
+    - assets/svg/forest/tx-icon-receive-pending.svg
+    - assets/svg/forest/tx-icon-receive-failed.svg
+    - assets/svg/forest/exchange-2.svg
+    - assets/svg/forest/bell-new.svg
+    - assets/svg/forest/stack-icon1.svg
+    - assets/svg/forest/buy-coins-icon.svg
+
     # buy
     - assets/svg/buy/Simplex-Nuvei-Logo.svg
     - assets/svg/buy/Simplex-Nuvei-Logo-light.svg
