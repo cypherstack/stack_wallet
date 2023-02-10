@@ -13,7 +13,6 @@ import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/stack_restoring_ui_state.dart';
 import 'package:stackwallet/models/trade_wallet_lookup.dart';
 import 'package:stackwallet/models/wallet_restore_state.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/services/address_book_service.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/coins/manager.dart';
@@ -246,7 +245,6 @@ abstract class SWB {
       final _prefs = Prefs.instance;
       await _prefs.init();
       prefs['currency'] = _prefs.currency;
-      prefs['exchangeRateType'] = _prefs.exchangeRateType.name;
       prefs['useBiometrics'] = _prefs.useBiometrics;
       prefs['hasPin'] = _prefs.hasPin;
       prefs['language'] = _prefs.language;
@@ -992,9 +990,6 @@ abstract class SWB {
     final _prefs = Prefs.instance;
     await _prefs.init();
     _prefs.currency = prefs['currency'] as String;
-    _prefs.exchangeRateType = prefs['exchangeRateType'] == "estimated"
-        ? ExchangeRateType.estimated
-        : ExchangeRateType.fixed;
     // _prefs.useBiometrics = prefs['useBiometrics'] as bool;
     // _prefs.hasPin = prefs['hasPin'] as bool;
     _prefs.language = prefs['language'] as String;

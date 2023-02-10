@@ -19,8 +19,6 @@ import 'package:stackwallet/models/balance.dart' as _i12;
 import 'package:stackwallet/models/isar/models/isar_models.dart' as _i16;
 import 'package:stackwallet/models/node_model.dart' as _i24;
 import 'package:stackwallet/models/paymint/fee_object_model.dart' as _i9;
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart'
-    as _i30;
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart' as _i25;
 import 'package:stackwallet/services/coins/coin_service.dart' as _i18;
 import 'package:stackwallet/services/coins/manager.dart' as _i6;
@@ -30,7 +28,7 @@ import 'package:stackwallet/services/transaction_notification_tracker.dart'
     as _i8;
 import 'package:stackwallet/services/wallets.dart' as _i19;
 import 'package:stackwallet/services/wallets_service.dart' as _i2;
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i31;
+import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i30;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i20;
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart' as _i26;
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i29;
@@ -2307,20 +2305,6 @@ class MockPrefs extends _i1.Mock implements _i22.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i30.ExchangeRateType get exchangeRateType => (super.noSuchMethod(
-        Invocation.getter(#exchangeRateType),
-        returnValue: _i30.ExchangeRateType.estimated,
-      ) as _i30.ExchangeRateType);
-  @override
-  set exchangeRateType(_i30.ExchangeRateType? exchangeRateType) =>
-      super.noSuchMethod(
-        Invocation.setter(
-          #exchangeRateType,
-          exchangeRateType,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
   bool get useBiometrics => (super.noSuchMethod(
         Invocation.getter(#useBiometrics),
         returnValue: false,
@@ -2394,12 +2378,12 @@ class MockPrefs extends _i1.Mock implements _i22.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i31.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
+  _i30.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
         Invocation.getter(#backupFrequencyType),
-        returnValue: _i31.BackupFrequencyType.everyTenMinutes,
-      ) as _i31.BackupFrequencyType);
+        returnValue: _i30.BackupFrequencyType.everyTenMinutes,
+      ) as _i30.BackupFrequencyType);
   @override
-  set backupFrequencyType(_i31.BackupFrequencyType? backupFrequencyType) =>
+  set backupFrequencyType(_i30.BackupFrequencyType? backupFrequencyType) =>
       super.noSuchMethod(
         Invocation.setter(
           #backupFrequencyType,
@@ -2693,6 +2677,11 @@ class MockManager extends _i1.Mock implements _i6.Manager {
         returnValue: false,
       ) as bool);
   @override
+  int get rescanOnOpenVersion => (super.noSuchMethod(
+        Invocation.getter(#rescanOnOpenVersion),
+        returnValue: 0,
+      ) as int);
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
@@ -2857,6 +2846,15 @@ class MockManager extends _i1.Mock implements _i6.Manager {
         ),
         returnValue: _i21.Future<bool>.value(false),
       ) as _i21.Future<bool>);
+  @override
+  _i21.Future<void> resetRescanOnOpen() => (super.noSuchMethod(
+        Invocation.method(
+          #resetRescanOnOpen,
+          [],
+        ),
+        returnValue: _i21.Future<void>.value(),
+        returnValueForMissingStub: _i21.Future<void>.value(),
+      ) as _i21.Future<void>);
   @override
   void addListener(_i23.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(

@@ -17,6 +17,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:isar/isar.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
@@ -64,8 +65,6 @@ import 'package:stackwallet/utilities/theme/oled_black_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:window_size/window_size.dart';
-
-import 'db/main_db.dart';
 
 final openedFromSWBFileStringStateProvider =
     StateProvider<String?>((ref) => null);
@@ -290,10 +289,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
       //  unawaited(_nodeService.updateCommunityNodes());
 
-      print("================================================");
-      print("${ref.read(prefsChangeNotifierProvider).externalCalls}");
-      print("${await ref.read(prefsChangeNotifierProvider).isExternalCallsSet()}");
-      print("================================================");
       // run without awaiting
       if (ref.read(prefsChangeNotifierProvider).externalCalls &&
           await ref.read(prefsChangeNotifierProvider).isExternalCallsSet()) {

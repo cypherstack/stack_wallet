@@ -16,20 +16,18 @@ import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i11;
 import 'package:stackwallet/models/balance.dart' as _i9;
 import 'package:stackwallet/models/isar/models/isar_models.dart' as _i21;
 import 'package:stackwallet/models/models.dart' as _i8;
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart'
-    as _i25;
 import 'package:stackwallet/services/coins/coin_service.dart' as _i7;
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as _i22;
 import 'package:stackwallet/services/coins/manager.dart' as _i6;
 import 'package:stackwallet/services/locale_service.dart' as _i23;
 import 'package:stackwallet/services/node_service.dart' as _i3;
-import 'package:stackwallet/services/notes_service.dart' as _i28;
-import 'package:stackwallet/services/price_service.dart' as _i27;
+import 'package:stackwallet/services/notes_service.dart' as _i27;
+import 'package:stackwallet/services/price_service.dart' as _i26;
 import 'package:stackwallet/services/transaction_notification_tracker.dart'
     as _i10;
 import 'package:stackwallet/services/wallets.dart' as _i16;
 import 'package:stackwallet/services/wallets_service.dart' as _i2;
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i26;
+import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i25;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i17;
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i24;
 import 'package:stackwallet/utilities/prefs.dart' as _i19;
@@ -548,6 +546,11 @@ class MockManager extends _i1.Mock implements _i6.Manager {
         returnValue: false,
       ) as bool);
   @override
+  int get rescanOnOpenVersion => (super.noSuchMethod(
+        Invocation.getter(#rescanOnOpenVersion),
+        returnValue: 0,
+      ) as int);
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
@@ -712,6 +715,15 @@ class MockManager extends _i1.Mock implements _i6.Manager {
         ),
         returnValue: _i18.Future<bool>.value(false),
       ) as _i18.Future<bool>);
+  @override
+  _i18.Future<void> resetRescanOnOpen() => (super.noSuchMethod(
+        Invocation.method(
+          #resetRescanOnOpen,
+          [],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
   @override
   void addListener(_i20.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
@@ -2164,20 +2176,6 @@ class MockPrefs extends _i1.Mock implements _i19.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i25.ExchangeRateType get exchangeRateType => (super.noSuchMethod(
-        Invocation.getter(#exchangeRateType),
-        returnValue: _i25.ExchangeRateType.estimated,
-      ) as _i25.ExchangeRateType);
-  @override
-  set exchangeRateType(_i25.ExchangeRateType? exchangeRateType) =>
-      super.noSuchMethod(
-        Invocation.setter(
-          #exchangeRateType,
-          exchangeRateType,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
   bool get useBiometrics => (super.noSuchMethod(
         Invocation.getter(#useBiometrics),
         returnValue: false,
@@ -2251,12 +2249,12 @@ class MockPrefs extends _i1.Mock implements _i19.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i26.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
+  _i25.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
         Invocation.getter(#backupFrequencyType),
-        returnValue: _i26.BackupFrequencyType.everyTenMinutes,
-      ) as _i26.BackupFrequencyType);
+        returnValue: _i25.BackupFrequencyType.everyTenMinutes,
+      ) as _i25.BackupFrequencyType);
   @override
-  set backupFrequencyType(_i26.BackupFrequencyType? backupFrequencyType) =>
+  set backupFrequencyType(_i25.BackupFrequencyType? backupFrequencyType) =>
       super.noSuchMethod(
         Invocation.setter(
           #backupFrequencyType,
@@ -2406,7 +2404,7 @@ class MockPrefs extends _i1.Mock implements _i19.Prefs {
 /// A class which mocks [PriceService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockPriceService extends _i1.Mock implements _i27.PriceService {
+class MockPriceService extends _i1.Mock implements _i26.PriceService {
   MockPriceService() {
     _i1.throwOnMissingStub(this);
   }
@@ -2514,7 +2512,7 @@ class MockPriceService extends _i1.Mock implements _i27.PriceService {
 /// A class which mocks [NotesService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockNotesService extends _i1.Mock implements _i28.NotesService {
+class MockNotesService extends _i1.Mock implements _i27.NotesService {
   MockNotesService() {
     _i1.throwOnMissingStub(this);
   }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
+import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/models.dart';
@@ -227,4 +228,18 @@ class Manager with ChangeNotifier {
   int get currentHeight => _currentWallet.storedChainHeight;
 
   bool get hasPaynymSupport => _currentWallet is PaynymWalletInterface;
+
+  int get rescanOnOpenVersion =>
+      DB.instance.get<dynamic>(
+        boxName: DB.boxNameDBInfo,
+        key: "rescan_on_open_$walletId",
+      ) as int? ??
+      0;
+
+  Future<void> resetRescanOnOpen() async {
+    await DB.instance.delete<dynamic>(
+      key: "rescan_on_open_$walletId",
+      boxName: DB.boxNameDBInfo,
+    );
+  }
 }

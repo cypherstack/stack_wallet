@@ -9,14 +9,12 @@ import 'dart:ui' as _i12;
 import 'package:flutter/foundation.dart' as _i4;
 import 'package:flutter_riverpod/flutter_riverpod.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/models/node_model.dart' as _i16;
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart'
-    as _i14;
+import 'package:stackwallet/models/node_model.dart' as _i15;
 import 'package:stackwallet/services/coins/manager.dart' as _i6;
 import 'package:stackwallet/services/node_service.dart' as _i3;
 import 'package:stackwallet/services/wallets.dart' as _i8;
 import 'package:stackwallet/services/wallets_service.dart' as _i2;
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i15;
+import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i14;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i9;
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i13;
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
@@ -416,20 +414,6 @@ class MockPrefs extends _i1.Mock implements _i11.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i14.ExchangeRateType get exchangeRateType => (super.noSuchMethod(
-        Invocation.getter(#exchangeRateType),
-        returnValue: _i14.ExchangeRateType.estimated,
-      ) as _i14.ExchangeRateType);
-  @override
-  set exchangeRateType(_i14.ExchangeRateType? exchangeRateType) =>
-      super.noSuchMethod(
-        Invocation.setter(
-          #exchangeRateType,
-          exchangeRateType,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
   bool get useBiometrics => (super.noSuchMethod(
         Invocation.getter(#useBiometrics),
         returnValue: false,
@@ -503,12 +487,12 @@ class MockPrefs extends _i1.Mock implements _i11.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i15.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
+  _i14.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
         Invocation.getter(#backupFrequencyType),
-        returnValue: _i15.BackupFrequencyType.everyTenMinutes,
-      ) as _i15.BackupFrequencyType);
+        returnValue: _i14.BackupFrequencyType.everyTenMinutes,
+      ) as _i14.BackupFrequencyType);
   @override
-  set backupFrequencyType(_i15.BackupFrequencyType? backupFrequencyType) =>
+  set backupFrequencyType(_i14.BackupFrequencyType? backupFrequencyType) =>
       super.noSuchMethod(
         Invocation.setter(
           #backupFrequencyType,
@@ -672,15 +656,15 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
         ),
       ) as _i7.SecureStorageInterface);
   @override
-  List<_i16.NodeModel> get primaryNodes => (super.noSuchMethod(
+  List<_i15.NodeModel> get primaryNodes => (super.noSuchMethod(
         Invocation.getter(#primaryNodes),
-        returnValue: <_i16.NodeModel>[],
-      ) as List<_i16.NodeModel>);
+        returnValue: <_i15.NodeModel>[],
+      ) as List<_i15.NodeModel>);
   @override
-  List<_i16.NodeModel> get nodes => (super.noSuchMethod(
+  List<_i15.NodeModel> get nodes => (super.noSuchMethod(
         Invocation.getter(#nodes),
-        returnValue: <_i16.NodeModel>[],
-      ) as List<_i16.NodeModel>);
+        returnValue: <_i15.NodeModel>[],
+      ) as List<_i15.NodeModel>);
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
@@ -698,7 +682,7 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
   @override
   _i10.Future<void> setPrimaryNodeFor({
     required _i9.Coin? coin,
-    required _i16.NodeModel? node,
+    required _i15.NodeModel? node,
     bool? shouldNotifyListeners = false,
   }) =>
       (super.noSuchMethod(
@@ -715,40 +699,40 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
         returnValueForMissingStub: _i10.Future<void>.value(),
       ) as _i10.Future<void>);
   @override
-  _i16.NodeModel? getPrimaryNodeFor({required _i9.Coin? coin}) =>
+  _i15.NodeModel? getPrimaryNodeFor({required _i9.Coin? coin}) =>
       (super.noSuchMethod(Invocation.method(
         #getPrimaryNodeFor,
         [],
         {#coin: coin},
-      )) as _i16.NodeModel?);
+      )) as _i15.NodeModel?);
   @override
-  List<_i16.NodeModel> getNodesFor(_i9.Coin? coin) => (super.noSuchMethod(
+  List<_i15.NodeModel> getNodesFor(_i9.Coin? coin) => (super.noSuchMethod(
         Invocation.method(
           #getNodesFor,
           [coin],
         ),
-        returnValue: <_i16.NodeModel>[],
-      ) as List<_i16.NodeModel>);
+        returnValue: <_i15.NodeModel>[],
+      ) as List<_i15.NodeModel>);
   @override
-  _i16.NodeModel? getNodeById({required String? id}) =>
+  _i15.NodeModel? getNodeById({required String? id}) =>
       (super.noSuchMethod(Invocation.method(
         #getNodeById,
         [],
         {#id: id},
-      )) as _i16.NodeModel?);
+      )) as _i15.NodeModel?);
   @override
-  List<_i16.NodeModel> failoverNodesFor({required _i9.Coin? coin}) =>
+  List<_i15.NodeModel> failoverNodesFor({required _i9.Coin? coin}) =>
       (super.noSuchMethod(
         Invocation.method(
           #failoverNodesFor,
           [],
           {#coin: coin},
         ),
-        returnValue: <_i16.NodeModel>[],
-      ) as List<_i16.NodeModel>);
+        returnValue: <_i15.NodeModel>[],
+      ) as List<_i15.NodeModel>);
   @override
   _i10.Future<void> add(
-    _i16.NodeModel? node,
+    _i15.NodeModel? node,
     String? password,
     bool? shouldNotifyListeners,
   ) =>
@@ -800,7 +784,7 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
       ) as _i10.Future<void>);
   @override
   _i10.Future<void> edit(
-    _i16.NodeModel? editedNode,
+    _i15.NodeModel? editedNode,
     String? password,
     bool? shouldNotifyListeners,
   ) =>
