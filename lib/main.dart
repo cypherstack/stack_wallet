@@ -106,6 +106,7 @@ void main() async {
       [LogSchema],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       inspector: false,
+      maxSizeMiB: 1024,
     );
     await Logging.instance.init(isar);
     await DebugService.instance.init(isar);

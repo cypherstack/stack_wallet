@@ -48,9 +48,10 @@ class ExchangeDataLoadingService {
         PairSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
-      inspector: kDebugMode,
-      // inspector: false,
+      // inspector: kDebugMode,
+      inspector: false,
       name: "exchange_cache",
+      maxSizeMiB: 1024,
     );
   }
 

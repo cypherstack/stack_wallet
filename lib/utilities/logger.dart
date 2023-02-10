@@ -35,6 +35,7 @@ class Logging {
     isar = await Isar.open(
       [LogSchema],
       inspector: false,
+      maxSizeMiB: 1024,
     );
   }
 
