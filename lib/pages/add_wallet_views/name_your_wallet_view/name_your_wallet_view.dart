@@ -167,7 +167,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
           if (!isDesktop)
             Image(
               image: AssetImage(
-                Assets.png.imageFor(coin: coin),
+                Assets.png.imageFor(coin: coin, context: context),
               ),
               height: 100,
             ),
