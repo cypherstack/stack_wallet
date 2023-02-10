@@ -205,18 +205,7 @@ flutter:
     - google_fonts/
     - assets/svg/circle-check.svg
     - assets/svg/clipboard.svg
-    - assets/images/stack.png
     - assets/images/unclaimed.png
-    - assets/images/monero.png
-    - assets/images/wownero.png
-    - assets/images/firo.png
-    - assets/images/litecoin.png
-    - assets/images/doge.png
-    - assets/images/bitcoin.png
-    - assets/images/epic-cash.png
-    - assets/images/bitcoincash.png
-    - assets/images/namecoin.png
-    - assets/images/particl.png
     - assets/images/glasses.png
     - assets/images/glasses-hidden.png
     - assets/svg/plus.svg
@@ -313,6 +302,71 @@ flutter:
     - assets/svg/configuration.svg
     - assets/svg/robot-head.svg
     - assets/svg/whirlpool.svg
+    # light theme coin
+    - assets/images/light/stack.png
+    - assets/images/light/monero.png
+    - assets/images/light/wownero.png
+    - assets/images/light/firo.png
+    - assets/images/light/litecoin.png
+    - assets/images/light/doge.png
+    - assets/images/light/bitcoin.png
+    - assets/images/light/epic-cash.png
+    - assets/images/light/bitcoincash.png
+    - assets/images/light/namecoin.png
+    - assets/images/light/particl.png
+
+    # dark theme coin
+    - assets/images/dark/stack.png
+    - assets/images/dark/monero.png
+    - assets/images/dark/wownero.png
+    - assets/images/dark/firo.png
+    - assets/images/dark/litecoin.png
+    - assets/images/dark/doge.png
+    - assets/images/dark/bitcoin.png
+    - assets/images/dark/epic-cash.png
+    - assets/images/dark/bitcoincash.png
+    - assets/images/dark/namecoin.png
+    - assets/images/dark/particl.png
+
+    # oled black theme coin
+    - assets/images/oledBlack/stack.png
+    - assets/images/oledBlack/monero.png
+    - assets/images/oledBlack/wownero.png
+    - assets/images/oledBlack/firo.png
+    - assets/images/oledBlack/litecoin.png
+    - assets/images/oledBlack/doge.png
+    - assets/images/oledBlack/bitcoin.png
+    - assets/images/oledBlack/epic-cash.png
+    - assets/images/oledBlack/bitcoincash.png
+    - assets/images/oledBlack/namecoin.png
+    - assets/images/oledBlack/particl.png
+
+    # fruit sorbet theme coin
+    - assets/images/fruitSorbet/stack.png
+    - assets/images/fruitSorbet/monero.png
+    - assets/images/fruitSorbet/wownero.png
+    - assets/images/fruitSorbet/firo.png
+    - assets/images/fruitSorbet/litecoin.png
+    - assets/images/fruitSorbet/doge.png
+    - assets/images/fruitSorbet/bitcoin.png
+    - assets/images/fruitSorbet/epic-cash.png
+    - assets/images/fruitSorbet/bitcoincash.png
+    - assets/images/fruitSorbet/namecoin.png
+    - assets/images/fruitSorbet/particl.png
+
+    # forest theme coin
+    - assets/images/forest/stack.png
+    - assets/images/forest/monero.png
+    - assets/images/forest/wownero.png
+    - assets/images/forest/firo.png
+    - assets/images/forest/litecoin.png
+    - assets/images/forest/doge.png
+    - assets/images/forest/bitcoin.png
+    - assets/images/forest/epic-cash.png
+    - assets/images/forest/bitcoincash.png
+    - assets/images/forest/namecoin.png
+    - assets/images/forest/particl.png
+
     # coin icons
     - assets/svg/coin_icons/Bitcoin.svg
     - assets/svg/coin_icons/Litecoin.svg
@@ -431,6 +485,22 @@ flutter:
     - assets/svg/fruitSorbet/stack-icon1.svg
     - assets/svg/fruitSorbet/buy-coins-icon.svg
     - assets/svg/fruitSorbet/bg.svg
+
+    # forest theme specific
+    - assets/svg/forest/tx-exchange-icon.svg
+    - assets/svg/forest/tx-exchange-icon-pending.svg
+    - assets/svg/forest/tx-exchange-icon-failed.svg
+    - assets/svg/forest/tx-icon-send.svg
+    - assets/svg/forest/tx-icon-send-pending.svg
+    - assets/svg/forest/tx-icon-send-failed.svg
+    - assets/svg/forest/tx-icon-receive.svg
+    - assets/svg/forest/tx-icon-receive-pending.svg
+    - assets/svg/forest/tx-icon-receive-failed.svg
+    - assets/svg/forest/exchange-2.svg
+    - assets/svg/forest/bell-new.svg
+    - assets/svg/forest/stack-icon1.svg
+    - assets/svg/forest/buy-coins-icon.svg
+    - assets/svg/forest/bg.svg
 
     # buy
     - assets/svg/buy/Simplex-Nuvei-Logo.svg
