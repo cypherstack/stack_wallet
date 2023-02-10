@@ -53,6 +53,7 @@ class _SVG {
       case ThemeType.light:
       case ThemeType.dark:
       case ThemeType.oledBlack:
+      case ThemeType.forest:
         return null;
 
       case ThemeType.oceanBreeze:
