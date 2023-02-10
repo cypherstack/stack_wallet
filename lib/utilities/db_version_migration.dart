@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:hive/hive.dart';
 import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
@@ -12,10 +10,10 @@ import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets_service.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
@@ -200,6 +198,7 @@ class DbVersionMigrator with WalletDB {
     final prefs = Prefs.instance;
     final walletInfoList = await walletsService.walletNames;
     await prefs.init();
+    await MainDB.instance.initMainDB();
 
     for (final walletId in walletInfoList.keys) {
       final info = walletInfoList[walletId]!;
@@ -207,205 +206,66 @@ class DbVersionMigrator with WalletDB {
 
       final walletBox = await Hive.openBox<dynamic>(info.walletId);
 
-      final receiveDerivePrefix = "${walletId}_receiveDerivations";
-      final changeDerivePrefix = "${walletId}_changeDerivations";
-
       const receiveAddressesPrefix = "receivingAddresses";
       const changeAddressesPrefix = "changeAddresses";
 
-      final p2pkhRcvDerivations =
-          (await secureStore.read(key: receiveDerivePrefix)) ??
-              (await secureStore.read(key: "${receiveDerivePrefix}P2PKH"));
-      final p2shRcvDerivations =
-          await secureStore.read(key: "${receiveDerivePrefix}P2SH");
-      final p2wpkhRcvDerivations =
-          await secureStore.read(key: "${receiveDerivePrefix}P2WPKH");
+      // we need to manually migrate epic cash transactions as they are not
+      // stored on the epic cash blockchain
+      if (info.coin == Coin.epicCash) {
+        final txnData = walletBox.get("latest_tx_model") as TransactionData?;
 
-      final p2pkhCngDerivations =
-          (await secureStore.read(key: changeDerivePrefix)) ??
-              (await secureStore.read(key: "${changeDerivePrefix}P2PKH"));
-      final p2shCngDerivations =
-          await secureStore.read(key: "${changeDerivePrefix}P2SH");
-      final p2wpkhCngDerivations =
-          await secureStore.read(key: "${changeDerivePrefix}P2WPKH");
+        // we ever only used index 0 in the past
+        const rcvIndex = 0;
 
-      // useless?
-      // const receiveIndexPrefix = "receivingIndex";
-      // const changeIndexPrefix = "changeIndex";
-      // final p2pkhRcvIndex = walletBox.get(receiveIndexPrefix) as int? ??
-      //     walletBox.get("${receiveIndexPrefix}P2PKH") as int?;
-      // final p2shRcvIndex =
-      //     walletBox.get("${receiveIndexPrefix}P2SH") as int?;
-      // final p2wpkhRcvIndex =
-      //     walletBox.get("${receiveIndexPrefix}P2WPKH") as int?;
-      //
-      // final p2pkhCngIndex = walletBox.get(changeIndexPrefix) as int? ??
-      //     walletBox.get("${changeIndexPrefix}P2PKH") as int?;
-      // final p2shCngIndex =
-      //     walletBox.get("${changeIndexPrefix}P2SH") as int?;
-      // final p2wpkhCngIndex =
-      //     walletBox.get("${changeIndexPrefix}P2WPKH") as int?;
+        final List<Tuple2<isar_models.Transaction, isar_models.Address?>>
+            transactionsData = [];
+        if (txnData != null) {
+          final txns = txnData.getAllTransactions();
 
-      final List<isar_models.Address> newAddresses = [];
+          for (final tx in txns.values) {
+            bool isIncoming = tx.txType == "Received";
 
-      if (p2pkhRcvDerivations != null) {
-        newAddresses.addAll(
-          _v4GetAddressesFromDerivationString(
-            p2pkhRcvDerivations,
-            isar_models.AddressType.p2pkh,
-            isar_models.AddressSubType.receiving,
-            walletId,
-          ),
-        );
-      }
+            final iTx = isar_models.Transaction(
+              walletId: walletId,
+              txid: tx.txid,
+              timestamp: tx.timestamp,
+              type: isIncoming
+                  ? isar_models.TransactionType.incoming
+                  : isar_models.TransactionType.outgoing,
+              subType: isar_models.TransactionSubType.none,
+              amount: tx.amount,
+              fee: tx.fees,
+              height: tx.height,
+              isCancelled: tx.isCancelled,
+              isLelantus: false,
+              slateId: tx.slateId,
+              otherData: tx.otherData,
+              inputs: [],
+              outputs: [],
+            );
 
-      if (p2shRcvDerivations != null) {
-        newAddresses.addAll(
-          _v4GetAddressesFromDerivationString(
-            p2shRcvDerivations,
-            isar_models.AddressType.p2sh,
-            isar_models.AddressSubType.receiving,
-            walletId,
-          ),
-        );
-      }
-
-      if (p2wpkhRcvDerivations != null) {
-        newAddresses.addAll(
-          _v4GetAddressesFromDerivationString(
-            p2wpkhRcvDerivations,
-            isar_models.AddressType.p2wpkh,
-            isar_models.AddressSubType.receiving,
-            walletId,
-          ),
-        );
-      }
-
-      if (p2pkhCngDerivations != null) {
-        newAddresses.addAll(
-          _v4GetAddressesFromDerivationString(
-            p2pkhCngDerivations,
-            isar_models.AddressType.p2pkh,
-            isar_models.AddressSubType.change,
-            walletId,
-          ),
-        );
-      }
-
-      if (p2shCngDerivations != null) {
-        newAddresses.addAll(
-          _v4GetAddressesFromDerivationString(
-            p2shCngDerivations,
-            isar_models.AddressType.p2sh,
-            isar_models.AddressSubType.change,
-            walletId,
-          ),
-        );
-      }
-
-      if (p2wpkhCngDerivations != null) {
-        newAddresses.addAll(
-          _v4GetAddressesFromDerivationString(
-            p2wpkhCngDerivations,
-            isar_models.AddressType.p2wpkh,
-            isar_models.AddressSubType.change,
-            walletId,
-          ),
-        );
-      }
-
-      final currentNewSet = newAddresses.map((e) => e.value).toSet();
-
-      final p2pkhRcvAddresses = _v4GetAddressesFromList(
-          _getList(walletBox.get(receiveAddressesPrefix) ??
-              walletBox.get("${receiveAddressesPrefix}P2PKH")),
-          isar_models.AddressType.p2pkh,
-          isar_models.AddressSubType.receiving,
-          walletId);
-      for (final address in p2pkhRcvAddresses) {
-        if (!currentNewSet.contains(address.value)) {
-          newAddresses.add(address);
+            if (tx.address.isEmpty) {
+              transactionsData.add(Tuple2(iTx, null));
+            } else {
+              final address = isar_models.Address(
+                walletId: walletId,
+                value: tx.address,
+                publicKey: [],
+                derivationIndex: isIncoming ? rcvIndex : -1,
+                derivationPath: null,
+                type: isIncoming
+                    ? isar_models.AddressType.mimbleWimble
+                    : isar_models.AddressType.unknown,
+                subType: isIncoming
+                    ? isar_models.AddressSubType.receiving
+                    : isar_models.AddressSubType.unknown,
+              );
+              transactionsData.add(Tuple2(iTx, address));
+            }
+          }
         }
+        await MainDB.instance.addNewTransactionData(transactionsData, walletId);
       }
-
-      final p2shRcvAddresses = _v4GetAddressesFromList(
-          _getList(walletBox.get("${receiveAddressesPrefix}P2SH")),
-          isar_models.AddressType.p2sh,
-          isar_models.AddressSubType.receiving,
-          walletId);
-      for (final address in p2shRcvAddresses) {
-        if (!currentNewSet.contains(address.value)) {
-          newAddresses.add(address);
-        }
-      }
-
-      final p2wpkhRcvAddresses = _v4GetAddressesFromList(
-          _getList(walletBox.get("${receiveAddressesPrefix}P2WPKH")),
-          isar_models.AddressType.p2wpkh,
-          isar_models.AddressSubType.receiving,
-          walletId);
-      for (final address in p2wpkhRcvAddresses) {
-        if (!currentNewSet.contains(address.value)) {
-          newAddresses.add(address);
-        }
-      }
-
-      final p2pkhCngAddresses = _v4GetAddressesFromList(
-          _getList(walletBox.get(changeAddressesPrefix) ??
-              walletBox.get("${changeAddressesPrefix}P2PKH")),
-          isar_models.AddressType.p2wpkh,
-          isar_models.AddressSubType.change,
-          walletId);
-      for (final address in p2pkhCngAddresses) {
-        if (!currentNewSet.contains(address.value)) {
-          newAddresses.add(address);
-        }
-      }
-
-      final p2shCngAddresses = _v4GetAddressesFromList(
-          _getList(walletBox.get("${changeAddressesPrefix}P2SH")),
-          isar_models.AddressType.p2wpkh,
-          isar_models.AddressSubType.change,
-          walletId);
-      for (final address in p2shCngAddresses) {
-        if (!currentNewSet.contains(address.value)) {
-          newAddresses.add(address);
-        }
-      }
-
-      final p2wpkhCngAddresses = _v4GetAddressesFromList(
-          _getList(walletBox.get("${changeAddressesPrefix}P2WPKH")),
-          isar_models.AddressType.p2wpkh,
-          isar_models.AddressSubType.change,
-          walletId);
-      for (final address in p2wpkhCngAddresses) {
-        if (!currentNewSet.contains(address.value)) {
-          newAddresses.add(address);
-        }
-      }
-
-      // transactions
-      final txnData = walletBox.get("latest_tx_model") as TransactionData?;
-      final txns = txnData?.getAllTransactions().values ?? [];
-      final txnDataLelantus =
-          walletBox.get("latest_lelantus_tx_model") as TransactionData?;
-      final txnsLelantus = txnDataLelantus?.getAllTransactions().values ?? [];
-
-      final List<Tuple2<isar_models.Transaction, isar_models.Address?>>
-          newTransactions = [];
-
-      newTransactions
-          .addAll(_parseTransactions(txns, walletId, false, newAddresses));
-      newTransactions.addAll(
-          _parseTransactions(txnsLelantus, walletId, true, newAddresses));
-
-      // store newly parsed data in isar
-      await MainDB.instance.initMainDB();
-      initWalletDB();
-      await db.isar.writeTxn(() async {
-        await db.isar.addresses.putAll(newAddresses);
-      });
-      await db.addNewTransactionData(newTransactions, walletId);
 
       // delete data from hive
       await walletBox.delete(receiveAddressesPrefix);
@@ -418,154 +278,24 @@ class DbVersionMigrator with WalletDB {
       await walletBox.delete("${changeAddressesPrefix}P2WPKH");
       await walletBox.delete("latest_tx_model");
       await walletBox.delete("latest_lelantus_tx_model");
-    }
-  }
 
-  List<Tuple2<isar_models.Transaction, isar_models.Address?>>
-      _parseTransactions(
-    Iterable<Transaction> txns,
-    String walletId,
-    bool isLelantus,
-    List<isar_models.Address> parsedAddresses,
-  ) {
-    List<Tuple2<isar_models.Transaction, isar_models.Address?>> transactions =
-        [];
-    for (final tx in txns) {
-      final type = tx.txType.toLowerCase() == "received"
-          ? isar_models.TransactionType.incoming
-          : isar_models.TransactionType.outgoing;
-      final subType = tx.subType.toLowerCase() == "mint"
-          ? isar_models.TransactionSubType.mint
-          : tx.subType.toLowerCase() == "join"
-              ? isar_models.TransactionSubType.join
-              : isar_models.TransactionSubType.none;
+      // set empty mnemonic passphrase as we used that by default before
+      if ((await secureStore.read(key: '${walletId}_mnemonicPassphrase')) ==
+          null) {
+        await secureStore.write(
+            key: '${walletId}_mnemonicPassphrase', value: "");
+      }
 
-      final List<isar_models.Input> inputs = [];
-      final List<isar_models.Output> outputs = [];
-
-      for (final inp in tx.inputs) {
-        final input = isar_models.Input(
-          txid: inp.txid,
-          vout: inp.vout,
-          scriptSig: inp.scriptsig,
-          scriptSigAsm: inp.scriptsigAsm,
-          isCoinbase: inp.isCoinbase,
-          sequence: inp.sequence,
-          innerRedeemScriptAsm: inp.innerRedeemscriptAsm,
+      // doing this for epic cash will delete transaction history as it is not
+      // stored on the epic cash blockchain
+      if (info.coin != Coin.epicCash) {
+        // set flag to initiate full rescan on opening wallet
+        await DB.instance.put<dynamic>(
+          boxName: DB.boxNameDBInfo,
+          key: "rescan_on_open_$walletId",
+          value: Constants.rescanV1,
         );
-        inputs.add(input);
       }
-      for (final out in tx.outputs) {
-        final output = isar_models.Output(
-          scriptPubKey: out.scriptpubkey,
-          scriptPubKeyAsm: out.scriptpubkeyAsm,
-          scriptPubKeyType: out.scriptpubkeyType,
-          scriptPubKeyAddress: out.scriptpubkeyAddress,
-          value: out.value,
-        );
-        outputs.add(output);
-      }
-
-      final transaction = isar_models.Transaction(
-        walletId: walletId,
-        txid: tx.txid,
-        timestamp: tx.timestamp,
-        type: type,
-        subType: subType,
-        amount: tx.amount,
-        fee: tx.fees,
-        height: tx.height,
-        isCancelled: tx.isCancelled,
-        isLelantus: false,
-        slateId: tx.slateId,
-        otherData: tx.otherData,
-        inputs: inputs,
-        outputs: outputs,
-      );
-
-      isar_models.Address? address;
-      if (tx.address.isNotEmpty) {
-        final addresses = parsedAddresses.where((e) => e.value == tx.address);
-        if (addresses.isNotEmpty) {
-          address = addresses.first;
-        } else {
-          address = isar_models.Address(
-            walletId: walletId,
-            value: tx.address,
-            publicKey: [],
-            derivationIndex: -1,
-            derivationPath: null,
-            type: isar_models.AddressType.unknown,
-            subType: type == isar_models.TransactionType.incoming
-                ? isar_models.AddressSubType.receiving
-                : isar_models.AddressSubType.unknown,
-          );
-        }
-      }
-
-      transactions.add(Tuple2(transaction, address));
     }
-    return transactions;
-  }
-
-  List<isar_models.Address> _v4GetAddressesFromDerivationString(
-    String derivationsString,
-    isar_models.AddressType type,
-    isar_models.AddressSubType subType,
-    String walletId,
-  ) {
-    final List<isar_models.Address> addresses = [];
-
-    final derivations =
-        Map<String, dynamic>.from(jsonDecode(derivationsString) as Map);
-
-    for (final entry in derivations.entries) {
-      final addr = entry.value["address"] as String? ?? entry.key;
-      final pubKey = entry.value["pubKey"] as String? ??
-          entry.value["publicKey"] as String;
-      final index = int.tryParse(entry.key) ?? -1;
-
-      final address = isar_models.Address(
-        walletId: walletId,
-        value: addr,
-        publicKey: Format.stringToUint8List(pubKey),
-        derivationIndex: index,
-        derivationPath: null, // we have no idea what the full path is
-        type: type,
-        subType: subType,
-      );
-      addresses.add(address);
-    }
-
-    return addresses;
-  }
-
-  List<isar_models.Address> _v4GetAddressesFromList(
-    List<String> addressStrings,
-    isar_models.AddressType type,
-    isar_models.AddressSubType subType,
-    String walletId,
-  ) {
-    final List<isar_models.Address> addresses = [];
-
-    for (final addr in addressStrings) {
-      final address = isar_models.Address(
-        walletId: walletId,
-        value: addr,
-        publicKey: [],
-        derivationIndex: -1,
-        derivationPath: null, // index unknown
-        type: type,
-        subType: subType,
-      );
-      addresses.add(address);
-    }
-
-    return addresses;
-  }
-
-  List<String> _getList(dynamic list) {
-    if (list == null) return [];
-    return List<String>.from(list as List);
   }
 }

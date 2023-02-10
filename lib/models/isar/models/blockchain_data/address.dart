@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:isar/isar.dart';
 import 'package:stackwallet/exceptions/address/address_exception.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/crypto_currency_address.dart';
@@ -71,6 +73,45 @@ class Address extends CryptoCurrencyAddress {
       "derivationPath: $derivationPath, "
       "otherData: $otherData, "
       "}";
+
+  String toJsonString() {
+    final Map<String, dynamic> result = {
+      "walletId": walletId,
+      "value": value,
+      "publicKey": publicKey,
+      "derivationIndex": derivationIndex,
+      "type": type.name,
+      "subType": subType.name,
+      "derivationPath": derivationPath?.value,
+      "otherData": otherData,
+    };
+    return jsonEncode(result);
+  }
+
+  static Address fromJsonString(
+    String jsonString, {
+    String? overrideWalletId,
+  }) {
+    final json = jsonDecode(jsonString);
+    final derivationPathString = json["derivationPath"] as String?;
+
+    final DerivationPath? derivationPath =
+        derivationPathString == null ? null : DerivationPath();
+    if (derivationPath != null) {
+      derivationPath.value = derivationPathString!;
+    }
+
+    return Address(
+      walletId: overrideWalletId ?? json["walletId"] as String,
+      value: json["value"] as String,
+      publicKey: List<int>.from(json["publicKey"] as List),
+      derivationIndex: json["derivationIndex"] as int,
+      derivationPath: derivationPath,
+      type: AddressType.values.byName(json["type"] as String),
+      subType: AddressSubType.values.byName(json["subType"] as String),
+      otherData: json["otherData"] as String?,
+    );
+  }
 }
 
 // do not modify

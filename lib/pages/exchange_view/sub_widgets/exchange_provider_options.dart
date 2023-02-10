@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/exceptions/exchange/pair_unavailable_exception.dart';
+import 'package:stackwallet/models/exchange/aggregate_currency.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
@@ -20,27 +21,62 @@ import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
-class ExchangeProviderOptions extends ConsumerWidget {
+class ExchangeProviderOptions extends ConsumerStatefulWidget {
   const ExchangeProviderOptions({
     Key? key,
-    required this.from,
-    required this.to,
-    required this.fromAmount,
-    required this.toAmount,
     required this.fixedRate,
     required this.reversed,
   }) : super(key: key);
 
-  final String? from;
-  final String? to;
-  final Decimal? fromAmount;
-  final Decimal? toAmount;
   final bool fixedRate;
   final bool reversed;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isDesktop = Util.isDesktop;
+  ConsumerState<ExchangeProviderOptions> createState() =>
+      _ExchangeProviderOptionsState();
+}
+
+class _ExchangeProviderOptionsState
+    extends ConsumerState<ExchangeProviderOptions> {
+  final isDesktop = Util.isDesktop;
+
+  bool exchangeSupported({
+    required String exchangeName,
+    required AggregateCurrency? sendCurrency,
+    required AggregateCurrency? receiveCurrency,
+  }) {
+    final send = sendCurrency?.forExchange(exchangeName);
+    if (send == null) return false;
+
+    final rcv = receiveCurrency?.forExchange(exchangeName);
+    if (rcv == null) return false;
+
+    if (widget.fixedRate) {
+      return send.supportsFixedRate && rcv.supportsFixedRate;
+    } else {
+      return send.supportsEstimatedRate && rcv.supportsEstimatedRate;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final sendCurrency = ref.watch(exchangeFormStateProvider).sendCurrency;
+    final receivingCurrency =
+        ref.watch(exchangeFormStateProvider).receiveCurrency;
+    final fromAmount = ref.watch(exchangeFormStateProvider).sendAmount;
+    final toAmount = ref.watch(exchangeFormStateProvider).receiveAmount;
+
+    final showChangeNow = exchangeSupported(
+      exchangeName: ChangeNowExchange.exchangeName,
+      sendCurrency: sendCurrency,
+      receiveCurrency: receivingCurrency,
+    );
+    final showMajesticBank = exchangeSupported(
+      exchangeName: MajesticBankExchange.exchangeName,
+      sendCurrency: sendCurrency,
+      receiveCurrency: receivingCurrency,
+    );
+
     return RoundedWhiteContainer(
       padding: isDesktop ? const EdgeInsets.all(0) : const EdgeInsets.all(12),
       borderColor: isDesktop
@@ -48,181 +84,196 @@ class ExchangeProviderOptions extends ConsumerWidget {
           : null,
       child: Column(
         children: [
-          ConditionalParent(
-            condition: isDesktop,
-            builder: (child) => MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: child,
-            ),
-            child: GestureDetector(
-              onTap: () {
-                if (ref.read(currentExchangeNameStateProvider.state).state !=
-                    ChangeNowExchange.exchangeName) {
-                  ref.read(currentExchangeNameStateProvider.state).state =
-                      ChangeNowExchange.exchangeName;
-                  ref.read(exchangeFormStateProvider).updateExchange(
-                        exchange: ref.read(exchangeProvider),
-                        shouldUpdateData: true,
-                        shouldNotifyListeners: true,
-                      );
-                }
-              },
-              child: Container(
-                color: Colors.transparent,
-                child: Padding(
-                  padding: isDesktop
-                      ? const EdgeInsets.all(16)
-                      : const EdgeInsets.all(0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: Padding(
-                          padding:
-                              EdgeInsets.only(top: isDesktop ? 20.0 : 15.0),
-                          child: Radio(
-                            activeColor: Theme.of(context)
-                                .extension<StackColors>()!
-                                .radioButtonIconEnabled,
-                            value: ChangeNowExchange.exchangeName,
-                            groupValue: ref
-                                .watch(currentExchangeNameStateProvider.state)
-                                .state,
-                            onChanged: (_) {
-                              // if (value is String) {
-                              //   ref
-                              //       .read(
-                              //           currentExchangeNameStateProvider.state)
-                              //       .state = value;
-                              //   ref
-                              //           .read(exchangeFormStateProvider(ref
-                              //               .read(prefsChangeNotifierProvider)
-                              //               .exchangeRateType))
-                              //           .exchange =
-                              //       Exchange.fromName(ref
-                              //           .read(currentExchangeNameStateProvider
-                              //               .state)
-                              //           .state);
-                              // }
-                            },
+          if (showChangeNow)
+            ConditionalParent(
+              condition: isDesktop,
+              builder: (child) => MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: child,
+              ),
+              child: GestureDetector(
+                onTap: () {
+                  if (ref.read(exchangeFormStateProvider).exchange.name !=
+                      ChangeNowExchange.exchangeName) {
+                    ref.read(exchangeFormStateProvider).updateExchange(
+                          exchange: ChangeNowExchange.instance,
+                          shouldUpdateData: true,
+                          shouldNotifyListeners: true,
+                        );
+                  }
+                },
+                child: Container(
+                  color: Colors.transparent,
+                  child: Padding(
+                    padding: isDesktop
+                        ? const EdgeInsets.all(16)
+                        : const EdgeInsets.all(0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: Padding(
+                            padding:
+                                EdgeInsets.only(top: isDesktop ? 20.0 : 15.0),
+                            child: Radio(
+                              activeColor: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .radioButtonIconEnabled,
+                              value: ChangeNowExchange.exchangeName,
+                              groupValue: ref.watch(exchangeFormStateProvider
+                                  .select((value) => value.exchange.name)),
+                              onChanged: (_) {
+                                if (ref
+                                        .read(exchangeFormStateProvider)
+                                        .exchange
+                                        .name !=
+                                    ChangeNowExchange.exchangeName) {
+                                  ref
+                                      .read(exchangeFormStateProvider)
+                                      .updateExchange(
+                                        exchange: ChangeNowExchange.instance,
+                                        shouldUpdateData: true,
+                                        shouldNotifyListeners: true,
+                                      );
+                                }
+                              },
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(
-                        width: 14,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 5.0),
-                        child: SizedBox(
-                          width: isDesktop ? 32 : 24,
-                          height: isDesktop ? 32 : 24,
-                          child: SvgPicture.asset(
-                            Assets.exchange.changeNow,
+                        const SizedBox(
+                          width: 14,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 5.0),
+                          child: SizedBox(
                             width: isDesktop ? 32 : 24,
                             height: isDesktop ? 32 : 24,
+                            child: SvgPicture.asset(
+                              Assets.exchange.changeNow,
+                              width: isDesktop ? 32 : 24,
+                              height: isDesktop ? 32 : 24,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              ChangeNowExchange.exchangeName,
-                              style: STextStyles.titleBold12(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark2,
-                              ),
-                            ),
-                            if (from != null &&
-                                to != null &&
-                                toAmount != null &&
-                                toAmount! > Decimal.zero &&
-                                fromAmount != null &&
-                                fromAmount! > Decimal.zero)
-                              FutureBuilder(
-                                future: ChangeNowExchange.instance.getEstimate(
-                                  from!,
-                                  to!,
-                                  reversed ? toAmount! : fromAmount!,
-                                  fixedRate,
-                                  reversed,
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                ChangeNowExchange.exchangeName,
+                                style:
+                                    STextStyles.titleBold12(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark2,
                                 ),
-                                builder: (context,
-                                    AsyncSnapshot<ExchangeResponse<Estimate>>
-                                        snapshot) {
-                                  if (snapshot.connectionState ==
-                                          ConnectionState.done &&
-                                      snapshot.hasData) {
-                                    final estimate = snapshot.data?.value;
-                                    if (estimate != null) {
-                                      Decimal rate;
-                                      if (estimate.reversed) {
-                                        rate = (toAmount! /
-                                                estimate.estimatedAmount)
-                                            .toDecimal(
-                                                scaleOnInfinitePrecision: 12);
-                                      } else {
-                                        rate = (estimate.estimatedAmount /
-                                                fromAmount!)
-                                            .toDecimal(
-                                                scaleOnInfinitePrecision: 12);
-                                      }
-                                      Coin coin;
-                                      try {
-                                        coin =
-                                            coinFromTickerCaseInsensitive(to!);
-                                      } catch (_) {
-                                        coin = Coin.bitcoin;
-                                      }
+                              ),
+                              if (sendCurrency != null &&
+                                  receivingCurrency != null &&
+                                  toAmount != null &&
+                                  toAmount > Decimal.zero &&
+                                  fromAmount != null &&
+                                  fromAmount > Decimal.zero)
+                                FutureBuilder(
+                                  future:
+                                      ChangeNowExchange.instance.getEstimate(
+                                    sendCurrency.ticker,
+                                    receivingCurrency.ticker,
+                                    widget.reversed ? toAmount : fromAmount,
+                                    widget.fixedRate,
+                                    widget.reversed,
+                                  ),
+                                  builder: (context,
+                                      AsyncSnapshot<ExchangeResponse<Estimate>>
+                                          snapshot) {
+                                    if (snapshot.connectionState ==
+                                            ConnectionState.done &&
+                                        snapshot.hasData) {
+                                      final estimate = snapshot.data?.value;
+                                      if (estimate != null) {
+                                        Decimal rate;
+                                        if (estimate.reversed) {
+                                          rate = (toAmount /
+                                                  estimate.estimatedAmount)
+                                              .toDecimal(
+                                                  scaleOnInfinitePrecision: 12);
+                                        } else {
+                                          rate = (estimate.estimatedAmount /
+                                                  fromAmount)
+                                              .toDecimal(
+                                                  scaleOnInfinitePrecision: 12);
+                                        }
+                                        Coin coin;
+                                        try {
+                                          coin = coinFromTickerCaseInsensitive(
+                                              receivingCurrency.ticker);
+                                        } catch (_) {
+                                          coin = Coin.bitcoin;
+                                        }
 
-                                      return Text(
-                                        "1 ${from!.toUpperCase()} ~ ${Format.localizedStringAsFixed(
-                                          value: rate,
-                                          locale: ref.watch(
-                                            localeServiceChangeNotifierProvider
-                                                .select(
-                                                    (value) => value.locale),
+                                        return Text(
+                                          "1 ${sendCurrency.ticker.toUpperCase()} ~ ${Format.localizedStringAsFixed(
+                                            value: rate,
+                                            locale: ref.watch(
+                                              localeServiceChangeNotifierProvider
+                                                  .select(
+                                                      (value) => value.locale),
+                                            ),
+                                            decimalPlaces:
+                                                Constants.decimalPlacesForCoin(
+                                                    coin),
+                                          )} ${receivingCurrency.ticker.toUpperCase()}",
+                                          style: STextStyles.itemSubtitle12(
+                                                  context)
+                                              .copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textSubtitle1,
                                           ),
-                                          decimalPlaces:
-                                              Constants.decimalPlacesForCoin(
-                                                  coin),
-                                        )} ${to!.toUpperCase()}",
-                                        style:
-                                            STextStyles.itemSubtitle12(context)
-                                                .copyWith(
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textSubtitle1,
-                                        ),
-                                      );
-                                    } else if (snapshot.data?.exception
-                                        is PairUnavailableException) {
-                                      return Text(
-                                        "Unsupported pair",
-                                        style:
-                                            STextStyles.itemSubtitle12(context)
-                                                .copyWith(
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textSubtitle1,
-                                        ),
-                                      );
+                                        );
+                                      } else if (snapshot.data?.exception
+                                          is PairUnavailableException) {
+                                        return Text(
+                                          "Unsupported pair",
+                                          style: STextStyles.itemSubtitle12(
+                                                  context)
+                                              .copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textSubtitle1,
+                                          ),
+                                        );
+                                      } else {
+                                        Logging.instance.log(
+                                          "$runtimeType failed to fetch rate for ChangeNOW: ${snapshot.data}",
+                                          level: LogLevel.Warning,
+                                        );
+                                        return Text(
+                                          "Failed to fetch rate",
+                                          style: STextStyles.itemSubtitle12(
+                                                  context)
+                                              .copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textSubtitle1,
+                                          ),
+                                        );
+                                      }
                                     } else {
-                                      Logging.instance.log(
-                                        "$runtimeType failed to fetch rate for ChangeNOW: ${snapshot.data}",
-                                        level: LogLevel.Warning,
-                                      );
-                                      return Text(
-                                        "Failed to fetch rate",
+                                      return AnimatedText(
+                                        stringsToLoopThrough: const [
+                                          "Loading",
+                                          "Loading.",
+                                          "Loading..",
+                                          "Loading...",
+                                        ],
                                         style:
                                             STextStyles.itemSubtitle12(context)
                                                 .copyWith(
@@ -232,233 +283,234 @@ class ExchangeProviderOptions extends ConsumerWidget {
                                         ),
                                       );
                                     }
-                                  } else {
-                                    return AnimatedText(
-                                      stringsToLoopThrough: const [
-                                        "Loading",
-                                        "Loading.",
-                                        "Loading..",
-                                        "Loading...",
-                                      ],
-                                      style: STextStyles.itemSubtitle12(context)
-                                          .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textSubtitle1,
-                                      ),
-                                    );
-                                  }
-                                },
-                              ),
-                            if (!(from != null &&
-                                to != null &&
-                                toAmount != null &&
-                                toAmount! > Decimal.zero &&
-                                fromAmount != null &&
-                                fromAmount! > Decimal.zero))
-                              Text(
-                                "n/a",
-                                style: STextStyles.itemSubtitle12(context)
-                                    .copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textSubtitle1,
+                                  },
                                 ),
-                              ),
-                          ],
+                              if (!(sendCurrency != null &&
+                                  receivingCurrency != null &&
+                                  toAmount != null &&
+                                  toAmount > Decimal.zero &&
+                                  fromAmount != null &&
+                                  fromAmount > Decimal.zero))
+                                Text(
+                                  "n/a",
+                                  style: STextStyles.itemSubtitle12(context)
+                                      .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textSubtitle1,
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          if (isDesktop)
-            Container(
-              height: 1,
-              color: Theme.of(context).extension<StackColors>()!.background,
-            ),
-          if (!isDesktop)
-            const SizedBox(
-              height: 16,
-            ),
-          ConditionalParent(
-            condition: isDesktop,
-            builder: (child) => MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: child,
-            ),
-            child: GestureDetector(
-              onTap: () {
-                if (ref.read(currentExchangeNameStateProvider.state).state !=
-                    MajesticBankExchange.exchangeName) {
-                  ref.read(currentExchangeNameStateProvider.state).state =
-                      MajesticBankExchange.exchangeName;
-                  ref.read(exchangeFormStateProvider).updateExchange(
-                        exchange: ref.read(exchangeProvider),
-                        shouldUpdateData: true,
-                        shouldNotifyListeners: true,
-                      );
-                }
-              },
-              child: Container(
-                color: Colors.transparent,
-                child: Padding(
-                  padding: isDesktop
-                      ? const EdgeInsets.all(16)
-                      : const EdgeInsets.all(0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: Padding(
-                          padding:
-                              EdgeInsets.only(top: isDesktop ? 20.0 : 15.0),
-                          child: Radio(
-                            activeColor: Theme.of(context)
-                                .extension<StackColors>()!
-                                .radioButtonIconEnabled,
-                            value: MajesticBankExchange.exchangeName,
-                            groupValue: ref
-                                .watch(currentExchangeNameStateProvider.state)
-                                .state,
-                            onChanged: (_) {
-                              //   if (value is String) {
-                              //     ref
-                              //         .read(
-                              //             currentExchangeNameStateProvider.state)
-                              //         .state = value;
-                              //     ref
-                              //             .read(exchangeFormStateProvider(ref
-                              //                 .read(prefsChangeNotifierProvider)
-                              //                 .exchangeRateType))
-                              //             .exchange =
-                              //         Exchange.fromName(ref
-                              //             .read(currentExchangeNameStateProvider
-                              //                 .state)
-                              //             .state);
-                              //   }
-                            },
+
+          if (showChangeNow && showMajesticBank)
+            isDesktop
+                ? Container(
+                    height: 1,
+                    color:
+                        Theme.of(context).extension<StackColors>()!.background,
+                  )
+                : const SizedBox(
+                    height: 16,
+                  ),
+
+          if (showMajesticBank)
+            ConditionalParent(
+              condition: isDesktop,
+              builder: (child) => MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: child,
+              ),
+              child: GestureDetector(
+                onTap: () {
+                  if (ref.read(exchangeFormStateProvider).exchange.name !=
+                      MajesticBankExchange.exchangeName) {
+                    ref.read(exchangeFormStateProvider).updateExchange(
+                          exchange: MajesticBankExchange.instance,
+                          shouldUpdateData: true,
+                          shouldNotifyListeners: true,
+                        );
+                  }
+                },
+                child: Container(
+                  color: Colors.transparent,
+                  child: Padding(
+                    padding: isDesktop
+                        ? const EdgeInsets.all(16)
+                        : const EdgeInsets.all(0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: Padding(
+                            padding:
+                                EdgeInsets.only(top: isDesktop ? 20.0 : 15.0),
+                            child: Radio(
+                              activeColor: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .radioButtonIconEnabled,
+                              value: MajesticBankExchange.exchangeName,
+                              groupValue: ref.watch(exchangeFormStateProvider
+                                  .select((value) => value.exchange.name)),
+                              onChanged: (_) {
+                                if (ref
+                                        .read(exchangeFormStateProvider)
+                                        .exchange
+                                        .name !=
+                                    MajesticBankExchange.exchangeName) {
+                                  ref
+                                      .read(exchangeFormStateProvider)
+                                      .updateExchange(
+                                        exchange: MajesticBankExchange.instance,
+                                        shouldUpdateData: true,
+                                        shouldNotifyListeners: true,
+                                      );
+                                }
+                              },
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(
-                        width: 14,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 5.0),
-                        child: SizedBox(
-                          width: isDesktop ? 32 : 24,
-                          height: isDesktop ? 32 : 24,
-                          child: SvgPicture.asset(
-                            Assets.exchange.majesticBankBlue,
+                        const SizedBox(
+                          width: 14,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 5.0),
+                          child: SizedBox(
                             width: isDesktop ? 32 : 24,
                             height: isDesktop ? 32 : 24,
+                            child: SvgPicture.asset(
+                              Assets.exchange.majesticBankBlue,
+                              width: isDesktop ? 32 : 24,
+                              height: isDesktop ? 32 : 24,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              MajesticBankExchange.exchangeName,
-                              style: STextStyles.titleBold12(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark2,
-                              ),
-                            ),
-                            if (from != null &&
-                                to != null &&
-                                toAmount != null &&
-                                toAmount! > Decimal.zero &&
-                                fromAmount != null &&
-                                fromAmount! > Decimal.zero)
-                              FutureBuilder(
-                                future:
-                                    MajesticBankExchange.instance.getEstimate(
-                                  from!,
-                                  to!,
-                                  reversed ? toAmount! : fromAmount!,
-                                  fixedRate,
-                                  reversed,
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                MajesticBankExchange.exchangeName,
+                                style:
+                                    STextStyles.titleBold12(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark2,
                                 ),
-                                builder: (context,
-                                    AsyncSnapshot<ExchangeResponse<Estimate>>
-                                        snapshot) {
-                                  if (snapshot.connectionState ==
-                                          ConnectionState.done &&
-                                      snapshot.hasData) {
-                                    final estimate = snapshot.data?.value;
-                                    if (estimate != null) {
-                                      Decimal rate;
-                                      if (estimate.reversed) {
-                                        rate = (toAmount! /
-                                                estimate.estimatedAmount)
-                                            .toDecimal(
-                                                scaleOnInfinitePrecision: 12);
-                                      } else {
-                                        rate = (estimate.estimatedAmount /
-                                                fromAmount!)
-                                            .toDecimal(
-                                                scaleOnInfinitePrecision: 12);
-                                      }
-                                      Coin coin;
-                                      try {
-                                        coin =
-                                            coinFromTickerCaseInsensitive(to!);
-                                      } catch (_) {
-                                        coin = Coin.bitcoin;
-                                      }
+                              ),
+                              if (sendCurrency != null &&
+                                  receivingCurrency != null &&
+                                  toAmount != null &&
+                                  toAmount > Decimal.zero &&
+                                  fromAmount != null &&
+                                  fromAmount > Decimal.zero)
+                                FutureBuilder(
+                                  future:
+                                      MajesticBankExchange.instance.getEstimate(
+                                    sendCurrency.ticker,
+                                    receivingCurrency.ticker,
+                                    widget.reversed ? toAmount : fromAmount,
+                                    widget.fixedRate,
+                                    widget.reversed,
+                                  ),
+                                  builder: (context,
+                                      AsyncSnapshot<ExchangeResponse<Estimate>>
+                                          snapshot) {
+                                    if (snapshot.connectionState ==
+                                            ConnectionState.done &&
+                                        snapshot.hasData) {
+                                      final estimate = snapshot.data?.value;
+                                      if (estimate != null) {
+                                        Decimal rate;
+                                        if (estimate.reversed) {
+                                          rate = (toAmount /
+                                                  estimate.estimatedAmount)
+                                              .toDecimal(
+                                                  scaleOnInfinitePrecision: 12);
+                                        } else {
+                                          rate = (estimate.estimatedAmount /
+                                                  fromAmount)
+                                              .toDecimal(
+                                                  scaleOnInfinitePrecision: 12);
+                                        }
+                                        Coin coin;
+                                        try {
+                                          coin = coinFromTickerCaseInsensitive(
+                                              receivingCurrency.ticker);
+                                        } catch (_) {
+                                          coin = Coin.bitcoin;
+                                        }
 
-                                      return Text(
-                                        "1 ${from!.toUpperCase()} ~ ${Format.localizedStringAsFixed(
-                                          value: rate,
-                                          locale: ref.watch(
-                                            localeServiceChangeNotifierProvider
-                                                .select(
-                                                    (value) => value.locale),
+                                        return Text(
+                                          "1 ${sendCurrency.ticker.toUpperCase()} ~ ${Format.localizedStringAsFixed(
+                                            value: rate,
+                                            locale: ref.watch(
+                                              localeServiceChangeNotifierProvider
+                                                  .select(
+                                                      (value) => value.locale),
+                                            ),
+                                            decimalPlaces:
+                                                Constants.decimalPlacesForCoin(
+                                                    coin),
+                                          )} ${receivingCurrency.ticker.toUpperCase()}",
+                                          style: STextStyles.itemSubtitle12(
+                                                  context)
+                                              .copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textSubtitle1,
                                           ),
-                                          decimalPlaces:
-                                              Constants.decimalPlacesForCoin(
-                                                  coin),
-                                        )} ${to!.toUpperCase()}",
-                                        style:
-                                            STextStyles.itemSubtitle12(context)
-                                                .copyWith(
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textSubtitle1,
-                                        ),
-                                      );
-                                    } else if (snapshot.data?.exception
-                                        is PairUnavailableException) {
-                                      return Text(
-                                        "Unsupported pair",
-                                        style:
-                                            STextStyles.itemSubtitle12(context)
-                                                .copyWith(
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textSubtitle1,
-                                        ),
-                                      );
+                                        );
+                                      } else if (snapshot.data?.exception
+                                          is PairUnavailableException) {
+                                        return Text(
+                                          "Unsupported pair",
+                                          style: STextStyles.itemSubtitle12(
+                                                  context)
+                                              .copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textSubtitle1,
+                                          ),
+                                        );
+                                      } else {
+                                        Logging.instance.log(
+                                          "$runtimeType failed to fetch rate for ChangeNOW: ${snapshot.data}",
+                                          level: LogLevel.Warning,
+                                        );
+                                        return Text(
+                                          "Failed to fetch rate",
+                                          style: STextStyles.itemSubtitle12(
+                                                  context)
+                                              .copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textSubtitle1,
+                                          ),
+                                        );
+                                      }
                                     } else {
-                                      Logging.instance.log(
-                                        "$runtimeType failed to fetch rate for ChangeNOW: ${snapshot.data}",
-                                        level: LogLevel.Warning,
-                                      );
-                                      return Text(
-                                        "Failed to fetch rate",
+                                      return AnimatedText(
+                                        stringsToLoopThrough: const [
+                                          "Loading",
+                                          "Loading.",
+                                          "Loading..",
+                                          "Loading...",
+                                        ],
                                         style:
                                             STextStyles.itemSubtitle12(context)
                                                 .copyWith(
@@ -468,53 +520,37 @@ class ExchangeProviderOptions extends ConsumerWidget {
                                         ),
                                       );
                                     }
-                                  } else {
-                                    return AnimatedText(
-                                      stringsToLoopThrough: const [
-                                        "Loading",
-                                        "Loading.",
-                                        "Loading..",
-                                        "Loading...",
-                                      ],
-                                      style: STextStyles.itemSubtitle12(context)
-                                          .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textSubtitle1,
-                                      ),
-                                    );
-                                  }
-                                },
-                              ),
-                            if (!(from != null &&
-                                to != null &&
-                                toAmount != null &&
-                                toAmount! > Decimal.zero &&
-                                fromAmount != null &&
-                                fromAmount! > Decimal.zero))
-                              Text(
-                                "n/a",
-                                style: STextStyles.itemSubtitle12(context)
-                                    .copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textSubtitle1,
+                                  },
                                 ),
-                              ),
-                          ],
+                              if (!(sendCurrency != null &&
+                                  receivingCurrency != null &&
+                                  toAmount != null &&
+                                  toAmount > Decimal.zero &&
+                                  fromAmount != null &&
+                                  fromAmount > Decimal.zero))
+                                Text(
+                                  "n/a",
+                                  style: STextStyles.itemSubtitle12(context)
+                                      .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textSubtitle1,
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          if (isDesktop)
-            Container(
-              height: 1,
-              color: Theme.of(context).extension<StackColors>()!.background,
-            ),
+          // if (isDesktop)
+          //   Container(
+          //     height: 1,
+          //     color: Theme.of(context).extension<StackColors>()!.background,
+          //   ),
           // if (!isDesktop)
           //   const SizedBox(
           //     height: 16,

@@ -44,6 +44,12 @@ class Currency {
   @Index()
   final bool isStackCoin;
 
+  @ignore
+  bool get supportsFixedRate => rateType == SupportedRateType.fixed || rateType == SupportedRateType.both;
+
+  @ignore
+  bool get supportsEstimatedRate => rateType == SupportedRateType.estimated || rateType == SupportedRateType.both;
+
   Currency({
     required this.exchangeName,
     required this.ticker,

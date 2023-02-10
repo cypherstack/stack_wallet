@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/models/exchange/aggregate_currency.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -23,8 +24,7 @@ class ExchangeTextField extends StatefulWidget {
     this.onSubmitted,
     this.onTap,
     required this.isWalletCoin,
-    this.image,
-    this.ticker,
+    this.currency,
     this.readOnly = false,
   }) : super(key: key);
 
@@ -42,8 +42,7 @@ class ExchangeTextField extends StatefulWidget {
 
   final bool isWalletCoin;
   final bool readOnly;
-  final String? image;
-  final String? ticker;
+  final AggregateCurrency? currency;
 
   @override
   State<ExchangeTextField> createState() => _ExchangeTextFieldState();
@@ -115,7 +114,7 @@ class _ExchangeTextFieldState extends State<ExchangeTextField> {
                     top: 12,
                     left: 12,
                   ),
-                  hintText: "0",
+                  hintText: widget.currency == null ? "select currency" : "0",
                   hintStyle: STextStyles.fieldLabel(context).copyWith(
                     fontSize: 14,
                   ),
@@ -157,18 +156,18 @@ class _ExchangeTextFieldState extends State<ExchangeTextField> {
                           ),
                           child: Builder(
                             builder: (context) {
-                              if (isStackCoin(widget.ticker)) {
+                              if (isStackCoin(widget.currency?.ticker)) {
                                 return Center(
                                   child: getIconForTicker(
-                                    widget.ticker!,
+                                    widget.currency!.ticker,
                                     size: 18,
                                   ),
                                 );
-                              } else if (widget.image != null &&
-                                  widget.image!.isNotEmpty) {
+                              } else if (widget.currency != null &&
+                                  widget.currency!.image.isNotEmpty) {
                                 return Center(
                                   child: SvgPicture.network(
-                                    widget.image!,
+                                    widget.currency!.image,
                                     height: 18,
                                     placeholderBuilder: (_) => Container(
                                       width: 18,
@@ -215,7 +214,7 @@ class _ExchangeTextFieldState extends State<ExchangeTextField> {
                           width: 6,
                         ),
                         Text(
-                          widget.ticker?.toUpperCase() ?? "-",
+                          widget.currency?.ticker.toUpperCase() ?? "n/a",
                           style: STextStyles.smallMed14(context).copyWith(
                             color: Theme.of(context)
                                 .extension<StackColors>()!

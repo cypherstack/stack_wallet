@@ -4,13 +4,11 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i3;
-import 'dart:ui' as _i8;
+import 'dart:ui' as _i7;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/electrumx_rpc/rpc.dart' as _i2;
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart'
-    as _i6;
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i7;
+import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i6;
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i5;
 import 'package:stackwallet/utilities/prefs.dart' as _i4;
 
@@ -232,20 +230,6 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i6.ExchangeRateType get exchangeRateType => (super.noSuchMethod(
-        Invocation.getter(#exchangeRateType),
-        returnValue: _i6.ExchangeRateType.estimated,
-      ) as _i6.ExchangeRateType);
-  @override
-  set exchangeRateType(_i6.ExchangeRateType? exchangeRateType) =>
-      super.noSuchMethod(
-        Invocation.setter(
-          #exchangeRateType,
-          exchangeRateType,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
   bool get useBiometrics => (super.noSuchMethod(
         Invocation.getter(#useBiometrics),
         returnValue: false,
@@ -319,12 +303,12 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i7.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
+  _i6.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
         Invocation.getter(#backupFrequencyType),
-        returnValue: _i7.BackupFrequencyType.everyTenMinutes,
-      ) as _i7.BackupFrequencyType);
+        returnValue: _i6.BackupFrequencyType.everyTenMinutes,
+      ) as _i6.BackupFrequencyType);
   @override
-  set backupFrequencyType(_i7.BackupFrequencyType? backupFrequencyType) =>
+  set backupFrequencyType(_i6.BackupFrequencyType? backupFrequencyType) =>
       super.noSuchMethod(
         Invocation.setter(
           #backupFrequencyType,
@@ -438,7 +422,7 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValueForMissingStub: _i3.Future<void>.value(),
       ) as _i3.Future<void>);
   @override
-  void addListener(_i8.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i7.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -446,7 +430,7 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  void removeListener(_i8.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i7.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],

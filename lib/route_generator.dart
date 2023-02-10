@@ -711,15 +711,15 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case RestoreWalletView.routeName:
-        if (args is Tuple4<String, Coin, int, DateTime>) {
+        if (args is Tuple5<String, Coin, int, DateTime, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => RestoreWalletView(
-              walletName: args.item1,
-              coin: args.item2,
-              seedWordsLength: args.item3,
-              restoreFromDate: args.item4,
-            ),
+                walletName: args.item1,
+                coin: args.item2,
+                seedWordsLength: args.item3,
+                restoreFromDate: args.item4,
+                mnemonicPassphrase: args.item5),
             settings: RouteSettings(
               name: settings.name,
             ),

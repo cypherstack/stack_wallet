@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/languages_enum.dart';
@@ -18,7 +17,7 @@ class Prefs extends ChangeNotifier {
   Future<void> init() async {
     if (!_initialized) {
       _currency = await _getPreferredCurrency();
-      _exchangeRateType = await _getExchangeRateType();
+      // _exchangeRateType = await _getExchangeRateType();
       _useBiometrics = await _getUseBiometrics();
       _hasPin = await _getHasPin();
       _language = await _getPreferredLanguage();
@@ -251,44 +250,44 @@ class Prefs extends ChangeNotifier {
 
   // exchange rate type
 
-  ExchangeRateType _exchangeRateType = ExchangeRateType.estimated;
-
-  ExchangeRateType get exchangeRateType => _exchangeRateType;
-
-  set exchangeRateType(ExchangeRateType exchangeRateType) {
-    if (_exchangeRateType != exchangeRateType) {
-      switch (exchangeRateType) {
-        case ExchangeRateType.estimated:
-          DB.instance.put<dynamic>(
-              boxName: DB.boxNamePrefs,
-              key: "exchangeRateType",
-              value: "estimated");
-          break;
-        case ExchangeRateType.fixed:
-          DB.instance.put<dynamic>(
-              boxName: DB.boxNamePrefs,
-              key: "exchangeRateType",
-              value: "fixed");
-          break;
-      }
-      _exchangeRateType = exchangeRateType;
-      notifyListeners();
-    }
-  }
-
-  Future<ExchangeRateType> _getExchangeRateType() async {
-    String? rate = await DB.instance.get<dynamic>(
-        boxName: DB.boxNamePrefs, key: "exchangeRateType") as String?;
-    rate ??= "estimated";
-    switch (rate) {
-      case "estimated":
-        return ExchangeRateType.estimated;
-      case "fixed":
-        return ExchangeRateType.fixed;
-      default:
-        throw Exception("Invalid exchange rate type found in prefs!");
-    }
-  }
+  // ExchangeRateType _exchangeRateType = ExchangeRateType.estimated;
+  //
+  // ExchangeRateType get exchangeRateType => _exchangeRateType;
+  //
+  // set exchangeRateType(ExchangeRateType exchangeRateType) {
+  //   if (_exchangeRateType != exchangeRateType) {
+  //     switch (exchangeRateType) {
+  //       case ExchangeRateType.estimated:
+  //         DB.instance.put<dynamic>(
+  //             boxName: DB.boxNamePrefs,
+  //             key: "exchangeRateType",
+  //             value: "estimated");
+  //         break;
+  //       case ExchangeRateType.fixed:
+  //         DB.instance.put<dynamic>(
+  //             boxName: DB.boxNamePrefs,
+  //             key: "exchangeRateType",
+  //             value: "fixed");
+  //         break;
+  //     }
+  //     _exchangeRateType = exchangeRateType;
+  //     notifyListeners();
+  //   }
+  // }
+  //
+  // Future<ExchangeRateType> _getExchangeRateType() async {
+  //   String? rate = await DB.instance.get<dynamic>(
+  //       boxName: DB.boxNamePrefs, key: "exchangeRateType") as String?;
+  //   rate ??= "estimated";
+  //   switch (rate) {
+  //     case "estimated":
+  //       return ExchangeRateType.estimated;
+  //     case "fixed":
+  //       return ExchangeRateType.fixed;
+  //     default:
+  //       throw Exception("Invalid exchange rate type found in prefs!");
+  //   }
+  // }
 
   // use biometrics
 

@@ -434,8 +434,27 @@ class ChangeNowAPI {
       final json = await _makeGetRequest(uri);
 
       try {
-        final value = EstimatedExchangeAmount.fromJson(
-            Map<String, dynamic>.from(json as Map));
+        final map = Map<String, dynamic>.from(json as Map);
+
+        if (map["error"] != null) {
+          if (map["error"] == "not_valid_fixed_rate_pair") {
+            return ExchangeResponse(
+              exception: PairUnavailableException(
+                map["message"] as String? ?? "Unsupported fixed rate pair",
+                ExchangeExceptionType.generic,
+              ),
+            );
+          } else {
+            return ExchangeResponse(
+              exception: ExchangeException(
+                map["message"] as String? ?? map["error"].toString(),
+                ExchangeExceptionType.generic,
+              ),
+            );
+          }
+        }
+
+        final value = EstimatedExchangeAmount.fromJson(map);
         return ExchangeResponse(
           value: Estimate(
             estimatedAmount: value.estimatedAmount,

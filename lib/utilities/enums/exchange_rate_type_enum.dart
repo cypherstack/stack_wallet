@@ -1,0 +1,1 @@
+enum ExchangeRateType { estimated, fixed }

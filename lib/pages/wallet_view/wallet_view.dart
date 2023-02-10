@@ -29,7 +29,6 @@ import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
@@ -38,6 +37,7 @@ import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
@@ -77,6 +77,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
   late StreamSubscription<dynamic> _syncStatusSubscription;
   late StreamSubscription<dynamic> _nodeStatusSubscription;
 
+  bool _rescanningOnOpen = false;
+
   @override
   void initState() {
     walletId = widget.walletId;
@@ -91,7 +93,18 @@ class _WalletViewState extends ConsumerState<WalletView> {
       _shouldDisableAutoSyncOnLogOut = false;
     }
 
-    ref.read(managerProvider).refresh();
+    if (ref.read(managerProvider).rescanOnOpenVersion == Constants.rescanV1) {
+      _rescanningOnOpen = true;
+      ref.read(managerProvider).fullRescan(20, 1000).then(
+            (_) => ref.read(managerProvider).resetRescanOnOpen().then(
+                  (_) => WidgetsBinding.instance.addPostFrameCallback(
+                    (_) => setState(() => _rescanningOnOpen = false),
+                  ),
+                ),
+          );
+    } else {
+      ref.read(managerProvider).refresh();
+    }
 
     if (ref.read(managerProvider).isRefreshing) {
       _currentSyncStatus = WalletSyncStatus.syncing;
@@ -278,10 +291,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
         unawaited(
           Navigator.of(context).pushNamed(
             WalletInitiatedExchangeView.routeName,
-            arguments: Tuple3(
+            arguments: Tuple2(
               walletId,
               coin,
-              _loadCNData,
             ),
           ),
         );
@@ -355,435 +367,454 @@ class _WalletViewState extends ConsumerState<WalletView> {
     }
   }
 
-  void _loadCNData() {
-    // unawaited future
-    // if (ref.read(prefsChangeNotifierProvider).externalCalls) {
-    ExchangeDataLoadingService.instance.loadAll();
-    // .loadAll(ref, coin: ref.read(managerProvider).coin);
-    // } else {
-    //   Logging.instance.log("User does not want to use external calls",
-    //       level: LogLevel.Info);
-    // }
-  }
-
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
     final coin = ref.watch(managerProvider.select((value) => value.coin));
 
-    return WillPopScope(
-      onWillPop: _onWillPop,
-      child: Background(
-        child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: () {
-                _logout();
-                Navigator.of(context).pop();
-              },
-            ),
-            titleSpacing: 0,
-            title: Row(
-              children: [
-                SvgPicture.asset(
-                  Assets.svg.iconFor(coin: coin),
-                  // color: Theme.of(context).extension<StackColors>()!.accentColorDark
-                  width: 24,
-                  height: 24,
+    return ConditionalParent(
+      condition: _rescanningOnOpen,
+      builder: (child) {
+        return WillPopScope(
+          onWillPop: () async => !_rescanningOnOpen,
+          child: Stack(
+            children: [
+              child,
+              Background(
+                child: CustomLoadingOverlay(
+                  message:
+                      "Migration in progress\nThis could take a while\nPlease don't leave this screen",
+                  subMessage: "This only needs to run once per wallet",
+                  eventBus: null,
+                  textColor:
+                      Theme.of(context).extension<StackColors>()!.textDark,
                 ),
-                const SizedBox(
-                  width: 16,
-                ),
-                Expanded(
-                  child: Text(
-                    ref.watch(
-                        managerProvider.select((value) => value.walletName)),
-                    style: STextStyles.navBarTitle(context),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                )
-              ],
-            ),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 10,
-                ),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    key: const Key("walletViewRadioButton"),
-                    size: 36,
-                    shadows: const [],
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    icon: _buildNetworkIcon(_currentSyncStatus),
-                    onPressed: () {
-                      Navigator.of(context).pushNamed(
-                        WalletNetworkSettingsView.routeName,
-                        arguments: Tuple3(
-                          walletId,
-                          _currentSyncStatus,
-                          _currentNodeStatus,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 10,
-                ),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    key: const Key("walletViewAlertsButton"),
-                    size: 36,
-                    shadows: const [],
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    icon: SvgPicture.asset(
-                      ref.watch(notificationsProvider.select((value) =>
-                              value.hasUnreadNotificationsFor(walletId)))
-                          ? Assets.svg.bellNew(context)
-                          : Assets.svg.bell,
-                      width: 20,
-                      height: 20,
-                      color: ref.watch(notificationsProvider.select((value) =>
-                              value.hasUnreadNotificationsFor(walletId)))
-                          ? null
-                          : Theme.of(context)
-                              .extension<StackColors>()!
-                              .topNavIconPrimary,
-                    ),
-                    onPressed: () {
-                      // reset unread state
-                      ref.refresh(unreadNotificationsStateProvider);
-
-                      Navigator.of(context)
-                          .pushNamed(
-                        NotificationsView.routeName,
-                        arguments: walletId,
-                      )
-                          .then((_) {
-                        final Set<int> unreadNotificationIds = ref
-                            .read(unreadNotificationsStateProvider.state)
-                            .state;
-                        if (unreadNotificationIds.isEmpty) return;
-
-                        List<Future<dynamic>> futures = [];
-                        for (int i = 0;
-                            i < unreadNotificationIds.length - 1;
-                            i++) {
-                          futures.add(ref
-                              .read(notificationsProvider)
-                              .markAsRead(
-                                  unreadNotificationIds.elementAt(i), false));
-                        }
-
-                        // wait for multiple to update if any
-                        Future.wait(futures).then((_) {
-                          // only notify listeners once
-                          ref
-                              .read(notificationsProvider)
-                              .markAsRead(unreadNotificationIds.last, true);
-                        });
-                      });
-                    },
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 10,
-                ),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    key: const Key("walletViewSettingsButton"),
-                    size: 36,
-                    shadows: const [],
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    icon: SvgPicture.asset(
-                      Assets.svg.bars,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
-                      width: 20,
-                      height: 20,
-                    ),
-                    onPressed: () {
-                      //todo: check if print needed
-                      // debugPrint("wallet view settings tapped");
-                      Navigator.of(context).pushNamed(
-                        WalletSettingsView.routeName,
-                        arguments: Tuple4(
-                          walletId,
-                          ref.read(managerProvider).coin,
-                          _currentSyncStatus,
-                          _currentNodeStatus,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
+              )
             ],
           ),
-          body: SafeArea(
-            child: Container(
-              color: Theme.of(context).extension<StackColors>()!.background,
-              child: Column(
+        );
+      },
+      child: WillPopScope(
+        onWillPop: _onWillPop,
+        child: Background(
+          child: Scaffold(
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.background,
+            appBar: AppBar(
+              leading: AppBarBackButton(
+                onPressed: () {
+                  _logout();
+                  Navigator.of(context).pop();
+                },
+              ),
+              titleSpacing: 0,
+              title: Row(
                 children: [
-                  const SizedBox(
-                    height: 10,
+                  SvgPicture.asset(
+                    Assets.svg.iconFor(coin: coin),
+                    // color: Theme.of(context).extension<StackColors>()!.accentColorDark
+                    width: 24,
+                    height: 24,
                   ),
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: WalletSummary(
-                        walletId: walletId,
-                        managerProvider: managerProvider,
-                        initialSyncStatus: ref.watch(managerProvider
-                                .select((value) => value.isRefreshing))
-                            ? WalletSyncStatus.syncing
-                            : WalletSyncStatus.synced,
-                      ),
+                  const SizedBox(
+                    width: 16,
+                  ),
+                  Expanded(
+                    child: Text(
+                      ref.watch(
+                          managerProvider.select((value) => value.walletName)),
+                      style: STextStyles.navBarTitle(context),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  )
+                ],
+              ),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                    right: 10,
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: AppBarIconButton(
+                      key: const Key("walletViewRadioButton"),
+                      size: 36,
+                      shadows: const [],
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
+                      icon: _buildNetworkIcon(_currentSyncStatus),
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          WalletNetworkSettingsView.routeName,
+                          arguments: Tuple3(
+                            walletId,
+                            _currentSyncStatus,
+                            _currentNodeStatus,
+                          ),
+                        );
+                      },
                     ),
                   ),
-                  if (coin == Coin.firo)
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                    right: 10,
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: AppBarIconButton(
+                      key: const Key("walletViewAlertsButton"),
+                      size: 36,
+                      shadows: const [],
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
+                      icon: SvgPicture.asset(
+                        ref.watch(notificationsProvider.select((value) =>
+                                value.hasUnreadNotificationsFor(walletId)))
+                            ? Assets.svg.bellNew(context)
+                            : Assets.svg.bell,
+                        width: 20,
+                        height: 20,
+                        color: ref.watch(notificationsProvider.select((value) =>
+                                value.hasUnreadNotificationsFor(walletId)))
+                            ? null
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .topNavIconPrimary,
+                      ),
+                      onPressed: () {
+                        // reset unread state
+                        ref.refresh(unreadNotificationsStateProvider);
+
+                        Navigator.of(context)
+                            .pushNamed(
+                          NotificationsView.routeName,
+                          arguments: walletId,
+                        )
+                            .then((_) {
+                          final Set<int> unreadNotificationIds = ref
+                              .read(unreadNotificationsStateProvider.state)
+                              .state;
+                          if (unreadNotificationIds.isEmpty) return;
+
+                          List<Future<dynamic>> futures = [];
+                          for (int i = 0;
+                              i < unreadNotificationIds.length - 1;
+                              i++) {
+                            futures.add(ref
+                                .read(notificationsProvider)
+                                .markAsRead(
+                                    unreadNotificationIds.elementAt(i), false));
+                          }
+
+                          // wait for multiple to update if any
+                          Future.wait(futures).then((_) {
+                            // only notify listeners once
+                            ref
+                                .read(notificationsProvider)
+                                .markAsRead(unreadNotificationIds.last, true);
+                          });
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                    right: 10,
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: AppBarIconButton(
+                      key: const Key("walletViewSettingsButton"),
+                      size: 36,
+                      shadows: const [],
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
+                      icon: SvgPicture.asset(
+                        Assets.svg.bars,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
+                        width: 20,
+                        height: 20,
+                      ),
+                      onPressed: () {
+                        //todo: check if print needed
+                        // debugPrint("wallet view settings tapped");
+                        Navigator.of(context).pushNamed(
+                          WalletSettingsView.routeName,
+                          arguments: Tuple4(
+                            walletId,
+                            ref.read(managerProvider).coin,
+                            _currentSyncStatus,
+                            _currentNodeStatus,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            body: SafeArea(
+              child: Container(
+                color: Theme.of(context).extension<StackColors>()!.background,
+                child: Column(
+                  children: [
                     const SizedBox(
                       height: 10,
                     ),
-                  if (coin == Coin.firo)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextButton(
-                              style: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .getSecondaryEnabledButtonStyle(context),
-                              onPressed: () async {
-                                await showDialog<void>(
-                                  context: context,
-                                  builder: (context) => StackDialog(
-                                    title: "Attention!",
-                                    message:
-                                        "You're about to anonymize all of your public funds.",
-                                    leftButton: TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Text(
-                                        "Cancel",
-                                        style: STextStyles.button(context)
-                                            .copyWith(
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .accentColorDark,
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: WalletSummary(
+                          walletId: walletId,
+                          managerProvider: managerProvider,
+                          initialSyncStatus: ref.watch(managerProvider
+                                  .select((value) => value.isRefreshing))
+                              ? WalletSyncStatus.syncing
+                              : WalletSyncStatus.synced,
+                        ),
+                      ),
+                    ),
+                    if (coin == Coin.firo)
+                      const SizedBox(
+                        height: 10,
+                      ),
+                    if (coin == Coin.firo)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextButton(
+                                style: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .getSecondaryEnabledButtonStyle(context),
+                                onPressed: () async {
+                                  await showDialog<void>(
+                                    context: context,
+                                    builder: (context) => StackDialog(
+                                      title: "Attention!",
+                                      message:
+                                          "You're about to anonymize all of your public funds.",
+                                      leftButton: TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Text(
+                                          "Cancel",
+                                          style: STextStyles.button(context)
+                                              .copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .accentColorDark,
+                                          ),
+                                        ),
+                                      ),
+                                      rightButton: TextButton(
+                                        onPressed: () async {
+                                          Navigator.of(context).pop();
+
+                                          unawaited(attemptAnonymize());
+                                        },
+                                        style: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .getPrimaryEnabledButtonStyle(
+                                                context),
+                                        child: Text(
+                                          "Continue",
+                                          style: STextStyles.button(context),
                                         ),
                                       ),
                                     ),
-                                    rightButton: TextButton(
-                                      onPressed: () async {
-                                        Navigator.of(context).pop();
-
-                                        unawaited(attemptAnonymize());
-                                      },
-                                      style: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .getPrimaryEnabledButtonStyle(
-                                              context),
-                                      child: Text(
-                                        "Continue",
-                                        style: STextStyles.button(context),
-                                      ),
-                                    ),
+                                  );
+                                },
+                                child: Text(
+                                  "Anonymize funds",
+                                  style: STextStyles.button(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .buttonTextSecondary,
                                   ),
-                                );
-                              },
-                              child: Text(
-                                "Anonymize funds",
-                                style: STextStyles.button(context).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .buttonTextSecondary,
                                 ),
                               ),
                             ),
+                          ],
+                        ),
+                      ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Transactions",
+                            style: STextStyles.itemSubtitle(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark3,
+                            ),
+                          ),
+                          CustomTextButton(
+                            text: "See all",
+                            onTap: () {
+                              Navigator.of(context).pushNamed(
+                                AllTransactionsView.routeName,
+                                arguments: walletId,
+                              );
+                            },
                           ),
                         ],
                       ),
                     ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Transactions",
-                          style: STextStyles.itemSubtitle(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark3,
-                          ),
-                        ),
-                        CustomTextButton(
-                          text: "See all",
-                          onTap: () {
-                            Navigator.of(context).pushNamed(
-                              AllTransactionsView.routeName,
-                              arguments: walletId,
-                            );
-                          },
-                        ),
-                      ],
+                    const SizedBox(
+                      height: 12,
                     ),
-                  ),
-                  const SizedBox(
-                    height: 12,
-                  ),
-                  Expanded(
-                    child: Stack(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Padding(
-                            padding: const EdgeInsets.only(bottom: 14),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.vertical(
-                                top: Radius.circular(
-                                  Constants.size.circularBorderRadius,
-                                ),
-                                bottom: Radius.circular(
-                                  // WalletView.navBarHeight / 2.0,
-                                  Constants.size.circularBorderRadius,
-                                ),
-                              ),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.transparent,
-                                  borderRadius: BorderRadius.circular(
+                    Expanded(
+                      child: Stack(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 14),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(
+                                    Constants.size.circularBorderRadius,
+                                  ),
+                                  bottom: Radius.circular(
+                                    // WalletView.navBarHeight / 2.0,
                                     Constants.size.circularBorderRadius,
                                   ),
                                 ),
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    Expanded(
-                                      child: TransactionsList(
-                                        managerProvider: managerProvider,
-                                        walletId: walletId,
-                                      ),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.transparent,
+                                    borderRadius: BorderRadius.circular(
+                                      Constants.size.circularBorderRadius,
                                     ),
-                                  ],
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Expanded(
+                                        child: TransactionsList(
+                                          managerProvider: managerProvider,
+                                          walletId: walletId,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                    bottom: 14,
-                                    left: 16,
-                                    right: 16,
-                                  ),
-                                  child: WalletNavigationBar(
-                                    walletId: widget.walletId,
-                                    coin: ref.watch(managerProvider
-                                        .select((value) => value.coin)),
-                                    enableExchange: Constants.enableExchange &&
-                                        ref.watch(managerProvider.select(
-                                                (value) => value.coin)) !=
-                                            Coin.epicCash,
-                                    height: WalletView.navBarHeight,
-                                    onExchangePressed: () =>
-                                        _onExchangePressed(context),
-                                    onReceivePressed: () async {
-                                      final coin =
-                                          ref.read(managerProvider).coin;
-                                      if (mounted) {
-                                        unawaited(
-                                            Navigator.of(context).pushNamed(
-                                          ReceiveView.routeName,
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                      bottom: 14,
+                                      left: 16,
+                                      right: 16,
+                                    ),
+                                    child: WalletNavigationBar(
+                                      walletId: widget.walletId,
+                                      coin: ref.watch(managerProvider
+                                          .select((value) => value.coin)),
+                                      enableExchange:
+                                          Constants.enableExchange &&
+                                              ref.watch(managerProvider.select(
+                                                      (value) => value.coin)) !=
+                                                  Coin.epicCash,
+                                      height: WalletView.navBarHeight,
+                                      onExchangePressed: () =>
+                                          _onExchangePressed(context),
+                                      onReceivePressed: () async {
+                                        final coin =
+                                            ref.read(managerProvider).coin;
+                                        if (mounted) {
+                                          unawaited(
+                                              Navigator.of(context).pushNamed(
+                                            ReceiveView.routeName,
+                                            arguments: Tuple2(
+                                              walletId,
+                                              coin,
+                                            ),
+                                          ));
+                                        }
+                                      },
+                                      onSendPressed: () {
+                                        final walletId =
+                                            ref.read(managerProvider).walletId;
+                                        final coin =
+                                            ref.read(managerProvider).coin;
+                                        switch (ref
+                                            .read(
+                                                walletBalanceToggleStateProvider
+                                                    .state)
+                                            .state) {
+                                          case WalletBalanceToggleState.full:
+                                            ref
+                                                .read(
+                                                    publicPrivateBalanceStateProvider
+                                                        .state)
+                                                .state = "Public";
+                                            break;
+                                          case WalletBalanceToggleState
+                                              .available:
+                                            ref
+                                                .read(
+                                                    publicPrivateBalanceStateProvider
+                                                        .state)
+                                                .state = "Private";
+                                            break;
+                                        }
+                                        Navigator.of(context).pushNamed(
+                                          SendView.routeName,
                                           arguments: Tuple2(
                                             walletId,
                                             coin,
                                           ),
+                                        );
+                                      },
+                                      onBuyPressed: () {
+                                        unawaited(
+                                            Navigator.of(context).pushNamed(
+                                          BuyInWalletView.routeName,
+                                          arguments: coin,
                                         ));
-                                      }
-                                    },
-                                    onSendPressed: () {
-                                      final walletId =
-                                          ref.read(managerProvider).walletId;
-                                      final coin =
-                                          ref.read(managerProvider).coin;
-                                      switch (ref
-                                          .read(walletBalanceToggleStateProvider
-                                              .state)
-                                          .state) {
-                                        case WalletBalanceToggleState.full:
-                                          ref
-                                              .read(
-                                                  publicPrivateBalanceStateProvider
-                                                      .state)
-                                              .state = "Public";
-                                          break;
-                                        case WalletBalanceToggleState.available:
-                                          ref
-                                              .read(
-                                                  publicPrivateBalanceStateProvider
-                                                      .state)
-                                              .state = "Private";
-                                          break;
-                                      }
-                                      Navigator.of(context).pushNamed(
-                                        SendView.routeName,
-                                        arguments: Tuple2(
-                                          walletId,
-                                          coin,
-                                        ),
-                                      );
-                                    },
-                                    onBuyPressed: () {
-                                      unawaited(Navigator.of(context).pushNamed(
-                                        BuyInWalletView.routeName,
-                                        arguments: coin,
-                                      ));
-                                    },
+                                      },
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        )
-                      ],
+                                ],
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

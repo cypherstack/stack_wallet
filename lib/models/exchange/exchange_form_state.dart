@@ -1,14 +1,11 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
-import 'package:isar/isar.dart';
+import 'package:stackwallet/models/exchange/aggregate_currency.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
-import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
-import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
-import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
+import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 class ExchangeFormState extends ChangeNotifier {
@@ -53,15 +50,15 @@ class ExchangeFormState extends ChangeNotifier {
     //
   }
 
-  Currency? _sendCurrency;
-  Currency? get sendCurrency => _sendCurrency;
+  AggregateCurrency? _sendCurrency;
+  AggregateCurrency? get sendCurrency => _sendCurrency;
   // set sendCurrency(Currency? sendCurrency) {
   //   _sendCurrency = sendCurrency;
   //   //
   // }
 
-  Currency? _receiveCurrency;
-  Currency? get receiveCurrency => _receiveCurrency;
+  AggregateCurrency? _receiveCurrency;
+  AggregateCurrency? get receiveCurrency => _receiveCurrency;
   // set receiveCurrency(Currency? receiveCurrency) {
   //   _receiveCurrency = receiveCurrency;
   //   //
@@ -113,8 +110,8 @@ class ExchangeFormState extends ChangeNotifier {
         receiveAmount != null &&
         rate != null &&
         rate! >= Decimal.zero &&
-        exchange.name == sendCurrency!.exchangeName &&
-        exchange.name == receiveCurrency!.exchangeName &&
+        sendCurrency!.forExchange(exchange.name) != null &&
+        receiveCurrency!.forExchange(exchange.name) != null &&
         warning.isEmpty;
   }
 
@@ -156,73 +153,6 @@ class ExchangeFormState extends ChangeNotifier {
   }) async {
     _exchange = exchange;
     if (shouldUpdateData) {
-      if (_sendCurrency != null) {
-        _sendCurrency = await ExchangeDataLoadingService
-            .instance.isar.currencies
-            .where()
-            .exchangeNameEqualTo(exchange.name)
-            .filter()
-            .tickerEqualTo(_sendCurrency!.ticker)
-            .and()
-            .group((q) => exchangeRateType == ExchangeRateType.fixed
-                ? q
-                    .rateTypeEqualTo(SupportedRateType.both)
-                    .or()
-                    .rateTypeEqualTo(SupportedRateType.fixed)
-                : q
-                    .rateTypeEqualTo(SupportedRateType.both)
-                    .or()
-                    .rateTypeEqualTo(SupportedRateType.estimated))
-            .findFirst();
-      }
-      if (_sendCurrency == null) {
-        switch (exchange.name) {
-          case ChangeNowExchange.exchangeName:
-            _sendCurrency = _cachedSendCN;
-            break;
-          case MajesticBankExchange.exchangeName:
-            _sendCurrency = _cachedSendMB;
-            break;
-        }
-      }
-
-      if (_receiveCurrency != null) {
-        _receiveCurrency = await ExchangeDataLoadingService
-            .instance.isar.currencies
-            .where()
-            .exchangeNameEqualTo(exchange.name)
-            .filter()
-            .tickerEqualTo(_receiveCurrency!.ticker)
-            .and()
-            .group((q) => exchangeRateType == ExchangeRateType.fixed
-                ? q
-                    .rateTypeEqualTo(SupportedRateType.both)
-                    .or()
-                    .rateTypeEqualTo(SupportedRateType.fixed)
-                : q
-                    .rateTypeEqualTo(SupportedRateType.both)
-                    .or()
-                    .rateTypeEqualTo(SupportedRateType.estimated))
-            .findFirst();
-      }
-
-      if (_receiveCurrency == null) {
-        switch (exchange.name) {
-          case ChangeNowExchange.exchangeName:
-            _receiveCurrency = _cachedReceivingCN;
-            break;
-          case MajesticBankExchange.exchangeName:
-            _receiveCurrency = _cachedReceivingMB;
-            break;
-        }
-      }
-
-      _updateCachedCurrencies(
-        exchangeName: exchange.name,
-        send: _sendCurrency,
-        receiving: _receiveCurrency,
-      );
-
       await _updateRangesAndEstimate(
         shouldNotifyListeners: false,
       );
@@ -233,14 +163,9 @@ class ExchangeFormState extends ChangeNotifier {
     }
   }
 
-  void setCurrencies(Currency from, Currency to) {
+  void setCurrencies(AggregateCurrency from, AggregateCurrency to) {
     _sendCurrency = from;
     _receiveCurrency = to;
-    _updateCachedCurrencies(
-      exchangeName: exchange.name,
-      send: _sendCurrency,
-      receiving: _receiveCurrency,
-    );
   }
 
   void reset({
@@ -316,19 +241,13 @@ class ExchangeFormState extends ChangeNotifier {
   }
 
   Future<void> updateSendCurrency(
-    Currency sendCurrency,
+    AggregateCurrency sendCurrency,
     bool shouldNotifyListeners,
   ) async {
     try {
       _sendCurrency = sendCurrency;
       _minSendAmount = null;
       _maxSendAmount = null;
-
-      _updateCachedCurrencies(
-        exchangeName: exchange.name,
-        send: _sendCurrency,
-        receiving: _receiveCurrency,
-      );
 
       if (_receiveCurrency == null) {
         _rate = null;
@@ -346,19 +265,13 @@ class ExchangeFormState extends ChangeNotifier {
   }
 
   Future<void> updateReceivingCurrency(
-    Currency receiveCurrency,
+    AggregateCurrency receiveCurrency,
     bool shouldNotifyListeners,
   ) async {
     try {
       _receiveCurrency = receiveCurrency;
       _minReceiveAmount = null;
       _maxReceiveAmount = null;
-
-      _updateCachedCurrencies(
-        exchangeName: exchange.name,
-        send: _sendCurrency,
-        receiving: _receiveCurrency,
-      );
 
       if (_sendCurrency == null) {
         _rate = null;
@@ -387,15 +300,9 @@ class ExchangeFormState extends ChangeNotifier {
     _minReceiveAmount = null;
     _maxReceiveAmount = null;
 
-    final Currency? tmp = sendCurrency;
+    final AggregateCurrency? tmp = sendCurrency;
     _sendCurrency = receiveCurrency;
     _receiveCurrency = tmp;
-
-    _updateCachedCurrencies(
-      exchangeName: exchange.name,
-      send: _sendCurrency,
-      receiving: _receiveCurrency,
-    );
 
     await _updateRangesAndEstimate(
       shouldNotifyListeners: false,
@@ -418,6 +325,29 @@ class ExchangeFormState extends ChangeNotifier {
     required bool shouldNotifyListeners,
   }) async {
     try {
+      switch (exchange.name) {
+        case ChangeNowExchange.exchangeName:
+          if (!_exchangeSupported(
+            exchangeName: exchange.name,
+            sendCurrency: sendCurrency,
+            receiveCurrency: receiveCurrency,
+            exchangeRateType: exchangeRateType,
+          )) {
+            _exchange = MajesticBankExchange.instance;
+          }
+          break;
+        case MajesticBankExchange.exchangeName:
+          if (!_exchangeSupported(
+            exchangeName: exchange.name,
+            sendCurrency: sendCurrency,
+            receiveCurrency: receiveCurrency,
+            exchangeRateType: exchangeRateType,
+          )) {
+            _exchange = ChangeNowExchange.instance;
+          }
+          break;
+      }
+
       await _updateRanges(shouldNotifyListeners: false);
       await _updateEstimate(shouldNotifyListeners: false);
       if (shouldNotifyListeners) {
@@ -542,31 +472,28 @@ class ExchangeFormState extends ChangeNotifier {
 
   //============================================================================
 
-  Currency? _cachedReceivingMB;
-  Currency? _cachedSendMB;
-  Currency? _cachedReceivingCN;
-  Currency? _cachedSendCN;
-
-  void _updateCachedCurrencies({
-    required String exchangeName,
-    required Currency? send,
-    required Currency? receiving,
-  }) {
-    switch (exchangeName) {
-      case ChangeNowExchange.exchangeName:
-        _cachedSendCN = send ?? _cachedSendCN;
-        _cachedReceivingCN = receiving ?? _cachedReceivingCN;
-        break;
-      case MajesticBankExchange.exchangeName:
-        _cachedSendMB = send ?? _cachedSendMB;
-        _cachedReceivingMB = receiving ?? _cachedReceivingMB;
-        break;
-    }
-  }
-
   void _notify() {
     debugPrint("ExFState NOTIFY: ${toString()}");
     notifyListeners();
+  }
+
+  bool _exchangeSupported({
+    required String exchangeName,
+    required AggregateCurrency? sendCurrency,
+    required AggregateCurrency? receiveCurrency,
+    required ExchangeRateType exchangeRateType,
+  }) {
+    final send = sendCurrency?.forExchange(exchangeName);
+    if (send == null) return false;
+
+    final rcv = receiveCurrency?.forExchange(exchangeName);
+    if (rcv == null) return false;
+
+    if (exchangeRateType == ExchangeRateType.fixed) {
+      return send.supportsFixedRate && rcv.supportsFixedRate;
+    } else {
+      return send.supportsEstimatedRate && rcv.supportsEstimatedRate;
+    }
   }
 
   @override
