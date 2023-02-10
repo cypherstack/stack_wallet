@@ -55,11 +55,11 @@ class _SVG {
       case ThemeType.light:
       case ThemeType.dark:
       case ThemeType.oledBlack:
-      case ThemeType.forest:
         return null;
 
       case ThemeType.oceanBreeze:
       case ThemeType.fruitSorbet:
+      case ThemeType.forest:
         return "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/bg.svg";
     }
   }
@@ -267,54 +267,63 @@ class _SVG {
 class _PNG {
   const _PNG();
 
-  // String get themeFruit => "assets/svg/fruit-sorbet-theme.png";
-
-  String get stack => "assets/images/stack.png";
   String get unclaimedPaynym => "assets/images/unclaimed.png";
+  String stack(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/stack.png";
   String get splash => "assets/images/splash.png";
 
-  String get monero => "assets/images/monero.png";
-  String get wownero => "assets/images/wownero.png";
-  String get firo => "assets/images/firo.png";
-  String get dogecoin => "assets/images/doge.png";
-  String get bitcoin => "assets/images/bitcoin.png";
-  String get litecoin => "assets/images/litecoin.png";
-  String get epicCash => "assets/images/epic-cash.png";
-  String get bitcoincash => "assets/images/bitcoincash.png";
-  String get namecoin => "assets/images/namecoin.png";
-  String get particl => "assets/images/particl.png";
+  String monero(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/monero.png";
+  String wownero(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/wownero.png";
+  String firo(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/firo.png";
+  String dogecoin(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/doge.png";
+  String bitcoin(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/bitcoin.png";
+  String litecoin(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/litecoin.png";
+  String epicCash(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/epic-cash.png";
+  String bitcoincash(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/bitcoincash.png";
+  String namecoin(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/namecoin.png";
+  String particl(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/particl.png";
 
   String get glasses => "assets/images/glasses.png";
   String get glassesHidden => "assets/images/glasses-hidden.png";
 
-  String imageFor({required Coin coin}) {
+  String imageFor({required BuildContext context, required Coin coin}) {
     switch (coin) {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
-        return bitcoin;
+        return bitcoin(context);
       case Coin.litecoin:
       case Coin.litecoinTestNet:
-        return litecoin;
+        return litecoin(context);
       case Coin.bitcoincash:
       case Coin.bitcoincashTestnet:
-        return bitcoincash;
+        return bitcoincash(context);
       case Coin.dogecoin:
       case Coin.dogecoinTestNet:
-        return dogecoin;
+        return dogecoin(context);
       case Coin.epicCash:
-        return epicCash;
+        return epicCash(context);
       case Coin.firo:
-        return firo;
+        return firo(context);
       case Coin.firoTestNet:
-        return firo;
+        return firo(context);
       case Coin.monero:
-        return monero;
+        return monero(context);
       case Coin.wownero:
-        return wownero;
+        return wownero(context);
       case Coin.namecoin:
-        return namecoin;
+        return namecoin(context);
       case Coin.particl:
-        return particl;
+        return particl(context);
     }
   }
 }

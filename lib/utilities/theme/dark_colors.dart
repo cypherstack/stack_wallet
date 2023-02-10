@@ -106,6 +106,10 @@ class DarkColors extends StackColorTheme {
   Color get numpadTextDefault => const Color(0xFFFFFFFF);
   @override
   Color get bottomNavText => const Color(0xFFFFFFFF);
+  @override
+  Color get customTextButtonEnabledText => buttonTextBorderless;
+  @override
+  Color get customTextButtonDisabledText => textSubtitle1;
 
   // switch
   @override

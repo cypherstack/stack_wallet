@@ -134,9 +134,12 @@ class CustomTextButton extends StatelessWidget {
     return _CustomTextButton(
       key: UniqueKey(),
       text: text,
-      enabledColor:
-          Theme.of(context).extension<StackColors>()!.buttonTextBorderless,
-      disabledColor: Theme.of(context).extension<StackColors>()!.textSubtitle1,
+      enabledColor: Theme.of(context)
+          .extension<StackColors>()!
+          .customTextButtonEnabledText,
+      disabledColor: Theme.of(context)
+          .extension<StackColors>()!
+          .customTextButtonDisabledText,
       enabled: enabled,
       textSize: textSize,
       onTap: onTap,

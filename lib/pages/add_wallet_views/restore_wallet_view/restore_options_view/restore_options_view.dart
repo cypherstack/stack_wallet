@@ -284,7 +284,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
               if (!isDesktop)
                 Image(
                   image: AssetImage(
-                    Assets.png.imageFor(coin: coin),
+                    Assets.png.imageFor(coin: coin, context: context),
                   ),
                   height: 100,
                 ),
