@@ -211,6 +211,16 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
         returnValue: _i10.Future<List<String>>.value(<String>[]),
       ) as _i10.Future<List<String>>);
   @override
+  _i10.Future<String?> get mnemonicString => (super.noSuchMethod(
+        Invocation.getter(#mnemonicString),
+        returnValue: _i10.Future<String?>.value(),
+      ) as _i10.Future<String?>);
+  @override
+  _i10.Future<String?> get mnemonicPassphrase => (super.noSuchMethod(
+        Invocation.getter(#mnemonicPassphrase),
+        returnValue: _i10.Future<String?>.value(),
+      ) as _i10.Future<String?>);
+  @override
   _i10.Future<int> get maxFee => (super.noSuchMethod(
         Invocation.getter(#maxFee),
         returnValue: _i10.Future<int>.value(0),
@@ -634,14 +644,18 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
       ) as _i10.Future<void>);
   @override
   _i10.Future<void> fillAddresses(
-    String? suppliedMnemonic, {
+    String? suppliedMnemonic,
+    String? mnemonicPassphrase, {
     int? perBatch = 50,
     int? numberOfThreads = 4,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
           #fillAddresses,
-          [suppliedMnemonic],
+          [
+            suppliedMnemonic,
+            mnemonicPassphrase,
+          ],
           {
             #perBatch: perBatch,
             #numberOfThreads: numberOfThreads,
@@ -669,6 +683,7 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
   @override
   _i10.Future<void> recoverFromMnemonic({
     required String? mnemonic,
+    String? mnemonicPassphrase,
     required int? maxUnusedAddressGap,
     required int? maxNumberOfIndexesToCheck,
     required int? height,
@@ -679,6 +694,7 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
           [],
           {
             #mnemonic: mnemonic,
+            #mnemonicPassphrase: mnemonicPassphrase,
             #maxUnusedAddressGap: maxUnusedAddressGap,
             #maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
             #height: height,

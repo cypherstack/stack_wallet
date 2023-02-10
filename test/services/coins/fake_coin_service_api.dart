@@ -125,11 +125,13 @@ class FakeCoinServiceAPI extends CoinServiceAPI {
   Future<FeeObject> get fees => throw UnimplementedError();
 
   @override
-  Future<void> recoverFromMnemonic(
-      {required String mnemonic,
-      required int maxUnusedAddressGap,
-      required int maxNumberOfIndexesToCheck,
-      required int height}) {
+  Future<void> recoverFromMnemonic({
+    required String mnemonic,
+    String? mnemonicPassphrase,
+    required int maxUnusedAddressGap,
+    required int maxNumberOfIndexesToCheck,
+    required int height,
+  }) {
     // TODO: implement recoverFromMnemonic
     throw UnimplementedError();
   }
@@ -167,4 +169,12 @@ class FakeCoinServiceAPI extends CoinServiceAPI {
   @override
   // TODO: implement utxos
   Future<List<UTXO>> get utxos => throw UnimplementedError();
+
+  @override
+  // TODO: implement mnemonicPassphrase
+  Future<String?> get mnemonicPassphrase => throw UnimplementedError();
+
+  @override
+  // TODO: implement mnemonicString
+  Future<String?> get mnemonicString => throw UnimplementedError();
 }

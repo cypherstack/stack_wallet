@@ -94,7 +94,7 @@ class OceanBreezeColors extends StackColorTheme {
   @override
   Color get buttonTextPrimary => const Color(0xFFFFFFFF);
   @override
-  Color get buttonTextSecondary => const Color(0xFF232323);
+  Color get buttonTextSecondary => accentColorDark;
   @override
   Color get buttonTextPrimaryDisabled => const Color(0xFFFFFFFF);
   @override

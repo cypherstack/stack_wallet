@@ -3,12 +3,13 @@ import 'dart:convert';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
 import 'package:stackwallet/external_api_keys.dart';
 import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
-import 'package:stackwallet/models/exchange/response_objects/pair.dart';
 import 'package:stackwallet/models/exchange/response_objects/range.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/exchange/simpleswap/sp_currency.dart';
+import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -271,12 +272,10 @@ class SimpleSwapAPI {
           for (final to in entry.value as List) {
             pairs.add(
               Pair(
+                exchangeName: SimpleSwapExchange.exchangeName,
                 from: from,
-                fromNetwork: "",
                 to: to as String,
-                toNetwork: "",
-                fixedRate: args.item2,
-                floatingRate: !args.item2,
+                rateType: SupportedRateType.estimated,
               ),
             );
           }

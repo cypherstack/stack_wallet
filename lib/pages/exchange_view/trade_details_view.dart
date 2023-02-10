@@ -516,7 +516,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     const SizedBox(
                       height: 10,
                     ),
-                    BlueTextButton(
+                    CustomTextButton(
                       text: "View transaction",
                       onTap: () {
                         final Coin coin =

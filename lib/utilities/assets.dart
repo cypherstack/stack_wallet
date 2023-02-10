@@ -26,6 +26,8 @@ class _EXCHANGE {
 
   String get changeNow => "assets/svg/exchange_icons/change_now_logo_1.svg";
   String get simpleSwap => "assets/svg/exchange_icons/simpleswap-icon.svg";
+  String get majesticBankBlue => "assets/svg/exchange_icons/mb_blue.svg";
+  String get majesticBankGreen => "assets/svg/exchange_icons/mb_green.svg";
 }
 
 class _BUY {
@@ -196,6 +198,8 @@ class _SVG {
   String get exitDesktop => "assets/svg/exit-desktop.svg";
   String get keys => "assets/svg/keys.svg";
   String get arrowDown => "assets/svg/arrow-down.svg";
+  String get robotHead => "assets/svg/robot-head.svg";
+  String get whirlPool => "assets/svg/whirlpool.svg";
 
   String get ellipse1 => "assets/svg/Ellipse-43.svg";
   String get ellipse2 => "assets/svg/Ellipse-42.svg";
@@ -266,6 +270,7 @@ class _PNG {
   // String get themeFruit => "assets/svg/fruit-sorbet-theme.png";
 
   String get stack => "assets/images/stack.png";
+  String get unclaimedPaynym => "assets/images/unclaimed.png";
   String get splash => "assets/images/splash.png";
 
   String get monero => "assets/images/monero.png";

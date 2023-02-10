@@ -39,7 +39,7 @@ class DesktopFavoriteWallets extends ConsumerWidget {
                     .textFieldActiveSearchIconRight,
               ),
             ),
-            BlueTextButton(
+            CustomTextButton(
               text: "Edit",
               onTap: () {
                 Navigator.of(context).pushNamed(ManageFavoritesView.routeName);
@@ -64,12 +64,14 @@ class DesktopFavoriteWallets extends ConsumerWidget {
                     children: [
                       ...favorites.map((p0) {
                         final walletId = ref.read(p0).walletId;
+                        final walletName = ref.read(p0).walletName;
                         final managerProvider = ref
                             .read(walletsChangeNotifierProvider)
                             .getManagerProvider(walletId);
 
                         return FavoriteCard(
                           walletId: walletId,
+                          key: Key(walletName),
                           width: cardWidth,
                           height: cardHeight,
                           managerProvider: managerProvider,

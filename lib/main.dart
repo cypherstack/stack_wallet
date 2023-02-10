@@ -43,7 +43,6 @@ import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 // import 'package:stackwallet/services/buy/buy_data_loading_service.dart';
 import 'package:stackwallet/services/debug_service.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/node_service.dart';
@@ -255,6 +254,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       _desktopHasPassword =
           await ref.read(storageCryptoHandlerProvider).hasPassword();
     }
+    await MainDB.instance.initMainDB();
   }
 
   Future<void> load() async {
@@ -267,8 +267,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       if (!Util.isDesktop) {
         await loadShared();
       }
-
-      await MainDB.instance.initMainDB();
 
       _notificationsService = ref.read(notificationsProvider);
       _nodeService = ref.read(nodeServiceChangeNotifierProvider);
@@ -293,11 +291,16 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
       //  unawaited(_nodeService.updateCommunityNodes());
 
+      print("================================================");
+      print("${ref.read(prefsChangeNotifierProvider).externalCalls}");
+      print("${await ref.read(prefsChangeNotifierProvider).isExternalCallsSet()}");
+      print("================================================");
       // run without awaiting
       if (ref.read(prefsChangeNotifierProvider).externalCalls &&
           await ref.read(prefsChangeNotifierProvider).isExternalCallsSet()) {
         if (Constants.enableExchange) {
-          unawaited(ExchangeDataLoadingService().loadAll(ref));
+          await ExchangeDataLoadingService.instance.init();
+          unawaited(ExchangeDataLoadingService.instance.loadAll());
         }
         // if (Constants.enableBuy) {
         //   unawaited(BuyDataLoadingService().loadAll(ref));
@@ -330,7 +333,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   @override
   void initState() {
-    ref.read(exchangeFormStateProvider).exchange = ChangeNowExchange();
     final colorScheme = DB.instance
         .get<dynamic>(boxName: DB.boxNameTheme, key: "colorScheme") as String?;
 

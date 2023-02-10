@@ -9,9 +9,9 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/paynym_api_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
-import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
-import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
+import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -58,16 +58,18 @@ class _PaynymFollowToggleButtonState
       ),
     );
 
-    final wallet = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet as DogecoinWallet;
+    final manager =
+        ref.read(walletsChangeNotifierProvider).getManager(widget.walletId);
+
+    // get wallet to access paynym calls
+    final wallet = manager.wallet as PaynymWalletInterface;
 
     final followedAccount = await ref
         .read(paynymAPIProvider)
         .nym(widget.paymentCodeStringToFollow, true);
 
-    final myPCode = await wallet.getPaymentCode();
+    final myPCode =
+        await wallet.getPaymentCode(DerivePathTypeExt.primaryFor(manager.coin));
 
     PaynymResponse<String> token =
         await ref.read(paynymAPIProvider).token(myPCode.toString());
@@ -158,16 +160,17 @@ class _PaynymFollowToggleButtonState
       ),
     );
 
-    final wallet = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet as DogecoinWallet;
+    final manager =
+        ref.read(walletsChangeNotifierProvider).getManager(widget.walletId);
+
+    final wallet = manager.wallet as PaynymWalletInterface;
 
     final followedAccount = await ref
         .read(paynymAPIProvider)
         .nym(widget.paymentCodeStringToFollow, true);
 
-    final myPCode = await wallet.getPaymentCode();
+    final myPCode =
+        await wallet.getPaymentCode(DerivePathTypeExt.primaryFor(manager.coin));
 
     PaynymResponse<String> token =
         await ref.read(paynymAPIProvider).token(myPCode.toString());
@@ -269,8 +272,8 @@ class _PaynymFollowToggleButtonState
     switch (widget.style) {
       case PaynymFollowToggleButtonStyle.primary:
         return PrimaryButton(
-          width: isDesktop ? 120 : 84,
-          buttonHeight: isDesktop ? ButtonHeight.s : ButtonHeight.l,
+          width: isDesktop ? 120 : 100,
+          buttonHeight: isDesktop ? ButtonHeight.s : ButtonHeight.xl,
           label: isFollowing ? "Unfollow" : "Follow",
           onPressed: _onPressed,
         );
@@ -278,15 +281,15 @@ class _PaynymFollowToggleButtonState
       case PaynymFollowToggleButtonStyle.detailsPopup:
         return SecondaryButton(
           label: isFollowing ? "Unfollow" : "Follow",
-          buttonHeight: ButtonHeight.l,
+          buttonHeight: ButtonHeight.xl,
+          iconSpacing: 8,
           icon: SvgPicture.asset(
             isFollowing ? Assets.svg.userMinus : Assets.svg.userPlus,
-            width: 10,
-            height: 10,
+            width: 16,
+            height: 16,
             color:
                 Theme.of(context).extension<StackColors>()!.buttonTextSecondary,
           ),
-          iconSpacing: 4,
           onPressed: _onPressed,
         );
 

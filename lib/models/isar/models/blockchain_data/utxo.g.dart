@@ -52,23 +52,28 @@ const UTXOSchema = CollectionSchema(
       name: r'name',
       type: IsarType.string,
     ),
-    r'txid': PropertySchema(
+    r'otherData': PropertySchema(
       id: 7,
+      name: r'otherData',
+      type: IsarType.string,
+    ),
+    r'txid': PropertySchema(
+      id: 8,
       name: r'txid',
       type: IsarType.string,
     ),
     r'value': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'value',
       type: IsarType.long,
     ),
     r'vout': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'vout',
       type: IsarType.long,
     ),
     r'walletId': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'walletId',
       type: IsarType.string,
     )
@@ -151,6 +156,12 @@ int _uTXOEstimateSize(
     }
   }
   bytesCount += 3 + object.name.length * 3;
+  {
+    final value = object.otherData;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.txid.length * 3;
   bytesCount += 3 + object.walletId.length * 3;
   return bytesCount;
@@ -169,10 +180,11 @@ void _uTXOSerialize(
   writer.writeBool(offsets[4], object.isBlocked);
   writer.writeBool(offsets[5], object.isCoinbase);
   writer.writeString(offsets[6], object.name);
-  writer.writeString(offsets[7], object.txid);
-  writer.writeLong(offsets[8], object.value);
-  writer.writeLong(offsets[9], object.vout);
-  writer.writeString(offsets[10], object.walletId);
+  writer.writeString(offsets[7], object.otherData);
+  writer.writeString(offsets[8], object.txid);
+  writer.writeLong(offsets[9], object.value);
+  writer.writeLong(offsets[10], object.vout);
+  writer.writeString(offsets[11], object.walletId);
 }
 
 UTXO _uTXODeserialize(
@@ -189,10 +201,11 @@ UTXO _uTXODeserialize(
     isBlocked: reader.readBool(offsets[4]),
     isCoinbase: reader.readBool(offsets[5]),
     name: reader.readString(offsets[6]),
-    txid: reader.readString(offsets[7]),
-    value: reader.readLong(offsets[8]),
-    vout: reader.readLong(offsets[9]),
-    walletId: reader.readString(offsets[10]),
+    otherData: reader.readStringOrNull(offsets[7]),
+    txid: reader.readString(offsets[8]),
+    value: reader.readLong(offsets[9]),
+    vout: reader.readLong(offsets[10]),
+    walletId: reader.readString(offsets[11]),
   );
   object.id = id;
   return object;
@@ -220,12 +233,14 @@ P _uTXODeserializeProp<P>(
     case 6:
       return (reader.readString(offset)) as P;
     case 7:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 8:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 9:
       return (reader.readLong(offset)) as P;
     case 10:
+      return (reader.readLong(offset)) as P;
+    case 11:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1221,6 +1236,152 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     });
   }
 
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> otherDataIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'otherData',
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> otherDataIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'otherData',
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> otherDataEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'otherData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> otherDataGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'otherData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> otherDataLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'otherData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> otherDataBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'otherData',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> otherDataStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'otherData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> otherDataEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'otherData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> otherDataContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'otherData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> otherDataMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'otherData',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> otherDataIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'otherData',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> otherDataIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'otherData',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> txidEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1672,6 +1833,18 @@ extension UTXOQuerySortBy on QueryBuilder<UTXO, UTXO, QSortBy> {
     });
   }
 
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByOtherData() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'otherData', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByOtherDataDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'otherData', Sort.desc);
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByTxid() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'txid', Sort.asc);
@@ -1818,6 +1991,18 @@ extension UTXOQuerySortThenBy on QueryBuilder<UTXO, UTXO, QSortThenBy> {
     });
   }
 
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByOtherData() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'otherData', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByOtherDataDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'otherData', Sort.desc);
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByTxid() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'txid', Sort.asc);
@@ -1914,6 +2099,13 @@ extension UTXOQueryWhereDistinct on QueryBuilder<UTXO, UTXO, QDistinct> {
     });
   }
 
+  QueryBuilder<UTXO, UTXO, QDistinct> distinctByOtherData(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'otherData', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QDistinct> distinctByTxid(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1987,6 +2179,12 @@ extension UTXOQueryProperty on QueryBuilder<UTXO, UTXO, QQueryProperty> {
   QueryBuilder<UTXO, String, QQueryOperations> nameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'name');
+    });
+  }
+
+  QueryBuilder<UTXO, String?, QQueryOperations> otherDataProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'otherData');
     });
   }
 

@@ -663,6 +663,11 @@ class MockManager extends _i1.Mock implements _i15.Manager {
         returnValue: _i8.Future<List<String>>.value(<String>[]),
       ) as _i8.Future<List<String>>);
   @override
+  _i8.Future<String?> get mnemonicPassphrase => (super.noSuchMethod(
+        Invocation.getter(#mnemonicPassphrase),
+        returnValue: _i8.Future<String?>.value(),
+      ) as _i8.Future<String?>);
+  @override
   bool get isConnected => (super.noSuchMethod(
         Invocation.getter(#isConnected),
         returnValue: false,
@@ -672,6 +677,11 @@ class MockManager extends _i1.Mock implements _i15.Manager {
         Invocation.getter(#currentHeight),
         returnValue: 0,
       ) as int);
+  @override
+  bool get hasPaynymSupport => (super.noSuchMethod(
+        Invocation.getter(#hasPaynymSupport),
+        returnValue: false,
+      ) as bool);
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
@@ -769,6 +779,7 @@ class MockManager extends _i1.Mock implements _i15.Manager {
   @override
   _i8.Future<void> recoverFromMnemonic({
     required String? mnemonic,
+    String? mnemonicPassphrase,
     required int? maxUnusedAddressGap,
     required int? maxNumberOfIndexesToCheck,
     required int? height,
@@ -779,6 +790,7 @@ class MockManager extends _i1.Mock implements _i15.Manager {
           [],
           {
             #mnemonic: mnemonic,
+            #mnemonicPassphrase: mnemonicPassphrase,
             #maxUnusedAddressGap: maxUnusedAddressGap,
             #maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
             #height: height,

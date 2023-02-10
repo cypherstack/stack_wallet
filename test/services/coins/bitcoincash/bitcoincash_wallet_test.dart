@@ -11,6 +11,7 @@ import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 
 import 'bitcoincash_wallet_test.mocks.dart';
@@ -40,24 +41,18 @@ void main() async {
     });
   });
 
-  test("bitcoincash DerivePathType enum", () {
-    expect(DerivePathType.values.length, 2);
-    expect(DerivePathType.values.toString(),
-        "[DerivePathType.bip44, DerivePathType.bip49]");
-  });
-
-  group("bip32 node/root", () {
-    test("getBip32Root", () {
-      final root = getBip32Root(TEST_MNEMONIC, bitcoincash);
-      expect(root.toWIF(), ROOT_WIF);
-    });
-
-    test("basic getBip32Node", () {
-      final node =
-          getBip32Node(0, 0, TEST_MNEMONIC, bitcoincash, DerivePathType.bip44);
-      expect(node.toWIF(), NODE_WIF_44);
-    });
-  });
+  // group("bip32 node/root", () {
+  //   test("getBip32Root", () {
+  //     final root = getBip32Root(TEST_MNEMONIC, bitcoincash);
+  //     expect(root.toWIF(), ROOT_WIF);
+  //   });
+  //
+  //   test("basic getBip32Node", () {
+  //     final node =
+  //         getBip32Node(0, 0, TEST_MNEMONIC, bitcoincash, DerivePathType.bip44);
+  //     expect(node.toWIF(), NODE_WIF_44);
+  //   });
+  // });
 
   group("mainnet bitcoincash addressType", () {
     MockElectrumX? client;

@@ -29,9 +29,11 @@ import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
@@ -48,90 +50,59 @@ const String GENESIS_HASH_MAINNET =
 const String GENESIS_HASH_TESTNET =
     "0000594ada5310b367443ee0afd4fa3d0bbd5850ea4e33cdc7d6a904a7ec7c90";
 
-enum DerivePathType { bip44, bip84 }
-
-bip32.BIP32 getBip32Node(
-  int chain,
-  int index,
-  String mnemonic,
-  NetworkType network,
-  DerivePathType derivePathType,
-) {
-  final root = getBip32Root(mnemonic, network);
-
-  final node = getBip32NodeFromRoot(chain, index, root, derivePathType);
-  return node;
-}
-
-/// wrapper for compute()
-bip32.BIP32 getBip32NodeWrapper(
-  Tuple5<int, int, String, NetworkType, DerivePathType> args,
-) {
-  return getBip32Node(
-    args.item1,
-    args.item2,
-    args.item3,
-    args.item4,
-    args.item5,
-  );
-}
-
-bip32.BIP32 getBip32NodeFromRoot(
-  int chain,
-  int index,
-  bip32.BIP32 root,
-  DerivePathType derivePathType,
-) {
+String constructDerivePath({
+  required DerivePathType derivePathType,
+  required int networkWIF,
+  int account = 0,
+  required int chain,
+  required int index,
+}) {
   String coinType;
-  switch (root.network.wif) {
+  switch (networkWIF) {
     case 0x6c: // PART mainnet wif
       coinType = "44"; // PART mainnet
       break;
     default:
-      throw Exception("Invalid Particl network type used!");
+      throw Exception("Invalid Particl network wif used!");
   }
+
+  int purpose;
   switch (derivePathType) {
     case DerivePathType.bip44:
-      return root.derivePath("m/44'/$coinType'/0'/$chain/$index");
+      purpose = 44;
+      break;
     case DerivePathType.bip84:
-      return root.derivePath("m/84'/$coinType'/0'/$chain/$index");
+      purpose = 84;
+      break;
     default:
-      throw Exception("DerivePathType must not be null.");
+      throw Exception("DerivePathType $derivePathType not supported");
   }
-}
 
-/// wrapper for compute()
-bip32.BIP32 getBip32NodeFromRootWrapper(
-  Tuple4<int, int, bip32.BIP32, DerivePathType> args,
-) {
-  return getBip32NodeFromRoot(
-    args.item1,
-    args.item2,
-    args.item3,
-    args.item4,
-  );
-}
-
-bip32.BIP32 getBip32Root(String mnemonic, NetworkType network) {
-  final seed = bip39.mnemonicToSeed(mnemonic);
-  final networkType = bip32.NetworkType(
-    wif: network.wif,
-    bip32: bip32.Bip32Type(
-      public: network.bip32.public,
-      private: network.bip32.private,
-    ),
-  );
-
-  final root = bip32.BIP32.fromSeed(seed, networkType);
-  return root;
-}
-
-/// wrapper for compute()
-bip32.BIP32 getBip32RootWrapper(Tuple2<String, NetworkType> args) {
-  return getBip32Root(args.item1, args.item2);
+  return "m/$purpose'/$coinType'/$account'/$chain/$index";
 }
 
 class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
+  ParticlWallet({
+    required String walletId,
+    required String walletName,
+    required Coin coin,
+    required ElectrumX client,
+    required CachedElectrumX cachedClient,
+    required TransactionNotificationTracker tracker,
+    required SecureStorageInterface secureStore,
+    MainDB? mockableOverride,
+  }) {
+    txTracker = tracker;
+    _walletId = walletId;
+    _walletName = walletName;
+    _coin = coin;
+    _electrumXClient = client;
+    _cachedElectrumXClient = cachedClient;
+    _secureStore = secureStore;
+    initCache(walletId, coin);
+    initWalletDB(mockableOverride: mockableOverride);
+  }
+
   static const integrationTestFlag =
       bool.fromEnvironment("IS_INTEGRATION_TEST");
 
@@ -184,7 +155,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
           .subTypeEqualTo(isar_models.AddressSubType.receiving)
           .sortByDerivationIndexDesc()
           .findFirst()) ??
-      await _generateAddressForChain(0, 0, DerivePathType.bip84);
+      await _generateAddressForChain(0, 0, DerivePathTypeExt.primaryFor(coin));
 
   Future<String> get currentChangeAddress async =>
       (await _currentChangeAddress).value;
@@ -197,7 +168,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
           .subTypeEqualTo(isar_models.AddressSubType.change)
           .sortByDerivationIndexDesc()
           .findFirst()) ??
-      await _generateAddressForChain(1, 0, DerivePathType.bip84);
+      await _generateAddressForChain(1, 0, DerivePathTypeExt.primaryFor(coin));
 
   @override
   Future<void> exit() async {
@@ -227,11 +198,28 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<List<String>> get mnemonic => _getMnemonicList();
 
+  @override
+  Future<String?> get mnemonicString =>
+      _secureStore.read(key: '${_walletId}_mnemonic');
+
+  @override
+  Future<String?> get mnemonicPassphrase => _secureStore.read(
+        key: '${_walletId}_mnemonicPassphrase',
+      );
+
   Future<int> get chainHeight async {
     try {
       final result = await _electrumXClient.getBlockHeadTip();
       final height = result["height"] as int;
       await updateCachedChainHeight(height);
+      if (height > storedChainHeight) {
+        GlobalEventBus.instance.fire(
+          UpdatedInBackgroundEvent(
+            "Updated current chain height in $walletId $walletName!",
+            walletId,
+          ),
+        );
+      }
       return height;
     } catch (e, s) {
       Logging.instance.log("Exception caught in chainHeight: $e\n$s",
@@ -281,6 +269,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<void> recoverFromMnemonic({
     required String mnemonic,
+    String? mnemonicPassphrase,
     required int maxUnusedAddressGap,
     required int maxNumberOfIndexesToCheck,
     required int height,
@@ -315,14 +304,21 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
       }
       // check to make sure we aren't overwriting a mnemonic
       // this should never fail
-      if ((await _secureStore.read(key: '${_walletId}_mnemonic')) != null) {
+      if ((await mnemonicString) != null ||
+          (await this.mnemonicPassphrase) != null) {
         longMutex = false;
         throw Exception("Attempted to overwrite mnemonic on restore!");
       }
       await _secureStore.write(
           key: '${_walletId}_mnemonic', value: mnemonic.trim());
+      await _secureStore.write(
+        key: '${_walletId}_mnemonicPassphrase',
+        value: mnemonicPassphrase ?? "",
+      );
+
       await _recoverWalletFromBIP32SeedPhrase(
         mnemonic: mnemonic.trim(),
+        mnemonicPassphrase: mnemonicPassphrase ?? "",
         maxUnusedAddressGap: maxUnusedAddressGap,
         maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
       );
@@ -365,15 +361,14 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
       final Map<String, dynamic> receivingNodes = {};
 
       for (int j = 0; j < txCountBatchSize; j++) {
-        final node = await compute(
-          getBip32NodeFromRootWrapper,
-          Tuple4(
-            chain,
-            index + j,
-            root,
-            type,
-          ),
+        final derivePath = constructDerivePath(
+          derivePathType: type,
+          networkWIF: root.network.wif,
+          chain: chain,
+          index: index + j,
         );
+        final node = await Bip32Utils.getBip32NodeFromRoot(root, derivePath);
+
         String addressString;
         isar_models.AddressType addrType;
         switch (type) {
@@ -394,7 +389,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
             addrType = isar_models.AddressType.p2wpkh;
             break;
           default:
-            throw Exception("No Path type $type exists");
+            throw Exception("DerivePathType $type not supported");
         }
 
         final address = isar_models.Address(
@@ -406,6 +401,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
           publicKey: node.publicKey,
           value: addressString,
           derivationIndex: index + j,
+          derivationPath: isar_models.DerivationPath()..value = derivePath,
         );
 
         receivingNodes.addAll({
@@ -480,8 +476,10 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Future<void> _recoverWalletFromBIP32SeedPhrase({
     required String mnemonic,
+    required String mnemonicPassphrase,
     int maxUnusedAddressGap = 20,
     int maxNumberOfIndexesToCheck = 1000,
+    bool isRescan = false,
   }) async {
     longMutex = true;
 
@@ -490,7 +488,11 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
     Map<String, Map<String, String>> p2pkhChangeDerivations = {};
     Map<String, Map<String, String>> p2wpkhChangeDerivations = {};
 
-    final root = await compute(getBip32RootWrapper, Tuple2(mnemonic, _network));
+    final root = await Bip32Utils.getBip32Root(
+      mnemonic,
+      mnemonicPassphrase,
+      _network,
+    );
 
     List<isar_models.Address> p2pkhReceiveAddressArray = [];
     List<isar_models.Address> p2wpkhReceiveAddressArray = [];
@@ -607,12 +609,21 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
         p2wpkhChangeAddressArray.add(address);
       }
 
-      await db.putAddresses([
-        ...p2wpkhReceiveAddressArray,
-        ...p2wpkhChangeAddressArray,
-        ...p2pkhReceiveAddressArray,
-        ...p2pkhChangeAddressArray,
-      ]);
+      if (isRescan) {
+        await db.updateOrPutAddresses([
+          ...p2wpkhReceiveAddressArray,
+          ...p2wpkhChangeAddressArray,
+          ...p2pkhReceiveAddressArray,
+          ...p2pkhChangeAddressArray,
+        ]);
+      } else {
+        await db.putAddresses([
+          ...p2wpkhReceiveAddressArray,
+          ...p2wpkhChangeAddressArray,
+          ...p2pkhReceiveAddressArray,
+          ...p2pkhChangeAddressArray,
+        ]);
+      }
 
       await _updateUTXOs();
 
@@ -1114,46 +1125,33 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
   // transactions locally in a good way
   @override
   Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
-    // final priceData =
-    //     await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
-    // Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
-    // final locale =
-    //     Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
-    // final String worthNow = Format.localizedStringAsFixed(
-    //     value:
-    //         ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
-    //                 Decimal.fromInt(Constants.satsPerCoin(coin)))
-    //             .toDecimal(scaleOnInfinitePrecision: 2),
-    //     decimalPlaces: 2,
-    //     locale: locale!);
-    //
-    // final tx = models.Transaction(
-    //   txid: txData["txid"] as String,
-    //   confirmedStatus: false,
-    //   timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-    //   txType: "Sent",
-    //   amount: txData["recipientAmt"] as int,
-    //   worthNow: worthNow,
-    //   worthAtBlockTimestamp: worthNow,
-    //   fees: txData["fee"] as int,
-    //   inputSize: 0,
-    //   outputSize: 0,
-    //   inputs: [],
-    //   outputs: [],
-    //   address: txData["address"] as String,
-    //   height: -1,
-    //   confirmations: 0,
-    // );
-    //
-    // if (cachedTxData == null) {
-    //   final data = await _refreshTransactions();
-    //   _transactionData = Future(() => data);
-    // } else {
-    //   final transactions = cachedTxData!.getAllTransactions();
-    //   transactions[tx.txid] = tx;
-    //   cachedTxData = models.TransactionData.fromMap(transactions);
-    //   _transactionData = Future(() => cachedTxData!);
-    // }
+    final transaction = isar_models.Transaction(
+      walletId: walletId,
+      txid: txData["txid"] as String,
+      timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      type: isar_models.TransactionType.outgoing,
+      subType: isar_models.TransactionSubType.none,
+      amount: txData["recipientAmt"] as int,
+      fee: txData["fee"] as int,
+      height: null,
+      isCancelled: false,
+      isLelantus: false,
+      otherData: null,
+      slateId: null,
+      inputs: [],
+      outputs: [],
+    );
+
+    final address = txData["address"] is String
+        ? await db.getAddress(walletId, txData["address"] as String)
+        : null;
+
+    await db.addNewTransactionData(
+      [
+        Tuple2(transaction, address),
+      ],
+      walletId,
+    );
   }
 
   @override
@@ -1182,27 +1180,6 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
   CachedElectrumX get cachedElectrumXClient => _cachedElectrumXClient;
 
   late SecureStorageInterface _secureStore;
-
-  ParticlWallet({
-    required String walletId,
-    required String walletName,
-    required Coin coin,
-    required ElectrumX client,
-    required CachedElectrumX cachedClient,
-    required TransactionNotificationTracker tracker,
-    required SecureStorageInterface secureStore,
-    MainDB? mockableOverride,
-  }) {
-    txTracker = tracker;
-    _walletId = walletId;
-    _walletName = walletName;
-    _coin = coin;
-    _electrumXClient = client;
-    _cachedElectrumXClient = cachedClient;
-    _secureStore = secureStore;
-    initCache(walletId, coin);
-    initWalletDB(mockableOverride: mockableOverride);
-  }
 
   @override
   Future<void> updateNode(bool shouldRefresh) async {
@@ -1234,12 +1211,11 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   Future<List<String>> _getMnemonicList() async {
-    final mnemonicString =
-        await _secureStore.read(key: '${_walletId}_mnemonic');
-    if (mnemonicString == null) {
+    final _mnemonicString = await mnemonicString;
+    if (_mnemonicString == null) {
       return [];
     }
-    final List<String> data = mnemonicString.split(' ');
+    final List<String> data = _mnemonicString.split(' ');
     return data;
   }
 
@@ -1336,28 +1312,36 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
     Logging.instance
         .log("IS_INTEGRATION_TEST: $integrationTestFlag", level: LogLevel.Info);
     if (!integrationTestFlag) {
-      final features = await electrumXClient.getServerFeatures();
-      Logging.instance.log("features: $features", level: LogLevel.Info);
-      switch (coin) {
-        case Coin.particl:
-          if (features['genesis_hash'] != GENESIS_HASH_MAINNET) {
-            throw Exception("genesis hash does not match main net!");
-          }
-          break;
-        default:
-          throw Exception(
-              "Attempted to generate a ParticlWallet using a non particl coin type: ${coin.name}");
+      try {
+        final features = await electrumXClient.getServerFeatures();
+        Logging.instance.log("features: $features", level: LogLevel.Info);
+        switch (coin) {
+          case Coin.particl:
+            if (features['genesis_hash'] != GENESIS_HASH_MAINNET) {
+              throw Exception("genesis hash does not match main net!");
+            }
+            break;
+          default:
+            throw Exception(
+                "Attempted to generate a ParticlWallet using a non particl coin type: ${coin.name}");
+        }
+      } catch (e, s) {
+        Logging.instance.log("$e/n$s", level: LogLevel.Info);
       }
     }
 
     // this should never fail
-    if ((await _secureStore.read(key: '${_walletId}_mnemonic')) != null) {
+    if ((await mnemonicString) != null || (await mnemonicPassphrase) != null) {
       throw Exception(
           "Attempted to overwrite mnemonic on generate new wallet!");
     }
     await _secureStore.write(
         key: '${_walletId}_mnemonic',
         value: bip39.generateMnemonic(strength: 256));
+    await _secureStore.write(
+      key: '${_walletId}_mnemonicPassphrase',
+      value: "",
+    );
 
     // Generate and add addresses to relevant arrays
     final initialAddresses = await Future.wait([
@@ -1383,17 +1367,22 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
     int index,
     DerivePathType derivePathType,
   ) async {
-    final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
-    final node = await compute(
-      getBip32NodeWrapper,
-      Tuple5(
-        chain,
-        index,
-        mnemonic!,
-        _network,
-        derivePathType,
-      ),
+    final _mnemonic = await mnemonicString;
+    final _mnemonicPassphrase = await mnemonicPassphrase;
+
+    final derivePath = constructDerivePath(
+      derivePathType: derivePathType,
+      networkWIF: _network.wif,
+      chain: chain,
+      index: index,
     );
+    final node = await Bip32Utils.getBip32Node(
+      _mnemonic!,
+      _mnemonicPassphrase!,
+      _network,
+      derivePath,
+    );
+
     final data = PaymentData(pubkey: node.publicKey);
     String address;
     isar_models.AddressType addrType;
@@ -1407,6 +1396,8 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
         address = P2WPKH(network: _network, data: data).data.address!;
         addrType = isar_models.AddressType.p2wpkh;
         break;
+      default:
+        throw Exception("DerivePathType $derivePathType not supported");
     }
 
     // add generated address & info to derivations
@@ -1421,6 +1412,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
     return isar_models.Address(
       walletId: walletId,
       derivationIndex: index,
+      derivationPath: isar_models.DerivationPath()..value = derivePath,
       value: address,
       publicKey: node.publicKey,
       type: addrType,
@@ -1450,6 +1442,8 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
       case DerivePathType.bip84:
         type = isar_models.AddressType.p2wpkh;
         break;
+      default:
+        throw Exception("DerivePathType $derivePathType not supported");
     }
     address = await db
         .getAddresses(walletId)
@@ -1475,6 +1469,8 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
       case DerivePathType.bip84:
         key = "${walletId}_${chainId}DerivationsP2WPKH";
         break;
+      default:
+        throw Exception("DerivePathType $derivePathType not supported");
     }
     return key;
   }
@@ -1646,7 +1642,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       // TODO move this out of here and into IDB
       await db.isar.writeTxn(() async {
-        await db.isar.utxos.clear();
+        await db.isar.utxos.where().walletIdEqualTo(walletId).deleteAll();
         await db.isar.utxos.putAll(outputArray);
       });
 
@@ -1761,7 +1757,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
         // Use new index to derive a new receiving address
         final newReceivingAddress = await _generateAddressForChain(
-            0, newReceivingIndex, DerivePathType.bip84);
+            0, newReceivingIndex, DerivePathTypeExt.primaryFor(coin));
 
         final existing = await db
             .getAddresses(walletId)
@@ -1780,7 +1776,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
       }
     } catch (e, s) {
       Logging.instance.log(
-          "Exception rethrown from _checkReceivingAddressForTransactions(${DerivePathType.bip84}): $e\n$s",
+          "Exception rethrown from _checkReceivingAddressForTransactions(${DerivePathTypeExt.primaryFor(coin)}): $e\n$s",
           level: LogLevel.Error);
       rethrow;
     }
@@ -1800,7 +1796,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
         // Use new index to derive a new change address
         final newChangeAddress = await _generateAddressForChain(
-            1, newChangeIndex, DerivePathType.bip84);
+            1, newChangeIndex, DerivePathTypeExt.primaryFor(coin));
 
         final existing = await db
             .getAddresses(walletId)
@@ -1819,12 +1815,12 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
       }
     } on SocketException catch (se, s) {
       Logging.instance.log(
-          "SocketException caught in _checkReceivingAddressForTransactions(${DerivePathType.bip84}): $se\n$s",
+          "SocketException caught in _checkReceivingAddressForTransactions(${DerivePathTypeExt.primaryFor(coin)}): $se\n$s",
           level: LogLevel.Error);
       return;
     } catch (e, s) {
       Logging.instance.log(
-          "Exception rethrown from _checkReceivingAddressForTransactions(${DerivePathType.bip84}): $e\n$s",
+          "Exception rethrown from _checkReceivingAddressForTransactions(${DerivePathTypeExt.primaryFor(coin)}): $e\n$s",
           level: LogLevel.Error);
       rethrow;
     }
@@ -2058,9 +2054,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
     }
     await fastFetch(vHashes.toList());
 
-    final List<
-        Tuple4<isar_models.Transaction, List<isar_models.Output>,
-            List<isar_models.Input>, isar_models.Address?>> txns = [];
+    final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txns = [];
 
     for (final txObject in allTransactions) {
       List<String> sendersArray = [];
@@ -2183,13 +2177,13 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
                       value: address,
                       publicKey: [],
                       derivationIndex: -1,
+                      derivationPath: null,
                     );
               }
             } catch (s) {
               Logging.instance.log(s.toString(), level: LogLevel.Warning);
             }
             // Logging.instance.log("output is transparent", level: LogLevel.Info);
-
           } else if (output.containsKey('ct_fee') as bool) {
             // or type: data
             // TODO handle CT tx
@@ -2289,21 +2283,6 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
         amount = outputAmtAddressedToWallet;
       }
 
-      final tx = isar_models.Transaction(
-        walletId: walletId,
-        txid: midSortedTx["txid"] as String,
-        timestamp: midSortedTx["timestamp"] as int,
-        type: type,
-        subType: isar_models.TransactionSubType.none,
-        amount: amount,
-        fee: fee,
-        height: txObject["height"] as int,
-        isCancelled: false,
-        isLelantus: false,
-        slateId: null,
-        otherData: null,
-      );
-
       isar_models.Address transactionAddress =
           midSortedTx["address"] as isar_models.Address;
 
@@ -2313,7 +2292,6 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
       for (final json in txObject["vin"] as List) {
         bool isCoinBase = json['coinbase'] != null;
         final input = isar_models.Input(
-          walletId: walletId,
           txid: json['txid'] as String,
           vout: json['vout'] as int? ?? -1,
           scriptSig: json['scriptSig']?['hex'] as String?,
@@ -2327,7 +2305,6 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       for (final json in txObject["vout"] as List) {
         final output = isar_models.Output(
-          walletId: walletId,
           scriptPubKey: json['scriptPubKey']?['hex'] as String?,
           scriptPubKeyAsm: json['scriptPubKey']?['asm'] as String?,
           scriptPubKeyType: json['scriptPubKey']?['type'] as String?,
@@ -2343,7 +2320,24 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
         outputs.add(output);
       }
 
-      txns.add(Tuple4(tx, outputs, inputs, transactionAddress));
+      final tx = isar_models.Transaction(
+        walletId: walletId,
+        txid: midSortedTx["txid"] as String,
+        timestamp: midSortedTx["timestamp"] as int,
+        type: type,
+        subType: isar_models.TransactionSubType.none,
+        amount: amount,
+        fee: fee,
+        height: txObject["height"] as int,
+        inputs: inputs,
+        outputs: outputs,
+        isCancelled: false,
+        isLelantus: false,
+        slateId: null,
+        otherData: null,
+      );
+
+      txns.add(Tuple2(tx, transactionAddress));
     }
 
     await db.addNewTransactionData(txns, walletId);
@@ -2501,7 +2495,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
       utxoSigningData: utxoSigningData,
       recipients: [
         _recipientAddress,
-        await _getCurrentAddressForChain(1, DerivePathType.bip84),
+        await _getCurrentAddressForChain(1, DerivePathTypeExt.primaryFor(coin)),
       ],
       satoshiAmounts: [
         satoshiAmountToSend,
@@ -2540,8 +2534,8 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
                 feeForTwoOutputs) {
           // generate new change address if current change address has been used
           await _checkChangeAddressForTransactions();
-          final String newChangeAddress =
-              await _getCurrentAddressForChain(1, DerivePathType.bip84);
+          final String newChangeAddress = await _getCurrentAddressForChain(
+              1, DerivePathTypeExt.primaryFor(coin));
 
           int feeBeingPaid =
               satoshisBeingUsed - satoshiAmountToSend - changeOutputSize;
@@ -2743,6 +2737,9 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
               case DerivePathType.bip84:
                 addressesP2WPKH.add(address);
                 break;
+              default:
+                throw Exception(
+                    "DerivePathType ${addressType(address: address)} not supported");
             }
           }
         }
@@ -2962,11 +2959,15 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
     await _deleteDerivations();
 
     try {
-      final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
+      final _mnemonic = await mnemonicString;
+      final _mnemonicPassphrase = await mnemonicPassphrase;
+
       await _recoverWalletFromBIP32SeedPhrase(
-        mnemonic: mnemonic!,
+        mnemonic: _mnemonic!,
+        mnemonicPassphrase: _mnemonicPassphrase!,
         maxUnusedAddressGap: maxUnusedAddressGap,
         maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+        isRescan: true,
       );
 
       longMutex = false;
@@ -3328,7 +3329,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       // Use new index to derive a new receiving address
       final newReceivingAddress = await _generateAddressForChain(
-          0, newReceivingIndex, DerivePathType.bip84);
+          0, newReceivingIndex, DerivePathTypeExt.primaryFor(coin));
 
       // Add that new receiving address
       await db.putAddress(newReceivingAddress);

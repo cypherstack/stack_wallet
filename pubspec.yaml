@@ -11,7 +11,7 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.5.35+112
+version: 1.5.37+122
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
@@ -59,7 +59,7 @@ dependencies:
   bip47:
     git:
       url: https://github.com/cypherstack/bip47.git
-      ref: testing
+      ref: 87bb760be323228aed6ca7bd4532a709a4f10690
 
   # Utility plugins
 #  provider: ^6.0.1
@@ -126,7 +126,7 @@ dependencies:
   tuple: ^2.0.0
   flutter_riverpod: ^1.0.3
   qr_flutter: ^4.0.0
-  share_plus: ^4.0.10
+  share_plus: ^6.3.0
   emojis: ^0.9.9
   pointycastle: ^3.6.0
   package_info_plus: ^1.4.2
@@ -139,6 +139,7 @@ dependencies:
   isar_flutter_libs: 3.0.5 # contains the binaries
   dropdown_button2: 1.7.2
   string_validator: ^0.3.0
+  equatable: ^2.0.5
 
 dev_dependencies:
   flutter_test:
@@ -205,6 +206,7 @@ flutter:
     - assets/svg/circle-check.svg
     - assets/svg/clipboard.svg
     - assets/images/stack.png
+    - assets/images/unclaimed.png
     - assets/images/monero.png
     - assets/images/wownero.png
     - assets/images/firo.png
@@ -309,6 +311,8 @@ flutter:
     - assets/svg/plus-circle.svg
     - assets/svg/circle-plus-filled.svg
     - assets/svg/configuration.svg
+    - assets/svg/robot-head.svg
+    - assets/svg/whirlpool.svg
     # coin icons
     - assets/svg/coin_icons/Bitcoin.svg
     - assets/svg/coin_icons/Litecoin.svg
@@ -340,6 +344,8 @@ flutter:
     # exchange icons
     - assets/svg/exchange_icons/change_now_logo_1.svg
     - assets/svg/exchange_icons/simpleswap-icon.svg
+    - assets/svg/exchange_icons/mb_green.svg
+    - assets/svg/exchange_icons/mb_blue.svg
 
     # theme selectors
     - assets/svg/dark-theme.svg

@@ -10,6 +10,7 @@ import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 
 import 'namecoin_wallet_test.mocks.dart';
@@ -36,62 +37,6 @@ void main() {
       expect(GENESIS_HASH_TESTNET,
           "00000007199508e34a9ff81e6ec0c477a4cccff2a4767a8eee39c11db367b008");
     });
-  });
-
-  test("namecoin DerivePathType enum", () {
-    expect(DerivePathType.values.length, 3);
-    expect(DerivePathType.values.toString(),
-        "[DerivePathType.bip44, DerivePathType.bip49, DerivePathType.bip84]");
-  });
-
-  group("bip32 node/root", () {
-    test("getBip32Root", () {
-      final root = getBip32Root(TEST_MNEMONIC, namecoin);
-      expect(root.toWIF(), ROOT_WIF);
-    });
-
-    // test("getBip32NodeFromRoot", () {
-    //   final root = getBip32Root(TEST_MNEMONIC, namecoin);
-    //   // two mainnet
-    //   final node44 = getBip32NodeFromRoot(0, 0, root, DerivePathType.bip44);
-    //   expect(node44.toWIF(), NODE_WIF_44);
-    //   final node49 = getBip32NodeFromRoot(0, 0, root, DerivePathType.bip49);
-    //   expect(node49.toWIF(), NODE_WIF_49);
-    //   // and one on testnet
-    //   final node84 = getBip32NodeFromRoot(
-    //       0, 0, getBip32Root(TEST_MNEMONIC, testnet), DerivePathType.bip84);
-    //   expect(node84.toWIF(), NODE_WIF_84);
-    //   // a bad derive path
-    //   bool didThrow = false;
-    //   try {
-    //     getBip32NodeFromRoot(0, 0, root, null);
-    //   } catch (_) {
-    //     didThrow = true;
-    //   }
-    //   expect(didThrow, true);
-    //   // finally an invalid network
-    //   didThrow = false;
-    //   final invalidNetwork = NetworkType(
-    //       messagePrefix: '\x18hello world\n',
-    //       bech32: 'gg',
-    //       bip32: Bip32Type(public: 0x055521e, private: 0x055555),
-    //       pubKeyHash: 0x55,
-    //       scriptHash: 0x55,
-    //       wif: 0x00);
-    //   try {
-    //     getBip32NodeFromRoot(0, 0, getBip32Root(TEST_MNEMONIC, invalidNetwork),
-    //         DerivePathType.bip44);
-    //   } catch (_) {
-    //     didThrow = true;
-    //   }
-    //   expect(didThrow, true);
-    // });
-
-    // test("basic getBip32Node", () {
-    //   final node =
-    //       getBip32Node(0, 0, TEST_MNEMONIC, testnet, DerivePathType.bip84);
-    //   expect(node.toWIF(), NODE_WIF_84);
-    // });
   });
 
   group("validate mainnet namecoin addresses", () {

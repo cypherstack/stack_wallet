@@ -14,16 +14,17 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/services/coins/coin_paynym_extension.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/mixins/electrum_x_parsing.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
@@ -31,9 +32,11 @@ import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
@@ -50,33 +53,15 @@ const String GENESIS_HASH_MAINNET =
 const String GENESIS_HASH_TESTNET =
     "bb0a78264637406b6360aad926284d544d7049f45189db5664f3c4d07350559e";
 
-enum DerivePathType { bip44 }
-
-bip32.BIP32 getBip32Node(int chain, int index, String mnemonic,
-    NetworkType network, DerivePathType derivePathType) {
-  final root = getBip32Root(mnemonic, network);
-
-  final node = getBip32NodeFromRoot(chain, index, root, derivePathType);
-  return node;
-}
-
-/// wrapper for compute()
-bip32.BIP32 getBip32NodeWrapper(
-  Tuple5<int, int, String, NetworkType, DerivePathType> args,
-) {
-  return getBip32Node(
-    args.item1,
-    args.item2,
-    args.item3,
-    args.item4,
-    args.item5,
-  );
-}
-
-bip32.BIP32 getBip32NodeFromRoot(
-    int chain, int index, bip32.BIP32 root, DerivePathType derivePathType) {
+String constructDerivePath({
+  required DerivePathType derivePathType,
+  required int networkWIF,
+  int account = 0,
+  required int chain,
+  required int index,
+}) {
   String coinType;
-  switch (root.network.wif) {
+  switch (networkWIF) {
     case 0x9e: // doge mainnet wif
       coinType = "3"; // doge mainnet
       break;
@@ -84,48 +69,65 @@ bip32.BIP32 getBip32NodeFromRoot(
       coinType = "1"; // doge testnet
       break;
     default:
-      throw Exception("Invalid Dogecoin network type used!");
+      throw Exception("Invalid Dogecoin network wif used!");
   }
+
+  int purpose;
   switch (derivePathType) {
     case DerivePathType.bip44:
-      return root.derivePath("m/44'/$coinType'/0'/$chain/$index");
+      purpose = 44;
+      break;
     default:
-      throw Exception("DerivePathType must not be null.");
+      throw Exception("DerivePathType $derivePathType not supported");
   }
+
+  return "m/$purpose'/$coinType'/$account'/$chain/$index";
 }
 
-/// wrapper for compute()
-bip32.BIP32 getBip32NodeFromRootWrapper(
-  Tuple4<int, int, bip32.BIP32, DerivePathType> args,
-) {
-  return getBip32NodeFromRoot(
-    args.item1,
-    args.item2,
-    args.item3,
-    args.item4,
-  );
-}
+class DogecoinWallet extends CoinServiceAPI
+    with WalletCache, WalletDB, ElectrumXParsing {
+  DogecoinWallet({
+    required String walletId,
+    required String walletName,
+    required Coin coin,
+    required ElectrumX client,
+    required CachedElectrumX cachedClient,
+    required TransactionNotificationTracker tracker,
+    required SecureStorageInterface secureStore,
+    MainDB? mockableOverride,
+  }) {
+    txTracker = tracker;
+    _walletId = walletId;
+    _walletName = walletName;
+    _coin = coin;
+    _electrumXClient = client;
+    _cachedElectrumXClient = cachedClient;
+    _secureStore = secureStore;
+    initCache(walletId, coin);
+    initWalletDB(mockableOverride: mockableOverride);
 
-bip32.BIP32 getBip32Root(String mnemonic, NetworkType network) {
-  final seed = bip39.mnemonicToSeed(mnemonic);
-  final networkType = bip32.NetworkType(
-    wif: network.wif,
-    bip32: bip32.Bip32Type(
-      public: network.bip32.public,
-      private: network.bip32.private,
-    ),
-  );
+    // paynym stuff
+    // initPaynymWalletInterface(
+    //   walletId: walletId,
+    //   walletName: walletName,
+    //   network: network,
+    //   coin: coin,
+    //   db: db,
+    //   electrumXClient: electrumXClient,
+    //   getMnemonic: () => mnemonic,
+    //   getChainHeight: () => chainHeight,
+    //   getCurrentChangeAddress: () => currentChangeAddress,
+    //   estimateTxFee: estimateTxFee,
+    //   prepareSend: prepareSend,
+    //   getTxCount: getTxCount,
+    //   fetchBuildTxData: fetchBuildTxData,
+    //   refresh: refresh,
+    //   checkChangeAddressForTransactions: checkChangeAddressForTransactions,
+    //   addDerivation: addDerivation,
+    //   addDerivations: addDerivations,
+    // );
+  }
 
-  final root = bip32.BIP32.fromSeed(seed, networkType);
-  return root;
-}
-
-/// wrapper for compute()
-bip32.BIP32 getBip32RootWrapper(Tuple2<String, NetworkType> args) {
-  return getBip32Root(args.item1, args.item2);
-}
-
-class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
   static const integrationTestFlag =
       bool.fromEnvironment("IS_INTEGRATION_TEST");
   final _prefs = Prefs.instance;
@@ -150,8 +152,16 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<List<isar_models.UTXO>> get utxos => db.getUTXOs(walletId).findAll();
 
   @override
-  Future<List<isar_models.Transaction>> get transactions =>
-      db.getTransactions(walletId).sortByTimestampDesc().findAll();
+  Future<List<isar_models.Transaction>> get transactions => db
+      .getTransactions(walletId)
+      .filter()
+      .not()
+      .group((q) => q
+          .subTypeEqualTo(isar_models.TransactionSubType.bip47Notification)
+          .and()
+          .typeEqualTo(isar_models.TransactionType.incoming))
+      .sortByTimestampDesc()
+      .findAll();
 
   @override
   Coin get coin => _coin;
@@ -168,7 +178,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
           .subTypeEqualTo(isar_models.AddressSubType.receiving)
           .sortByDerivationIndexDesc()
           .findFirst()) ??
-      await _generateAddressForChain(0, 0, DerivePathType.bip44);
+      await _generateAddressForChain(0, 0, DerivePathTypeExt.primaryFor(coin));
 
   // @override
   Future<String> get currentChangeAddress async =>
@@ -182,7 +192,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
           .subTypeEqualTo(isar_models.AddressSubType.change)
           .sortByDerivationIndexDesc()
           .findFirst()) ??
-      await _generateAddressForChain(1, 0, DerivePathType.bip44);
+      await _generateAddressForChain(1, 0, DerivePathTypeExt.primaryFor(coin));
 
   @override
   Future<void> exit() async {
@@ -212,11 +222,28 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<List<String>> get mnemonic => _getMnemonicList();
 
+  @override
+  Future<String?> get mnemonicString =>
+      _secureStore.read(key: '${_walletId}_mnemonic');
+
+  @override
+  Future<String?> get mnemonicPassphrase => _secureStore.read(
+        key: '${_walletId}_mnemonicPassphrase',
+      );
+
   Future<int> get chainHeight async {
     try {
       final result = await _electrumXClient.getBlockHeadTip();
       final height = result["height"] as int;
       await updateCachedChainHeight(height);
+      if (height > storedChainHeight) {
+        GlobalEventBus.instance.fire(
+          UpdatedInBackgroundEvent(
+            "Updated current chain height in $walletId $walletName!",
+            walletId,
+          ),
+        );
+      }
       return height;
     } catch (e, s) {
       Logging.instance.log("Exception caught in chainHeight: $e\n$s",
@@ -263,6 +290,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<void> recoverFromMnemonic({
     required String mnemonic,
+    String? mnemonicPassphrase,
     required int maxUnusedAddressGap,
     required int maxNumberOfIndexesToCheck,
     required int height,
@@ -293,14 +321,20 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       }
       // check to make sure we aren't overwriting a mnemonic
       // this should never fail
-      if ((await _secureStore.read(key: '${_walletId}_mnemonic')) != null) {
+      if ((await mnemonicString) != null ||
+          (await this.mnemonicPassphrase) != null) {
         longMutex = false;
         throw Exception("Attempted to overwrite mnemonic on restore!");
       }
       await _secureStore.write(
           key: '${_walletId}_mnemonic', value: mnemonic.trim());
+      await _secureStore.write(
+        key: '${_walletId}_mnemonicPassphrase',
+        value: mnemonicPassphrase ?? "",
+      );
       await _recoverWalletFromBIP32SeedPhrase(
         mnemonic: mnemonic.trim(),
+        mnemonicPassphrase: mnemonicPassphrase ?? "",
         maxUnusedAddressGap: maxUnusedAddressGap,
         maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
       );
@@ -343,15 +377,14 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       final Map<String, dynamic> receivingNodes = {};
 
       for (int j = 0; j < txCountBatchSize; j++) {
-        final node = await compute(
-          getBip32NodeFromRootWrapper,
-          Tuple4(
-            chain,
-            index + j,
-            root,
-            type,
-          ),
+        final derivePath = constructDerivePath(
+          derivePathType: type,
+          networkWIF: root.network.wif,
+          chain: chain,
+          index: index + j,
         );
+        final node = await Bip32Utils.getBip32NodeFromRoot(root, derivePath);
+
         isar_models.Address address;
         switch (type) {
           case DerivePathType.bip44:
@@ -365,13 +398,14 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
               publicKey: node.publicKey,
               type: isar_models.AddressType.p2pkh,
               derivationIndex: index + j,
+              derivationPath: isar_models.DerivationPath()..value = derivePath,
               subType: chain == 0
                   ? isar_models.AddressSubType.receiving
                   : isar_models.AddressSubType.change,
             );
             break;
           default:
-            throw Exception("No Path type $type exists");
+            throw Exception("DerivePathType $type not supported");
         }
         receivingNodes.addAll({
           "${_id}_$j": {
@@ -445,15 +479,21 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Future<void> _recoverWalletFromBIP32SeedPhrase({
     required String mnemonic,
+    required String mnemonicPassphrase,
     int maxUnusedAddressGap = 20,
     int maxNumberOfIndexesToCheck = 1000,
+    bool isRescan = false,
   }) async {
     longMutex = true;
 
     Map<String, Map<String, String>> p2pkhReceiveDerivations = {};
     Map<String, Map<String, String>> p2pkhChangeDerivations = {};
 
-    final root = await compute(getBip32RootWrapper, Tuple2(mnemonic, network));
+    final root = await Bip32Utils.getBip32Root(
+      mnemonic,
+      mnemonicPassphrase,
+      network,
+    );
 
     List<isar_models.Address> p2pkhReceiveAddressArray = [];
     int p2pkhReceiveIndex = -1;
@@ -523,11 +563,30 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
             await _generateAddressForChain(1, 0, DerivePathType.bip44);
         p2pkhChangeAddressArray.add(address);
       }
+      if (isRescan) {
+        await db.updateOrPutAddresses([
+          ...p2pkhReceiveAddressArray,
+          ...p2pkhChangeAddressArray,
+        ]);
+      } else {
+        await db.putAddresses([
+          ...p2pkhReceiveAddressArray,
+          ...p2pkhChangeAddressArray,
+        ]);
+      }
 
-      await db.putAddresses([
-        ...p2pkhReceiveAddressArray,
-        ...p2pkhChangeAddressArray,
-      ]);
+      // paynym stuff
+      // // generate to ensure notification address is in db before refreshing transactions
+      // await getMyNotificationAddress(DerivePathType.bip44);
+      //
+      // // refresh transactions to pick up any received notification transactions
+      // await _refreshTransactions();
+      //
+      // // restore paynym transactions
+      // await restoreAllHistory(
+      //   maxUnusedAddressGap: maxUnusedAddressGap,
+      //   maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+      // );
 
       await _updateUTXOs();
 
@@ -596,6 +655,13 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
         }
       }
       return needsRefresh;
+    } on NoSuchTransactionException catch (e) {
+      // TODO: move direct transactions elsewhere
+      await db.isar.writeTxn(() async {
+        await db.isar.transactions.deleteByTxidWalletId(e.txid, walletId);
+      });
+      await txTracker.deleteTransaction(e.txid);
+      return true;
     } catch (e, s) {
       Logging.instance.log(
           "Exception caught in refreshIfThereIsNewData: $e\n$s",
@@ -760,6 +826,9 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
         await _checkCurrentReceivingAddressesForTransactions();
+
+        // paynym stuff
+        // await checkAllCurrentReceivingPaynymAddressesForTransactions();
 
         final fetchFuture = _refreshTransactions();
         final utxosRefreshFuture = _updateUTXOs();
@@ -1011,46 +1080,33 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
   // transactions locally in a good way
   @override
   Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
-    // final priceData =
-    //     await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
-    // Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
-    // final locale =
-    //     Platform.isWindows ? "en_US" : await Devicelocale.currentLocale;
-    // final String worthNow = Format.localizedStringAsFixed(
-    //     value:
-    //         ((currentPrice * Decimal.fromInt(txData["recipientAmt"] as int)) /
-    //                 Decimal.fromInt(Constants.satsPerCoin(coin)))
-    //             .toDecimal(scaleOnInfinitePrecision: 2),
-    //     decimalPlaces: 2,
-    //     locale: locale!);
-    //
-    // final tx = models.Transaction(
-    //   txid: txData["txid"] as String,
-    //   confirmedStatus: false,
-    //   timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-    //   txType: "Sent",
-    //   amount: txData["recipientAmt"] as int,
-    //   worthNow: worthNow,
-    //   worthAtBlockTimestamp: worthNow,
-    //   fees: txData["fee"] as int,
-    //   inputSize: 0,
-    //   outputSize: 0,
-    //   inputs: [],
-    //   outputs: [],
-    //   address: txData["address"] as String,
-    //   height: -1,
-    //   confirmations: 0,
-    // );
-    //
-    // if (cachedTxData == null) {
-    //   final data = await _fetchTransactionData();
-    //   _transactionData = Future(() => data);
-    // }
-    //
-    // final transactions = cachedTxData!.getAllTransactions();
-    // transactions[tx.txid] = tx;
-    // cachedTxData = models.TransactionData.fromMap(transactions);
-    // _transactionData = Future(() => cachedTxData!);
+    final transaction = isar_models.Transaction(
+      walletId: walletId,
+      txid: txData["txid"] as String,
+      timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      type: isar_models.TransactionType.outgoing,
+      subType: isar_models.TransactionSubType.none,
+      amount: txData["recipientAmt"] as int,
+      fee: txData["fee"] as int,
+      height: null,
+      isCancelled: false,
+      isLelantus: false,
+      otherData: null,
+      slateId: null,
+      inputs: [],
+      outputs: [],
+    );
+
+    final address = txData["address"] is String
+        ? await db.getAddress(walletId, txData["address"] as String)
+        : null;
+
+    await db.addNewTransactionData(
+      [
+        Tuple2(transaction, address),
+      ],
+      walletId,
+    );
   }
 
   @override
@@ -1079,27 +1135,6 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
   CachedElectrumX get cachedElectrumXClient => _cachedElectrumXClient;
 
   late SecureStorageInterface _secureStore;
-
-  DogecoinWallet({
-    required String walletId,
-    required String walletName,
-    required Coin coin,
-    required ElectrumX client,
-    required CachedElectrumX cachedClient,
-    required TransactionNotificationTracker tracker,
-    required SecureStorageInterface secureStore,
-    MainDB? mockableOverride,
-  }) {
-    txTracker = tracker;
-    _walletId = walletId;
-    _walletName = walletName;
-    _coin = coin;
-    _electrumXClient = client;
-    _cachedElectrumXClient = cachedClient;
-    _secureStore = secureStore;
-    initCache(walletId, coin);
-    initWalletDB(mockableOverride: mockableOverride);
-  }
 
   @override
   Future<void> updateNode(bool shouldRefresh) async {
@@ -1131,12 +1166,11 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   Future<List<String>> _getMnemonicList() async {
-    final mnemonicString =
-        await _secureStore.read(key: '${_walletId}_mnemonic');
-    if (mnemonicString == null) {
+    final _mnemonicString = await mnemonicString;
+    if (_mnemonicString == null) {
       return [];
     }
-    final List<String> data = mnemonicString.split(' ');
+    final List<String> data = _mnemonicString.split(' ');
     return data;
   }
 
@@ -1161,10 +1195,8 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
         .not()
         .typeEqualTo(isar_models.AddressType.nonWallet)
         .and()
-        .group((q) => q
-            .subTypeEqualTo(isar_models.AddressSubType.receiving)
-            .or()
-            .subTypeEqualTo(isar_models.AddressSubType.change))
+        .not()
+        .subTypeEqualTo(isar_models.AddressSubType.nonWallet)
         .findAll();
     return allAddresses;
   }
@@ -1226,13 +1258,17 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     }
 
     // this should never fail
-    if ((await _secureStore.read(key: '${_walletId}_mnemonic')) != null) {
+    if ((await mnemonicString) != null || (await mnemonicPassphrase) != null) {
       throw Exception(
           "Attempted to overwrite mnemonic on generate new wallet!");
     }
     await _secureStore.write(
         key: '${_walletId}_mnemonic',
         value: bip39.generateMnemonic(strength: 256));
+    await _secureStore.write(
+      key: '${_walletId}_mnemonicPassphrase',
+      value: "",
+    );
 
     // Generate and add addresses
     final initialReceivingAddressP2PKH =
@@ -1256,17 +1292,22 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     int index,
     DerivePathType derivePathType,
   ) async {
-    final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
-    final node = await compute(
-      getBip32NodeWrapper,
-      Tuple5(
-        chain,
-        index,
-        mnemonic!,
-        network,
-        derivePathType,
-      ),
+    final _mnemonic = await mnemonicString;
+    final _mnemonicPassphrase = await mnemonicPassphrase;
+
+    final derivePath = constructDerivePath(
+      derivePathType: derivePathType,
+      networkWIF: network.wif,
+      chain: chain,
+      index: index,
     );
+    final node = await Bip32Utils.getBip32Node(
+      _mnemonic!,
+      _mnemonicPassphrase!,
+      network,
+      derivePath,
+    );
+
     final data = PaymentData(pubkey: node.publicKey);
     String address;
 
@@ -1274,9 +1315,8 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       case DerivePathType.bip44:
         address = P2PKH(data: data, network: network).data.address!;
         break;
-      // default:
-      //   // should never hit this due to all enum cases handled
-      //   return null;
+      default:
+        throw Exception("Unsupported DerivePathType");
     }
 
     // add generated address & info to derivations
@@ -1293,6 +1333,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       publicKey: node.publicKey,
       type: isar_models.AddressType.p2pkh,
       derivationIndex: index,
+      derivationPath: isar_models.DerivationPath()..value = derivePath,
       subType: chain == 0
           ? isar_models.AddressSubType.receiving
           : isar_models.AddressSubType.change,
@@ -1321,6 +1362,8 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
             .sortByDerivationIndexDesc()
             .findFirst();
         break;
+      default:
+        throw Exception("Unsupported DerivePathType");
     }
     return address!.value;
   }
@@ -1333,6 +1376,8 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       case DerivePathType.bip44:
         key = "${walletId}_${chainId}DerivationsP2PKH";
         break;
+      default:
+        throw Exception("Unsupported DerivePathType");
     }
     return key;
   }
@@ -1503,15 +1548,34 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
             coin: coin,
           );
 
-          // todo check here if we should mark as blocked
+          // fetch stored tx to see if paynym notification tx and block utxo
+          final storedTx = await db.getTransaction(
+            walletId,
+            fetchedUtxoList[i][j]["tx_hash"] as String,
+          );
+
+          bool shouldBlock = false;
+          String? blockReason;
+
+          if (storedTx?.subType ==
+                  isar_models.TransactionSubType.bip47Notification &&
+              storedTx?.type == isar_models.TransactionType.incoming) {
+            // probably safe to assume this is an incoming tx as it is a utxo
+            // belonging to this wallet. The extra check may be redundant but
+            // just in case...
+
+            shouldBlock = true;
+            blockReason = "Incoming paynym notification transaction.";
+          }
+
           final utxo = isar_models.UTXO(
             walletId: walletId,
             txid: txn["txid"] as String,
             vout: fetchedUtxoList[i][j]["tx_pos"] as int,
             value: fetchedUtxoList[i][j]["value"] as int,
             name: "",
-            isBlocked: false,
-            blockedReason: null,
+            isBlocked: shouldBlock,
+            blockedReason: blockReason,
             isCoinbase: txn["is_coinbase"] as bool? ?? false,
             blockHash: txn["blockhash"] as String?,
             blockHeight: fetchedUtxoList[i][j]["height"] as int?,
@@ -1539,7 +1603,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       // TODO move this out of here and into IDB
       await db.isar.writeTxn(() async {
-        await db.isar.utxos.clear();
+        await db.isar.utxos.where().walletIdEqualTo(walletId).deleteAll();
         await db.isar.utxos.putAll(outputArray);
       });
 
@@ -1656,7 +1720,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
         // Use new index to derive a new receiving address
         final newReceivingAddress = await _generateAddressForChain(
-            0, newReceivingIndex, DerivePathType.bip44);
+            0, newReceivingIndex, DerivePathTypeExt.primaryFor(coin));
 
         final existing = await db
             .getAddresses(walletId)
@@ -1675,12 +1739,12 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       }
     } on SocketException catch (se, s) {
       Logging.instance.log(
-          "SocketException caught in _checkReceivingAddressForTransactions($DerivePathType.bip44): $se\n$s",
+          "SocketException caught in _checkReceivingAddressForTransactions(${DerivePathTypeExt.primaryFor(coin)}): $se\n$s",
           level: LogLevel.Error);
       return;
     } catch (e, s) {
       Logging.instance.log(
-          "Exception rethrown from _checkReceivingAddressForTransactions($DerivePathType.bip44): $e\n$s",
+          "Exception rethrown from _checkReceivingAddressForTransactions(${DerivePathTypeExt.primaryFor(coin)}): $e\n$s",
           level: LogLevel.Error);
       rethrow;
     }
@@ -1700,7 +1764,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
         // Use new index to derive a new change address
         final newChangeAddress = await _generateAddressForChain(
-            1, newChangeIndex, DerivePathType.bip44);
+            1, newChangeIndex, DerivePathTypeExt.primaryFor(coin));
 
         final existing = await db
             .getAddresses(walletId)
@@ -1719,7 +1783,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       }
     } catch (e, s) {
       Logging.instance.log(
-          "Exception rethrown from _checkChangeAddressForTransactions(${DerivePathType.bip44}): $e\n$s",
+          "Exception rethrown from _checkChangeAddressForTransactions(${DerivePathTypeExt.primaryFor(coin)}): $e\n$s",
           level: LogLevel.Error);
       rethrow;
     }
@@ -1916,9 +1980,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     }
     await fastFetch(vHashes.toList());
 
-    final List<
-        Tuple4<isar_models.Transaction, List<isar_models.Output>,
-            List<isar_models.Input>, isar_models.Address?>> txns = [];
+    final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txns = [];
 
     for (final txObject in allTransactions) {
       final txn = await parseTransaction(
@@ -2088,7 +2150,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
       utxoSigningData: utxoSigningData,
       recipients: [
         _recipientAddress,
-        await _getCurrentAddressForChain(1, DerivePathType.bip44),
+        await _getCurrentAddressForChain(1, DerivePathTypeExt.primaryFor(coin)),
       ],
       satoshiAmounts: [
         satoshiAmountToSend,
@@ -2141,8 +2203,8 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
                 feeForTwoOutputs) {
           // generate new change address if current change address has been used
           await checkChangeAddressForTransactions();
-          final String newChangeAddress =
-              await _getCurrentAddressForChain(1, DerivePathType.bip44);
+          final String newChangeAddress = await _getCurrentAddressForChain(
+              1, DerivePathTypeExt.primaryFor(coin));
 
           int feeBeingPaid =
               satoshisBeingUsed - satoshiAmountToSend - changeOutputSize;
@@ -2340,6 +2402,8 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
               case DerivePathType.bip44:
                 addressesP2PKH.add(address);
                 break;
+              default:
+                throw Exception("Unsupported DerivePathType");
             }
           }
         }
@@ -2485,11 +2549,15 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
     await _deleteDerivations();
 
     try {
-      final mnemonic = await _secureStore.read(key: '${_walletId}_mnemonic');
+      final _mnemonic = await mnemonicString;
+      final _mnemonicPassphrase = await mnemonicPassphrase;
+
       await _recoverWalletFromBIP32SeedPhrase(
-        mnemonic: mnemonic!,
+        mnemonic: _mnemonic!,
+        mnemonicPassphrase: _mnemonicPassphrase!,
         maxUnusedAddressGap: maxUnusedAddressGap,
         maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+        isRescan: true,
       );
 
       longMutex = false;
@@ -2757,7 +2825,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       // Use new index to derive a new receiving address
       final newReceivingAddress = await _generateAddressForChain(
-          0, newReceivingIndex, DerivePathType.bip44);
+          0, newReceivingIndex, DerivePathTypeExt.primaryFor(coin));
 
       // Add that new receiving address
       await db.putAddress(newReceivingAddress);
@@ -2775,7 +2843,7 @@ class DogecoinWallet extends CoinServiceAPI with WalletCache, WalletDB {
 // Dogecoin Network
 final dogecoin = NetworkType(
     messagePrefix: '\x18Dogecoin Signed Message:\n',
-    bech32: 'bc',
+    // bech32: 'bc',
     bip32: Bip32Type(public: 0x02facafd, private: 0x02fac398),
     pubKeyHash: 0x1e,
     scriptHash: 0x16,
@@ -2783,7 +2851,7 @@ final dogecoin = NetworkType(
 
 final dogecointestnet = NetworkType(
     messagePrefix: '\x18Dogecoin Signed Message:\n',
-    bech32: 'tb',
+    // bech32: 'tb',
     bip32: Bip32Type(public: 0x043587cf, private: 0x04358394),
     pubKeyHash: 0x71,
     scriptHash: 0xc4,

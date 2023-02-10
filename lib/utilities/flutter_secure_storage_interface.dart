@@ -46,6 +46,8 @@ abstract class SecureStorageInterface {
     MacOsOptions? mOptions,
     WindowsOptions? wOptions,
   });
+
+  Future<List<String>> get keys;
 }
 
 class DesktopSecureStore {
@@ -109,6 +111,10 @@ class DesktopSecureStore {
     await isar.writeTxn(() async {
       await isar.encryptedStringValues.deleteByKey(key);
     });
+  }
+
+  Future<List<String>> get keys async {
+    return await isar.encryptedStringValues.where().keyProperty().findAll();
   }
 }
 
@@ -229,6 +235,15 @@ class SecureStorageWrapper implements SecureStorageInterface {
       );
     }
   }
+
+  @override
+  Future<List<String>> get keys async {
+    if (_isDesktop) {
+      return (_store as DesktopSecureStore).keys;
+    } else {
+      return (await (_store as FlutterSecureStorage).readAll()).keys.toList();
+    }
+  }
 }
 
 // Mock class for testing purposes
@@ -305,4 +320,7 @@ class FakeSecureStorage implements SecureStorageInterface {
 
   @override
   dynamic get store => throw UnimplementedError();
+
+  @override
+  Future<List<String>> get keys => Future(() => _store.keys.toList());
 }

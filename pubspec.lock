@@ -100,8 +100,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: testing
-      resolved-ref: "8ed2f6245c71a4457ed4ffdd3a74e4bcb9f9d2d0"
+      ref: "87bb760be323228aed6ca7bd4532a709a4f10690"
+      resolved-ref: "87bb760be323228aed6ca7bd4532a709a4f10690"
       url: "https://github.com/cypherstack/bip47.git"
     source: git
     version: "1.0.0"
@@ -452,6 +452,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "5.0.1"
+  equatable:
+    dependency: "direct main"
+    description:
+      name: equatable
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.5"
   event_bus:
     dependency: "direct main"
     description:
@@ -1237,21 +1244,7 @@ packages:
       name: share_plus
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.5.3"
-  share_plus_linux:
-    dependency: transitive
-    description:
-      name: share_plus_linux
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.0.1"
-  share_plus_macos:
-    dependency: transitive
-    description:
-      name: share_plus_macos
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.0.1"
+    version: "6.3.0"
   share_plus_platform_interface:
     dependency: transitive
     description:
@@ -1259,20 +1252,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.2.0"
-  share_plus_web:
-    dependency: transitive
-    description:
-      name: share_plus_web
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.1.0"
-  share_plus_windows:
-    dependency: transitive
-    description:
-      name: share_plus_windows
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.0.1"
   shared_preferences:
     dependency: transitive
     description:
@@ -1408,8 +1387,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "93e2687bcc10fc7258c7dab038c363fc9ff8ba5d"
-      resolved-ref: "93e2687bcc10fc7258c7dab038c363fc9ff8ba5d"
+      ref: e4b08d2b8965a5ae49bd57f598fa9011dd0c25e9
+      resolved-ref: e4b08d2b8965a5ae49bd57f598fa9011dd0c25e9
       url: "https://github.com/cypherstack/stack_wallet_backup.git"
     source: git
     version: "0.0.1"

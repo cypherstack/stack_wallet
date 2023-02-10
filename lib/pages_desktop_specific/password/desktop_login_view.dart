@@ -261,7 +261,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                 const SizedBox(
                   height: 60,
                 ),
-                BlueTextButton(
+                CustomTextButton(
                   text: "Forgot password?",
                   textSize: 20,
                   onTap: () {

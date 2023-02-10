@@ -66,7 +66,7 @@ class DesktopAddressCard extends StatelessWidget {
               ),
               Row(
                 children: [
-                  BlueTextButton(
+                  CustomTextButton(
                     text: "Copy",
                     onTap: () {
                       clipboard.setData(
@@ -87,7 +87,7 @@ class DesktopAddressCard extends StatelessWidget {
                   if (contactId != "default")
                     Consumer(
                       builder: (context, ref, child) {
-                        return BlueTextButton(
+                        return CustomTextButton(
                           text: "Edit",
                           onTap: () async {
                             ref.refresh(

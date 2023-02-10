@@ -15,17 +15,16 @@ import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart
     as _i20;
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart'
     as _i21;
-import 'package:stackwallet/models/exchange/response_objects/currency.dart'
-    as _i14;
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart'
     as _i17;
 import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart'
     as _i19;
-import 'package:stackwallet/models/exchange/response_objects/pair.dart' as _i22;
 import 'package:stackwallet/models/exchange/response_objects/range.dart'
     as _i16;
 import 'package:stackwallet/models/exchange/response_objects/trade.dart'
     as _i10;
+import 'package:stackwallet/models/isar/exchange_cache/currency.dart' as _i14;
+import 'package:stackwallet/models/isar/exchange_cache/pair.dart' as _i22;
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart'
     as _i5;
 import 'package:stackwallet/services/exchange/change_now/change_now_api.dart'
@@ -370,6 +369,24 @@ class MockPrefs extends _i1.Mock implements _i3.Prefs {
         ),
         returnValue: _i7.Future<bool>.value(false),
       ) as _i7.Future<bool>);
+  @override
+  _i7.Future<void> saveUserID(String? userId) => (super.noSuchMethod(
+        Invocation.method(
+          #saveUserID,
+          [userId],
+        ),
+        returnValue: _i7.Future<void>.value(),
+        returnValueForMissingStub: _i7.Future<void>.value(),
+      ) as _i7.Future<void>);
+  @override
+  _i7.Future<void> saveSignupEpoch(int? signupEpoch) => (super.noSuchMethod(
+        Invocation.method(
+          #saveSignupEpoch,
+          [signupEpoch],
+        ),
+        returnValue: _i7.Future<void>.value(),
+        returnValueForMissingStub: _i7.Future<void>.value(),
+      ) as _i7.Future<void>);
   @override
   void addListener(_i8.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(

@@ -573,4 +573,13 @@ class MockTransactionNotificationTracker extends _i1.Mock
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
+  @override
+  _i5.Future<void> deleteTransaction(String? txid) => (super.noSuchMethod(
+        Invocation.method(
+          #deleteTransaction,
+          [txid],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 }

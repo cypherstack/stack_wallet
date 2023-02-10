@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/buy_view/buy_view.dart';
-import 'package:stackwallet/pages/exchange_view/exchange_loading_overlay.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_view.dart';
 import 'package:stackwallet/pages/home_view/sub_widgets/home_view_button_bar.dart';
 import 'package:stackwallet/pages/notification_views/notifications_view.dart';
@@ -12,13 +11,10 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/global_set
 import 'package:stackwallet/pages/settings_views/global_settings_view/hidden_settings.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
 import 'package:stackwallet/providers/global/notifications_provider.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/ui/home_view_index_provider.dart';
 import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
-import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -45,12 +41,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   bool _exitEnabled = false;
 
-  final _exchangeDataLoadingService = ExchangeDataLoadingService();
   // final _buyDataLoadingService = BuyDataLoadingService();
 
   Future<bool> _onWillPop() async {
     // go to home view when tapping back on the main exchange view
-    if (ref.read(homeViewPageIndexStateProvider.state).state == 1) {
+    if (ref.read(homeViewPageIndexStateProvider.state).state != 0) {
       ref.read(homeViewPageIndexStateProvider.state).state = 0;
       return false;
     }
@@ -84,16 +79,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
     return _exitEnabled;
   }
 
-  void _loadCNData() {
-    // unawaited future
-    if (ref.read(prefsChangeNotifierProvider).externalCalls) {
-      _exchangeDataLoadingService.loadAll(ref);
-    } else {
-      Logging.instance.log("User does not want to use external calls",
-          level: LogLevel.Info);
-    }
-  }
-
   // void _loadSimplexData() {
   //   // unawaited future
   //   if (ref.read(prefsChangeNotifierProvider).externalCalls) {
@@ -123,9 +108,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
         Stack(
           children: [
             const ExchangeView(),
-            ExchangeLoadingOverlayView(
-              unawaitedLoad: _loadCNData,
-            ),
+            // ExchangeLoadingOverlayView(
+            //   unawaitedLoad: _loadCNData,
+            // ),
           ],
         ),
       if (Constants.enableBuy)
@@ -331,9 +316,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     _ref.listen(homeViewPageIndexStateProvider,
                         (previous, next) {
                       if (next is int && next >= 0 && next <= 2) {
-                        if (next == 1) {
-                          _exchangeDataLoadingService.loadAll(ref);
-                        }
+                        // if (next == 1) {
+                        //   _exchangeDataLoadingService.loadAll(ref);
+                        // }
                         // if (next == 2) {
                         //   _buyDataLoadingService.loadAll(ref);
                         // }

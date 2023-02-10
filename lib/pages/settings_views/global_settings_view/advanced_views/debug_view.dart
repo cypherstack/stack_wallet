@@ -282,7 +282,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              BlueTextButton(
+                              CustomTextButton(
                                 text: "Save Debug Info to clipboard",
                                 onTap: () async {
                                   try {
@@ -350,7 +350,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                 },
                               ),
                               const Spacer(),
-                              BlueTextButton(
+                              CustomTextButton(
                                 text: "Save logs to file",
                                 onTap: () async {
                                   final systemfile = SWBFileSystem();

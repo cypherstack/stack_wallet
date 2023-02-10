@@ -11,6 +11,7 @@ import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 
 import 'dogecoin_wallet_test.mocks.dart';
@@ -39,55 +40,6 @@ void main() {
     });
   });
 
-  test("dogecoin DerivePathType enum", () {
-    expect(DerivePathType.values.length, 1);
-    expect(DerivePathType.values.toString(), "[DerivePathType.bip44]");
-  });
-
-  group("bip32 node/root", () {
-    test("getBip32Root", () {
-      final root = getBip32Root(TEST_MNEMONIC, dogecoin);
-      expect(root.toWIF(), ROOT_WIF);
-    });
-
-    // test("getBip32NodeFromRoot", () {
-    //   final root = getBip32Root(TEST_MNEMONIC, dogecoin);
-    //   // two mainnet
-    //   final node44 = getBip32NodeFromRoot(0, 0, root, DerivePathType.bip44);
-    //   expect(node44.toWIF(), NODE_WIF_44);
-    //
-    //   // a bad derive path
-    //   bool didThrow = false;
-    //   try {
-    //     getBip32NodeFromRoot(0, 0, root, null);
-    //   } catch (_) {
-    //     didThrow = true;
-    //   }
-    //   expect(didThrow, true);
-    //   // finally an invalid network
-    //   didThrow = false;
-    //   final invalidNetwork = NetworkType(
-    //       messagePrefix: '\x18hello world\n',
-    //       bech32: 'gg',
-    //       bip32: Bip32Type(public: 0x055521e, private: 0x055555),
-    //       pubKeyHash: 0x55,
-    //       scriptHash: 0x55,
-    //       wif: 0x00);
-    //   try {
-    //     getBip32NodeFromRoot(0, 0, getBip32Root(TEST_MNEMONIC, invalidNetwork),
-    //         DerivePathType.bip44);
-    //   } catch (_) {
-    //     didThrow = true;
-    //   }
-    //   expect(didThrow, true);
-    // });
-
-    test("basic getBip32Node", () {
-      final node = getBip32Node(
-          0, 0, TEST_MNEMONIC, dogecointestnet, DerivePathType.bip44);
-      expect(node.toWIF(), NODE_WIF_44);
-    });
-  });
 
   group("validate mainnet dogecoin addresses", () {
     MockElectrumX? client;

@@ -7,9 +7,11 @@ import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_4_view.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
+import 'package:stackwallet/providers/exchange/current_exchange_name_state_provider.dart';
 import 'package:stackwallet/providers/exchange/exchange_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
+import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
@@ -51,6 +53,10 @@ class _Step3ViewState extends ConsumerState<Step3View> {
 
   @override
   Widget build(BuildContext context) {
+    final supportsRefund =
+        ref.watch(currentExchangeNameStateProvider.state).state !=
+            MajesticBankExchange.exchangeName;
+
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -174,27 +180,29 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                               ],
                             ),
                           ),
-                          const SizedBox(
-                            height: 8,
-                          ),
-                          RoundedWhiteContainer(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Refund ${model.sendTicker.toUpperCase()} address",
-                                  style: STextStyles.itemSubtitle(context),
-                                ),
-                                const SizedBox(
-                                  height: 4,
-                                ),
-                                Text(
-                                  model.refundAddress!,
-                                  style: STextStyles.itemSubtitle12(context),
-                                )
-                              ],
+                          if (supportsRefund)
+                            const SizedBox(
+                              height: 8,
                             ),
-                          ),
+                          if (supportsRefund)
+                            RoundedWhiteContainer(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Refund ${model.sendTicker.toUpperCase()} address",
+                                    style: STextStyles.itemSubtitle(context),
+                                  ),
+                                  const SizedBox(
+                                    height: 4,
+                                  ),
+                                  Text(
+                                    model.refundAddress!,
+                                    style: STextStyles.itemSubtitle12(context),
+                                  )
+                                ],
+                              ),
+                            ),
                           const SizedBox(
                             height: 8,
                           ),
@@ -259,8 +267,9 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                               addressTo:
                                                   model.recipientAddress!,
                                               extraId: null,
-                                              addressRefund:
-                                                  model.refundAddress!,
+                                              addressRefund: supportsRefund
+                                                  ? model.refundAddress!
+                                                  : "",
                                               refundExtraId: "",
                                               rateId: model.rateId,
                                               reversed: model.reversed,
