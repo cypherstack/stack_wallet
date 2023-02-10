@@ -11,6 +11,7 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/paynym/dialogs/confirm_paynym_connect_dialog.dart';
 import 'package:stackwallet/pages/paynym/subwidgets/paynym_bot.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/paynym/desktop_paynym_send_dialog.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -102,8 +103,6 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
         builder: (context) => ConfirmPaynymConnectDialog(
           nymName: widget.accountLite.nymName,
           onConfirmPressed: () {
-            //
-            print("CONFIRM NOTIF TX: $preparedTx");
             Navigator.of(context, rootNavigator: true).pop();
             unawaited(
               showDialog(
@@ -148,7 +147,13 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
   }
 
   Future<void> _onSend() async {
-    print("sned");
+    await showDialog<void>(
+      context: context,
+      builder: (context) => DesktopPaynymSendDialog(
+        walletId: widget.walletId,
+        accountLite: widget.accountLite,
+      ),
+    );
   }
 
   @override

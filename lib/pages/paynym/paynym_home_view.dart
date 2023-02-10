@@ -559,6 +559,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                 height: isDesktop ? 56 : 48,
                 width: isDesktop ? 490 : null,
                 child: Toggle(
+                  key: UniqueKey(),
                   onColor: Theme.of(context).extension<StackColors>()!.popupBG,
                   onText:
                       "Following (${ref.watch(myPaynymAccountStateProvider.state).state?.following.length ?? 0})",
