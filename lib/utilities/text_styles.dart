@@ -1123,6 +1123,12 @@ class STextStyles {
           fontWeight: FontWeight.w600,
           fontSize: 14,
         );
+      case ThemeType.forest:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+        );
     }
   }
 
@@ -1153,6 +1159,12 @@ class STextStyles {
           fontSize: 14,
         );
       case ThemeType.fruitSorbet:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+        );
+      case ThemeType.forest:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w500,
@@ -1229,6 +1241,12 @@ class STextStyles {
           fontSize: 10,
         );
       case ThemeType.fruitSorbet:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 10,
+        );
+      case ThemeType.forest:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w500,
