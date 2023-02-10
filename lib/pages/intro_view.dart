@@ -54,7 +54,7 @@ class _IntroViewState extends State<IntroView> {
                         ),
                         child: Image(
                           image: AssetImage(
-                            Assets.png.stack,
+                            Assets.png.stack(context),
                           ),
                         ),
                       ),
