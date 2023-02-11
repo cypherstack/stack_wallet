@@ -32,7 +32,7 @@ class MainDB {
       // inspector: kDebugMode,
       inspector: false,
       name: "wallet_data",
-      maxSizeMiB: 1024,
+      maxSizeMiB: 512,
     );
     return true;
   }

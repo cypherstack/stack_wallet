@@ -51,7 +51,7 @@ class ExchangeDataLoadingService {
       // inspector: kDebugMode,
       inspector: false,
       name: "exchange_cache",
-      maxSizeMiB: 1024,
+      maxSizeMiB: 256,
     );
   }
 

@@ -62,7 +62,7 @@ class DesktopSecureStore {
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       inspector: false,
       name: "desktopStore",
-      maxSizeMiB: 1024,
+      maxSizeMiB: 512,
     );
   }
 
