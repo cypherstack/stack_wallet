@@ -115,12 +115,16 @@ class ExchangeDataLoadingService {
       try {
         await Future.wait([
           _loadChangeNowCurrencies(),
-          _loadChangeNowFixedRatePairs(),
-          _loadChangeNowEstimatedRatePairs(),
+          // _loadChangeNowFixedRatePairs(),
+          // _loadChangeNowEstimatedRatePairs(),
           // loadSimpleswapFixedRateCurrencies(ref),
           // loadSimpleswapFloatingRateCurrencies(ref),
           loadMajesticBankCurrencies(),
         ]);
+
+        await _loadChangeNowFixedRatePairs();
+        await _loadChangeNowEstimatedRatePairs();
+
         Logging.instance.log(
           "ExchangeDataLoadingService.loadAll finished in ${DateTime.now().difference(start).inSeconds} seconds",
           level: LogLevel.Info,
