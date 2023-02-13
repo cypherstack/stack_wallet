@@ -742,23 +742,32 @@ class BitcoinWallet extends CoinServiceAPI
       // refresh transactions to pick up any received notification transactions
       await _refreshTransactions();
 
-      final Set<String> codesToCheck = {};
-      final nym = await PaynymIsApi().nym(myCode.toString());
-      if (nym.value != null) {
-        for (final follower in nym.value!.followers) {
-          codesToCheck.add(follower.code);
+      try {
+        final Set<String> codesToCheck = {};
+        final nym = await PaynymIsApi().nym(myCode.toString());
+        if (nym.value != null) {
+          for (final follower in nym.value!.followers) {
+            codesToCheck.add(follower.code);
+          }
+          for (final following in nym.value!.following) {
+            codesToCheck.add(following.code);
+          }
         }
-        for (final following in nym.value!.following) {
-          codesToCheck.add(following.code);
-        }
-      }
 
-      // restore paynym transactions
-      await restoreAllHistory(
-        maxUnusedAddressGap: maxUnusedAddressGap,
-        maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
-        paymentCodeStrings: codesToCheck,
-      );
+        // restore paynym transactions
+        await restoreAllHistory(
+          maxUnusedAddressGap: maxUnusedAddressGap,
+          maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+          paymentCodeStrings: codesToCheck,
+        );
+      } catch (e, s) {
+        Logging.instance.log(
+          "Failed to check paynym.is followers/following for history during "
+          "bitcoin wallet ($walletId $walletName) "
+          "_recoverWalletFromBIP32SeedPhrase: $e/n$s",
+          level: LogLevel.Error,
+        );
+      }
 
       await _updateUTXOs();
 
