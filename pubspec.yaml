@@ -280,8 +280,6 @@ flutter:
     - assets/svg/tx-icon-anonymize-pending.svg
     - assets/svg/tx-icon-anonymize-failed.svg
     - assets/svg/Polygon.svg
-    - assets/svg/persona-easy-1.svg
-    - assets/svg/persona-incognito-1.svg
     - assets/svg/Button.svg
     - assets/svg/enabled-button.svg
     - assets/svg/lock-circle.svg
@@ -425,6 +423,8 @@ flutter:
     - assets/svg/light/bell-new.svg
     - assets/svg/light/stack-icon1.svg
     - assets/svg/light/buy-coins-icon.svg
+    - assets/svg/persona-easy-1.svg
+    - assets/svg/persona-incognito-1.svg
 
     # dark theme specific
     - assets/svg/dark/tx-exchange-icon.svg
@@ -440,6 +440,8 @@ flutter:
     - assets/svg/dark/bell-new.svg
     - assets/svg/dark/stack-icon1.svg
     - assets/svg/dark/buy-coins-icon.svg
+    - assets/svg/persona-easy-1.svg
+    - assets/svg/persona-incognito-1.svg
 
     # ocean theme specific
     - assets/svg/oceanBreeze/tx-exchange-icon.svg
@@ -456,6 +458,8 @@ flutter:
     - assets/svg/oceanBreeze/stack-icon1.svg
     - assets/svg/oceanBreeze/buy-coins-icon.svg
     - assets/svg/oceanBreeze/bg.svg
+    - assets/svg/persona-easy-1.svg
+    - assets/svg/persona-incognito-1.svg
 
     # OLED black theme specific
     - assets/svg/oledBlack/tx-exchange-icon.svg
@@ -471,6 +475,8 @@ flutter:
     - assets/svg/oledBlack/bell-new.svg
     - assets/svg/oledBlack/stack-icon1.svg
     - assets/svg/oledBlack/buy-coins-icon.svg
+    - assets/svg/persona-easy-1.svg
+    - assets/svg/persona-incognito-1.svg
 
     # fruit sorbet theme specific
     - assets/svg/fruitSorbet/tx-exchange-icon.svg
@@ -487,6 +493,8 @@ flutter:
     - assets/svg/fruitSorbet/stack-icon1.svg
     - assets/svg/fruitSorbet/buy-coins-icon.svg
     - assets/svg/fruitSorbet/bg.svg
+    - assets/svg/persona-easy-1.svg
+    - assets/svg/persona-incognito-1.svg
 
     # forest theme specific
     - assets/svg/forest/tx-exchange-icon.svg
@@ -503,6 +511,8 @@ flutter:
     - assets/svg/forest/stack-icon1.svg
     - assets/svg/forest/buy-coins-icon.svg
     - assets/svg/forest/bg.svg
+    - assets/svg/persona-easy-1.svg
+    - assets/svg/persona-incognito-1.svg
 
     # buy
     - assets/svg/buy/Simplex-Nuvei-Logo.svg
