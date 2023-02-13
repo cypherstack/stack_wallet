@@ -86,46 +86,6 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
         sendPort.send(result);
         return;
       }
-    } else if (function == "getPendingSlates") {
-      final wallet = arguments['wallet'] as String?;
-      final secretKeyIndex = arguments['secretKeyIndex'] as int?;
-      final slates = arguments['slates'] as String;
-      Map<String, dynamic> result = {};
-
-      if (!(wallet == null || secretKeyIndex == null)) {
-        Logging.instance
-            .log("SECRET_KEY_INDEX_IS $secretKeyIndex", level: LogLevel.Info);
-        result['result'] =
-            await getPendingSlates(wallet, secretKeyIndex, slates);
-        sendPort.send(result);
-        return;
-      }
-    } else if (function == "subscribeRequest") {
-      final wallet = arguments['wallet'] as String?;
-      final secretKeyIndex = arguments['secretKeyIndex'] as int?;
-      final epicboxConfig = arguments['epicboxConfig'] as String?;
-      Map<String, dynamic> result = {};
-
-      if (!(wallet == null ||
-          secretKeyIndex == null ||
-          epicboxConfig == null)) {
-        Logging.instance
-            .log("SECRET_KEY_INDEX_IS $secretKeyIndex", level: LogLevel.Info);
-        result['result'] =
-            await getSubscribeRequest(wallet, secretKeyIndex, epicboxConfig);
-        sendPort.send(result);
-        return;
-      }
-    } else if (function == "processSlates") {
-      final wallet = arguments['wallet'] as String?;
-      final slates = arguments['slates'];
-      Map<String, dynamic> result = {};
-
-      if (!(wallet == null || slates == null)) {
-        result['result'] = await processSlates(wallet, slates.toString());
-        sendPort.send(result);
-        return;
-      }
     } else if (function == "getWalletInfo") {
       final wallet = arguments['wallet'] as String?;
       final refreshFromNode = arguments['refreshFromNode'] as int?;
@@ -212,6 +172,17 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
           address == null)) {
         var res = await txHttpSend(wallet, selectionStrategyIsAll,
             minimumConfirmations, message, amount, address);
+        result['result'] = res;
+        sendPort.send(result);
+        return;
+      }
+    } else if (function == "listenForSlates") {
+      final wallet = arguments['wallet'] as String?;
+      final epicboxConfig = arguments['epicboxConfig'] as String?;
+
+      Map<String, dynamic> result = {};
+      if (!(wallet == null || epicboxConfig == null)) {
+        var res = await epicboxListen(wallet, epicboxConfig);
         result['result'] = res;
         sendPort.send(result);
         return;
@@ -988,6 +959,8 @@ class EpicCashWallet extends CoinServiceAPI
     await _prefs.init();
     await updateNode(false);
     await _refreshBalance();
+    //Open Epicbox listener in the background
+    await listenForSlates();
     // TODO: is there anything else that should be set up here whenever this wallet is first loaded again?
   }
 
@@ -1081,6 +1054,9 @@ class EpicCashWallet extends CoinServiceAPI
       epicUpdateReceivingIndex(0),
       epicUpdateChangeIndex(0),
     ]);
+
+    //Open Epicbox listener in the background
+    await listenForSlates();
 
     final initialReceivingAddress = await _getReceivingAddressForIndex(0);
 
@@ -1395,6 +1371,9 @@ class EpicCashWallet extends CoinServiceAPI
 
       //Store Epic box address info
       await storeEpicboxInfo();
+
+      //Open Epicbox listener in the background
+      await listenForSlates();
     } catch (e, s) {
       Logging.instance
           .log("Error recovering wallet $e\n$s", level: LogLevel.Error);
@@ -1557,173 +1536,28 @@ class EpicCashWallet extends CoinServiceAPI
     }
   }
 
-  Future<bool> processAllSlates() async {
-    final int? receivingIndex = epicGetReceivingIndex();
-    for (int currentReceivingIndex = 0;
-        receivingIndex != null && currentReceivingIndex <= receivingIndex;
-        currentReceivingIndex++) {
-      final currentAddress =
-          await _getReceivingAddressForIndex(currentReceivingIndex);
-      final wallet = await _secureStore.read(key: '${_walletId}_wallet');
-      final epicboxConfig =
-          await _secureStore.read(key: '${_walletId}_epicboxConfig');
-      dynamic subscribeRequest;
-      await m.protect(() async {
-        ReceivePort receivePort = await getIsolate({
-          "function": "subscribeRequest",
-          "wallet": wallet,
-          "secretKeyIndex": currentReceivingIndex,
-          "epicboxConfig": epicboxConfig,
-        }, name: walletName);
+  Future<void> listenForSlates() async {
+    final wallet = await _secureStore.read(key: '${_walletId}_wallet');
+    final epicboxConfig =
+        await _secureStore.read(key: '${_walletId}_epicboxConfig');
 
-        var result = await receivePort.first;
-        if (result is String) {
-          Logging.instance
-              .log("this is a message $result", level: LogLevel.Error);
-          stop(receivePort);
-          throw Exception("subscribeRequest isolate failed");
-        }
-        subscribeRequest = jsonDecode(result['result'] as String);
-        stop(receivePort);
-        Logging.instance.log('Closing subscribeRequest! $subscribeRequest',
-            level: LogLevel.Info);
-      });
-      // TODO, once server adds signature, give this signature to the getSlates method.
-      Logging.instance
-          .log(subscribeRequest['signature'], level: LogLevel.Info); //
-      final unprocessedSlates = await getSlates(
-          currentAddress.value, subscribeRequest['signature'] as String);
-      if (unprocessedSlates == null || unprocessedSlates is! List) {
-        Logging.instance.log(
-            "index $currentReceivingIndex at ${await currentReceivingAddress} does not have any slates",
-            level: LogLevel.Info);
-        continue;
-      }
-      for (var slate in unprocessedSlates) {
-        final encoded = jsonEncode([slate]);
+    await m.protect(() async {
+      Logging.instance.log("CALLING LISTEN FOR SLATES", level: LogLevel.Info);
+      ReceivePort receivePort = await getIsolate({
+        "function": "listenForSlates",
+        "wallet": wallet,
+        "epicboxConfig": epicboxConfig,
+      }, name: walletName);
+
+      var result = await receivePort.first;
+      if (result is String) {
         Logging.instance
-            .log("Received Slates is $encoded", level: LogLevel.Info);
-
-        //Decrypt Slates
-        dynamic slates;
-        dynamic response;
-        await m.protect(() async {
-          ReceivePort receivePort = await getIsolate({
-            "function": "getPendingSlates",
-            "wallet": wallet!,
-            "secretKeyIndex": currentReceivingIndex,
-            "slates": encoded,
-          }, name: walletName);
-
-          var result = await receivePort.first;
-          if (result is String) {
-            Logging.instance
-                .log("this is a message $slates", level: LogLevel.Info);
-            stop(receivePort);
-            throw Exception("getPendingSlates isolate failed");
-          }
-          slates = result['result'];
-          stop(receivePort);
-        });
-
-        var decoded = jsonDecode(slates as String);
-
-        for (var decodedSlate in decoded as List) {
-          //Process slates
-          var decodedResponse = json.decode(decodedSlate as String);
-          String slateMessage = decodedResponse[0] as String;
-          await putSlatesToCommits(slateMessage, encoded);
-          String slateSender = decodedResponse[1] as String;
-          Logging.instance.log("SLATE_MESSAGE $slateMessage",
-              printFullLength: true, level: LogLevel.Info);
-          Logging.instance
-              .log("SLATE_SENDER $slateSender", level: LogLevel.Info);
-          await m.protect(() async {
-            ReceivePort receivePort = await getIsolate({
-              "function": "processSlates",
-              "wallet": wallet!,
-              "slates": slateMessage
-            }, name: walletName);
-
-            var message = await receivePort.first;
-            if (message is String) {
-              Logging.instance.log("this is PROCESS_SLATES message $message",
-                  level: LogLevel.Error);
-              stop(receivePort);
-              throw Exception("processSlates isolate failed");
-            }
-
-            try {
-              final String response = message['result'] as String;
-              if (response == "") {
-                Logging.instance.log("response: ${response.runtimeType}",
-                    level: LogLevel.Info);
-                await deleteSlate(currentAddress.value,
-                    subscribeRequest['signature'] as String, slate as String);
-              }
-
-              if (response
-                  .contains("Error Wallet store error: DB Not Found Error")) {
-                //Already processed - to be deleted
-                Logging.instance
-                    .log("DELETING_PROCESSED_SLATE", level: LogLevel.Info);
-                final slateDelete = await deleteSlate(currentAddress.value,
-                    subscribeRequest['signature'] as String, slate as String);
-                Logging.instance.log("DELETE_SLATE_RESPONSE $slateDelete",
-                    level: LogLevel.Info);
-              } else {
-                var decodedResponse = json.decode(response);
-                final processStatus = json.decode(decodedResponse[0] as String);
-                String slateStatus = processStatus['status'] as String;
-                if (slateStatus == "PendingProcessing") {
-                  //Encrypt slate
-                  String encryptedSlate = await getEncryptedSlate(
-                      wallet,
-                      slateSender,
-                      currentReceivingIndex,
-                      epicboxConfig!,
-                      decodedResponse[1] as String);
-
-                  final postSlateToServer =
-                      await postSlate(slateSender, encryptedSlate);
-
-                  await deleteSlate(currentAddress.value,
-                      subscribeRequest['signature'] as String, slate as String);
-                  Logging.instance.log("POST_SLATE_RESPONSE $postSlateToServer",
-                      level: LogLevel.Info);
-                } else {
-                  //Finalise Slate
-                  final processSlate =
-                      json.decode(decodedResponse[1] as String);
-                  Logging.instance.log(
-                      "PROCESSED_SLATE_TO_FINALIZE $processSlate",
-                      level: LogLevel.Info);
-                  final tx = json.decode(processSlate[0] as String);
-                  Logging.instance.log("TX_IS $tx", level: LogLevel.Info);
-                  String txSlateId = tx[0]['tx_slate_id'] as String;
-                  Logging.instance
-                      .log("TX_SLATE_ID_IS $txSlateId", level: LogLevel.Info);
-                  final postToNode = await postSlateToNode(wallet, txSlateId);
-                  await deleteSlate(currentAddress.value,
-                      subscribeRequest['signature'] as String, slate as String);
-                  Logging.instance.log("POST_SLATE_RESPONSE $postToNode",
-                      level: LogLevel.Info);
-                  //Post Slate to Node
-                  Logging.instance.log("Finalise slate", level: LogLevel.Info);
-                }
-              }
-            } catch (e, s) {
-              Logging.instance.log("$e\n$s", level: LogLevel.Info);
-              return false;
-            }
-            stop(receivePort);
-            Logging.instance
-                .log('Closing processSlates! $response', level: LogLevel.Info);
-          });
-        }
+            .log("this is a message $result", level: LogLevel.Error);
+        stop(receivePort);
+        throw Exception("subscribeRequest isolate failed");
       }
-    }
-    return true;
+      stop(receivePort);
+    });
   }
 
   Future<bool> processAllCancels() async {
@@ -1850,8 +1684,9 @@ class EpicCashWallet extends CoinServiceAPI
         return;
       }
 
-      await processAllSlates();
-      await processAllCancels();
+      // await listenForSlates();
+      // await processAllSlates();
+      // await processAllCancels();
 
       unawaited(startSync());
 
@@ -1889,7 +1724,7 @@ class EpicCashWallet extends CoinServiceAPI
         ),
       );
       refreshMutex = false;
-
+      // await listenForSlates();
       if (shouldAutoSync) {
         timer ??= Timer.periodic(const Duration(seconds: 60), (timer) async {
           Logging.instance.log(
