@@ -45,13 +45,13 @@ class ExchangeDataLoadingService {
     _isar = await Isar.open(
       [
         CurrencySchema,
-        PairSchema,
+        // PairSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       // inspector: kDebugMode,
       inspector: false,
       name: "exchange_cache",
-      maxSizeMiB: 256,
+      maxSizeMiB: 64,
     );
   }
 
@@ -122,8 +122,9 @@ class ExchangeDataLoadingService {
           loadMajesticBankCurrencies(),
         ]);
 
-        await _loadChangeNowFixedRatePairs();
-        await _loadChangeNowEstimatedRatePairs();
+        // quicker to load available currencies on the fly for a specific base currency
+        // await _loadChangeNowFixedRatePairs();
+        // await _loadChangeNowEstimatedRatePairs();
 
         Logging.instance.log(
           "ExchangeDataLoadingService.loadAll finished in ${DateTime.now().difference(start).inSeconds} seconds",
@@ -163,55 +164,55 @@ class ExchangeDataLoadingService {
     }
   }
 
-  Future<void> _loadChangeNowFixedRatePairs() async {
-    final exchange = ChangeNowExchange.instance;
+  // Future<void> _loadChangeNowFixedRatePairs() async {
+  //   final exchange = ChangeNowExchange.instance;
+  //
+  //   final responsePairs = await compute(exchange.getAllPairs, true);
+  //
+  //   if (responsePairs.value != null) {
+  //     await isar.writeTxn(() async {
+  //       final idsToDelete2 = await isar.pairs
+  //           .where()
+  //           .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
+  //           .filter()
+  //           .rateTypeEqualTo(SupportedRateType.fixed)
+  //           .idProperty()
+  //           .findAll();
+  //       await isar.pairs.deleteAll(idsToDelete2);
+  //       await isar.pairs.putAll(responsePairs.value!);
+  //     });
+  //   } else {
+  //     Logging.instance.log(
+  //         "Failed to load changeNOW available fixed rate pairs: ${responsePairs.exception?.message}",
+  //         level: LogLevel.Error);
+  //     return;
+  //   }
+  // }
 
-    final responsePairs = await compute(exchange.getAllPairs, true);
-
-    if (responsePairs.value != null) {
-      await isar.writeTxn(() async {
-        final idsToDelete2 = await isar.pairs
-            .where()
-            .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
-            .filter()
-            .rateTypeEqualTo(SupportedRateType.fixed)
-            .idProperty()
-            .findAll();
-        await isar.pairs.deleteAll(idsToDelete2);
-        await isar.pairs.putAll(responsePairs.value!);
-      });
-    } else {
-      Logging.instance.log(
-          "Failed to load changeNOW available fixed rate pairs: ${responsePairs.exception?.message}",
-          level: LogLevel.Error);
-      return;
-    }
-  }
-
-  Future<void> _loadChangeNowEstimatedRatePairs() async {
-    final exchange = ChangeNowExchange.instance;
-
-    final responsePairs = await compute(exchange.getAllPairs, false);
-
-    if (responsePairs.value != null) {
-      await isar.writeTxn(() async {
-        final idsToDelete = await isar.pairs
-            .where()
-            .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
-            .filter()
-            .rateTypeEqualTo(SupportedRateType.estimated)
-            .idProperty()
-            .findAll();
-        await isar.pairs.deleteAll(idsToDelete);
-        await isar.pairs.putAll(responsePairs.value!);
-      });
-    } else {
-      Logging.instance.log(
-          "Failed to load changeNOW available floating rate pairs: ${responsePairs.exception?.message}",
-          level: LogLevel.Error);
-      return;
-    }
-  }
+  // Future<void> _loadChangeNowEstimatedRatePairs() async {
+  //   final exchange = ChangeNowExchange.instance;
+  //
+  //   final responsePairs = await compute(exchange.getAllPairs, false);
+  //
+  //   if (responsePairs.value != null) {
+  //     await isar.writeTxn(() async {
+  //       final idsToDelete = await isar.pairs
+  //           .where()
+  //           .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
+  //           .filter()
+  //           .rateTypeEqualTo(SupportedRateType.estimated)
+  //           .idProperty()
+  //           .findAll();
+  //       await isar.pairs.deleteAll(idsToDelete);
+  //       await isar.pairs.putAll(responsePairs.value!);
+  //     });
+  //   } else {
+  //     Logging.instance.log(
+  //         "Failed to load changeNOW available floating rate pairs: ${responsePairs.exception?.message}",
+  //         level: LogLevel.Error);
+  //     return;
+  //   }
+  // }
   //
   // Future<void> loadSimpleswapFloatingRateCurrencies(WidgetRef ref) async {
   //   final exchange = SimpleSwapExchange();
@@ -276,31 +277,15 @@ class ExchangeDataLoadingService {
     final responseCurrencies = await exchange.getAllCurrencies(false);
 
     if (responseCurrencies.value != null) {
-      final responsePairs = await exchange.getAllPairs(false);
-      if (responsePairs.value != null) {
-        await isar.writeTxn(() async {
-          final idsToDelete = await isar.currencies
-              .where()
-              .exchangeNameEqualTo(MajesticBankExchange.exchangeName)
-              .idProperty()
-              .findAll();
-          await isar.currencies.deleteAll(idsToDelete);
-          await isar.currencies.putAll(responseCurrencies.value!);
-
-          final idsToDelete2 = await isar.pairs
-              .where()
-              .exchangeNameEqualTo(MajesticBankExchange.exchangeName)
-              .idProperty()
-              .findAll();
-          await isar.pairs.deleteAll(idsToDelete2);
-          await isar.pairs.putAll(responsePairs.value!);
-        });
-      } else {
-        Logging.instance.log(
-          "loadMajesticBankCurrencies: $responsePairs",
-          level: LogLevel.Warning,
-        );
-      }
+      await isar.writeTxn(() async {
+        final idsToDelete = await isar.currencies
+            .where()
+            .exchangeNameEqualTo(MajesticBankExchange.exchangeName)
+            .idProperty()
+            .findAll();
+        await isar.currencies.deleteAll(idsToDelete);
+        await isar.currencies.putAll(responseCurrencies.value!);
+      });
     } else {
       Logging.instance.log(
         "loadMajesticBankCurrencies: $responseCurrencies",
@@ -308,4 +293,26 @@ class ExchangeDataLoadingService {
       );
     }
   }
+
+  // Future<void> loadMajesticBankPairs() async {
+  //   final exchange = MajesticBankExchange.instance;
+  //
+  //   final responsePairs = await exchange.getAllPairs(false);
+  //   if (responsePairs.value != null) {
+  //     await isar.writeTxn(() async {
+  //       final idsToDelete2 = await isar.pairs
+  //           .where()
+  //           .exchangeNameEqualTo(MajesticBankExchange.exchangeName)
+  //           .idProperty()
+  //           .findAll();
+  //       await isar.pairs.deleteAll(idsToDelete2);
+  //       await isar.pairs.putAll(responsePairs.value!);
+  //     });
+  //   } else {
+  //     Logging.instance.log(
+  //       "loadMajesticBankCurrencies: $responsePairs",
+  //       level: LogLevel.Warning,
+  //     );
+  //   }
+  // }
 }

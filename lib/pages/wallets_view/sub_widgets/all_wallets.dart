@@ -44,9 +44,8 @@ class AllWallets extends StatelessWidget {
               return ListView.builder(
                 itemCount: providersByCoin.length,
                 itemBuilder: (builderContext, index) {
-                  final coin =
-                      providersByCoin.keys.toList(growable: false)[index];
-                  final int walletCount = providersByCoin[coin]!.length;
+                  final coin = providersByCoin[index].item1;
+                  final int walletCount = providersByCoin[index].item2.length;
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: WalletListItem(

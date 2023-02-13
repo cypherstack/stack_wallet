@@ -40,15 +40,17 @@ Future<bool> doesCommitExist(
     );
 
     final response = jsonDecode(commitQuery.body.toString());
-    Logging.instance.log("doesCommitExist $project $commit $response",
+    Logging.instance.log("doesCommitExist $project $commit", // $response",
         level: LogLevel.Info);
     bool isThereCommit;
     try {
       isThereCommit = response['sha'] == commit;
-      Logging.instance
-          .log("isThereCommit $isThereCommit", level: LogLevel.Info);
+      Logging.instance.log(
+        "$commit isThereCommit=$isThereCommit",
+        level: LogLevel.Info,
+      );
       return isThereCommit;
-    } catch (e, s) {
+    } catch (_) {
       return false;
     }
   } catch (e, s) {
@@ -75,14 +77,19 @@ Future<bool> isHeadCommit(
     );
 
     final response = jsonDecode(commitQuery.body.toString());
-    Logging.instance.log("isHeadCommit $project $commit $branch $response",
-        level: LogLevel.Info);
+    Logging.instance.log(
+      "isHeadCommit $project $commit $branch", //$response",
+      level: LogLevel.Info,
+    );
     bool isHead;
     try {
       isHead = response['sha'] == commit;
-      Logging.instance.log("isHead $isHead", level: LogLevel.Info);
+      Logging.instance.log(
+        "$commit isHead=$isHead",
+        level: LogLevel.Info,
+      );
       return isHead;
-    } catch (e, s) {
+    } catch (_) {
       return false;
     }
   } catch (e, s) {

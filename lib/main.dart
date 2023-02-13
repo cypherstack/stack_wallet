@@ -112,7 +112,7 @@ void main() async {
     await DebugService.instance.init(isar);
 
     // clear out all info logs on startup. No need to await and block
-    unawaited(DebugService.instance.purgeInfoLogs());
+    unawaited(DebugService.instance.deleteLogsOlderThan());
   }
 
   // Registering Transaction Model Adapters

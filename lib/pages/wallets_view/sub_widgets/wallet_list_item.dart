@@ -46,9 +46,14 @@ class WalletListItem extends ConsumerWidget {
         ),
         onPressed: () async {
           if (walletCount == 1) {
-            final providersByCoin = ref.watch(walletsChangeNotifierProvider
-                .select((value) => value.getManagerProvidersByCoin()));
-            final manager = ref.read(providersByCoin[coin]!.first);
+            final providersByCoin = ref
+                .watch(walletsChangeNotifierProvider
+                    .select((value) => value.getManagerProvidersByCoin()))
+                .where((e) => e.item1 == coin)
+                .map((e) => e.item2)
+                .expand((e) => e)
+                .toList();
+            final manager = ref.read(providersByCoin.first);
             if (coin == Coin.monero || coin == Coin.wownero) {
               await manager.initializeExisting();
             }
@@ -57,7 +62,7 @@ class WalletListItem extends ConsumerWidget {
                 WalletView.routeName,
                 arguments: Tuple2(
                   manager.walletId,
-                  providersByCoin[coin]!.first,
+                  providersByCoin.first,
                 ),
               ),
             );

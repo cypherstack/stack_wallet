@@ -1,60 +1,64 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:stackwallet/widgets/custom_pin_put/custom_pin_put_state.dart';
+import 'package:stackwallet/widgets/custom_pin_put/pin_keyboard.dart';
 
 class CustomPinPut extends StatefulWidget {
-  const CustomPinPut(
-      {Key? key,
-      required this.fieldsCount,
-      this.height,
-      this.width,
-      this.onSubmit,
-      this.onSaved,
-      this.onChanged,
-      this.controller,
-      this.focusNode,
-      this.separator = const SizedBox(width: 15.0),
-      this.textStyle,
-      this.submittedFieldDecoration,
-      this.selectedFieldDecoration,
-      this.followingFieldDecoration,
-      this.disabledDecoration,
-      this.eachFieldWidth,
-      this.eachFieldHeight,
-      this.fieldsAlignment = MainAxisAlignment.spaceBetween,
-      this.eachFieldAlignment = Alignment.center,
-      this.eachFieldMargin,
-      this.eachFieldPadding,
-      this.eachFieldConstraints =
-          const BoxConstraints(minHeight: 10.0, minWidth: 10.0),
-      this.inputDecoration = const InputDecoration(
-        contentPadding: EdgeInsets.zero,
-        border: InputBorder.none,
-        counterText: '',
-      ),
-      this.animationCurve = Curves.linear,
-      this.animationDuration = const Duration(milliseconds: 160),
-      this.pinAnimationType = PinAnimationType.slide,
-      this.slideTransitionBeginOffset,
-      this.enabled = true,
-      this.useNativeKeyboard = true,
-      this.autofocus = false,
-      this.autovalidateMode = AutovalidateMode.disabled,
-      this.keyboardAppearance,
-      this.inputFormatters,
-      this.validator,
-      this.keyboardType = TextInputType.number,
-      this.obscureText,
-      this.textCapitalization = TextCapitalization.none,
-      this.textInputAction,
-      this.toolbarOptions,
-      this.mainAxisSize = MainAxisSize.max,
-      this.autofillHints})
-      : assert(fieldsCount > 0),
+  const CustomPinPut({
+    Key? key,
+    required this.fieldsCount,
+    this.height,
+    this.width,
+    this.onSubmit,
+    this.onSaved,
+    this.onChanged,
+    this.controller,
+    this.focusNode,
+    this.separator = const SizedBox(width: 15.0),
+    this.textStyle,
+    this.submittedFieldDecoration,
+    this.selectedFieldDecoration,
+    this.followingFieldDecoration,
+    this.disabledDecoration,
+    this.eachFieldWidth,
+    this.eachFieldHeight,
+    this.fieldsAlignment = MainAxisAlignment.spaceBetween,
+    this.eachFieldAlignment = Alignment.center,
+    this.eachFieldMargin,
+    this.eachFieldPadding,
+    this.eachFieldConstraints =
+        const BoxConstraints(minHeight: 10.0, minWidth: 10.0),
+    this.inputDecoration = const InputDecoration(
+      contentPadding: EdgeInsets.zero,
+      border: InputBorder.none,
+      counterText: '',
+    ),
+    this.animationCurve = Curves.linear,
+    this.animationDuration = const Duration(milliseconds: 160),
+    this.pinAnimationType = PinAnimationType.slide,
+    this.slideTransitionBeginOffset,
+    this.enabled = true,
+    this.useNativeKeyboard = true,
+    this.autofocus = false,
+    this.autovalidateMode = AutovalidateMode.disabled,
+    this.keyboardAppearance,
+    this.inputFormatters,
+    this.validator,
+    this.keyboardType = TextInputType.number,
+    this.obscureText,
+    this.textCapitalization = TextCapitalization.none,
+    this.textInputAction,
+    this.toolbarOptions,
+    this.mainAxisSize = MainAxisSize.max,
+    this.autofillHints,
+    this.customKey,
+  })  : assert(fieldsCount > 0),
         super(key: key);
 
   final double? width;
   final double? height;
+
+  final CustomKey? customKey;
 
   /// Displayed fields count. PIN code length.
   final int fieldsCount;

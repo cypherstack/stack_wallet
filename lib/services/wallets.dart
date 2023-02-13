@@ -62,15 +62,24 @@ class Wallets extends ChangeNotifier {
     return result;
   }
 
-  Map<Coin, List<ChangeNotifierProvider<Manager>>> getManagerProvidersByCoin() {
-    Map<Coin, List<ChangeNotifierProvider<Manager>>> result = {};
+  List<Tuple2<Coin, List<ChangeNotifierProvider<Manager>>>>
+      getManagerProvidersByCoin() {
+    Map<Coin, List<ChangeNotifierProvider<Manager>>> map = {};
     for (final manager in _managerMap.values) {
-      if (result[manager.coin] == null) {
-        result[manager.coin] = [];
+      if (map[manager.coin] == null) {
+        map[manager.coin] = [];
       }
-      result[manager.coin]!.add(_managerProviderMap[manager.walletId]
+      map[manager.coin]!.add(_managerProviderMap[manager.walletId]
           as ChangeNotifierProvider<Manager>);
     }
+    final List<Tuple2<Coin, List<ChangeNotifierProvider<Manager>>>> result = [];
+
+    for (final coin in map.keys) {
+      result.add(Tuple2(coin, map[coin]!));
+    }
+
+    result.sort((a, b) => a.item1.prettyName.compareTo(b.item1.prettyName));
+
     return result;
   }
 

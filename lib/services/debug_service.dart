@@ -15,8 +15,6 @@ class DebugService extends ChangeNotifier {
   late final Isar isar;
   // late final Stream<void> logsChanged;
 
-  final int numberOfRecentLogsToLoad = 500;
-
   // bool _shouldPause = false;
   //
   // void togglePauseUiUpdates() {
@@ -36,44 +34,49 @@ class DebugService extends ChangeNotifier {
     // });
   }
 
-  List<Log> _recentLogs = [];
-  List<Log> get recentLogs => _recentLogs;
+  List<Log> get recentLogs => isar.logs.where().limit(200).findAllSync();
 
-  Future<void> updateRecentLogs() async {
-    int totalCount = await isar.logs.count();
-    int offset = totalCount - numberOfRecentLogsToLoad;
-    if (offset < 0) {
-      offset = 0;
-    }
+  // Future<void> updateRecentLogs() async {
+  //   int totalCount = await isar.logs.count();
+  //   int offset = totalCount - numberOfRecentLogsToLoad;
+  //   if (offset < 0) {
+  //     offset = 0;
+  //   }
+  //
+  //   _recentLogs = (await isar.logs
+  //       .where()
+  //       .anyTimestampInMillisUTC()
+  //       .offset(offset)
+  //       .limit(numberOfRecentLogsToLoad)
+  //       .findAll());
+  //   notifyListeners();
+  // }
 
-    _recentLogs = (await isar.logs
-        .where()
-        .anyTimestampInMillisUTC()
-        .offset(offset)
-        .limit(numberOfRecentLogsToLoad)
-        .findAll());
-    notifyListeners();
-  }
-
-  Future<void> deleteAllMessages() async {
+  Future<bool> deleteAllLogs() async {
     try {
       await isar.writeTxn(() async => await isar.logs.clear());
       notifyListeners();
-    } catch (e, s) {
-      //todo: come back to this
-      debugPrint("$e, $s");
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 
-  Future<void> purgeInfoLogs() async {
-    final now = DateTime.now();
+  Future<void> deleteLogsOlderThan({
+    Duration timeframe = const Duration(days: 30),
+  }) async {
+    final cutoffDate = DateTime.now().subtract(timeframe).toUtc();
     await isar.writeTxn(() async {
-      await isar.logs.filter().logLevelEqualTo(LogLevel.Info).deleteAll();
+      await isar.logs
+          .where()
+          .timestampInMillisUTCLessThan(cutoffDate.millisecondsSinceEpoch)
+          .deleteAll();
     });
 
     Logging.instance.log(
-        "Info logs purged in ${DateTime.now().difference(now).inMilliseconds} milliseconds",
-        level: LogLevel.Info);
+      "Logs older than $cutoffDate cleared!",
+      level: LogLevel.Info,
+    );
   }
 
   /// returns the filename of the saved logs file

@@ -1107,7 +1107,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<void> initializeExisting() async {
-    Logging.instance.log("Opening existing ${coin.prettyName} wallet.",
+    Logging.instance.log("initializeExisting() ${coin.prettyName} wallet.",
         level: LogLevel.Info);
 
     if (getCachedId() == null) {
@@ -1115,8 +1115,8 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
     await _prefs.init();
-    await _checkCurrentChangeAddressesForTransactions();
-    await _checkCurrentReceivingAddressesForTransactions();
+    // await _checkCurrentChangeAddressesForTransactions();
+    // await _checkCurrentReceivingAddressesForTransactions();
   }
 
   // TODO make sure this copied implementation from bitcoin_wallet.dart applies for particl just as well--or import it
