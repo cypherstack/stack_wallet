@@ -356,7 +356,7 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                       //   // Assets.png.personaEasy,
                       // ),
                       SvgPicture.asset(
-                        Assets.svg.personaEasy,
+                        Assets.svg.personaEasy(context),
                         width: isDesktop ? 120 : 140,
                         height: isDesktop ? 120 : 140,
                       ),
