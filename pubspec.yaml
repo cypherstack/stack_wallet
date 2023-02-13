@@ -303,6 +303,7 @@ flutter:
     - assets/svg/robot-head.svg
     - assets/svg/whirlpool.svg
     - assets/svg/fingerprint.svg
+    - assets/svg/faceid.svg
     # light theme coin
     - assets/images/light/stack.png
     - assets/images/light/monero.png

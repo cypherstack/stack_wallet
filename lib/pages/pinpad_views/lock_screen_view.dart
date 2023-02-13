@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -208,7 +209,9 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                         CustomPinPut(
                           customKey: CustomKey(
                             onPressed: _checkUseBiometrics,
-                            iconAssetName: Assets.svg.fingerprint,
+                            iconAssetName: Platform.isIOS
+                                ? Assets.svg.faceId
+                                : Assets.svg.fingerprint,
                           ),
                           fieldsCount: Constants.pinLength,
                           eachFieldHeight: 12,

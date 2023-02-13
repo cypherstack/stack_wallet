@@ -201,6 +201,7 @@ class _SVG {
   String get robotHead => "assets/svg/robot-head.svg";
   String get whirlPool => "assets/svg/whirlpool.svg";
   String get fingerprint => "assets/svg/fingerprint.svg";
+  String get faceId => "assets/svg/faceid.svg";
 
   String get ellipse1 => "assets/svg/Ellipse-43.svg";
   String get ellipse2 => "assets/svg/Ellipse-42.svg";
