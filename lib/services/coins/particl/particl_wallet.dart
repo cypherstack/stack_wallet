@@ -1369,6 +1369,11 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
   ) async {
     final _mnemonic = await mnemonicString;
     final _mnemonicPassphrase = await mnemonicPassphrase;
+    if (_mnemonicPassphrase == null) {
+      Logging.instance.log(
+          "Exception in _generateAddressForChain: mnemonic passphrase null, possible migration issue; if using internal builds, delete wallet and restore from seed, if using a release build, please file bug report",
+          level: LogLevel.Error);
+    }
 
     final derivePath = constructDerivePath(
       derivePathType: derivePathType,
@@ -2961,6 +2966,11 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
     try {
       final _mnemonic = await mnemonicString;
       final _mnemonicPassphrase = await mnemonicPassphrase;
+      if (_mnemonicPassphrase == null) {
+        Logging.instance.log(
+            "Exception in fullRescan: mnemonic passphrase null, possible migration issue; if using internal builds, delete wallet and restore from seed, if using a release build, please file bug report",
+            level: LogLevel.Error);
+      }
 
       await _recoverWalletFromBIP32SeedPhrase(
         mnemonic: _mnemonic!,
