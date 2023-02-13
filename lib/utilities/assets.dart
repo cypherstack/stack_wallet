@@ -94,6 +94,11 @@ class _SVG {
   String txExchangeFailed(BuildContext context) =>
       "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/tx-exchange-icon-failed.svg";
 
+  String personaIncognito(BuildContext context) =>
+      "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/persona-incognito-1.svg";
+  String personaEasy(BuildContext context) =>
+      "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/persona-easy-1.svg";
+
   String get themeFruit => "assets/svg/fruit-sorbet-theme.svg";
   String get themeForest => "assets/svg/forest-theme.svg";
   String get themeOledBlack => "assets/svg/oled-black-theme.svg";
@@ -115,8 +120,6 @@ class _SVG {
   String get enableButton => "assets/svg/enabled-button.svg";
   String get disableButton => "assets/svg/Button.svg";
   String get polygon => "assets/svg/Polygon.svg";
-  String get personaIncognito => "assets/svg/persona-incognito-1.svg";
-  String get personaEasy => "assets/svg/persona-easy-1.svg";
   String get drd => "assets/svg/drd-icon.svg";
   String get boxAuto => "assets/svg/box-auto.svg";
   String get plus => "assets/svg/plus.svg";
