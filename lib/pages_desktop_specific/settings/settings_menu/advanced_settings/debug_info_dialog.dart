@@ -338,7 +338,9 @@ class _DebugInfoDialog extends ConsumerState<DebugInfoDialog> {
                 Expanded(
                   child: PrimaryButton(
                     label: "Save logs to file",
-                    onPressed: () {},
+                    onPressed: () {
+                      // TODO: save file dialog
+                    },
                   ),
                 )
               ],
