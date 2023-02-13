@@ -724,6 +724,9 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                 style: STextStyles.label(context),
                               ),
                             ),
+                          const SizedBox(
+                            height: 16,
+                          ),
                           const Spacer(),
                           Row(
                             children: [
