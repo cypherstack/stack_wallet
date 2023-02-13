@@ -4376,7 +4376,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       changeAddressArray.add(changeAddress);
     }
 
-    await db.putAddresses([
+    await db.updateOrPutAddresses([
       ...receivingAddressArray,
       ...changeAddressArray,
     ]);
