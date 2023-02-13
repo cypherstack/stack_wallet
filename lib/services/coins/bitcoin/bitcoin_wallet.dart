@@ -1267,7 +1267,7 @@ class BitcoinWallet extends CoinServiceAPI
 
   @override
   Future<void> initializeExisting() async {
-    Logging.instance.log("Opening existing ${coin.prettyName} wallet.",
+    Logging.instance.log("initializeExisting() ${coin.prettyName} wallet.",
         level: LogLevel.Info);
 
     if (getCachedId() == null) {
@@ -1276,8 +1276,8 @@ class BitcoinWallet extends CoinServiceAPI
     }
 
     await _prefs.init();
-    await _checkCurrentChangeAddressesForTransactions();
-    await _checkCurrentReceivingAddressesForTransactions();
+    // await _checkCurrentChangeAddressesForTransactions();
+    // await _checkCurrentReceivingAddressesForTransactions();
   }
 
   // hack to add tx to txData before refresh completes

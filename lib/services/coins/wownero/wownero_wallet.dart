@@ -281,7 +281,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<void> initializeExisting() async {
     Logging.instance.log(
-        "Opening existing ${coin.prettyName} wallet $walletName...",
+        "initializeExisting() ${coin.prettyName} wallet $walletName...",
         level: LogLevel.Info);
 
     if (getCachedId() == null) {
@@ -306,7 +306,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     walletBase = (await walletService?.openWallet(_walletId, password!))
         as WowneroWalletBase;
 
-    await _checkCurrentReceivingAddressesForTransactions();
+    // await _checkCurrentReceivingAddressesForTransactions();
 
     Logging.instance.log(
       "Opened existing ${coin.prettyName} wallet $walletName",

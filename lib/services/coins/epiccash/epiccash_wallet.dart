@@ -981,7 +981,7 @@ class EpicCashWallet extends CoinServiceAPI
 
   @override
   Future<void> initializeExisting() async {
-    Logging.instance.log("Opening existing ${coin.prettyName} wallet",
+    Logging.instance.log("initializeExisting() ${coin.prettyName} wallet",
         level: LogLevel.Info);
 
     final config = await getRealConfig();

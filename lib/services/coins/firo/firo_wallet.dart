@@ -1856,7 +1856,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
   @override
   Future<void> initializeExisting() async {
     Logging.instance.log(
-        "Opening existing $_walletId ${coin.prettyName} wallet.",
+        "initializeExisting() $_walletId ${coin.prettyName} wallet.",
         level: LogLevel.Info);
 
     if (getCachedId() == null) {
@@ -1864,8 +1864,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
     await _prefs.init();
-    await checkChangeAddressForTransactions();
-    await checkReceivingAddressForTransactions();
+    // await checkChangeAddressForTransactions();
+    // await checkReceivingAddressForTransactions();
   }
 
   Future<bool> refreshIfThereIsNewData() async {
