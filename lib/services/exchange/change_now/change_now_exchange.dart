@@ -89,6 +89,17 @@ class ChangeNowExchange extends Exchange {
   }
 
   @override
+  Future<ExchangeResponse<List<Currency>>> getPairedCurrencies(
+    String forCurrency,
+    bool fixedRate,
+  ) async {
+    return await ChangeNowAPI.instance.getPairedCurrencies(
+      ticker: forCurrency,
+      fixedRate: fixedRate,
+    );
+  }
+
+  @override
   Future<ExchangeResponse<List<Pair>>> getAllPairs(bool fixedRate) async {
     if (fixedRate) {
       final markets =

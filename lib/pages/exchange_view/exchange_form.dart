@@ -32,7 +32,6 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/desktop/simple_desktop_dialog.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -386,50 +385,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     final sendAmount = ref.read(exchangeFormStateProvider).sendAmount!;
     final estimate = ref.read(exchangeFormStateProvider).estimate!;
 
-    final exchangeName = ref.read(exchangeFormStateProvider).exchange.name;
-
     String rate;
 
     switch (rateType) {
       case ExchangeRateType.estimated:
-        final pair = await ExchangeDataLoadingService.instance.isar.pairs
-            .where()
-            .exchangeNameEqualTo(exchangeName)
-            .filter()
-            .group((q) => q
-                .rateTypeEqualTo(SupportedRateType.estimated)
-                .or()
-                .rateTypeEqualTo(SupportedRateType.both))
-            .and()
-            .fromEqualTo(fromTicker, caseSensitive: false)
-            .and()
-            .toEqualTo(toTicker, caseSensitive: false)
-            .findFirst();
-
-        if (pair == null) {
-          unawaited(
-            showDialog<dynamic>(
-              context: context,
-              barrierDismissible: true,
-              builder: (_) {
-                if (isDesktop) {
-                  return SimpleDesktopDialog(
-                    title: "Selected trade pair unavailable",
-                    message:
-                        "The $fromTicker - $toTicker market is currently disabled for estimated/floating rate trades",
-                  );
-                } else {
-                  return StackDialog(
-                    title: "Selected trade pair unavailable",
-                    message:
-                        "The $fromTicker - $toTicker market is currently disabled for estimated/floating rate trades",
-                  );
-                }
-              },
-            ),
-          );
-          return;
-        }
         rate =
             "1 ${fromTicker.toUpperCase()} ~${(estimate.estimatedAmount / sendAmount).toDecimal(scaleOnInfinitePrecision: 8).toStringAsFixed(8)} ${toTicker.toUpperCase()}";
         break;

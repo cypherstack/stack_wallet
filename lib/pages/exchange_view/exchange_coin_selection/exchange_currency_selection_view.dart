@@ -6,7 +6,9 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
+import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -17,9 +19,12 @@ import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
@@ -49,7 +54,6 @@ class _ExchangeCurrencySelectionViewState
   final isDesktop = Util.isDesktop;
 
   List<Currency> _currencies = [];
-  List<Pair> pairs = [];
 
   bool _loaded = false;
   String _searchString = "";
@@ -90,62 +94,43 @@ class _ExchangeCurrencySelectionViewState
     if (widget.pairedTicker == null) {
       return await _getCurrencies();
     }
+    List<Currency> currencies = await ExchangeDataLoadingService
+        .instance.isar.currencies
+        .where()
+        .exchangeNameEqualTo(MajesticBankExchange.exchangeName)
+        .findAll();
 
-    final pairs = await _loadAvailablePairs();
-    List<Currency> currencies = [];
-    for (final pair in pairs) {
-      final currency =
-          await _getCurrency(widget.willChangeIsSend ? pair.from : pair.to);
-      if (currency != null) {
-        currencies.add(currency);
-      }
+    final cn = await ChangeNowExchange.instance.getPairedCurrencies(
+      widget.pairedTicker!,
+      widget.isFixedRate,
+    );
+
+    if (cn.value == null) {
+      await showDialog<void>(
+        context: context,
+        builder: (context) => StackDialog(
+          title: "ChangeNOW Error",
+          message: "Failed to load currency data: ${cn.exception}",
+          leftButton: SecondaryButton(
+            label: "Ok",
+            onPressed: Navigator.of(context, rootNavigator: isDesktop).pop,
+          ),
+          rightButton: PrimaryButton(
+            label: "Retry",
+            onPressed: () async {
+              Navigator.of(context, rootNavigator: isDesktop).pop();
+              _currencies =
+                  await _showUpdatingCurrencies(whileFuture: _loadCurrencies());
+              setState(() {});
+            },
+          ),
+        ),
+      );
+    } else {
+      currencies.addAll(cn.value!);
     }
 
     return currencies;
-  }
-
-  Future<Currency?> _getCurrency(String ticker) {
-    return ExchangeDataLoadingService.instance.isar.currencies
-        .where()
-        .filter()
-        .isFiatEqualTo(false)
-        .and()
-        .tickerEqualTo(ticker, caseSensitive: false)
-        .group((q) => widget.isFixedRate
-            ? q
-                .rateTypeEqualTo(SupportedRateType.both)
-                .or()
-                .rateTypeEqualTo(SupportedRateType.fixed)
-            : q
-                .rateTypeEqualTo(SupportedRateType.both)
-                .or()
-                .rateTypeEqualTo(SupportedRateType.estimated))
-        .findFirst();
-  }
-
-  Future<List<Pair>> _loadAvailablePairs() {
-    final query = ExchangeDataLoadingService.instance.isar.pairs
-        .where()
-        .filter()
-        .group((q) => widget.isFixedRate
-            ? q
-                .rateTypeEqualTo(SupportedRateType.both)
-                .or()
-                .rateTypeEqualTo(SupportedRateType.fixed)
-            : q
-                .rateTypeEqualTo(SupportedRateType.both)
-                .or()
-                .rateTypeEqualTo(SupportedRateType.estimated))
-        .and()
-        .group((q) => widget.willChangeIsSend
-            ? q.toEqualTo(widget.pairedTicker!, caseSensitive: false)
-            : q.fromEqualTo(widget.pairedTicker!, caseSensitive: false));
-
-    if (widget.willChangeIsSend) {
-      return query.sortByFrom().findAll();
-    } else {
-      return query.sortByTo().findAll();
-    }
   }
 
   Future<List<Currency>> _getCurrencies() async {
