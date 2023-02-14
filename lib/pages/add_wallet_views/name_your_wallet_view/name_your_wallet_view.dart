@@ -92,8 +92,9 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint(
-        "BUILD: NameYourWalletView with ${coin.name} ${addWalletType.name}");
+    //todo: check if print needed
+    // debugPrint(
+    //     "BUILD: NameYourWalletView with ${coin.name} ${addWalletType.name}");
 
     if (isDesktop) {
       return DesktopScaffold(
@@ -166,7 +167,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
           if (!isDesktop)
             Image(
               image: AssetImage(
-                Assets.png.imageFor(coin: coin),
+                Assets.png.imageFor(coin: coin, context: context),
               ),
               height: 100,
             ),
@@ -272,17 +273,26 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
           SizedBox(
             height: isDesktop ? 16 : 8,
           ),
-          RoundedWhiteContainer(
-            child: Center(
-              child: Text(
-                "Roll the dice to pick a random name.",
-                style: isDesktop
-                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textSubtitle1,
-                      )
-                    : STextStyles.itemSubtitle(context),
+          GestureDetector(
+            onTap: () async {
+              textEditingController.text = await _generateRandomWalletName();
+              setState(() {
+                _nextEnabled = true;
+                _showDiceIcon = false;
+              });
+            },
+            child: RoundedWhiteContainer(
+              child: Center(
+                child: Text(
+                  "Roll the dice to pick a random name.",
+                  style: isDesktop
+                      ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textSubtitle1,
+                        )
+                      : STextStyles.itemSubtitle(context),
+                ),
               ),
             ),
           ),
@@ -354,10 +364,10 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
               style: _nextEnabled
                   ? Theme.of(context)
                       .extension<StackColors>()!
-                      .getPrimaryEnabledButtonColor(context)
+                      .getPrimaryEnabledButtonStyle(context)
                   : Theme.of(context)
                       .extension<StackColors>()!
-                      .getPrimaryDisabledButtonColor(context),
+                      .getPrimaryDisabledButtonStyle(context),
               child: Text(
                 "Next",
                 style: isDesktop

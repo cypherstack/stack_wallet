@@ -363,12 +363,16 @@ class Input {
 class Output {
   // @HiveField(0)
   final String? scriptpubkey;
+
   // @HiveField(1)
   final String? scriptpubkeyAsm;
+
   // @HiveField(2)
   final String? scriptpubkeyType;
+
   // @HiveField(3)
   final String scriptpubkeyAddress;
+
   // @HiveField(4)
   final int value;
 
@@ -381,19 +385,34 @@ class Output {
 
   factory Output.fromJson(Map<String, dynamic> json) {
     // TODO determine if any of this code is needed.
-    final address = json["scriptPubKey"]["addresses"] == null
-        ? json['scriptPubKey']['type'] as String
-        : json["scriptPubKey"]["addresses"][0] as String;
-    return Output(
-      scriptpubkey: json['scriptPubKey']['hex'] as String?,
-      scriptpubkeyAsm: json['scriptPubKey']['asm'] as String?,
-      scriptpubkeyType: json['scriptPubKey']['type'] as String?,
-      scriptpubkeyAddress: address,
-      value: (Decimal.parse(json["value"].toString()) *
-              Decimal.fromInt(Constants.satsPerCoin(Coin
-                  .firo))) // dirty hack but we need 8 decimal places here to keep consistent data structure
-          .toBigInt()
-          .toInt(),
-    );
+    try {
+      final address = json["scriptPubKey"]["addresses"] == null
+          ? json['scriptPubKey']['type'] as String
+          : json["scriptPubKey"]["addresses"][0] as String;
+      return Output(
+        scriptpubkey: json['scriptPubKey']['hex'] as String?,
+        scriptpubkeyAsm: json['scriptPubKey']['asm'] as String?,
+        scriptpubkeyType: json['scriptPubKey']['type'] as String?,
+        scriptpubkeyAddress: address,
+        value: (Decimal.parse(
+                    (json["value"] ?? 0).toString()) *
+                Decimal.fromInt(Constants.satsPerCoin(Coin
+                    .firo))) // dirty hack but we need 8 decimal places here to keep consistent data structure
+            .toBigInt()
+            .toInt(),
+      );
+    } catch (s, e) {
+      return Output(
+          // Return output object with null values; allows wallet history to be built
+          scriptpubkey: "",
+          scriptpubkeyAsm: "",
+          scriptpubkeyType: "",
+          scriptpubkeyAddress: "",
+          value: (Decimal.parse(0.toString()) *
+                  Decimal.fromInt(Constants.satsPerCoin(Coin
+                      .firo))) // dirty hack but we need 8 decimal places here to keep consistent data structure
+              .toBigInt()
+              .toInt());
+    }
   }
 }

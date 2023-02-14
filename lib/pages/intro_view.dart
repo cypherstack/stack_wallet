@@ -54,7 +54,7 @@ class _IntroViewState extends State<IntroView> {
                         ),
                         child: Image(
                           image: AssetImage(
-                            Assets.png.stack,
+                            Assets.png.stack(context),
                           ),
                         ),
                       ),
@@ -259,7 +259,7 @@ class GetStartedButton extends StatelessWidget {
         ? TextButton(
             style: Theme.of(context)
                 .extension<StackColors>()!
-                .getPrimaryEnabledButtonColor(context),
+                .getPrimaryEnabledButtonStyle(context),
             onPressed: () {
               Prefs.instance.externalCalls = true;
               Navigator.of(context).pushNamed(
@@ -278,7 +278,7 @@ class GetStartedButton extends StatelessWidget {
             child: TextButton(
               style: Theme.of(context)
                   .extension<StackColors>()!
-                  .getPrimaryEnabledButtonColor(context),
+                  .getPrimaryEnabledButtonStyle(context),
               onPressed: () {
                 Navigator.of(context).pushNamed(
                   StackPrivacyCalls.routeName,

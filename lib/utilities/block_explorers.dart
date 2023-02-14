@@ -37,5 +37,7 @@ Uri getBlockExplorerTransactionUrlFor({
           "https://blockexplorer.one/bitcoin-cash/testnet/tx/$txid");
     case Coin.namecoin:
       return Uri.parse("https://chainz.cryptoid.info/nmc/tx.dws?$txid.htm");
+    case Coin.particl:
+      return Uri.parse("https://chainz.cryptoid.info/part/tx.dws?$txid.htm");
   }
 }

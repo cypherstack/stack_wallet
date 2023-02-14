@@ -33,11 +33,15 @@ class NodeService extends ChangeNotifier {
           );
         }
       } else {
-        // update all fields but copy over previously set enabled state
+        // update all fields but copy over previously set enabled and trusted states
         await DB.instance.put<NodeModel>(
             boxName: DB.boxNameNodeModels,
             key: savedNode.id,
-            value: defaultNode.copyWith(enabled: savedNode.enabled));
+            value: defaultNode.copyWith(
+              enabled: savedNode.enabled,
+              isFailover: savedNode.isFailover,
+              trusted: savedNode.trusted,
+            ));
       }
 
       // check if a default node is the primary node for the crypto currency
@@ -49,6 +53,8 @@ class NodeService extends ChangeNotifier {
           coin: coin,
           node: defaultNode.copyWith(
             enabled: primaryNode.enabled,
+            isFailover: primaryNode.isFailover,
+            trusted: primaryNode.trusted,
           ),
         );
       }
@@ -161,6 +167,17 @@ class NodeService extends ChangeNotifier {
     String? password,
     bool shouldNotifyListeners,
   ) async {
+    // check if the node being edited is the primary one; if it is, setPrimaryNodeFor coin
+    final coin = coinFromPrettyName(editedNode.coinName);
+    var primaryNode = getPrimaryNodeFor(coin: coin);
+    if (primaryNode?.id == editedNode.id) {
+      await setPrimaryNodeFor(
+        coin: coin,
+        node: editedNode,
+        shouldNotifyListeners: true,
+      );
+    }
+
     return add(editedNode, password, shouldNotifyListeners);
   }
 

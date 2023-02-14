@@ -125,6 +125,7 @@ class StackRestoringUIState extends ChangeNotifier {
     Manager? manager,
     String? address,
     String? mnemonic,
+    String? mnemonicPassphrase,
     int? height,
   }) {
     _walletStates[walletId]!.restoringState = restoringStatus;
@@ -134,6 +135,8 @@ class StackRestoringUIState extends ChangeNotifier {
         address ?? _walletStates[walletId]!.address;
     _walletStates[walletId]!.mnemonic =
         mnemonic ?? _walletStates[walletId]!.mnemonic;
+    _walletStates[walletId]!.mnemonicPassphrase =
+        mnemonicPassphrase ?? _walletStates[walletId]!.mnemonicPassphrase;
     _walletStates[walletId]!.height = height ?? _walletStates[walletId]!.height;
     notifyListeners();
   }

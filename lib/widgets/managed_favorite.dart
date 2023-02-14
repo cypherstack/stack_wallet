@@ -105,7 +105,7 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
                       Expanded(
                         child: Text(
                           "${Format.localizedStringAsFixed(
-                            value: manager.cachedTotalBalance,
+                            value: manager.balance.getTotal(),
                             locale: ref.watch(
                                 localeServiceChangeNotifierProvider
                                     .select((value) => value.locale)),
@@ -147,7 +147,7 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
                       ),
                       Text(
                         "${Format.localizedStringAsFixed(
-                          value: manager.cachedTotalBalance,
+                          value: manager.balance.getTotal(),
                           locale: ref.watch(localeServiceChangeNotifierProvider
                               .select((value) => value.locale)),
                           decimalPlaces: 8,

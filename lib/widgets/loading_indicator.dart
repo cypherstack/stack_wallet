@@ -1,6 +1,5 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-
 import 'package:stackwallet/utilities/assets.dart';
 
 class LoadingIndicator extends StatelessWidget {
@@ -15,13 +14,18 @@ class LoadingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: width,
-      height: height,
-      child: Lottie.asset(
-        Assets.lottie.test2,
-        animate: true,
-        repeat: true,
+    return Container(
+      color: Colors.transparent,
+      child: Center(
+        child: SizedBox(
+          width: width,
+          height: height,
+          child: Lottie.asset(
+            Assets.lottie.test2,
+            animate: true,
+            repeat: true,
+          ),
+        ),
       ),
     );
   }

@@ -20,11 +20,13 @@ class SWBFileSystem {
       await Permission.storage.request();
     }
     rootPath = (await getApplicationDocumentsDirectory());
-    debugPrint(rootPath!.absolute.toString());
+    //todo: check if print needed
+    // debugPrint(rootPath!.absolute.toString());
     if (Platform.isAndroid) {
       rootPath = Directory("/storage/emulated/0/");
     }
-    debugPrint(rootPath!.absolute.toString());
+    //todo: check if print needed
+    // debugPrint(rootPath!.absolute.toString());
 
     late Directory sampleFolder;
 
@@ -45,6 +47,7 @@ class SWBFileSystem {
         sampleFolder.createSync(recursive: true);
       }
     } catch (e, s) {
+      // todo: come back to this
       debugPrint("$e $s");
     }
 
@@ -58,6 +61,7 @@ class SWBFileSystem {
         sampleFile.createSync();
       }
     } catch (e, s) {
+      // todo: come back to this
       debugPrint("$e $s");
     }
     startPath = sampleFolder;

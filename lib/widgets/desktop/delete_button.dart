@@ -64,10 +64,10 @@ class DeleteButton extends StatelessWidget {
         style: enabled
             ? Theme.of(context)
                 .extension<StackColors>()!
-                .getDeleteEnabledButtonColor(context)
+                .getDeleteEnabledButtonStyle(context)
             : Theme.of(context)
                 .extension<StackColors>()!
-                .getDeleteDisabledButtonColor(context),
+                .getDeleteDisabledButtonStyle(context),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

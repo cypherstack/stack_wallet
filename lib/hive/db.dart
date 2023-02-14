@@ -33,6 +33,7 @@ class DB {
   static const String boxNameDBInfo = "dbInfo";
   static const String boxNameTheme = "theme";
   static const String boxNameDesktopData = "desktopData";
+  static const String boxNameBuys = "buysBox";
 
   String boxNameTxCache({required Coin coin}) => "${coin.name}_txCache";
   String boxNameSetCache({required Coin coin}) =>
@@ -244,4 +245,12 @@ class DB {
 
   Future<void> deleteBoxFromDisk({required String boxName}) async =>
       await mutex.protect(() async => await Hive.deleteBoxFromDisk(boxName));
+}
+
+abstract class DBKeys {
+  static const String cachedBalance = "cachedBalance";
+  static const String cachedBalanceSecondary = "cachedBalanceSecondary";
+  static const String isFavorite = "isFavorite";
+  static const String id = "id";
+  static const String storedChainHeight = "storedChainHeight";
 }

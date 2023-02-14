@@ -4,9 +4,12 @@ import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 const String _kKeyBlobKey = "swbKeyBlobKeyStringID";
+const String _kKeyBlobVersionKey = "swbKeyBlobVersionKeyStringID";
+
+const int kLatestBlobVersion = 2;
 
 String _getMessageFromException(Object exception) {
-  if (exception is IncorrectPassphrase) {
+  if (exception is IncorrectPassphraseOrVersion) {
     return exception.errMsg();
   }
   if (exception is BadDecryption) {
@@ -16,6 +19,9 @@ String _getMessageFromException(Object exception) {
     return exception.errMsg();
   }
   if (exception is EncodingError) {
+    return exception.errMsg();
+  }
+  if (exception is VersionError) {
     return exception.errMsg();
   }
 
@@ -41,7 +47,10 @@ class DPS {
     }
 
     try {
-      _handler = await StorageCryptoHandler.fromNewPassphrase(passphrase);
+      _handler = await StorageCryptoHandler.fromNewPassphrase(
+        passphrase,
+        kLatestBlobVersion,
+      );
 
       final box = await Hive.openBox<String>(DB.boxNameDesktopData);
       await DB.instance.put<String>(
@@ -49,6 +58,7 @@ class DPS {
         key: _kKeyBlobKey,
         value: await _handler!.getKeyBlob(),
       );
+      await _updateStoredKeyBlobVersion(kLatestBlobVersion);
       await box.close();
     } catch (e, s) {
       Logging.instance.log(
@@ -78,7 +88,24 @@ class DPS {
     }
 
     try {
-      _handler = await StorageCryptoHandler.fromExisting(passphrase, keyBlob);
+      final blobVersion = await _getStoredKeyBlobVersion();
+      _handler = await StorageCryptoHandler.fromExisting(
+        passphrase,
+        keyBlob,
+        blobVersion,
+      );
+      if (blobVersion < kLatestBlobVersion) {
+        // update blob
+        await _handler!.resetPassphrase(passphrase, kLatestBlobVersion);
+        final box = await Hive.openBox<String>(DB.boxNameDesktopData);
+        await DB.instance.put<String>(
+          boxName: DB.boxNameDesktopData,
+          key: _kKeyBlobKey,
+          value: await _handler!.getKeyBlob(),
+        );
+        await _updateStoredKeyBlobVersion(kLatestBlobVersion);
+        await box.close();
+      }
     } catch (e, s) {
       Logging.instance.log(
         "${_getMessageFromException(e)}\n$s",
@@ -102,7 +129,8 @@ class DPS {
     }
 
     try {
-      await StorageCryptoHandler.fromExisting(passphrase, keyBlob);
+      final blobVersion = await _getStoredKeyBlobVersion();
+      await StorageCryptoHandler.fromExisting(passphrase, keyBlob, blobVersion);
       // existing passphrase matches key blob
       return true;
     } catch (e, s) {
@@ -135,8 +163,10 @@ class DPS {
       return false;
     }
 
+    final blobVersion = await _getStoredKeyBlobVersion();
+
     try {
-      await _handler!.resetPassphrase(passphraseNew);
+      await _handler!.resetPassphrase(passphraseNew, blobVersion);
 
       final box = await Hive.openBox<String>(DB.boxNameDesktopData);
       await DB.instance.put<String>(
@@ -144,6 +174,7 @@ class DPS {
         key: _kKeyBlobKey,
         value: await _handler!.getKeyBlob(),
       );
+      await _updateStoredKeyBlobVersion(blobVersion);
       await box.close();
 
       // successfully updated passphrase
@@ -163,5 +194,23 @@ class DPS {
       key: _kKeyBlobKey,
     );
     return keyBlob != null;
+  }
+
+  Future<int> _getStoredKeyBlobVersion() async {
+    final box = await Hive.openBox<String>(DB.boxNameDesktopData);
+    final keyBlobVersionString = DB.instance.get<String>(
+      boxName: DB.boxNameDesktopData,
+      key: _kKeyBlobVersionKey,
+    );
+    await box.close();
+    return int.tryParse(keyBlobVersionString ?? "1") ?? 1;
+  }
+
+  Future<void> _updateStoredKeyBlobVersion(int version) async {
+    await DB.instance.put<String>(
+      boxName: DB.boxNameDesktopData,
+      key: _kKeyBlobVersionKey,
+      value: version.toString(),
+    );
   }
 }

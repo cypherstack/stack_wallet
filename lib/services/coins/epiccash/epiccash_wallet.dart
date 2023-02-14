@@ -6,15 +6,16 @@ import 'dart:isolate';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libepiccash/epic_cash.dart';
-import 'package:hive/hive.dart';
 import 'package:http/http.dart';
+import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
-import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/db/main_db.dart';
+import 'package:stackwallet/models/balance.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
-import 'package:stackwallet/models/paymint/utxo_model.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/blocks_remaining_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
@@ -22,12 +23,15 @@ import 'package:stackwallet/services/event_bus/events/global/refresh_percent_cha
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/mixins/epic_cash_hive.dart';
+import 'package:stackwallet/services/mixins/wallet_cache.dart';
+import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/price.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
@@ -276,7 +280,16 @@ Future<String> deleteEpicWallet({
 
   final wallet = await secureStore.read(key: '${walletId}_wallet');
 
-  return compute(_deleteWalletWrapper, wallet!);
+  if (wallet == null) {
+    return "Tried to delete non existent epic wallet file with walletId=$walletId";
+  } else {
+    try {
+      return compute(_deleteWalletWrapper, wallet);
+    } catch (e, s) {
+      Logging.instance.log("$e\n$s", level: LogLevel.Error);
+      return "deleteEpicWallet($walletId) failed...";
+    }
+  }
 }
 
 Future<String> _initWalletWrapper(
@@ -373,8 +386,8 @@ Future<dynamic> getSlates(String receiveAddress, String signature) async {
   }
 }
 
-Future<bool> postCancel(
-    String receiveAddress, String slate_id, signature, sendersAddress) async {
+Future<bool> postCancel(String receiveAddress, String slateId,
+    String? signature, String sendersAddress) async {
   Logging.instance.log("postCancel", level: LogLevel.Info);
   final Client client = Client();
   try {
@@ -385,18 +398,18 @@ Future<bool> postCancel(
       "id": "0",
       'receivingAddress': receiveAddress,
       "signature": signature,
-      'slate': slate_id,
+      'slate': slateId,
       "sendersAddress": sendersAddress,
     });
-    final epicpost = await client.post(
+    final epicPost = await client.post(
       uri,
       headers: {'Content-Type': 'application/json'},
       body: body,
     );
     // TODO: should the following be removed for security reasons in production?
-    Logging.instance.log(epicpost.statusCode.toString(), level: LogLevel.Info);
-    Logging.instance.log(epicpost.body.toString(), level: LogLevel.Info);
-    final response = jsonDecode(epicpost.body.toString());
+    Logging.instance.log(epicPost.statusCode.toString(), level: LogLevel.Info);
+    Logging.instance.log(epicPost.body.toString(), level: LogLevel.Info);
+    final response = jsonDecode(epicPost.body.toString());
     if (response['status'] == 'success') {
       return true;
     } else {
@@ -505,28 +518,22 @@ Future<dynamic> deleteSlate(
   }
 }
 
-class EpicCashWallet extends CoinServiceAPI {
-  static const integrationTestFlag =
-      bool.fromEnvironment("IS_INTEGRATION_TEST");
-  final m = Mutex();
-  final syncMutex = Mutex();
-
-  final _prefs = Prefs.instance;
-
-  NodeModel? _epicNode;
-
-  EpicCashWallet(
-      {required String walletId,
-      required String walletName,
-      required Coin coin,
-      PriceAPI? priceAPI,
-      required SecureStorageInterface secureStore}) {
+class EpicCashWallet extends CoinServiceAPI
+    with WalletCache, WalletDB, EpicCashHive {
+  EpicCashWallet({
+    required String walletId,
+    required String walletName,
+    required Coin coin,
+    required SecureStorageInterface secureStore,
+    MainDB? mockableOverride,
+  }) {
     _walletId = walletId;
     _walletName = walletName;
     _coin = coin;
-
-    _priceAPI = priceAPI ?? PriceAPI(Client());
     _secureStore = secureStore;
+    initCache(walletId, coin);
+    initEpicCashHive(walletId);
+    initWalletDB(mockableOverride: mockableOverride);
 
     Logging.instance.log("$walletName isolate length: ${isolates.length}",
         level: LogLevel.Info);
@@ -536,12 +543,24 @@ class EpicCashWallet extends CoinServiceAPI {
     isolates.clear();
   }
 
+  static const integrationTestFlag =
+      bool.fromEnvironment("IS_INTEGRATION_TEST");
+  final m = Mutex();
+  final syncMutex = Mutex();
+
+  final _prefs = Prefs.instance;
+
+  NodeModel? _epicNode;
+
   @override
   Future<void> updateNode(bool shouldRefresh) async {
     _epicNode = NodeService(secureStorageInterface: _secureStore)
             .getPrimaryNodeFor(coin: coin) ??
         DefaultNodes.getNodeFor(coin);
     // TODO notify ui/ fire event for node changed?
+
+    String stringConfig = await getConfig();
+    await _secureStore.write(key: '${_walletId}_config', value: stringConfig);
 
     if (shouldRefresh) {
       unawaited(refresh());
@@ -550,34 +569,14 @@ class EpicCashWallet extends CoinServiceAPI {
 
   @override
   set isFavorite(bool markFavorite) {
-    DB.instance.put<dynamic>(
-        boxName: walletId, key: "isFavorite", value: markFavorite);
+    _isFavorite = markFavorite;
+    updateCachedIsFavorite(markFavorite);
   }
 
   @override
-  bool get isFavorite {
-    try {
-      return DB.instance.get<dynamic>(boxName: walletId, key: "isFavorite")
-          as bool;
-    } catch (e, s) {
-      Logging.instance.log(
-          "isFavorite fetch failed (returning false by default): $e\n$s",
-          level: LogLevel.Error);
-      return false;
-    }
-  }
+  bool get isFavorite => _isFavorite ??= getCachedIsFavorite();
 
-  @override
-  Future<List<String>> get allOwnAddresses =>
-      _allOwnAddresses ??= _fetchAllOwnAddresses();
-  Future<List<String>>? _allOwnAddresses;
-
-  Future<List<String>> _fetchAllOwnAddresses() async {
-    List<String> addresses = [];
-    final ownAddress = await _getCurrentAddressForChain(0);
-    addresses.add(ownAddress);
-    return addresses;
-  }
+  bool? _isFavorite;
 
   late ReceivePort receivePort;
 
@@ -642,44 +641,28 @@ class EpicCashWallet extends CoinServiceAPI {
     return walletBalances;
   }
 
-  @override
-  Future<Decimal> get availableBalance async {
-    String walletBalances = await allWalletBalances();
-    var jsonBalances = json.decode(walletBalances);
-    final double spendable =
-        jsonBalances['amount_currently_spendable'] as double;
-    return Decimal.parse(spendable.toString());
-  }
-
-  @override
-  // TODO: implement balanceMinusMaxFee
-  Future<Decimal> get balanceMinusMaxFee => throw UnimplementedError();
-
   Timer? timer;
-  late Coin _coin;
+  late final Coin _coin;
 
   @override
   Coin get coin => _coin;
 
   late SecureStorageInterface _secureStore;
 
-  late PriceAPI _priceAPI;
-
-  Future<String> cancelPendingTransactionAndPost(String tx_slate_id) async {
+  Future<String> cancelPendingTransactionAndPost(String txSlateId) async {
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
-    final int? receivingIndex = DB.instance
-        .get<dynamic>(boxName: walletId, key: "receivingIndex") as int?;
+    final int? receivingIndex = epicGetReceivingIndex();
     final epicboxConfig =
         await _secureStore.read(key: '${_walletId}_epicboxConfig');
 
     final slatesToCommits = await getSlatesToCommits();
-    final receiveAddress = slatesToCommits[tx_slate_id]['to'] as String;
-    final sendersAddress = slatesToCommits[tx_slate_id]['from'] as String;
+    final receiveAddress = slatesToCommits[txSlateId]['to'] as String;
+    final sendersAddress = slatesToCommits[txSlateId]['from'] as String;
 
     int? currentReceivingIndex;
     for (int i = 0; i <= receivingIndex!; i++) {
-      final indexesAddress = await _getCurrentAddressForChain(i);
-      if (indexesAddress == sendersAddress) {
+      final indexesAddress = await _getReceivingAddressForIndex(i);
+      if (indexesAddress.value == sendersAddress) {
         currentReceivingIndex = i;
         break;
       }
@@ -709,11 +692,10 @@ class EpicCashWallet extends CoinServiceAPI {
     String? signature = subscribeRequest['signature'] as String?;
     String? result;
     try {
-      result = await cancelPendingTransaction(tx_slate_id);
+      result = await cancelPendingTransaction(txSlateId);
       Logging.instance.log("result?: $result", level: LogLevel.Info);
       if (!(result.toLowerCase().contains("error"))) {
-        await postCancel(
-            receiveAddress, tx_slate_id, signature, sendersAddress);
+        await postCancel(receiveAddress, txSlateId, signature, sendersAddress);
       }
     } catch (e, s) {
       Logging.instance.log("$e, $s", level: LogLevel.Error);
@@ -723,7 +705,7 @@ class EpicCashWallet extends CoinServiceAPI {
 
 //
   /// returns an empty String on success, error message on failure
-  Future<String> cancelPendingTransaction(String tx_slate_id) async {
+  Future<String> cancelPendingTransaction(String txSlateId) async {
     final String wallet =
         (await _secureStore.read(key: '${_walletId}_wallet'))!;
 
@@ -733,7 +715,7 @@ class EpicCashWallet extends CoinServiceAPI {
         _cancelTransactionWrapper,
         Tuple2(
           wallet,
-          tx_slate_id,
+          txSlateId,
         ),
       );
     });
@@ -834,12 +816,11 @@ class EpicCashWallet extends CoinServiceAPI {
         final txLogEntry = json.decode(tx as String);
         final txLogEntryFirst = txLogEntry[0];
         Logger.print("TX_LOG_ENTRY_IS $txLogEntryFirst");
-        final wallet = await Hive.openBox<dynamic>(_walletId);
-        final slateToAddresses =
-            (await wallet.get("slate_to_address")) as Map? ?? {};
+        final slateToAddresses = epicGetSlatesToAddresses();
         final slateId = txLogEntryFirst['tx_slate_id'] as String;
         slateToAddresses[slateId] = txData['addresss'];
-        await wallet.put('slate_to_address', slateToAddresses);
+        await epicUpdateSlatesToAddresses(slateToAddresses);
+
         final slatesToCommits = await getSlatesToCommits();
         String? commitId = slatesToCommits[slateId]?['commitId'] as String?;
         Logging.instance.log("sent commitId: $commitId", level: LogLevel.Info);
@@ -852,32 +833,63 @@ class EpicCashWallet extends CoinServiceAPI {
     }
   }
 
-  /// Returns the latest receiving/change (external/internal) address for the wallet depending on [chain]
-  /// and
-  /// [chain] - Use 0 for receiving (external), 1 for change (internal). Should not be any other value!
-  Future<String> _getCurrentAddressForChain(
-    int chain,
+  Future<isar_models.Address> _getReceivingAddressForIndex(
+    int index,
   ) async {
-    final wallet = await _secureStore.read(key: '${_walletId}_wallet');
-    final epicboxConfig =
-        await _secureStore.read(key: '${_walletId}_epicboxConfig');
+    isar_models.Address? address = await db
+        .getAddresses(walletId)
+        .filter()
+        .subTypeEqualTo(isar_models.AddressSubType.receiving)
+        .and()
+        .typeEqualTo(isar_models.AddressType.mimbleWimble)
+        .and()
+        .derivationIndexEqualTo(index)
+        .findFirst();
 
-    String? walletAddress;
-    await m.protect(() async {
-      walletAddress = await compute(
-        _initGetAddressInfoWrapper,
-        Tuple3(wallet!, chain, epicboxConfig!),
+    if (address == null) {
+      final wallet = await _secureStore.read(key: '${_walletId}_wallet');
+      final epicboxConfig =
+          await _secureStore.read(key: '${_walletId}_epicboxConfig');
+
+      String? walletAddress;
+      await m.protect(() async {
+        walletAddress = await compute(
+          _initGetAddressInfoWrapper,
+          Tuple3(wallet!, index, epicboxConfig!),
+        );
+      });
+      Logging.instance
+          .log("WALLET_ADDRESS_IS $walletAddress", level: LogLevel.Info);
+
+      address = isar_models.Address(
+        walletId: walletId,
+        value: walletAddress!,
+        derivationIndex: index,
+        derivationPath: null,
+        type: isar_models.AddressType.mimbleWimble,
+        subType: isar_models.AddressSubType.receiving,
+        publicKey: [], // ??
       );
-    });
-    Logging.instance
-        .log("WALLET_ADDRESS_IS $walletAddress", level: LogLevel.Info);
-    return walletAddress!;
+
+      await db.updateOrPutAddresses([address]);
+    }
+
+    return address;
   }
 
   @override
-  Future<String> get currentReceivingAddress =>
-      _currentReceivingAddress ??= _getCurrentAddressForChain(0);
-  Future<String>? _currentReceivingAddress;
+  Future<String> get currentReceivingAddress async =>
+      (await _currentReceivingAddress)?.value ??
+      (await _getReceivingAddressForIndex(0)).value;
+
+  Future<isar_models.Address?> get _currentReceivingAddress => db
+      .getAddresses(walletId)
+      .filter()
+      .subTypeEqualTo(isar_models.AddressSubType.receiving)
+      .and()
+      .typeEqualTo(isar_models.AddressType.mimbleWimble)
+      .sortByDerivationIndexDesc()
+      .findFirst();
 
   @override
   Future<void> exit() async {
@@ -927,10 +939,10 @@ class EpicCashWallet extends CoinServiceAPI {
         ),
       );
 
-      await DB.instance.put<dynamic>(
-          boxName: walletId,
-          key: "lastScannedBlock",
-          value: await getRestoreHeight());
+      // clear blockchain info
+      await db.deleteWalletBlockchainData(walletId);
+
+      await epicUpdateLastScannedBlock(await getRestoreHeight());
 
       if (!await startScans()) {
         refreshMutex = false;
@@ -950,6 +962,7 @@ class EpicCashWallet extends CoinServiceAPI {
         );
         return;
       }
+      await refresh();
       GlobalEventBus.instance.fire(
         WalletSyncStatusChangedEvent(
           WalletSyncStatus.synced,
@@ -968,7 +981,7 @@ class EpicCashWallet extends CoinServiceAPI {
 
   @override
   Future<void> initializeExisting() async {
-    Logging.instance.log("Opening existing ${coin.prettyName} wallet",
+    Logging.instance.log("initializeExisting() ${coin.prettyName} wallet",
         level: LogLevel.Info);
 
     final config = await getRealConfig();
@@ -977,19 +990,15 @@ class EpicCashWallet extends CoinServiceAPI {
     final walletOpen = openWallet(config, password!);
     await _secureStore.write(key: '${_walletId}_wallet', value: walletOpen);
 
-    if ((DB.instance.get<dynamic>(boxName: walletId, key: "id")) == null) {
-      debugPrint("Exception was thrown");
+    if (getCachedId() == null) {
+      //todo: check if print needed
+      // debugPrint("Exception was thrown");
       throw Exception(
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
     await _prefs.init();
     await updateNode(false);
-    final data =
-        DB.instance.get<dynamic>(boxName: walletId, key: "latest_tx_model")
-            as TransactionData?;
-    if (data != null) {
-      _transactionData = Future(() => data);
-    }
+    await _refreshBalance();
     // TODO: is there anything else that should be set up here whenever this wallet is first loaded again?
   }
 
@@ -1023,8 +1032,9 @@ class EpicCashWallet extends CoinServiceAPI {
     const double overestimateSecondsPerBlock = 61;
     int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
     int approximateHeight = chosenSeconds ~/ overestimateSecondsPerBlock;
-    debugPrint(
-        "approximate height: $approximateHeight chosen_seconds: $chosenSeconds");
+    //todo: check if print needed
+    // debugPrint(
+    //     "approximate height: $approximateHeight chosen_seconds: $chosenSeconds");
     int height = approximateHeight;
     if (height < 0) {
       height = 0;
@@ -1075,29 +1085,17 @@ class EpicCashWallet extends CoinServiceAPI {
     final bufferedCreateHeight = calculateRestoreHeightFrom(
         date: DateTime.now().subtract(const Duration(days: 2)));
 
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: "restoreHeight", value: bufferedCreateHeight);
+    await Future.wait([
+      epicUpdateRestoreHeight(bufferedCreateHeight),
+      updateCachedIsFavorite(false),
+      updateCachedId(walletId),
+      epicUpdateReceivingIndex(0),
+      epicUpdateChangeIndex(0),
+    ]);
 
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: 'receivingAddresses', value: ["0"]);
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: "receivingIndex", value: 0);
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: "changeIndex", value: 0);
-    await DB.instance.put<dynamic>(
-      boxName: walletId,
-      key: 'blocked_tx_hashes',
-      value: ["0xdefault"],
-    ); // A list of transaction hashes to represent frozen utxos in wallet
-    // initialize address book entries
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'addressBookEntries',
-        value: <String, String>{});
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: "isFavorite", value: false);
+    final initialReceivingAddress = await _getReceivingAddressForIndex(0);
+
+    await db.putAddress(initialReceivingAddress);
   }
 
   bool refreshMutex = false;
@@ -1106,26 +1104,24 @@ class EpicCashWallet extends CoinServiceAPI {
   bool get isRefreshing => refreshMutex;
 
   @override
-  // TODO: implement maxFee
+  // unused for epic
   Future<int> get maxFee => throw UnimplementedError();
 
   Future<List<String>> _getMnemonicList() async {
-    if ((await _secureStore.read(key: '${_walletId}_mnemonic')) != null) {
-      final mnemonicString =
-          await _secureStore.read(key: '${_walletId}_mnemonic');
-      final List<String> data = mnemonicString!.split(' ');
+    String? _mnemonicString = await mnemonicString;
+    if (_mnemonicString != null) {
+      final List<String> data = _mnemonicString.split(' ');
       return data;
     } else {
-      String? mnemonicString;
       await m.protect(() async {
-        mnemonicString = await compute(
+        _mnemonicString = await compute(
           _walletMnemonicWrapper,
           0,
         );
       });
       await _secureStore.write(
-          key: '${_walletId}_mnemonic', value: mnemonicString);
-      final List<String> data = mnemonicString!.split(' ');
+          key: '${_walletId}_mnemonic', value: _mnemonicString);
+      final List<String> data = _mnemonicString!.split(' ');
       return data;
     }
   }
@@ -1134,13 +1130,13 @@ class EpicCashWallet extends CoinServiceAPI {
   Future<List<String>> get mnemonic => _getMnemonicList();
 
   @override
-  Future<Decimal> get pendingBalance async {
-    String walletBalances = await allWalletBalances();
-    final jsonBalances = json.decode(walletBalances);
-    final double pending =
-        jsonBalances['amount_awaiting_confirmation'] as double;
-    return Decimal.parse(pending.toString());
-  }
+  Future<String?> get mnemonicString =>
+      _secureStore.read(key: '${_walletId}_mnemonic');
+
+  @override
+  Future<String?> get mnemonicPassphrase => _secureStore.read(
+        key: '${_walletId}_mnemonicPassphrase',
+      );
 
   @override
   Future<Map<String, dynamic>> prepareSend(
@@ -1229,6 +1225,7 @@ class EpicCashWallet extends CoinServiceAPI {
         realfee =
             (Decimal.parse(txObject["fee"].toString())).toBigInt().toInt();
       } catch (e, s) {
+        //todo: come back to this
         debugPrint("$e $s");
       }
 
@@ -1253,8 +1250,12 @@ class EpicCashWallet extends CoinServiceAPI {
     }
     final NodeModel node = _epicNode!;
     final String nodeAddress = node.host;
-    int port = node.port;
-    final String nodeApiAddress = "$nodeAddress:$port";
+    final int port = node.port;
+
+    final uri = Uri.parse(nodeAddress).replace(port: port);
+
+    final String nodeApiAddress = uri.toString();
+
     final walletDir = await currentWalletDirPath();
 
     final Map<String, dynamic> config = {};
@@ -1263,7 +1264,8 @@ class EpicCashWallet extends CoinServiceAPI {
     config["chain"] = "mainnet";
     config["account"] = "default";
     config["api_listen_port"] = port;
-    config["api_listen_interface"] = nodeAddress;
+    config["api_listen_interface"] =
+        nodeApiAddress.replaceFirst(uri.scheme, "");
     String stringConfig = json.encode(config);
     return stringConfig;
   }
@@ -1299,27 +1301,17 @@ class EpicCashWallet extends CoinServiceAPI {
     try {
       final wallet = await _secureStore.read(key: '${_walletId}_wallet');
 
-      var restoreHeight =
-          DB.instance.get<dynamic>(boxName: walletId, key: "restoreHeight");
+      var restoreHeight = epicGetRestoreHeight();
       var chainHeight = await this.chainHeight;
-      if (!DB.instance.containsKey<dynamic>(
-              boxName: walletId, key: 'lastScannedBlock') ||
-          DB.instance
-                  .get<dynamic>(boxName: walletId, key: 'lastScannedBlock') ==
-              null) {
-        await DB.instance.put<dynamic>(
-            boxName: walletId,
-            key: "lastScannedBlock",
-            value: await getRestoreHeight());
+      if (epicGetLastScannedBlock() == null) {
+        await epicUpdateLastScannedBlock(await getRestoreHeight());
       }
-      int lastScannedBlock = DB.instance
-          .get<dynamic>(boxName: walletId, key: 'lastScannedBlock') as int;
+      int lastScannedBlock = epicGetLastScannedBlock()!;
       const MAX_PER_LOOP = 10000;
       await getSyncPercent;
       for (; lastScannedBlock < chainHeight;) {
         chainHeight = await this.chainHeight;
-        lastScannedBlock = DB.instance
-            .get<dynamic>(boxName: walletId, key: 'lastScannedBlock') as int;
+        lastScannedBlock = epicGetLastScannedBlock()!;
         Logging.instance.log(
             "chainHeight: $chainHeight, restoreHeight: $restoreHeight, lastScannedBlock: $lastScannedBlock",
             level: LogLevel.Info);
@@ -1344,10 +1336,7 @@ class EpicCashWallet extends CoinServiceAPI {
           Logging.instance
               .log('Closing scanOutPuts!\n  $message', level: LogLevel.Info);
         });
-        await DB.instance.put<dynamic>(
-            boxName: walletId,
-            key: "lastScannedBlock",
-            value: nextScannedBlock!);
+        await epicUpdateLastScannedBlock(nextScannedBlock!);
         await getSyncPercent;
       }
       Logging.instance.log("successfully at the tip", level: LogLevel.Info);
@@ -1359,9 +1348,7 @@ class EpicCashWallet extends CoinServiceAPI {
   }
 
   Future<double> get getSyncPercent async {
-    int lastScannedBlock = DB.instance
-            .get<dynamic>(boxName: walletId, key: 'lastScannedBlock') as int? ??
-        0;
+    int lastScannedBlock = epicGetLastScannedBlock() ?? 0;
     final _chainHeight = await chainHeight;
     double restorePercent = lastScannedBlock / _chainHeight;
     GlobalEventBus.instance
@@ -1380,11 +1367,13 @@ class EpicCashWallet extends CoinServiceAPI {
   double highestPercent = 0;
 
   @override
-  Future<void> recoverFromMnemonic(
-      {required String mnemonic,
-      required int maxUnusedAddressGap,
-      required int maxNumberOfIndexesToCheck,
-      required int height}) async {
+  Future<void> recoverFromMnemonic({
+    required String mnemonic,
+    String? mnemonicPassphrase, // unused in epic
+    required int maxUnusedAddressGap,
+    required int maxNumberOfIndexesToCheck,
+    required int height,
+  }) async {
     try {
       await _prefs.init();
       await updateNode(false);
@@ -1410,33 +1399,13 @@ class EpicCashWallet extends CoinServiceAPI {
         ),
       );
 
-      await DB.instance
-          .put<dynamic>(boxName: walletId, key: "restoreHeight", value: height);
-
-      await DB.instance
-          .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
-      await DB.instance.put<dynamic>(
-          boxName: walletId, key: 'receivingAddresses', value: ["0"]);
-      await DB.instance
-          .put<dynamic>(boxName: walletId, key: "receivingIndex", value: 0);
-      if (height >= 0) {
-        await DB.instance.put<dynamic>(
-            boxName: walletId, key: "restoreHeight", value: height);
-      }
-      await DB.instance
-          .put<dynamic>(boxName: walletId, key: "changeIndex", value: 0);
-      await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'blocked_tx_hashes',
-        value: ["0xdefault"],
-      ); // A list of transaction hashes to represent frozen utxos in wallet
-      // initialize address book entries
-      await DB.instance.put<dynamic>(
-          boxName: walletId,
-          key: 'addressBookEntries',
-          value: <String, String>{});
-      await DB.instance
-          .put<dynamic>(boxName: walletId, key: "isFavorite", value: false);
+      await Future.wait([
+        epicUpdateRestoreHeight(height),
+        updateCachedId(walletId),
+        epicUpdateReceivingIndex(0),
+        epicUpdateChangeIndex(0),
+        updateCachedIsFavorite(false),
+      ]);
 
       //Open Wallet
       final walletOpen = openWallet(stringConfig, password);
@@ -1452,37 +1421,39 @@ class EpicCashWallet extends CoinServiceAPI {
   }
 
   Future<int> getRestoreHeight() async {
-    if (DB.instance
-        .containsKey<dynamic>(boxName: walletId, key: "restoreHeight")) {
-      return (DB.instance.get<dynamic>(boxName: walletId, key: "restoreHeight"))
-          as int;
-    }
-    return (DB.instance.get<dynamic>(boxName: walletId, key: "creationHeight"))
-        as int;
+    return epicGetRestoreHeight() ?? epicGetCreationHeight()!;
   }
 
   Future<int> get chainHeight async {
-    final config = await getRealConfig();
-    int? latestHeight;
-    await m.protect(() async {
-      latestHeight = await compute(
-        _getChainHeightWrapper,
-        config,
-      );
-    });
-    return latestHeight!;
+    try {
+      final config = await getRealConfig();
+      int? latestHeight;
+      await m.protect(() async {
+        latestHeight = await compute(
+          _getChainHeightWrapper,
+          config,
+        );
+      });
+
+      await updateCachedChainHeight(latestHeight!);
+      if (latestHeight! > storedChainHeight) {
+        GlobalEventBus.instance.fire(
+          UpdatedInBackgroundEvent(
+            "Updated current chain height in $walletId $walletName!",
+            walletId,
+          ),
+        );
+      }
+      return latestHeight!;
+    } catch (e, s) {
+      Logging.instance.log("Exception caught in chainHeight: $e\n$s",
+          level: LogLevel.Error);
+      return storedChainHeight;
+    }
   }
 
-  int get storedChainHeight {
-    return DB.instance.get<dynamic>(boxName: walletId, key: "storedChainHeight")
-            as int? ??
-        0;
-  }
-
-  Future<void> updateStoredChainHeight({required int newHeight}) async {
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: "storedChainHeight", value: newHeight);
-  }
+  @override
+  int get storedChainHeight => getCachedChainHeight();
 
   bool _shouldAutoSync = true;
 
@@ -1507,8 +1478,7 @@ class EpicCashWallet extends CoinServiceAPI {
 
   Future<int> setCurrentIndex() async {
     try {
-      final int receivingIndex = DB.instance
-          .get<dynamic>(boxName: walletId, key: "receivingIndex") as int;
+      final int receivingIndex = epicGetReceivingIndex()!;
       // TODO: go through pendingarray and processed array and choose the index
       //  of the last one that has not been processed, or the index after the one most recently processed;
       return receivingIndex;
@@ -1542,14 +1512,13 @@ class EpicCashWallet extends CoinServiceAPI {
 
   Future<Map<dynamic, dynamic>> getSlatesToCommits() async {
     try {
-      var slatesToCommits =
-          DB.instance.get<dynamic>(boxName: walletId, key: "slatesToCommits");
+      var slatesToCommits = epicGetSlatesToCommits();
       if (slatesToCommits == null) {
         slatesToCommits = <dynamic, dynamic>{};
       } else {
-        slatesToCommits = slatesToCommits as Map<dynamic, dynamic>;
+        slatesToCommits = slatesToCommits;
       }
-      return slatesToCommits as Map<dynamic, dynamic>;
+      return slatesToCommits;
     } catch (e, s) {
       Logging.instance.log("$e $s", level: LogLevel.Error);
       return {};
@@ -1575,8 +1544,7 @@ class EpicCashWallet extends CoinServiceAPI {
         "from": from,
         "to": to,
       };
-      await DB.instance.put<dynamic>(
-          boxName: walletId, key: "slatesToCommits", value: slatesToCommits);
+      await epicUpdateSlatesToCommits(slatesToCommits);
       return true;
     } catch (e, s) {
       Logging.instance.log("$e $s", level: LogLevel.Error);
@@ -1607,8 +1575,7 @@ class EpicCashWallet extends CoinServiceAPI {
         "from": from,
         "to": to,
       };
-      await DB.instance.put<dynamic>(
-          boxName: walletId, key: "slatesToCommits", value: slatesToCommits);
+      await epicUpdateSlatesToCommits(slatesToCommits);
       return true;
     } catch (e, s) {
       Logging.instance.log("$e $s", level: LogLevel.Error);
@@ -1617,13 +1584,12 @@ class EpicCashWallet extends CoinServiceAPI {
   }
 
   Future<bool> processAllSlates() async {
-    final int? receivingIndex = DB.instance
-        .get<dynamic>(boxName: walletId, key: "receivingIndex") as int?;
+    final int? receivingIndex = epicGetReceivingIndex();
     for (int currentReceivingIndex = 0;
         receivingIndex != null && currentReceivingIndex <= receivingIndex;
         currentReceivingIndex++) {
       final currentAddress =
-          await _getCurrentAddressForChain(currentReceivingIndex);
+          await _getReceivingAddressForIndex(currentReceivingIndex);
       final wallet = await _secureStore.read(key: '${_walletId}_wallet');
       final epicboxConfig =
           await _secureStore.read(key: '${_walletId}_epicboxConfig');
@@ -1652,10 +1618,10 @@ class EpicCashWallet extends CoinServiceAPI {
       Logging.instance
           .log(subscribeRequest['signature'], level: LogLevel.Info); //
       final unprocessedSlates = await getSlates(
-          currentAddress, subscribeRequest['signature'] as String);
+          currentAddress.value, subscribeRequest['signature'] as String);
       if (unprocessedSlates == null || unprocessedSlates is! List) {
         Logging.instance.log(
-            "index $currentReceivingIndex at $currentReceivingAddress does not have any slates",
+            "index $currentReceivingIndex at ${await currentReceivingAddress} does not have any slates",
             level: LogLevel.Info);
         continue;
       }
@@ -1718,7 +1684,7 @@ class EpicCashWallet extends CoinServiceAPI {
               if (response == "") {
                 Logging.instance.log("response: ${response.runtimeType}",
                     level: LogLevel.Info);
-                await deleteSlate(currentAddress,
+                await deleteSlate(currentAddress.value,
                     subscribeRequest['signature'] as String, slate as String);
               }
 
@@ -1727,7 +1693,7 @@ class EpicCashWallet extends CoinServiceAPI {
                 //Already processed - to be deleted
                 Logging.instance
                     .log("DELETING_PROCESSED_SLATE", level: LogLevel.Info);
-                final slateDelete = await deleteSlate(currentAddress,
+                final slateDelete = await deleteSlate(currentAddress.value,
                     subscribeRequest['signature'] as String, slate as String);
                 Logging.instance.log("DELETE_SLATE_RESPONSE $slateDelete",
                     level: LogLevel.Info);
@@ -1747,7 +1713,7 @@ class EpicCashWallet extends CoinServiceAPI {
                   final postSlateToServer =
                       await postSlate(slateSender, encryptedSlate);
 
-                  await deleteSlate(currentAddress,
+                  await deleteSlate(currentAddress.value,
                       subscribeRequest['signature'] as String, slate as String);
                   Logging.instance.log("POST_SLATE_RESPONSE $postSlateToServer",
                       level: LogLevel.Info);
@@ -1764,7 +1730,7 @@ class EpicCashWallet extends CoinServiceAPI {
                   Logging.instance
                       .log("TX_SLATE_ID_IS $txSlateId", level: LogLevel.Info);
                   final postToNode = await postSlateToNode(wallet, txSlateId);
-                  await deleteSlate(currentAddress,
+                  await deleteSlate(currentAddress.value,
                       subscribeRequest['signature'] as String, slate as String);
                   Logging.instance.log("POST_SLATE_RESPONSE $postToNode",
                       level: LogLevel.Info);
@@ -1791,14 +1757,13 @@ class EpicCashWallet extends CoinServiceAPI {
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
     final epicboxConfig =
         await _secureStore.read(key: '${_walletId}_epicboxConfig');
-    final int? receivingIndex = DB.instance
-        .get<dynamic>(boxName: walletId, key: "receivingIndex") as int?;
-    final tData = await _transactionData;
+    final int? receivingIndex = epicGetReceivingIndex();
+
     for (int currentReceivingIndex = 0;
         receivingIndex != null && currentReceivingIndex <= receivingIndex;
         currentReceivingIndex++) {
       final receiveAddress =
-          await _getCurrentAddressForChain(currentReceivingIndex);
+          await _getReceivingAddressForIndex(currentReceivingIndex);
 
       dynamic subscribeRequest;
       await m.protect(() async {
@@ -1822,20 +1787,20 @@ class EpicCashWallet extends CoinServiceAPI {
             level: LogLevel.Info);
       });
       String? signature = subscribeRequest['signature'] as String?;
-      final cancels = await getCancels(receiveAddress, signature!);
+      final cancels = await getCancels(receiveAddress.value, signature!);
 
       final slatesToCommits = await getSlatesToCommits();
       for (final cancel in cancels as List<dynamic>) {
-        final tx_slate_id = cancel.keys.first as String;
-        if (slatesToCommits[tx_slate_id] == null) {
+        final txSlateId = cancel.keys.first as String;
+        if (slatesToCommits[txSlateId] == null) {
           continue;
         }
         final cancelRequestSender = ((cancel as Map).values.first) as String;
         final receiveAddressFromMap =
-            slatesToCommits[tx_slate_id]['to'] as String;
+            slatesToCommits[txSlateId]['to'] as String;
         final sendersAddressFromMap =
-            slatesToCommits[tx_slate_id]['from'] as String;
-        final commitId = slatesToCommits[tx_slate_id]['commitId'] as String;
+            slatesToCommits[txSlateId]['from'] as String;
+        final commitId = slatesToCommits[txSlateId]['commitId'] as String;
 
         if (sendersAddressFromMap != cancelRequestSender) {
           Logging.instance.log("this was not signed by the correct address",
@@ -1843,11 +1808,15 @@ class EpicCashWallet extends CoinServiceAPI {
           continue;
         }
 
-        String? result;
         try {
-          result = await cancelPendingTransaction(tx_slate_id);
-          if (tData?.findTransaction(commitId)?.isCancelled ?? false == true) {
-            await deleteCancels(receiveAddressFromMap, signature, tx_slate_id);
+          await cancelPendingTransaction(txSlateId);
+          final tx = await db
+              .getTransactions(walletId)
+              .filter()
+              .txidEqualTo(commitId)
+              .findFirst();
+          if ((tx?.isCancelled ?? false) == true) {
+            await deleteCancels(receiveAddressFromMap, signature, txSlateId);
           }
         } catch (e, s) {
           Logging.instance.log("$e, $s", level: LogLevel.Error);
@@ -1881,14 +1850,12 @@ class EpicCashWallet extends CoinServiceAPI {
         ),
       );
 
-      if (!DB.instance
-          .containsKey<dynamic>(boxName: walletId, key: "creationHeight")) {
-        await DB.instance.put<dynamic>(
-            boxName: walletId, key: "creationHeight", value: await chainHeight);
+      if (epicGetCreationHeight() == null) {
+        await epicUpdateCreationHeight(await chainHeight);
       }
 
       final int curAdd = await setCurrentIndex();
-      _currentReceivingAddress = _getCurrentAddressForChain(curAdd);
+      await _getReceivingAddressForIndex(curAdd);
 
       if (!await startScans()) {
         refreshMutex = false;
@@ -1912,7 +1879,7 @@ class EpicCashWallet extends CoinServiceAPI {
       await processAllSlates();
       await processAllCancels();
 
-      startSync();
+      unawaited(startSync());
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.0, walletId));
 
@@ -1929,20 +1896,15 @@ class EpicCashWallet extends CoinServiceAPI {
       // TODO: implement refresh
       // TODO: check if it needs a refresh and if so get all of the most recent data.
       if (currentHeight != storedHeight) {
-        if (currentHeight != -1) {
-          // -1 failed to fetch current height
-          unawaited(updateStoredChainHeight(newHeight: currentHeight));
-        }
-
-        final newTxData = _fetchTransactionData();
+        await _refreshTransactions();
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.50, walletId));
-
-        _transactionData = Future(() => newTxData);
 
         GlobalEventBus.instance.fire(UpdatedInBackgroundEvent(
             "New data found in $walletName in background!", walletId));
       }
+
+      await _refreshBalance();
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(1.0, walletId));
       GlobalEventBus.instance.fire(
@@ -2000,24 +1962,17 @@ class EpicCashWallet extends CoinServiceAPI {
   }
 
   @override
-  Future<String> send(
-      {required String toAddress,
-      required int amount,
-      Map<String, String> args = const {}}) {
-    // TODO: implement send
-    throw UnimplementedError();
-  }
-
-  @override
   Future<bool> testNetworkConnection() async {
     try {
       // force unwrap optional as we want connection test to fail if wallet
       // wasn't initialized or epicbox node was set to null
-      final String uriString =
-          "${_epicNode!.host}:${_epicNode!.port}/v1/version";
-
-      final Uri uri = Uri.parse(uriString);
-      return await testEpicBoxNodeConnection(uri);
+      return await testEpicNodeConnection(
+            NodeFormData()
+              ..host = _epicNode!.host
+              ..useSSL = _epicNode!.useSSL
+              ..port = _epicNode!.port,
+          ) !=
+          null;
     } catch (e, s) {
       Logging.instance.log("$e\n$s", level: LogLevel.Warning);
       return false;
@@ -2061,18 +2016,8 @@ class EpicCashWallet extends CoinServiceAPI {
   @override
   bool get isConnected => _isConnected;
 
-  @override
-  Future<Decimal> get totalBalance async {
-    String walletBalances = await allWalletBalances();
-    var jsonBalances = json.decode(walletBalances);
-    double total = jsonBalances['total'] as double;
-    double awaiting = jsonBalances['amount_awaiting_finalization'] as double;
-    total = total + awaiting;
-    return Decimal.parse(total.toString());
-  }
-
-  Future<TransactionData> _fetchTransactionData() async {
-    final currentChainHeight = await chainHeight;
+  Future<void> _refreshTransactions() async {
+    // final currentChainHeight = await chainHeight;
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
     const refreshFromNode = 0;
 
@@ -2098,38 +2043,28 @@ class EpicCashWallet extends CoinServiceAPI {
     // return message;
     final String transactions = message['result'] as String;
     final jsonTransactions = json.decode(transactions) as List;
-    // for (var el in jsonTransactions) {
-    //   Logging.instance.log("gettran: $el",
-    //       normalLength: false, addToDebugMessagesDB: true);
-    // }
 
-    final priceData =
-        await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
-    Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
-    final List<Map<String, dynamic>> midSortedArray = [];
+    final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
+        [];
 
-    int latestTxnBlockHeight =
-        DB.instance.get<dynamic>(boxName: walletId, key: "storedTxnDataHeight")
-                as int? ??
-            0;
+    // int latestTxnBlockHeight =
+    //     DB.instance.get<dynamic>(boxName: walletId, key: "storedTxnDataHeight")
+    //             as int? ??
+    //         0;
     final slatesToCommits = await getSlatesToCommits();
-    final cachedTransactions =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'latest_tx_model')
-            as TransactionData?;
-    var cachedMap = cachedTransactions?.getAllTransactions();
+
     for (var tx in jsonTransactions) {
       Logging.instance.log("tx: $tx", level: LogLevel.Info);
-      final txHeight = tx["kernel_lookup_min_height"] as int? ?? 0;
-      // TODO: does "confirmed" mean finalized? If so please remove this todo
+      // // TODO: does "confirmed" mean finalized? If so please remove this todo
       final isConfirmed = tx["confirmed"] as bool;
-      // TODO: since we are now caching tx history in hive are we losing anything by skipping here?
-      // TODO: we can skip this filtering if it causes issues as the cache is later merged with updated data anyways
-      // this would just make processing and updating cache more efficient
-      if (txHeight > 0 &&
-          txHeight < latestTxnBlockHeight - MINIMUM_CONFIRMATIONS &&
-          isConfirmed) {
-        continue;
-      }
+      // // TODO: since we are now caching tx history in hive are we losing anything by skipping here?
+      // // TODO: we can skip this filtering if it causes issues as the cache is later merged with updated data anyways
+      // // this would just make processing and updating cache more efficient
+      // if (txHeight > 0 &&
+      //     txHeight < latestTxnBlockHeight - MINIMUM_CONFIRMATIONS &&
+      //     isConfirmed) {
+      //   continue;
+      // }
       // Logging.instance.log("Transactions listed below");
       // Logging.instance.log(jsonTransactions);
       int amt = 0;
@@ -2142,137 +2077,174 @@ class EpicCashWallet extends CoinServiceAPI {
         int fee = int.parse((tx['fee'] ?? "0") as String);
         amt = debit - credit - fee;
       }
-      final String worthNow =
-          (currentPrice * Decimal.parse(amt.toString())).toStringAsFixed(2);
 
       DateTime dt = DateTime.parse(tx["creation_ts"] as String);
 
-      Map<String, dynamic> midSortedTx = {};
-      midSortedTx["txType"] = (tx["tx_type"] == "TxReceived" ||
-              tx["tx_type"] == "TxReceivedCancelled")
-          ? "Received"
-          : "Sent";
       String? slateId = tx['tx_slate_id'] as String?;
-      String? address = slatesToCommits[slateId]
-                  ?[midSortedTx["txType"] == "TxReceived" ? "from" : "to"]
-              as String? ??
+      String address = slatesToCommits[slateId]
+              ?[tx["tx_type"] == "TxReceived" ? "from" : "to"] as String? ??
           "";
       String? commitId = slatesToCommits[slateId]?['commitId'] as String?;
-      Logging.instance.log(
-          "commitId: $commitId, slateId: $slateId, id: ${tx["id"]}",
-          level: LogLevel.Info);
 
-      bool isCancelled = tx["tx_type"] == "TxSentCancelled" ||
-          tx["tx_type"] == "TxReceivedCancelled";
+      int? height;
 
-      midSortedTx["slateId"] = slateId;
-      midSortedTx["isCancelled"] = isCancelled;
-      midSortedTx["txid"] = commitId ?? tx["id"].toString();
-      midSortedTx["confirmed_status"] = isConfirmed;
-      midSortedTx["timestamp"] = (dt.millisecondsSinceEpoch ~/ 1000);
-      midSortedTx["amount"] = amt;
-      midSortedTx["worthNow"] = worthNow;
-      midSortedTx["worthAtBlockTimestamp"] = worthNow;
-      midSortedTx["fees"] =
-          (tx["fee"] == null) ? 0 : int.parse(tx["fee"] as String);
-      midSortedTx["address"] =
-          ""; // for this when you send a transaction you will just need to save in a hashmap in hive with the key being the txid, and the value being the address it was sent to. then you can look this value up right here in your hashmap.
-      midSortedTx["address"] = address;
-      midSortedTx["height"] = txHeight;
-      int confirmations = 0;
-      try {
-        confirmations = currentChainHeight - txHeight;
-      } catch (e, s) {
-        debugPrint("$e $s");
-      }
-      midSortedTx["confirmations"] = confirmations;
-
-      midSortedTx["inputSize"] = tx["num_inputs"];
-      midSortedTx["outputSize"] = tx["num_outputs"];
-      midSortedTx["aliens"] = <dynamic>[];
-      midSortedTx["inputs"] = <dynamic>[];
-      midSortedTx["outputs"] = <dynamic>[];
-      midSortedTx["tx_slate_id"] = tx["tx_slate_id"];
-      midSortedTx["key_id"] = tx["parent_key_id"];
-      midSortedTx["otherData"] = tx["id"].toString();
-
-      if (txHeight >= latestTxnBlockHeight) {
-        latestTxnBlockHeight = txHeight;
-      }
-
-      midSortedArray.add(midSortedTx);
-      cachedMap?.remove(tx["id"].toString());
-      cachedMap?.remove(commitId);
-      Logging.instance.log("cmap: $cachedMap", level: LogLevel.Info);
-    }
-
-    midSortedArray
-        .sort((a, b) => (b["timestamp"] as int) - (a["timestamp"] as int));
-
-    final Map<String, dynamic> result = {"dateTimeChunks": <dynamic>[]};
-    final dateArray = <dynamic>[];
-
-    for (int i = 0; i < midSortedArray.length; i++) {
-      final txObject = midSortedArray[i];
-      final date = extractDateFromTimestamp(txObject["timestamp"] as int);
-
-      final txTimeArray = [txObject["timestamp"], date];
-
-      if (dateArray.contains(txTimeArray[1])) {
-        result["dateTimeChunks"].forEach((dynamic chunk) {
-          if (extractDateFromTimestamp(chunk["timestamp"] as int) ==
-              txTimeArray[1]) {
-            if (chunk["transactions"] == null) {
-              chunk["transactions"] = <Map<String, dynamic>>[];
-            }
-            chunk["transactions"].add(txObject);
-          }
-        });
+      if (isConfirmed) {
+        height = tx["kernel_lookup_min_height"] as int? ?? 1;
       } else {
-        dateArray.add(txTimeArray[1]);
-
-        final chunk = {
-          "timestamp": txTimeArray[0],
-          "transactions": [txObject],
-        };
-
-        // result["dateTimeChunks"].
-        result["dateTimeChunks"].add(chunk);
+        height = null;
       }
+
+      final isIncoming = (tx["tx_type"] == "TxReceived" ||
+          tx["tx_type"] == "TxReceivedCancelled");
+
+      final txn = isar_models.Transaction(
+        walletId: walletId,
+        txid: commitId ?? tx["id"].toString(),
+        timestamp: (dt.millisecondsSinceEpoch ~/ 1000),
+        type: isIncoming
+            ? isar_models.TransactionType.incoming
+            : isar_models.TransactionType.outgoing,
+        subType: isar_models.TransactionSubType.none,
+        amount: amt,
+        fee: (tx["fee"] == null) ? 0 : int.parse(tx["fee"] as String),
+        height: height,
+        isCancelled: tx["tx_type"] == "TxSentCancelled" ||
+            tx["tx_type"] == "TxReceivedCancelled",
+        isLelantus: false,
+        slateId: slateId,
+        otherData: tx["id"].toString(),
+        inputs: [],
+        outputs: [],
+      );
+
+      // txn.address =
+      //     ""; // for this when you send a transaction you will just need to save in a hashmap in hive with the key being the txid, and the value being the address it was sent to. then you can look this value up right here in your hashmap.
+      isar_models.Address? transactionAddress = await db
+          .getAddresses(walletId)
+          .filter()
+          .valueEqualTo(address)
+          .findFirst();
+
+      if (transactionAddress == null) {
+        if (isIncoming) {
+          transactionAddress = isar_models.Address(
+            walletId: walletId,
+            value: address,
+            publicKey: [],
+            derivationIndex: 0,
+            derivationPath: null,
+            type: isar_models.AddressType.mimbleWimble,
+            subType: isar_models.AddressSubType.receiving,
+          );
+        } else {
+          final myRcvAddr = await currentReceivingAddress;
+          final isSentToSelf = myRcvAddr == address;
+
+          transactionAddress = isar_models.Address(
+            walletId: walletId,
+            value: address,
+            publicKey: [],
+            derivationIndex: isSentToSelf ? 0 : -1,
+            derivationPath: null,
+            type: isSentToSelf
+                ? isar_models.AddressType.mimbleWimble
+                : isar_models.AddressType.nonWallet,
+            subType: isSentToSelf
+                ? isar_models.AddressSubType.receiving
+                : isar_models.AddressSubType.nonWallet,
+          );
+        }
+      }
+
+      //
+      // midSortedTx["inputSize"] = tx["num_inputs"];
+      // midSortedTx["outputSize"] = tx["num_outputs"];
+      // midSortedTx["aliens"] = <dynamic>[];
+      // midSortedTx["inputs"] = <dynamic>[];
+      // midSortedTx["outputs"] = <dynamic>[];
+
+      // key id not used afaik?
+      // midSortedTx["key_id"] = tx["parent_key_id"];
+
+      // if (txHeight >= latestTxnBlockHeight) {
+      //   latestTxnBlockHeight = txHeight;
+      // }
+
+      txnsData.add(Tuple2(txn, transactionAddress));
+      // cachedMap?.remove(tx["id"].toString());
+      // cachedMap?.remove(commitId);
+      // Logging.instance.log("cmap: $cachedMap", level: LogLevel.Info);
     }
-    final transactionsMap =
-        TransactionData.fromJson(result).getAllTransactions();
-    if (cachedMap != null) {
-      transactionsMap.addAll(cachedMap);
+
+    await db.addNewTransactionData(txnsData, walletId);
+
+    // quick hack to notify manager to call notifyListeners if
+    // transactions changed
+    if (txnsData.isNotEmpty) {
+      GlobalEventBus.instance.fire(
+        UpdatedInBackgroundEvent(
+          "Transactions updated/added for: $walletId $walletName  ",
+          walletId,
+        ),
+      );
     }
 
-    final txModel = TransactionData.fromMap(transactionsMap);
-
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'storedTxnDataHeight',
-        value: latestTxnBlockHeight);
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: 'latest_tx_model', value: txModel);
-
-    return txModel;
+    // midSortedArray
+    //     .sort((a, b) => (b["timestamp"] as int) - (a["timestamp"] as int));
+    //
+    // final Map<String, dynamic> result = {"dateTimeChunks": <dynamic>[]};
+    // final dateArray = <dynamic>[];
+    //
+    // for (int i = 0; i < midSortedArray.length; i++) {
+    //   final txObject = midSortedArray[i];
+    //   final date = extractDateFromTimestamp(txObject["timestamp"] as int);
+    //
+    //   final txTimeArray = [txObject["timestamp"], date];
+    //
+    //   if (dateArray.contains(txTimeArray[1])) {
+    //     result["dateTimeChunks"].forEach((dynamic chunk) {
+    //       if (extractDateFromTimestamp(chunk["timestamp"] as int) ==
+    //           txTimeArray[1]) {
+    //         if (chunk["transactions"] == null) {
+    //           chunk["transactions"] = <Map<String, dynamic>>[];
+    //         }
+    //         chunk["transactions"].add(txObject);
+    //       }
+    //     });
+    //   } else {
+    //     dateArray.add(txTimeArray[1]);
+    //
+    //     final chunk = {
+    //       "timestamp": txTimeArray[0],
+    //       "transactions": [txObject],
+    //     };
+    //
+    //     // result["dateTimeChunks"].
+    //     result["dateTimeChunks"].add(chunk);
+    //   }
+    // }
+    // final transactionsMap =
+    //     TransactionData.fromJson(result).getAllTransactions();
+    // if (cachedMap != null) {
+    //   transactionsMap.addAll(cachedMap);
+    // }
+    //
+    // final txModel = TransactionData.fromMap(transactionsMap);
+    //
+    // await DB.instance.put<dynamic>(
+    //     boxName: walletId,
+    //     key: 'storedTxnDataHeight',
+    //     value: latestTxnBlockHeight);
+    // await DB.instance.put<dynamic>(
+    //     boxName: walletId, key: 'latest_tx_model', value: txModel);
+    //
+    // return txModel;
   }
-
-  @override
-  Future<TransactionData> get transactionData =>
-      _transactionData ??= _fetchTransactionData();
-  Future<TransactionData>? _transactionData;
-
-  // not used in epic
-  TransactionData? cachedTxData;
 
   @override
   Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
     // not used in epic
   }
-
-  @override
-  Future<List<UtxoObject>> get unspentOutputs => throw UnimplementedError();
 
   @override
   bool validateAddress(String address) {
@@ -2292,7 +2264,7 @@ class EpicCashWallet extends CoinServiceAPI {
 
   @override
   String get walletId => _walletId;
-  late String _walletId;
+  late final String _walletId;
 
   @override
   String get walletName => _walletName;
@@ -2321,7 +2293,6 @@ class EpicCashWallet extends CoinServiceAPI {
   @override
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
     int currentFee = await nativeFee(satoshiAmount, ifErrorEstimateFee: true);
-    // TODO: implement this
     return currentFee;
   }
 
@@ -2329,18 +2300,6 @@ class EpicCashWallet extends CoinServiceAPI {
   @override
   Future<bool> generateNewAddress() async {
     try {
-      // await incrementAddressIndexForChain(
-      //     0); // First increment the receiving index
-      // final newReceivingIndex =
-      // DB.instance.get<dynamic>(boxName: walletId, key: 'receivingIndex')
-      // as int; // Check the new receiving index
-      // final newReceivingAddress = await _generateAddressForChain(0,
-      //     newReceivingIndex); // Use new index to derive a new receiving address
-      // await addToAddressesArrayForChain(newReceivingAddress,
-      //     0); // Add that new receiving address to the array of receiving addresses
-      // _currentReceivingAddress = Future(() =>
-      // newReceivingAddress); // Set the new receiving address that the service
-
       return true;
     } catch (e, s) {
       Logging.instance.log(
@@ -2349,4 +2308,49 @@ class EpicCashWallet extends CoinServiceAPI {
       return false;
     }
   }
+
+  Future<void> _refreshBalance() async {
+    String walletBalances = await allWalletBalances();
+    var jsonBalances = json.decode(walletBalances);
+
+    final spendable =
+        (jsonBalances['amount_currently_spendable'] as double).toString();
+
+    final pending =
+        (jsonBalances['amount_awaiting_confirmation'] as double).toString();
+
+    final total = (jsonBalances['total'] as double).toString();
+    final awaiting =
+        (jsonBalances['amount_awaiting_finalization'] as double).toString();
+
+    _balance = Balance(
+      coin: coin,
+      total: Format.decimalAmountToSatoshis(
+        Decimal.parse(total) + Decimal.parse(awaiting),
+        coin,
+      ),
+      spendable: Format.decimalAmountToSatoshis(
+        Decimal.parse(spendable),
+        coin,
+      ),
+      blockedTotal: 0,
+      pendingSpendable: Format.decimalAmountToSatoshis(
+        Decimal.parse(pending),
+        coin,
+      ),
+    );
+
+    await updateCachedBalance(_balance!);
+  }
+
+  @override
+  Balance get balance => _balance ??= getCachedBalance();
+  Balance? _balance;
+
+  @override
+  Future<List<isar_models.UTXO>> get utxos => throw UnimplementedError();
+
+  @override
+  Future<List<isar_models.Transaction>> get transactions =>
+      db.getTransactions(walletId).findAll();
 }

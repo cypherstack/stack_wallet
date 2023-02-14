@@ -8,8 +8,6 @@ final notesServiceChangeNotifierProvider =
     ChangeNotifierProvider.family<NotesService, String>((_, walletId) {
   if (kDebugMode) {
     _count++;
-    debugPrint(
-        "notesServiceChangeNotifierProvider instantiation count: $_count");
   }
 
   return NotesService(walletId: walletId);

@@ -280,10 +280,10 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                               fileLocationController.text.isEmpty
                           ? Theme.of(context)
                               .extension<StackColors>()!
-                              .getPrimaryDisabledButtonColor(context)
+                              .getPrimaryDisabledButtonStyle(context)
                           : Theme.of(context)
                               .extension<StackColors>()!
-                              .getPrimaryEnabledButtonColor(context),
+                              .getPrimaryEnabledButtonStyle(context),
                       onPressed: passwordController.text.isEmpty ||
                               fileLocationController.text.isEmpty
                           ? null

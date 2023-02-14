@@ -11,11 +11,15 @@ class CustomLoadingOverlay extends ConsumerStatefulWidget {
   const CustomLoadingOverlay({
     Key? key,
     required this.message,
+    this.subMessage,
     required this.eventBus,
+    this.textColor,
   }) : super(key: key);
 
   final String message;
+  final String? subMessage;
   final EventBus? eventBus;
+  final Color? textColor;
 
   @override
   ConsumerState<CustomLoadingOverlay> createState() =>
@@ -56,10 +60,12 @@ class _CustomLoadingOverlayState extends ConsumerState<CustomLoadingOverlay> {
               children: [
                 Text(
                   widget.message,
+                  textAlign: TextAlign.center,
                   style: STextStyles.pageTitleH2(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .loadingOverlayTextColor,
+                    color: widget.textColor ??
+                        Theme.of(context)
+                            .extension<StackColors>()!
+                            .loadingOverlayTextColor,
                   ),
                 ),
                 if (widget.eventBus != null)
@@ -70,11 +76,28 @@ class _CustomLoadingOverlayState extends ConsumerState<CustomLoadingOverlay> {
                   Text(
                     "${(_percent * 100).toStringAsFixed(2)}%",
                     style: STextStyles.pageTitleH2(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .loadingOverlayTextColor,
+                      color: widget.textColor ??
+                          Theme.of(context)
+                              .extension<StackColors>()!
+                              .loadingOverlayTextColor,
                     ),
                   ),
+                if (widget.subMessage != null)
+                  const SizedBox(
+                    height: 10,
+                  ),
+                if (widget.subMessage != null)
+                  Text(
+                    widget.subMessage!,
+                    textAlign: TextAlign.center,
+                    style: STextStyles.pageTitleH2(context).copyWith(
+                      fontSize: 14,
+                      color: widget.textColor ??
+                          Theme.of(context)
+                              .extension<StackColors>()!
+                              .loadingOverlayTextColor,
+                    ),
+                  )
               ],
             ),
           ),

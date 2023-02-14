@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -46,10 +48,18 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
         .toList();
   }
 
+  final bool isDesktop = Util.isDesktop;
+
   @override
   void initState() {
     _coins = _coins.toList();
     _coins.remove(Coin.firoTestNet);
+    if (isDesktop) {
+      _coins.remove(Coin.wownero);
+      if (Platform.isWindows) {
+        _coins.remove(Coin.monero);
+      }
+    }
 
     searchNodeController = TextEditingController();
     searchNodeFocusNode = FocusNode();
@@ -128,8 +138,8 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                           Constants.size.circularBorderRadius,
                         ),
                         child: TextField(
-                          autocorrect: Util.isDesktop ? false : true,
-                          enableSuggestions: Util.isDesktop ? false : true,
+                          autocorrect: !isDesktop,
+                          enableSuggestions: !isDesktop,
                           controller: searchNodeController,
                           focusNode: searchNodeFocusNode,
                           onChanged: (newString) {

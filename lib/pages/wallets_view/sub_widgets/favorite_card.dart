@@ -105,20 +105,25 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
         ),
       ),
       child: GestureDetector(
-        onTap: () {
-          if (Util.isDesktop) {
-            Navigator.of(context).pushNamed(
-              DesktopWalletView.routeName,
-              arguments: walletId,
-            );
-          } else {
-            Navigator.of(context).pushNamed(
-              WalletView.routeName,
-              arguments: Tuple2(
-                walletId,
-                managerProvider,
-              ),
-            );
+        onTap: () async {
+          if (coin == Coin.monero || coin == Coin.wownero) {
+            await ref.read(managerProvider).initializeExisting();
+          }
+          if (mounted) {
+            if (Util.isDesktop) {
+              await Navigator.of(context).pushNamed(
+                DesktopWalletView.routeName,
+                arguments: walletId,
+              );
+            } else {
+              await Navigator.of(context).pushNamed(
+                WalletView.routeName,
+                arguments: Tuple2(
+                  walletId,
+                  managerProvider,
+                ),
+              );
+            }
           }
         },
         child: SizedBox(
@@ -217,8 +222,8 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                     ),
                   ),
                   FutureBuilder(
-                    future: ref.watch(
-                        managerProvider.select((value) => value.totalBalance)),
+                    future: Future(() => ref.watch(managerProvider
+                        .select((value) => value.balance.getTotal()))),
                     builder: (builderContext, AsyncSnapshot<Decimal> snapshot) {
                       if (snapshot.connectionState == ConnectionState.done &&
                           snapshot.hasData) {

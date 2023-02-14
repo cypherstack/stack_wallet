@@ -4,6 +4,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/sending_transaction_dialog.dart';
@@ -14,6 +15,7 @@ import 'package:stackwallet/providers/wallet/public_private_balance_state_provid
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
+import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -41,6 +43,9 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
     required this.walletId,
     this.routeOnSuccessName = WalletView.routeName,
     this.isTradeTransaction = false,
+    this.isPaynymTransaction = false,
+    this.isPaynymNotificationTransaction = false,
+    this.onSuccessInsteadOfRouteOnSuccess,
   }) : super(key: key);
 
   static const String routeName = "/confirmTransactionView";
@@ -49,6 +54,9 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
   final String walletId;
   final String routeOnSuccessName;
   final bool isTradeTransaction;
+  final bool isPaynymTransaction;
+  final bool isPaynymNotificationTransaction;
+  final VoidCallback? onSuccessInsteadOfRouteOnSuccess;
 
   @override
   ConsumerState<ConfirmTransactionView> createState() =>
@@ -83,14 +91,21 @@ class _ConfirmTransactionViewState
 
     try {
       String txid;
-      final coin = manager.coin;
-      if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-          ref.read(publicPrivateBalanceStateProvider.state).state !=
-              "Private") {
-        txid = await (manager.wallet as FiroWallet)
-            .confirmSendPublic(txData: transactionInfo);
-      } else {
+      if (widget.isPaynymNotificationTransaction) {
+        txid = await (manager.wallet as PaynymWalletInterface)
+            .broadcastNotificationTx(preparedTx: transactionInfo);
+      } else if (widget.isPaynymTransaction) {
         txid = await manager.confirmSend(txData: transactionInfo);
+      } else {
+        final coin = manager.coin;
+        if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+            ref.read(publicPrivateBalanceStateProvider.state).state !=
+                "Private") {
+          txid = await (manager.wallet as FiroWallet)
+              .confirmSendPublic(txData: transactionInfo);
+        } else {
+          txid = await manager.confirmSend(txData: transactionInfo);
+        }
       }
 
       // save note
@@ -102,7 +117,12 @@ class _ConfirmTransactionViewState
 
       // pop back to wallet
       if (mounted) {
-        Navigator.of(context).popUntil(ModalRoute.withName(routeOnSuccessName));
+        if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
+          Navigator.of(context)
+              .popUntil(ModalRoute.withName(routeOnSuccessName));
+        } else {
+          widget.onSuccessInsteadOfRouteOnSuccess!.call();
+        }
       }
     } on BadEpicHttpAddressException catch (_) {
       if (mounted) {
@@ -119,6 +139,7 @@ class _ConfirmTransactionViewState
         return;
       }
     } catch (e, s) {
+      //todo: comeback to this
       debugPrint("$e\n$s");
       // pop sending dialog
       Navigator.of(context).pop();
@@ -174,7 +195,7 @@ class _ConfirmTransactionViewState
               rightButton: TextButton(
                 style: Theme.of(context)
                     .extension<StackColors>()!
-                    .getSecondaryEnabledButtonColor(context),
+                    .getSecondaryEnabledButtonStyle(context),
                 child: Text(
                   "Ok",
                   style: STextStyles.button(context).copyWith(
@@ -312,14 +333,20 @@ class _ConfirmTransactionViewState
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          "Recipient",
+                          widget.isPaynymTransaction
+                              ? "PayNym recipient"
+                              : "Recipient",
                           style: STextStyles.smallMed12(context),
                         ),
                         const SizedBox(
                           height: 4,
                         ),
                         Text(
-                          "${transactionInfo["address"] ?? "ERROR"}",
+                          widget.isPaynymTransaction
+                              ? (transactionInfo["paynymAccountLite"]
+                                      as PaynymAccountLite)
+                                  .nymName
+                              : "${transactionInfo["address"] ?? "ERROR"}",
                           style: STextStyles.itemSubtitle12(context),
                         ),
                       ],
@@ -559,7 +586,9 @@ class _ConfirmTransactionViewState
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Send to",
+                              widget.isPaynymTransaction
+                                  ? "PayNym recipient"
+                                  : "Send to",
                               style: STextStyles.desktopTextExtraExtraSmall(
                                   context),
                             ),
@@ -567,7 +596,11 @@ class _ConfirmTransactionViewState
                               height: 2,
                             ),
                             Text(
-                              "${transactionInfo["address"] ?? "ERROR"}",
+                              widget.isPaynymTransaction
+                                  ? (transactionInfo["paynymAccountLite"]
+                                          as PaynymAccountLite)
+                                      .nymName
+                                  : "${transactionInfo["address"] ?? "ERROR"}",
                               style: STextStyles.desktopTextExtraExtraSmall(
                                       context)
                                   .copyWith(
@@ -579,6 +612,64 @@ class _ConfirmTransactionViewState
                           ],
                         ),
                       ),
+                      if (widget.isPaynymTransaction)
+                        Container(
+                          height: 1,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
+                        ),
+                      if (widget.isPaynymTransaction)
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Transaction fee",
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                    context),
+                              ),
+                              const SizedBox(
+                                height: 2,
+                              ),
+                              Builder(
+                                builder: (context) {
+                                  final coin = ref
+                                      .watch(walletsChangeNotifierProvider
+                                          .select((value) =>
+                                              value.getManager(walletId)))
+                                      .coin;
+
+                                  final fee = Format.satoshisToAmount(
+                                    transactionInfo["fee"] as int,
+                                    coin: coin,
+                                  );
+
+                                  return Text(
+                                    "${Format.localizedStringAsFixed(
+                                      value: fee,
+                                      locale: ref.watch(
+                                          localeServiceChangeNotifierProvider
+                                              .select((value) => value.locale)),
+                                      decimalPlaces:
+                                          Constants.decimalPlacesForCoin(coin),
+                                    )} ${coin.ticker}",
+                                    style:
+                                        STextStyles.desktopTextExtraExtraSmall(
+                                                context)
+                                            .copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
                       // Container(
                       //   height: 1,
                       //   color: Theme.of(context)
@@ -698,7 +789,7 @@ class _ConfirmTransactionViewState
                   ],
                 ),
               ),
-            if (isDesktop)
+            if (isDesktop && !widget.isPaynymTransaction)
               Padding(
                 padding: const EdgeInsets.only(
                   left: 32,
@@ -708,22 +799,23 @@ class _ConfirmTransactionViewState
                   style: STextStyles.desktopTextExtraExtraSmall(context),
                 ),
               ),
-            if (isDesktop)
+            if (isDesktop && !widget.isPaynymTransaction)
               Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    left: 32,
-                    right: 32,
+                padding: const EdgeInsets.only(
+                  top: 10,
+                  left: 32,
+                  right: 32,
+                ),
+                child: RoundedContainer(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 18,
                   ),
-                  child: RoundedContainer(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 18,
-                    ),
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultBG,
-                    child: Builder(builder: (context) {
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
+                  child: Builder(
+                    builder: (context) {
                       final coin = ref
                           .watch(walletsChangeNotifierProvider
                               .select((value) => value.getManager(walletId)))
@@ -743,64 +835,10 @@ class _ConfirmTransactionViewState
                         )} ${coin.ticker}",
                         style: STextStyles.itemSubtitle(context),
                       );
-                    }),
-                  )
-                  // DropdownButtonHideUnderline(
-                  //   child: DropdownButton2(
-                  //     offset: const Offset(0, -10),
-                  //     isExpanded: true,
-                  //
-                  //     dropdownElevation: 0,
-                  //     value: _fee,
-                  //     items: [
-                  //       ..._dropDownItems.map(
-                  //         (e) {
-                  //           String message = _fee.toString();
-                  //
-                  //           return DropdownMenuItem(
-                  //             value: e,
-                  //             child: Text(message),
-                  //           );
-                  //         },
-                  //       ),
-                  //     ],
-                  //     onChanged: (value) {
-                  //       if (value is int) {
-                  //         setState(() {
-                  //           _fee = value;
-                  //         });
-                  //       }
-                  //     },
-                  //     icon: SvgPicture.asset(
-                  //       Assets.svg.chevronDown,
-                  //       width: 12,
-                  //       height: 6,
-                  //       color:
-                  //           Theme.of(context).extension<StackColors>()!.textDark3,
-                  //     ),
-                  //     buttonPadding: const EdgeInsets.symmetric(
-                  //       horizontal: 16,
-                  //       vertical: 8,
-                  //     ),
-                  //     buttonDecoration: BoxDecoration(
-                  //       color: Theme.of(context)
-                  //           .extension<StackColors>()!
-                  //           .textFieldDefaultBG,
-                  //       borderRadius: BorderRadius.circular(
-                  //         Constants.size.circularBorderRadius,
-                  //       ),
-                  //     ),
-                  //     dropdownDecoration: BoxDecoration(
-                  //       color: Theme.of(context)
-                  //           .extension<StackColors>()!
-                  //           .textFieldDefaultBG,
-                  //       borderRadius: BorderRadius.circular(
-                  //         Constants.size.circularBorderRadius,
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
+                    },
                   ),
+                ),
+              ),
             if (!isDesktop) const Spacer(),
             SizedBox(
               height: isDesktop ? 23 : 12,

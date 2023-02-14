@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/coin_wallets_table.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -24,25 +25,37 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final providersByCoin = ref
-        .watch(
-          walletsChangeNotifierProvider.select(
-            (value) => value.getManagerProvidersByCoin(),
-          ),
-        )
-        .entries
-        .toList(growable: false);
+    final providersByCoin = ref.watch(
+      walletsChangeNotifierProvider.select(
+        (value) => value.getManagerProvidersByCoin(),
+      ),
+    );
 
     return TableView(
       rows: [
         for (int i = 0; i < providersByCoin.length; i++)
           Builder(
+            key: Key("${providersByCoin[i].item1.name}_${runtimeType}_key"),
             builder: (context) {
-              final providers = ref.watch(walletsChangeNotifierProvider.select(
-                  (value) => value
-                      .getManagerProvidersForCoin(providersByCoin[i].key)));
+              final providers = providersByCoin[i].item2;
+
+              VoidCallback? expandOverride;
+              if (providers.length == 1) {
+                expandOverride = () async {
+                  final manager = ref.read(providers.first);
+                  if (manager.coin == Coin.monero ||
+                      manager.coin == Coin.wownero) {
+                    await manager.initializeExisting();
+                  }
+                  await Navigator.of(context).pushNamed(
+                    DesktopWalletView.routeName,
+                    arguments: manager.walletId,
+                  );
+                };
+              }
 
               return TableViewRow(
+                expandOverride: expandOverride,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 16,
@@ -59,7 +72,7 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
                     child: Row(
                       children: [
                         SvgPicture.asset(
-                          Assets.svg.iconFor(coin: providersByCoin[i].key),
+                          Assets.svg.iconFor(coin: providersByCoin[i].item1),
                           width: 28,
                           height: 28,
                         ),
@@ -67,7 +80,7 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
                           width: 10,
                         ),
                         Text(
-                          providersByCoin[i].key.prettyName,
+                          providersByCoin[i].item1.prettyName,
                           style: STextStyles.desktopTextExtraSmall(context)
                               .copyWith(
                             color: Theme.of(context)
@@ -95,12 +108,12 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
                   TableViewCell(
                     flex: 6,
                     child: TablePriceInfo(
-                      coin: providersByCoin[i].key,
+                      coin: providersByCoin[i].item1,
                     ),
                   ),
                 ],
                 expandingChild: CoinWalletsTable(
-                  coin: providersByCoin[i].key,
+                  coin: providersByCoin[i].item1,
                 ),
               );
             },

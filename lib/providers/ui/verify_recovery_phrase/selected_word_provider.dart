@@ -7,8 +7,6 @@ final verifyMnemonicSelectedWordStateProvider =
     StateProvider.autoDispose<String>((_) {
   if (kDebugMode) {
     _count++;
-    debugPrint(
-        "verifyMnemonicSelectedWordStateProvider instantiation count: $_count");
   }
 
   return "";

@@ -122,6 +122,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
             text: "Receive URI QR Code");
       }
     } catch (e) {
+      //todo: comeback to this
       debugPrint(e.toString());
     }
   }
@@ -217,46 +218,19 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
               Center(
                 child: SizedBox(
                   width: width,
-                  child: TextButton(
-                    onPressed: () async {
-                      // TODO: add save button as well
-                      await _capturePng(true);
-                    },
-                    style: Theme.of(context)
-                        .extension<StackColors>()!
-                        .getSecondaryEnabledButtonColor(context),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Center(
-                          child: SvgPicture.asset(
-                            Assets.svg.share,
-                            width: 14,
-                            height: 14,
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 4,
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              "Share",
-                              textAlign: TextAlign.center,
-                              style: STextStyles.button(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .buttonTextSecondary,
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 2,
-                            ),
-                          ],
-                        ),
-                      ],
+                  child: SecondaryButton(
+                    label: "Share",
+                    icon: SvgPicture.asset(
+                      Assets.svg.share,
+                      width: 14,
+                      height: 14,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .buttonTextSecondary,
                     ),
+                    onPressed: () async {
+                      await _capturePng(false);
+                    },
                   ),
                 ),
               ),
@@ -408,8 +382,9 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                         height: 1.8,
                       )
                     : STextStyles.field(context),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: Util.isDesktop
+                    ? null
+                    : const TextInputType.numberWithOptions(decimal: true),
                 onChanged: (_) => setState(() {}),
                 decoration: standardInputDecoration(
                   "Amount",

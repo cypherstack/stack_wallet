@@ -9,7 +9,6 @@ int _count = 0;
 final walletsChangeNotifierProvider = ChangeNotifierProvider<Wallets>((ref) {
   if (kDebugMode) {
     _count++;
-    debugPrint("walletsChangeNotifierProvider instantiation count: $_count");
   }
 
   final walletsService = ref.read(walletsServiceChangeNotifierProvider);

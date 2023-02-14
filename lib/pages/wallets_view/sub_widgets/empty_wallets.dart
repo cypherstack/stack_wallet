@@ -31,7 +31,7 @@ class EmptyWallets extends StatelessWidget {
               ),
               Image(
                 image: AssetImage(
-                  Assets.png.stack,
+                  Assets.png.stack(context),
                 ),
                 width: isDesktop ? 324 : MediaQuery.of(context).size.width / 3,
               ),
@@ -94,7 +94,7 @@ class AddWalletButton extends StatelessWidget {
     return TextButton(
       style: Theme.of(context)
           .extension<StackColors>()!
-          .getPrimaryEnabledButtonColor(context),
+          .getPrimaryEnabledButtonStyle(context),
       onPressed: () {
         if (isDesktop) {
           Navigator.of(

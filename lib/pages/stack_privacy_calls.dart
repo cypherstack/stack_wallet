@@ -21,6 +21,8 @@ import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
+import '../providers/ui/color_theme_provider.dart';
+
 class StackPrivacyCalls extends ConsumerStatefulWidget {
   const StackPrivacyCalls({
     Key? key,
@@ -39,11 +41,13 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
   late final bool isDesktop;
   late bool isEasy;
   late bool infoToggle;
+  late final bool usePNG;
 
   @override
   void initState() {
     isDesktop = Util.isDesktop;
     isEasy = ref.read(prefsChangeNotifierProvider).externalCalls;
+    usePNG = ref.read(colorThemeProvider.state).state == "fruitSorbet";
     infoToggle = isEasy;
     super.initState();
   }
@@ -230,8 +234,15 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                                       value: isEasy)
                                   .then((_) {
                                 if (isEasy) {
-                                  unawaited(ExchangeDataLoadingService()
-                                      .loadAll(ref));
+                                  unawaited(
+                                    ExchangeDataLoadingService.instance
+                                        .init()
+                                        .then((_) => ExchangeDataLoadingService
+                                            .instance
+                                            .loadAll()),
+                                  );
+                                  // unawaited(
+                                  //     BuyDataLoadingService().loadAll(ref));
                                   ref
                                       .read(priceAnd24hChangeNotifierProvider)
                                       .start(true);
@@ -270,7 +281,7 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
   }
 }
 
-class PrivacyToggle extends StatefulWidget {
+class PrivacyToggle extends ConsumerStatefulWidget {
   const PrivacyToggle({
     Key? key,
     required this.externalCallsEnabled,
@@ -281,17 +292,19 @@ class PrivacyToggle extends StatefulWidget {
   final void Function(bool)? onChanged;
 
   @override
-  State<PrivacyToggle> createState() => _PrivacyToggleState();
+  ConsumerState<PrivacyToggle> createState() => _PrivacyToggleState();
 }
 
-class _PrivacyToggleState extends State<PrivacyToggle> {
+class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
   late bool externalCallsEnabled;
 
   late final bool isDesktop;
+  late final bool usePNG;
 
   @override
   void initState() {
     isDesktop = Util.isDesktop;
+    usePNG = ref.read(colorThemeProvider.state).state == "fruitSorbet";
     // initial toggle state
     externalCallsEnabled = widget.externalCallsEnabled;
     super.initState();
@@ -339,8 +352,11 @@ class _PrivacyToggleState extends State<PrivacyToggle> {
                         const SizedBox(
                           height: 10,
                         ),
+                      // Image.asset(
+                      //   // Assets.png.personaEasy,
+                      // ),
                       SvgPicture.asset(
-                        Assets.svg.personaEasy,
+                        Assets.svg.personaEasy(context),
                         width: isDesktop ? 120 : 140,
                         height: isDesktop ? 120 : 140,
                       ),
@@ -445,7 +461,7 @@ class _PrivacyToggleState extends State<PrivacyToggle> {
                           height: 10,
                         ),
                       SvgPicture.asset(
-                        Assets.svg.personaIncognito,
+                        Assets.svg.personaIncognito(context),
                         width: isDesktop ? 120 : 140,
                         height: isDesktop ? 120 : 140,
                       ),

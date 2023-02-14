@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_libmonero/monero/monero.dart';
 import 'package:flutter_libmonero/wownero/wownero.dart';
+import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/notifications_service.dart';
@@ -236,7 +237,8 @@ class WalletsService extends ChangeNotifier {
     await DB.instance.deleteAll<String>(boxName: DB.boxNameFavoriteWallets);
     await DB.instance
         .addAll(boxName: DB.boxNameFavoriteWallets, values: walletIds);
-    debugPrint("saveFavoriteWalletIds list: $walletIds");
+    //todo: check if print needed
+    // debugPrint("saveFavoriteWalletIds list: $walletIds");
   }
 
   Future<void> addFavorite(String walletId) async {
@@ -383,6 +385,11 @@ class WalletsService extends ChangeNotifier {
           "epic wallet: $walletId deleted with result: $deleteResult",
           level: LogLevel.Info);
     }
+
+    // delete wallet data in main db
+    await MainDB.instance.deleteWalletBlockchainData(walletId);
+    await MainDB.instance.deleteAddressLabels(walletId);
+    await MainDB.instance.deleteTransactionNotes(walletId);
 
     // box data may currently still be read/written to if wallet was refreshing
     // when delete was requested so instead of deleting now we mark the wallet

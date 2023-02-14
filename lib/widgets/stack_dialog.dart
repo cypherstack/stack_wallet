@@ -193,7 +193,7 @@ class StackOkDialog extends StatelessWidget {
                         },
                   style: Theme.of(context)
                       .extension<StackColors>()!
-                      .getPrimaryEnabledButtonColor(context),
+                      .getPrimaryEnabledButtonStyle(context),
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context),

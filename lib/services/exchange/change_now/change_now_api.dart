@@ -3,18 +3,22 @@ import 'dart:convert';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
+import 'package:stackwallet/exceptions/exchange/pair_unavailable_exception.dart';
 import 'package:stackwallet/external_api_keys.dart';
 import 'package:stackwallet/models/exchange/change_now/cn_exchange_estimate.dart';
 import 'package:stackwallet/models/exchange/change_now/estimated_exchange_amount.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
-import 'package:stackwallet/models/exchange/response_objects/currency.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
-import 'package:stackwallet/models/exchange/response_objects/pair.dart';
 import 'package:stackwallet/models/exchange/response_objects/range.dart';
+import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
+import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:tuple/tuple.dart';
 
 class ChangeNowAPI {
   static const String scheme = "https";
@@ -126,7 +130,9 @@ class ChangeNowAPI {
 
       try {
         final result = await compute(
-            _parseAvailableCurrenciesJson, jsonArray as List<dynamic>);
+          _parseAvailableCurrenciesJson,
+          Tuple2(jsonArray as List<dynamic>, fixedRate == true),
+        );
         return result;
       } catch (e, s) {
         Logging.instance.log("getAvailableCurrencies exception: $e\n$s",
@@ -151,14 +157,23 @@ class ChangeNowAPI {
   }
 
   ExchangeResponse<List<Currency>> _parseAvailableCurrenciesJson(
-      List<dynamic> jsonArray) {
+    Tuple2<List<dynamic>, bool> args,
+  ) {
     try {
       List<Currency> currencies = [];
 
-      for (final json in jsonArray) {
+      for (final json in args.item1) {
         try {
-          currencies
-              .add(Currency.fromJson(Map<String, dynamic>.from(json as Map)));
+          final map = Map<String, dynamic>.from(json as Map);
+          currencies.add(
+            Currency.fromJson(
+              map,
+              rateType: (map["supportsFixedRate"] as bool)
+                  ? SupportedRateType.both
+                  : SupportedRateType.estimated,
+              exchangeName: ChangeNowExchange.exchangeName,
+            ),
+          );
         } catch (_) {
           return ExchangeResponse(
               exception: ExchangeException("Failed to serialize $json",
@@ -198,8 +213,16 @@ class ChangeNowAPI {
       try {
         for (final json in jsonArray) {
           try {
-            currencies
-                .add(Currency.fromJson(Map<String, dynamic>.from(json as Map)));
+            final map = Map<String, dynamic>.from(json as Map);
+            currencies.add(
+              Currency.fromJson(
+                map,
+                rateType: (map["supportsFixedRate"] as bool)
+                    ? SupportedRateType.both
+                    : SupportedRateType.estimated,
+                exchangeName: ChangeNowExchange.exchangeName,
+              ),
+            );
           } catch (_) {
             return ExchangeResponse(
               exception: ExchangeException(
@@ -328,8 +351,27 @@ class ChangeNowAPI {
       final json = await _makeGetRequest(uri);
 
       try {
-        final value = EstimatedExchangeAmount.fromJson(
-            Map<String, dynamic>.from(json as Map));
+        final map = Map<String, dynamic>.from(json as Map);
+
+        if (map["error"] != null) {
+          if (map["error"] == "pair_is_inactive") {
+            return ExchangeResponse(
+              exception: PairUnavailableException(
+                map["message"] as String,
+                ExchangeExceptionType.generic,
+              ),
+            );
+          } else {
+            return ExchangeResponse(
+              exception: ExchangeException(
+                map["message"] as String,
+                ExchangeExceptionType.generic,
+              ),
+            );
+          }
+        }
+
+        final value = EstimatedExchangeAmount.fromJson(map);
         return ExchangeResponse(
           value: Estimate(
             estimatedAmount: value.estimatedAmount,
@@ -392,8 +434,27 @@ class ChangeNowAPI {
       final json = await _makeGetRequest(uri);
 
       try {
-        final value = EstimatedExchangeAmount.fromJson(
-            Map<String, dynamic>.from(json as Map));
+        final map = Map<String, dynamic>.from(json as Map);
+
+        if (map["error"] != null) {
+          if (map["error"] == "not_valid_fixed_rate_pair") {
+            return ExchangeResponse(
+              exception: PairUnavailableException(
+                map["message"] as String? ?? "Unsupported fixed rate pair",
+                ExchangeExceptionType.generic,
+              ),
+            );
+          } else {
+            return ExchangeResponse(
+              exception: ExchangeException(
+                map["message"] as String? ?? map["error"].toString(),
+                ExchangeExceptionType.generic,
+              ),
+            );
+          }
+        }
+
+        final value = EstimatedExchangeAmount.fromJson(map);
         return ExchangeResponse(
           value: Estimate(
             estimatedAmount: value.estimatedAmount,
@@ -822,12 +883,10 @@ class ChangeNowAPI {
           final List<String> stringPair = (json as String).split("_");
           pairs.add(
             Pair(
+              exchangeName: ChangeNowExchange.exchangeName,
               from: stringPair[0],
               to: stringPair[1],
-              fromNetwork: "",
-              toNetwork: "",
-              fixedRate: false,
-              floatingRate: true,
+              rateType: SupportedRateType.estimated,
             ),
           );
         } catch (_) {

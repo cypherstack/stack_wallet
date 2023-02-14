@@ -1,16 +1,19 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages/wallets_sheet/wallets_sheet.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:tuple/tuple.dart';
 
 class WalletListItem extends ConsumerWidget {
   const WalletListItem({
@@ -41,17 +44,42 @@ class WalletListItem extends ConsumerWidget {
           borderRadius:
               BorderRadius.circular(Constants.size.circularBorderRadius),
         ),
-        onPressed: () {
-          showModalBottomSheet<dynamic>(
-            backgroundColor: Colors.transparent,
-            context: context,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(20),
+        onPressed: () async {
+          if (walletCount == 1) {
+            final providersByCoin = ref
+                .watch(walletsChangeNotifierProvider
+                    .select((value) => value.getManagerProvidersByCoin()))
+                .where((e) => e.item1 == coin)
+                .map((e) => e.item2)
+                .expand((e) => e)
+                .toList();
+            final manager = ref.read(providersByCoin.first);
+            if (coin == Coin.monero || coin == Coin.wownero) {
+              await manager.initializeExisting();
+            }
+            unawaited(
+              Navigator.of(context).pushNamed(
+                WalletView.routeName,
+                arguments: Tuple2(
+                  manager.walletId,
+                  providersByCoin.first,
+                ),
               ),
-            ),
-            builder: (_) => WalletsSheet(coin: coin),
-          );
+            );
+          } else {
+            unawaited(
+              showModalBottomSheet<dynamic>(
+                backgroundColor: Colors.transparent,
+                context: context,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(20),
+                  ),
+                ),
+                builder: (_) => WalletsSheet(coin: coin),
+              ),
+            );
+          }
         },
         child: Row(
           children: [

@@ -306,7 +306,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                                 },
                                 style: Theme.of(context)
                                     .extension<StackColors>()!
-                                    .getSecondaryEnabledButtonColor(context),
+                                    .getSecondaryEnabledButtonStyle(context),
                                 child: Text(
                                   "Log out",
                                   style: STextStyles.button(context).copyWith(
@@ -391,7 +391,8 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
             enableSuggestions: Util.isDesktop ? false : true,
             controller: portController,
             decoration: const InputDecoration(hintText: "Port"),
-            keyboardType: const TextInputType.numberWithOptions(),
+            keyboardType:
+                Util.isDesktop ? null : const TextInputType.numberWithOptions(),
           ),
           const SizedBox(
             height: 8,

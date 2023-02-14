@@ -136,7 +136,7 @@ class _EditNoteViewState extends ConsumerState<EditTradeNoteView> {
                             },
                             style: Theme.of(context)
                                 .extension<StackColors>()!
-                                .getPrimaryEnabledButtonColor(context),
+                                .getPrimaryEnabledButtonStyle(context),
                             child: Text(
                               "Save",
                               style: STextStyles.button(context),

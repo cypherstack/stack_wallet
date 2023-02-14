@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_menu_item.dart';
@@ -13,6 +12,7 @@ import 'package:stackwallet/widgets/desktop/living_stack_icon.dart';
 enum DesktopMenuItemId {
   myStack,
   exchange,
+  buy,
   notifications,
   addressBook,
   settings,
@@ -43,6 +43,8 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
 
   double _width = expandedWidth;
 
+  // final _buyDataLoadingService = BuyDataLoadingService();
+
   void updateSelectedMenuItem(DesktopMenuItemId idKey) {
     widget.onSelectionWillChange?.call(idKey);
 
@@ -66,6 +68,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
   @override
   void initState() {
     controllers = [
+      DMIController(),
       DMIController(),
       DMIController(),
       DMIController(),
@@ -160,11 +163,22 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     ),
                     DesktopMenuItem(
                       duration: duration,
+                      icon: const DesktopBuyIcon(),
+                      label: "Buy crypto",
+                      value: DesktopMenuItemId.buy,
+                      onChanged: updateSelectedMenuItem,
+                      controller: controllers[2],
+                    ),
+                    const SizedBox(
+                      height: 2,
+                    ),
+                    DesktopMenuItem(
+                      duration: duration,
                       icon: const DesktopNotificationsIcon(),
                       label: "Notifications",
                       value: DesktopMenuItemId.notifications,
                       onChanged: updateSelectedMenuItem,
-                      controller: controllers[2],
+                      controller: controllers[3],
                     ),
                     const SizedBox(
                       height: 2,
@@ -175,7 +189,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       label: "Address Book",
                       value: DesktopMenuItemId.addressBook,
                       onChanged: updateSelectedMenuItem,
-                      controller: controllers[3],
+                      controller: controllers[4],
                     ),
                     const SizedBox(
                       height: 2,
@@ -186,7 +200,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       label: "Settings",
                       value: DesktopMenuItemId.settings,
                       onChanged: updateSelectedMenuItem,
-                      controller: controllers[4],
+                      controller: controllers[5],
                     ),
                     const SizedBox(
                       height: 2,
@@ -197,7 +211,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       label: "Support",
                       value: DesktopMenuItemId.support,
                       onChanged: updateSelectedMenuItem,
-                      controller: controllers[5],
+                      controller: controllers[6],
                     ),
                     const SizedBox(
                       height: 2,
@@ -208,7 +222,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       label: "About",
                       value: DesktopMenuItemId.about,
                       onChanged: updateSelectedMenuItem,
-                      controller: controllers[6],
+                      controller: controllers[7],
                     ),
                     const Spacer(),
                     DesktopMenuItem(
@@ -219,9 +233,10 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       value: 7,
                       onChanged: (_) {
                         // todo: save stuff/ notify before exit?
-                        exit(0);
+                        // exit(0);
+                        SystemNavigator.pop();
                       },
-                      controller: controllers[7],
+                      controller: controllers[8],
                     ),
                   ],
                 ),

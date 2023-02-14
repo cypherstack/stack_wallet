@@ -35,6 +35,7 @@ class Logging {
     isar = await Isar.open(
       [LogSchema],
       inspector: false,
+      maxSizeMiB: 512,
     );
   }
 
@@ -49,9 +50,16 @@ class Logging {
         Logger.print(object, normalLength: !printFullLength);
         return;
       }
+      String message = object.toString();
+
+      // random value to check max size of message before storing in db
+      if (message.length > 20000) {
+        message = "${message.substring(0, 20000)}...";
+      }
+
       final now = core.DateTime.now().toUtc();
       final log = Log()
-        ..message = object.toString()
+        ..message = message
         ..logLevel = level
         ..timestampInMillisUTC = now.millisecondsSinceEpoch;
       if (level == LogLevel.Error || level == LogLevel.Fatal) {

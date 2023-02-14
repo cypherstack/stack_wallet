@@ -11,7 +11,6 @@ final nonFavoritesProvider =
         (ref) {
   if (kDebugMode) {
     _count++;
-    debugPrint("nonFavoritesProvider instantiation count: $_count");
   }
 
   return nonFavorites;

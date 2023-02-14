@@ -21,6 +21,8 @@ abstract class Constants {
   }
 
   static bool enableExchange = Util.isDesktop || !Platform.isIOS;
+  static bool enableBuy =
+      true; // true for development, TODO change to "Util.isDesktop || !Platform.isIOS;" as above or even just = enableExchange
 
   //TODO: correct for monero?
   static const int _satsPerCoinMonero = 1000000000000;
@@ -38,7 +40,9 @@ abstract class Constants {
   // Enable Logger.print statements
   static const bool disableLogger = false;
 
-  static const int currentHiveDbVersion = 3;
+  static const int currentHiveDbVersion = 5;
+
+  static const int rescanV1 = 1;
 
   static int satsPerCoin(Coin coin) {
     switch (coin) {
@@ -55,6 +59,7 @@ abstract class Constants {
       case Coin.epicCash:
       case Coin.ethereum:
       case Coin.namecoin:
+      case Coin.particl:
         return _satsPerCoin;
 
       case Coin.wownero:
@@ -80,6 +85,7 @@ abstract class Constants {
       case Coin.epicCash:
       case Coin.ethereum:
       case Coin.namecoin:
+      case Coin.particl:
         return _decimalPlaces;
 
       case Coin.wownero:
@@ -106,6 +112,7 @@ abstract class Constants {
       case Coin.epicCash:
       case Coin.ethereum:
       case Coin.namecoin:
+      case Coin.particl:
         values.addAll([24, 21, 18, 15, 12]);
         break;
 
@@ -155,6 +162,9 @@ abstract class Constants {
         return 120;
 
       case Coin.namecoin:
+        return 600;
+
+      case Coin.particl:
         return 600;
     }
   }

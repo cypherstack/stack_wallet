@@ -30,7 +30,8 @@ class Wallets extends ChangeNotifier {
 
   @override
   dispose() {
-    debugPrint("Wallets dispose was called!!");
+    //todo: check if print needed
+    // debugPrint("Wallets dispose was called!!");
     super.dispose();
   }
 
@@ -61,15 +62,24 @@ class Wallets extends ChangeNotifier {
     return result;
   }
 
-  Map<Coin, List<ChangeNotifierProvider<Manager>>> getManagerProvidersByCoin() {
-    Map<Coin, List<ChangeNotifierProvider<Manager>>> result = {};
+  List<Tuple2<Coin, List<ChangeNotifierProvider<Manager>>>>
+      getManagerProvidersByCoin() {
+    Map<Coin, List<ChangeNotifierProvider<Manager>>> map = {};
     for (final manager in _managerMap.values) {
-      if (result[manager.coin] == null) {
-        result[manager.coin] = [];
+      if (map[manager.coin] == null) {
+        map[manager.coin] = [];
       }
-      result[manager.coin]!.add(_managerProviderMap[manager.walletId]
+      map[manager.coin]!.add(_managerProviderMap[manager.walletId]
           as ChangeNotifierProvider<Manager>);
     }
+    final List<Tuple2<Coin, List<ChangeNotifierProvider<Manager>>>> result = [];
+
+    for (final coin in map.keys) {
+      result.add(Tuple2(coin, map[coin]!));
+    }
+
+    result.sort((a, b) => a.item1.prettyName.compareTo(b.item1.prettyName));
+
     return result;
   }
 
@@ -145,7 +155,8 @@ class Wallets extends ChangeNotifier {
 
   static int _count = 0;
   Future<void> load(Prefs prefs) async {
-    debugPrint("++++++++++++++ Wallets().load() called: ${++_count} times");
+    //todo: check if print needed
+    // debugPrint("++++++++++++++ Wallets().load() called: ${++_count} times");
     if (hasLoaded) {
       return;
     }
@@ -236,7 +247,7 @@ class Wallets extends ChangeNotifier {
                 walletIdsToEnableAutoSync.contains(manager.walletId);
 
             if (manager.coin == Coin.monero || manager.coin == Coin.wownero) {
-              walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
+              // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
             } else {
               walletInitFutures.add(manager.initializeExisting().then((value) {
                 if (shouldSetAutoSync) {
@@ -315,8 +326,9 @@ class Wallets extends ChangeNotifier {
 
       final isVerified =
           await walletsService.isMnemonicVerified(walletId: walletId);
-      debugPrint(
-          "LOADING RESTORED WALLET: ${manager.walletName} ${manager.walletId} IS VERIFIED: $isVerified");
+      //todo: check if print needed
+      // debugPrint(
+      //     "LOADING RESTORED WALLET: ${manager.walletName} ${manager.walletId} IS VERIFIED: $isVerified");
 
       if (isVerified) {
         if (_managerMap[walletId] == null &&
@@ -325,7 +337,7 @@ class Wallets extends ChangeNotifier {
               walletIdsToEnableAutoSync.contains(manager.walletId);
 
           if (manager.coin == Coin.monero || manager.coin == Coin.wownero) {
-            walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
+            // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
           } else {
             walletInitFutures.add(manager.initializeExisting().then((value) {
               if (shouldSetAutoSync) {

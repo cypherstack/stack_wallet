@@ -27,7 +27,8 @@ class _AppearanceOptionSettings
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    return Column(
+    return SingleChildScrollView(
+        child: Column(
       children: [
         Padding(
           padding: const EdgeInsets.only(
@@ -35,113 +36,117 @@ class _AppearanceOptionSettings
           ),
           child: RoundedWhiteContainer(
             radiusMultiplier: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Wrap(
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: SvgPicture.asset(
-                    Assets.svg.circleSun,
-                    width: 48,
-                    height: 48,
-                  ),
-                ),
                 Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: RichText(
-                        textAlign: TextAlign.left,
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: "Appearances",
-                              style: STextStyles.desktopTextSmall(context),
-                            ),
-                            TextSpan(
-                              text:
-                                  "\n\nCustomize how your Stack Wallet looks according to your preferences.",
-                              style: STextStyles.desktopTextExtraExtraSmall(
-                                  context),
-                            ),
-                          ],
-                        ),
+                      padding: const EdgeInsets.all(8.0),
+                      child: SvgPicture.asset(
+                        Assets.svg.circleSun,
+                        width: 48,
+                        height: 48,
                       ),
                     ),
-                  ],
-                ),
-                const Padding(
-                  padding: EdgeInsets.all(10.0),
-                  child: Divider(
-                    thickness: 0.5,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Display favorite wallets",
-                        style: STextStyles.desktopTextExtraSmall(context)
-                            .copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark),
-                        textAlign: TextAlign.left,
-                      ),
-                      SizedBox(
-                        height: 20,
-                        width: 40,
-                        child: DraggableSwitchButton(
-                          isOn: ref.watch(
-                            prefsChangeNotifierProvider
-                                .select((value) => value.showFavoriteWallets),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: RichText(
+                            textAlign: TextAlign.left,
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: "Appearances",
+                                  style: STextStyles.desktopTextSmall(context),
+                                ),
+                                TextSpan(
+                                  text:
+                                      "\n\nCustomize how your Stack Wallet looks according to your preferences.",
+                                  style: STextStyles.desktopTextExtraExtraSmall(
+                                      context),
+                                ),
+                              ],
+                            ),
                           ),
-                          onValueChanged: (newValue) {
-                            ref
-                                .read(prefsChangeNotifierProvider)
-                                .showFavoriteWallets = newValue;
-                          },
                         ),
-                      )
-                    ],
-                  ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.all(10.0),
-                  child: Divider(
-                    thickness: 0.5,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Choose theme",
-                        style: STextStyles.desktopTextExtraSmall(context)
-                            .copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark),
-                        textAlign: TextAlign.left,
+                      ],
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.all(10.0),
+                      child: Divider(
+                        thickness: 0.5,
                       ),
-                    ],
-                  ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.all(10),
-                  child: ThemeToggle(),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Display favorite wallets",
+                            style: STextStyles.desktopTextExtraSmall(context)
+                                .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark),
+                            textAlign: TextAlign.left,
+                          ),
+                          SizedBox(
+                            height: 20,
+                            width: 40,
+                            child: DraggableSwitchButton(
+                              isOn: ref.watch(
+                                prefsChangeNotifierProvider.select(
+                                    (value) => value.showFavoriteWallets),
+                              ),
+                              onValueChanged: (newValue) {
+                                ref
+                                    .read(prefsChangeNotifierProvider)
+                                    .showFavoriteWallets = newValue;
+                              },
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.all(10.0),
+                      child: Divider(
+                        thickness: 0.5,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Choose theme",
+                            style: STextStyles.desktopTextExtraSmall(context)
+                                .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark),
+                            textAlign: TextAlign.left,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.all(10),
+                      child: ThemeToggle(),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
         ),
       ],
-    );
+    ));
   }
 }
 
@@ -163,12 +168,20 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
         return Assets.svg.themeDark;
       case ThemeType.oceanBreeze:
         return Assets.svg.themeOcean;
+      case ThemeType.oledBlack:
+        return Assets.svg.themeOledBlack;
+      case ThemeType.fruitSorbet:
+        return Assets.svg.themeFruit;
+      case ThemeType.forest:
+        return Assets.svg.themeForest;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Wrap(
+      spacing: 16,
+      runSpacing: 16,
       children: [
         for (int i = 0; i < ThemeType.values.length; i++)
           Row(

@@ -221,7 +221,7 @@ class _DesktopChooseFromStackState
                         const SizedBox(
                           width: 80,
                         ),
-                        BlueTextButton(
+                        CustomTextButton(
                           text: "Select wallet",
                           onTap: () async {
                             final address =
@@ -305,8 +305,9 @@ class _BalanceDisplayState extends ConsumerState<BalanceDisplay> {
     final locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
 
+    // TODO redo this widget now that its not actually a future
     return FutureBuilder(
-      future: manager.availableBalance,
+      future: Future(() => manager.balance.getSpendable()),
       builder: (context, AsyncSnapshot<Decimal> snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             snapshot.hasData &&

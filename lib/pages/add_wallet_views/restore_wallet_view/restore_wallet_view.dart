@@ -54,6 +54,7 @@ class RestoreWalletView extends ConsumerStatefulWidget {
     required this.walletName,
     required this.coin,
     required this.seedWordsLength,
+    required this.mnemonicPassphrase,
     required this.restoreFromDate,
     this.barcodeScanner = const BarcodeScannerWrapper(),
     this.clipboard = const ClipboardWrapper(),
@@ -63,6 +64,7 @@ class RestoreWalletView extends ConsumerStatefulWidget {
 
   final String walletName;
   final Coin coin;
+  final String mnemonicPassphrase;
   final int seedWordsLength;
   final DateTime restoreFromDate;
 
@@ -203,8 +205,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         const double overestimateSecondsPerBlock = 61;
         int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
         int approximateHeight = chosenSeconds ~/ overestimateSecondsPerBlock;
-        debugPrint(
-            "approximate height: $approximateHeight chosen_seconds: $chosenSeconds");
+        //todo: check if print needed
+        // debugPrint(
+        //     "approximate height: $approximateHeight chosen_seconds: $chosenSeconds");
         height = approximateHeight;
         if (height < 0) {
           height = 0;
@@ -289,6 +292,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           // without using them
           await manager.recoverFromMnemonic(
             mnemonic: mnemonic,
+            mnemonicPassphrase: widget.mnemonicPassphrase,
             maxUnusedAddressGap: widget.coin == Coin.firo ? 50 : 20,
             maxNumberOfIndexesToCheck: 1000,
             height: height,
@@ -372,17 +376,22 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       FormInputStatus status, String prefix) {
     Color color;
     Color prefixColor;
+    Color borderColor;
     Widget? suffixIcon;
     switch (status) {
       case FormInputStatus.empty:
         color = Theme.of(context).extension<StackColors>()!.textFieldDefaultBG;
         prefixColor = Theme.of(context).extension<StackColors>()!.textSubtitle2;
+        borderColor =
+            Theme.of(context).extension<StackColors>()!.textFieldDefaultBG;
         break;
       case FormInputStatus.invalid:
         color = Theme.of(context).extension<StackColors>()!.textFieldErrorBG;
         prefixColor = Theme.of(context)
             .extension<StackColors>()!
             .textFieldErrorSearchIconLeft;
+        borderColor =
+            Theme.of(context).extension<StackColors>()!.textFieldErrorBorder;
         suffixIcon = SvgPicture.asset(
           Assets.svg.alertCircle,
           width: 16,
@@ -397,6 +406,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         prefixColor = Theme.of(context)
             .extension<StackColors>()!
             .textFieldSuccessSearchIconLeft;
+        borderColor =
+            Theme.of(context).extension<StackColors>()!.textFieldSuccessBorder;
         suffixIcon = SvgPicture.asset(
           Assets.svg.checkCircle,
           width: 16,
@@ -448,11 +459,11 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           child: suffixIcon,
         ),
       ),
-      enabledBorder: _buildOutlineInputBorder(color),
-      focusedBorder: _buildOutlineInputBorder(color),
-      errorBorder: _buildOutlineInputBorder(color),
-      disabledBorder: _buildOutlineInputBorder(color),
-      focusedErrorBorder: _buildOutlineInputBorder(color),
+      enabledBorder: _buildOutlineInputBorder(borderColor),
+      focusedBorder: _buildOutlineInputBorder(borderColor),
+      errorBorder: _buildOutlineInputBorder(borderColor),
+      disabledBorder: _buildOutlineInputBorder(borderColor),
+      focusedErrorBorder: _buildOutlineInputBorder(borderColor),
     );
   }
 
@@ -519,7 +530,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   }
 
   Future<void> pasteMnemonic() async {
-    debugPrint("restoreWalletPasteButton tapped");
+    //todo: check if print needed
+    // debugPrint("restoreWalletPasteButton tapped");
     final ClipboardData? data =
         await widget.clipboard.getData(Clipboard.kTextPlain);
 
@@ -734,6 +746,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                           child: Column(
                                             children: [
                                               TextFormField(
+                                                autocorrect: !isDesktop,
+                                                enableSuggestions: !isDesktop,
                                                 textCapitalization:
                                                     TextCapitalization.none,
                                                 key: Key(
@@ -782,7 +796,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                         .copyWith(
                                                   color: Theme.of(context)
                                                       .extension<StackColors>()!
-                                                      .overlay,
+                                                      .textRestore,
                                                   fontSize: isDesktop ? 16 : 14,
                                                 ),
                                               ),
@@ -829,6 +843,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                           child: Column(
                                             children: [
                                               TextFormField(
+                                                autocorrect: !isDesktop,
+                                                enableSuggestions: !isDesktop,
                                                 textCapitalization:
                                                     TextCapitalization.none,
                                                 key: Key(
@@ -952,6 +968,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                     padding:
                                         const EdgeInsets.symmetric(vertical: 4),
                                     child: TextFormField(
+                                      autocorrect: !isDesktop,
+                                      enableSuggestions: !isDesktop,
                                       textCapitalization:
                                           TextCapitalization.none,
                                       key: Key("restoreMnemonicFormField_$i"),
@@ -985,7 +1003,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                           STextStyles.field(context).copyWith(
                                         color: Theme.of(context)
                                             .extension<StackColors>()!
-                                            .overlay,
+                                            .textRestore,
                                         fontSize: isDesktop ? 16 : 14,
                                       ),
                                     ),
