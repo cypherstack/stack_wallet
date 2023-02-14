@@ -69,6 +69,7 @@ class CustomPinPutState extends State<CustomPinPut>
           ),
           Center(
             child: PinKeyboard(
+              customKey: widget.customKey,
               onNumberKeyPressed: (number) {
                 if (_controller.text.length < widget.fieldsCount) {
                   _controller.text += number;

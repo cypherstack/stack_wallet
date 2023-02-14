@@ -263,7 +263,12 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                               focusNode: _toFocusNode,
                               style: STextStyles.field(context),
                               onChanged: (value) {
-                                setState(() {});
+                                model.recipientAddress = _toController.text;
+                                setState(() {
+                                  enableNext = _toController.text.isNotEmpty &&
+                                      (_refundController.text.isNotEmpty ||
+                                          !supportsRefund);
+                                });
                               },
                               decoration: standardInputDecoration(
                                 "Enter the ${model.receiveTicker.toUpperCase()} payout address",
@@ -529,7 +534,12 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                 focusNode: _refundFocusNode,
                                 style: STextStyles.field(context),
                                 onChanged: (value) {
-                                  setState(() {});
+                                  model.refundAddress = _refundController.text;
+                                  setState(() {
+                                    enableNext =
+                                        _toController.text.isNotEmpty &&
+                                            _refundController.text.isNotEmpty;
+                                  });
                                 },
                                 decoration: standardInputDecoration(
                                   "Enter ${model.sendTicker.toUpperCase()} refund address",
@@ -714,6 +724,9 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                 style: STextStyles.label(context),
                               ),
                             ),
+                          const SizedBox(
+                            height: 16,
+                          ),
                           const Spacer(),
                           Row(
                             children: [

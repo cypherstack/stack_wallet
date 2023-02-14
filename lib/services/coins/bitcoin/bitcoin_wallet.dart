@@ -742,23 +742,32 @@ class BitcoinWallet extends CoinServiceAPI
       // refresh transactions to pick up any received notification transactions
       await _refreshTransactions();
 
-      final Set<String> codesToCheck = {};
-      final nym = await PaynymIsApi().nym(myCode.toString());
-      if (nym.value != null) {
-        for (final follower in nym.value!.followers) {
-          codesToCheck.add(follower.code);
+      try {
+        final Set<String> codesToCheck = {};
+        final nym = await PaynymIsApi().nym(myCode.toString());
+        if (nym.value != null) {
+          for (final follower in nym.value!.followers) {
+            codesToCheck.add(follower.code);
+          }
+          for (final following in nym.value!.following) {
+            codesToCheck.add(following.code);
+          }
         }
-        for (final following in nym.value!.following) {
-          codesToCheck.add(following.code);
-        }
-      }
 
-      // restore paynym transactions
-      await restoreAllHistory(
-        maxUnusedAddressGap: maxUnusedAddressGap,
-        maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
-        paymentCodeStrings: codesToCheck,
-      );
+        // restore paynym transactions
+        await restoreAllHistory(
+          maxUnusedAddressGap: maxUnusedAddressGap,
+          maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+          paymentCodeStrings: codesToCheck,
+        );
+      } catch (e, s) {
+        Logging.instance.log(
+          "Failed to check paynym.is followers/following for history during "
+          "bitcoin wallet ($walletId $walletName) "
+          "_recoverWalletFromBIP32SeedPhrase: $e/n$s",
+          level: LogLevel.Error,
+        );
+      }
 
       await _updateUTXOs();
 
@@ -1267,7 +1276,7 @@ class BitcoinWallet extends CoinServiceAPI
 
   @override
   Future<void> initializeExisting() async {
-    Logging.instance.log("Opening existing ${coin.prettyName} wallet.",
+    Logging.instance.log("initializeExisting() ${coin.prettyName} wallet.",
         level: LogLevel.Info);
 
     if (getCachedId() == null) {
@@ -1276,8 +1285,8 @@ class BitcoinWallet extends CoinServiceAPI
     }
 
     await _prefs.init();
-    await _checkCurrentChangeAddressesForTransactions();
-    await _checkCurrentReceivingAddressesForTransactions();
+    // await _checkCurrentChangeAddressesForTransactions();
+    // await _checkCurrentReceivingAddressesForTransactions();
   }
 
   // hack to add tx to txData before refresh completes
@@ -1502,6 +1511,11 @@ class BitcoinWallet extends CoinServiceAPI
   ) async {
     final _mnemonic = await mnemonicString;
     final _mnemonicPassphrase = await mnemonicPassphrase;
+    if (_mnemonicPassphrase == null) {
+      Logging.instance.log(
+          "Exception in _generateAddressForChain: mnemonic passphrase null, possible migration issue; if using internal builds, delete wallet and restore from seed, if using a release build, please file bug report",
+          level: LogLevel.Error);
+    }
 
     final derivePath = constructDerivePath(
       derivePathType: derivePathType,
@@ -2907,6 +2921,11 @@ class BitcoinWallet extends CoinServiceAPI
     try {
       final _mnemonic = await mnemonicString;
       final _mnemonicPassphrase = await mnemonicPassphrase;
+      if (_mnemonicPassphrase == null) {
+        Logging.instance.log(
+            "Exception in fullRescan: mnemonic passphrase null, possible migration issue; if using internal builds, delete wallet and restore from seed, if using a release build, please file bug report",
+            level: LogLevel.Error);
+      }
 
       await _recoverWalletFromBIP32SeedPhrase(
         mnemonic: _mnemonic!,

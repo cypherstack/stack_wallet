@@ -29,6 +29,11 @@ abstract class Exchange {
 
   Future<ExchangeResponse<List<Currency>>> getAllCurrencies(bool fixedRate);
 
+  Future<ExchangeResponse<List<Currency>>> getPairedCurrencies(
+    String forCurrency,
+    bool fixedRate,
+  );
+
   Future<ExchangeResponse<List<Pair>>> getPairsFor(
     String currency,
     bool fixedRate,

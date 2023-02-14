@@ -1856,7 +1856,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
   @override
   Future<void> initializeExisting() async {
     Logging.instance.log(
-        "Opening existing $_walletId ${coin.prettyName} wallet.",
+        "initializeExisting() $_walletId ${coin.prettyName} wallet.",
         level: LogLevel.Info);
 
     if (getCachedId() == null) {
@@ -1864,8 +1864,8 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
     await _prefs.init();
-    await checkChangeAddressForTransactions();
-    await checkReceivingAddressForTransactions();
+    // await checkChangeAddressForTransactions();
+    // await checkReceivingAddressForTransactions();
   }
 
   Future<bool> refreshIfThereIsNewData() async {
@@ -2185,6 +2185,12 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
         final mnemonic = await mnemonicString;
         final mnemonicPassphrase =
             await _secureStore.read(key: '${_walletId}_mnemonicPassphrase');
+        if (mnemonicPassphrase == null) {
+          Logging.instance.log(
+              "Exception in _generateAddressForChain: mnemonic passphrase null, possible migration issue; if using internal builds, delete wallet and restore from seed, if using a release build, please file bug report",
+              level: LogLevel.Error);
+        }
+
         await fillAddresses(
           mnemonic!,
           mnemonicPassphrase!,
@@ -2281,6 +2287,11 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
   Future<List<DartLelantusEntry>> _getLelantusEntry() async {
     final _mnemonic = await mnemonicString;
     final _mnemonicPassphrase = await mnemonicPassphrase;
+    if (_mnemonicPassphrase == null) {
+      Logging.instance.log(
+          "Exception in _getLelantusEntry: mnemonic passphrase null, possible migration issue; if using internal builds, delete wallet and restore from seed, if using a release build, please file bug report",
+          level: LogLevel.Error);
+    }
 
     final List<LelantusCoin> lelantusCoins = await _getUnspentCoins();
 
@@ -2915,10 +2926,16 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       // this should normally never be null anyways but old (dbVersion up to 4)
       // migrated transactions may not have had an address (full rescan should
       // fix this)
-      final transactionAddress =
-          value.item2.subType == isar_models.TransactionSubType.mint
-              ? value.item1
-              : value.item1!;
+      isar_models.Address? transactionAddress;
+      try {
+        transactionAddress =
+            value.item2.subType == isar_models.TransactionSubType.mint
+                ? value.item1
+                : value.item1!;
+      } catch (_) {
+        Logging.instance
+            .log("_refreshLelantusData value: $value", level: LogLevel.Fatal);
+      }
       final outs =
           value.item2.outputs.where((_) => true).toList(growable: false);
       final ins = value.item2.inputs.where((_) => true).toList(growable: false);
@@ -2943,6 +2960,11 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
   Future<String> _getMintHex(int amount, int index) async {
     final _mnemonic = await mnemonicString;
     final _mnemonicPassphrase = await mnemonicPassphrase;
+    if (_mnemonicPassphrase == null) {
+      Logging.instance.log(
+          "Exception in _getMintHex: mnemonic passphrase null, possible migration issue; if using internal builds, delete wallet and restore from seed, if using a release build, please file bug report",
+          level: LogLevel.Error);
+    }
 
     final derivePath = constructDerivePath(
       networkWIF: _network.wif,
@@ -3825,6 +3847,12 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       int chain, int index) async {
     final _mnemonic = await mnemonicString;
     final _mnemonicPassphrase = await mnemonicPassphrase;
+    if (_mnemonicPassphrase == null) {
+      Logging.instance.log(
+          "Exception in _generateAddressForChain: mnemonic passphrase null, possible migration issue; if using internal builds, delete wallet and restore from seed, if using a release build, please file bug report",
+          level: LogLevel.Error);
+    }
+
     Map<String, dynamic>? derivations;
     if (chain == 0) {
       final receiveDerivationsString =
@@ -3964,6 +3992,12 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
     try {
       final _mnemonic = await mnemonicString;
       final _mnemonicPassphrase = await mnemonicPassphrase;
+      if (_mnemonicPassphrase == null) {
+        Logging.instance.log(
+            "Exception in fullRescan: mnemonic passphrase null, possible migration issue; if using internal builds, delete wallet and restore from seed, if using a release build, please file bug report",
+            level: LogLevel.Error);
+      }
+
       await _recoverWalletFromBIP32SeedPhrase(
         _mnemonic!,
         _mnemonicPassphrase!,
@@ -4376,7 +4410,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       changeAddressArray.add(changeAddress);
     }
 
-    await db.putAddresses([
+    await db.updateOrPutAddresses([
       ...receivingAddressArray,
       ...changeAddressArray,
     ]);

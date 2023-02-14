@@ -258,7 +258,7 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<void> initializeExisting() async {
     Logging.instance.log(
-      "Opening existing ${coin.prettyName} wallet $walletName...",
+      "initializeExisting() ${coin.prettyName} wallet $walletName...",
       level: LogLevel.Info,
     );
 
@@ -289,24 +289,12 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     walletBase = (await walletService!.openWallet(_walletId, password))
         as MoneroWalletBase;
 
-    await _checkCurrentReceivingAddressesForTransactions();
-    // walletBase!.onNewBlock = onNewBlock;
-    // walletBase!.onNewTransaction = onNewTransaction;
-    // walletBase!.syncStatusChanged = syncStatusChanged;
+    // await _checkCurrentReceivingAddressesForTransactions();
+
     Logging.instance.log(
       "Opened existing ${coin.prettyName} wallet $walletName",
       level: LogLevel.Info,
     );
-    // Wallet already exists, triggers for a returning user
-
-    // String indexKey = "receivingIndex";
-    // final curIndex =
-    //     await DB.instance.get<dynamic>(boxName: walletId, key: indexKey) as int;
-    // // Use new index to derive a new receiving address
-    // final newReceivingAddress = await _generateAddressForChain(0, curIndex);
-    // Logging.instance.log("xmr address in init existing: $newReceivingAddress",
-    //     level: LogLevel.Info);
-    // _currentReceivingAddress = Future(() => newReceivingAddress);
   }
 
   @override

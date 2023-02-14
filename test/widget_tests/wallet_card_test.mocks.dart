@@ -279,15 +279,18 @@ class MockWallets extends _i1.Mock implements _i17.Wallets {
         returnValue: <String>[],
       ) as List<String>);
   @override
-  Map<_i18.Coin, List<_i5.ChangeNotifierProvider<_i6.Manager>>>
+  List<_i14.Tuple2<_i18.Coin, List<_i5.ChangeNotifierProvider<_i6.Manager>>>>
       getManagerProvidersByCoin() => (super.noSuchMethod(
             Invocation.method(
               #getManagerProvidersByCoin,
               [],
             ),
-            returnValue: <_i18.Coin,
-                List<_i5.ChangeNotifierProvider<_i6.Manager>>>{},
-          ) as Map<_i18.Coin, List<_i5.ChangeNotifierProvider<_i6.Manager>>>);
+            returnValue: <
+                _i14.Tuple2<_i18.Coin,
+                    List<_i5.ChangeNotifierProvider<_i6.Manager>>>>[],
+          ) as List<
+              _i14.Tuple2<_i18.Coin,
+                  List<_i5.ChangeNotifierProvider<_i6.Manager>>>>);
   @override
   List<_i5.ChangeNotifierProvider<_i6.Manager>> getManagerProvidersForCoin(
           _i18.Coin? coin) =>
