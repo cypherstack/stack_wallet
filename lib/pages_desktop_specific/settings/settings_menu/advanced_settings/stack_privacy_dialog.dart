@@ -269,14 +269,10 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // if (isDesktop)
-                      //   const SizedBox(
-                      //     height: 10,
-                      //   ),
-                      // if (isDesktop)
-                      //   const SizedBox(
-                      //     height: 12,
-                      //   ),
+                      if (isDesktop)
+                        const SizedBox(
+                          height: 10,
+                        ),
                       (isSorbet || isOcean)
                           ? Image.asset(
                               Assets.png.personaEasy(context),
@@ -288,12 +284,10 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                               width: 120,
                               height: 120,
                             ),
-                      // if (!isSorbet || !isOcean)
-                      //   SvgPicture.asset(
-                      //     Assets.svg.personaEasy(context),
-                      //     width: 120,
-                      //     height: 120,
-                      //   ),
+                      if (isDesktop)
+                        const SizedBox(
+                          height: 12,
+                        ),
                       Center(
                         child: Text(
                           "Easy Crypto",
