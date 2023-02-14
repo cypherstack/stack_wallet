@@ -296,6 +296,11 @@ class _PNG {
   String particl(BuildContext context) =>
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/particl.png";
 
+  String personaIncognito(BuildContext context) =>
+      "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/persona-incognito-1.png";
+  String personaEasy(BuildContext context) =>
+      "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/persona-easy-1.png";
+
   String get glasses => "assets/images/glasses.png";
   String get glassesHidden => "assets/images/glasses-hidden.png";
 

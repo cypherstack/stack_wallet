@@ -339,6 +339,19 @@ flutter:
     - assets/images/oledBlack/namecoin.png
     - assets/images/oledBlack/particl.png
 
+    # ocean breeze theme coin
+    - assets/images/oceanBreeze/stack.png
+    - assets/images/oceanBreeze/monero.png
+    - assets/images/oceanBreeze/wownero.png
+    - assets/images/oceanBreeze/firo.png
+    - assets/images/oceanBreeze/litecoin.png
+    - assets/images/oceanBreeze/doge.png
+    - assets/images/oceanBreeze/bitcoin.png
+    - assets/images/oceanBreeze/epic-cash.png
+    - assets/images/oceanBreeze/bitcoincash.png
+    - assets/images/oceanBreeze/namecoin.png
+    - assets/images/oceanBreeze/particl.png
+
     # fruit sorbet theme coin
     - assets/images/fruitSorbet/stack.png
     - assets/images/fruitSorbet/monero.png
@@ -421,8 +434,8 @@ flutter:
     - assets/svg/light/bell-new.svg
     - assets/svg/light/stack-icon1.svg
     - assets/svg/light/buy-coins-icon.svg
-    - assets/svg/persona-easy-1.svg
-    - assets/svg/persona-incognito-1.svg
+    - assets/svg/light/persona-easy-1.svg
+    - assets/svg/light/persona-incognito-1.svg
 
     # dark theme specific
     - assets/svg/dark/tx-exchange-icon.svg
@@ -438,8 +451,8 @@ flutter:
     - assets/svg/dark/bell-new.svg
     - assets/svg/dark/stack-icon1.svg
     - assets/svg/dark/buy-coins-icon.svg
-    - assets/svg/persona-easy-1.svg
-    - assets/svg/persona-incognito-1.svg
+    - assets/svg/dark/persona-easy-1.svg
+    - assets/svg/dark/persona-incognito-1.svg
 
     # ocean theme specific
     - assets/svg/oceanBreeze/tx-exchange-icon.svg
@@ -456,8 +469,10 @@ flutter:
     - assets/svg/oceanBreeze/stack-icon1.svg
     - assets/svg/oceanBreeze/buy-coins-icon.svg
     - assets/svg/oceanBreeze/bg.svg
-    - assets/svg/persona-easy-1.svg
-    - assets/svg/persona-incognito-1.svg
+    - assets/svg/oceanBreeze/persona-easy-1.svg
+    - assets/svg/oceanBreeze/persona-incognito-1.svg
+    - assets/svg/oceanBreeze/persona-easy-1.png
+    - assets/svg/oceanBreeze/persona-incognito-1.png
 
     # OLED black theme specific
     - assets/svg/oledBlack/tx-exchange-icon.svg
@@ -472,9 +487,9 @@ flutter:
     - assets/svg/oledBlack/exchange-2.svg
     - assets/svg/oledBlack/bell-new.svg
     - assets/svg/oledBlack/stack-icon1.svg
-    - assets/svg/oledBlack/buy-coins-icon.svg
-    - assets/svg/persona-easy-1.svg
-    - assets/svg/persona-incognito-1.svg
+    - assets/svg/oceanBreeze/buy-coins-icon.svg
+    - assets/svg/oceanBreeze/persona-easy-1.svg
+    - assets/svg/oceanBreeze/persona-incognito-1.svg
 
     # fruit sorbet theme specific
     - assets/svg/fruitSorbet/tx-exchange-icon.svg
@@ -491,8 +506,10 @@ flutter:
     - assets/svg/fruitSorbet/stack-icon1.svg
     - assets/svg/fruitSorbet/buy-coins-icon.svg
     - assets/svg/fruitSorbet/bg.svg
-    - assets/svg/persona-easy-1.svg
-    - assets/svg/persona-incognito-1.svg
+    - assets/svg/fruitSorbet/persona-easy-1.svg
+    - assets/svg/fruitSorbet/persona-incognito-1.svg
+    - assets/svg/fruitSorbet/persona-easy-1.png
+    - assets/svg/fruitSorbet/persona-incognito-1.png
 
     # forest theme specific
     - assets/svg/forest/tx-exchange-icon.svg
@@ -509,8 +526,8 @@ flutter:
     - assets/svg/forest/stack-icon1.svg
     - assets/svg/forest/buy-coins-icon.svg
     - assets/svg/forest/bg.svg
-    - assets/svg/persona-easy-1.svg
-    - assets/svg/persona-incognito-1.svg
+    - assets/svg/forest/persona-easy-1.svg
+    - assets/svg/forest/persona-incognito-1.svg
 
     # buy
     - assets/svg/buy/Simplex-Nuvei-Logo.svg
