@@ -21,10 +21,14 @@ class CoinImage extends ConsumerWidget {
     final bool isSorbet = ref.read(colorThemeProvider.state).state.themeType ==
         ThemeType.fruitSorbet;
 
-    return isSorbet
+    return (isSorbet &&
+            coin != Coin.epicCash &&
+            coin != Coin.monero &&
+            coin != Coin.litecoin &&
+            coin != Coin.namecoin)
         ? SvgPicture.asset(
             Assets.svg.imageFor(coin: coin),
-            width: isDesktop ? 324 : MediaQuery.of(context).size.width / 2,
+            width: isDesktop ? 324 : MediaQuery.of(context).size.width,
           )
         : Image(
             image: AssetImage(
