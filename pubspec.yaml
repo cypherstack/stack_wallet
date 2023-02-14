@@ -355,15 +355,27 @@ flutter:
     # fruit sorbet theme coin
     - assets/images/fruitSorbet/stack.png
     - assets/images/fruitSorbet/monero.png
-    - assets/images/fruitSorbet/wownero.png
-    - assets/images/fruitSorbet/firo.png
+#    - assets/images/fruitSorbet/wownero.png
+#    - assets/images/fruitSorbet/firo.png
     - assets/images/fruitSorbet/litecoin.png
-    - assets/images/fruitSorbet/doge.png
-    - assets/images/fruitSorbet/bitcoin.png
+#    - assets/images/fruitSorbet/doge.png
+#    - assets/images/fruitSorbet/bitcoin.png
     - assets/images/fruitSorbet/epic-cash.png
-    - assets/images/fruitSorbet/bitcoincash.png
+#    - assets/images/fruitSorbet/bitcoincash.png
     - assets/images/fruitSorbet/namecoin.png
-    - assets/images/fruitSorbet/particl.png
+#    - assets/images/fruitSorbet/particl.png
+
+    - assets/images/fruitSorbet/bitcoin.svg
+#    - assets/images/fruitSorbet/monero.svg
+    - assets/images/fruitSorbet/wownero.svg
+    - assets/images/fruitSorbet/firo.svg
+#    - assets/images/fruitSorbet/litecoin.svg
+    - assets/images/fruitSorbet/doge.svg
+#    - assets/images/fruitSorbet/epic-cash.svg
+    - assets/images/fruitSorbet/bitcoincash.svg
+#    - assets/images/fruitSorbet/namecoin.svg
+    - assets/images/fruitSorbet/particl.svg
+
 
     # forest theme coin
     - assets/images/forest/stack.png

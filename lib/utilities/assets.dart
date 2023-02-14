@@ -207,6 +207,7 @@ class _SVG {
   String get ellipse1 => "assets/svg/Ellipse-43.svg";
   String get ellipse2 => "assets/svg/Ellipse-42.svg";
 
+  // small icons
   String get bitcoin => "assets/svg/coin_icons/Bitcoin.svg";
   String get litecoin => "assets/svg/coin_icons/Litecoin.svg";
   String get bitcoincash => "assets/svg/coin_icons/Bitcoincash.svg";
@@ -263,6 +264,52 @@ class _SVG {
         return firoTestnet;
       case Coin.dogecoinTestNet:
         return dogecoinTestnet;
+    }
+  }
+
+  // big icons
+  String get bitcoinImage => "assets/images/fruitSorbet/bitcoin.svg";
+  String get bitcoincashImage => "assets/images/fruitSorbet/bitcoincash.svg";
+  String get dogecoinImage => "assets/images/fruitSorbet/doge.svg";
+  // String get epicCashImage => "assets/images/fruitSorbet/epic-cash.svg";
+  String get firoImage => "assets/images/fruitSorbet/firo.svg";
+  // String get litecoinImage => "assets/svg/coin_icons/litecoin.svg";
+  // String get moneroImage => "assets/svg/coin_icons/Monero.svg";
+  String get wowneroImage => "assets/images/fruitSorbet/wownero.svg";
+  // String get namecoinImage => "assets/svg/coin_icons/Namecoin.svg";
+  String get particlImage => "assets/images/fruitSorbet/particl.svg";
+
+  String imageFor({required Coin coin}) {
+    switch (coin) {
+      case Coin.bitcoin:
+        return bitcoinImage;
+      case Coin.litecoin:
+      case Coin.litecoinTestNet:
+        return litecoin;
+      case Coin.bitcoincash:
+        return bitcoincashImage;
+      case Coin.dogecoin:
+        return dogecoinImage;
+      case Coin.epicCash:
+        return epicCash;
+      case Coin.firo:
+        return firoImage;
+      case Coin.monero:
+        return monero;
+      case Coin.wownero:
+        return wowneroImage;
+      case Coin.namecoin:
+        return namecoin;
+      case Coin.particl:
+        return particlImage;
+      case Coin.bitcoinTestNet:
+        return bitcoinImage;
+      case Coin.bitcoincashTestnet:
+        return bitcoincashImage;
+      case Coin.firoTestNet:
+        return firoImage;
+      case Coin.dogecoinTestNet:
+        return dogecoinImage;
     }
   }
 }
