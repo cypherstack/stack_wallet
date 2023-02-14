@@ -6,7 +6,6 @@ import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_balance_toggle_
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -75,19 +74,12 @@ class _TokenSummaryInfoState extends State<TokenSummaryInfo> {
 
               Future<Decimal>? totalBalanceFuture;
               Future<Decimal>? availableBalanceFuture;
-              if (coin == Coin.firo || coin == Coin.firoTestNet) {
-                final firoWallet =
-                    ref.watch(managerProvider.select((value) => value.wallet))
-                        as FiroWallet;
-                totalBalanceFuture = firoWallet.availablePublicBalance();
-                availableBalanceFuture = firoWallet.availablePrivateBalance();
-              } else {
-                totalBalanceFuture = ref.watch(
-                    managerProvider.select((value) => value.totalBalance));
 
-                availableBalanceFuture = ref.watch(
-                    managerProvider.select((value) => value.availableBalance));
-              }
+              final manager = ref.watch(walletsChangeNotifierProvider
+                  .select((value) => value.getManager(walletId)));
+              totalBalanceFuture = Future(() => manager.balance.getTotal());
+              availableBalanceFuture =
+                  Future(() => manager.balance.getSpendable());
 
               final locale = ref.watch(localeServiceChangeNotifierProvider
                   .select((value) => value.locale));

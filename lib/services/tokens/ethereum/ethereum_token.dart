@@ -1,25 +1,24 @@
 import 'dart:convert';
 import 'dart:math';
-import 'package:http/http.dart';
+
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/utilities/eth_commons.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
+import 'package:http/http.dart';
+import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/services/transaction_notification_tracker.dart';
+import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/tokens/token_service.dart';
-import 'package:stackwallet/utilities/format.dart';
+import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/default_nodes.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart' as models;
+import 'package:stackwallet/utilities/eth_commons.dart';
+import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackwallet/utilities/format.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:web3dart/web3dart.dart' as transaction;
-
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/services/node_service.dart';
 
 class AbiRequestResponse {
   final String message;
@@ -195,7 +194,8 @@ class EthereumToken extends TokenServiceAPI {
     String mnemonicString = mnemonic.join(' ');
 
     //Get private key for given mnemonic
-    String privateKey = getPrivateKey(mnemonicString);
+    // TODO: replace empty string with actual passphrase
+    String privateKey = getPrivateKey(mnemonicString, "");
     _credentials = EthPrivateKey.fromHex(privateKey);
 
     _contract = DeployedContract(
@@ -225,7 +225,8 @@ class EthereumToken extends TokenServiceAPI {
     String mnemonicString = mnemonic.join(' ');
 
     //Get private key for given mnemonic
-    String privateKey = getPrivateKey(mnemonicString);
+    // TODO: replace empty string with actual passphrase
+    String privateKey = getPrivateKey(mnemonicString, "");
     _credentials = EthPrivateKey.fromHex(privateKey);
 
     _contract = DeployedContract(

@@ -18,19 +18,21 @@ abstract class Constants {
   static void exchangeForExperiencedUsers(int count) {
     enableExchange =
         Util.isDesktop || Platform.isAndroid || count > 5 || !Platform.isIOS;
+    enableBuy =
+        Util.isDesktop || Platform.isAndroid || count > 5 || !Platform.isIOS;
   }
 
   static bool enableExchange = Util.isDesktop || !Platform.isIOS;
-  static bool enableBuy =
-      true; // true for development, TODO change to "Util.isDesktop || !Platform.isIOS;" as above or even just = enableExchange
+  static bool enableBuy = Util.isDesktop || !Platform.isIOS;
 
-  //TODO: correct for monero?
+  static const int _satsPerCoinEthereum = 1000000000000000000;
   static const int _satsPerCoinMonero = 1000000000000;
   static const int _satsPerCoinWownero = 100000000000;
   static const int _satsPerCoin = 100000000;
   static const int _decimalPlaces = 8;
   static const int _decimalPlacesWownero = 11;
   static const int _decimalPlacesMonero = 12;
+  static const int _decimalPlacesEthereum = 18;
 
   static const int notificationsMax = 0xFFFFFFFF;
   static const Duration networkAliveTimerDuration = Duration(seconds: 10);
@@ -57,7 +59,6 @@ abstract class Constants {
       case Coin.dogecoinTestNet:
       case Coin.firoTestNet:
       case Coin.epicCash:
-      case Coin.ethereum:
       case Coin.namecoin:
       case Coin.particl:
         return _satsPerCoin;
@@ -67,6 +68,9 @@ abstract class Constants {
 
       case Coin.monero:
         return _satsPerCoinMonero;
+
+      case Coin.ethereum:
+        return _satsPerCoinEthereum;
     }
   }
 
@@ -83,7 +87,6 @@ abstract class Constants {
       case Coin.dogecoinTestNet:
       case Coin.firoTestNet:
       case Coin.epicCash:
-      case Coin.ethereum:
       case Coin.namecoin:
       case Coin.particl:
         return _decimalPlaces;
@@ -93,6 +96,9 @@ abstract class Constants {
 
       case Coin.monero:
         return _decimalPlacesMonero;
+
+      case Coin.ethereum:
+        return _decimalPlacesEthereum;
     }
   }
 

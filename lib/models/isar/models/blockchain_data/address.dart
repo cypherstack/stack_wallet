@@ -123,6 +123,7 @@ enum AddressType {
   mimbleWimble,
   unknown,
   nonWallet,
+  ethereum,
 }
 
 // do not modify

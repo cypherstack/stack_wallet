@@ -1,54 +1,31 @@
 import 'dart:async';
 
-import 'package:decimal/decimal.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
-import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
-import 'package:stackwallet/pages/notification_views/notifications_view.dart';
-import 'package:stackwallet/pages/receive_view/receive_view.dart';
-import 'package:stackwallet/pages/send_view/send_view.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_view.dart';
-import 'package:stackwallet/pages/token_view/my_tokens_view.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/token_summary.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_navigation_bar.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_summary.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
-import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
-import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
-import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/services/tokens/ethereum/ethereum_token.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
-import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
-import 'package:stackwallet/utilities/eth_commons.dart';
-import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:tuple/tuple.dart';
 
 /// [eventBus] should only be set during testing
 class TokenView extends ConsumerStatefulWidget {
@@ -86,8 +63,6 @@ class _TokenViewState extends ConsumerState<TokenView> {
 
   late StreamSubscription<dynamic> _syncStatusSubscription;
   late StreamSubscription<dynamic> _nodeStatusSubscription;
-
-  final _cnLoadingService = ExchangeDataLoadingService();
 
   @override
   void initState() {
@@ -211,64 +186,6 @@ class _TokenViewState extends ConsumerState<TokenView> {
     }
   }
 
-  void _onExchangePressed(BuildContext context) async {
-    unawaited(_cnLoadingService.loadAll(ref));
-
-    final coin = ref.read(managerProvider).coin;
-
-    ref.read(currentExchangeNameStateProvider.state).state =
-        ChangeNowExchange.exchangeName;
-    final walletId = ref.read(managerProvider).walletId;
-    ref.read(prefsChangeNotifierProvider).exchangeRateType =
-        ExchangeRateType.estimated;
-
-    ref.read(exchangeFormStateProvider).exchange = ref.read(exchangeProvider);
-    ref.read(exchangeFormStateProvider).exchangeType =
-        ExchangeRateType.estimated;
-
-    final currencies = ref
-        .read(availableChangeNowCurrenciesProvider)
-        .currencies
-        .where((element) =>
-            element.ticker.toLowerCase() == coin.ticker.toLowerCase());
-
-    if (currencies.isNotEmpty) {
-      ref.read(exchangeFormStateProvider).setCurrencies(
-            currencies.first,
-            ref
-                .read(availableChangeNowCurrenciesProvider)
-                .currencies
-                .firstWhere(
-                  (element) =>
-                      element.ticker.toLowerCase() != coin.ticker.toLowerCase(),
-                ),
-          );
-    }
-
-    if (mounted) {
-      unawaited(
-        Navigator.of(context).pushNamed(
-          WalletInitiatedExchangeView.routeName,
-          arguments: Tuple3(
-            walletId,
-            coin,
-            _loadCNData,
-          ),
-        ),
-      );
-    }
-  }
-
-  void _loadCNData() {
-    // unawaited future
-    if (ref.read(prefsChangeNotifierProvider).externalCalls) {
-      _cnLoadingService.loadAll(ref, coin: ref.read(managerProvider).coin);
-    } else {
-      Logging.instance.log("User does not want to use external calls",
-          level: LogLevel.Info);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
@@ -357,7 +274,7 @@ class _TokenViewState extends ConsumerState<TokenView> {
                                 .textDark3,
                           ),
                         ),
-                        BlueTextButton(
+                        CustomTextButton(
                           text: "See all",
                           onTap: () {
                             Navigator.of(context).pushNamed(

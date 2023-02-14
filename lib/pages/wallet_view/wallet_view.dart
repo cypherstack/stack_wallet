@@ -36,7 +36,6 @@ import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/eth_commons.dart';
-import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -262,34 +261,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
         ),
       );
     } else {
-      // ref.read(currentExchangeNameStateProvider.state).state =
-      //     ChangeNowExchange.exchangeName;
-      // final walletId = ref.read(managerProvider).walletId;
-      // ref.read(prefsChangeNotifierProvider).exchangeRateType =
-      //     ExchangeRateType.estimated;
-      //
-      // final currencies = ref
-      //     .read(availableChangeNowCurrenciesProvider)
-      //     .currencies
-      //     .where((element) =>
-      //         element.ticker.toLowerCase() == coin.ticker.toLowerCase());
-      //
-      // if (currencies.isNotEmpty) {
-      //   ref
-      //       .read(exchangeFormStateProvider(ExchangeRateType.estimated))
-      //       .setCurrencies(
-      //         currencies.first,
-      //         ref
-      //             .read(availableChangeNowCurrenciesProvider)
-      //             .currencies
-      //             .firstWhere(
-      //               (element) =>
-      //                   element.ticker.toLowerCase() !=
-      //                   coin.ticker.toLowerCase(),
-      //             ),
-      //       );
-      // }
-
       if (mounted) {
         unawaited(
           Navigator.of(context).pushNamed(
@@ -817,11 +788,17 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                                 .read(managerProvider)
                                                 .currentReceivingAddress);
 
-                                        await Navigator.of(context).pushNamed(
-                                          MyTokensView.routeName,
-                                          arguments: Tuple4(managerProvider,
-                                              walletId, walletAddress, tokens),
-                                        );
+                                        if (mounted) {
+                                          await Navigator.of(context).pushNamed(
+                                            MyTokensView.routeName,
+                                            arguments: Tuple4(
+                                              managerProvider,
+                                              walletId,
+                                              walletAddress,
+                                              tokens,
+                                            ),
+                                          );
+                                        }
                                       },
                                     ),
                                   ),

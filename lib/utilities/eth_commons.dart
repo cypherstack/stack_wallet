@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:http/http.dart';
-import 'package:ethereum_addresses/ethereum_addresses.dart';
-import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
+import 'package:ethereum_addresses/ethereum_addresses.dart';
 import "package:hex/hex.dart";
+import 'package:http/http.dart';
+import 'package:stackwallet/models/paymint/fee_object_model.dart';
 
 class AddressTransaction {
   final String message;
@@ -25,6 +25,15 @@ class AddressTransaction {
       result: json['result'] as List<dynamic>,
       status: json['status'] as String,
     );
+  }
+
+  @override
+  String toString() {
+    return "AddressTransaction: {"
+        "\n\t message: $message,"
+        "\n\t status: $status,"
+        "\n\t result: $result,"
+        "\n}";
   }
 }
 
@@ -52,7 +61,7 @@ class GasTracker {
 const blockExplorer = "https://blockscout.com/eth/mainnet/api";
 const abiUrl =
     "https://api.etherscan.io/api"; //TODO - Once our server has abi functionality update
-const _hdPath = "m/44'/60'/0'/0";
+const hdPathEthereum = "m/44'/60'/0'/0";
 const _gasTrackerUrl =
     "https://blockscout.com/eth/mainnet/api/v1/gas-price-oracle";
 
@@ -106,16 +115,16 @@ Future<List<dynamic>> getWalletTokens(String address) async {
   return <dynamic>[];
 }
 
-String getPrivateKey(String mnemonic) {
+String getPrivateKey(String mnemonic, String mnemonicPassphrase) {
   final isValidMnemonic = bip39.validateMnemonic(mnemonic);
   if (!isValidMnemonic) {
     throw 'Invalid mnemonic';
   }
 
-  final seed = bip39.mnemonicToSeed(mnemonic);
+  final seed = bip39.mnemonicToSeed(mnemonic, passphrase: mnemonicPassphrase);
   final root = bip32.BIP32.fromSeed(seed);
   const index = 0;
-  final addressAtIndex = root.derivePath("$_hdPath/$index");
+  final addressAtIndex = root.derivePath("$hdPathEthereum/$index");
 
   return HEX.encode(addressAtIndex.privateKey as List<int>);
 }

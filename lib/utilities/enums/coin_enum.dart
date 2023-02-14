@@ -187,6 +187,7 @@ extension CoinExt on Coin {
       case Coin.litecoin:
       case Coin.bitcoincash:
       case Coin.dogecoin:
+      case Coin.ethereum:
         return true;
 
       case Coin.firo:

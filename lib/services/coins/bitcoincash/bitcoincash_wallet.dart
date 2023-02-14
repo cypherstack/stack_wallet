@@ -1597,8 +1597,9 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
       case DerivePathType.bip49:
         key = "${walletId}_${chainId}DerivationsP2SH";
         break;
-      case DerivePathType.bip84:
-        throw UnsupportedError("bip84 not supported by BCH");
+      default:
+        throw UnsupportedError(
+            "${derivePathType.name} not supported by ${coin.prettyName}");
     }
     return key;
   }
@@ -2712,7 +2713,8 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
               addressTxid[address] = <String>[];
             }
             (addressTxid[address] as List).add(txid);
-            switch (addressType(address: address)) {
+            final deriveType = addressType(address: address);
+            switch (deriveType) {
               case DerivePathType.bip44:
               case DerivePathType.bch44:
                 addressesP2PKH.add(address);
@@ -2720,8 +2722,9 @@ class BitcoinCashWallet extends CoinServiceAPI with WalletCache, WalletDB {
               case DerivePathType.bip49:
                 addressesP2SH.add(address);
                 break;
-              case DerivePathType.bip84:
-                throw UnsupportedError("bip84 not supported by BCH");
+              default:
+                throw UnsupportedError(
+                    "${deriveType.name} not supported by ${coin.prettyName}");
             }
           }
         }

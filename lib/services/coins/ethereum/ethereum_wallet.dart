@@ -1,115 +1,109 @@
 import 'dart:async';
-import 'dart:math';
-import 'package:bip39/bip39.dart' as bip39;
 
+import 'package:bip39/bip39.dart' as bip39;
 import 'package:decimal/decimal.dart';
-import 'package:devicelocale/devicelocale.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
+import 'package:http/http.dart';
+import 'package:isar/isar.dart';
+import 'package:stackwallet/db/main_db.dart';
+import 'package:stackwallet/models/balance.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
-import 'package:stackwallet/models/paymint/utxo_model.dart';
-import 'package:stackwallet/services/price.dart';
+import 'package:stackwallet/services/coins/coin_service.dart';
+import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/mixins/wallet_cache.dart';
+import 'package:stackwallet/services/mixins/wallet_db.dart';
+import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
+import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/eth_commons.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/prefs.dart';
-import 'package:web3dart/web3dart.dart';
-import 'package:web3dart/web3dart.dart' as Transaction;
-import 'package:stackwallet/models/models.dart' as models;
-
-import 'package:http/http.dart';
-
-import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/services/coins/coin_service.dart';
-
-import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/services/notifications_api.dart';
-import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
+import 'package:stackwallet/utilities/prefs.dart';
+import 'package:tuple/tuple.dart';
+import 'package:web3dart/web3dart.dart' as web3;
 
 const int MINIMUM_CONFIRMATIONS = 3;
 
-class EthereumWallet extends CoinServiceAPI {
-  NodeModel? _ethNode;
-  final _gasLimit = 21000;
-
-  @override
-  String get walletId => _walletId;
-  late String _walletId;
-
-  late String _walletName;
-  late Coin _coin;
-  Timer? timer;
-  Timer? _networkAliveTimer;
-
-  @override
-  set isFavorite(bool markFavorite) {
-    DB.instance.put<dynamic>(
-        boxName: walletId, key: "isFavorite", value: markFavorite);
-  }
-
-  @override
-  bool get isFavorite {
-    try {
-      return DB.instance.get<dynamic>(boxName: walletId, key: "isFavorite")
-          as bool;
-    } catch (e, s) {
-      Logging.instance.log(
-          "isFavorite fetch failed (returning false by default): $e\n$s",
-          level: LogLevel.Error);
-      return false;
-    }
-  }
-
-  @override
-  Coin get coin => _coin;
-
-  late SecureStorageInterface _secureStore;
-  late final TransactionNotificationTracker txTracker;
-  late PriceAPI _priceAPI;
-  final _prefs = Prefs.instance;
-  bool longMutex = false;
-
-  Future<NodeModel> getCurrentNode() async {
-    return NodeService(secureStorageInterface: _secureStore)
-            .getPrimaryNodeFor(coin: coin) ??
-        DefaultNodes.getNodeFor(coin);
-  }
-
-  Future<Web3Client> getEthClient() async {
-    final node = await getCurrentNode();
-    return Web3Client(node.host, Client());
-  }
-
-  late EthPrivateKey _credentials;
-
+class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
   EthereumWallet({
     required String walletId,
     required String walletName,
     required Coin coin,
-    PriceAPI? priceAPI,
     required SecureStorageInterface secureStore,
     required TransactionNotificationTracker tracker,
+    MainDB? mockableOverride,
   }) {
     txTracker = tracker;
     _walletId = walletId;
     _walletName = walletName;
     _coin = coin;
-    _priceAPI = priceAPI ?? PriceAPI(Client());
     _secureStore = secureStore;
+    initCache(walletId, coin);
+    initWalletDB(mockableOverride: mockableOverride);
   }
+
+  NodeModel? _ethNode;
+
+  final _gasLimit = 21000;
+
+  Timer? timer;
+  Timer? _networkAliveTimer;
+
+  @override
+  String get walletId => _walletId;
+  late String _walletId;
+
+  @override
+  String get walletName => _walletName;
+  late String _walletName;
+
+  @override
+  set walletName(String newName) => _walletName = newName;
+
+  @override
+  set isFavorite(bool markFavorite) {
+    _isFavorite = markFavorite;
+    updateCachedIsFavorite(markFavorite);
+  }
+
+  @override
+  bool get isFavorite => _isFavorite ??= getCachedIsFavorite();
+  bool? _isFavorite;
+
+  @override
+  Coin get coin => _coin;
+  late Coin _coin;
+
+  late SecureStorageInterface _secureStore;
+  late final TransactionNotificationTracker txTracker;
+  final _prefs = Prefs.instance;
+  bool longMutex = false;
+
+  NodeModel getCurrentNode() {
+    return _ethNode ??
+        NodeService(secureStorageInterface: _secureStore)
+            .getPrimaryNodeFor(coin: coin) ??
+        DefaultNodes.getNodeFor(coin);
+  }
+
+  web3.Web3Client getEthClient() {
+    final node = getCurrentNode();
+    return web3.Web3Client(node.host, Client());
+  }
+
+  late web3.EthPrivateKey _credentials;
 
   bool _shouldAutoSync = false;
 
@@ -132,62 +126,66 @@ class EthereumWallet extends CoinServiceAPI {
   }
 
   @override
-  String get walletName => _walletName;
+  Future<List<UTXO>> get utxos => db.getUTXOs(walletId).findAll();
 
   @override
-  Future<List<String>> get allOwnAddresses =>
-      _allOwnAddresses ??= _fetchAllOwnAddresses();
-  Future<List<String>>? _allOwnAddresses;
+  Future<List<Transaction>> get transactions =>
+      db.getTransactions(walletId).sortByTimestampDesc().findAll();
 
-  Future<List<String>> _fetchAllOwnAddresses() async {
-    List<String> addresses = [];
-    final ownAddress = _credentials.address;
-    addresses.add(ownAddress.toString());
-    return addresses;
+  @override
+  Future<String> get currentReceivingAddress async {
+    final address = await _currentReceivingAddress;
+    return address?.value ??
+        checksumEthereumAddress(_credentials.address.toString());
   }
 
-  @override
-  Future<Decimal> get availableBalance async {
-    Web3Client client = await getEthClient();
-    EtherAmount ethBalance = await client.getBalance(_credentials.address);
-    return Decimal.parse(ethBalance.getValueInUnit(EtherUnit.ether).toString());
-  }
+  Future<Address?> get _currentReceivingAddress => db
+      .getAddresses(walletId)
+      .filter()
+      .typeEqualTo(AddressType.p2wpkh)
+      .subTypeEqualTo(AddressSubType.receiving)
+      .sortByDerivationIndexDesc()
+      .findFirst();
 
   @override
-  Future<Decimal> get balanceMinusMaxFee async =>
-      (await availableBalance) -
-      (Decimal.fromInt((await maxFee)) /
-              Decimal.fromInt(Constants.satsPerCoin(coin)))
-          .toDecimal();
+  Balance get balance => _balance ??= getCachedBalance();
+  Balance? _balance;
+
+  Future<void> updateBalance() async {
+    web3.Web3Client client = getEthClient();
+    web3.EtherAmount ethBalance = await client.getBalance(_credentials.address);
+    // TODO: check if toInt() is ok and if getBalance actually returns enough balance data
+    _balance = Balance(
+      coin: coin,
+      total: ethBalance.getInWei.toInt(),
+      spendable: ethBalance.getInWei.toInt(),
+      blockedTotal: 0,
+      pendingSpendable: 0,
+    );
+    await updateCachedBalance(_balance!);
+  }
 
   @override
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
-    Web3Client client = await getEthClient();
+    web3.Web3Client client = getEthClient();
     final int chainId = await client.getNetworkId();
     final amount = txData['recipientAmt'];
-    final decimalAmount =
-        Format.satoshisToAmount(amount as int, coin: Coin.ethereum);
-    const decimal = 18; //Eth has up to 18 decimal places
-    final bigIntAmount = amountToBigInt(decimalAmount.toDouble(), decimal);
+    final decimalAmount = Format.satoshisToAmount(amount as int, coin: coin);
+    final bigIntAmount = amountToBigInt(
+      decimalAmount.toDouble(),
+      Constants.decimalPlacesForCoin(coin),
+    );
 
-    final tx = Transaction.Transaction(
-        to: EthereumAddress.fromHex(txData['address'] as String),
-        gasPrice:
-            EtherAmount.fromUnitAndValue(EtherUnit.wei, txData['feeInWei']),
+    final tx = web3.Transaction(
+        to: web3.EthereumAddress.fromHex(txData['address'] as String),
+        gasPrice: web3.EtherAmount.fromUnitAndValue(
+            web3.EtherUnit.wei, txData['feeInWei']),
         maxGas: _gasLimit,
-        value: EtherAmount.inWei(bigIntAmount));
+        value: web3.EtherAmount.inWei(bigIntAmount));
     final transaction =
         await client.sendTransaction(_credentials, tx, chainId: chainId);
 
     return transaction;
-  }
-
-  @override
-  Future<String> get currentReceivingAddress async {
-    final _currentReceivingAddress = _credentials.address;
-    final checkSumAddress =
-        checksumEthereumAddress(_currentReceivingAddress.toString());
-    return checkSumAddress;
   }
 
   @override
@@ -233,61 +231,102 @@ class EthereumWallet extends CoinServiceAPI {
 
   @override
   Future<void> initializeExisting() async {
+    Logging.instance.log(
+      "initializeExisting() ${coin.prettyName} wallet",
+      level: LogLevel.Info,
+    );
+
     //First get mnemonic so we can initialize credentials
-    final mnemonicString =
-        await _secureStore.read(key: '${_walletId}_mnemonic');
-    String privateKey = getPrivateKey(mnemonicString!);
-    _credentials = EthPrivateKey.fromHex(privateKey);
+    String privateKey =
+        getPrivateKey((await mnemonicString)!, (await mnemonicPassphrase)!);
+    _credentials = web3.EthPrivateKey.fromHex(privateKey);
 
-    Logging.instance.log("Opening existing ${coin.prettyName} wallet.",
-        level: LogLevel.Info);
-
-    if ((DB.instance.get<dynamic>(boxName: walletId, key: "id")) == null) {
+    if (getCachedId() == null) {
       throw Exception(
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
     }
     await _prefs.init();
-    final data =
-        DB.instance.get<dynamic>(boxName: walletId, key: "latest_tx_model")
-            as TransactionData?;
-    if (data != null) {
-      _transactionData = Future(() => data);
-    }
   }
 
   @override
   Future<void> initializeNew() async {
+    Logging.instance.log(
+      "Generating new ${coin.prettyName} wallet.",
+      level: LogLevel.Info,
+    );
+
+    if (getCachedId() != null) {
+      throw Exception(
+          "Attempted to initialize a new wallet using an existing wallet ID!");
+    }
+
     await _prefs.init();
+
+    try {
+      await _generateNewWallet();
+    } catch (e, s) {
+      Logging.instance.log(
+        "Exception rethrown from initializeNew(): $e\n$s",
+        level: LogLevel.Fatal,
+      );
+      rethrow;
+    }
+    await Future.wait([
+      updateCachedId(walletId),
+      updateCachedIsFavorite(false),
+    ]);
+  }
+
+  Future<void> _generateNewWallet() async {
+    // Logging.instance
+    //     .log("IS_INTEGRATION_TEST: $integrationTestFlag", level: LogLevel.Info);
+    // if (!integrationTestFlag) {
+    //   try {
+    //     final features = await electrumXClient.getServerFeatures();
+    //     Logging.instance.log("features: $features", level: LogLevel.Info);
+    //     switch (coin) {
+    //       case Coin.namecoin:
+    //         if (features['genesis_hash'] != GENESIS_HASH_MAINNET) {
+    //           throw Exception("genesis hash does not match main net!");
+    //         }
+    //         break;
+    //       default:
+    //         throw Exception(
+    //             "Attempted to generate a EthereumWallet using a non eth coin type: ${coin.name}");
+    //     }
+    //   } catch (e, s) {
+    //     Logging.instance.log("$e/n$s", level: LogLevel.Info);
+    //   }
+    // }
+
+    // this should never fail - sanity check
+    if ((await mnemonicString) != null || (await mnemonicPassphrase) != null) {
+      throw Exception(
+          "Attempted to overwrite mnemonic on generate new wallet!");
+    }
+
     final String mnemonic = bip39.generateMnemonic(strength: 256);
     await _secureStore.write(key: '${_walletId}_mnemonic', value: mnemonic);
-    String privateKey = getPrivateKey(mnemonic);
-    _credentials = EthPrivateKey.fromHex(privateKey);
-    //Store credentials in secure store
     await _secureStore.write(
-        key: '${_walletId}_credentials', value: _credentials.toString());
+      key: '${_walletId}_mnemonicPassphrase',
+      value: "",
+    );
 
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'receivingAddresses',
-        value: [_credentials.address.toString()]);
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: "receivingIndex", value: 0);
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: "changeIndex", value: 0);
-    await DB.instance.put<dynamic>(
-      boxName: walletId,
-      key: 'blocked_tx_hashes',
-      value: ["0xdefault"],
-    ); // A list of transaction hashes to represent frozen utxos in wallet
-    // initialize address book entries
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'addressBookEntries',
-        value: <String, String>{});
-    await DB.instance
-        .put<dynamic>(boxName: walletId, key: "isFavorite", value: false);
+    String privateKey = getPrivateKey(mnemonic, "");
+    _credentials = web3.EthPrivateKey.fromHex(privateKey);
+
+    final address = Address(
+      walletId: walletId, value: _credentials.address.toString(),
+      publicKey: [], // maybe store address bytes here? seems a waste of space though
+      derivationIndex: 0,
+      derivationPath: DerivationPath()..value = "$hdPathEthereum/0",
+      type: AddressType.ethereum,
+      subType: AddressSubType.receiving,
+    );
+
+    await db.putAddress(address);
+
+    Logging.instance.log("_generateNewWalletFinished", level: LogLevel.Info);
   }
 
   bool _isConnected = false;
@@ -310,43 +349,47 @@ class EthereumWallet extends CoinServiceAPI {
   @override
   Future<List<String>> get mnemonic => _getMnemonicList();
 
-  Future<int> get chainHeight async {
-    Web3Client client = await getEthClient();
-    try {
-      final result = await client.getBlockNumber();
+  @override
+  Future<String?> get mnemonicString =>
+      _secureStore.read(key: '${_walletId}_mnemonic');
 
-      return result;
+  @override
+  Future<String?> get mnemonicPassphrase => _secureStore.read(
+        key: '${_walletId}_mnemonicPassphrase',
+      );
+
+  Future<int> get chainHeight async {
+    web3.Web3Client client = getEthClient();
+    try {
+      final height = await client.getBlockNumber();
+      await updateCachedChainHeight(height);
+      if (height > storedChainHeight) {
+        GlobalEventBus.instance.fire(
+          UpdatedInBackgroundEvent(
+            "Updated current chain height in $walletId $walletName!",
+            walletId,
+          ),
+        );
+      }
+      return height;
     } catch (e, s) {
       Logging.instance.log("Exception caught in chainHeight: $e\n$s",
           level: LogLevel.Error);
-      return -1;
+      return storedChainHeight;
     }
-  }
-
-  int get storedChainHeight {
-    final storedHeight = DB.instance
-        .get<dynamic>(boxName: walletId, key: "storedChainHeight") as int?;
-    return storedHeight ?? 0;
-  }
-
-  Future<void> updateStoredChainHeight({required int newHeight}) async {
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: "storedChainHeight", value: newHeight);
-  }
-
-  Future<List<String>> _getMnemonicList() async {
-    final mnemonicString =
-        await _secureStore.read(key: '${_walletId}_mnemonic');
-    if (mnemonicString == null) {
-      return [];
-    }
-    final List<String> data = mnemonicString.split(' ');
-    return data;
   }
 
   @override
-  // TODO: implement pendingBalance - Not needed since we don't use UTXOs to get a balance
-  Future<Decimal> get pendingBalance => throw UnimplementedError();
+  int get storedChainHeight => getCachedChainHeight();
+
+  Future<List<String>> _getMnemonicList() async {
+    final _mnemonicString = await mnemonicString;
+    if (_mnemonicString == null) {
+      return [];
+    }
+    final List<String> data = _mnemonicString.split(' ');
+    return data;
+  }
 
   @override
   Future<Map<String, dynamic>> prepareSend(
@@ -371,9 +414,8 @@ class EthereumWallet extends CoinServiceAPI {
     final feeEstimate = await estimateFeeFor(satoshiAmount, fee);
 
     bool isSendAll = false;
-    final balance =
-        Format.decimalAmountToSatoshis(await availableBalance, coin);
-    if (satoshiAmount == balance) {
+    final availableBalance = balance.spendable;
+    if (satoshiAmount == availableBalance) {
       isSendAll = true;
     }
 
@@ -393,30 +435,51 @@ class EthereumWallet extends CoinServiceAPI {
   }
 
   @override
-  Future<void> recoverFromMnemonic(
-      {required String mnemonic,
-      required int maxUnusedAddressGap,
-      required int maxNumberOfIndexesToCheck,
-      required int height}) async {
+  Future<void> recoverFromMnemonic({
+    required String mnemonic,
+    String? mnemonicPassphrase,
+    required int maxUnusedAddressGap,
+    required int maxNumberOfIndexesToCheck,
+    required int height,
+  }) async {
     longMutex = true;
     final start = DateTime.now();
 
     try {
-      if ((await _secureStore.read(key: '${_walletId}_mnemonic')) != null) {
+      // check to make sure we aren't overwriting a mnemonic
+      // this should never fail
+      if ((await mnemonicString) != null ||
+          (await this.mnemonicPassphrase) != null) {
         longMutex = false;
         throw Exception("Attempted to overwrite mnemonic on restore!");
       }
 
       await _secureStore.write(
           key: '${_walletId}_mnemonic', value: mnemonic.trim());
+      await _secureStore.write(
+        key: '${_walletId}_mnemonicPassphrase',
+        value: mnemonicPassphrase ?? "",
+      );
 
-      String privateKey = getPrivateKey(mnemonic);
-      _credentials = EthPrivateKey.fromHex(privateKey);
+      String privateKey =
+          getPrivateKey(mnemonic.trim(), mnemonicPassphrase ?? "");
+      _credentials = web3.EthPrivateKey.fromHex(privateKey);
 
-      await DB.instance
-          .put<dynamic>(boxName: walletId, key: "id", value: _walletId);
-      await DB.instance
-          .put<dynamic>(boxName: walletId, key: "isFavorite", value: false);
+      final address = Address(
+        walletId: walletId, value: _credentials.address.toString(),
+        publicKey: [], // maybe store address bytes here? seems a waste of space though
+        derivationIndex: 0,
+        derivationPath: DerivationPath()..value = "$hdPathEthereum/0",
+        type: AddressType.ethereum,
+        subType: AddressSubType.receiving,
+      );
+
+      await db.putAddress(address);
+
+      await Future.wait([
+        updateCachedId(walletId),
+        updateCachedIsFavorite(false),
+      ]);
     } catch (e, s) {
       Logging.instance.log(
           "Exception rethrown from recoverFromMnemonic(): $e\n$s",
@@ -432,8 +495,20 @@ class EthereumWallet extends CoinServiceAPI {
         level: LogLevel.Info);
   }
 
+  Future<List<Address>> _fetchAllOwnAddresses() => db
+      .getAddresses(walletId)
+      .filter()
+      .not()
+      .typeEqualTo(AddressType.nonWallet)
+      .and()
+      .group((q) => q
+          .subTypeEqualTo(AddressSubType.receiving)
+          .or()
+          .subTypeEqualTo(AddressSubType.change))
+      .findAll();
+
   Future<bool> refreshIfThereIsNewData() async {
-    Web3Client client = await getEthClient();
+    web3.Web3Client client = getEthClient();
     if (longMutex) return false;
     if (_hasCalledExit) return false;
     final currentChainHeight = await chainHeight;
@@ -462,18 +537,24 @@ class EthereumWallet extends CoinServiceAPI {
       if (!needsRefresh) {
         var allOwnAddresses = await _fetchAllOwnAddresses();
         AddressTransaction addressTransactions = await fetchAddressTransactions(
-            allOwnAddresses.elementAt(0), "txlist");
-        final txData = await transactionData;
+            allOwnAddresses.elementAt(0).value, "txlist");
         if (addressTransactions.message == "OK") {
           final allTxs = addressTransactions.result;
-          allTxs.forEach((element) {
-            if (txData.findTransaction(element["hash"] as String) == null) {
+          for (final element in allTxs) {
+            final txid = element["hash"] as String;
+            if ((await db
+                    .getTransactions(walletId)
+                    .filter()
+                    .txidMatches(txid)
+                    .findFirst()) ==
+                null) {
               Logging.instance.log(
-                  " txid not found in address history already ${element["hash"]}",
+                  " txid not found in address history already ${element['hash']}",
                   level: LogLevel.Info);
               needsRefresh = true;
+              break;
             }
-          });
+          }
         }
       }
       return needsRefresh;
@@ -485,16 +566,25 @@ class EthereumWallet extends CoinServiceAPI {
     }
   }
 
-  Future<void> getAllTxsToWatch(
-    TransactionData txData,
-  ) async {
+  Future<void> getAllTxsToWatch() async {
     if (_hasCalledExit) return;
-    List<models.Transaction> unconfirmedTxnsToNotifyPending = [];
-    List<models.Transaction> unconfirmedTxnsToNotifyConfirmed = [];
+    List<Transaction> unconfirmedTxnsToNotifyPending = [];
+    List<Transaction> unconfirmedTxnsToNotifyConfirmed = [];
 
-    for (final chunk in txData.txChunks) {
-      for (final tx in chunk.transactions) {
-        if (tx.confirmedStatus) {
+    final currentChainHeight = await chainHeight;
+
+    final txCount = await db.getTransactions(walletId).count();
+
+    const paginateLimit = 50;
+
+    for (int i = 0; i < txCount; i += paginateLimit) {
+      final transactions = await db
+          .getTransactions(walletId)
+          .offset(i)
+          .limit(paginateLimit)
+          .findAll();
+      for (final tx in transactions) {
+        if (tx.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
           // get all transactions that were notified as pending but not as confirmed
           if (txTracker.wasNotifiedPending(tx.txid) &&
               !txTracker.wasNotifiedConfirmed(tx.txid)) {
@@ -511,31 +601,33 @@ class EthereumWallet extends CoinServiceAPI {
 
     // notify on unconfirmed transactions
     for (final tx in unconfirmedTxnsToNotifyPending) {
-      if (tx.txType == "Received") {
+      final confirmations = tx.getConfirmations(currentChainHeight);
+
+      if (tx.type == TransactionType.incoming) {
         unawaited(NotificationApi.showNotification(
           title: "Incoming transaction",
           body: walletName,
           walletId: walletId,
           iconAssetName: Assets.svg.iconFor(coin: coin),
           date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
-          shouldWatchForUpdates: tx.confirmations < MINIMUM_CONFIRMATIONS,
+          shouldWatchForUpdates: confirmations < MINIMUM_CONFIRMATIONS,
           coinName: coin.name,
           txid: tx.txid,
-          confirmations: tx.confirmations,
+          confirmations: confirmations,
           requiredConfirmations: MINIMUM_CONFIRMATIONS,
         ));
         await txTracker.addNotifiedPending(tx.txid);
-      } else if (tx.txType == "Sent") {
+      } else if (tx.type == TransactionType.outgoing) {
         unawaited(NotificationApi.showNotification(
           title: "Sending transaction",
           body: walletName,
           walletId: walletId,
           iconAssetName: Assets.svg.iconFor(coin: coin),
           date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
-          shouldWatchForUpdates: tx.confirmations < MINIMUM_CONFIRMATIONS,
+          shouldWatchForUpdates: confirmations < MINIMUM_CONFIRMATIONS,
           coinName: coin.name,
           txid: tx.txid,
-          confirmations: tx.confirmations,
+          confirmations: confirmations,
           requiredConfirmations: MINIMUM_CONFIRMATIONS,
         ));
         await txTracker.addNotifiedPending(tx.txid);
@@ -544,7 +636,7 @@ class EthereumWallet extends CoinServiceAPI {
 
     // notify on confirmed
     for (final tx in unconfirmedTxnsToNotifyConfirmed) {
-      if (tx.txType == "Received") {
+      if (tx.type == TransactionType.incoming) {
         unawaited(NotificationApi.showNotification(
           title: "Incoming transaction confirmed",
           body: walletName,
@@ -555,7 +647,7 @@ class EthereumWallet extends CoinServiceAPI {
           coinName: coin.name,
         ));
         await txTracker.addNotifiedConfirmed(tx.txid);
-      } else if (tx.txType == "Sent") {
+      } else if (tx.type == TransactionType.outgoing) {
         unawaited(NotificationApi.showNotification(
           title: "Outgoing transaction confirmed",
           body: walletName,
@@ -601,14 +693,9 @@ class EthereumWallet extends CoinServiceAPI {
           .log("cached height: $storedHeight", level: LogLevel.Info);
 
       if (currentHeight != storedHeight) {
-        if (currentHeight != -1) {
-          // -1 failed to fetch current height
-          unawaited(updateStoredChainHeight(newHeight: currentHeight));
-        }
-
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.2, walletId));
 
-        final newTxData = _fetchTransactionData();
+        final newTxDataFuture = _refreshTransactions();
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.50, walletId));
 
@@ -616,17 +703,16 @@ class EthereumWallet extends CoinServiceAPI {
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.60, walletId));
 
-        _transactionData = Future(() => newTxData);
-
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.70, walletId));
         _feeObject = Future(() => feeObj);
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.80, walletId));
 
-        final allTxsToWatch = getAllTxsToWatch(await newTxData);
+        final allTxsToWatch = getAllTxsToWatch();
         await Future.wait([
-          newTxData,
+          updateBalance(),
+          newTxDataFuture,
           feeObj,
           allTxsToWatch,
         ]);
@@ -679,17 +765,8 @@ class EthereumWallet extends CoinServiceAPI {
   }
 
   @override
-  Future<String> send(
-      {required String toAddress,
-      required int amount,
-      Map<String, String> args = const {}}) {
-    // TODO: implement send
-    throw UnimplementedError();
-  }
-
-  @override
   Future<bool> testNetworkConnection() async {
-    Web3Client client = await getEthClient();
+    web3.Web3Client client = getEthClient();
     try {
       final result = await client.isListeningForNetwork();
       return result;
@@ -709,24 +786,6 @@ class EthereumWallet extends CoinServiceAPI {
           .fire(NodeConnectionStatusChangedEvent(status, walletId, coin));
     }
   }
-
-  @override
-  Future<Decimal> get totalBalance async {
-    Web3Client client = await getEthClient();
-    EtherAmount ethBalance = await client.getBalance(_credentials.address);
-    return Decimal.parse(ethBalance.getValueInUnit(EtherUnit.ether).toString());
-  }
-
-  @override
-  Future<TransactionData> get transactionData =>
-      _transactionData ??= _fetchTransactionData();
-  Future<TransactionData>? _transactionData;
-
-  TransactionData? cachedTxData;
-
-  @override
-  // TODO: implement unspentOutputs - NOT NEEDED, ETH DOES NOT USE UTXOs
-  Future<List<UtxoObject>> get unspentOutputs => throw UnimplementedError();
 
   @override
   Future<void> updateNode(bool shouldRefresh) async {
@@ -749,136 +808,113 @@ class EthereumWallet extends CoinServiceAPI {
     return isValidEthereumAddress(address);
   }
 
-  Future<TransactionData> _fetchTransactionData() async {
+  Future<void> _refreshTransactions() async {
     String thisAddress = await currentReceivingAddress;
-    final cachedTransactions =
-        DB.instance.get<dynamic>(boxName: walletId, key: 'latest_tx_model')
-            as TransactionData?;
-    int latestTxnBlockHeight =
-        DB.instance.get<dynamic>(boxName: walletId, key: "storedTxnDataHeight")
-                as int? ??
-            0;
-
-    final priceData =
-        await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
-    Decimal currentPrice = priceData[coin]?.item1 ?? Decimal.zero;
-    final List<Map<String, dynamic>> midSortedArray = [];
 
     AddressTransaction txs =
         await fetchAddressTransactions(thisAddress, "txlist");
 
     if (txs.message == "OK") {
       final allTxs = txs.result;
-      allTxs.forEach((element) {
-        Map<String, dynamic> midSortedTx = {};
-        // create final tx map
-        midSortedTx["txid"] = element["hash"];
-        int confirmations = int.parse(element['confirmations'].toString());
-
+      final List<Tuple2<Transaction, Address?>> txnsData = [];
+      for (final element in allTxs) {
         int transactionAmount = int.parse(element['value'].toString());
-        const decimal = 18; //Eth has up to 18 decimal places
-        final transactionAmountInDecimal =
-            transactionAmount / (pow(10, decimal));
 
-        //Convert to satoshi, default display for other coins
-        final satAmount = Format.decimalAmountToSatoshis(
-            Decimal.parse(transactionAmountInDecimal.toString()), coin);
-
-        midSortedTx["confirmed_status"] =
-            (confirmations != 0) && (confirmations >= MINIMUM_CONFIRMATIONS);
-        midSortedTx["confirmations"] = confirmations;
-        midSortedTx["timestamp"] = element["timeStamp"];
-
+        bool isIncoming;
+        bool txFailed = false;
         if (checksumEthereumAddress(element["from"].toString()) ==
             thisAddress) {
-          midSortedTx["txType"] = (int.parse(element["isError"] as String) == 0)
-              ? "Sent"
-              : "Send Failed";
+          if (!(int.parse(element["isError"] as String) == 0)) {
+            txFailed = true;
+          }
+          isIncoming = false;
         } else {
-          midSortedTx["txType"] = "Received";
+          isIncoming = true;
         }
-
-        midSortedTx["amount"] = satAmount;
-        final String worthNow = ((currentPrice * Decimal.fromInt(satAmount)) /
-                Decimal.fromInt(Constants.satsPerCoin(coin)))
-            .toDecimal(scaleOnInfinitePrecision: 2)
-            .toStringAsFixed(2);
 
         //Calculate fees (GasLimit * gasPrice)
         int txFee = int.parse(element['gasPrice'].toString()) *
             int.parse(element['gasUsed'].toString());
-        final txFeeDecimal = txFee / (pow(10, decimal));
 
-        midSortedTx["worthNow"] = worthNow;
-        midSortedTx["worthAtBlockTimestamp"] = worthNow;
-        midSortedTx["aliens"] = <dynamic>[];
-        midSortedTx["fees"] = Format.decimalAmountToSatoshis(
-            Decimal.parse(txFeeDecimal.toString()), coin);
-        midSortedTx["address"] = element["to"];
-        midSortedTx["inputSize"] = 1;
-        midSortedTx["outputSize"] = 1;
-        midSortedTx["inputs"] = <dynamic>[];
-        midSortedTx["outputs"] = <dynamic>[];
-        midSortedTx["height"] = int.parse(element['blockNumber'].toString());
+        final String addressString = element["to"] as String;
+        final int height = int.parse(element['blockNumber'].toString());
 
-        midSortedArray.add(midSortedTx);
-      });
-    }
+        final txn = Transaction(
+          walletId: walletId,
+          txid: element["hash"] as String,
+          timestamp: element["timeStamp"] as int,
+          type:
+              isIncoming ? TransactionType.incoming : TransactionType.outgoing,
+          subType: TransactionSubType.none,
+          amount: transactionAmount,
+          fee: txFee,
+          height: height,
+          isCancelled: txFailed,
+          isLelantus: false,
+          slateId: null,
+          otherData: null,
+          inputs: [],
+          outputs: [],
+        );
 
-    midSortedArray.sort((a, b) =>
-        (int.parse(b['timestamp'].toString())) -
-        (int.parse(a['timestamp'].toString())));
+        Address? transactionAddress = await db
+            .getAddresses(walletId)
+            .filter()
+            .valueEqualTo(addressString)
+            .findFirst();
 
-    // buildDateTimeChunks
-    final Map<String, dynamic> result = {"dateTimeChunks": <dynamic>[]};
-    final dateArray = <dynamic>[];
+        if (transactionAddress == null) {
+          if (isIncoming) {
+            transactionAddress = Address(
+              walletId: walletId,
+              value: addressString,
+              publicKey: [],
+              derivationIndex: 0,
+              derivationPath: DerivationPath()..value = "$hdPathEthereum/0",
+              type: AddressType.ethereum,
+              subType: AddressSubType.receiving,
+            );
+          } else {
+            final myRcvAddr = await currentReceivingAddress;
+            final isSentToSelf = myRcvAddr == addressString;
 
-    for (int i = 0; i < midSortedArray.length; i++) {
-      final txObject = midSortedArray[i];
-      final date =
-          extractDateFromTimestamp(int.parse(txObject['timestamp'].toString()));
-      final txTimeArray = [txObject["timestamp"], date];
-
-      if (dateArray.contains(txTimeArray[1])) {
-        result["dateTimeChunks"].forEach((dynamic chunk) {
-          if (extractDateFromTimestamp(
-                  int.parse(chunk['timestamp'].toString())) ==
-              txTimeArray[1]) {
-            if (chunk["transactions"] == null) {
-              chunk["transactions"] = <Map<String, dynamic>>[];
-            }
-            chunk["transactions"].add(txObject);
+            transactionAddress = Address(
+              walletId: walletId,
+              value: addressString,
+              publicKey: [],
+              derivationIndex: isSentToSelf ? 0 : -1,
+              derivationPath: isSentToSelf
+                  ? (DerivationPath()..value = "$hdPathEthereum/0")
+                  : null,
+              type: AddressType.ethereum,
+              subType: isSentToSelf
+                  ? AddressSubType.receiving
+                  : AddressSubType.nonWallet,
+            );
           }
-        });
-      } else {
-        dateArray.add(txTimeArray[1]);
-        final chunk = {
-          "timestamp": txTimeArray[0],
-          "transactions": [txObject],
-        };
-        result["dateTimeChunks"].add(chunk);
+        }
+
+        txnsData.add(Tuple2(txn, transactionAddress));
       }
+      await db.addNewTransactionData(txnsData, walletId);
+
+      // quick hack to notify manager to call notifyListeners if
+      // transactions changed
+      if (txnsData.isNotEmpty) {
+        GlobalEventBus.instance.fire(
+          UpdatedInBackgroundEvent(
+            "Transactions updated/added for: $walletId $walletName  ",
+            walletId,
+          ),
+        );
+      }
+    } else {
+      Logging.instance.log(
+        "Failed to refresh transactions for ${coin.prettyName} $walletName $walletId: $txs",
+        level: LogLevel.Warning,
+      );
     }
-
-    final transactionsMap = cachedTransactions?.getAllTransactions() ?? {};
-    transactionsMap
-        .addAll(TransactionData.fromJson(result).getAllTransactions());
-
-    final txModel = TransactionData.fromMap(transactionsMap);
-
-    await DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: 'storedTxnDataHeight',
-        value: latestTxnBlockHeight);
-    await DB.instance.put<dynamic>(
-        boxName: walletId, key: 'latest_tx_model', value: txModel);
-
-    cachedTxData = txModel;
-    return txModel;
   }
-
-  @override
-  set walletName(String newName) => _walletName = newName;
 
   void stopNetworkAlivePinging() {
     _networkAliveTimer?.cancel();

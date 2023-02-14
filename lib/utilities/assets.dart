@@ -296,7 +296,7 @@ class _PNG {
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/litecoin.png";
   String epicCash(BuildContext context) =>
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/epic-cash.png";
-  String epicCash(BuildContext context) =>
+  String ethereum(BuildContext context) =>
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/ethereum.png";
   String bitcoincash(BuildContext context) =>
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/bitcoincash.png";
@@ -325,7 +325,7 @@ class _PNG {
       case Coin.epicCash:
         return epicCash(context);
       case Coin.ethereum:
-        return ethereum;
+        return ethereum(context);
       case Coin.firo:
         return firo(context);
       case Coin.firoTestNet:
