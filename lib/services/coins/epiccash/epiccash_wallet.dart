@@ -792,16 +792,6 @@ class EpicCashWallet extends CoinServiceAPI {
         String errorMessage = decodeData[1] as String;
         throw Exception("Transaction failed with error code $errorMessage");
       } else {
-        //If it's HTTP send no need to post to epicbox
-        if (!(receiverAddress.startsWith("http://") ||
-            receiverAddress.startsWith("https://"))) {
-          final postSlateRequest = decodeData[1];
-          final postToServer = await postSlate(
-              txData['addresss'] as String, postSlateRequest as String);
-          Logging.instance
-              .log("POST_SLATE_IS $postToServer", level: LogLevel.Info);
-        }
-
         final txCreateResult = decodeData[0];
         // //TODO: second problem
         final transaction = json.decode(txCreateResult as String);
