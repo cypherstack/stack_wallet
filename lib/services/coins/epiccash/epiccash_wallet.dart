@@ -1621,6 +1621,30 @@ class EpicCashWallet extends CoinServiceAPI {
     }
   }
 
+  Future<void> listenForSlates() async {
+    final wallet = await _secureStore.read(key: '${_walletId}_wallet');
+    final epicboxConfig =
+    await _secureStore.read(key: '${_walletId}_epicboxConfig');
+
+    await m.protect(() async {
+      Logging.instance.log("CALLING LISTEN FOR SLATES", level: LogLevel.Info);
+      ReceivePort receivePort = await getIsolate({
+        "function": "listenForSlates",
+        "wallet": wallet,
+        "epicboxConfig": epicboxConfig,
+      }, name: walletName);
+
+      var result = await receivePort.first;
+      if (result is String) {
+        Logging.instance
+            .log("this is a message $result", level: LogLevel.Error);
+        stop(receivePort);
+        throw Exception("subscribeRequest isolate failed");
+      }
+      stop(receivePort);
+    });
+  }
+
   Future<bool> processAllSlates() async {
     final int? receivingIndex = DB.instance
         .get<dynamic>(boxName: walletId, key: "receivingIndex") as int?;
