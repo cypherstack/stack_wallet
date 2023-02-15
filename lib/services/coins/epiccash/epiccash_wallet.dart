@@ -698,7 +698,6 @@ class EpicCashWallet extends CoinServiceAPI {
     return result!;
   }
 
-//
   /// returns an empty String on success, error message on failure
   Future<String> cancelPendingTransaction(String tx_slate_id) async {
     final String wallet =
@@ -1624,7 +1623,7 @@ class EpicCashWallet extends CoinServiceAPI {
   Future<void> listenForSlates() async {
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
     final epicboxConfig =
-    await _secureStore.read(key: '${_walletId}_epicboxConfig');
+        await _secureStore.read(key: '${_walletId}_epicboxConfig');
 
     await m.protect(() async {
       Logging.instance.log("CALLING LISTEN FOR SLATES", level: LogLevel.Info);
@@ -1643,180 +1642,6 @@ class EpicCashWallet extends CoinServiceAPI {
       }
       stop(receivePort);
     });
-  }
-
-  Future<bool> processAllSlates() async {
-    final int? receivingIndex = DB.instance
-        .get<dynamic>(boxName: walletId, key: "receivingIndex") as int?;
-    for (int currentReceivingIndex = 0;
-        receivingIndex != null && currentReceivingIndex <= receivingIndex;
-        currentReceivingIndex++) {
-      final currentAddress =
-          await _getCurrentAddressForChain(currentReceivingIndex);
-      final wallet = await _secureStore.read(key: '${_walletId}_wallet');
-      final epicboxConfig =
-          await _secureStore.read(key: '${_walletId}_epicboxConfig');
-      dynamic subscribeRequest;
-      await m.protect(() async {
-        ReceivePort receivePort = await getIsolate({
-          "function": "subscribeRequest",
-          "wallet": wallet,
-          "secretKeyIndex": currentReceivingIndex,
-          "epicboxConfig": epicboxConfig,
-        }, name: walletName);
-
-    await m.protect(() async {
-      Logging.instance.log("CALLING LISTEN FOR SLATES", level: LogLevel.Info);
-      ReceivePort receivePort = await getIsolate({
-        "function": "listenForSlates",
-        "wallet": wallet,
-        "epicboxConfig": epicboxConfig,
-      }, name: walletName);
-
-      var result = await receivePort.first;
-      if (result is String) {
-        Logging.instance
-            .log("this is a message $result", level: LogLevel.Error);
-        stop(receivePort);
-        Logging.instance.log('Closing subscribeRequest! $subscribeRequest',
-            level: LogLevel.Info);
-      });
-      // TODO, once server adds signature, give this signature to the getSlates method.
-      Logging.instance
-          .log(subscribeRequest['signature'], level: LogLevel.Info); //
-      final unprocessedSlates = await getSlates(
-          currentAddress, subscribeRequest['signature'] as String);
-      if (unprocessedSlates == null || unprocessedSlates is! List) {
-        Logging.instance.log(
-            "index $currentReceivingIndex at $currentReceivingAddress does not have any slates",
-            level: LogLevel.Info);
-        continue;
-      }
-      for (var slate in unprocessedSlates) {
-        final encoded = jsonEncode([slate]);
-        Logging.instance
-            .log("Received Slates is $encoded", level: LogLevel.Info);
-
-        //Decrypt Slates
-        dynamic slates;
-        dynamic response;
-        await m.protect(() async {
-          ReceivePort receivePort = await getIsolate({
-            "function": "getPendingSlates",
-            "wallet": wallet!,
-            "secretKeyIndex": currentReceivingIndex,
-            "slates": encoded,
-          }, name: walletName);
-
-          var result = await receivePort.first;
-          if (result is String) {
-            Logging.instance
-                .log("this is a message $slates", level: LogLevel.Info);
-            stop(receivePort);
-            throw Exception("getPendingSlates isolate failed");
-          }
-          slates = result['result'];
-          stop(receivePort);
-        });
-
-        var decoded = jsonDecode(slates as String);
-
-        for (var decodedSlate in decoded as List) {
-          //Process slates
-          var decodedResponse = json.decode(decodedSlate as String);
-          String slateMessage = decodedResponse[0] as String;
-          await putSlatesToCommits(slateMessage, encoded);
-          String slateSender = decodedResponse[1] as String;
-          Logging.instance.log("SLATE_MESSAGE $slateMessage",
-              printFullLength: true, level: LogLevel.Info);
-          Logging.instance
-              .log("SLATE_SENDER $slateSender", level: LogLevel.Info);
-          await m.protect(() async {
-            ReceivePort receivePort = await getIsolate({
-              "function": "processSlates",
-              "wallet": wallet!,
-              "slates": slateMessage
-            }, name: walletName);
-
-            var message = await receivePort.first;
-            if (message is String) {
-              Logging.instance.log("this is PROCESS_SLATES message $message",
-                  level: LogLevel.Error);
-              stop(receivePort);
-              throw Exception("processSlates isolate failed");
-            }
-
-            try {
-              final String response = message['result'] as String;
-              if (response == "") {
-                Logging.instance.log("response: ${response.runtimeType}",
-                    level: LogLevel.Info);
-                await deleteSlate(currentAddress,
-                    subscribeRequest['signature'] as String, slate as String);
-              }
-
-              if (response
-                  .contains("Error Wallet store error: DB Not Found Error")) {
-                //Already processed - to be deleted
-                Logging.instance
-                    .log("DELETING_PROCESSED_SLATE", level: LogLevel.Info);
-                final slateDelete = await deleteSlate(currentAddress,
-                    subscribeRequest['signature'] as String, slate as String);
-                Logging.instance.log("DELETE_SLATE_RESPONSE $slateDelete",
-                    level: LogLevel.Info);
-              } else {
-                var decodedResponse = json.decode(response);
-                final processStatus = json.decode(decodedResponse[0] as String);
-                String slateStatus = processStatus['status'] as String;
-                if (slateStatus == "PendingProcessing") {
-                  //Encrypt slate
-                  String encryptedSlate = await getEncryptedSlate(
-                      wallet,
-                      slateSender,
-                      currentReceivingIndex,
-                      epicboxConfig!,
-                      decodedResponse[1] as String);
-
-                  final postSlateToServer =
-                      await postSlate(slateSender, encryptedSlate);
-
-                  await deleteSlate(currentAddress,
-                      subscribeRequest['signature'] as String, slate as String);
-                  Logging.instance.log("POST_SLATE_RESPONSE $postSlateToServer",
-                      level: LogLevel.Info);
-                } else {
-                  //Finalise Slate
-                  final processSlate =
-                      json.decode(decodedResponse[1] as String);
-                  Logging.instance.log(
-                      "PROCESSED_SLATE_TO_FINALIZE $processSlate",
-                      level: LogLevel.Info);
-                  final tx = json.decode(processSlate[0] as String);
-                  Logging.instance.log("TX_IS $tx", level: LogLevel.Info);
-                  String txSlateId = tx[0]['tx_slate_id'] as String;
-                  Logging.instance
-                      .log("TX_SLATE_ID_IS $txSlateId", level: LogLevel.Info);
-                  final postToNode = await postSlateToNode(wallet, txSlateId);
-                  await deleteSlate(currentAddress,
-                      subscribeRequest['signature'] as String, slate as String);
-                  Logging.instance.log("POST_SLATE_RESPONSE $postToNode",
-                      level: LogLevel.Info);
-                  //Post Slate to Node
-                  Logging.instance.log("Finalise slate", level: LogLevel.Info);
-                }
-              }
-            } catch (e, s) {
-              Logging.instance.log("$e\n$s", level: LogLevel.Info);
-              return false;
-            }
-            stop(receivePort);
-            Logging.instance
-                .log('Closing processSlates! $response', level: LogLevel.Info);
-          });
-        }
-      }
-    }
-    return true;
   }
 
   Future<bool> processAllCancels() async {
