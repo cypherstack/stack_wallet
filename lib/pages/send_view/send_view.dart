@@ -210,8 +210,7 @@ class _SendViewState extends ConsumerState<SendView> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  !sendToController.text.isEmpty ||
-                                          _addressToggleFlag
+                                  _addressToggleFlag
                                       ? TextFieldIconButton(
                                           key: const Key(
                                               "sendViewClearAddressFieldButtonKey"),
