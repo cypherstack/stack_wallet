@@ -7,6 +7,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/dark_colors.dart';
+import 'package:stackwallet/utilities/theme/forest_colors.dart';
 import 'package:stackwallet/utilities/theme/fruit_sorbet_colors.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
@@ -26,14 +27,16 @@ class AppearanceSettingsView extends ConsumerWidget {
     switch (type) {
       case ThemeType.light:
         return "Light theme";
-      case ThemeType.oceanBreeze:
-        return "Ocean theme";
       case ThemeType.dark:
         return "Dark theme";
+      case ThemeType.oceanBreeze:
+        return "Ocean theme";
       case ThemeType.oledBlack:
         return "Oled Black theme";
       case ThemeType.fruitSorbet:
         return "Fruit Sorbet theme";
+      case ThemeType.forest:
+        return "Forest theme";
     }
   }
 
@@ -291,87 +294,6 @@ class _ThemeOptionsView extends ConsumerState<ThemeOptionsView> {
             DB.instance.put<dynamic>(
               boxName: DB.boxNameTheme,
               key: "colorScheme",
-              value: ThemeType.oceanBreeze.name,
-            );
-            ref.read(colorThemeProvider.state).state =
-                StackColors.fromStackColorTheme(
-              OceanBreezeColors(),
-            );
-
-            setState(() {
-              _selectedTheme = "oceanBreeze";
-            });
-          },
-          child: SizedBox(
-            width: 200,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 10,
-                      height: 10,
-                      child: Radio(
-                        activeColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .radioButtonIconEnabled,
-                        value: "oceanBreeze",
-                        groupValue: _selectedTheme,
-                        onChanged: (newValue) {
-                          if (newValue is String && newValue == "oceanBreeze") {
-                            DB.instance.put<dynamic>(
-                              boxName: DB.boxNameTheme,
-                              key: "colorScheme",
-                              value: ThemeType.oceanBreeze.name,
-                            );
-                            ref.read(colorThemeProvider.state).state =
-                                StackColors.fromStackColorTheme(
-                              OceanBreezeColors(),
-                            );
-
-                            setState(() {
-                              _selectedTheme = "oceanBreeze";
-                            });
-                          }
-                        },
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 14,
-                    ),
-                    Text(
-                      "Ocean Breeze",
-                      style:
-                          STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark2,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(
-          height: 10,
-        ),
-        MaterialButton(
-          splashColor: Colors.transparent,
-          hoverColor: Colors.transparent,
-          padding: const EdgeInsets.all(0),
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
-            ),
-          ),
-          onPressed: () {
-            DB.instance.put<dynamic>(
-              boxName: DB.boxNameTheme,
-              key: "colorScheme",
               value: ThemeType.dark.name,
             );
             ref.read(colorThemeProvider.state).state =
@@ -423,6 +345,87 @@ class _ThemeOptionsView extends ConsumerState<ThemeOptionsView> {
                     ),
                     Text(
                       "Dark",
+                      style:
+                          STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark2,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(
+          height: 10,
+        ),
+        MaterialButton(
+          splashColor: Colors.transparent,
+          hoverColor: Colors.transparent,
+          padding: const EdgeInsets.all(0),
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+          ),
+          onPressed: () {
+            DB.instance.put<dynamic>(
+              boxName: DB.boxNameTheme,
+              key: "colorScheme",
+              value: ThemeType.oceanBreeze.name,
+            );
+            ref.read(colorThemeProvider.state).state =
+                StackColors.fromStackColorTheme(
+              OceanBreezeColors(),
+            );
+
+            setState(() {
+              _selectedTheme = "oceanBreeze";
+            });
+          },
+          child: SizedBox(
+            width: 200,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 10,
+                      height: 10,
+                      child: Radio(
+                        activeColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .radioButtonIconEnabled,
+                        value: "oceanBreeze",
+                        groupValue: _selectedTheme,
+                        onChanged: (newValue) {
+                          if (newValue is String && newValue == "oceanBreeze") {
+                            DB.instance.put<dynamic>(
+                              boxName: DB.boxNameTheme,
+                              key: "colorScheme",
+                              value: ThemeType.oceanBreeze.name,
+                            );
+                            ref.read(colorThemeProvider.state).state =
+                                StackColors.fromStackColorTheme(
+                              OceanBreezeColors(),
+                            );
+
+                            setState(() {
+                              _selectedTheme = "oceanBreeze";
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 14,
+                    ),
+                    Text(
+                      "Ocean Breeze",
                       style:
                           STextStyles.desktopTextExtraSmall(context).copyWith(
                         color: Theme.of(context)
@@ -585,6 +588,87 @@ class _ThemeOptionsView extends ConsumerState<ThemeOptionsView> {
                     ),
                     Text(
                       "Fruit Sorbet",
+                      style:
+                          STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark2,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(
+          height: 10,
+        ),
+        MaterialButton(
+          splashColor: Colors.transparent,
+          hoverColor: Colors.transparent,
+          padding: const EdgeInsets.all(0),
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+          ),
+          onPressed: () {
+            DB.instance.put<dynamic>(
+              boxName: DB.boxNameTheme,
+              key: "colorScheme",
+              value: ThemeType.forest.name,
+            );
+            ref.read(colorThemeProvider.state).state =
+                StackColors.fromStackColorTheme(
+              ForestColors(),
+            );
+
+            setState(() {
+              _selectedTheme = "forest";
+            });
+          },
+          child: SizedBox(
+            width: 200,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 10,
+                      height: 10,
+                      child: Radio(
+                        activeColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .radioButtonIconEnabled,
+                        value: "forest",
+                        groupValue: _selectedTheme,
+                        onChanged: (newValue) {
+                          if (newValue is String && newValue == "forest") {
+                            DB.instance.put<dynamic>(
+                              boxName: DB.boxNameTheme,
+                              key: "colorScheme",
+                              value: ThemeType.forest.name,
+                            );
+                            ref.read(colorThemeProvider.state).state =
+                                StackColors.fromStackColorTheme(
+                              ForestColors(),
+                            );
+
+                            setState(() {
+                              _selectedTheme = "forest";
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 14,
+                    ),
+                    Text(
+                      "Forest",
                       style:
                           STextStyles.desktopTextExtraSmall(context).copyWith(
                         color: Theme.of(context)

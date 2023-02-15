@@ -18,6 +18,7 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
+import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
@@ -516,7 +517,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     const SizedBox(
                       height: 10,
                     ),
-                    BlueTextButton(
+                    CustomTextButton(
                       text: "View transaction",
                       onTap: () {
                         final Coin coin =
@@ -1127,6 +1128,10 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                         case SimpleSwapExchange.exchangeName:
                           url =
                               "https://simpleswap.io/exchange?id=${trade.tradeId}";
+                          break;
+                        case MajesticBankExchange.exchangeName:
+                          url =
+                              "https://majesticbank.sc/track?trx=${trade.tradeId}";
                           break;
                       }
                       return ConditionalParent(

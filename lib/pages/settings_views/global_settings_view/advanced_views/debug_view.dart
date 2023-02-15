@@ -85,7 +85,6 @@ class _DebugViewState extends ConsumerState<DebugView> {
 
   @override
   void initState() {
-    ref.read(debugServiceProvider).updateRecentLogs();
     super.initState();
   }
 
@@ -181,10 +180,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
 
                             await ref
                                 .read(debugServiceProvider)
-                                .deleteAllMessages();
-                            await ref
-                                .read(debugServiceProvider)
-                                .updateRecentLogs();
+                                .deleteAllLogs();
 
                             shouldPop = true;
 
@@ -194,6 +190,8 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                   type: FlushBarType.info,
                                   context: context,
                                   message: 'Logs cleared!'));
+
+                              setState(() {});
                             }
                           },
                         ),
@@ -282,7 +280,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              BlueTextButton(
+                              CustomTextButton(
                                 text: "Save Debug Info to clipboard",
                                 onTap: () async {
                                   try {
@@ -313,7 +311,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                             _searchTerm)
                                         .reversed
                                         .toList(growable: false);
-                                    List errorLogs = [];
+                                    List<String> errorLogs = [];
                                     for (var log in logs) {
                                       if (log.logLevel == LogLevel.Error ||
                                           log.logLevel == LogLevel.Fatal) {
@@ -350,7 +348,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                 },
                               ),
                               const Spacer(),
-                              BlueTextButton(
+                              CustomTextButton(
                                 text: "Save logs to file",
                                 onTap: () async {
                                   final systemfile = SWBFileSystem();
@@ -406,14 +404,14 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                       ),
                                     ));
 
-                                    bool logssaved = true;
-                                    var filename;
+                                    bool logsSaved = true;
+                                    String? filename;
                                     try {
                                       filename = await ref
                                           .read(debugServiceProvider)
                                           .exportToFile(path, eventBus);
                                     } catch (e, s) {
-                                      logssaved = false;
+                                      logsSaved = false;
                                       Logging.instance
                                           .log("$e $s", level: LogLevel.Error);
                                     }
@@ -428,7 +426,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                           showDialog(
                                             context: context,
                                             builder: (context) => StackOkDialog(
-                                              title: logssaved
+                                              title: logsSaved
                                                   ? "Logs saved to"
                                                   : "Error Saving Logs",
                                               message: "${path!}/$filename",
@@ -440,7 +438,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                           showFloatingFlushBar(
                                             type: FlushBarType.info,
                                             context: context,
-                                            message: logssaved
+                                            message: logsSaved
                                                 ? 'Logs file saved'
                                                 : "Error Saving Logs",
                                           ),

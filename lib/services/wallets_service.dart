@@ -388,6 +388,8 @@ class WalletsService extends ChangeNotifier {
 
     // delete wallet data in main db
     await MainDB.instance.deleteWalletBlockchainData(walletId);
+    await MainDB.instance.deleteAddressLabels(walletId);
+    await MainDB.instance.deleteTransactionNotes(walletId);
 
     // box data may currently still be read/written to if wallet was refreshing
     // when delete was requested so instead of deleting now we mark the wallet

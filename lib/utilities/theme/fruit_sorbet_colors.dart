@@ -82,6 +82,10 @@ class FruitSorbetColors extends StackColorTheme {
   Color get numpadBackDefault => const Color(0xFFF95369);
   @override
   Color get bottomNavBack => const Color(0xFFFFFFFF);
+  @override
+  Color get customTextButtonEnabledText => buttonTextBorderless;
+  @override
+  Color get customTextButtonDisabledText => textSubtitle1;
 
   // button text/element
   @override

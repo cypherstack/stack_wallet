@@ -11,6 +11,7 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/paynym/dialogs/confirm_paynym_connect_dialog.dart';
 import 'package:stackwallet/pages/paynym/subwidgets/paynym_bot.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/paynym/desktop_paynym_send_dialog.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -102,8 +103,6 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
         builder: (context) => ConfirmPaynymConnectDialog(
           nymName: widget.accountLite.nymName,
           onConfirmPressed: () {
-            //
-            print("CONFIRM NOTIF TX: $preparedTx");
             Navigator.of(context, rootNavigator: true).pop();
             unawaited(
               showDialog(
@@ -148,7 +147,13 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
   }
 
   Future<void> _onSend() async {
-    print("sned");
+    await showDialog<void>(
+      context: context,
+      builder: (context) => DesktopPaynymSendDialog(
+        walletId: widget.walletId,
+        accountLite: widget.accountLite,
+      ),
+    );
   }
 
   @override
@@ -171,14 +176,47 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                   children: [
                     PayNymBot(
                       paymentCodeString: widget.accountLite.code,
-                      size: 32,
+                      size: 36,
                     ),
                     const SizedBox(
                       width: 12,
                     ),
-                    Text(
-                      widget.accountLite.nymName,
-                      style: STextStyles.desktopTextSmall(context),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.accountLite.nymName,
+                          style: STextStyles.desktopTextSmall(context),
+                        ),
+                        FutureBuilder(
+                          future: wallet.hasConnected(widget.accountLite.code),
+                          builder: (context, AsyncSnapshot<bool> snapshot) {
+                            if (snapshot.connectionState ==
+                                    ConnectionState.done &&
+                                snapshot.data == true) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(
+                                    height: 2,
+                                  ),
+                                  Text(
+                                    "Connected",
+                                    style: STextStyles.desktopTextSmall(context)
+                                        .copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorGreen,
+                                    ),
+                                  )
+                                ],
+                              );
+                            } else {
+                              return Container();
+                            }
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -324,7 +362,7 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                 const SizedBox(
                   height: 8,
                 ),
-                BlueTextButton(
+                CustomTextButton(
                   text: "Copy",
                   onTap: () async {
                     await Clipboard.setData(

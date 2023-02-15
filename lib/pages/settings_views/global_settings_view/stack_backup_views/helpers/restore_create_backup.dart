@@ -13,7 +13,6 @@ import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/stack_restoring_ui_state.dart';
 import 'package:stackwallet/models/trade_wallet_lookup.dart';
 import 'package:stackwallet/models/wallet_restore_state.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/services/address_book_service.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/coins/manager.dart';
@@ -246,7 +245,6 @@ abstract class SWB {
       final _prefs = Prefs.instance;
       await _prefs.init();
       prefs['currency'] = _prefs.currency;
-      prefs['exchangeRateType'] = _prefs.exchangeRateType.name;
       prefs['useBiometrics'] = _prefs.useBiometrics;
       prefs['hasPin'] = _prefs.hasPin;
       prefs['language'] = _prefs.language;
@@ -357,7 +355,9 @@ abstract class SWB {
     List<String> mnemonicList = (walletbackup['mnemonic'] as List<dynamic>)
         .map<String>((e) => e as String)
         .toList();
-    String mnemonic = mnemonicList.join(" ").trim();
+    final String mnemonic = mnemonicList.join(" ").trim();
+    final String mnemonicPassphrase =
+        walletbackup['mnemonicPassphrase'] as String? ?? "";
 
     uiState?.update(
       walletId: manager.walletId,
@@ -403,6 +403,7 @@ abstract class SWB {
       // without using them
       await manager.recoverFromMnemonic(
         mnemonic: mnemonic,
+        mnemonicPassphrase: mnemonicPassphrase,
         maxUnusedAddressGap: manager.coin == Coin.firo ? 50 : 20,
         maxNumberOfIndexesToCheck: 1000,
         height: restoreHeight,
@@ -989,9 +990,6 @@ abstract class SWB {
     final _prefs = Prefs.instance;
     await _prefs.init();
     _prefs.currency = prefs['currency'] as String;
-    _prefs.exchangeRateType = prefs['exchangeRateType'] == "estimated"
-        ? ExchangeRateType.estimated
-        : ExchangeRateType.fixed;
     // _prefs.useBiometrics = prefs['useBiometrics'] as bool;
     // _prefs.hasPin = prefs['hasPin'] as bool;
     _prefs.language = prefs['language'] as String;

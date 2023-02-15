@@ -54,6 +54,7 @@ class RestoreWalletView extends ConsumerStatefulWidget {
     required this.walletName,
     required this.coin,
     required this.seedWordsLength,
+    required this.mnemonicPassphrase,
     required this.restoreFromDate,
     this.barcodeScanner = const BarcodeScannerWrapper(),
     this.clipboard = const ClipboardWrapper(),
@@ -63,6 +64,7 @@ class RestoreWalletView extends ConsumerStatefulWidget {
 
   final String walletName;
   final Coin coin;
+  final String mnemonicPassphrase;
   final int seedWordsLength;
   final DateTime restoreFromDate;
 
@@ -290,6 +292,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           // without using them
           await manager.recoverFromMnemonic(
             mnemonic: mnemonic,
+            mnemonicPassphrase: widget.mnemonicPassphrase,
             maxUnusedAddressGap: widget.coin == Coin.firo ? 50 : 20,
             maxNumberOfIndexesToCheck: 1000,
             height: height,

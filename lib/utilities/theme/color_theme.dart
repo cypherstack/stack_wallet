@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/theme/dark_colors.dart';
+import 'package:stackwallet/utilities/theme/forest_colors.dart';
 import 'package:stackwallet/utilities/theme/fruit_sorbet_colors.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
 import 'package:stackwallet/utilities/theme/oled_black_colors.dart';
 
-enum ThemeType { light, dark, oceanBreeze, oledBlack, fruitSorbet }
+enum ThemeType { light, dark, oceanBreeze, oledBlack, fruitSorbet, forest }
 
 // adjust this file
 
@@ -23,6 +24,8 @@ extension ThemeTypeExt on ThemeType {
         return OledBlackColors();
       case ThemeType.fruitSorbet:
         return FruitSorbetColors();
+      case ThemeType.forest:
+        return ForestColors();
     }
   }
 
@@ -35,9 +38,11 @@ extension ThemeTypeExt on ThemeType {
       case ThemeType.oceanBreeze:
         return "Ocean Breeze";
       case ThemeType.oledBlack:
-        return "Oled Black";
+        return "OLED Black";
       case ThemeType.fruitSorbet:
         return "Fruit Sorbet";
+      case ThemeType.forest:
+        return "Forest";
     }
   }
 }
@@ -100,6 +105,8 @@ abstract class StackColorTheme {
   Color get numberTextDefault;
   Color get numpadTextDefault;
   Color get bottomNavText;
+  Color get customTextButtonEnabledText;
+  Color get customTextButtonDisabledText;
 
 // switch background
   Color get switchBGOn;

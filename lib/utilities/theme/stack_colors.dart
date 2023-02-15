@@ -59,6 +59,8 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color numberTextDefault;
   final Color numpadTextDefault;
   final Color bottomNavText;
+  final Color customTextButtonEnabledText;
+  final Color customTextButtonDisabledText;
 
 // switch background
   final Color switchBGOn;
@@ -235,6 +237,8 @@ class StackColors extends ThemeExtension<StackColors> {
     required this.numberTextDefault,
     required this.numpadTextDefault,
     required this.bottomNavText,
+    required this.customTextButtonEnabledText,
+    required this.customTextButtonDisabledText,
     required this.switchBGOn,
     required this.switchBGOff,
     required this.switchBGDisabled,
@@ -383,6 +387,8 @@ class StackColors extends ThemeExtension<StackColors> {
       numberTextDefault: colorTheme.numberTextDefault,
       numpadTextDefault: colorTheme.numpadTextDefault,
       bottomNavText: colorTheme.bottomNavText,
+      customTextButtonEnabledText: colorTheme.customTextButtonEnabledText,
+      customTextButtonDisabledText: colorTheme.customTextButtonDisabledText,
       switchBGOn: colorTheme.switchBGOn,
       switchBGOff: colorTheme.switchBGOff,
       switchBGDisabled: colorTheme.switchBGDisabled,
@@ -533,6 +539,8 @@ class StackColors extends ThemeExtension<StackColors> {
     Color? numberTextDefault,
     Color? numpadTextDefault,
     Color? bottomNavText,
+    Color? customTextButtonEnabledText,
+    Color? customTextButtonDisabledText,
     Color? switchBGOn,
     Color? switchBGOff,
     Color? switchBGDisabled,
@@ -686,6 +694,10 @@ class StackColors extends ThemeExtension<StackColors> {
       numberTextDefault: numberTextDefault ?? this.numberTextDefault,
       numpadTextDefault: numpadTextDefault ?? this.numpadTextDefault,
       bottomNavText: bottomNavText ?? this.bottomNavText,
+      customTextButtonEnabledText:
+          customTextButtonEnabledText ?? this.customTextButtonEnabledText,
+      customTextButtonDisabledText:
+          customTextButtonDisabledText ?? this.customTextButtonDisabledText,
       switchBGOn: switchBGOn ?? this.switchBGOn,
       switchBGOff: switchBGOff ?? this.switchBGOff,
       switchBGDisabled: switchBGDisabled ?? this.switchBGDisabled,
@@ -1059,6 +1071,16 @@ class StackColors extends ThemeExtension<StackColors> {
       bottomNavText: Color.lerp(
         bottomNavText,
         other.bottomNavText,
+        t,
+      )!,
+      customTextButtonEnabledText: Color.lerp(
+        customTextButtonEnabledText,
+        other.customTextButtonEnabledText,
+        t,
+      )!,
+      customTextButtonDisabledText: Color.lerp(
+        customTextButtonDisabledText,
+        other.customTextButtonDisabledText,
         t,
       )!,
       switchBGOn: Color.lerp(

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
+import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/models.dart';
@@ -110,8 +111,15 @@ class Manager with ChangeNotifier {
     try {
       final txid = await _currentWallet.confirmSend(txData: txData);
 
-      txData["txid"] = txid;
-      await _currentWallet.updateSentCachedTxData(txData);
+      try {
+        txData["txid"] = txid;
+        await _currentWallet.updateSentCachedTxData(txData);
+      } catch (e, s) {
+        // do not rethrow as that would get handled as a send failure further up
+        // also this is not critical code and transaction should show up on \
+        // refresh regardless
+        Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+      }
 
       notifyListeners();
       return txid;
@@ -153,6 +161,7 @@ class Manager with ChangeNotifier {
       _currentWallet.validateAddress(address);
 
   Future<List<String>> get mnemonic => _currentWallet.mnemonic;
+  Future<String?> get mnemonicPassphrase => _currentWallet.mnemonicPassphrase;
 
   Future<bool> testNetworkConnection() =>
       _currentWallet.testNetworkConnection();
@@ -161,6 +170,7 @@ class Manager with ChangeNotifier {
   Future<void> initializeExisting() => _currentWallet.initializeExisting();
   Future<void> recoverFromMnemonic({
     required String mnemonic,
+    String? mnemonicPassphrase,
     required int maxUnusedAddressGap,
     required int maxNumberOfIndexesToCheck,
     required int height,
@@ -168,6 +178,7 @@ class Manager with ChangeNotifier {
     try {
       await _currentWallet.recoverFromMnemonic(
         mnemonic: mnemonic,
+        mnemonicPassphrase: mnemonicPassphrase,
         maxUnusedAddressGap: maxUnusedAddressGap,
         maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
         height: height,
@@ -217,4 +228,18 @@ class Manager with ChangeNotifier {
   int get currentHeight => _currentWallet.storedChainHeight;
 
   bool get hasPaynymSupport => _currentWallet is PaynymWalletInterface;
+
+  int get rescanOnOpenVersion =>
+      DB.instance.get<dynamic>(
+        boxName: DB.boxNameDBInfo,
+        key: "rescan_on_open_$walletId",
+      ) as int? ??
+      0;
+
+  Future<void> resetRescanOnOpen() async {
+    await DB.instance.delete<dynamic>(
+      key: "rescan_on_open_$walletId",
+      boxName: DB.boxNameDBInfo,
+    );
+  }
 }

@@ -52,6 +52,23 @@ import 'package:tuple/tuple.dart';
 const int MINIMUM_CONFIRMATIONS = 10;
 
 class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
+  MoneroWallet({
+    required String walletId,
+    required String walletName,
+    required Coin coin,
+    required SecureStorageInterface secureStorage,
+    Prefs? prefs,
+    MainDB? mockableOverride,
+  }) {
+    _walletId = walletId;
+    _walletName = walletName;
+    _coin = coin;
+    _secureStorage = secureStorage;
+    _prefs = prefs ?? Prefs.instance;
+    initCache(walletId, coin);
+    initWalletDB(mockableOverride: mockableOverride);
+  }
+
   late final String _walletId;
   late final Coin _coin;
   late final SecureStorageInterface _secureStorage;
@@ -77,23 +94,6 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Mutex prepareSendMutex = Mutex();
   Mutex estimateFeeMutex = Mutex();
-
-  MoneroWallet({
-    required String walletId,
-    required String walletName,
-    required Coin coin,
-    required SecureStorageInterface secureStorage,
-    Prefs? prefs,
-    MainDB? mockableOverride,
-  }) {
-    _walletId = walletId;
-    _walletName = walletName;
-    _coin = coin;
-    _secureStorage = secureStorage;
-    _prefs = prefs ?? Prefs.instance;
-    initCache(walletId, coin);
-    initWalletDB(mockableOverride: mockableOverride);
-  }
 
   @override
   set isFavorite(bool markFavorite) {
@@ -258,7 +258,7 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<void> initializeExisting() async {
     Logging.instance.log(
-      "Opening existing ${coin.prettyName} wallet $walletName...",
+      "initializeExisting() ${coin.prettyName} wallet $walletName...",
       level: LogLevel.Info,
     );
 
@@ -289,24 +289,12 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     walletBase = (await walletService!.openWallet(_walletId, password))
         as MoneroWalletBase;
 
-    await _checkCurrentReceivingAddressesForTransactions();
-    // walletBase!.onNewBlock = onNewBlock;
-    // walletBase!.onNewTransaction = onNewTransaction;
-    // walletBase!.syncStatusChanged = syncStatusChanged;
+    // await _checkCurrentReceivingAddressesForTransactions();
+
     Logging.instance.log(
       "Opened existing ${coin.prettyName} wallet $walletName",
       level: LogLevel.Info,
     );
-    // Wallet already exists, triggers for a returning user
-
-    // String indexKey = "receivingIndex";
-    // final curIndex =
-    //     await DB.instance.get<dynamic>(boxName: walletId, key: indexKey) as int;
-    // // Use new index to derive a new receiving address
-    // final newReceivingAddress = await _generateAddressForChain(0, curIndex);
-    // Logging.instance.log("xmr address in init existing: $newReceivingAddress",
-    //     level: LogLevel.Info);
-    // _currentReceivingAddress = Future(() => newReceivingAddress);
   }
 
   @override
@@ -314,7 +302,7 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     await _prefs.init();
 
     // this should never fail
-    if ((await _secureStorage.read(key: '${_walletId}_mnemonic')) != null) {
+    if ((await mnemonicString) != null || (await mnemonicPassphrase) != null) {
       throw Exception(
           "Attempted to overwrite mnemonic on generate new wallet!");
     }
@@ -365,6 +353,10 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       await _secureStorage.write(
           key: '${_walletId}_mnemonic', value: wallet?.seed.trim());
+      await _secureStorage.write(
+        key: '${_walletId}_mnemonicPassphrase',
+        value: "",
+      );
       walletInfo.address = wallet?.walletAddresses.address;
       await DB.instance
           .add<WalletInfo>(boxName: WalletInfo.boxName, value: walletInfo);
@@ -419,14 +411,22 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<List<String>> get mnemonic async {
-    final mnemonicString =
-        await _secureStorage.read(key: '${_walletId}_mnemonic');
-    if (mnemonicString == null) {
+    final _mnemonicString = await mnemonicString;
+    if (_mnemonicString == null) {
       return [];
     }
-    final List<String> data = mnemonicString.split(' ');
+    final List<String> data = _mnemonicString.split(' ');
     return data;
   }
+
+  @override
+  Future<String?> get mnemonicString =>
+      _secureStorage.read(key: '${_walletId}_mnemonic');
+
+  @override
+  Future<String?> get mnemonicPassphrase => _secureStorage.read(
+        key: '${_walletId}_mnemonicPassphrase',
+      );
 
   @override
   Future<Map<String, dynamic>> prepareSend({
@@ -519,6 +519,7 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<void> recoverFromMnemonic({
     required String mnemonic,
+    String? mnemonicPassphrase, // not used at the moment
     required int maxUnusedAddressGap,
     required int maxNumberOfIndexesToCheck,
     required int height,
@@ -543,12 +544,17 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
       // }
       // check to make sure we aren't overwriting a mnemonic
       // this should never fail
-      if ((await _secureStorage.read(key: '${_walletId}_mnemonic')) != null) {
+      if ((await mnemonicString) != null ||
+          (await this.mnemonicPassphrase) != null) {
         longMutex = false;
         throw Exception("Attempted to overwrite mnemonic on restore!");
       }
       await _secureStorage.write(
           key: '${_walletId}_mnemonic', value: mnemonic.trim());
+      await _secureStorage.write(
+        key: '${_walletId}_mnemonicPassphrase',
+        value: mnemonicPassphrase ?? "",
+      );
 
       await DB.instance
           .put<dynamic>(boxName: walletId, key: "restoreHeight", value: height);
@@ -836,6 +842,7 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     return isar_models.Address(
       walletId: walletId,
       derivationIndex: index,
+      derivationPath: null,
       value: address,
       publicKey: [],
       type: isar_models.AddressType.cryptonote,
@@ -875,9 +882,8 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     //
     // final Set<String> cachedTxids = Set<String>.from(txidsList);
 
-    final List<
-        Tuple4<isar_models.Transaction, List<isar_models.Output>,
-            List<isar_models.Input>, isar_models.Address?>> txnsData = [];
+    final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
+        [];
 
     if (transactions != null) {
       for (var tx in transactions.entries) {
@@ -926,9 +932,11 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
           isLelantus: false,
           slateId: null,
           otherData: null,
+          inputs: [],
+          outputs: [],
         );
 
-        txnsData.add(Tuple4(txn, [], [], address));
+        txnsData.add(Tuple2(txn, address));
       }
     }
 

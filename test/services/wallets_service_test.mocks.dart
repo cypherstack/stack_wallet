@@ -31,6 +31,11 @@ class MockSecureStorageWrapper extends _i1.Mock
   }
 
   @override
+  _i3.Future<List<String>> get keys => (super.noSuchMethod(
+        Invocation.getter(#keys),
+        returnValue: _i3.Future<List<String>>.value(<String>[]),
+      ) as _i3.Future<List<String>>);
+  @override
   _i3.Future<String?> read({
     required String? key,
     _i4.IOSOptions? iOptions,

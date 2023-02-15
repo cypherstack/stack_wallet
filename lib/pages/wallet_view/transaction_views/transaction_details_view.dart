@@ -11,7 +11,6 @@ import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/dialogs/cancelling_transaction_progress_dialog.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/edit_note_view.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
-import 'package:stackwallet/providers/blockchain/dogecoin/current_height_provider.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
@@ -298,7 +297,8 @@ class _TransactionDetailsViewState
 
   @override
   Widget build(BuildContext context) {
-    final currentHeight = ref.watch(currentHeightProvider(coin).state).state;
+    final currentHeight = ref.watch(walletsChangeNotifierProvider
+        .select((value) => value.getManager(walletId).currentHeight));
 
     return ConditionalParent(
       condition: !isDesktop,
@@ -1092,7 +1092,7 @@ class _TransactionDetailsViewState
                                             height: 8,
                                           ),
                                         if (coin != Coin.epicCash)
-                                          BlueTextButton(
+                                          CustomTextButton(
                                             text: "Open in block explorer",
                                             onTap: () async {
                                               final uri =

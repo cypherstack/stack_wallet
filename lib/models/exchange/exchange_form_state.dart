@@ -1,113 +1,140 @@
 import 'package:decimal/decimal.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:stackwallet/models/exchange/response_objects/currency.dart';
+import 'package:flutter/foundation.dart';
+import 'package:stackwallet/models/exchange/aggregate_currency.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
-import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
-// import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
+import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
+import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 class ExchangeFormState extends ChangeNotifier {
   Exchange? _exchange;
-  Exchange? get exchange => _exchange;
-  set exchange(Exchange? value) {
-    _exchange = value;
-    _onExchangeTypeChanged();
+  Exchange get exchange => _exchange ??= Exchange.defaultExchange;
+
+  ExchangeRateType _exchangeRateType = ExchangeRateType.estimated;
+  ExchangeRateType get exchangeRateType => _exchangeRateType;
+  set exchangeRateType(ExchangeRateType exchangeRateType) {
+    _exchangeRateType = exchangeRateType;
+    //
   }
 
-  ExchangeRateType _exchangeType = ExchangeRateType.estimated;
-  ExchangeRateType get exchangeType => _exchangeType;
-  set exchangeType(ExchangeRateType value) {
-    _exchangeType = value;
-    _onExchangeRateTypeChanged();
+  Estimate? _estimate;
+  Estimate? get estimate => _estimate;
+
+  bool _reversed = false;
+  bool get reversed => _reversed;
+  set reversed(bool reversed) {
+    _reversed = reversed;
+    //
   }
 
-  bool reversed = false;
+  Decimal? _rate;
+  Decimal? get rate => _rate;
+  // set rate(Decimal? rate) {
+  //   _rate = rate;
+  //   //
+  // }
 
-  Decimal? fromAmount;
-  Decimal? toAmount;
+  Decimal? _sendAmount;
+  Decimal? get sendAmount => _sendAmount;
+  // set sendAmount(Decimal? sendAmount) {
+  //   _sendAmount = sendAmount;
+  //   //
+  // }
 
-  Decimal? minAmount;
-  Decimal? maxAmount;
-
-  Decimal? rate;
-  Estimate? estimate;
-
-  FixedRateMarket? _market;
-  FixedRateMarket? get market => _market;
-
-  Currency? _from;
-  Currency? _to;
-
-  @override
-  String toString() {
-    return 'ExchangeFormState: {_exchange: $_exchange, _exchangeType: $_exchangeType, reversed: $reversed, fromAmount: $fromAmount, toAmount: $toAmount, minAmount: $minAmount, maxAmount: $maxAmount, rate: $rate, estimate: $estimate, _market: $_market, _from: $_from, _to: $_to, _onError: $_onError}';
+  Decimal? _receiveAmount;
+  Decimal? get receiveAmount => _receiveAmount;
+  set receiveAmount(Decimal? receiveAmount) {
+    _receiveAmount = receiveAmount;
+    //
   }
 
-  String? get fromTicker {
-    switch (exchangeType) {
-      case ExchangeRateType.estimated:
-        return _from?.ticker;
-      case ExchangeRateType.fixed:
-        switch (exchange?.name) {
-          // case SimpleSwapExchange.exchangeName:
-          //   return _from?.ticker;
-          case ChangeNowExchange.exchangeName:
-            return market?.from;
-          default:
-            return null;
-        }
-    }
-  }
+  AggregateCurrency? _sendCurrency;
+  AggregateCurrency? get sendCurrency => _sendCurrency;
+  // set sendCurrency(Currency? sendCurrency) {
+  //   _sendCurrency = sendCurrency;
+  //   //
+  // }
 
-  String? get toTicker {
-    switch (exchangeType) {
-      case ExchangeRateType.estimated:
-        return _to?.ticker;
-      case ExchangeRateType.fixed:
-        switch (exchange?.name) {
-          // case SimpleSwapExchange.exchangeName:
-          //   return _to?.ticker;
-          case ChangeNowExchange.exchangeName:
-            return market?.to;
-          default:
-            return null;
-        }
-    }
-  }
+  AggregateCurrency? _receiveCurrency;
+  AggregateCurrency? get receiveCurrency => _receiveCurrency;
+  // set receiveCurrency(Currency? receiveCurrency) {
+  //   _receiveCurrency = receiveCurrency;
+  //   //
+  // }
 
-  void Function(String)? _onError;
+  Decimal? _minSendAmount;
+  Decimal? get minSendAmount => _minSendAmount;
+  // set minSendAmount(Decimal? minSendAmount) {
+  //   _minSendAmount = minSendAmount;
+  //   //
+  // }
 
-  Currency? get from => _from;
-  Currency? get to => _to;
+  Decimal? _minReceiveAmount;
+  Decimal? get minReceiveAmount => _minReceiveAmount;
+  // set minReceiveAmount(Decimal? minReceiveAmount) {
+  //   _minReceiveAmount = minReceiveAmount;
+  //   //
+  // }
 
-  void setCurrencies(Currency from, Currency to) {
-    _from = from;
-    _to = to;
+  Decimal? _maxSendAmount;
+  Decimal? get maxSendAmount => _maxSendAmount;
+  // set maxSendAmount(Decimal? maxSendAmount) {
+  //   _maxSendAmount = maxSendAmount;
+  //   //
+  // }
+
+  Decimal? _maxReceiveAmount;
+  Decimal? get maxReceiveAmount => _maxReceiveAmount;
+  // set maxReceiveAmount(Decimal? maxReceiveAmount) {
+  //   _maxReceiveAmount = maxReceiveAmount;
+  //   //
+  // }
+
+  //============================================================================
+  // computed properties
+  //============================================================================
+
+  String? get fromTicker => _sendCurrency?.ticker;
+  String? get toTicker => _receiveCurrency?.ticker;
+
+  String get fromAmountString => _sendAmount?.toStringAsFixed(8) ?? "";
+  String get toAmountString => _receiveAmount?.toStringAsFixed(8) ?? "";
+
+  bool get canExchange {
+    return sendCurrency != null &&
+        receiveCurrency != null &&
+        sendAmount != null &&
+        sendAmount! >= Decimal.zero &&
+        receiveAmount != null &&
+        rate != null &&
+        rate! >= Decimal.zero &&
+        sendCurrency!.forExchange(exchange.name) != null &&
+        receiveCurrency!.forExchange(exchange.name) != null &&
+        warning.isEmpty;
   }
 
   String get warning {
     if (reversed) {
-      if (toTicker != null && toAmount != null) {
-        if (minAmount != null &&
-            toAmount! < minAmount! &&
-            toAmount! > Decimal.zero) {
-          return "Minimum amount ${minAmount!.toString()} ${toTicker!.toUpperCase()}";
-        } else if (maxAmount != null && toAmount! > maxAmount!) {
-          return "Maximum amount ${maxAmount!.toString()} ${toTicker!.toUpperCase()}";
+      if (_receiveCurrency != null && _receiveAmount != null) {
+        if (_minReceiveAmount != null &&
+            _receiveAmount! < _minReceiveAmount! &&
+            _receiveAmount! > Decimal.zero) {
+          return "Min receive amount ${_minReceiveAmount!.toString()} ${_receiveCurrency!.ticker.toUpperCase()}";
+        } else if (_maxReceiveAmount != null &&
+            _receiveAmount! > _maxReceiveAmount!) {
+          return "Max receive amount ${_maxReceiveAmount!.toString()} ${_receiveCurrency!.ticker.toUpperCase()}";
         }
       }
     } else {
-      if (fromTicker != null && fromAmount != null) {
-        if (minAmount != null &&
-            fromAmount! < minAmount! &&
-            fromAmount! > Decimal.zero) {
-          return "Minimum amount ${minAmount!.toString()} ${fromTicker!.toUpperCase()}";
-        } else if (maxAmount != null && fromAmount! > maxAmount!) {
-          return "Maximum amount ${maxAmount!.toString()} ${fromTicker!.toUpperCase()}";
+      if (_sendCurrency != null && _sendAmount != null) {
+        if (_minSendAmount != null &&
+            _sendAmount! < _minSendAmount! &&
+            _sendAmount! > Decimal.zero) {
+          return "Min send amount ${_minSendAmount!.toString()} ${_sendCurrency!.ticker.toUpperCase()}";
+        } else if (_maxSendAmount != null && _sendAmount! > _maxSendAmount!) {
+          return "Max send amount ${_maxSendAmount!.toString()} ${_sendCurrency!.ticker.toUpperCase()}";
         }
       }
     }
@@ -115,254 +142,307 @@ class ExchangeFormState extends ChangeNotifier {
     return "";
   }
 
-  String get fromAmountString => fromAmount?.toStringAsFixed(8) ?? "";
-  String get toAmountString => toAmount?.toStringAsFixed(8) ?? "";
+  //============================================================================
+  // public state updaters
+  //============================================================================
 
-  bool get canExchange {
-    if (exchange?.name == ChangeNowExchange.exchangeName &&
-        exchangeType == ExchangeRateType.fixed) {
-      return _market != null &&
-          fromAmount != null &&
-          toAmount != null &&
-          warning.isEmpty;
+  Future<void> updateExchange({
+    required Exchange exchange,
+    required bool shouldUpdateData,
+    required bool shouldNotifyListeners,
+  }) async {
+    _exchange = exchange;
+    if (shouldUpdateData) {
+      await _updateRangesAndEstimate(
+        shouldNotifyListeners: false,
+      );
+    }
+
+    if (shouldNotifyListeners) {
+      _notify();
+    }
+  }
+
+  void setCurrencies(AggregateCurrency? from, AggregateCurrency? to) {
+    _sendCurrency = from;
+    _receiveCurrency = to;
+  }
+
+  void reset({
+    required bool shouldNotifyListeners,
+  }) {
+    _exchange = null;
+    _reversed = false;
+    _rate = null;
+    _sendAmount = null;
+    _receiveAmount = null;
+    _sendCurrency = null;
+    _receiveCurrency = null;
+    _minSendAmount = null;
+    _minReceiveAmount = null;
+    _maxSendAmount = null;
+    _maxReceiveAmount = null;
+
+    if (shouldNotifyListeners) {
+      _notify();
+    }
+  }
+
+  Future<void> setSendAmountAndCalculateReceiveAmount(
+    Decimal? newSendAmount,
+    bool shouldNotifyListeners,
+  ) async {
+    if (newSendAmount == null) {
+      // todo: check if this breaks things and stuff
+      _receiveAmount = null;
+      _sendAmount = null;
     } else {
-      return fromAmount != null &&
-          fromAmount != Decimal.zero &&
-          toAmount != null &&
-          rate != null &&
-          warning.isEmpty;
-    }
-  }
-
-  void clearAmounts(bool shouldNotifyListeners) {
-    fromAmount = null;
-    toAmount = null;
-    minAmount = null;
-    maxAmount = null;
-    rate = null;
-
-    if (shouldNotifyListeners) {
-      notifyListeners();
-    }
-  }
-
-  Future<void> setFromAmountAndCalculateToAmount(
-    Decimal newFromAmount,
-    bool shouldNotifyListeners,
-  ) async {
-    if (newFromAmount == Decimal.zero) {
-      toAmount = Decimal.zero;
-    }
-
-    fromAmount = newFromAmount;
-    reversed = false;
-
-    await updateRanges(shouldNotifyListeners: false);
-
-    await updateEstimate(
-      shouldNotifyListeners: false,
-      reversed: reversed,
-    );
-
-    if (shouldNotifyListeners) {
-      notifyListeners();
-    }
-  }
-
-  Future<void> setToAmountAndCalculateFromAmount(
-    Decimal newToAmount,
-    bool shouldNotifyListeners,
-  ) async {
-    if (newToAmount == Decimal.zero) {
-      fromAmount = Decimal.zero;
-    }
-
-    toAmount = newToAmount;
-    reversed = true;
-
-    await updateRanges(shouldNotifyListeners: false);
-
-    await updateEstimate(
-      shouldNotifyListeners: false,
-      reversed: reversed,
-    );
-
-    if (shouldNotifyListeners) {
-      notifyListeners();
-    }
-  }
-
-  Future<void> updateTo(Currency to, bool shouldNotifyListeners) async {
-    try {
-      _to = to;
-      if (_from == null) {
-        rate = null;
-        notifyListeners();
-        return;
+      if (newSendAmount <= Decimal.zero) {
+        _receiveAmount = Decimal.zero;
       }
 
-      await updateRanges(shouldNotifyListeners: false);
+      _sendAmount = newSendAmount;
+      _reversed = false;
 
-      await updateEstimate(
+      await _updateRangesAndEstimate(
         shouldNotifyListeners: false,
-        reversed: reversed,
       );
+    }
 
-      //todo: check if print needed
-      // debugPrint(
-      //     "_updated TO: _from=${_from!.ticker} _to=${_to!.ticker} _fromAmount=$fromAmount _toAmount=$toAmount rate:$rate for: $exchange");
+    if (shouldNotifyListeners) {
+      _notify();
+    }
+  }
 
+  Future<void> setReceivingAmountAndCalculateSendAmount(
+    Decimal? newReceiveAmount,
+    bool shouldNotifyListeners,
+  ) async {
+    if (newReceiveAmount == null) {
+      // todo: check if this breaks things and stuff
+      _receiveAmount = null;
+      _sendAmount = null;
+    } else {
+      if (newReceiveAmount <= Decimal.zero) {
+        _sendAmount = Decimal.zero;
+      }
+
+      _receiveAmount = newReceiveAmount;
+      _reversed = true;
+
+      await _updateRangesAndEstimate(
+        shouldNotifyListeners: false,
+      );
+    }
+
+    if (shouldNotifyListeners) {
+      _notify();
+    }
+  }
+
+  Future<void> updateSendCurrency(
+    AggregateCurrency sendCurrency,
+    bool shouldNotifyListeners,
+  ) async {
+    try {
+      _sendCurrency = sendCurrency;
+      _minSendAmount = null;
+      _maxSendAmount = null;
+
+      if (_receiveCurrency == null) {
+        _rate = null;
+      } else {
+        await _updateRangesAndEstimate(
+          shouldNotifyListeners: false,
+        );
+      }
       if (shouldNotifyListeners) {
-        notifyListeners();
+        _notify();
       }
     } catch (e, s) {
       Logging.instance.log("$e\n$s", level: LogLevel.Error);
     }
   }
 
-  Future<void> updateFrom(Currency from, bool shouldNotifyListeners) async {
+  Future<void> updateReceivingCurrency(
+    AggregateCurrency receiveCurrency,
+    bool shouldNotifyListeners,
+  ) async {
     try {
-      _from = from;
+      _receiveCurrency = receiveCurrency;
+      _minReceiveAmount = null;
+      _maxReceiveAmount = null;
 
-      if (_to == null) {
-        rate = null;
-        notifyListeners();
-        return;
+      if (_sendCurrency == null) {
+        _rate = null;
+      } else {
+        await _updateRangesAndEstimate(
+          shouldNotifyListeners: false,
+        );
       }
-
-      await updateRanges(shouldNotifyListeners: false);
-
-      await updateEstimate(
-        shouldNotifyListeners: false,
-        reversed: reversed,
-      );
-
-      //todo: check if print needed
-      // debugPrint(
-      //     "_updated FROM: _from=${_from!.ticker} _to=${_to!.ticker} _fromAmount=$fromAmount _toAmount=$toAmount rate:$rate for: $exchange");
       if (shouldNotifyListeners) {
-        notifyListeners();
+        _notify();
       }
     } catch (e, s) {
       Logging.instance.log("$e\n$s", level: LogLevel.Error);
     }
   }
 
-  Future<void> updateMarket(
-    FixedRateMarket? market,
-    bool shouldNotifyListeners,
-  ) async {
-    _market = market;
+  Future<void> swap({
+    required bool shouldNotifyListeners,
+  }) async {
+    final Decimal? temp = sendAmount;
+    _sendAmount = receiveAmount;
+    _receiveAmount = temp;
 
-    if (_market == null) {
-      fromAmount = null;
-      toAmount = null;
-    } else {
-      if (fromAmount != null) {
-        if (fromAmount! <= Decimal.zero) {
-          toAmount = Decimal.zero;
-        } else {
-          await updateRanges(shouldNotifyListeners: false);
-          await updateEstimate(
-            shouldNotifyListeners: false,
-            reversed: reversed,
-          );
-        }
-      }
-    }
+    _minSendAmount = null;
+    _maxSendAmount = null;
+    _minReceiveAmount = null;
+    _maxReceiveAmount = null;
+
+    final AggregateCurrency? tmp = sendCurrency;
+    _sendCurrency = receiveCurrency;
+    _receiveCurrency = tmp;
+
+    await _updateRangesAndEstimate(
+      shouldNotifyListeners: false,
+    );
 
     if (shouldNotifyListeners) {
-      notifyListeners();
+      _notify();
     }
   }
 
-  void _onExchangeRateTypeChanged() {
-    print("_onExchangeRateTypeChanged");
-    updateRanges(shouldNotifyListeners: true).then(
-      (_) => updateEstimate(
+  Future<void> refresh() => _updateRangesAndEstimate(
         shouldNotifyListeners: true,
-        reversed: reversed,
-      ),
-    );
+      );
+
+  //============================================================================
+  // private state updaters
+  //============================================================================
+
+  Future<void> _updateRangesAndEstimate({
+    required bool shouldNotifyListeners,
+  }) async {
+    try {
+      switch (exchange.name) {
+        case ChangeNowExchange.exchangeName:
+          if (!_exchangeSupported(
+            exchangeName: exchange.name,
+            sendCurrency: sendCurrency,
+            receiveCurrency: receiveCurrency,
+            exchangeRateType: exchangeRateType,
+          )) {
+            _exchange = MajesticBankExchange.instance;
+          }
+          break;
+        case MajesticBankExchange.exchangeName:
+          if (!_exchangeSupported(
+            exchangeName: exchange.name,
+            sendCurrency: sendCurrency,
+            receiveCurrency: receiveCurrency,
+            exchangeRateType: exchangeRateType,
+          )) {
+            _exchange = ChangeNowExchange.instance;
+          }
+          break;
+      }
+
+      await _updateRanges(shouldNotifyListeners: false);
+      await _updateEstimate(shouldNotifyListeners: false);
+      if (shouldNotifyListeners) {
+        _notify();
+      }
+    } catch (_) {
+      //
+    }
   }
 
-  void _onExchangeTypeChanged() {
-    updateRanges(shouldNotifyListeners: true).then(
-      (_) => updateEstimate(
-        shouldNotifyListeners: true,
-        reversed: reversed,
-      ),
-    );
-  }
-
-  Future<void> updateRanges({required bool shouldNotifyListeners}) async {
+  Future<void> _updateRanges({
+    required bool shouldNotifyListeners,
+  }) async {
     // if (exchange?.name == SimpleSwapExchange.exchangeName) {
     //   reversed = false;
     // }
-    final _fromTicker = reversed ? toTicker : fromTicker;
-    final _toTicker = reversed ? fromTicker : toTicker;
-    if (_fromTicker == null || _toTicker == null) {
+    final _send = sendCurrency;
+    final _receive = receiveCurrency;
+    if (_send == null || _receive == null) {
       Logging.instance.log(
-        "Tried to $runtimeType.updateRanges where (from: $_fromTicker || to: $_toTicker) for: $exchange",
+        "Tried to $runtimeType.updateRanges where ( $_send || $_receive) for: $exchange",
         level: LogLevel.Info,
       );
       return;
     }
-    final response = await exchange?.getRange(
-      _fromTicker,
-      _toTicker,
-      exchangeType == ExchangeRateType.fixed,
+    final response = await exchange.getRange(
+      _send.ticker,
+      _receive.ticker,
+      exchangeRateType == ExchangeRateType.fixed,
     );
 
-    if (response?.value == null) {
+    if (response.value == null) {
       Logging.instance.log(
         "Tried to $runtimeType.updateRanges for: $exchange where response: $response",
         level: LogLevel.Info,
       );
       return;
     }
+    final responseReversed = await exchange.getRange(
+      _receive.ticker,
+      _send.ticker,
+      exchangeRateType == ExchangeRateType.fixed,
+    );
 
-    final range = response!.value!;
+    if (responseReversed.value == null) {
+      Logging.instance.log(
+        "Tried to $runtimeType.updateRanges for: $exchange where response: $responseReversed",
+        level: LogLevel.Info,
+      );
+      return;
+    }
 
-    minAmount = range.min;
-    maxAmount = range.max;
+    final range = response.value!;
+    final rangeReversed = responseReversed.value!;
+
+    _minSendAmount = range.min;
+    _maxSendAmount = range.max;
+    _minReceiveAmount = rangeReversed.min;
+    _maxReceiveAmount = rangeReversed.max;
 
     //todo: check if print needed
     // debugPrint(
     //     "updated range for: $exchange for $_fromTicker-$_toTicker: $range");
 
     if (shouldNotifyListeners) {
-      notifyListeners();
+      _notify();
     }
   }
 
-  Future<void> updateEstimate({
+  Future<void> _updateEstimate({
     required bool shouldNotifyListeners,
-    required bool reversed,
   }) async {
     // if (exchange?.name == SimpleSwapExchange.exchangeName) {
     //   reversed = false;
     // }
-    final amount = reversed ? toAmount : fromAmount;
-    if (fromTicker == null ||
-        toTicker == null ||
+    final amount = reversed ? receiveAmount : sendAmount;
+    if (sendCurrency == null ||
+        receiveCurrency == null ||
         amount == null ||
         amount <= Decimal.zero) {
       Logging.instance.log(
-        "Tried to $runtimeType.updateEstimate for: $exchange where (from: $fromTicker || to: $toTicker || amount: $amount)",
+        "Tried to $runtimeType.updateEstimate for: $exchange where (from: $sendCurrency || to: $receiveCurrency || amount: $amount)",
         level: LogLevel.Info,
       );
       return;
     }
-    final response = await exchange?.getEstimate(
-      fromTicker!,
-      toTicker!,
+    final response = await exchange.getEstimate(
+      sendCurrency!.ticker,
+      receiveCurrency!.ticker,
       amount,
-      exchangeType == ExchangeRateType.fixed,
+      exchangeRateType == ExchangeRateType.fixed,
       reversed,
     );
 
-    if (response?.value == null) {
+    if (response.value == null) {
       Logging.instance.log(
         "Tried to $runtimeType.updateEstimate for: $exchange where response: $response",
         level: LogLevel.Info,
@@ -370,63 +450,70 @@ class ExchangeFormState extends ChangeNotifier {
       return;
     }
 
-    estimate = response!.value!;
+    _estimate = response.value!;
 
     if (reversed) {
-      fromAmount = estimate!.estimatedAmount;
+      _sendAmount = _estimate!.estimatedAmount;
     } else {
-      toAmount = estimate!.estimatedAmount;
+      _receiveAmount = _estimate!.estimatedAmount;
     }
 
-    rate = (toAmount! / fromAmount!).toDecimal(scaleOnInfinitePrecision: 12);
+    _rate =
+        (receiveAmount! / sendAmount!).toDecimal(scaleOnInfinitePrecision: 12);
 
     //todo: check if print needed
     // debugPrint(
     //     "updated estimate for: $exchange for $fromTicker-$toTicker: $estimate");
 
     if (shouldNotifyListeners) {
-      notifyListeners();
+      _notify();
     }
   }
 
-  void setOnError({
-    required void Function(String)? onError,
-    bool shouldNotifyListeners = false,
-  }) {
-    _onError = onError;
-    if (shouldNotifyListeners) {
-      notifyListeners();
-    }
-  }
+  //============================================================================
 
-  Future<void> swap({FixedRateMarket? market}) async {
-    final Decimal? newToAmount = fromAmount;
-    final Decimal? newFromAmount = toAmount;
-
-    fromAmount = newFromAmount;
-    toAmount = newToAmount;
-
-    minAmount = null;
-    maxAmount = null;
-
-    if (exchangeType == ExchangeRateType.fixed &&
-        exchange?.name == ChangeNowExchange.exchangeName) {
-      await updateMarket(market, false);
-    } else {
-      final Currency? newTo = from;
-      final Currency? newFrom = to;
-
-      _to = newTo;
-      _from = newFrom;
-
-      await updateRanges(shouldNotifyListeners: false);
-
-      await updateEstimate(
-        shouldNotifyListeners: false,
-        reversed: reversed,
-      );
-    }
-
+  void _notify() {
+    debugPrint("ExFState NOTIFY: ${toString()}");
     notifyListeners();
+  }
+
+  bool _exchangeSupported({
+    required String exchangeName,
+    required AggregateCurrency? sendCurrency,
+    required AggregateCurrency? receiveCurrency,
+    required ExchangeRateType exchangeRateType,
+  }) {
+    final send = sendCurrency?.forExchange(exchangeName);
+    if (send == null) return false;
+
+    final rcv = receiveCurrency?.forExchange(exchangeName);
+    if (rcv == null) return false;
+
+    if (exchangeRateType == ExchangeRateType.fixed) {
+      return send.supportsFixedRate && rcv.supportsFixedRate;
+    } else {
+      return send.supportsEstimatedRate && rcv.supportsEstimatedRate;
+    }
+  }
+
+  @override
+  String toString() {
+    return "{"
+        "\n\t exchange: $exchange,"
+        "\n\t exchangeRateType: $exchangeRateType,"
+        "\n\t sendCurrency: $sendCurrency,"
+        "\n\t receiveCurrency: $receiveCurrency,"
+        "\n\t rate: $rate,"
+        "\n\t reversed: $reversed,"
+        "\n\t sendAmount: $sendAmount,"
+        "\n\t receiveAmount: $receiveAmount,"
+        "\n\t estimate: $estimate,"
+        "\n\t minSendAmount: $minSendAmount,"
+        "\n\t maxSendAmount: $maxSendAmount,"
+        "\n\t minReceiveAmount: $minReceiveAmount,"
+        "\n\t maxReceiveAmount: $maxReceiveAmount,"
+        "\n\t canExchange: $canExchange,"
+        "\n\t warning: $warning,"
+        "\n}";
   }
 }

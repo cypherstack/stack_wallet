@@ -169,7 +169,9 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
                               value: isEasy)
                           .then((_) {
                         if (isEasy) {
-                          unawaited(ExchangeDataLoadingService().loadAll(ref));
+                          unawaited(
+                            ExchangeDataLoadingService.instance.loadAll(),
+                          );
                           ref
                               .read(priceAnd24hChangeNotifierProvider)
                               .start(true);
@@ -261,7 +263,7 @@ class _PrivacyToggleState extends State<PrivacyToggle> {
                           height: 10,
                         ),
                       SvgPicture.asset(
-                        Assets.svg.personaEasy,
+                        Assets.svg.personaEasy(context),
                         width: 120,
                         height: 120,
                       ),
@@ -367,7 +369,7 @@ class _PrivacyToggleState extends State<PrivacyToggle> {
                           height: 10,
                         ),
                       SvgPicture.asset(
-                        Assets.svg.personaIncognito,
+                        Assets.svg.personaIncognito(context),
                         width: 120,
                         height: 120,
                       ),

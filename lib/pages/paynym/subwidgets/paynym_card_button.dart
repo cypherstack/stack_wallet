@@ -77,7 +77,7 @@ class _PaynymCardButtonState extends ConsumerState<PaynymCardButton> {
             child: Row(
               children: [
                 PayNymBot(
-                  size: 32,
+                  size: 36,
                   paymentCodeString: widget.accountLite.code,
                 ),
                 const SizedBox(
@@ -96,7 +96,7 @@ class _PaynymCardButtonState extends ConsumerState<PaynymCardButton> {
                                     .extension<StackColors>()!
                                     .textFieldActiveText,
                               )
-                            : STextStyles.w500_12(context),
+                            : STextStyles.w500_14(context),
                       ),
                       const SizedBox(
                         height: 2,
@@ -105,7 +105,7 @@ class _PaynymCardButtonState extends ConsumerState<PaynymCardButton> {
                         Format.shorten(widget.accountLite.code, 12, 5),
                         style: isDesktop
                             ? STextStyles.desktopTextExtraExtraSmall(context)
-                            : STextStyles.w500_12(context).copyWith(
+                            : STextStyles.w500_14(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .textSubtitle1,

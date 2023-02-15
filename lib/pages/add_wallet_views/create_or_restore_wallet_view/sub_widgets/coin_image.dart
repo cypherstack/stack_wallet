@@ -16,7 +16,7 @@ class CoinImage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Image(
       image: AssetImage(
-        Assets.png.imageFor(coin: coin),
+        Assets.png.imageFor(coin: coin, context: context),
       ),
       width: isDesktop ? 324 : MediaQuery.of(context).size.width / 3,
     );

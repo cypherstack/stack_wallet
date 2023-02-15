@@ -293,15 +293,6 @@ Future<int> _getChainHeightWrapper(String config) async {
 
 class EpicCashWallet extends CoinServiceAPI
     with WalletCache, WalletDB, EpicCashHive {
-  static const integrationTestFlag =
-      bool.fromEnvironment("IS_INTEGRATION_TEST");
-  final m = Mutex();
-  final syncMutex = Mutex();
-
-  final _prefs = Prefs.instance;
-
-  NodeModel? _epicNode;
-
   EpicCashWallet({
     required String walletId,
     required String walletName,
@@ -324,6 +315,15 @@ class EpicCashWallet extends CoinServiceAPI
     }
     isolates.clear();
   }
+
+  static const integrationTestFlag =
+      bool.fromEnvironment("IS_INTEGRATION_TEST");
+  final m = Mutex();
+  final syncMutex = Mutex();
+
+  final _prefs = Prefs.instance;
+
+  NodeModel? _epicNode;
 
   @override
   Future<void> updateNode(bool shouldRefresh) async {
@@ -599,6 +599,10 @@ class EpicCashWallet extends CoinServiceAPI
     isar_models.Address? address = await db
         .getAddresses(walletId)
         .filter()
+        .subTypeEqualTo(isar_models.AddressSubType.receiving)
+        .and()
+        .typeEqualTo(isar_models.AddressType.mimbleWimble)
+        .and()
         .derivationIndexEqualTo(index)
         .findFirst();
 
@@ -621,12 +625,13 @@ class EpicCashWallet extends CoinServiceAPI
         walletId: walletId,
         value: walletAddress!,
         derivationIndex: index,
+        derivationPath: null,
         type: isar_models.AddressType.mimbleWimble,
         subType: isar_models.AddressSubType.receiving,
         publicKey: [], // ??
       );
 
-      await db.putAddress(address);
+      await db.updateOrPutAddresses([address]);
     }
 
     return address;
@@ -637,8 +642,14 @@ class EpicCashWallet extends CoinServiceAPI
       (await _currentReceivingAddress)?.value ??
       (await _getReceivingAddressForIndex(0)).value;
 
-  Future<isar_models.Address?> get _currentReceivingAddress =>
-      db.getAddresses(walletId).sortByDerivationIndexDesc().findFirst();
+  Future<isar_models.Address?> get _currentReceivingAddress => db
+      .getAddresses(walletId)
+      .filter()
+      .subTypeEqualTo(isar_models.AddressSubType.receiving)
+      .and()
+      .typeEqualTo(isar_models.AddressType.mimbleWimble)
+      .sortByDerivationIndexDesc()
+      .findFirst();
 
   @override
   Future<void> exit() async {
@@ -730,7 +741,7 @@ class EpicCashWallet extends CoinServiceAPI
 
   @override
   Future<void> initializeExisting() async {
-    Logging.instance.log("Opening existing ${coin.prettyName} wallet",
+    Logging.instance.log("initializeExisting() ${coin.prettyName} wallet",
         level: LogLevel.Info);
 
     final config = await getRealConfig();
@@ -858,32 +869,39 @@ class EpicCashWallet extends CoinServiceAPI
   bool get isRefreshing => refreshMutex;
 
   @override
-  // TODO: implement maxFee
+  // unused for epic
   Future<int> get maxFee => throw UnimplementedError();
 
   Future<List<String>> _getMnemonicList() async {
-    if ((await _secureStore.read(key: '${_walletId}_mnemonic')) != null) {
-      final mnemonicString =
-          await _secureStore.read(key: '${_walletId}_mnemonic');
-      final List<String> data = mnemonicString!.split(' ');
+    String? _mnemonicString = await mnemonicString;
+    if (_mnemonicString != null) {
+      final List<String> data = _mnemonicString.split(' ');
       return data;
     } else {
-      String? mnemonicString;
       await m.protect(() async {
-        mnemonicString = await compute(
+        _mnemonicString = await compute(
           _walletMnemonicWrapper,
           0,
         );
       });
       await _secureStore.write(
-          key: '${_walletId}_mnemonic', value: mnemonicString);
-      final List<String> data = mnemonicString!.split(' ');
+          key: '${_walletId}_mnemonic', value: _mnemonicString);
+      final List<String> data = _mnemonicString!.split(' ');
       return data;
     }
   }
 
   @override
   Future<List<String>> get mnemonic => _getMnemonicList();
+
+  @override
+  Future<String?> get mnemonicString =>
+      _secureStore.read(key: '${_walletId}_mnemonic');
+
+  @override
+  Future<String?> get mnemonicPassphrase => _secureStore.read(
+        key: '${_walletId}_mnemonicPassphrase',
+      );
 
   @override
   Future<Map<String, dynamic>> prepareSend(
@@ -1116,11 +1134,13 @@ class EpicCashWallet extends CoinServiceAPI
   double highestPercent = 0;
 
   @override
-  Future<void> recoverFromMnemonic(
-      {required String mnemonic,
-      required int maxUnusedAddressGap,
-      required int maxNumberOfIndexesToCheck,
-      required int height}) async {
+  Future<void> recoverFromMnemonic({
+    required String mnemonic,
+    String? mnemonicPassphrase, // unused in epic
+    required int maxUnusedAddressGap,
+    required int maxNumberOfIndexesToCheck,
+    required int height,
+  }) async {
     try {
       await _prefs.init();
       await updateNode(false);
@@ -1186,6 +1206,14 @@ class EpicCashWallet extends CoinServiceAPI
       });
 
       await updateCachedChainHeight(latestHeight!);
+      if (latestHeight! > storedChainHeight) {
+        GlobalEventBus.instance.fire(
+          UpdatedInBackgroundEvent(
+            "Updated current chain height in $walletId $walletName!",
+            walletId,
+          ),
+        );
+      }
       return latestHeight!;
     } catch (e, s) {
       Logging.instance.log("Exception caught in chainHeight: $e\n$s",
@@ -1566,9 +1594,8 @@ class EpicCashWallet extends CoinServiceAPI
     final String transactions = message['result'] as String;
     final jsonTransactions = json.decode(transactions) as List;
 
-    final List<
-        Tuple4<isar_models.Transaction, List<isar_models.Output>,
-            List<isar_models.Input>, isar_models.Address?>> txnsData = [];
+    final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
+        [];
 
     // int latestTxnBlockHeight =
     //     DB.instance.get<dynamic>(boxName: walletId, key: "storedTxnDataHeight")
@@ -1617,12 +1644,14 @@ class EpicCashWallet extends CoinServiceAPI
         height = null;
       }
 
+      final isIncoming = (tx["tx_type"] == "TxReceived" ||
+          tx["tx_type"] == "TxReceivedCancelled");
+
       final txn = isar_models.Transaction(
         walletId: walletId,
         txid: commitId ?? tx["id"].toString(),
         timestamp: (dt.millisecondsSinceEpoch ~/ 1000),
-        type: (tx["tx_type"] == "TxReceived" ||
-                tx["tx_type"] == "TxReceivedCancelled")
+        type: isIncoming
             ? isar_models.TransactionType.incoming
             : isar_models.TransactionType.outgoing,
         subType: isar_models.TransactionSubType.none,
@@ -1634,6 +1663,8 @@ class EpicCashWallet extends CoinServiceAPI
         isLelantus: false,
         slateId: slateId,
         otherData: tx["id"].toString(),
+        inputs: [],
+        outputs: [],
       );
 
       // txn.address =
@@ -1643,6 +1674,38 @@ class EpicCashWallet extends CoinServiceAPI
           .filter()
           .valueEqualTo(address)
           .findFirst();
+
+      if (transactionAddress == null) {
+        if (isIncoming) {
+          transactionAddress = isar_models.Address(
+            walletId: walletId,
+            value: address,
+            publicKey: [],
+            derivationIndex: 0,
+            derivationPath: null,
+            type: isar_models.AddressType.mimbleWimble,
+            subType: isar_models.AddressSubType.receiving,
+          );
+        } else {
+          final myRcvAddr = await currentReceivingAddress;
+          final isSentToSelf = myRcvAddr == address;
+
+          transactionAddress = isar_models.Address(
+            walletId: walletId,
+            value: address,
+            publicKey: [],
+            derivationIndex: isSentToSelf ? 0 : -1,
+            derivationPath: null,
+            type: isSentToSelf
+                ? isar_models.AddressType.mimbleWimble
+                : isar_models.AddressType.nonWallet,
+            subType: isSentToSelf
+                ? isar_models.AddressSubType.receiving
+                : isar_models.AddressSubType.nonWallet,
+          );
+        }
+      }
+
       //
       // midSortedTx["inputSize"] = tx["num_inputs"];
       // midSortedTx["outputSize"] = tx["num_outputs"];
@@ -1657,7 +1720,7 @@ class EpicCashWallet extends CoinServiceAPI
       //   latestTxnBlockHeight = txHeight;
       // }
 
-      txnsData.add(Tuple4(txn, [], [], transactionAddress));
+      txnsData.add(Tuple2(txn, transactionAddress));
       // cachedMap?.remove(tx["id"].toString());
       // cachedMap?.remove(commitId);
       // Logging.instance.log("cmap: $cachedMap", level: LogLevel.Info);

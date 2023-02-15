@@ -117,7 +117,7 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
               ),
               Image(
                 image: AssetImage(
-                  Assets.png.stack,
+                  Assets.png.unclaimedPaynym,
                 ),
                 width: MediaQuery.of(context).size.width / 2,
               ),

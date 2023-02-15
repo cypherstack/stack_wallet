@@ -1,26 +1,21 @@
+import 'dart:convert';
+
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/output.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 
 part 'input.g.dart';
 
-@Collection()
+@embedded
 class Input {
   Input({
-    required this.walletId,
-    required this.txid,
-    required this.vout,
-    required this.scriptSig,
-    required this.scriptSigAsm,
-    required this.isCoinbase,
-    required this.sequence,
-    required this.innerRedeemScriptAsm,
+    this.txid = "error",
+    this.vout = -1,
+    this.scriptSig,
+    this.scriptSigAsm,
+    this.witness,
+    this.isCoinbase,
+    this.sequence,
+    this.innerRedeemScriptAsm,
   });
-
-  Id id = Isar.autoIncrement;
-
-  @Index()
-  late final String walletId;
 
   late final String txid;
 
@@ -30,8 +25,7 @@ class Input {
 
   late final String? scriptSigAsm;
 
-  // TODO: find witness type // is it even used?
-  // late List<dynamic>? witness;
+  late final String? witness;
 
   late final bool? isCoinbase;
 
@@ -39,8 +33,31 @@ class Input {
 
   late final String? innerRedeemScriptAsm;
 
-  final prevOut = IsarLink<Output>();
+  String toJsonString() {
+    final Map<String, dynamic> result = {
+      "txid": txid,
+      "vout": vout,
+      "scriptSig": scriptSig,
+      "scriptSigAsm": scriptSigAsm,
+      "witness": witness,
+      "isCoinbase": isCoinbase,
+      "sequence": sequence,
+      "innerRedeemScriptAsm": innerRedeemScriptAsm,
+    };
+    return jsonEncode(result);
+  }
 
-  @Backlink(to: 'inputs')
-  final transaction = IsarLink<Transaction>();
+  static Input fromJsonString(String jsonString) {
+    final json = jsonDecode(jsonString);
+    return Input(
+      txid: json["txid"] as String,
+      vout: json["vout"] as int,
+      scriptSig: json["scriptSig"] as String?,
+      scriptSigAsm: json["scriptSigAsm"] as String?,
+      witness: json["witness"] as String?,
+      isCoinbase: json["isCoinbase"] as bool?,
+      sequence: json["sequence"] as int?,
+      innerRedeemScriptAsm: json["innerRedeemScriptAsm"] as String?,
+    );
+  }
 }

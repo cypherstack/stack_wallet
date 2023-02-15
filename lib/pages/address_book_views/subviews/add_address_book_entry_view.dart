@@ -584,7 +584,7 @@ class _AddAddressBookEntryViewState
                                       "Address ${i + 1}",
                                       style: STextStyles.smallMed12(context),
                                     ),
-                                    BlueTextButton(
+                                    CustomTextButton(
                                       onTap: () {
                                         _removeForm(forms[i].id);
                                       },
@@ -601,7 +601,7 @@ class _AddAddressBookEntryViewState
                         const SizedBox(
                           height: 16,
                         ),
-                        BlueTextButton(
+                        CustomTextButton(
                           onTap: () {
                             _addForm();
                             scrollController.animateTo(

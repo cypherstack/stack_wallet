@@ -25,24 +25,19 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final providersByCoin = ref
-        .watch(
-          walletsChangeNotifierProvider.select(
-            (value) => value.getManagerProvidersByCoin(),
-          ),
-        )
-        .entries
-        .toList(growable: false);
+    final providersByCoin = ref.watch(
+      walletsChangeNotifierProvider.select(
+        (value) => value.getManagerProvidersByCoin(),
+      ),
+    );
 
     return TableView(
       rows: [
         for (int i = 0; i < providersByCoin.length; i++)
           Builder(
-            key: Key("${providersByCoin[i].key.name}_${runtimeType}_key"),
+            key: Key("${providersByCoin[i].item1.name}_${runtimeType}_key"),
             builder: (context) {
-              final providers = ref.watch(walletsChangeNotifierProvider.select(
-                  (value) => value
-                      .getManagerProvidersForCoin(providersByCoin[i].key)));
+              final providers = providersByCoin[i].item2;
 
               VoidCallback? expandOverride;
               if (providers.length == 1) {
@@ -77,7 +72,7 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
                     child: Row(
                       children: [
                         SvgPicture.asset(
-                          Assets.svg.iconFor(coin: providersByCoin[i].key),
+                          Assets.svg.iconFor(coin: providersByCoin[i].item1),
                           width: 28,
                           height: 28,
                         ),
@@ -85,7 +80,7 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
                           width: 10,
                         ),
                         Text(
-                          providersByCoin[i].key.prettyName,
+                          providersByCoin[i].item1.prettyName,
                           style: STextStyles.desktopTextExtraSmall(context)
                               .copyWith(
                             color: Theme.of(context)
@@ -113,12 +108,12 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
                   TableViewCell(
                     flex: 6,
                     child: TablePriceInfo(
-                      coin: providersByCoin[i].key,
+                      coin: providersByCoin[i].item1,
                     ),
                   ),
                 ],
                 expandingChild: CoinWalletsTable(
-                  coin: providersByCoin[i].key,
+                  coin: providersByCoin[i].item1,
                 ),
               );
             },

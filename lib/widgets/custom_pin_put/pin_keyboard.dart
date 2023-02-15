@@ -192,6 +192,50 @@ class SubmitKey extends StatelessWidget {
   }
 }
 
+class CustomKey extends StatelessWidget {
+  const CustomKey({
+    Key? key,
+    required this.onPressed,
+    this.iconAssetName,
+  }) : super(key: key);
+
+  final VoidCallback onPressed;
+  final String? iconAssetName;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 72,
+      width: 72,
+      decoration: ShapeDecoration(
+        shape: const StadiumBorder(),
+        color: Theme.of(context).extension<StackColors>()!.numpadBackDefault,
+        shadows: const [],
+      ),
+      child: MaterialButton(
+        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: const StadiumBorder(),
+        onPressed: () {
+          onPressed.call();
+        },
+        child: Center(
+          child: iconAssetName == null
+              ? null
+              : SvgPicture.asset(
+                  iconAssetName!,
+                  width: 20,
+                  height: 20,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .numpadTextDefault,
+                ),
+        ),
+      ),
+    );
+  }
+}
+
 class PinKeyboard extends StatelessWidget {
   const PinKeyboard({
     Key? key,
@@ -201,6 +245,7 @@ class PinKeyboard extends StatelessWidget {
     this.backgroundColor,
     this.width = 264,
     this.height = 360,
+    this.customKey,
   }) : super(key: key);
 
   final ValueSetter<String> onNumberKeyPressed;
@@ -209,6 +254,7 @@ class PinKeyboard extends StatelessWidget {
   final Color? backgroundColor;
   final double? width;
   final double? height;
+  final CustomKey? customKey;
 
   void _backHandler() {
     onBackPressed.call();
@@ -307,10 +353,12 @@ class PinKeyboard extends StatelessWidget {
           ),
           Row(
             children: [
-              const SizedBox(
-                height: 72,
-                width: 72,
-              ),
+              customKey == null
+                  ? const SizedBox(
+                      height: 72,
+                      width: 72,
+                    )
+                  : customKey!,
               const SizedBox(
                 width: 24,
               ),

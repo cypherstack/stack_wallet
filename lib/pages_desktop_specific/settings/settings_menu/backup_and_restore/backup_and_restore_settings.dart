@@ -450,7 +450,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                                       STextStyles.itemSubtitle(
                                                           context),
                                                 ),
-                                                BlueTextButton(
+                                                CustomTextButton(
                                                   text: "Back up now",
                                                   onTap: () {
                                                     ref

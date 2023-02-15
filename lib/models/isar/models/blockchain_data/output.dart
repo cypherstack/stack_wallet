@@ -1,23 +1,18 @@
+import 'dart:convert';
+
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 
 part 'output.g.dart';
 
-@Collection()
+@embedded
 class Output {
   Output({
-    required this.walletId,
-    required this.scriptPubKey,
-    required this.scriptPubKeyAsm,
-    required this.scriptPubKeyType,
-    required this.scriptPubKeyAddress,
-    required this.value,
+    this.scriptPubKey,
+    this.scriptPubKeyAsm,
+    this.scriptPubKeyType,
+    this.scriptPubKeyAddress = "",
+    this.value = 0,
   });
-
-  Id id = Isar.autoIncrement;
-
-  @Index()
-  late final String walletId;
 
   late final String? scriptPubKey;
 
@@ -29,6 +24,25 @@ class Output {
 
   late final int value;
 
-  @Backlink(to: 'outputs')
-  final transaction = IsarLink<Transaction>();
+  String toJsonString() {
+    final Map<String, dynamic> result = {
+      "scriptPubKey": scriptPubKey,
+      "scriptPubKeyAsm": scriptPubKeyAsm,
+      "scriptPubKeyType": scriptPubKeyType,
+      "scriptPubKeyAddress": scriptPubKeyAddress,
+      "value": value,
+    };
+    return jsonEncode(result);
+  }
+
+  static Output fromJsonString(String jsonString) {
+    final json = jsonDecode(jsonString);
+    return Output(
+      scriptPubKey: json["scriptPubKey"] as String?,
+      scriptPubKeyAsm: json["scriptPubKeyAsm"] as String?,
+      scriptPubKeyType: json["scriptPubKeyType"] as String?,
+      scriptPubKeyAddress: json["scriptPubKeyAddress"] as String,
+      value: json["value"] as int,
+    );
+  }
 }

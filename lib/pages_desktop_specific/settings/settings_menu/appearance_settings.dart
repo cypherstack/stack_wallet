@@ -27,7 +27,8 @@ class _AppearanceOptionSettings
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    return Column(
+    return SingleChildScrollView(
+        child: Column(
       children: [
         Padding(
           padding: const EdgeInsets.only(
@@ -145,7 +146,7 @@ class _AppearanceOptionSettings
           ),
         ),
       ],
-    );
+    ));
   }
 }
 
@@ -171,6 +172,8 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
         return Assets.svg.themeOledBlack;
       case ThemeType.fruitSorbet:
         return Assets.svg.themeFruit;
+      case ThemeType.forest:
+        return Assets.svg.themeForest;
     }
   }
 
