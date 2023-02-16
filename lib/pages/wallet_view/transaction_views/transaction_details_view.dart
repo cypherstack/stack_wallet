@@ -62,18 +62,18 @@ class _TransactionDetailsViewState
     } else if (type == "Received") {
       if (_transaction.confirmedStatus) {
         color = Theme.of(context).extension<StackColors>()!.accentColorGreen;
-        label = "Received";
+        label = "Received (confirmed)";
       } else {
         color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
-        label = "Receiving (~10 min for 10 confirmations)";
+        label = "Receiving (waiting on sender)";
       }
     } else if (type == "Sent") {
       if (_transaction.confirmedStatus) {
         color = Theme.of(context).extension<StackColors>()!.accentColorRed;
-        label = "Sent";
+        label = "Sent (confirmed)";
       } else {
         color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
-        label = "Sending (~10 min for 10 confirmations)";
+        label = "Sending (waiting on receiver)";
       }
     } else {
       color = Theme.of(context).extension<StackColors>()!.textLight;
