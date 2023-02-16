@@ -732,6 +732,24 @@ mixin PaynymWalletInterface {
     return false;
   }
 
+  Uint8List? _pubKeyFromInput(Input input) {
+    final scriptSigComponents = input.scriptSigAsm?.split(" ") ?? [];
+    if (scriptSigComponents.length > 1) {
+      return scriptSigComponents[1].fromHex;
+    }
+    if (input.witness != null) {
+      try {
+        final witnessComponents = jsonDecode(input.witness!) as List;
+        if (witnessComponents.length == 2) {
+          return (witnessComponents[1] as String).fromHex;
+        }
+      } catch (_) {
+        //
+      }
+    }
+    return null;
+  }
+
   Future<PaymentCode?> unBlindedPaymentCodeFromTransaction({
     required Transaction transaction,
     required Address myNotificationAddress,
@@ -760,7 +778,7 @@ mixin PaynymWalletInterface {
       final buffer = rev.buffer.asByteData();
       buffer.setUint32(txPoint.length, txPointIndex, Endian.little);
 
-      final pubKey = designatedInput.scriptSigAsm!.split(" ")[1].fromHex;
+      final pubKey = _pubKeyFromInput(designatedInput)!;
 
       final myPrivateKey = (await deriveNotificationBip32Node(
         mnemonic: (await _getMnemonicString())!,

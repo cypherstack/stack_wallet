@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:bip47/src/util.dart';
 import 'package:decimal/decimal.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
@@ -156,6 +158,14 @@ mixin ElectrumXParsing {
 
     for (final json in txData["vin"] as List) {
       bool isCoinBase = json['coinbase'] != null;
+      String? witness;
+      if (json['witness'] != null && json['witness'] is String) {
+        witness = json['witness'] as String;
+      } else if (json['txinwitness'] != null) {
+        if (json['txinwitness'] is List) {
+          witness = jsonEncode(json['txinwitness']);
+        }
+      }
       final input = Input(
         txid: json['txid'] as String,
         vout: json['vout'] as int? ?? -1,
@@ -164,6 +174,7 @@ mixin ElectrumXParsing {
         isCoinbase: isCoinBase ? isCoinBase : json['is_coinbase'] as bool?,
         sequence: json['sequence'] as int?,
         innerRedeemScriptAsm: json['innerRedeemscriptAsm'] as String?,
+        witness: witness,
       );
       ins.add(input);
     }
