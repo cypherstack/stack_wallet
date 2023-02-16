@@ -1896,4 +1896,24 @@ class EpicCashWallet extends CoinServiceAPI {
       return false;
     }
   }
+
+  // Null means invalid, failed to look up slate, etc
+  // 0 = waiting on receiver
+  // 1 = waiting on sender
+  // 2 = finalized, unconfirmed
+  // 3 = confirmed
+  Future<int?> getSlateStatus(String txSlateId) async {
+    Logging.instance
+        .log("Getting status of slate $txSlateId", level: LogLevel.Info);
+
+    try {
+      // Look up status of slate ID
+    } catch (e, s) {
+      Logging.instance.log("Exception rethrown from getSlateStatus(): $e\n$s",
+          level: LogLevel.Error);
+      return null;
+    }
+
+    return 0;
+  }
 }
