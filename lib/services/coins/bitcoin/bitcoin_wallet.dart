@@ -2178,7 +2178,10 @@ class BitcoinWallet extends CoinServiceAPI
           .txidEqualTo(txHash["tx_hash"] as String)
           .findFirst();
 
+      // TODO: remove bip47Notification type check sometime after Q2 2023
       if (storedTx == null ||
+          storedTx.subType ==
+              isar_models.TransactionSubType.bip47Notification ||
           !storedTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)) {
         final tx = await cachedElectrumXClient.getTransaction(
           txHash: txHash["tx_hash"] as String,
