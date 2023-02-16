@@ -59,7 +59,7 @@ dependencies:
   bip47:
     git:
       url: https://github.com/cypherstack/bip47.git
-      ref: 87bb760be323228aed6ca7bd4532a709a4f10690
+      ref: 48dd65f88822fba8543826274f6d51c17f735f93
 
   # Utility plugins
 #  provider: ^6.0.1
