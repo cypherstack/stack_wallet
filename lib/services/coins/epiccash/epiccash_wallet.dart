@@ -86,46 +86,6 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
         sendPort.send(result);
         return;
       }
-    } else if (function == "getPendingSlates") {
-      final wallet = arguments['wallet'] as String?;
-      final secretKeyIndex = arguments['secretKeyIndex'] as int?;
-      final slates = arguments['slates'] as String;
-      Map<String, dynamic> result = {};
-
-      if (!(wallet == null || secretKeyIndex == null)) {
-        Logging.instance
-            .log("SECRET_KEY_INDEX_IS $secretKeyIndex", level: LogLevel.Info);
-        result['result'] =
-            await getPendingSlates(wallet, secretKeyIndex, slates);
-        sendPort.send(result);
-        return;
-      }
-    } else if (function == "subscribeRequest") {
-      final wallet = arguments['wallet'] as String?;
-      final secretKeyIndex = arguments['secretKeyIndex'] as int?;
-      final epicboxConfig = arguments['epicboxConfig'] as String?;
-      Map<String, dynamic> result = {};
-
-      if (!(wallet == null ||
-          secretKeyIndex == null ||
-          epicboxConfig == null)) {
-        Logging.instance
-            .log("SECRET_KEY_INDEX_IS $secretKeyIndex", level: LogLevel.Info);
-        result['result'] =
-            await getSubscribeRequest(wallet, secretKeyIndex, epicboxConfig);
-        sendPort.send(result);
-        return;
-      }
-    } else if (function == "processSlates") {
-      final wallet = arguments['wallet'] as String?;
-      final slates = arguments['slates'];
-      Map<String, dynamic> result = {};
-
-      if (!(wallet == null || slates == null)) {
-        result['result'] = await processSlates(wallet, slates.toString());
-        sendPort.send(result);
-        return;
-      }
     } else if (function == "getWalletInfo") {
       final wallet = arguments['wallet'] as String?;
       final refreshFromNode = arguments['refreshFromNode'] as int?;
@@ -212,6 +172,17 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
           address == null)) {
         var res = await txHttpSend(wallet, selectionStrategyIsAll,
             minimumConfirmations, message, amount, address);
+        result['result'] = res;
+        sendPort.send(result);
+        return;
+      }
+    } else if (function == "listenForSlates") {
+      final wallet = arguments['wallet'] as String?;
+      final epicboxConfig = arguments['epicboxConfig'] as String?;
+
+      Map<String, dynamic> result = {};
+      if (!(wallet == null || epicboxConfig == null)) {
+        var res = await epicboxListen(wallet, epicboxConfig);
         result['result'] = res;
         sendPort.send(result);
         return;
@@ -318,204 +289,6 @@ Future<String> _recoverWrapper(
 Future<int> _getChainHeightWrapper(String config) async {
   final int chainHeight = getChainHeight(config);
   return chainHeight;
-}
-
-const String EPICPOST_ADDRESS = 'https://epicpost.stackwallet.com';
-
-Future<bool> postSlate(String receiveAddress, String slate) async {
-  Logging.instance.log("postSlate", level: LogLevel.Info);
-  final Client client = Client();
-  try {
-    final uri = Uri.parse("$EPICPOST_ADDRESS/postSlate");
-
-    final epicpost = await client.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        "jsonrpc": "2.0",
-        "id": "0",
-        'receivingAddress': receiveAddress,
-        'slate': slate
-      }),
-    );
-
-    // TODO: should the following be removed for security reasons in production?
-    Logging.instance.log(epicpost.statusCode.toString(), level: LogLevel.Info);
-    Logging.instance.log(epicpost.body.toString(), level: LogLevel.Info);
-    final response = jsonDecode(epicpost.body.toString());
-    if (response['status'] == 'success') {
-      return true;
-    } else {
-      return false;
-    }
-  } catch (e, s) {
-    Logging.instance.log("$e $s", level: LogLevel.Error);
-    return false;
-  }
-}
-
-Future<dynamic> getSlates(String receiveAddress, String signature) async {
-  Logging.instance.log("getslates", level: LogLevel.Info);
-  final Client client = Client();
-  try {
-    final uri = Uri.parse("$EPICPOST_ADDRESS/getSlates");
-
-    final epicpost = await client.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        "jsonrpc": "2.0",
-        "id": "0",
-        'receivingAddress': receiveAddress,
-        'signature': signature,
-      }),
-    );
-
-    // TODO: should the following be removed for security reasons in production?
-    Logging.instance.log(epicpost.statusCode.toString(), level: LogLevel.Info);
-    Logging.instance.log(epicpost.body.toString(), level: LogLevel.Info);
-    final response = jsonDecode(epicpost.body.toString());
-    if (response['status'] == 'success') {
-      return response['slates'];
-    } else {
-      return response['error'];
-    }
-  } catch (e, s) {
-    Logging.instance.log("$e $s", level: LogLevel.Error);
-    return 'Error $e $s';
-  }
-}
-
-Future<bool> postCancel(String receiveAddress, String slateId,
-    String? signature, String sendersAddress) async {
-  Logging.instance.log("postCancel", level: LogLevel.Info);
-  final Client client = Client();
-  try {
-    final uri = Uri.parse("$EPICPOST_ADDRESS/postCancel");
-
-    final body = jsonEncode({
-      "jsonrpc": "2.0",
-      "id": "0",
-      'receivingAddress': receiveAddress,
-      "signature": signature,
-      'slate': slateId,
-      "sendersAddress": sendersAddress,
-    });
-    final epicPost = await client.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: body,
-    );
-    // TODO: should the following be removed for security reasons in production?
-    Logging.instance.log(epicPost.statusCode.toString(), level: LogLevel.Info);
-    Logging.instance.log(epicPost.body.toString(), level: LogLevel.Info);
-    final response = jsonDecode(epicPost.body.toString());
-    if (response['status'] == 'success') {
-      return true;
-    } else {
-      return false;
-    }
-  } catch (e, s) {
-    Logging.instance.log("$e $s", level: LogLevel.Error);
-    return false;
-  }
-}
-
-Future<dynamic> getCancels(String receiveAddress, String signature) async {
-  Logging.instance.log("getCancels", level: LogLevel.Info);
-  final Client client = Client();
-  try {
-    final uri = Uri.parse("$EPICPOST_ADDRESS/getCancels");
-
-    final epicpost = await client.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        "jsonrpc": "2.0",
-        "id": "0",
-        'receivingAddress': receiveAddress,
-        'signature': signature,
-      }),
-    );
-    // TODO: should the following be removed for security reasons in production?
-    Logging.instance.log(epicpost.statusCode.toString(), level: LogLevel.Info);
-    Logging.instance.log(epicpost.body.toString(), level: LogLevel.Info);
-    final response = jsonDecode(epicpost.body.toString());
-    if (response['status'] == 'success') {
-      return response['canceled_slates'];
-    } else {
-      return response['error'];
-    }
-  } catch (e, s) {
-    Logging.instance.log("$e $s", level: LogLevel.Error);
-    return 'Error $e $s';
-  }
-}
-
-Future<dynamic> deleteCancels(
-    String receiveAddress, String signature, String slate) async {
-  Logging.instance.log("deleteCancels", level: LogLevel.Info);
-  final Client client = Client();
-  try {
-    final uri = Uri.parse("$EPICPOST_ADDRESS/deleteCancels");
-
-    final epicpost = await client.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        "jsonrpc": "2.0",
-        "id": "0",
-        'receivingAddress': receiveAddress,
-        'signature': signature,
-        'slate': slate,
-      }),
-    );
-    // TODO: should the following be removed for security reasons in production?
-    Logging.instance.log(epicpost.statusCode.toString(), level: LogLevel.Info);
-    Logging.instance.log(epicpost.body.toString(), level: LogLevel.Info);
-    final response = jsonDecode(epicpost.body.toString());
-    if (response['status'] == 'success') {
-      return true;
-    } else {
-      return false;
-    }
-  } catch (e, s) {
-    Logging.instance.log("$e $s", level: LogLevel.Error);
-    return 'Error $e $s';
-  }
-}
-
-Future<dynamic> deleteSlate(
-    String receiveAddress, String signature, String slate) async {
-  Logging.instance.log("deleteSlate", level: LogLevel.Info);
-  final Client client = Client();
-  try {
-    final uri = Uri.parse("$EPICPOST_ADDRESS/deleteSlate");
-
-    final epicpost = await client.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        "jsonrpc": "2.0",
-        "id": "0",
-        'receivingAddress': receiveAddress,
-        'signature': signature,
-        'slate': slate,
-      }),
-    );
-    // TODO: should the following be removed for security reasons in production?
-    Logging.instance.log(epicpost.statusCode.toString(), level: LogLevel.Info);
-    Logging.instance.log(epicpost.body.toString(), level: LogLevel.Info);
-    final response = jsonDecode(epicpost.body.toString());
-    if (response['status'] == 'success') {
-      return true;
-    } else {
-      return false;
-    }
-  } catch (e, s) {
-    Logging.instance.log("$e $s", level: LogLevel.Info);
-    return 'Error $e $s';
-  }
 }
 
 class EpicCashWallet extends CoinServiceAPI
@@ -650,53 +423,10 @@ class EpicCashWallet extends CoinServiceAPI
   late SecureStorageInterface _secureStore;
 
   Future<String> cancelPendingTransactionAndPost(String txSlateId) async {
-    final wallet = await _secureStore.read(key: '${_walletId}_wallet');
-    final int? receivingIndex = epicGetReceivingIndex();
-    final epicboxConfig =
-        await _secureStore.read(key: '${_walletId}_epicboxConfig');
-
-    final slatesToCommits = await getSlatesToCommits();
-    final receiveAddress = slatesToCommits[txSlateId]['to'] as String;
-    final sendersAddress = slatesToCommits[txSlateId]['from'] as String;
-
-    int? currentReceivingIndex;
-    for (int i = 0; i <= receivingIndex!; i++) {
-      final indexesAddress = await _getReceivingAddressForIndex(i);
-      if (indexesAddress.value == sendersAddress) {
-        currentReceivingIndex = i;
-        break;
-      }
-    }
-
-    dynamic subscribeRequest;
-    await m.protect(() async {
-      ReceivePort receivePort = await getIsolate({
-        "function": "subscribeRequest",
-        "wallet": wallet,
-        "secretKeyIndex": currentReceivingIndex!,
-        "epicboxConfig": epicboxConfig,
-      }, name: walletName);
-
-      var result = await receivePort.first;
-      if (result is String) {
-        Logging.instance.log("this is a message $result", level: LogLevel.Info);
-        stop(receivePort);
-        throw Exception("subscribeRequest isolate failed");
-      }
-      subscribeRequest = jsonDecode(result['result'] as String);
-      stop(receivePort);
-      Logging.instance.log('Closing subscribeRequest! $subscribeRequest',
-          level: LogLevel.Info);
-    });
-    // TODO, once server adds signature, give this signature to the getSlates method.
-    String? signature = subscribeRequest['signature'] as String?;
     String? result;
     try {
       result = await cancelPendingTransaction(txSlateId);
       Logging.instance.log("result?: $result", level: LogLevel.Info);
-      if (!(result.toLowerCase().contains("error"))) {
-        await postCancel(receiveAddress, txSlateId, signature, sendersAddress);
-      }
     } catch (e, s) {
       Logging.instance.log("$e, $s", level: LogLevel.Error);
     }
@@ -797,16 +527,6 @@ class EpicCashWallet extends CoinServiceAPI
         String errorMessage = decodeData[1] as String;
         throw Exception("Transaction failed with error code $errorMessage");
       } else {
-        //If it's HTTP send no need to post to epicbox
-        if (!(receiverAddress.startsWith("http://") ||
-            receiverAddress.startsWith("https://"))) {
-          final postSlateRequest = decodeData[1];
-          final postToServer = await postSlate(
-              txData['addresss'] as String, postSlateRequest as String);
-          Logging.instance
-              .log("POST_SLATE_IS $postToServer", level: LogLevel.Info);
-        }
-
         final txCreateResult = decodeData[0];
         // //TODO: second problem
         final transaction = json.decode(txCreateResult as String);
@@ -999,6 +719,8 @@ class EpicCashWallet extends CoinServiceAPI
     await _prefs.init();
     await updateNode(false);
     await _refreshBalance();
+    //Open Epicbox listener in the background
+    await listenForSlates();
     // TODO: is there anything else that should be set up here whenever this wallet is first loaded again?
   }
 
@@ -1092,6 +814,9 @@ class EpicCashWallet extends CoinServiceAPI
       epicUpdateReceivingIndex(0),
       epicUpdateChangeIndex(0),
     ]);
+
+    //Open Epicbox listener in the background
+    await listenForSlates();
 
     final initialReceivingAddress = await _getReceivingAddressForIndex(0);
 
@@ -1289,8 +1014,10 @@ class EpicCashWallet extends CoinServiceAPI
 
   Future<void> updateEpicboxConfig(String host, int port) async {
     String stringConfig = jsonEncode({
-      "domain": host,
-      "port": port,
+      "epicbox_domain": host,
+      "epicbox_port": port,
+      "epicbox_protocol_unsecure": false,
+      "epicbox_address_index": 0,
     });
     await _secureStore.write(
         key: '${_walletId}_epicboxConfig', value: stringConfig);
@@ -1413,6 +1140,9 @@ class EpicCashWallet extends CoinServiceAPI
 
       //Store Epic box address info
       await storeEpicboxInfo();
+
+      //Open Epicbox listener in the background
+      await listenForSlates();
     } catch (e, s) {
       Logging.instance
           .log("Error recovering wallet $e\n$s", level: LogLevel.Error);
@@ -1583,249 +1313,28 @@ class EpicCashWallet extends CoinServiceAPI
     }
   }
 
-  Future<bool> processAllSlates() async {
-    final int? receivingIndex = epicGetReceivingIndex();
-    for (int currentReceivingIndex = 0;
-        receivingIndex != null && currentReceivingIndex <= receivingIndex;
-        currentReceivingIndex++) {
-      final currentAddress =
-          await _getReceivingAddressForIndex(currentReceivingIndex);
-      final wallet = await _secureStore.read(key: '${_walletId}_wallet');
-      final epicboxConfig =
-          await _secureStore.read(key: '${_walletId}_epicboxConfig');
-      dynamic subscribeRequest;
-      await m.protect(() async {
-        ReceivePort receivePort = await getIsolate({
-          "function": "subscribeRequest",
-          "wallet": wallet,
-          "secretKeyIndex": currentReceivingIndex,
-          "epicboxConfig": epicboxConfig,
-        }, name: walletName);
-
-        var result = await receivePort.first;
-        if (result is String) {
-          Logging.instance
-              .log("this is a message $result", level: LogLevel.Error);
-          stop(receivePort);
-          throw Exception("subscribeRequest isolate failed");
-        }
-        subscribeRequest = jsonDecode(result['result'] as String);
-        stop(receivePort);
-        Logging.instance.log('Closing subscribeRequest! $subscribeRequest',
-            level: LogLevel.Info);
-      });
-      // TODO, once server adds signature, give this signature to the getSlates method.
-      Logging.instance
-          .log(subscribeRequest['signature'], level: LogLevel.Info); //
-      final unprocessedSlates = await getSlates(
-          currentAddress.value, subscribeRequest['signature'] as String);
-      if (unprocessedSlates == null || unprocessedSlates is! List) {
-        Logging.instance.log(
-            "index $currentReceivingIndex at ${await currentReceivingAddress} does not have any slates",
-            level: LogLevel.Info);
-        continue;
-      }
-      for (var slate in unprocessedSlates) {
-        final encoded = jsonEncode([slate]);
-        Logging.instance
-            .log("Received Slates is $encoded", level: LogLevel.Info);
-
-        //Decrypt Slates
-        dynamic slates;
-        dynamic response;
-        await m.protect(() async {
-          ReceivePort receivePort = await getIsolate({
-            "function": "getPendingSlates",
-            "wallet": wallet!,
-            "secretKeyIndex": currentReceivingIndex,
-            "slates": encoded,
-          }, name: walletName);
-
-          var result = await receivePort.first;
-          if (result is String) {
-            Logging.instance
-                .log("this is a message $slates", level: LogLevel.Info);
-            stop(receivePort);
-            throw Exception("getPendingSlates isolate failed");
-          }
-          slates = result['result'];
-          stop(receivePort);
-        });
-
-        var decoded = jsonDecode(slates as String);
-
-        for (var decodedSlate in decoded as List) {
-          //Process slates
-          var decodedResponse = json.decode(decodedSlate as String);
-          String slateMessage = decodedResponse[0] as String;
-          await putSlatesToCommits(slateMessage, encoded);
-          String slateSender = decodedResponse[1] as String;
-          Logging.instance.log("SLATE_MESSAGE $slateMessage",
-              printFullLength: true, level: LogLevel.Info);
-          Logging.instance
-              .log("SLATE_SENDER $slateSender", level: LogLevel.Info);
-          await m.protect(() async {
-            ReceivePort receivePort = await getIsolate({
-              "function": "processSlates",
-              "wallet": wallet!,
-              "slates": slateMessage
-            }, name: walletName);
-
-            var message = await receivePort.first;
-            if (message is String) {
-              Logging.instance.log("this is PROCESS_SLATES message $message",
-                  level: LogLevel.Error);
-              stop(receivePort);
-              throw Exception("processSlates isolate failed");
-            }
-
-            try {
-              final String response = message['result'] as String;
-              if (response == "") {
-                Logging.instance.log("response: ${response.runtimeType}",
-                    level: LogLevel.Info);
-                await deleteSlate(currentAddress.value,
-                    subscribeRequest['signature'] as String, slate as String);
-              }
-
-              if (response
-                  .contains("Error Wallet store error: DB Not Found Error")) {
-                //Already processed - to be deleted
-                Logging.instance
-                    .log("DELETING_PROCESSED_SLATE", level: LogLevel.Info);
-                final slateDelete = await deleteSlate(currentAddress.value,
-                    subscribeRequest['signature'] as String, slate as String);
-                Logging.instance.log("DELETE_SLATE_RESPONSE $slateDelete",
-                    level: LogLevel.Info);
-              } else {
-                var decodedResponse = json.decode(response);
-                final processStatus = json.decode(decodedResponse[0] as String);
-                String slateStatus = processStatus['status'] as String;
-                if (slateStatus == "PendingProcessing") {
-                  //Encrypt slate
-                  String encryptedSlate = await getEncryptedSlate(
-                      wallet,
-                      slateSender,
-                      currentReceivingIndex,
-                      epicboxConfig!,
-                      decodedResponse[1] as String);
-
-                  final postSlateToServer =
-                      await postSlate(slateSender, encryptedSlate);
-
-                  await deleteSlate(currentAddress.value,
-                      subscribeRequest['signature'] as String, slate as String);
-                  Logging.instance.log("POST_SLATE_RESPONSE $postSlateToServer",
-                      level: LogLevel.Info);
-                } else {
-                  //Finalise Slate
-                  final processSlate =
-                      json.decode(decodedResponse[1] as String);
-                  Logging.instance.log(
-                      "PROCESSED_SLATE_TO_FINALIZE $processSlate",
-                      level: LogLevel.Info);
-                  final tx = json.decode(processSlate[0] as String);
-                  Logging.instance.log("TX_IS $tx", level: LogLevel.Info);
-                  String txSlateId = tx[0]['tx_slate_id'] as String;
-                  Logging.instance
-                      .log("TX_SLATE_ID_IS $txSlateId", level: LogLevel.Info);
-                  final postToNode = await postSlateToNode(wallet, txSlateId);
-                  await deleteSlate(currentAddress.value,
-                      subscribeRequest['signature'] as String, slate as String);
-                  Logging.instance.log("POST_SLATE_RESPONSE $postToNode",
-                      level: LogLevel.Info);
-                  //Post Slate to Node
-                  Logging.instance.log("Finalise slate", level: LogLevel.Info);
-                }
-              }
-            } catch (e, s) {
-              Logging.instance.log("$e\n$s", level: LogLevel.Info);
-              return false;
-            }
-            stop(receivePort);
-            Logging.instance
-                .log('Closing processSlates! $response', level: LogLevel.Info);
-          });
-        }
-      }
-    }
-    return true;
-  }
-
-  Future<bool> processAllCancels() async {
-    Logging.instance.log("processAllCancels", level: LogLevel.Info);
+  Future<void> listenForSlates() async {
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
     final epicboxConfig =
         await _secureStore.read(key: '${_walletId}_epicboxConfig');
-    final int? receivingIndex = epicGetReceivingIndex();
 
-    for (int currentReceivingIndex = 0;
-        receivingIndex != null && currentReceivingIndex <= receivingIndex;
-        currentReceivingIndex++) {
-      final receiveAddress =
-          await _getReceivingAddressForIndex(currentReceivingIndex);
+    await m.protect(() async {
+      Logging.instance.log("CALLING LISTEN FOR SLATES", level: LogLevel.Info);
+      ReceivePort receivePort = await getIsolate({
+        "function": "listenForSlates",
+        "wallet": wallet,
+        "epicboxConfig": epicboxConfig,
+      }, name: walletName);
 
-      dynamic subscribeRequest;
-      await m.protect(() async {
-        ReceivePort receivePort = await getIsolate({
-          "function": "subscribeRequest",
-          "wallet": wallet!,
-          "secretKeyIndex": currentReceivingIndex,
-          "epicboxConfig": epicboxConfig,
-        }, name: walletName);
-
-        var result = await receivePort.first;
-        if (result is String) {
-          Logging.instance
-              .log("this is a message $result", level: LogLevel.Info);
-          stop(receivePort);
-          throw Exception("subscribeRequest isolate failed");
-        }
-        subscribeRequest = jsonDecode(result['result'] as String);
+      var result = await receivePort.first;
+      if (result is String) {
+        Logging.instance
+            .log("this is a message $result", level: LogLevel.Error);
         stop(receivePort);
-        Logging.instance.log('Closing subscribeRequest! $subscribeRequest',
-            level: LogLevel.Info);
-      });
-      String? signature = subscribeRequest['signature'] as String?;
-      final cancels = await getCancels(receiveAddress.value, signature!);
-
-      final slatesToCommits = await getSlatesToCommits();
-      for (final cancel in cancels as List<dynamic>) {
-        final txSlateId = cancel.keys.first as String;
-        if (slatesToCommits[txSlateId] == null) {
-          continue;
-        }
-        final cancelRequestSender = ((cancel as Map).values.first) as String;
-        final receiveAddressFromMap =
-            slatesToCommits[txSlateId]['to'] as String;
-        final sendersAddressFromMap =
-            slatesToCommits[txSlateId]['from'] as String;
-        final commitId = slatesToCommits[txSlateId]['commitId'] as String;
-
-        if (sendersAddressFromMap != cancelRequestSender) {
-          Logging.instance.log("this was not signed by the correct address",
-              level: LogLevel.Error);
-          continue;
-        }
-
-        try {
-          await cancelPendingTransaction(txSlateId);
-          final tx = await db
-              .getTransactions(walletId)
-              .filter()
-              .txidEqualTo(commitId)
-              .findFirst();
-          if ((tx?.isCancelled ?? false) == true) {
-            await deleteCancels(receiveAddressFromMap, signature, txSlateId);
-          }
-        } catch (e, s) {
-          Logging.instance.log("$e, $s", level: LogLevel.Error);
-          return false;
-        }
+        throw Exception("subscribeRequest isolate failed");
       }
-      continue;
-    }
-    return true;
+      stop(receivePort);
+    });
   }
 
   /// Refreshes display data for the wallet
@@ -1876,9 +1385,6 @@ class EpicCashWallet extends CoinServiceAPI
         return;
       }
 
-      await processAllSlates();
-      await processAllCancels();
-
       unawaited(startSync());
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.0, walletId));
@@ -1915,7 +1421,6 @@ class EpicCashWallet extends CoinServiceAPI
         ),
       );
       refreshMutex = false;
-
       if (shouldAutoSync) {
         timer ??= Timer.periodic(const Duration(seconds: 60), (timer) async {
           Logging.instance.log(
