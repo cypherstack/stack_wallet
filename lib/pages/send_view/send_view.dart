@@ -8,15 +8,18 @@ import 'package:epicpay/providers/providers.dart';
 import 'package:epicpay/services/coins/manager.dart';
 import 'package:epicpay/utilities/address_utils.dart';
 import 'package:epicpay/utilities/barcode_scanner_interface.dart';
+import 'package:epicpay/utilities/clipboard_interface.dart';
 import 'package:epicpay/utilities/enums/coin_enum.dart';
 import 'package:epicpay/utilities/logger.dart';
 import 'package:epicpay/utilities/text_styles.dart';
 import 'package:epicpay/utilities/theme/stack_colors.dart';
 import 'package:epicpay/widgets/desktop/primary_button.dart';
 import 'package:epicpay/widgets/icon_widgets/addressbook_icon.dart';
+import 'package:epicpay/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:epicpay/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:epicpay/widgets/icon_widgets/x_icon.dart';
 import 'package:epicpay/widgets/rounded_container.dart';
+import 'package:epicpay/widgets/stack_dialog.dart';
 import 'package:epicpay/widgets/textfield_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -32,13 +35,16 @@ class SendView extends ConsumerStatefulWidget {
     required this.walletId,
     required this.coin,
     this.barcodeScanner = const BarcodeScannerWrapper(),
+    this.clipboard = const ClipboardWrapper(),
   }) : super(key: key);
 
   static const String routeName = "/sendView";
 
   final String walletId;
   final Coin coin;
+
   final BarcodeScannerInterface barcodeScanner;
+  final ClipboardInterface? clipboard;
 
   @override
   ConsumerState<SendView> createState() => _SendViewState();
@@ -204,19 +210,50 @@ class _SendViewState extends ConsumerState<SendView> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  if (_addressToggleFlag == true)
-                                    TextFieldIconButton(
-                                      key: const Key(
-                                          "sendViewClearAddressFieldButtonKey"),
-                                      onTap: () {
-                                        sendToController.text = "";
-                                        _address = "";
-                                        setState(() {
-                                          _addressToggleFlag = false;
-                                        });
-                                      },
-                                      child: const XIcon(),
-                                    ),
+                                  _addressToggleFlag
+                                      ? TextFieldIconButton(
+                                          key: const Key(
+                                              "sendViewClearAddressFieldButtonKey"),
+                                          onTap: () {
+                                            sendToController.text = "";
+                                            _address = "";
+                                            setState(() {
+                                              _addressToggleFlag = false;
+                                            });
+                                          },
+                                          child: const XIcon(),
+                                        )
+                                      : TextFieldIconButton(
+                                          key: const Key(
+                                              "sendViewPasteAddressFieldButtonKey"),
+                                          onTap: () async {
+                                            final ClipboardData? data =
+                                                await widget.clipboard?.getData(
+                                                    Clipboard.kTextPlain);
+                                            if (data?.text != null &&
+                                                data!.text!.isNotEmpty) {
+                                              String content =
+                                                  data.text!.trim();
+                                              if (content.contains("\n")) {
+                                                content = content.substring(
+                                                    0, content.indexOf("\n"));
+                                              }
+
+                                              sendToController.text = content;
+                                              _address = content;
+
+                                              setState(() {
+                                                _addressToggleFlag =
+                                                    sendToController
+                                                        .text.isNotEmpty;
+                                              });
+                                            }
+                                          },
+                                          child: sendToController.text.isEmpty
+                                              ? const ClipboardIcon()
+                                              : const XIcon(),
+                                        ),
+                                  //
                                   TextFieldIconButton(
                                     key: const Key("sendViewScanQrButtonKey"),
                                     onTap: () async {
@@ -357,15 +394,51 @@ class _SendViewState extends ConsumerState<SendView> {
                         PrimaryButton(
                           label: "NEXT",
                           enabled: _addressToggleFlag,
-                          onPressed: () {
-                            Navigator.of(context).pushNamed(
-                              SendAmountView.routeName,
-                              arguments: Tuple3(
-                                ref.read(walletProvider)!.walletId,
-                                _address!,
-                                Coin.epicCash,
-                              ),
-                            );
+                          onPressed: () async {
+                            final bool isAddress = await ref
+                                .read(walletProvider)
+                                ?.isOwnAddress(_address!) as bool;
+
+                            isAddress
+                                ? await showDialog<dynamic>(
+                                    context: context,
+                                    useSafeArea: false,
+                                    barrierDismissible: true,
+                                    builder: (context) {
+                                      return StackDialog(
+                                        title: "Transaction failed",
+                                        message:
+                                            "Sending to self is currently disabled",
+                                        rightButton: TextButton(
+                                          style: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .getSecondaryEnabledButtonColor(
+                                                  context),
+                                          child: Text(
+                                            "Ok",
+                                            style:
+                                                STextStyles.buttonText(context)
+                                                    .copyWith(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .accentColorDark,
+                                            ),
+                                          ),
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : Navigator.of(context).pushNamed(
+                                    SendAmountView.routeName,
+                                    arguments: Tuple3(
+                                      ref.read(walletProvider)!.walletId,
+                                      _address!,
+                                      Coin.epicCash,
+                                    ),
+                                  );
                             debugPrint(_address!);
                           },
                         ),
