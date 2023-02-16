@@ -423,46 +423,6 @@ class EpicCashWallet extends CoinServiceAPI
   late SecureStorageInterface _secureStore;
 
   Future<String> cancelPendingTransactionAndPost(String txSlateId) async {
-    final wallet = await _secureStore.read(key: '${_walletId}_wallet');
-    final int? receivingIndex = epicGetReceivingIndex();
-    final epicboxConfig =
-        await _secureStore.read(key: '${_walletId}_epicboxConfig');
-
-    final slatesToCommits = await getSlatesToCommits();
-    final receiveAddress = slatesToCommits[txSlateId]['to'] as String;
-    final sendersAddress = slatesToCommits[txSlateId]['from'] as String;
-
-    int? currentReceivingIndex;
-    for (int i = 0; i <= receivingIndex!; i++) {
-      final indexesAddress = await _getReceivingAddressForIndex(i);
-      if (indexesAddress.value == sendersAddress) {
-        currentReceivingIndex = i;
-        break;
-      }
-    }
-
-    dynamic subscribeRequest;
-    await m.protect(() async {
-      ReceivePort receivePort = await getIsolate({
-        "function": "subscribeRequest",
-        "wallet": wallet,
-        "secretKeyIndex": currentReceivingIndex!,
-        "epicboxConfig": epicboxConfig,
-      }, name: walletName);
-
-      var result = await receivePort.first;
-      if (result is String) {
-        Logging.instance.log("this is a message $result", level: LogLevel.Info);
-        stop(receivePort);
-        throw Exception("subscribeRequest isolate failed");
-      }
-      subscribeRequest = jsonDecode(result['result'] as String);
-      stop(receivePort);
-      Logging.instance.log('Closing subscribeRequest! $subscribeRequest',
-          level: LogLevel.Info);
-    });
-    // TODO, once server adds signature, give this signature to the getSlates method.
-    String? signature = subscribeRequest['signature'] as String?;
     String? result;
     try {
       result = await cancelPendingTransaction(txSlateId);
@@ -1425,10 +1385,6 @@ class EpicCashWallet extends CoinServiceAPI
         return;
       }
 
-      // await listenForSlates();
-      // await processAllSlates();
-      // await processAllCancels();
-
       unawaited(startSync());
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.0, walletId));
@@ -1465,7 +1421,6 @@ class EpicCashWallet extends CoinServiceAPI
         ),
       );
       refreshMutex = false;
-      // await listenForSlates();
       if (shouldAutoSync) {
         timer ??= Timer.periodic(const Duration(seconds: 60), (timer) async {
           Logging.instance.log(
