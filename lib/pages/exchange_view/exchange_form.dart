@@ -385,6 +385,19 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     final sendAmount = ref.read(exchangeFormStateProvider).sendAmount!;
     final estimate = ref.read(exchangeFormStateProvider).estimate!;
 
+    if (rateType == ExchangeRateType.fixed && toTicker.toUpperCase() == "WOW") {
+      await showDialog<void>(
+        context: context,
+        builder: (context) => const StackOkDialog(
+          title: "WOW error",
+          message:
+              "Wownero is temporarily disabled as a receiving currency for fixed rate trades due to network issues",
+        ),
+      );
+
+      return;
+    }
+
     String rate;
 
     switch (rateType) {
