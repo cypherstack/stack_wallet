@@ -43,13 +43,13 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
       if (_transaction.confirmedStatus) {
         return "Received";
       } else {
-        return "Receiving";
+        return "Receiving...";
       }
     } else if (type == "Sent") {
       if (_transaction.confirmedStatus) {
         return "Sent";
       } else {
-        return "Sending";
+        return "Sending...";
       }
     } else {
       return type;
