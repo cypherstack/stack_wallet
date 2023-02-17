@@ -456,8 +456,7 @@ class EpicCashWallet extends CoinServiceAPI
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
     try {
       final wallet = await _secureStore.read(key: '${_walletId}_wallet');
-      final epicboxConfig =
-          await _secureStore.read(key: '${_walletId}_epicboxConfig');
+      final epicboxConfig = await getEpicBoxConfig();
 
       // TODO determine whether it is worth sending change to a change address.
       dynamic message;
@@ -517,8 +516,6 @@ class EpicCashWallet extends CoinServiceAPI
         throw BadEpicHttpAddressException(message: sendTx);
       }
 
-      await putSendToAddresses(sendTx);
-
       Logging.instance.log("CONFIRM_RESULT_IS $sendTx", level: LogLevel.Info);
 
       final decodeData = json.decode(sendTx);
@@ -531,21 +528,11 @@ class EpicCashWallet extends CoinServiceAPI
         // //TODO: second problem
         final transaction = json.decode(txCreateResult as String);
 
-        Logger.print("TX_IS $transaction");
         final tx = transaction[0];
         final txLogEntry = json.decode(tx as String);
         final txLogEntryFirst = txLogEntry[0];
-        Logger.print("TX_LOG_ENTRY_IS $txLogEntryFirst");
-        final slateToAddresses = epicGetSlatesToAddresses();
         final slateId = txLogEntryFirst['tx_slate_id'] as String;
-        slateToAddresses[slateId] = txData['addresss'];
-        await epicUpdateSlatesToAddresses(slateToAddresses);
-
-        final slatesToCommits = await getSlatesToCommits();
-        String? commitId = slatesToCommits[slateId]?['commitId'] as String?;
-        Logging.instance.log("sent commitId: $commitId", level: LogLevel.Info);
-        return commitId!;
-        // return txLogEntryFirst['tx_slate_id'] as String;
+        return slateId!;
       }
     } catch (e, s) {
       Logging.instance.log("Error sending $e - $s", level: LogLevel.Error);
@@ -568,8 +555,7 @@ class EpicCashWallet extends CoinServiceAPI
 
     if (address == null) {
       final wallet = await _secureStore.read(key: '${_walletId}_wallet');
-      final epicboxConfig =
-          await _secureStore.read(key: '${_walletId}_epicboxConfig');
+      final epicboxConfig = await getEpicBoxConfig();
 
       String? walletAddress;
       await m.protect(() async {
@@ -729,8 +715,7 @@ class EpicCashWallet extends CoinServiceAPI
     int index = 0;
 
     Logging.instance.log("This index is $index", level: LogLevel.Info);
-    final epicboxConfig =
-        await _secureStore.read(key: '${_walletId}_epicboxConfig');
+    final epicboxConfig = await getEpicBoxConfig();
     String? walletAddress;
     await m.protect(() async {
       walletAddress = await compute(
@@ -996,8 +981,21 @@ class EpicCashWallet extends CoinServiceAPI
   }
 
   Future<String> getEpicBoxConfig() async {
-    return await _secureStore.read(key: '${_walletId}_epicboxConfig') ??
-        DefaultNodes.defaultEpicBoxConfig;
+    final storedConfig =
+        await _secureStore.read(key: '${_walletId}_epicboxConfig');
+    if (storedConfig != null) {
+      final decoded = json.decode(storedConfig!);
+      final domain = decoded["domain"] ?? "empty";
+      if (domain != "empty") {
+        //If we have the old invalid config - update
+        await _secureStore.write(
+            key: '${_walletId}_epicboxConfig',
+            value: DefaultNodes.defaultEpicBoxConfig);
+      }
+      return await _secureStore.read(key: '${_walletId}_epicboxConfig') ??
+          DefaultNodes.defaultEpicBoxConfig;
+    }
+    return DefaultNodes.defaultEpicBoxConfig;
   }
 
   Future<String> getRealConfig() async {
@@ -1315,8 +1313,7 @@ class EpicCashWallet extends CoinServiceAPI
 
   Future<void> listenForSlates() async {
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
-    final epicboxConfig =
-        await _secureStore.read(key: '${_walletId}_epicboxConfig');
+    final epicboxConfig = await getEpicBoxConfig();
 
     await m.protect(() async {
       Logging.instance.log("CALLING LISTEN FOR SLATES", level: LogLevel.Info);
