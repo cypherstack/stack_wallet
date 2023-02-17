@@ -64,16 +64,32 @@ class _TransactionDetailsViewState
         color = Theme.of(context).extension<StackColors>()!.accentColorGreen;
         label = "Received (confirmed)";
       } else {
-        color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
-        label = "Receiving (waiting on sender)";
+        if (_transaction.numberOfMessages == 1) {
+          color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
+          label = "Receiving (waiting for sender)";
+        } else if ((_transaction.numberOfMessages ?? 0) > 1) {
+          color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
+          label = "Receiving (waiting for confirmation)";
+        } else {
+          color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
+          label = "Receiving";
+        }
       }
     } else if (type == "Sent") {
       if (_transaction.confirmedStatus) {
         color = Theme.of(context).extension<StackColors>()!.accentColorRed;
         label = "Sent (confirmed)";
       } else {
-        color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
-        label = "Sending (waiting on receiver)";
+        if (_transaction.numberOfMessages == 1) {
+          color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
+          label = "Sending (waiting for receiver)";
+        } else if ((_transaction.numberOfMessages ?? 0) > 1) {
+          color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
+          label = "Sending (waiting for confirmation)";
+        } else {
+          color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
+          label = "Sending";
+        }
       }
     } else {
       color = Theme.of(context).extension<StackColors>()!.textLight;

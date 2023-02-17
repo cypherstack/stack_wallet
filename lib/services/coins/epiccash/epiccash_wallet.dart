@@ -1705,6 +1705,8 @@ class EpicCashWallet extends CoinServiceAPI {
 
       DateTime dt = DateTime.parse(tx["creation_ts"] as String);
 
+      tx['numberOfMessages'] = tx['messages']?['messages']?.length;
+
       Map<String, dynamic> midSortedTx = {};
       midSortedTx["txType"] = (tx["tx_type"] == "TxReceived" ||
               tx["tx_type"] == "TxReceivedCancelled")
@@ -1753,6 +1755,7 @@ class EpicCashWallet extends CoinServiceAPI {
       midSortedTx["tx_slate_id"] = tx["tx_slate_id"];
       midSortedTx["key_id"] = tx["parent_key_id"];
       midSortedTx["otherData"] = tx["id"].toString();
+      midSortedTx["numberOfMessages"] = tx["numberOfMessages"];
 
       if (txHeight >= latestTxnBlockHeight) {
         latestTxnBlockHeight = txHeight;

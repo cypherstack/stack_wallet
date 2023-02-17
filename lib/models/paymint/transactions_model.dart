@@ -152,6 +152,9 @@ class Transaction {
   final String? slateId;
   // @HiveField(18)
   final String? otherData;
+  // @HiveField(19)
+  final int?
+      numberOfMessages; // null means old type of tx in hive, otherwise an int value represent the number of messages present
 
   Transaction({
     required this.txid,
@@ -174,6 +177,7 @@ class Transaction {
     this.isCancelled = false,
     this.slateId,
     this.otherData,
+    this.numberOfMessages,
   });
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
@@ -209,6 +213,7 @@ class Transaction {
       isCancelled: json["isCancelled"] as bool? ?? false,
       slateId: json["slateId"] as String?,
       otherData: json["otherData"] as String?,
+      numberOfMessages: json["numberOfMessages"] as int?,
     );
   }
 
@@ -239,6 +244,7 @@ class Transaction {
       subType: json["subType"] as String? ?? "",
       confirmations: json["confirmations"] as int? ?? 0,
       otherData: json["otherData"] as String?,
+      numberOfMessages: json["numberOfMessages"] as int?,
     );
   }
 
@@ -265,6 +271,7 @@ class Transaction {
     bool? isCancelled,
     String? slateId,
     String? otherData,
+    int? numberOfMessages,
   }) {
     return Transaction(
       txid: txid ?? this.txid,
@@ -288,13 +295,14 @@ class Transaction {
       isCancelled: isCancelled ?? this.isCancelled,
       slateId: slateId ?? this.slateId,
       otherData: otherData ?? this.otherData,
+      numberOfMessages: numberOfMessages ?? this.numberOfMessages,
     );
   }
 
   @override
   String toString() {
     String transaction =
-        "{txid: $txid, type: $txType, subType: $subType, value: $amount, fee: $fees, height: $height, confirm: $confirmedStatus, confirmations: $confirmations, address: $address, timestamp: $timestamp, worthNow: $worthNow, inputs: $inputs, slateid: $slateId }";
+        "{txid: $txid, type: $txType, subType: $subType, value: $amount, fee: $fees, height: $height, confirm: $confirmedStatus, confirmations: $confirmations, address: $address, timestamp: $timestamp, worthNow: $worthNow, inputs: $inputs, slateid: $slateId, numberOfMessages: $numberOfMessages }";
     return transaction;
   }
 }
