@@ -1033,8 +1033,6 @@ class EpicCashWallet extends CoinServiceAPI {
           key: '${_walletId}_epicboxConfig',
           value: DefaultNodes.defaultEpicBoxConfig);
     }
-    final walletConfHere =
-        await _secureStore.read(key: '${_walletId}_epicboxConfig');
     return await _secureStore.read(key: '${_walletId}_epicboxConfig') ??
         DefaultNodes.defaultEpicBoxConfig;
   }
