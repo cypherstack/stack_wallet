@@ -76,7 +76,7 @@ class _TransactionDetailsViewState
       }
     } else if (type == "Sent") {
       if (_transaction.confirmedStatus) {
-        color = Theme.of(context).extension<StackColors>()!.accentColorRed;
+        color = Theme.of(context).extension<StackColors>()!.accentColorGreen;
         label = "Sent (confirmed)";
       } else {
         if (_transaction.numberOfMessages == 1) {
