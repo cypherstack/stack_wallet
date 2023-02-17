@@ -61,7 +61,7 @@ class _TransactionDetailsViewState
     } else if (type == "Received") {
       if (_transaction.confirmedStatus) {
         color = Theme.of(context).extension<StackColors>()!.accentColorGreen;
-        label = "Received (confirmed)";
+        label = "Received";
       } else {
         if (_transaction.numberOfMessages == 1) {
           color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
