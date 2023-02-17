@@ -477,8 +477,7 @@ class EpicCashWallet extends CoinServiceAPI {
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
     try {
       final wallet = await _secureStore.read(key: '${_walletId}_wallet');
-      final epicboxConfig =
-          await _secureStore.read(key: '${_walletId}_epicboxConfig');
+      final epicboxConfig = await getEpicBoxConfig();
 
       // TODO determine whether it is worth sending change to a change address.
       dynamic message;
@@ -580,8 +579,8 @@ class EpicCashWallet extends CoinServiceAPI {
     int chain,
   ) async {
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
-    final epicboxConfig =
-        await _secureStore.read(key: '${_walletId}_epicboxConfig');
+
+    final epicboxConfig = await getEpicBoxConfig();
 
     String? walletAddress;
     await m.protect(() async {
@@ -739,8 +738,8 @@ class EpicCashWallet extends CoinServiceAPI {
     int index = 0;
 
     Logging.instance.log("This index is $index", level: LogLevel.Info);
-    final epicboxConfig =
-        await _secureStore.read(key: '${_walletId}_epicboxConfig');
+    final epicboxConfig = await getEpicBoxConfig();
+
     String? walletAddress;
     await m.protect(() async {
       walletAddress = await compute(
@@ -1024,6 +1023,19 @@ class EpicCashWallet extends CoinServiceAPI {
   }
 
   Future<String> getEpicBoxConfig() async {
+    final storedConfig =
+        await _secureStore.read(key: '${_walletId}_epicboxConfig');
+    final decoded = json.decode(storedConfig!);
+    final domain = decoded["domain"] ?? "empty";
+    if (domain != "empty") {
+      //If we have the old invalid config - update
+      await _secureStore.write(
+          key: '${_walletId}_epicboxConfig',
+          value: DefaultNodes.defaultEpicBoxConfig);
+    }
+    final walletConfHere =
+        await _secureStore.read(key: '${_walletId}_epicboxConfig');
+    print("NEW CONFIG IS $walletConfHere");
     return await _secureStore.read(key: '${_walletId}_epicboxConfig') ??
         DefaultNodes.defaultEpicBoxConfig;
   }
@@ -1382,8 +1394,7 @@ class EpicCashWallet extends CoinServiceAPI {
 
   Future<void> listenForSlates() async {
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
-    final epicboxConfig =
-        await _secureStore.read(key: '${_walletId}_epicboxConfig');
+    final epicboxConfig = await getEpicBoxConfig();
 
     await m.protect(() async {
       Logging.instance.log("CALLING LISTEN FOR SLATES", level: LogLevel.Info);
