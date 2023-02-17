@@ -56,16 +56,6 @@
                 <data
                     android:pathPattern=".*\\.swb" />
             </intent-filter>
-            <intent-filter>
-                <data
-                    android:scheme="file"/>
-                <data
-                    android:mimeType="*/*"/>
-                <data
-                    android:pathPattern=".*\\.swb"/>
-                <data
-                    android:host="*" />
-            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
