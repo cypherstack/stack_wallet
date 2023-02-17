@@ -1025,16 +1025,19 @@ class EpicCashWallet extends CoinServiceAPI {
   Future<String> getEpicBoxConfig() async {
     final storedConfig =
         await _secureStore.read(key: '${_walletId}_epicboxConfig');
-    final decoded = json.decode(storedConfig!);
-    final domain = decoded["domain"] ?? "empty";
-    if (domain != "empty") {
-      //If we have the old invalid config - update
-      await _secureStore.write(
-          key: '${_walletId}_epicboxConfig',
-          value: DefaultNodes.defaultEpicBoxConfig);
+    if (storedConfig != null) {
+      final decoded = json.decode(storedConfig!);
+      final domain = decoded["domain"] ?? "empty";
+      if (domain != "empty") {
+        //If we have the old invalid config - update
+        await _secureStore.write(
+            key: '${_walletId}_epicboxConfig',
+            value: DefaultNodes.defaultEpicBoxConfig);
+      }
+      return await _secureStore.read(key: '${_walletId}_epicboxConfig') ??
+          DefaultNodes.defaultEpicBoxConfig;
     }
-    return await _secureStore.read(key: '${_walletId}_epicboxConfig') ??
-        DefaultNodes.defaultEpicBoxConfig;
+    return DefaultNodes.defaultEpicBoxConfig;
   }
 
   Future<String> getRealConfig() async {
