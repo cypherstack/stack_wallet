@@ -68,7 +68,8 @@ class _TransactionDetailsViewState
           label = "Receiving (waiting for sender)";
         } else if ((_transaction.numberOfMessages ?? 0) > 1) {
           color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
-          label = "Receiving (waiting for confirmation)";
+          label =
+              "Receiving (waiting for confirmation)"; // TODO test if the sender still has to open again after the receiver has 2 messages present, ie. sender->receiver->sender->node (yes) vs. sender->receiver->node (no)
         } else {
           color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
           label = "Receiving";
