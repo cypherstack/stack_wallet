@@ -61,7 +61,7 @@ class _EpicBoxesViewState extends ConsumerState<EpicBoxesView> {
                     textAlign: TextAlign.left,
                   ),
                   BlueTextButton(
-                    text: "Add new node",
+                    text: "Add new Epic Box server",
                     onTap: () {
                       Navigator.of(context).pushNamed(
                         AddEditEpicBoxView.routeName,
