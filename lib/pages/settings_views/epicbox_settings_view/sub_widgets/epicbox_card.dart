@@ -106,9 +106,20 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
       children: [
         Expanded(
           child: GestureDetector(
-            onTapDown: (tapDetails) {
-              showContextMenu(
-                  _epicBox, _isCurrentEpicBox, tapDetails.globalPosition);
+            onTapDown: (tapDetails) async {
+              // showContextMenu(
+              //     _epicBox, _isCurrentEpicBox, tapDetails.globalPosition);
+              await ref
+                  .read(nodeServiceChangeNotifierProvider)
+                  .setPrimaryEpicBox(
+                    epicBox: _epicBox,
+                  );
+              // await ref
+              //     .read(walletProvider)!
+              //     .updateEpicBox(true);
+              // if (mounted) {
+              //   Navigator.of(context).pop();
+              // }
             },
             child: Container(
               height: 48,
