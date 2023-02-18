@@ -5,6 +5,7 @@ import 'dart:isolate';
 
 import 'package:decimal/decimal.dart';
 import 'package:epicpay/hive/db.dart';
+import 'package:epicpay/models/epicbox_model.dart';
 import 'package:epicpay/models/node_model.dart';
 import 'package:epicpay/models/paymint/fee_object_model.dart';
 import 'package:epicpay/models/paymint/transactions_model.dart';
@@ -1027,45 +1028,27 @@ class EpicCashWallet extends CoinServiceAPI {
   }
 
   Future<String> getEpicBoxConfig() async {
-    final _defaultConfig = DefaultEpicBoxes.defaultEpicBoxConfig;
-    Map<String, dynamic> _epicBoxConfig = {
-      "epicbox_domain": _defaultConfig.host,
-      "epicbox_port": _defaultConfig.port,
-      "epicbox_protocol_unsecure": false,
-      "epicbox_address_index": 0,
-    };
-
-    dynamic _storedConfig =
-        await _secureStore.read(key: '${_walletId}_epicboxConfig');
-    Logging.instance.log("Read ${_walletId}_epicboxConfig: $_storedConfig",
+    EpicBoxModel? _epicBox = DB.instance
+        .get<EpicBoxModel>(boxName: DB.boxNamePrimaryEpicBox, key: 'primary');
+    Logging.instance.log(
+        "Read primary Epic Box config: ${jsonEncode(_epicBox)}",
         level: LogLevel.Info);
-    _storedConfig = jsonDecode("$_storedConfig");
 
-    if (_storedConfig != null) {
-      if (_storedConfig['domain'] == null ||
-          _storedConfig['epicbox_domain'] == null) {
-        // if we have an old invalid config, update
-        Logging.instance.log(
-            "Saving default ${_walletId}_epicboxConfig: ${jsonEncode(_defaultConfig)}",
-            level: LogLevel.Info);
-        await _secureStore.write(
-            key: '${_walletId}_epicboxConfig',
-            value: jsonEncode(_defaultConfig));
-      } else {
-        _epicBoxConfig = jsonDecode("$_storedConfig") as Map<String, dynamic>;
-      }
-    } else if (_storedConfig['id'] != null) {
-      // EpicBoxModel stored as epicboxConfig, refresh
-      _epicBoxConfig["epicbox_domain"] = _storedConfig['host'];
-      _epicBoxConfig["epicbox_port"] = _storedConfig['port'];
+    if (_epicBox == null) {
       Logging.instance.log(
-          "Migrating ${_walletId}_epicboxConfig: ${jsonEncode(_epicBoxConfig)}",
+          "Using default Epic Box config: ${jsonEncode(DefaultEpicBoxes.defaultEpicBoxConfig)}",
           level: LogLevel.Info);
-      await _secureStore.write(
-          key: '${_walletId}_epicboxConfig', value: jsonEncode(_epicBoxConfig));
+      _epicBox = DefaultEpicBoxes.defaultEpicBoxConfig;
     }
 
-    return jsonEncode(_epicBoxConfig);
+    Map<String, dynamic> _config = {
+      'epicbox_domain': _epicBox.host,
+      'epicbox_port': _epicBox.port,
+      'epicbox_protocol_unsecure': false,
+      'epicbox_address_index': 0,
+    };
+
+    return jsonEncode(_config);
   }
 
   Future<String> getRealConfig() async {
@@ -1078,20 +1061,6 @@ class EpicCashWallet extends CoinServiceAPI {
       config = jsonEncode(editConfig);
     }
     return config!;
-  }
-
-  Future<void> updateEpicboxConfig(String host, int port) async {
-    String configString = jsonEncode({
-      "epicbox_domain": host,
-      "epicbox_port": port,
-      "epicbox_protocol_unsecure": false,
-      "epicbox_address_index": 0,
-    });
-    Logging.instance.log("Updating ${_walletId}_epicboxConfig: $configString",
-        level: LogLevel.Info);
-    await _secureStore.write(
-        key: '${_walletId}_epicboxConfig', value: configString);
-    // TODO: refresh anything that needs to be refreshed/updated due to epicbox info changed
   }
 
   Future<bool> startScans() async {
