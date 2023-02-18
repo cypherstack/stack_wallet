@@ -1,7 +1,6 @@
 import 'package:epicpay/pages/settings_views/epicbox_settings_view/manage_epicbox_views/add_edit_epicbox_view.dart';
 import 'package:epicpay/pages/settings_views/epicbox_settings_view/sub_widgets/epicbox_list.dart';
 import 'package:epicpay/utilities/assets.dart';
-import 'package:epicpay/utilities/enums/coin_enum.dart';
 import 'package:epicpay/utilities/text_styles.dart';
 import 'package:epicpay/utilities/theme/stack_colors.dart';
 import 'package:epicpay/utilities/util.dart';
@@ -9,7 +8,6 @@ import 'package:epicpay/widgets/background.dart';
 import 'package:epicpay/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicpay/widgets/custom_buttons/blue_text_button.dart';
 import 'package:epicpay/widgets/desktop/desktop_dialog.dart';
-import 'package:epicpay/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
