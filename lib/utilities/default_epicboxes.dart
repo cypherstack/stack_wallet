@@ -6,7 +6,7 @@ abstract class DefaultEpicBoxes {
   static List<EpicBoxModel> get all => [americas, asia, europe];
 
   static EpicBoxModel get americas => EpicBoxModel(
-        host: "epiccash.stackwallet.com",
+        host: 'epicbox.epic.tech',
         port: 443,
         name: 'Americas',
         id: 'americas',
@@ -17,7 +17,7 @@ abstract class DefaultEpicBoxes {
       );
 
   static EpicBoxModel get asia => EpicBoxModel(
-        host: "epiccash.stackwallet.com",
+        host: 'epicbox.hyperbig.com',
         port: 443,
         name: 'Asia',
         id: 'asia',
@@ -28,7 +28,7 @@ abstract class DefaultEpicBoxes {
       );
 
   static EpicBoxModel get europe => EpicBoxModel(
-        host: "epicbox.epic.tech",
+        host: 'epicbox.epic.tech',
         port: 443,
         name: 'Europe',
         id: 'europe',
