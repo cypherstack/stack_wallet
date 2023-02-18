@@ -55,7 +55,7 @@ class _EpicBoxesViewState extends ConsumerState<EpicBoxesView> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "${widget.coin.prettyName} nodes",
+                    "Epic Box servers",
                     style: STextStyles.desktopTextExtraSmall(context).copyWith(
                       color:
                           Theme.of(context).extension<StackColors>()!.textDark,
