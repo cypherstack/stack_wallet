@@ -66,9 +66,9 @@ class _EpicBoxesViewState extends ConsumerState<EpicBoxesView> {
                     text: "Add new node",
                     onTap: () {
                       Navigator.of(context).pushNamed(
-                        AddEditEpixBoxView.routeName,
+                        AddEditEpicBoxView.routeName,
                         arguments: Tuple3(
-                          AddEditNodeViewType.add,
+                          AddEditEpicBoxViewType.add,
                           null,
                           EpicBoxesView.routeName,
                         ),
@@ -130,11 +130,11 @@ class _EpicBoxesViewState extends ConsumerState<EpicBoxesView> {
                     ),
                     onPressed: () {
                       Navigator.of(context).pushNamed(
-                        AddEditNodeView.routeName,
+                        AddEditEpicBoxView.routeName,
                         arguments: Tuple3(
-                          AddEditNodeViewType.add,
+                          AddEditEpicBoxViewType.add,
                           null,
-                          EpixBoxesView.routeName,
+                          EpicBoxesView.routeName,
                         ),
                       );
                     },
@@ -151,7 +151,7 @@ class _EpicBoxesViewState extends ConsumerState<EpicBoxesView> {
             ),
             child: SingleChildScrollView(
               child: EpicBoxList(
-                popBackToRoute: EpixBoxesView.routeName,
+                popBackToRoute: EpicBoxesView.routeName,
               ),
             ),
           ),
