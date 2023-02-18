@@ -68,8 +68,16 @@ class EpicBoxModel {
 
   bool get isDefault => id.startsWith("default_");
 
-  @override
-  String toString() {
-    return toMap().toString();
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'host': host,
+      'port': port,
+      'name': name,
+      'useSSL': useSSL,
+      'enabled': enabled,
+      'isFailover': isFailover,
+      'isDown': isDown,
+    };
   }
 }

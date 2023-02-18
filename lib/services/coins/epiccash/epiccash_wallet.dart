@@ -1034,7 +1034,7 @@ class EpicCashWallet extends CoinServiceAPI {
         //If we have the old invalid config - update
         await _secureStore.write(
             key: '${_walletId}_epicboxConfig',
-            value: jsonEncode(DefaultEpicBoxes.defaultEpicBoxConfig));
+            value: jsonEncode(DefaultEpicBoxes.defaultEpicBoxConfig.toJson()));
       }
       final config =
           await _secureStore.read(key: '${_walletId}_epicboxConfig') ??
