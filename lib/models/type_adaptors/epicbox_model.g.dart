@@ -22,9 +22,9 @@ class EpicBoxModelAdapter extends TypeAdapter<EpicBoxModel> {
       name: fields[3] as String,
       id: fields[0] as String,
       useSSL: fields[4] as bool,
-      enabled: fields[6] as bool,
-      isFailover: fields[8] as bool,
-      isDown: fields[8] as bool,
+      enabled: fields[5] as bool,
+      isFailover: fields[6] as bool,
+      isDown: fields[7] as bool,
     );
   }
 
