@@ -101,6 +101,10 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
 
     _isCurrentEpicBox = epicBox?.name == _epicBox.name;
 
+    if (epicBox?.name == '' || epicBox?.name == null) {
+      _isCurrentEpicBox = (_epicBox.name == 'americas');
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
