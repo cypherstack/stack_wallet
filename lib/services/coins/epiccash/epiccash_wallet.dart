@@ -789,6 +789,8 @@ class EpicCashWallet extends CoinServiceAPI {
         key: '${_walletId}_mnemonic', value: mnemonicString);
     await _secureStore.write(key: '${_walletId}_config', value: stringConfig);
     await _secureStore.write(key: '${_walletId}_password', value: password);
+    Logging.instance.log("Saving ${_walletId}_epicboxConfig: $epicboxConfig",
+        level: LogLevel.Info);
     await _secureStore.write(
         key: '${_walletId}_epicboxConfig', value: epicboxConfig);
 
@@ -1026,40 +1028,44 @@ class EpicCashWallet extends CoinServiceAPI {
 
   Future<String> getEpicBoxConfig() async {
     final _defaultConfig = DefaultEpicBoxes.defaultEpicBoxConfig;
-    final String _epicBoxConfig = jsonEncode({
+    Map<String, dynamic> _epicBoxConfig = {
       "epicbox_domain": _defaultConfig.host,
       "epicbox_port": _defaultConfig.port,
       "epicbox_protocol_unsecure": false,
       "epicbox_address_index": 0,
-    });
+    };
 
-    final storedConfig =
+    dynamic _storedConfig =
         await _secureStore.read(key: '${_walletId}_epicboxConfig');
-    if (storedConfig != null) {
-      Map<String, dynamic> decoded =
-          json.decode(storedConfig!) as Map<String, dynamic>;
-      if (decoded['domain'] == null ||
-          !(decoded.containsKey('epicbox_domain'))) {
+    Logging.instance.log("Read ${_walletId}_epicboxConfig: $_storedConfig",
+        level: LogLevel.Info);
+    _storedConfig = jsonDecode("$_storedConfig");
+
+    if (_storedConfig != null) {
+      if (_storedConfig['domain'] == null ||
+          _storedConfig['epicbox_domain'] == null) {
         // if we have an old invalid config, update
+        Logging.instance.log(
+            "Saving default ${_walletId}_epicboxConfig: ${jsonEncode(_defaultConfig)}",
+            level: LogLevel.Info);
         await _secureStore.write(
             key: '${_walletId}_epicboxConfig',
             value: jsonEncode(_defaultConfig));
+      } else {
+        _epicBoxConfig = jsonDecode("$_storedConfig") as Map<String, dynamic>;
       }
-      final config =
-          await _secureStore.read(key: '${_walletId}_epicboxConfig') ??
-              jsonEncode(DefaultEpicBoxes.defaultEpicBoxConfig);
-      decoded = json.decode(config!) as Map<String, dynamic>;
-
-      final String _epicBoxConfig = jsonEncode({
-        "epicbox_domain": decoded['host'],
-        "epicbox_port": decoded['port'],
-        "epicbox_protocol_unsecure": false,
-        "epicbox_address_index": 0,
-      });
-      return _epicBoxConfig;
+    } else if (_storedConfig['id'] != null) {
+      // EpicBoxModel stored as epicboxConfig, refresh
+      _epicBoxConfig["epicbox_domain"] = _storedConfig['host'];
+      _epicBoxConfig["epicbox_port"] = _storedConfig['port'];
+      Logging.instance.log(
+          "Migrating ${_walletId}_epicboxConfig: ${jsonEncode(_epicBoxConfig)}",
+          level: LogLevel.Info);
+      await _secureStore.write(
+          key: '${_walletId}_epicboxConfig', value: jsonEncode(_epicBoxConfig));
     }
 
-    return _epicBoxConfig;
+    return jsonEncode(_epicBoxConfig);
   }
 
   Future<String> getRealConfig() async {
@@ -1075,14 +1081,16 @@ class EpicCashWallet extends CoinServiceAPI {
   }
 
   Future<void> updateEpicboxConfig(String host, int port) async {
-    String stringConfig = jsonEncode({
+    String configString = jsonEncode({
       "epicbox_domain": host,
       "epicbox_port": port,
       "epicbox_protocol_unsecure": false,
       "epicbox_address_index": 0,
     });
+    Logging.instance.log("Updating ${_walletId}_epicboxConfig: $configString",
+        level: LogLevel.Info);
     await _secureStore.write(
-        key: '${_walletId}_epicboxConfig', value: stringConfig);
+        key: '${_walletId}_epicboxConfig', value: configString);
     // TODO: refresh anything that needs to be refreshed/updated due to epicbox info changed
   }
 
@@ -1188,6 +1196,8 @@ class EpicCashWallet extends CoinServiceAPI {
       await _secureStore.write(key: '${_walletId}_mnemonic', value: mnemonic);
       await _secureStore.write(key: '${_walletId}_config', value: stringConfig);
       await _secureStore.write(key: '${_walletId}_password', value: password);
+      Logging.instance.log("Saving ${_walletId}_epicboxConfig: $stringConfig",
+          level: LogLevel.Info);
       await _secureStore.write(
           key: '${_walletId}_epicboxConfig', value: epicboxConfig);
 

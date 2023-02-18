@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:epicpay/hive/db.dart';
 import 'package:epicpay/models/epicbox_model.dart';
 import 'package:epicpay/models/node_model.dart';
+import 'package:epicpay/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:epicpay/utilities/default_epicboxes.dart';
 import 'package:epicpay/utilities/default_nodes.dart';
 import 'package:epicpay/utilities/enums/coin_enum.dart';
@@ -112,7 +113,7 @@ class NodeService extends ChangeNotifier {
     bool shouldNotifyListeners = false,
   }) async {
     Logging.instance.log(
-      "setPrimaryEpicBox called with epicBox=$epicBox",
+      "setPrimaryEpicBox called with epicBox ${jsonEncode(epicBox)}",
       level: LogLevel.Info,
     );
 
@@ -121,6 +122,23 @@ class NodeService extends ChangeNotifier {
     if (shouldNotifyListeners) {
       notifyListeners();
     }
+
+    String configString = jsonEncode({
+      "epicbox_domain": epicBox.host,
+      "epicbox_port": epicBox.port,
+      "epicbox_protocol_unsecure": false,
+      "epicbox_address_index": 0,
+    });
+    Logging.instance.log("Updating ${_walletId}_epicboxConfig: $configString",
+        level: LogLevel.Info);
+    await secureStorageInterface.write(
+        key: '${_walletId}_epicboxConfig', value: configString);
+
+    Logging.instance.log(
+        "Updating ${_walletId}_epicboxConfig: ${jsonEncode(_epicBoxConfig)}",
+        level: LogLevel.Info);
+    await _secureStore.write(
+        key: '${_walletId}_epicboxConfig', value: jsonEncode(_epicBoxConfig));
   }
 
   EpicBoxModel? getPrimaryEpicBox() {
