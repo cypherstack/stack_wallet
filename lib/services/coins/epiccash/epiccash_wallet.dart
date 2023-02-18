@@ -20,6 +20,7 @@ import 'package:epicpay/services/event_bus/global_event_bus.dart';
 import 'package:epicpay/services/node_service.dart';
 import 'package:epicpay/services/price.dart';
 import 'package:epicpay/utilities/constants.dart';
+import 'package:epicpay/utilities/default_epicboxes.dart';
 import 'package:epicpay/utilities/default_nodes.dart';
 import 'package:epicpay/utilities/enums/coin_enum.dart';
 import 'package:epicpay/utilities/flutter_secure_storage_interface.dart';
@@ -1027,18 +1028,36 @@ class EpicCashWallet extends CoinServiceAPI {
     final storedConfig =
         await _secureStore.read(key: '${_walletId}_epicboxConfig');
     if (storedConfig != null) {
-      final decoded = json.decode(storedConfig!);
-      final domain = decoded["domain"] ?? "empty";
-      if (domain != "empty") {
+      Map<String, dynamic> decoded =
+          json.decode(storedConfig!) as Map<String, dynamic>;
+      if (decoded['domain'] == null || decoded.containsKey('epicbox_domain')) {
         //If we have the old invalid config - update
         await _secureStore.write(
             key: '${_walletId}_epicboxConfig',
-            value: DefaultNodes.defaultEpicBoxConfig);
+            value: jsonEncode(DefaultEpicBoxes.defaultEpicBoxConfig));
       }
-      return await _secureStore.read(key: '${_walletId}_epicboxConfig') ??
-          DefaultNodes.defaultEpicBoxConfig;
+      final config =
+          await _secureStore.read(key: '${_walletId}_epicboxConfig') ??
+              jsonEncode(DefaultEpicBoxes.defaultEpicBoxConfig);
+      decoded = json.decode(config!) as Map<String, dynamic>;
+
+      final String _epicBoxConfig = jsonEncode({
+        "epicbox_domain": decoded['host'],
+        "epicbox_port": decoded['port'],
+        "epicbox_protocol_unsecure": false,
+        "epicbox_address_index": 0,
+      });
+      return _epicBoxConfig;
     }
-    return DefaultNodes.defaultEpicBoxConfig;
+
+    final _defaultConfig = DefaultEpicBoxes.defaultEpicBoxConfig;
+    final String _epicBoxConfig = jsonEncode({
+      "epicbox_domain": _defaultConfig.host,
+      "epicbox_port": _defaultConfig.port,
+      "epicbox_protocol_unsecure": false,
+      "epicbox_address_index": 0,
+    });
+    return _epicBoxConfig;
   }
 
   Future<String> getRealConfig() async {
