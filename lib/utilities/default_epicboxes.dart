@@ -28,7 +28,7 @@ abstract class DefaultEpicBoxes {
       );
 
   static EpicBoxModel get europe => EpicBoxModel(
-        host: 'epicbox.epic.tech',
+        host: 'epicbox.fastepic.eu',
         port: 443,
         name: 'Europe',
         id: 'europe',
