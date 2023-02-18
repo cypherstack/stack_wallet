@@ -1025,16 +1025,25 @@ class EpicCashWallet extends CoinServiceAPI {
   }
 
   Future<String> getEpicBoxConfig() async {
+    final _defaultConfig = DefaultEpicBoxes.defaultEpicBoxConfig;
+    final String _epicBoxConfig = jsonEncode({
+      "epicbox_domain": _defaultConfig.host,
+      "epicbox_port": _defaultConfig.port,
+      "epicbox_protocol_unsecure": false,
+      "epicbox_address_index": 0,
+    });
+
     final storedConfig =
         await _secureStore.read(key: '${_walletId}_epicboxConfig');
     if (storedConfig != null) {
       Map<String, dynamic> decoded =
           json.decode(storedConfig!) as Map<String, dynamic>;
-      if (decoded['domain'] == null || decoded.containsKey('epicbox_domain')) {
-        //If we have the old invalid config - update
+      if (decoded['domain'] == null ||
+          !(decoded.containsKey('epicbox_domain'))) {
+        // if we have an old invalid config, update
         await _secureStore.write(
             key: '${_walletId}_epicboxConfig',
-            value: jsonEncode(DefaultEpicBoxes.defaultEpicBoxConfig.toJson()));
+            value: jsonEncode(_defaultConfig));
       }
       final config =
           await _secureStore.read(key: '${_walletId}_epicboxConfig') ??
@@ -1050,13 +1059,6 @@ class EpicCashWallet extends CoinServiceAPI {
       return _epicBoxConfig;
     }
 
-    final _defaultConfig = DefaultEpicBoxes.defaultEpicBoxConfig;
-    final String _epicBoxConfig = jsonEncode({
-      "epicbox_domain": _defaultConfig.host,
-      "epicbox_port": _defaultConfig.port,
-      "epicbox_protocol_unsecure": false,
-      "epicbox_address_index": 0,
-    });
     return _epicBoxConfig;
   }
 
