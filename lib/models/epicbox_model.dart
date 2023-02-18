@@ -1,3 +1,5 @@
+import 'package:hive/hive.dart';
+
 part 'type_adaptors/epicbox_model.g.dart';
 
 // @HiveType(typeId: 12)
