@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:epicpay/models/epicbox_model.dart';
+import 'package:epicpay/pages/settings_views/epicbox_settings_view/epicbox_settings_view.dart';
 import 'package:epicpay/pages/settings_views/epicbox_settings_view/manage_epicbox_views/add_edit_epicbox_view.dart';
 import 'package:epicpay/providers/providers.dart';
 import 'package:epicpay/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -118,11 +119,25 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
                   .setPrimaryEpicBox(
                     epicBox: _epicBox,
                   );
-
               await ref.read(walletProvider)!.initializeExisting();
-              // if (mounted) {
-              //   Navigator.of(context).pop();
-              // }
+
+              if (mounted) {
+                Navigator.of(context).pop();
+                await Navigator.of(context).pushNamed(
+                  EpicBoxSettingsView.routeName,
+                );
+
+                setState(() {
+                  Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (_, __, ___) => const EpicBoxSettingsView(),
+                      transitionDuration: const Duration(seconds: 0),
+                      reverseTransitionDuration: const Duration(seconds: 0),
+                    ),
+                  );
+                });
+              }
             },
             child: Container(
               height: 48,
