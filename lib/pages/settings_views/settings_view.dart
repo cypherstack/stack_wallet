@@ -4,6 +4,7 @@ import 'package:epicpay/pages/pinpad_views/lock_screen_view.dart';
 import 'package:epicpay/pages/send_view/send_view.dart';
 import 'package:epicpay/pages/settings_views/advanced_views/debug_view.dart';
 import 'package:epicpay/pages/settings_views/currency_view.dart';
+import 'package:epicpay/pages/settings_views/epicbox_settings_view/epicbox_settings_view.dart';
 import 'package:epicpay/pages/settings_views/language_view.dart';
 import 'package:epicpay/pages/settings_views/network_settings_view/network_settings_view.dart';
 import 'package:epicpay/pages/settings_views/security_views/security_view.dart';
@@ -170,6 +171,19 @@ class SettingsView extends StatelessWidget {
                               );
                             },
                           ),
+                          const _Div(),
+                          Consumer(builder: (context, ref, __) {
+                            return SettingsListButton(
+                              iconAssetName: Assets.svg.globe,
+                              iconSize: 16,
+                              title: "Epic Box server",
+                              onPressed: () {
+                                Navigator.of(context).pushNamed(
+                                  EpicBoxSettingsView.routeName,
+                                );
+                              },
+                            );
+                          }),
                           const _Div(),
                           SettingsListButton(
                             iconAssetName: Assets.svg.dollarSign,

@@ -1,5 +1,6 @@
 import 'dart:isolate';
 
+import 'package:epicpay/models/epicbox_model.dart';
 import 'package:epicpay/models/node_model.dart';
 import 'package:epicpay/services/wallets_service.dart';
 import 'package:epicpay/utilities/enums/coin_enum.dart';
@@ -12,6 +13,8 @@ class DB {
   static const String boxNameDebugInfo = "debugInfoBox";
   static const String boxNameNodeModels = "nodeModels";
   static const String boxNamePrimaryNodes = "primaryNodes";
+  static const String boxNameEpicBoxModels = "epicBoxModels";
+  static const String boxNamePrimaryEpicBox = "primaryEpicBox";
   static const String boxNameAllWalletsData = "wallets";
   static const String boxNameNotifications = "notificationModels";
   static const String boxNameWatchedTransactions =
@@ -36,6 +39,8 @@ class DB {
   late final Box<String> _boxDebugInfo;
   late final Box<NodeModel> _boxNodeModels;
   late final Box<NodeModel> _boxPrimaryNodes;
+  late final Box<EpicBoxModel> _boxEpicBoxModels;
+  late final Box<EpicBoxModel> _boxPrimaryEpicBoxes;
   late final Box<dynamic> _boxAllWalletsData;
 
   late final Box<String> _boxFavoriteWallets;
@@ -98,6 +103,20 @@ class DB {
         _boxPrimaryNodes = Hive.box<NodeModel>(boxNamePrimaryNodes);
       } else {
         _boxPrimaryNodes = await Hive.openBox<NodeModel>(boxNamePrimaryNodes);
+      }
+
+      if (Hive.isBoxOpen(boxNameEpicBoxModels)) {
+        _boxEpicBoxModels = Hive.box<EpicBoxModel>(boxNameEpicBoxModels);
+      } else {
+        _boxEpicBoxModels =
+            await Hive.openBox<EpicBoxModel>(boxNameEpicBoxModels);
+      }
+
+      if (Hive.isBoxOpen(boxNamePrimaryEpicBox)) {
+        _boxPrimaryEpicBoxes = Hive.box<EpicBoxModel>(boxNamePrimaryEpicBox);
+      } else {
+        _boxPrimaryEpicBoxes =
+            await Hive.openBox<EpicBoxModel>(boxNamePrimaryEpicBox);
       }
 
       if (Hive.isBoxOpen(boxNameAllWalletsData)) {

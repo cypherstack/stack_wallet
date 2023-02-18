@@ -164,6 +164,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       unawaited(ref.read(baseCurrenciesProvider).update());
 
       await _nodeService.updateDefaults();
+      await _nodeService.updateDefaultEpicBoxes();
       ref.read(priceAnd24hChangeNotifierProvider).start(true);
 
       final walletInfo =
@@ -193,7 +194,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       loadingCompleter.complete();
       // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
       //  unawaited(_nodeService.updateCommunityNodes());
-
     } catch (e, s) {
       Logger.print("$e $s", normalLength: false);
     }

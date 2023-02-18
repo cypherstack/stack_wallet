@@ -1,10 +1,10 @@
 import 'dart:convert';
 
-import 'package:epicpay/pages/settings_views/epicbox_settings_view/manage_epicbox_views/add_edit_epicbox_view.dart';
+import 'package:epicpay/pages/settings_views/network_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:epicpay/utilities/logger.dart';
 import 'package:http/http.dart' as http;
 
-Future<bool> _testEpicBoxConnection(Uri uri) async {
+Future<bool> _testEpicBoxNodeConnection(Uri uri) async {
   try {
     final client = http.Client();
     final response = await client.get(
@@ -27,8 +27,7 @@ Future<bool> _testEpicBoxConnection(Uri uri) async {
 }
 
 // returns node data with properly formatted host/url if successful, otherwise null
-Future<EpicBoxFormData?> testEpicBoxConnection(EpicBoxFormData data) async {
-  // TODO update function to test properly like Likho does with wscat
+Future<NodeFormData?> testEpicNodeConnection(NodeFormData data) async {
   if (data.host == null || data.port == null || data.useSSL == null) {
     return null;
   }
@@ -51,7 +50,7 @@ Future<EpicBoxFormData?> testEpicBoxConnection(EpicBoxFormData data) async {
   uri = uri.replace(port: data.port);
 
   try {
-    if (await _testEpicBoxConnection(uri)) {
+    if (await _testEpicBoxNodeConnection(uri)) {
       return data;
     } else {
       return null;

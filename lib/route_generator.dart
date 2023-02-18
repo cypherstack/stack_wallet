@@ -17,6 +17,7 @@ import 'package:epicpay/pages/send_view/send_view.dart';
 import 'package:epicpay/pages/settings_views/advanced_views/debug_view.dart';
 import 'package:epicpay/pages/settings_views/currency_view.dart';
 import 'package:epicpay/pages/settings_views/delete_account_view.dart';
+import 'package:epicpay/pages/settings_views/epicbox_settings_view/epicbox_settings_view.dart';
 import 'package:epicpay/pages/settings_views/hidden_settings.dart';
 import 'package:epicpay/pages/settings_views/language_view.dart';
 import 'package:epicpay/pages/settings_views/network_settings_view/manage_nodes_views/add_edit_node_view.dart';
@@ -227,6 +228,15 @@ class RouteGenerator {
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
           builder: (_) => const NetworkSettingsView(),
+          settings: RouteSettings(
+            name: settings.name,
+          ),
+        );
+
+      case EpicBoxSettingsView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const EpicBoxSettingsView(),
           settings: RouteSettings(
             name: settings.name,
           ),

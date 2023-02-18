@@ -1,14 +1,16 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:http/http.dart';
 import 'package:epicpay/hive/db.dart';
+import 'package:epicpay/models/epicbox_model.dart';
 import 'package:epicpay/models/node_model.dart';
+import 'package:epicpay/utilities/default_epicboxes.dart';
 import 'package:epicpay/utilities/default_nodes.dart';
 import 'package:epicpay/utilities/enums/coin_enum.dart';
 import 'package:epicpay/utilities/flutter_secure_storage_interface.dart';
 import 'package:epicpay/utilities/logger.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart';
 
 const kStackCommunityNodesEndpoint = "https://extras.epicmobile.com";
 
@@ -55,6 +57,39 @@ class NodeService extends ChangeNotifier {
     }
   }
 
+  Future<void> updateDefaultEpicBoxes() async {
+    Logging.instance
+        .log("Updating default Epic Box servers", level: LogLevel.Info);
+
+    final primaryEpicBox = getPrimaryEpicBox();
+
+    for (final defaultEpicBox in DefaultEpicBoxes.all) {
+      final savedEpicBox = DB.instance.get<EpicBoxModel>(
+          boxName: DB.boxNameEpicBoxModels, key: defaultEpicBox.id);
+      if (savedEpicBox == null) {
+        // save the default epic box server to hive
+        await DB.instance.put<EpicBoxModel>(
+            boxName: DB.boxNameEpicBoxModels,
+            key: defaultEpicBox.id,
+            value: defaultEpicBox);
+      } else {
+        // update all fields but copy over previously set enabled state
+        await DB.instance.put<EpicBoxModel>(
+            boxName: DB.boxNameEpicBoxModels,
+            key: savedEpicBox.id,
+            value: defaultEpicBox.copyWith(enabled: savedEpicBox.enabled));
+      }
+
+      if (primaryEpicBox != null && primaryEpicBox.id == defaultEpicBox.id) {
+        await setPrimaryEpicBox(
+          epicBox: defaultEpicBox.copyWith(
+            enabled: primaryEpicBox.enabled,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> setPrimaryNodeFor({
     required Coin coin,
     required NodeModel node,
@@ -72,12 +107,36 @@ class NodeService extends ChangeNotifier {
         .get<NodeModel>(boxName: DB.boxNamePrimaryNodes, key: coin.name);
   }
 
-  List<NodeModel> get primaryNodes {
-    return DB.instance.values<NodeModel>(boxName: DB.boxNamePrimaryNodes);
+  Future<void> setPrimaryEpicBox({
+    required EpicBoxModel epicBox,
+    bool shouldNotifyListeners = false,
+  }) async {
+    await DB.instance.put<EpicBoxModel>(
+        boxName: DB.boxNamePrimaryEpicBox, key: 'primary', value: epicBox);
+    if (shouldNotifyListeners) {
+      notifyListeners();
+    }
+  }
+
+  EpicBoxModel? getPrimaryEpicBox() {
+    return DB.instance
+        .get<EpicBoxModel>(boxName: DB.boxNamePrimaryEpicBox, key: 'primary');
   }
 
   List<NodeModel> get nodes {
     return DB.instance.values<NodeModel>(boxName: DB.boxNameNodeModels);
+  }
+
+  List<NodeModel> get primaryNodes {
+    return DB.instance.values<NodeModel>(boxName: DB.boxNamePrimaryNodes);
+  }
+
+  List<EpicBoxModel> get epicBoxes {
+    return DB.instance.values<EpicBoxModel>(boxName: DB.boxNameEpicBoxModels);
+  }
+
+  List<EpicBoxModel> get primaryEpicBox {
+    return DB.instance.values<EpicBoxModel>(boxName: DB.boxNamePrimaryEpicBox);
   }
 
   List<NodeModel> getNodesFor(Coin coin) {
@@ -96,6 +155,27 @@ class NodeService extends ChangeNotifier {
 
     // return reversed list so default node appears at beginning
     return list.reversed.toList();
+  }
+
+  List<EpicBoxModel> getEpicBoxes() {
+    final list = DB.instance
+        .values<EpicBoxModel>(boxName: DB.boxNameEpicBoxModels)
+        .where((e) => e.name != DefaultNodes.defaultName)
+        .toList();
+
+    // add default to end of list
+    list.addAll(DB.instance
+        .values<EpicBoxModel>(boxName: DB.boxNameEpicBoxModels)
+        .where((e) => e.name == DefaultNodes.defaultName)
+        .toList());
+
+    // return reversed list so default node appears at beginning
+    return list.reversed.toList();
+  }
+
+  EpicBoxModel? getEpicBoxById({required String id}) {
+    return DB.instance
+        .get<EpicBoxModel>(boxName: DB.boxNameEpicBoxModels, key: id);
   }
 
   NodeModel? getNodeById({required String id}) {
@@ -121,6 +201,18 @@ class NodeService extends ChangeNotifier {
       await secureStorageInterface.write(
           key: "${node.id}_nodePW", value: password);
     }
+    if (shouldNotifyListeners) {
+      notifyListeners();
+    }
+  }
+
+  Future<void> addEpicBox(
+    EpicBoxModel epicBox,
+    bool shouldNotifyListeners,
+  ) async {
+    await DB.instance.put<EpicBoxModel>(
+        boxName: DB.boxNameNodeModels, key: epicBox.id, value: epicBox);
+
     if (shouldNotifyListeners) {
       notifyListeners();
     }
