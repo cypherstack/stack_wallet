@@ -29,11 +29,4 @@ abstract class DefaultNodes {
         return epicCash;
     }
   }
-
-  static final String defaultEpicBoxConfig = jsonEncode({
-    "epicbox_domain": "epicbox.fastepic.eu", //TODO - Default to Americas domain
-    "epicbox_port": 443,
-    "epicbox_protocol_unsecure": false,
-    "epicbox_address_index": 0,
-  });
 }
