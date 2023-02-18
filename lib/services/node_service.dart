@@ -111,6 +111,11 @@ class NodeService extends ChangeNotifier {
     required EpicBoxModel epicBox,
     bool shouldNotifyListeners = false,
   }) async {
+    Logging.instance.log(
+      "setPrimaryEpicBox called with epicBox=$epicBox",
+      level: LogLevel.Info,
+    );
+
     await DB.instance.put<EpicBoxModel>(
         boxName: DB.boxNamePrimaryEpicBox, key: 'primary', value: epicBox);
     if (shouldNotifyListeners) {
@@ -160,17 +165,9 @@ class NodeService extends ChangeNotifier {
   List<EpicBoxModel> getEpicBoxes() {
     final list = DB.instance
         .values<EpicBoxModel>(boxName: DB.boxNameEpicBoxModels)
-        .where((e) => e.name != DefaultNodes.defaultName)
         .toList();
 
-    // add default to end of list
-    list.addAll(DB.instance
-        .values<EpicBoxModel>(boxName: DB.boxNameEpicBoxModels)
-        .where((e) => e.name == DefaultNodes.defaultName)
-        .toList());
-
-    // return reversed list so default node appears at beginning
-    return list.reversed.toList();
+    return list.toList();
   }
 
   EpicBoxModel? getEpicBoxById({required String id}) {
