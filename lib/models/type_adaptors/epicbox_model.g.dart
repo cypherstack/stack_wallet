@@ -11,12 +11,12 @@ class EpicBoxModelAdapter extends TypeAdapter<EpicBoxModel> {
   final int typeId = 13;
 
   @override
-  NodeModel read(BinaryReader reader) {
+  EpicBoxModel read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return NodeModel(
+    return EpicBoxModel(
       host: fields[1] as String,
       port: fields[2] as int,
       name: fields[3] as String,
@@ -29,7 +29,7 @@ class EpicBoxModelAdapter extends TypeAdapter<EpicBoxModel> {
   }
 
   @override
-  void write(BinaryWriter writer, NodeModel obj) {
+  void write(BinaryWriter writer, EpicBoxModel obj) {
     writer
       ..writeByte(10)
       ..writeByte(0)
@@ -56,7 +56,7 @@ class EpicBoxModelAdapter extends TypeAdapter<EpicBoxModel> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is NodeModelAdapter &&
+      other is EpicBoxModelAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

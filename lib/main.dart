@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:epicpay/hive/db.dart';
+import 'package:epicpay/models/epicbox_model.dart';
 import 'package:epicpay/models/isar/models/log.dart';
 import 'package:epicpay/models/models.dart';
 import 'package:epicpay/models/node_model.dart';
@@ -86,6 +87,9 @@ void main() async {
 
   // node model adapter
   Hive.registerAdapter(NodeModelAdapter());
+
+  // epic box model adapter
+  Hive.registerAdapter(EpicBoxModelAdapter());
 
   await Hive.initFlutter(appDirectory.path);
 
