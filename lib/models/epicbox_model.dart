@@ -2,7 +2,7 @@ import 'package:hive/hive.dart';
 
 part 'type_adaptors/epicbox_model.g.dart';
 
-// @HiveType(typeId: 12)
+// @HiveType(typeId: 13)
 class EpicBoxModel {
   // @HiveField(0)
   final String id;
@@ -22,10 +22,10 @@ class EpicBoxModel {
   final bool? isDown;
 
   EpicBoxModel({
-    required this.host,
-    required this.name,
-    this.port,
     required this.id,
+    required this.host,
+    this.port,
+    required this.name,
     this.useSSL,
     this.enabled,
     this.isFailover,
@@ -42,10 +42,10 @@ class EpicBoxModel {
     bool? isDown,
   }) {
     return EpicBoxModel(
+      id: id,
       host: host ?? this.host,
       port: port ?? this.port,
       name: name ?? this.name,
-      id: id,
       useSSL: useSSL ?? this.useSSL,
       enabled: enabled ?? this.enabled,
       isFailover: isFailover ?? this.isFailover,
@@ -55,10 +55,10 @@ class EpicBoxModel {
 
   Map<String, dynamic> toMap() {
     Map<String, dynamic> map = {};
+    map['id'] = id;
     map['host'] = host;
     map['port'] = port;
     map['name'] = name;
-    map['id'] = id;
     map['useSSL'] = useSSL;
     map['enabled'] = enabled;
     map['isFailover'] = isFailover;

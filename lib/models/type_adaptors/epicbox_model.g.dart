@@ -31,7 +31,7 @@ class EpicBoxModelAdapter extends TypeAdapter<EpicBoxModel> {
   @override
   void write(BinaryWriter writer, EpicBoxModel obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
