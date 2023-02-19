@@ -147,13 +147,12 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
                   SvgPicture.asset(
                     Assets.svg.networkWired,
                     color: _isCurrentEpicBox
-                        ? _currentSyncStatus == WalletSyncStatus.unableToSync
+                        ? /*_currentSyncStatus == WalletSyncStatus.unableToSync
                             ? Theme.of(context)
                                 .extension<StackColors>()!
                                 .accentColorRed
-                            : Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorGreen
+                            :*/
+                        Theme.of(context).extension<StackColors>()!.textLight
                         : Theme.of(context).extension<StackColors>()!.textDark,
                   ),
                   const SizedBox(
@@ -163,13 +162,12 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
                     _epicBox.name,
                     style: STextStyles.bodyBold(context).copyWith(
                       color: _isCurrentEpicBox
-                          ? _currentSyncStatus == WalletSyncStatus.unableToSync
-                              ? Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .accentColorRed
-                              : Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .accentColorGreen
+                          ? /*_currentSyncStatus == WalletSyncStatus.unableToSync
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorRed
+                            :*/
+                          Theme.of(context).extension<StackColors>()!.textLight
                           : Theme.of(context)
                               .extension<StackColors>()!
                               .textDark,
@@ -208,7 +206,9 @@ class CurrentEpicBoxStatusIcon extends ConsumerWidget {
       case WalletSyncStatus.syncing:
         return SvgPicture.asset(
           Assets.svg.check,
-          color: Theme.of(context).extension<StackColors>()!.accentColorGreen,
+          color: Theme.of(context)
+              .extension<StackColors>()!
+              .textLight /*accentColorGreen*/,
         );
     }
   }
