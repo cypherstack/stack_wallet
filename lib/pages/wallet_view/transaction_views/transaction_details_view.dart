@@ -17,7 +17,6 @@ import 'package:epicpay/widgets/background.dart';
 import 'package:epicpay/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicpay/widgets/stack_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -64,16 +63,33 @@ class _TransactionDetailsViewState
         color = Theme.of(context).extension<StackColors>()!.accentColorGreen;
         label = "Received";
       } else {
-        color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
-        label = "Receiving (~10 min for 10 confirmations)";
+        if (_transaction.numberOfMessages == 1) {
+          color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
+          label = "Receiving (waiting for sender)";
+        } else if ((_transaction.numberOfMessages ?? 0) > 1) {
+          color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
+          label =
+              "Receiving (waiting for confirmation)"; // TODO test if the sender still has to open again after the receiver has 2 messages present, ie. sender->receiver->sender->node (yes) vs. sender->receiver->node (no)
+        } else {
+          color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
+          label = "Receiving";
+        }
       }
     } else if (type == "Sent") {
       if (_transaction.confirmedStatus) {
-        color = Theme.of(context).extension<StackColors>()!.accentColorRed;
-        label = "Sent";
+        color = Theme.of(context).extension<StackColors>()!.accentColorGreen;
+        label = "Sent (confirmed)";
       } else {
-        color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
-        label = "Sending (~10 min for 10 confirmations)";
+        if (_transaction.numberOfMessages == 1) {
+          color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
+          label = "Sending (waiting for receiver)";
+        } else if ((_transaction.numberOfMessages ?? 0) > 1) {
+          color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
+          label = "Sending (waiting for confirmation)";
+        } else {
+          color = Theme.of(context).extension<StackColors>()!.accentColorYellow;
+          label = "Sending";
+        }
       }
     } else {
       color = Theme.of(context).extension<StackColors>()!.textLight;
