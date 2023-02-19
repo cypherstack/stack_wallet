@@ -7,6 +7,8 @@ Future<bool> deleteEverything() async {
     await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameDebugInfo);
     await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameNodeModels);
     await DB.instance.deleteBoxFromDisk(boxName: DB.boxNamePrimaryNodes);
+    await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameEpicBoxModels);
+    await DB.instance.deleteBoxFromDisk(boxName: DB.boxNamePrimaryEpicBox);
     await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameAllWalletsData);
     await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameNotifications);
     await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameWatchedTransactions);

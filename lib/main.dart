@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:epicpay/hive/db.dart';
+import 'package:epicpay/models/epicbox_model.dart';
 import 'package:epicpay/models/isar/models/log.dart';
 import 'package:epicpay/models/models.dart';
 import 'package:epicpay/models/node_model.dart';
@@ -87,6 +88,9 @@ void main() async {
   // node model adapter
   Hive.registerAdapter(NodeModelAdapter());
 
+  // epic box model adapter
+  Hive.registerAdapter(EpicBoxModelAdapter());
+
   await Hive.initFlutter(appDirectory.path);
 
   await Hive.openBox<dynamic>(DB.boxNameDBInfo);
@@ -164,6 +168,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       unawaited(ref.read(baseCurrenciesProvider).update());
 
       await _nodeService.updateDefaults();
+      await _nodeService.updateDefaultEpicBoxes();
       ref.read(priceAnd24hChangeNotifierProvider).start(true);
 
       final walletInfo =
@@ -193,7 +198,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       loadingCompleter.complete();
       // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
       //  unawaited(_nodeService.updateCommunityNodes());
-
     } catch (e, s) {
       Logger.print("$e $s", normalLength: false);
     }

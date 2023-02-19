@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import 'package:epicpay/models/node_model.dart';
+import 'package:epicpay/models/epicbox_model.dart';
 import 'package:epicpay/providers/providers.dart';
 import 'package:epicpay/utilities/assets.dart';
 import 'package:epicpay/utilities/constants.dart';
 import 'package:epicpay/utilities/enums/coin_enum.dart';
 import 'package:epicpay/utilities/flutter_secure_storage_interface.dart';
-import 'package:epicpay/utilities/test_epic_node_connection.dart';
+import 'package:epicpay/utilities/test_epic_box_connection.dart';
 import 'package:epicpay/utilities/text_styles.dart';
 import 'package:epicpay/utilities/theme/stack_colors.dart';
 import 'package:epicpay/widgets/background.dart';
@@ -24,37 +24,34 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:uuid/uuid.dart';
 
-enum AddEditNodeViewType { add, edit }
+enum AddEditEpicBoxViewType { add, edit }
 
-class AddEditNodeView extends ConsumerStatefulWidget {
-  const AddEditNodeView({
+class AddEditEpicBoxView extends ConsumerStatefulWidget {
+  const AddEditEpicBoxView({
     Key? key,
     required this.viewType,
-    required this.coin,
-    required this.nodeId,
+    required this.epicBoxId,
     required this.routeOnSuccessOrDelete,
     this.secureStore = const SecureStorageWrapper(
       FlutterSecureStorage(),
     ),
   }) : super(key: key);
 
-  static const String routeName = "/addEditNode";
+  static const String routeName = "/addEditEpicBox";
 
-  final AddEditNodeViewType viewType;
-  final Coin coin;
+  final AddEditEpicBoxViewType viewType;
   final String routeOnSuccessOrDelete;
-  final String? nodeId;
+  final String? epicBoxId;
   final FlutterSecureStorageInterface secureStore;
 
   @override
-  ConsumerState<AddEditNodeView> createState() => _AddEditNodeViewState();
+  ConsumerState<AddEditEpicBoxView> createState() => _AddEditEpicBoxViewState();
 }
 
-class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
+class _AddEditEpicBoxViewState extends ConsumerState<AddEditEpicBoxView>
     with SingleTickerProviderStateMixin {
-  late final AddEditNodeViewType viewType;
-  late final Coin coin;
-  late final String? nodeId;
+  late final AddEditEpicBoxViewType viewType;
+  late final String? epicBoxId;
 
   late final AnimationController animationController;
   late final Animation<double> animation;
@@ -109,7 +106,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
                             Text(
                               testPassed
                                   ? "Connection successful"
-                                  : "Could not connect. Please try again or use a different node.",
+                                  : "Could not connect. Please try again or use a different Epic Box server.",
                               style: STextStyles.bodySmall(context).copyWith(
                                 color: testPassed
                                     ? Theme.of(context)
@@ -145,9 +142,10 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
         .whenComplete(() => entry.remove());
   }
 
-  Future<NodeFormData?> _testConnection({bool showNotification = true}) async {
+  Future<EpicBoxFormData?> _testConnection(
+      {bool showNotification = true}) async {
     final formData =
-        await testEpicNodeConnection(ref.read(nodeFormDataProvider));
+        await testEpicBoxConnection(ref.read(epicBoxFormDataProvider));
 
     if (showNotification && mounted) {
       unawaited(
@@ -159,7 +157,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
   }
 
   Future<void> attemptSave() async {
-    NodeFormData? formData = await _testConnection(showNotification: false);
+    EpicBoxFormData? formData = await _testConnection(showNotification: false);
     final canConnect = formData != null;
 
     bool? shouldSave;
@@ -171,7 +169,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
         barrierDismissible: true,
         builder: (_) => StackDialog(
           title: "Server currently unreachable",
-          message: "Would you like to save this node anyways?",
+          message: "Would you like to save this Epic Box server anyways?",
           leftButton: SecondaryButton(
             label: "CANCEL",
             onPressed: () async {
@@ -201,27 +199,24 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
 
     if (!canConnect) {
       // use failing data to save anyways
-      formData = ref.read(nodeFormDataProvider);
+      formData = ref.read(epicBoxFormDataProvider);
     }
 
     switch (viewType) {
-      case AddEditNodeViewType.add:
-        NodeModel node = NodeModel(
+      case AddEditEpicBoxViewType.add:
+        EpicBoxModel epicBox = EpicBoxModel(
           host: formData!.host!,
           port: formData.port!,
           name: formData.name!,
           id: const Uuid().v1(),
           useSSL: formData.useSSL!,
-          loginName: formData.login,
           enabled: true,
-          coinName: coin.name,
           isFailover: formData.isFailover!,
           isDown: false,
         );
 
-        await ref.read(nodeServiceChangeNotifierProvider).add(
-              node,
-              formData.password,
+        await ref.read(nodeServiceChangeNotifierProvider).addEpicBox(
+              epicBox,
               true,
             );
         if (mounted) {
@@ -229,23 +224,20 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
               .popUntil(ModalRoute.withName(widget.routeOnSuccessOrDelete));
         }
         break;
-      case AddEditNodeViewType.edit:
-        NodeModel node = NodeModel(
+      case AddEditEpicBoxViewType.edit:
+        EpicBoxModel epicBox = EpicBoxModel(
           host: formData!.host!,
           port: formData.port!,
           name: formData.name!,
-          id: nodeId!,
+          id: epicBoxId!,
           useSSL: formData.useSSL!,
-          loginName: formData.login,
           enabled: true,
-          coinName: coin.name,
           isFailover: formData.isFailover!,
           isDown: false,
         );
 
-        await ref.read(nodeServiceChangeNotifierProvider).add(
-              node,
-              formData.password,
+        await ref.read(nodeServiceChangeNotifierProvider).addEpicBox(
+              epicBox,
               true,
             );
         if (mounted) {
@@ -293,7 +285,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
                                   await ref
                                       .read(nodeServiceChangeNotifierProvider)
                                       .delete(
-                                        nodeId!,
+                                        epicBoxId!,
                                         true,
                                       );
                                 },
@@ -303,7 +295,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
                                   child: Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: Text(
-                                      "Delete node",
+                                      "Delete server",
                                       style: STextStyles.body(context),
                                     ),
                                   ),
@@ -329,7 +321,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
 
   @override
   void initState() {
-    ref.refresh(nodeFormDataProvider);
+    ref.refresh(epicBoxFormDataProvider);
     animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 200),
@@ -338,17 +330,17 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
       curve: Curves.bounceInOut,
     ).animate(animationController);
     viewType = widget.viewType;
-    coin = widget.coin;
-    nodeId = widget.nodeId;
+    epicBoxId = widget.epicBoxId;
 
-    if (nodeId == null) {
+    if (epicBoxId == null) {
       saveEnabled = false;
       testConnectionEnabled = false;
     } else {
-      final node =
-          ref.read(nodeServiceChangeNotifierProvider).getNodeById(id: nodeId!)!;
-      testConnectionEnabled = node.host.isNotEmpty;
-      saveEnabled = testConnectionEnabled && node.name.isNotEmpty;
+      final epicBox = ref
+          .read(nodeServiceChangeNotifierProvider)
+          .getEpicBoxById(id: epicBoxId!)!;
+      testConnectionEnabled = epicBox.host.isNotEmpty;
+      saveEnabled = testConnectionEnabled && epicBox.name.isNotEmpty;
     }
 
     super.initState();
@@ -361,10 +353,10 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
 
   @override
   Widget build(BuildContext context) {
-    final NodeModel? node =
-        viewType == AddEditNodeViewType.edit && nodeId != null
+    final EpicBoxModel? epicBox =
+        viewType == AddEditEpicBoxViewType.edit && epicBoxId != null
             ? ref.watch(nodeServiceChangeNotifierProvider
-                .select((value) => value.getNodeById(id: nodeId!)))
+                .select((value) => value.getEpicBoxById(id: epicBoxId!)))
             : null;
 
     return Background(
@@ -384,13 +376,13 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
           ),
           centerTitle: true,
           title: Text(
-            viewType == AddEditNodeViewType.edit
-                ? "Edit node"
-                : "Add custom node",
+            viewType == AddEditEpicBoxViewType.edit
+                ? "Edit server"
+                : "Add custom Epic Box server",
             style: STextStyles.titleH4(context),
           ),
           actions: [
-            if (viewType == AddEditNodeViewType.edit)
+            if (viewType == AddEditEpicBoxViewType.edit)
               Padding(
                 padding: const EdgeInsets.only(
                   top: 10,
@@ -435,11 +427,9 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          NodeForm(
-                            node: node,
-                            secureStore: widget.secureStore,
+                          EpicBoxForm(
+                            epicBox: epicBox,
                             readOnly: false,
-                            coin: widget.coin,
                             onChanged: (canSave, canTest) {
                               if (canSave != saveEnabled &&
                                   canTest != testConnectionEnabled) {
@@ -499,7 +489,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
   }
 }
 
-class NodeFormData {
+class EpicBoxFormData {
   String? name, host, login, password;
   int? port;
   bool? useSSL, isFailover;
@@ -510,29 +500,26 @@ class NodeFormData {
   }
 }
 
-final nodeFormDataProvider = Provider<NodeFormData>((_) => NodeFormData());
+final epicBoxFormDataProvider =
+    Provider<EpicBoxFormData>((_) => EpicBoxFormData());
 
-class NodeForm extends ConsumerStatefulWidget {
-  const NodeForm({
+class EpicBoxForm extends ConsumerStatefulWidget {
+  const EpicBoxForm({
     Key? key,
-    this.node,
-    required this.secureStore,
+    this.epicBox,
     required this.readOnly,
-    required this.coin,
     this.onChanged,
   }) : super(key: key);
 
-  final NodeModel? node;
-  final FlutterSecureStorageInterface secureStore;
+  final EpicBoxModel? epicBox;
   final bool readOnly;
-  final Coin coin;
   final void Function(bool canSave, bool canTestConnection)? onChanged;
 
   @override
-  ConsumerState<NodeForm> createState() => _NodeFormState();
+  ConsumerState<EpicBoxForm> createState() => _EpicBoxFormState();
 }
 
-class _NodeFormState extends ConsumerState<NodeForm> {
+class _EpicBoxFormState extends ConsumerState<EpicBoxForm> {
   late final TextEditingController _nameController;
   late final TextEditingController _hostController;
   late final TextEditingController _portController;
@@ -540,17 +527,13 @@ class _NodeFormState extends ConsumerState<NodeForm> {
   late final TextEditingController _usernameController;
 
   final _nameFocusNode = FocusNode();
-  final _passwordFocusNode = FocusNode();
   final _portFocusNode = FocusNode();
   final _hostFocusNode = FocusNode();
-  final _usernameFocusNode = FocusNode();
 
   bool _useSSL = false;
   bool _isFailover = false;
   int? port;
   late bool enableSSLCheckbox;
-
-  late final bool enableAuthFields;
 
   void Function(bool canSave, bool canTestConnection)? onChanged;
 
@@ -586,18 +569,12 @@ class _NodeFormState extends ConsumerState<NodeForm> {
   void _updateState() {
     port = int.tryParse(_portController.text);
     onChanged?.call(canSave, canTestConnection);
-    ref.read(nodeFormDataProvider).name = _nameController.text;
-    ref.read(nodeFormDataProvider).host = _hostController.text;
+    ref.read(epicBoxFormDataProvider).name = _nameController.text;
+    ref.read(epicBoxFormDataProvider).host = _hostController.text;
 
-    ref.read(nodeFormDataProvider).login =
-        _usernameController.text.isEmpty ? null : _usernameController.text;
-
-    ref.read(nodeFormDataProvider).password =
-        _passwordController.text.isEmpty ? null : _passwordController.text;
-
-    ref.read(nodeFormDataProvider).port = port;
-    ref.read(nodeFormDataProvider).useSSL = _useSSL;
-    ref.read(nodeFormDataProvider).isFailover = _isFailover;
+    ref.read(epicBoxFormDataProvider).port = port;
+    ref.read(epicBoxFormDataProvider).useSSL = _useSSL;
+    ref.read(epicBoxFormDataProvider).isFailover = _isFailover;
     setState(() {});
   }
 
@@ -607,30 +584,16 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     _nameController = TextEditingController();
     _hostController = TextEditingController();
     _portController = TextEditingController();
-    _passwordController = TextEditingController();
     _usernameController = TextEditingController();
 
-    enableAuthFields = _checkShouldEnableAuthFields(widget.coin);
-
-    if (widget.node != null) {
-      final node = widget.node!;
-      if (enableAuthFields) {
-        node.getPassword(widget.secureStore).then((value) {
-          if (value is String) {
-            _passwordController.text = value;
-          }
-        });
-
-        _usernameController.text = node.loginName ?? "";
-      }
-
-      _nameController.text = node.name;
-      _hostController.text = node.host;
-      _portController.text = node.port.toString();
-      _usernameController.text = node.loginName ?? "";
-      _useSSL = node.useSSL;
-      _isFailover = node.isFailover;
-      enableSSLCheckbox = !node.host.startsWith("http");
+    if (widget.epicBox != null) {
+      final epicBox = widget.epicBox!;
+      _nameController.text = epicBox.name;
+      _hostController.text = epicBox.host;
+      _portController.text = epicBox.port.toString();
+      _useSSL = epicBox.useSSL ?? true;
+      _isFailover = epicBox.isFailover ?? true;
+      enableSSLCheckbox = epicBox.host.startsWith("https");
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         // update provider state object so test connection works without having to modify a field in the ui first
@@ -638,8 +601,6 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       });
     } else {
       enableSSLCheckbox = true;
-      // default to port 3413
-      // _portController.text = "3413";
     }
 
     super.initState();
@@ -650,12 +611,8 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     _nameController.dispose();
     _hostController.dispose();
     _portController.dispose();
-    _passwordController.dispose();
-    _usernameController.dispose();
 
     _nameFocusNode.dispose();
-    _passwordFocusNode.dispose();
-    _usernameFocusNode.dispose();
     _hostFocusNode.dispose();
     _portFocusNode.dispose();
     super.dispose();
@@ -669,14 +626,14 @@ class _NodeFormState extends ConsumerState<NodeForm> {
           textAlignVertical: TextAlignVertical.center,
           autocorrect: false,
           enableSuggestions: false,
-          key: const Key("addCustomNodeNodeNameFieldKey"),
+          key: const Key("addCustomEpicBoxEpicBoxNameFieldKey"),
           readOnly: widget.readOnly,
           enabled: enableField(_nameController),
           controller: _nameController,
           focusNode: _nameFocusNode,
           style: STextStyles.body(context),
           decoration: InputDecoration(
-            hintText: "Node name",
+            hintText: "Server name",
             fillColor: _nameFocusNode.hasFocus
                 ? Theme.of(context).extension<StackColors>()!.textFieldActiveBG
                 : Theme.of(context)
@@ -719,7 +676,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
           textAlignVertical: TextAlignVertical.center,
           autocorrect: false,
           enableSuggestions: false,
-          key: const Key("addCustomNodeNodeAddressFieldKey"),
+          key: const Key("addCustomEpicBoxEpicBoxAddressFieldKey"),
           readOnly: widget.readOnly,
           enabled: enableField(_hostController),
           controller: _hostController,
@@ -779,7 +736,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
           textAlignVertical: TextAlignVertical.center,
           autocorrect: false,
           enableSuggestions: false,
-          key: const Key("addCustomNodeNodePortFieldKey"),
+          key: const Key("addCustomEpicBoxEpicBoxPortFieldKey"),
           readOnly: widget.readOnly,
           enabled: enableField(_portController),
           controller: _portController,
@@ -827,118 +784,6 @@ class _NodeFormState extends ConsumerState<NodeForm> {
         const SizedBox(
           height: 16,
         ),
-        if (enableAuthFields)
-          TextField(
-            textAlignVertical: TextAlignVertical.center,
-            autocorrect: false,
-            enableSuggestions: false,
-            controller: _usernameController,
-            readOnly: widget.readOnly,
-            enabled: enableField(_usernameController),
-            keyboardType: TextInputType.number,
-            focusNode: _usernameFocusNode,
-            style: STextStyles.body(context),
-            decoration: InputDecoration(
-              hintText: "Login (optional)",
-              fillColor: _usernameFocusNode.hasFocus
-                  ? Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldActiveBG
-                  : Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldDefaultBG,
-              isCollapsed: true,
-              hintStyle: STextStyles.body(context).copyWith(
-                color: Theme.of(context).extension<StackColors>()!.textMedium,
-              ),
-              suffixIcon: Padding(
-                padding: const EdgeInsets.only(right: 0),
-                child: UnconstrainedBox(
-                  child: Row(
-                    children: [
-                      if (!widget.readOnly &&
-                          _usernameController.text.isNotEmpty)
-                        TextFieldIconButton(
-                          child: const XIcon(),
-                          onTap: () async {
-                            _usernameController.text = "";
-                            _updateState();
-                          },
-                        ),
-                      const SizedBox(
-                        height: 40,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            onChanged: (newValue) {
-              _updateState();
-              setState(() {});
-            },
-          ),
-        if (enableAuthFields)
-          const SizedBox(
-            height: 16,
-          ),
-        if (enableAuthFields)
-          TextField(
-            textAlignVertical: TextAlignVertical.center,
-            autocorrect: false,
-            enableSuggestions: false,
-            controller: _passwordController,
-            readOnly: widget.readOnly,
-            enabled: enableField(_passwordController),
-            keyboardType: TextInputType.number,
-            focusNode: _passwordFocusNode,
-            style: STextStyles.body(context),
-            obscureText: true,
-            obscuringCharacter: "•",
-            decoration: InputDecoration(
-              hintText: "Password (optional)",
-              fillColor: _passwordFocusNode.hasFocus
-                  ? Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldActiveBG
-                  : Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldDefaultBG,
-              isCollapsed: true,
-              hintStyle: STextStyles.body(context).copyWith(
-                color: Theme.of(context).extension<StackColors>()!.textMedium,
-              ),
-              suffixIcon: Padding(
-                padding: const EdgeInsets.only(right: 0),
-                child: UnconstrainedBox(
-                  child: Row(
-                    children: [
-                      if (!widget.readOnly &&
-                          _passwordController.text.isNotEmpty)
-                        TextFieldIconButton(
-                          child: const XIcon(),
-                          onTap: () async {
-                            _passwordController.text = "";
-                            _updateState();
-                          },
-                        ),
-                      const SizedBox(
-                        height: 40,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            onChanged: (newValue) {
-              _updateState();
-              setState(() {});
-            },
-          ),
-        if (enableAuthFields)
-          const SizedBox(
-            height: 16,
-          ),
         Row(
           children: [
             GestureDetector(

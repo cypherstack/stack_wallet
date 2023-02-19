@@ -5,6 +5,7 @@ import 'dart:isolate';
 
 import 'package:decimal/decimal.dart';
 import 'package:epicpay/hive/db.dart';
+import 'package:epicpay/models/epicbox_model.dart';
 import 'package:epicpay/models/node_model.dart';
 import 'package:epicpay/models/paymint/fee_object_model.dart';
 import 'package:epicpay/models/paymint/transactions_model.dart';
@@ -20,12 +21,14 @@ import 'package:epicpay/services/event_bus/global_event_bus.dart';
 import 'package:epicpay/services/node_service.dart';
 import 'package:epicpay/services/price.dart';
 import 'package:epicpay/utilities/constants.dart';
+import 'package:epicpay/utilities/default_epicboxes.dart';
 import 'package:epicpay/utilities/default_nodes.dart';
 import 'package:epicpay/utilities/enums/coin_enum.dart';
 import 'package:epicpay/utilities/flutter_secure_storage_interface.dart';
 import 'package:epicpay/utilities/logger.dart';
 import 'package:epicpay/utilities/prefs.dart';
-import 'package:epicpay/utilities/test_epic_box_connection.dart';
+import 'package:epicpay/utilities/test_epic_node_connection.dart';
+// import 'package:epicpay/utilities/test_epic_box_connection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libepiccash/epic_cash.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -787,6 +790,8 @@ class EpicCashWallet extends CoinServiceAPI {
         key: '${_walletId}_mnemonic', value: mnemonicString);
     await _secureStore.write(key: '${_walletId}_config', value: stringConfig);
     await _secureStore.write(key: '${_walletId}_password', value: password);
+    Logging.instance.log("Saving ${_walletId}_epicboxConfig: $epicboxConfig",
+        level: LogLevel.Info);
     await _secureStore.write(
         key: '${_walletId}_epicboxConfig', value: epicboxConfig);
 
@@ -1023,21 +1028,27 @@ class EpicCashWallet extends CoinServiceAPI {
   }
 
   Future<String> getEpicBoxConfig() async {
-    final storedConfig =
-        await _secureStore.read(key: '${_walletId}_epicboxConfig');
-    if (storedConfig != null) {
-      final decoded = json.decode(storedConfig!);
-      final domain = decoded["domain"] ?? "empty";
-      if (domain != "empty") {
-        //If we have the old invalid config - update
-        await _secureStore.write(
-            key: '${_walletId}_epicboxConfig',
-            value: DefaultNodes.defaultEpicBoxConfig);
-      }
-      return await _secureStore.read(key: '${_walletId}_epicboxConfig') ??
-          DefaultNodes.defaultEpicBoxConfig;
+    EpicBoxModel? _epicBox = DB.instance
+        .get<EpicBoxModel>(boxName: DB.boxNamePrimaryEpicBox, key: 'primary');
+    Logging.instance.log(
+        "Read primary Epic Box config: ${jsonEncode(_epicBox)}",
+        level: LogLevel.Info);
+
+    if (_epicBox == null) {
+      Logging.instance.log(
+          "Using default Epic Box config: ${jsonEncode(DefaultEpicBoxes.defaultEpicBoxConfig)}",
+          level: LogLevel.Info);
+      _epicBox = DefaultEpicBoxes.defaultEpicBoxConfig;
     }
-    return DefaultNodes.defaultEpicBoxConfig;
+
+    Map<String, dynamic> _config = {
+      'epicbox_domain': _epicBox.host,
+      'epicbox_port': _epicBox.port,
+      'epicbox_protocol_unsecure': false,
+      'epicbox_address_index': 0,
+    };
+
+    return jsonEncode(_config);
   }
 
   Future<String> getRealConfig() async {
@@ -1050,18 +1061,6 @@ class EpicCashWallet extends CoinServiceAPI {
       config = jsonEncode(editConfig);
     }
     return config!;
-  }
-
-  Future<void> updateEpicboxConfig(String host, int port) async {
-    String stringConfig = jsonEncode({
-      "epicbox_domain": host,
-      "epicbox_port": port,
-      "epicbox_protocol_unsecure": false,
-      "epicbox_address_index": 0,
-    });
-    await _secureStore.write(
-        key: '${_walletId}_epicboxConfig', value: stringConfig);
-    // TODO: refresh anything that needs to be refreshed/updated due to epicbox info changed
   }
 
   Future<bool> startScans() async {
@@ -1166,6 +1165,8 @@ class EpicCashWallet extends CoinServiceAPI {
       await _secureStore.write(key: '${_walletId}_mnemonic', value: mnemonic);
       await _secureStore.write(key: '${_walletId}_config', value: stringConfig);
       await _secureStore.write(key: '${_walletId}_password', value: password);
+      Logging.instance.log("Saving ${_walletId}_epicboxConfig: $stringConfig",
+          level: LogLevel.Info);
       await _secureStore.write(
           key: '${_walletId}_epicboxConfig', value: epicboxConfig);
 
