@@ -11,7 +11,7 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.5.39+126
+version: 1.5.40+127
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
@@ -59,7 +59,7 @@ dependencies:
   bip47:
     git:
       url: https://github.com/cypherstack/bip47.git
-      ref: 87bb760be323228aed6ca7bd4532a709a4f10690
+      ref: 48dd65f88822fba8543826274f6d51c17f735f93
 
   # Utility plugins
 #  provider: ^6.0.1

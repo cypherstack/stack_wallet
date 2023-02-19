@@ -176,17 +176,18 @@ mixin PaynymWalletInterface {
     PaymentCode sender,
     int index,
   ) async {
-    final myPrivateKey = await deriveReceivingPrivateKey(
+    final myPrivateKeyNode = await deriveReceivingPrivateKeyNode(
       mnemonic: (await _getMnemonicString())!,
       mnemonicPassphrase: (await _getMnemonicPassphrase())!,
       index: index,
     );
 
-    final paymentAddress = PaymentAddress.initWithPrivateKey(
-      myPrivateKey,
-      sender,
-      0,
+    final paymentAddress = PaymentAddress(
+      bip32Node: myPrivateKeyNode,
+      paymentCode: sender,
+      networkType: networkType,
     );
+
     final pair = paymentAddress.getReceiveAddressKeyPair();
     final address = await generatePaynymReceivingAddressFromKeyPair(
       pair: pair,
@@ -248,7 +249,7 @@ mixin PaynymWalletInterface {
     return root;
   }
 
-  Future<Uint8List> deriveNotificationPrivateKey({
+  Future<bip32.BIP32> deriveNotificationBip32Node({
     required String mnemonic,
     required String mnemonicPassphrase,
   }) async {
@@ -257,10 +258,10 @@ mixin PaynymWalletInterface {
       mnemonicPassphrase: mnemonicPassphrase,
     );
     final node = root.derivePath(kPaynymDerivePath).derive(0);
-    return node.privateKey!;
+    return node;
   }
 
-  Future<Uint8List> deriveReceivingPrivateKey({
+  Future<bip32.BIP32> deriveReceivingPrivateKeyNode({
     required String mnemonic,
     required String mnemonicPassphrase,
     required int index,
@@ -270,7 +271,7 @@ mixin PaynymWalletInterface {
       mnemonicPassphrase: mnemonicPassphrase,
     );
     final node = root.derivePath(kPaynymDerivePath).derive(index);
-    return node.privateKey!;
+    return node;
   }
 
   /// fetch or generate this wallet's bip47 payment code
@@ -287,11 +288,12 @@ mixin PaynymWalletInterface {
   }
 
   Future<Uint8List> signWithNotificationKey(Uint8List data) async {
-    final privateKey = await deriveNotificationPrivateKey(
+    final myPrivateKeyNode = await deriveNotificationBip32Node(
       mnemonic: (await _getMnemonicString())!,
       mnemonicPassphrase: (await _getMnemonicPassphrase())!,
     );
-    final pair = btc_dart.ECPair.fromPrivateKey(privateKey, network: _network);
+    final pair = btc_dart.ECPair.fromPrivateKey(myPrivateKeyNode.privateKey!,
+        network: _network);
     final signed = pair.sign(SHA256Digest().process(data));
     return signed;
   }
@@ -310,13 +312,13 @@ mixin PaynymWalletInterface {
       throw PaynymSendException(
           "No notification transaction sent to $paymentCode");
     } else {
-      final myPrivateKey = await deriveNotificationPrivateKey(
+      final myPrivateKeyNode = await deriveNotificationBip32Node(
         mnemonic: (await _getMnemonicString())!,
         mnemonicPassphrase: (await _getMnemonicPassphrase())!,
       );
       final sendToAddress = await nextUnusedSendAddressFrom(
         pCode: paymentCode,
-        privateKey: myPrivateKey,
+        privateKeyNode: myPrivateKeyNode,
       );
 
       return _prepareSend(
@@ -331,7 +333,7 @@ mixin PaynymWalletInterface {
   /// and your own private key
   Future<Address> nextUnusedSendAddressFrom({
     required PaymentCode pCode,
-    required Uint8List privateKey,
+    required bip32.BIP32 privateKeyNode,
     int startIndex = 0,
   }) async {
     // https://en.bitcoin.it/wiki/BIP_0047#Path_levels
@@ -356,10 +358,11 @@ mixin PaynymWalletInterface {
           return address;
         }
       } else {
-        final pair = PaymentAddress.initWithPrivateKey(
-          privateKey,
-          pCode,
-          i, // index to use
+        final pair = PaymentAddress(
+          bip32Node: privateKeyNode,
+          index: i, // index to use
+          paymentCode: pCode,
+          networkType: networkType,
         ).getSendAddressKeyPair();
 
         // add address to local db
@@ -607,8 +610,9 @@ mixin PaynymWalletInterface {
     final blindingMask = PaymentCode.getMask(S.ecdhSecret(), rev);
 
     final blindedPaymentCode = PaymentCode.blind(
-      myCode.getPayload(),
-      blindingMask,
+      payload: myCode.getPayload(),
+      mask: blindingMask,
+      unBlind: false,
     );
 
     final opReturnScript = bscript.compile([
@@ -728,6 +732,24 @@ mixin PaynymWalletInterface {
     return false;
   }
 
+  Uint8List? _pubKeyFromInput(Input input) {
+    final scriptSigComponents = input.scriptSigAsm?.split(" ") ?? [];
+    if (scriptSigComponents.length > 1) {
+      return scriptSigComponents[1].fromHex;
+    }
+    if (input.witness != null) {
+      try {
+        final witnessComponents = jsonDecode(input.witness!) as List;
+        if (witnessComponents.length == 2) {
+          return (witnessComponents[1] as String).fromHex;
+        }
+      } catch (_) {
+        //
+      }
+    }
+    return null;
+  }
+
   Future<PaymentCode?> unBlindedPaymentCodeFromTransaction({
     required Transaction transaction,
     required Address myNotificationAddress,
@@ -756,21 +778,25 @@ mixin PaynymWalletInterface {
       final buffer = rev.buffer.asByteData();
       buffer.setUint32(txPoint.length, txPointIndex, Endian.little);
 
-      final pubKey = designatedInput.scriptSigAsm!.split(" ")[1].fromHex;
+      final pubKey = _pubKeyFromInput(designatedInput)!;
 
-      final myPrivateKey = await deriveNotificationPrivateKey(
+      final myPrivateKey = (await deriveNotificationBip32Node(
         mnemonic: (await _getMnemonicString())!,
         mnemonicPassphrase: (await _getMnemonicPassphrase())!,
-      );
+      ))
+          .privateKey!;
 
       final S = SecretPoint(myPrivateKey, pubKey);
 
       final mask = PaymentCode.getMask(S.ecdhSecret(), rev);
 
-      final unBlindedPayload = PaymentCode.blind(blindedCodeBytes, mask);
+      final unBlindedPayload = PaymentCode.blind(
+        payload: blindedCodeBytes,
+        mask: mask,
+        unBlind: true,
+      );
 
-      final unBlindedPaymentCode =
-          PaymentCode.initFromPayload(unBlindedPayload);
+      final unBlindedPaymentCode = PaymentCode.fromPayload(unBlindedPayload);
 
       return unBlindedPaymentCode;
     } catch (e) {
@@ -904,7 +930,7 @@ mixin PaynymWalletInterface {
     final mnemonic = (await _getMnemonicString())!;
     final mnemonicPassphrase = (await _getMnemonicPassphrase())!;
 
-    final mySendPrivateKey = await deriveNotificationPrivateKey(
+    final mySendBip32Node = await deriveNotificationBip32Node(
       mnemonic: mnemonic,
       mnemonicPassphrase: mnemonicPassphrase,
     );
@@ -924,10 +950,11 @@ mixin PaynymWalletInterface {
                 outgoingGapCounter < maxUnusedAddressGap);
         i++) {
       if (outgoingGapCounter < maxUnusedAddressGap) {
-        final paymentAddressSending = PaymentAddress.initWithPrivateKey(
-          mySendPrivateKey,
-          other,
-          i, // index to use
+        final paymentAddressSending = PaymentAddress(
+          paymentCode: other,
+          bip32Node: mySendBip32Node,
+          index: i,
+          networkType: networkType,
         );
         final pair = paymentAddressSending.getSendAddressKeyPair();
         final address = await generatePaynymSendAddressFromKeyPair(
@@ -948,12 +975,13 @@ mixin PaynymWalletInterface {
       }
 
       if (receivingGapCounter < maxUnusedAddressGap) {
-        final myReceivingPrivateKey = receivingNode.derive(i).privateKey!;
-        final paymentAddressReceiving = PaymentAddress.initWithPrivateKey(
-          myReceivingPrivateKey,
-          other,
-          0,
+        final paymentAddressReceiving = PaymentAddress(
+          paymentCode: other,
+          bip32Node: receivingNode.derive(i),
+          index: 0,
+          networkType: networkType,
         );
+
         final pair = paymentAddressReceiving.getReceiveAddressKeyPair();
         final address = await generatePaynymReceivingAddressFromKeyPair(
           pair: pair,
@@ -1168,9 +1196,8 @@ mixin PaynymWalletInterface {
         mnemonicPassphrase: (await _getMnemonicPassphrase())!,
       );
       final node = root.derivePath(kPaynymDerivePath);
-      final paymentCode = PaymentCode.initFromPubKey(
-        node.publicKey,
-        node.chainCode,
+      final paymentCode = PaymentCode.fromBip32Node(
+        node,
         _network,
       );
 
