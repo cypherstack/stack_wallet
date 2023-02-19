@@ -48,7 +48,7 @@ class _WalletEpicBoxSettingsViewState
           ),
           centerTitle: true,
           title: Text(
-            "Epic Box servers",
+            "Epic Box Server",
             style: STextStyles.titleH4(context),
           ),
           // actions: [

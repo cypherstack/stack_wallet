@@ -86,7 +86,7 @@ class SettingsView extends StatelessWidget {
                             return SettingsListButton(
                               iconAssetName: Assets.svg.addressBook,
                               iconSize: 16,
-                              title: "Address book",
+                              title: "Address Book",
                               onPressed: () {
                                 Navigator.of(context).pushNamed(
                                     AddressBookView.routeName,
@@ -176,7 +176,7 @@ class SettingsView extends StatelessWidget {
                             return SettingsListButton(
                               iconAssetName: Assets.svg.globe,
                               iconSize: 16,
-                              title: "Epic Box server",
+                              title: "Epic Box Server",
                               onPressed: () {
                                 Navigator.of(context).pushNamed(
                                   EpicBoxSettingsView.routeName,

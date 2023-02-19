@@ -211,7 +211,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
           centerTitle: true,
           title: !_enableSearch
               ? Text(
-                  "Address book",
+                  "Address Book",
                   style: STextStyles.titleH4(context),
                 )
               : Row(
