@@ -112,6 +112,10 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
         Expanded(
           child: GestureDetector(
             onTapDown: (tapDetails) async {
+              if (_isCurrentEpicBox) {
+                return;
+              }
+
               // showContextMenu(
               //     _epicBox, _isCurrentEpicBox, tapDetails.globalPosition);
               await ref
