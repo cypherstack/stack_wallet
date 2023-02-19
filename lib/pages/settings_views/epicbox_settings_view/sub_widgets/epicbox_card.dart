@@ -123,9 +123,6 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
 
               if (mounted) {
                 Navigator.of(context).pop();
-                await Navigator.of(context).pushNamed(
-                  EpicBoxSettingsView.routeName,
-                );
 
                 setState(() {
                   Navigator.push(
