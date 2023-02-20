@@ -88,7 +88,7 @@ class HelpView extends StatelessWidget {
                     children: [
                       if (done)
                         Text(
-                          "Version: ${snapshot.data!.version}",
+                          "Version: ${snapshot.data!.version}\nBuild ${snapshot.data!.buildNumber}",
                           style: STextStyles.bodyBold(context).copyWith(
                             color: Theme.of(context)
                                 .extension<StackColors>()!
