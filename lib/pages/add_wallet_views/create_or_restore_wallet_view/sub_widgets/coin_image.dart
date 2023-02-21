@@ -27,10 +27,6 @@ class CoinImage extends ConsumerWidget {
             coin != Coin.epicCash &&
             coin != Coin.monero &&
             coin != Coin.namecoin)
-        // ? SvgPicture.asset(
-        //     Assets.svg.imageFor(coin: coin, context: context),
-        //     width: isDesktop ? 324 : MediaQuery.of(context).size.width,
-        //   )
         ? ((isForest && coin != Coin.litecoin && coin != Coin.dogecoin)
             ? SvgPicture.asset(
                 Assets.svg.imageFor(coin: coin, context: context),

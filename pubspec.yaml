@@ -365,6 +365,7 @@ flutter:
     - assets/images/fruitSorbet/namecoin.png
 #    - assets/images/fruitSorbet/particl.png
 
+    - assets/images/fruitSorbet/stack.svg
     - assets/images/fruitSorbet/bitcoin.svg
 #    - assets/images/fruitSorbet/monero.svg
     - assets/images/fruitSorbet/wownero.svg
@@ -390,6 +391,7 @@ flutter:
     - assets/images/forest/namecoin.png
 #    - assets/images/forest/particl.png
 
+    - assets/images/forest/stack.svg
     - assets/images/forest/bitcoin.svg
     #    - assets/images/fruitSorbet/monero.svg
     - assets/images/forest/wownero.svg
