@@ -1085,9 +1085,10 @@ class EpicCashWallet extends CoinServiceAPI {
     return stringConfig;
   }
 
-  Future<String> getEpicBoxConfig() async {
-    EpicBoxModel? _epicBox = DB.instance
-        .get<EpicBoxModel>(boxName: DB.boxNamePrimaryEpicBox, key: 'primary');
+  Future<String> getEpicBoxConfig({EpicBoxModel? epicBox}) async {
+    EpicBoxModel? _epicBox = epicBox ??
+        DB.instance.get<EpicBoxModel>(
+            boxName: DB.boxNamePrimaryEpicBox, key: 'primary');
     Logging.instance.log(
         "Read primary Epic Box config: ${jsonEncode(_epicBox)}",
         level: LogLevel.Info);
@@ -1114,6 +1115,8 @@ class EpicCashWallet extends CoinServiceAPI {
       } else {
         _epicBox = DefaultEpicBoxes.europe;
       }
+      return getEpicBoxConfig(
+          epicBox: _epicBox); // recursively try again until we are connected
     }
 
     Map<String, dynamic> _config = {
