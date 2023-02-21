@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
+import 'package:stackwallet/exceptions/exchange/unsupported_currency_exception.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dart';
@@ -106,6 +107,10 @@ class _ExchangeCurrencySelectionViewState
     );
 
     if (cn.value == null) {
+      if (cn.exception is UnsupportedCurrencyException) {
+        return currencies;
+      }
+
       await showDialog<void>(
         context: context,
         builder: (context) => StackDialog(
