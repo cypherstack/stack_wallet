@@ -135,11 +135,11 @@ class _ExchangeCurrencySelectionViewState
       currencies.addAll(cn.value!);
     }
 
-    return currencies;
+    return _getDistinctCurrenciesFrom(currencies);
   }
 
   Future<List<Currency>> _getCurrencies() async {
-    return ExchangeDataLoadingService.instance.isar.currencies
+    final currencies = await ExchangeDataLoadingService.instance.isar.currencies
         .where()
         .filter()
         .isFiatEqualTo(false)
@@ -155,8 +155,19 @@ class _ExchangeCurrencySelectionViewState
                 .rateTypeEqualTo(SupportedRateType.estimated))
         .sortByIsStackCoin()
         .thenByName()
-        .distinctByTicker(caseSensitive: false)
         .findAll();
+
+    return _getDistinctCurrenciesFrom(currencies);
+  }
+
+  List<Currency> _getDistinctCurrenciesFrom(List<Currency> currencies) {
+    final List<Currency> distinctCurrencies = [];
+    for (final currency in currencies) {
+      if (!distinctCurrencies.any((e) => e.ticker == currency.ticker)) {
+        distinctCurrencies.add(currency);
+      }
+    }
+    return distinctCurrencies;
   }
 
   List<Currency> filter(String text) {
