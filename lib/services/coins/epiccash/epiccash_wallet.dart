@@ -1049,7 +1049,7 @@ class EpicCashWallet extends CoinServiceAPI
         storedConfig = DefaultNodes.defaultEpicBoxConfig;
         decoded = json.decode(storedConfig);
       }
-      //Check default Epicbox is up before returning it
+      //Check Epicbox is up before returning it
       bool isEpicboxConnected = await testEpicboxServer(
           decoded["epicbox_domain"] as String, decoded["epicbox_port"] as int);
 
