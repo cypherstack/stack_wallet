@@ -121,7 +121,8 @@ void main() {
 
       final result = await ChangeNowAPI.instance.getAvailableCurrencies();
 
-      expect(result.exception!.type, ExchangeExceptionType.generic);
+      expect(
+          result.exception!.type, ExchangeExceptionType.serializeResponseError);
       expect(result.value == null, true);
     });
   });
@@ -263,7 +264,8 @@ void main() {
         apiKey: "testAPIKEY",
       );
 
-      expect(result.exception!.type, ExchangeExceptionType.generic);
+      expect(
+          result.exception!.type, ExchangeExceptionType.serializeResponseError);
       expect(result.value == null, true);
     });
   });
@@ -470,7 +472,8 @@ void main() {
         apiKey: "testAPIKEY",
       );
 
-      expect(result.exception!.type, ExchangeExceptionType.generic);
+      expect(
+          result.exception!.type, ExchangeExceptionType.serializeResponseError);
       expect(result.value == null, true);
     });
   });
@@ -721,7 +724,8 @@ void main() {
         apiKey: "testAPIKEY",
       );
 
-      expect(result.exception!.type, ExchangeExceptionType.generic);
+      expect(
+          result.exception!.type, ExchangeExceptionType.serializeResponseError);
       expect(result.value == null, true);
     });
   });
@@ -779,7 +783,8 @@ void main() {
       final result =
           await ChangeNowAPI.instance.getAvailableFloatingRatePairs();
 
-      expect(result.exception!.type, ExchangeExceptionType.generic);
+      expect(
+          result.exception!.type, ExchangeExceptionType.serializeResponseError);
       expect(result.value == null, true);
     });
   });
