@@ -1104,8 +1104,16 @@ class EpicCashWallet extends CoinServiceAPI {
         await testEpicboxServer(_epicBox.host, _epicBox.port as int);
 
     if (!connected) {
-      //Default Epicbox is not connected, Defaulting to Europe
-      _epicBox = DefaultEpicBoxes.europe;
+      //Default Epicbox is not connected, default to another
+      if (_epicBox == DefaultEpicBoxes.americas) {
+        _epicBox = DefaultEpicBoxes.europe;
+      } else if (_epicBox == DefaultEpicBoxes.europe) {
+        _epicBox = DefaultEpicBoxes.asia;
+      } else if (_epicBox == DefaultEpicBoxes.asia) {
+        _epicBox = DefaultEpicBoxes.americas;
+      } else {
+        _epicBox = DefaultEpicBoxes.europe;
+      }
     }
 
     Map<String, dynamic> _config = {
