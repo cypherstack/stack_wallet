@@ -1038,11 +1038,14 @@ class EpicCashWallet extends CoinServiceAPI
   Future<String> getEpicBoxConfig() async {
     String? storedConfig =
         await _secureStore.read(key: '${_walletId}_epicboxConfig');
-    if (storedConfig != null) {
+    if (storedConfig == null) {
+      return json.encode(DefaultNodes.defaultEpicBoxConfig);
+    } else {
       dynamic decoded = json.decode(storedConfig!);
       final domain = decoded["domain"] ?? "empty";
       if (domain != "empty") {
         //If we have the old invalid config, use the new default one
+        // new storage format stores domain under "epicbox_domain", old storage format used "domain"
         storedConfig = DefaultNodes.defaultEpicBoxConfig;
         decoded = json.decode(storedConfig);
       }
@@ -1057,8 +1060,6 @@ class EpicCashWallet extends CoinServiceAPI
       }
 
       return storedConfig;
-    } else {
-      return DefaultNodes.defaultEpicBoxConfig;
     }
   }
 
