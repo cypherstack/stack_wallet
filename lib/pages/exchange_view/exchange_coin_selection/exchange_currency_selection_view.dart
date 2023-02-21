@@ -160,17 +160,24 @@ class _ExchangeCurrencySelectionViewState
   }
 
   List<Currency> filter(String text) {
-    if (text.isEmpty) {
-      return _currencies;
-    }
-
     if (widget.pairedTicker == null) {
+      if (text.isEmpty) {
+        return _currencies;
+      }
+
       return _currencies
           .where((e) =>
               e.name.toLowerCase().contains(text.toLowerCase()) ||
               e.ticker.toLowerCase().contains(text.toLowerCase()))
           .toList(growable: false);
     } else {
+      if (text.isEmpty) {
+        return _currencies
+            .where((e) =>
+                e.ticker.toLowerCase() != widget.pairedTicker!.toLowerCase())
+            .toList(growable: false);
+      }
+
       return _currencies
           .where((e) =>
               e.ticker.toLowerCase() != widget.pairedTicker!.toLowerCase() &&
