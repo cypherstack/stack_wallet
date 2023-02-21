@@ -357,7 +357,7 @@ flutter:
     - assets/images/fruitSorbet/monero.png
 #    - assets/images/fruitSorbet/wownero.png
 #    - assets/images/fruitSorbet/firo.png
-    - assets/images/fruitSorbet/litecoin.png
+#    - assets/images/fruitSorbet/litecoin.png
 #    - assets/images/fruitSorbet/doge.png
 #    - assets/images/fruitSorbet/bitcoin.png
     - assets/images/fruitSorbet/epic-cash.png
@@ -369,7 +369,7 @@ flutter:
 #    - assets/images/fruitSorbet/monero.svg
     - assets/images/fruitSorbet/wownero.svg
     - assets/images/fruitSorbet/firo.svg
-#    - assets/images/fruitSorbet/litecoin.svg
+    - assets/images/fruitSorbet/litecoin.svg
     - assets/images/fruitSorbet/doge.svg
 #    - assets/images/fruitSorbet/epic-cash.svg
     - assets/images/fruitSorbet/bitcoincash.svg
@@ -380,15 +380,26 @@ flutter:
     # forest theme coin
     - assets/images/forest/stack.png
     - assets/images/forest/monero.png
-    - assets/images/forest/wownero.png
-    - assets/images/forest/firo.png
-    - assets/images/forest/litecoin.png
-    - assets/images/forest/doge.png
-    - assets/images/forest/bitcoin.png
+#    - assets/images/forest/wownero.png
+#    - assets/images/forest/firo.png
+#    - assets/images/forest/litecoin.png
+#    - assets/images/forest/doge.png
+#    - assets/images/forest/bitcoin.png
     - assets/images/forest/epic-cash.png
-    - assets/images/forest/bitcoincash.png
+#    - assets/images/forest/bitcoincash.png
     - assets/images/forest/namecoin.png
-    - assets/images/forest/particl.png
+#    - assets/images/forest/particl.png
+
+    - assets/images/forest/bitcoin.svg
+    #    - assets/images/fruitSorbet/monero.svg
+    - assets/images/forest/wownero.svg
+    - assets/images/forest/firo.svg
+    - assets/images/forest/litecoin.svg
+    - assets/images/forest/doge.svg
+    #    - assets/images/forest/epic-cash.svg
+    - assets/images/forest/bitcoincash.svg
+    #    - assets/images/forest/namecoin.svg
+    - assets/images/forest/particl.svg
 
     # coin icons
     - assets/svg/coin_icons/Bitcoin.svg

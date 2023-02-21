@@ -268,48 +268,55 @@ class _SVG {
   }
 
   // big icons
-  String get bitcoinImage => "assets/images/fruitSorbet/bitcoin.svg";
-  String get bitcoincashImage => "assets/images/fruitSorbet/bitcoincash.svg";
-  String get dogecoinImage => "assets/images/fruitSorbet/doge.svg";
+  String bitcoinImage(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/bitcoin.svg";
+  String bitcoincashImage(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/bitcoincash.svg";
+  String dogecoinImage(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/doge.svg";
   // String get epicCashImage => "assets/images/fruitSorbet/epic-cash.svg";
-  String get firoImage => "assets/images/fruitSorbet/firo.svg";
-  // String get litecoinImage => "assets/svg/coin_icons/litecoin.svg";
-  // String get moneroImage => "assets/svg/coin_icons/Monero.svg";
-  String get wowneroImage => "assets/images/fruitSorbet/wownero.svg";
-  // String get namecoinImage => "assets/svg/coin_icons/Namecoin.svg";
-  String get particlImage => "assets/images/fruitSorbet/particl.svg";
+  String firoImage(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/firo.svg";
+  String litecoinImage(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/litecoin.svg";
+  // String get moneroImage => "assets/images/fruitSorbet/monero.svg";
+  String wowneroImage(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/wownero.svg";
+  // String get namecoinImage => "assets/images/fruitSorbet/Namecoin.svg";
+  String particlImage(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/particl.svg";
 
-  String imageFor({required Coin coin}) {
+  String imageFor({required BuildContext context, required Coin coin}) {
     switch (coin) {
       case Coin.bitcoin:
-        return bitcoinImage;
+        return bitcoinImage(context);
       case Coin.litecoin:
       case Coin.litecoinTestNet:
-        return litecoin;
+        return litecoinImage(context);
       case Coin.bitcoincash:
-        return bitcoincashImage;
+        return bitcoincashImage(context);
       case Coin.dogecoin:
-        return dogecoinImage;
+        return dogecoinImage(context);
       case Coin.epicCash:
         return epicCash;
       case Coin.firo:
-        return firoImage;
+        return firoImage(context);
       case Coin.monero:
         return monero;
       case Coin.wownero:
-        return wowneroImage;
+        return wowneroImage(context);
       case Coin.namecoin:
         return namecoin;
       case Coin.particl:
-        return particlImage;
+        return particlImage(context);
       case Coin.bitcoinTestNet:
-        return bitcoinImage;
+        return bitcoinImage(context);
       case Coin.bitcoincashTestnet:
-        return bitcoincashImage;
+        return bitcoincashImage(context);
       case Coin.firoTestNet:
-        return firoImage;
+        return firoImage(context);
       case Coin.dogecoinTestNet:
-        return dogecoinImage;
+        return dogecoinImage(context);
     }
   }
 }
