@@ -1017,16 +1017,19 @@ class EpicCashWallet extends CoinServiceAPI
     // Listening to server responses:
     bool isConnected = true;
     textSocketHandler.incomingMessagesStream.listen((inMsg) {
-      debugPrint('> webSocket  got text message from server: "$inMsg" '
-          '[ping: ${textSocketHandler.pingDelayMs}]');
+      Logging.instance.log(
+          '> webSocket  got text message from server: "$inMsg" '
+          '[ping: ${textSocketHandler.pingDelayMs}]',
+          level: LogLevel.Info);
     });
 
     // Connecting to server:
     final isTextSocketConnected = await textSocketHandler.connect();
     if (!isTextSocketConnected) {
       // ignore: avoid_print
-      debugPrint(
-          'Connection to [$websocketConnectionUri] failed for some reason!');
+      Logging.instance.log(
+          'Connection to [$websocketConnectionUri] failed for some reason!',
+          level: LogLevel.Error);
       isConnected = false;
     }
     return isConnected;
