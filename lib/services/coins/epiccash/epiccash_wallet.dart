@@ -1036,34 +1036,30 @@ class EpicCashWallet extends CoinServiceAPI
   }
 
   Future<String> getEpicBoxConfig() async {
-    final storedConfig =
+    String? storedConfig =
         await _secureStore.read(key: '${_walletId}_epicboxConfig');
     if (storedConfig != null) {
-      final decoded = json.decode(storedConfig!);
+      dynamic decoded = json.decode(storedConfig!);
       final domain = decoded["domain"] ?? "empty";
       if (domain != "empty") {
-        //If we have the old invalid config - update
-        //Before writing to secure storage,ensure Epicbox is up
+        //If we have the old invalid config, use the new default one
+        storedConfig = DefaultNodes.defaultEpicBoxConfig;
+        decoded = json.decode(storedConfig);
+      }
+      //Check default Epicbox is up before returning it
+      bool isEpicboxConnected = await testEpicboxServer(
+          decoded["epicbox_domain"] as String, decoded["epicbox_port"] as int);
 
-        String defaultConfig = DefaultNodes.defaultEpicBoxConfig;
-        final decoded = json.decode(defaultConfig);
-        bool isEpicboxConnected = await testEpicboxServer(
-            decoded["epicbox_domain"] as String,
-            decoded["epicbox_port"] as int);
-
-        if (!isEpicboxConnected) {
-          //Default Epicbox is not connected, Defaulting to Europe
-          defaultConfig = DefaultNodes.epicBoxConfigEUR;
-        }
-
-        await _secureStore.write(
-            key: '${_walletId}_epicboxConfig', value: defaultConfig);
+      if (!isEpicboxConnected) {
+        //Default Epicbox is not connected, Defaulting to Europe
+        storedConfig = json.encode(DefaultNodes.epicBoxConfigEUR);
+        // TODO test this connection before returning it, iterating through the list of default Epic Box servers
       }
 
-      return await _secureStore.read(key: '${_walletId}_epicboxConfig') ??
-          DefaultNodes.defaultEpicBoxConfig;
+      return storedConfig;
+    } else {
+      return DefaultNodes.defaultEpicBoxConfig;
     }
-    return DefaultNodes.defaultEpicBoxConfig;
   }
 
   Future<String> getRealConfig() async {
