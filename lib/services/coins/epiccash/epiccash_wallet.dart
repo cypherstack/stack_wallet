@@ -526,12 +526,6 @@ class EpicCashWallet extends CoinServiceAPI {
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
     try {
       final epicboxConfig = await getEpicBoxConfig();
-      final decoded = json.decode(epicboxConfig);
-      bool isEpicboxConnected = await testEpicboxServer(
-          decoded["epicbox_domain"] as String, decoded["epicbox_port"] as int);
-      if (!isEpicboxConnected) {
-        throw Exception("Failed to send TX : Unable to reach epicbox server");
-      }
 
       final wallet = await _secureStore.read(key: '${_walletId}_wallet');
 
@@ -539,6 +533,17 @@ class EpicCashWallet extends CoinServiceAPI {
       dynamic message;
 
       String receiverAddress = txData['addresss'] as String;
+
+      if (!receiverAddress.startsWith("http://") ||
+          !receiverAddress.startsWith("https://")) {
+        final decoded = json.decode(epicboxConfig);
+        bool isEpicboxConnected = await testEpicboxServer(
+            decoded["epicbox_domain"] as String,
+            decoded["epicbox_port"] as int);
+        if (!isEpicboxConnected) {
+          throw Exception("Failed to send TX : Unable to reach epicbox server");
+        }
+      }
       await m.protect(() async {
         if (receiverAddress.startsWith("http://") ||
             receiverAddress.startsWith("https://")) {
