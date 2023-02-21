@@ -37,6 +37,7 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
 import 'package:tuple/tuple.dart';
+import 'package:websocket_universal/websocket_universal.dart';
 
 const int MINIMUM_CONFIRMATIONS = 10;
 
@@ -462,6 +463,18 @@ class EpicCashWallet extends CoinServiceAPI
       dynamic message;
 
       String receiverAddress = txData['addresss'] as String;
+
+      if (!receiverAddress.startsWith("http://") ||
+          !receiverAddress.startsWith("https://")) {
+        final decoded = json.decode(epicboxConfig);
+        bool isEpicboxConnected = await testEpicboxServer(
+            decoded["epicbox_domain"] as String,
+            decoded["epicbox_port"] as int);
+        if (!isEpicboxConnected) {
+          throw Exception("Failed to send TX : Unable to reach epicbox server");
+        }
+      }
+
       await m.protect(() async {
         if (receiverAddress.startsWith("http://") ||
             receiverAddress.startsWith("https://")) {
@@ -980,6 +993,46 @@ class EpicCashWallet extends CoinServiceAPI
     return stringConfig;
   }
 
+  Future<bool> testEpicboxServer(String host, int port) async {
+    final websocketConnectionUri = 'wss://$host:$port';
+    const connectionOptions = SocketConnectionOptions(
+      pingIntervalMs: 3000,
+      timeoutConnectionMs: 4000,
+
+      /// see ping/pong messages in [logEventStream] stream
+      skipPingMessages: true,
+
+      /// Set this attribute to `true` if do not need any ping/pong
+      /// messages and ping measurement. Default is `false`
+      pingRestrictionForce: false,
+    );
+
+    final IMessageProcessor<String, String> textSocketProcessor =
+        SocketSimpleTextProcessor();
+    final textSocketHandler = IWebSocketHandler<String, String>.createClient(
+      websocketConnectionUri,
+      textSocketProcessor,
+      connectionOptions: connectionOptions,
+    );
+
+    // Listening to server responses:
+    bool isConnected = true;
+    textSocketHandler.incomingMessagesStream.listen((inMsg) {
+      debugPrint('> webSocket  got text message from server: "$inMsg" '
+          '[ping: ${textSocketHandler.pingDelayMs}]');
+    });
+
+    // Connecting to server:
+    final isTextSocketConnected = await textSocketHandler.connect();
+    if (!isTextSocketConnected) {
+      // ignore: avoid_print
+      debugPrint(
+          'Connection to [$websocketConnectionUri] failed for some reason!');
+      isConnected = false;
+    }
+    return isConnected;
+  }
+
   Future<String> getEpicBoxConfig() async {
     final storedConfig =
         await _secureStore.read(key: '${_walletId}_epicboxConfig');
@@ -988,10 +1041,23 @@ class EpicCashWallet extends CoinServiceAPI
       final domain = decoded["domain"] ?? "empty";
       if (domain != "empty") {
         //If we have the old invalid config - update
+        //Before writing to secure storage,ensure Epicbox is up
+
+        String defaultConfig = DefaultNodes.defaultEpicBoxConfig;
+        final decoded = json.decode(defaultConfig);
+        bool isEpicboxConnected = await testEpicboxServer(
+            decoded["epicbox_domain"] as String,
+            decoded["epicbox_port"] as int);
+
+        if (!isEpicboxConnected) {
+          //Default Epicbox is not connected, Defaulting to Europe
+          defaultConfig = DefaultNodes.epicBoxConfigEUR;
+        }
+
         await _secureStore.write(
-            key: '${_walletId}_epicboxConfig',
-            value: DefaultNodes.defaultEpicBoxConfig);
+            key: '${_walletId}_epicboxConfig', value: defaultConfig);
       }
+
       return await _secureStore.read(key: '${_walletId}_epicboxConfig') ??
           DefaultNodes.defaultEpicBoxConfig;
     }
