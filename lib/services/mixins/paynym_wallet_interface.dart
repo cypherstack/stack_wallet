@@ -27,6 +27,8 @@ import 'package:tuple/tuple.dart';
 const kPaynymDerivePath = "m/47'/0'/0'";
 
 mixin PaynymWalletInterface {
+  static const String _connectedKeyPrefix = "paynym_connected_";
+
   // passed in wallet data
   late final String _walletId;
   late final String _walletName;
@@ -694,8 +696,31 @@ mixin PaynymWalletInterface {
     }
   }
 
+  Future<bool?> _checkHasConnectedCache(String paymentCodeString) async {
+    final value = await _secureStorage.read(
+        key: "$_connectedKeyPrefix$paymentCodeString");
+    if (value == null) {
+      return null;
+    } else {
+      final int rawBool = int.parse(value);
+      return rawBool > 0;
+    }
+  }
+
+  Future<void> _setConnectedCache(
+      String paymentCodeString, bool hasConnected) async {
+    await _secureStorage.write(
+        key: "$_connectedKeyPrefix$paymentCodeString",
+        value: hasConnected ? "1" : "0");
+  }
+
   // TODO optimize
   Future<bool> hasConnected(String paymentCodeString) async {
+    final didConnect = await _checkHasConnectedCache(paymentCodeString);
+    if (didConnect != null) {
+      return didConnect;
+    }
+
     final myNotificationAddress =
         await getMyNotificationAddress(DerivePathTypeExt.primaryFor(_coin));
 
@@ -706,29 +731,37 @@ mixin PaynymWalletInterface {
         .findAll();
 
     for (final tx in txns) {
-      // quick check that may cause problems?
-      if (tx.address.value?.value == myNotificationAddress.value) {
-        return true;
-      }
+      if (tx.type == TransactionType.incoming &&
+          tx.address.value?.value == myNotificationAddress.value) {
+        PaymentCode? unBlindedPaymentCode;
+        unBlindedPaymentCode = await unBlindedPaymentCodeFromTransaction(
+          transaction: tx,
+          myNotificationAddress: myNotificationAddress,
+        );
+        unBlindedPaymentCode = await unBlindedPaymentCodeFromTransaction(
+          transaction: tx,
+          myNotificationAddress: myNotificationAddress,
+        );
 
-      final unBlindedPaymentCode = await unBlindedPaymentCodeFromTransaction(
-        transaction: tx,
-        myNotificationAddress: myNotificationAddress,
-      );
-
-      if (paymentCodeString == unBlindedPaymentCode.toString()) {
-        return true;
-      }
-
-      if (tx.address.value?.otherData != null) {
-        final code = await paymentCodeStringByKey(tx.address.value!.otherData!);
-        if (code == paymentCodeString) {
+        if (unBlindedPaymentCode != null &&
+            paymentCodeString == unBlindedPaymentCode.toString()) {
+          await _setConnectedCache(paymentCodeString, true);
           return true;
+        }
+      } else if (tx.type == TransactionType.outgoing) {
+        if (tx.address.value?.otherData != null) {
+          final code =
+              await paymentCodeStringByKey(tx.address.value!.otherData!);
+          if (code == paymentCodeString) {
+            await _setConnectedCache(paymentCodeString, true);
+            return true;
+          }
         }
       }
     }
 
     // otherwise return no
+    await _setConnectedCache(paymentCodeString, false);
     return false;
   }
 
