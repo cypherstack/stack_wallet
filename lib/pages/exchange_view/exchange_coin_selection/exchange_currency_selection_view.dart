@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
+import 'package:stackwallet/exceptions/exchange/unsupported_currency_exception.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dart';
@@ -106,6 +107,10 @@ class _ExchangeCurrencySelectionViewState
     );
 
     if (cn.value == null) {
+      if (cn.exception is UnsupportedCurrencyException) {
+        return currencies;
+      }
+
       await showDialog<void>(
         context: context,
         builder: (context) => StackDialog(
@@ -130,11 +135,11 @@ class _ExchangeCurrencySelectionViewState
       currencies.addAll(cn.value!);
     }
 
-    return currencies;
+    return _getDistinctCurrenciesFrom(currencies);
   }
 
   Future<List<Currency>> _getCurrencies() async {
-    return ExchangeDataLoadingService.instance.isar.currencies
+    final currencies = await ExchangeDataLoadingService.instance.isar.currencies
         .where()
         .filter()
         .isFiatEqualTo(false)
@@ -150,22 +155,40 @@ class _ExchangeCurrencySelectionViewState
                 .rateTypeEqualTo(SupportedRateType.estimated))
         .sortByIsStackCoin()
         .thenByName()
-        .distinctByTicker(caseSensitive: false)
         .findAll();
+
+    return _getDistinctCurrenciesFrom(currencies);
+  }
+
+  List<Currency> _getDistinctCurrenciesFrom(List<Currency> currencies) {
+    final List<Currency> distinctCurrencies = [];
+    for (final currency in currencies) {
+      if (!distinctCurrencies.any((e) => e.ticker == currency.ticker)) {
+        distinctCurrencies.add(currency);
+      }
+    }
+    return distinctCurrencies;
   }
 
   List<Currency> filter(String text) {
-    if (text.isEmpty) {
-      return _currencies;
-    }
-
     if (widget.pairedTicker == null) {
+      if (text.isEmpty) {
+        return _currencies;
+      }
+
       return _currencies
           .where((e) =>
               e.name.toLowerCase().contains(text.toLowerCase()) ||
               e.ticker.toLowerCase().contains(text.toLowerCase()))
           .toList(growable: false);
     } else {
+      if (text.isEmpty) {
+        return _currencies
+            .where((e) =>
+                e.ticker.toLowerCase() != widget.pairedTicker!.toLowerCase())
+            .toList(growable: false);
+      }
+
       return _currencies
           .where((e) =>
               e.ticker.toLowerCase() != widget.pairedTicker!.toLowerCase() &&
