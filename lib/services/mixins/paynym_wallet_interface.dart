@@ -633,6 +633,17 @@ mixin PaynymWalletInterface {
       utxoSigningData[utxo.txid]["output"] as Uint8List,
     );
 
+    // add rest of possible inputs
+    for (var i = 1; i < utxosToUse.length; i++) {
+      final utxo = utxosToUse[i];
+      txb.addInput(
+        utxo.txid,
+        utxo.vout,
+        null,
+        utxoSigningData[utxo.txid]["output"] as Uint8List,
+      );
+    }
+
     // todo: modify address once segwit support is in our bip47
     txb.addOutput(
         targetPaymentCode.notificationAddressP2PKH(), _dustLimitP2PKH);
