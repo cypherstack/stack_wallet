@@ -1745,7 +1745,7 @@ class EpicCashWallet extends CoinServiceAPI {
   @override
   bool get isConnected => _isConnected;
 
-  bool _isEpicBoxConnected = false;
+  bool _isEpicBoxConnected = true;
 
   @override
   bool get isEpicBoxConnected => _isEpicBoxConnected;
