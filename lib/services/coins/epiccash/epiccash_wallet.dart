@@ -1127,6 +1127,9 @@ class EpicCashWallet extends CoinServiceAPI {
               alternativeServers[i].host, alternativeServers[i].port as int);
           if (altConnected == true) {
             _epicBox = alternativeServers[i];
+            Logging.instance.log(
+                "Connected to alternate Epic Box server ${json.encode(_epicBox)}",
+                level: LogLevel.Info);
             break;
           }
         }
