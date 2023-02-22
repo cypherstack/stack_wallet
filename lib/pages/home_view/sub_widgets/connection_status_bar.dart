@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:epicpay/providers/global/wallet_provider.dart';
+import 'package:epicpay/services/event_bus/events/global/epicbox_status_changed_event.dart';
 import 'package:epicpay/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:epicpay/services/event_bus/global_event_bus.dart';
 import 'package:epicpay/utilities/text_styles.dart';
@@ -80,10 +81,12 @@ class _ConnectionStatusInfoState extends ConsumerState<ConnectionStatusInfo> {
   late final EventBus eventBus;
 
   late WalletSyncStatus _currentSyncStatus;
+  late EpicBoxStatus _currentEpicBoxStatus;
   // late NodeConnectionStatus _currentNodeStatus;
 
   late StreamSubscription<dynamic> _syncStatusSubscription;
   // late StreamSubscription<dynamic> _nodeStatusSubscription;
+  late StreamSubscription<dynamic> _epicBoxStatusSubscription;
 
   Color getSyncColor(WalletSyncStatus status) {
     switch (status) {
@@ -122,6 +125,14 @@ class _ConnectionStatusInfoState extends ConsumerState<ConnectionStatusInfo> {
       }
     }
 
+    if (ref.read(walletProvider)!.isEpicBoxConnected) {
+      _currentEpicBoxStatus = EpicBoxStatus.connected;
+      // } else if (ref.read(walletProvider)!.isEpicBoxListening) {
+      //   _currentEpicBoxStatus = EpicBoxStatus.listening;
+    } else {
+      _currentEpicBoxStatus = EpicBoxStatus.unableToConnect;
+    }
+
     eventBus = widget.eventBus ?? GlobalEventBus.instance;
 
     _syncStatusSubscription =
@@ -146,13 +157,25 @@ class _ConnectionStatusInfoState extends ConsumerState<ConnectionStatusInfo> {
     //   },
     // );
 
+    _epicBoxStatusSubscription =
+        eventBus.on<EpicBoxStatusChangedEvent>().listen(
+      (event) async {
+        if (event.walletId == ref.read(walletProvider)!.walletId) {
+          setState(() {
+            _currentEpicBoxStatus = event.newStatus;
+          });
+        }
+      },
+    );
+
     super.initState();
   }
 
   @override
   dispose() {
-    // _nodeStatusSubscription.cancel();
     _syncStatusSubscription.cancel();
+    // _nodeStatusSubscription.cancel();
+    _epicBoxStatusSubscription.cancel();
     super.dispose();
   }
 
