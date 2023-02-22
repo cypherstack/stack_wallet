@@ -1105,23 +1105,45 @@ class EpicCashWallet extends CoinServiceAPI {
         await testEpicboxServer(_epicBox.host, _epicBox.port as int);
 
     if (!connected) {
-      //Default Epicbox is not connected, default to another
-      if (_epicBox == DefaultEpicBoxes.americas) {
-        _epicBox = DefaultEpicBoxes.europe;
-      } else if (_epicBox == DefaultEpicBoxes.europe) {
-        _epicBox = DefaultEpicBoxes.asia;
-      } else if (_epicBox == DefaultEpicBoxes.asia) {
-        _epicBox = DefaultEpicBoxes.americas;
-      } else {
-        _epicBox = DefaultEpicBoxes.europe;
+      //Default Epic Box is not connected, iterate through list of defaults
+      Logging.instance.log("Default Epic Box server not connected",
+          level: LogLevel.Warning);
+
+      //Get all available hosts
+      final allBoxes = DefaultEpicBoxes.all;
+      final List<EpicBoxModel> alternativeServers = [];
+
+      for (var i = 0; i < allBoxes.length; i++) {
+        if (allBoxes[i].name != _epicBox?.name) {
+          alternativeServers.add(allBoxes[i]);
+        }
       }
-      return getEpicBoxConfig(
-          epicBox: _epicBox); // recursively try again until we are connected
+
+      bool altConnected = false;
+      int i = 1;
+      while (i < alternativeServers.length) {
+        while (altConnected == false) {
+          altConnected = await testEpicboxServer(
+              alternativeServers[i].host, alternativeServers[i].port as int);
+          if (altConnected == true) {
+            _epicBox = alternativeServers[i];
+            Logging.instance.log(
+                "Connected to alternate Epic Box server ${json.encode(_epicBox)}",
+                level: LogLevel.Info);
+            break;
+          }
+        }
+        i++;
+      }
+      if (!altConnected) {
+        Logging.instance
+            .log("No Epic Box server connected!", level: LogLevel.Error);
+      }
     }
 
     Map<String, dynamic> _config = {
-      'epicbox_domain': _epicBox.host,
-      'epicbox_port': _epicBox.port,
+      'epicbox_domain': _epicBox?.host,
+      'epicbox_port': _epicBox?.port,
       'epicbox_protocol_unsecure': false,
       'epicbox_address_index': 0,
     };
