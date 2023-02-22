@@ -2,10 +2,9 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:epicpay/models/epicbox_model.dart';
-import 'package:epicpay/pages/settings_views/epicbox_settings_view/epicbox_settings_view.dart';
 import 'package:epicpay/pages/settings_views/epicbox_settings_view/manage_epicbox_views/add_edit_epicbox_view.dart';
 import 'package:epicpay/providers/providers.dart';
-import 'package:epicpay/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:epicpay/services/event_bus/events/global/epicbox_status_changed_event.dart';
 import 'package:epicpay/services/event_bus/global_event_bus.dart';
 import 'package:epicpay/utilities/assets.dart';
 import 'package:epicpay/utilities/enums/coin_enum.dart';
@@ -38,9 +37,9 @@ class EpicBoxCard extends ConsumerStatefulWidget {
 class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
   late final EventBus eventBus;
 
-  late WalletSyncStatus? _currentSyncStatus;
+  late EpicBoxStatus? _currentEpicBoxStatus;
 
-  late StreamSubscription<dynamic>? _syncStatusSubscription;
+  late StreamSubscription<dynamic>? _epicBoxSubscription;
 
   bool _isCurrentEpicBox = false;
 
@@ -60,25 +59,22 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
 
   @override
   void initState() {
-    if (ref.read(walletProvider)!.isRefreshing) {
-      _currentSyncStatus = WalletSyncStatus.syncing;
+    if (ref.read(walletProvider)!.isEpicBoxConnected) {
+      _currentEpicBoxStatus = EpicBoxStatus.connected;
+      // } else if (ref.read(epicBoxListenerProvider)!.isListening) { // Example if a listener provider is added
+      //   _currentEpicBoxStatus = EpicBoxStatus.listening;
     } else {
-      if (ref.read(walletProvider)!.isConnected) {
-        _currentSyncStatus = WalletSyncStatus.synced;
-      } else {
-        _currentSyncStatus = WalletSyncStatus.unableToSync;
-      }
+      _currentEpicBoxStatus = EpicBoxStatus.unableToConnect;
     }
 
     eventBus =
         widget.eventBus != null ? widget.eventBus! : GlobalEventBus.instance;
 
-    _syncStatusSubscription =
-        eventBus.on<WalletSyncStatusChangedEvent>().listen(
+    _epicBoxSubscription = eventBus.on<EpicBoxStatusChangedEvent>().listen(
       (event) async {
         if (event.walletId == ref.read(walletProvider)!.walletId) {
           setState(() {
-            _currentSyncStatus = event.newStatus;
+            _currentEpicBoxStatus = event.newStatus;
           });
         }
       },
@@ -89,7 +85,7 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
 
   @override
   void dispose() {
-    _syncStatusSubscription?.cancel();
+    _epicBoxSubscription?.cancel();
     super.dispose();
   }
 
@@ -179,9 +175,9 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
             ),
           ),
         ),
-        if (_isCurrentEpicBox && _currentSyncStatus != null)
+        if (_isCurrentEpicBox && _currentEpicBoxStatus != null)
           CurrentEpicBoxStatusIcon(
-            status: _currentSyncStatus!,
+            status: _currentEpicBoxStatus!,
           ),
       ],
     );
@@ -194,22 +190,20 @@ class CurrentEpicBoxStatusIcon extends ConsumerWidget {
     required this.status,
   }) : super(key: key);
 
-  final WalletSyncStatus status;
+  final EpicBoxStatus status;
 
   Widget _getAsset(BuildContext context) {
     switch (status) {
-      case WalletSyncStatus.unableToSync:
+      case EpicBoxStatus.unableToConnect:
         return SvgPicture.asset(
           Assets.svg.refresh,
           color: Theme.of(context).extension<StackColors>()!.accentColorRed,
         );
-      case WalletSyncStatus.synced:
-      case WalletSyncStatus.syncing:
+      case EpicBoxStatus.connected:
+        /*case EpicBoxStatus.listening:*/
         return SvgPicture.asset(
           Assets.svg.check,
-          color: Theme.of(context)
-              .extension<StackColors>()!
-              .textLight /*accentColorGreen*/,
+          color: Theme.of(context).extension<StackColors>()!.accentColorGreen,
         );
     }
   }
@@ -217,7 +211,7 @@ class CurrentEpicBoxStatusIcon extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ConditionalParent(
-      condition: status == WalletSyncStatus.unableToSync,
+      condition: status == EpicBoxStatus.unableToConnect,
       builder: (child) {
         return Padding(
           padding: const EdgeInsets.only(right: 10),
@@ -232,7 +226,7 @@ class CurrentEpicBoxStatusIcon extends ConsumerWidget {
         );
       },
       child: ConditionalParent(
-        condition: status != WalletSyncStatus.unableToSync,
+        condition: status != EpicBoxStatus.unableToConnect,
         builder: (child) => Padding(
           padding: const EdgeInsets.only(
             right: 24,
