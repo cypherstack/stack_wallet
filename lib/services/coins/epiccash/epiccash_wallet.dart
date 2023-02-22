@@ -509,6 +509,18 @@ class EpicCashWallet extends CoinServiceAPI {
     textSocketHandler.incomingMessagesStream.listen((inMsg) {
       debugPrint('> webSocket  got text message from server: "$inMsg" '
           '[ping: ${textSocketHandler.pingDelayMs}]');
+
+      if (inMsg.contains("Challenge")) {
+        // Successful response, close socket
+        Logging.instance
+
+        // Disconnect from server:
+        textSocketHandler.disconnect('manual disconnect');
+        // Disposing webSocket:
+        textSocketHandler.close();
+      } /* else if(inMsg.contains("InvalidRequest")) {
+        // Handle when many InvalidRequest responses occur
+      }*/
     });
 
     // Connecting to server:
@@ -519,11 +531,6 @@ class EpicCashWallet extends CoinServiceAPI {
           'Connection to [$websocketConnectionUri] failed for some reason!');
       isConnected = false;
     }
-
-    // Disconnect from server:
-    await textSocketHandler.disconnect('manual disconnect');
-    // Disposing webSocket:
-    textSocketHandler.close();
 
     return isConnected;
   }
