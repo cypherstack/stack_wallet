@@ -13,6 +13,7 @@ import 'package:epicpay/models/paymint/utxo_model.dart';
 import 'package:epicpay/pages/settings_views/network_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:epicpay/services/coins/coin_service.dart';
 import 'package:epicpay/services/event_bus/events/global/blocks_remaining_event.dart';
+import 'package:epicpay/services/event_bus/events/global/epicbox_status_changed_event.dart';
 import 'package:epicpay/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:epicpay/services/event_bus/events/global/refresh_percent_changed_event.dart';
 import 'package:epicpay/services/event_bus/events/global/updated_in_background_event.dart';
@@ -519,6 +520,12 @@ class EpicCashWallet extends CoinServiceAPI {
           'Connection to [$websocketConnectionUri] failed for some reason!');
       isConnected = false;
       _isEpicBoxConnected = false;
+      GlobalEventBus.instance.fire(
+        EpicBoxStatusChangedEvent(
+          EpicBoxStatus.unableToConnect,
+          walletId,
+        ),
+      );
     } else {
       _isEpicBoxConnected = true;
     }
