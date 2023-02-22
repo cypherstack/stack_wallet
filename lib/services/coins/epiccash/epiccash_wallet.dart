@@ -517,6 +517,16 @@ class EpicCashWallet extends CoinServiceAPI {
         Logging.instance.log('Epic Box server $host:$port test succeeded',
             level: LogLevel.Info);
 
+        _isEpicBoxConnected = isConnected;
+        GlobalEventBus.instance.fire(
+          EpicBoxStatusChangedEvent(
+            isConnected
+                ? EpicBoxStatus.connected
+                : EpicBoxStatus.unableToConnect,
+            walletId,
+          ),
+        );
+
         // Disconnect from server:
         textSocketHandler.disconnect('manual disconnect');
         // Disposing webSocket:
@@ -533,14 +543,14 @@ class EpicCashWallet extends CoinServiceAPI {
           'Epic Box server test failed: server $host:$port unable to connect',
           level: LogLevel.Warning);
       isConnected = false;
+      _isEpicBoxConnected = false;
+      GlobalEventBus.instance.fire(
+        EpicBoxStatusChangedEvent(
+          EpicBoxStatus.unableToConnect,
+          walletId,
+        ),
+      );
     }
-    _isEpicBoxConnected = isConnected;
-    GlobalEventBus.instance.fire(
-      EpicBoxStatusChangedEvent(
-        isConnected ? EpicBoxStatus.connected : EpicBoxStatus.unableToConnect,
-        walletId,
-      ),
-    );
 
     return isConnected;
   }
