@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:epicpay/models/epicbox_model.dart';
+import 'package:epicpay/pages/settings_views/epicbox_settings_view/epicbox_settings_view.dart';
 import 'package:epicpay/pages/settings_views/epicbox_settings_view/manage_epicbox_views/add_edit_epicbox_view.dart';
 import 'package:epicpay/providers/providers.dart';
 import 'package:epicpay/services/event_bus/events/global/epicbox_status_changed_event.dart';
