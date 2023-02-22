@@ -1105,7 +1105,9 @@ class EpicCashWallet extends CoinServiceAPI {
         await testEpicboxServer(_epicBox.host, _epicBox.port as int);
 
     if (!connected) {
-      print("DEFAULT EPIC BOX IS NOT CONNECTED");
+      //Default Epic Box is not connected, iterate through list of defaults
+      Logging.instance.log("Default Epic Box server not connected",
+          level: LogLevel.Warning);
 
       //Get all available hosts
       final allBoxes = DefaultEpicBoxes.all;
@@ -1129,6 +1131,10 @@ class EpicCashWallet extends CoinServiceAPI {
           }
         }
         i++;
+      }
+      if (!altConnected) {
+        Logging.instance
+            .log("No Epic Box server connected!", level: LogLevel.Error);
       }
     }
 
