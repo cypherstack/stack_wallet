@@ -1085,7 +1085,10 @@ class EpicCashWallet extends CoinServiceAPI {
     return stringConfig;
   }
 
-  Future<String> getEpicBoxConfig({EpicBoxModel? epicBox}) async {
+  Future<String> getEpicBoxConfig({EpicBoxModel? epicBox, int? tries}) async {
+    if ((tries ?? 0) > DefaultEpicBoxes.all.length) {
+      throw Exception("No Epic Box servers responded");
+    }
     EpicBoxModel? _epicBox = epicBox ??
         DB.instance.get<EpicBoxModel>(
             boxName: DB.boxNamePrimaryEpicBox, key: 'primary');
@@ -1116,7 +1119,9 @@ class EpicCashWallet extends CoinServiceAPI {
         _epicBox = DefaultEpicBoxes.europe;
       }
       return getEpicBoxConfig(
-          epicBox: _epicBox); // recursively try again until we are connected
+          epicBox: _epicBox,
+          tries:
+              tries ?? 0 + 1); // recursively try again until we are connected
     }
 
     Map<String, dynamic> _config = {
