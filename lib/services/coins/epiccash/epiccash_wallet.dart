@@ -542,6 +542,12 @@ class EpicCashWallet extends CoinServiceAPI {
       );
     } else {
       _isEpicBoxConnected = true;
+      GlobalEventBus.instance.fire(
+        EpicBoxStatusChangedEvent(
+          EpicBoxStatus.connected,
+          walletId,
+        ),
+      );
     }
 
     return isConnected;
