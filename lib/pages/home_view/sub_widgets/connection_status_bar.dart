@@ -88,23 +88,35 @@ class _ConnectionStatusInfoState extends ConsumerState<ConnectionStatusInfo> {
   // late StreamSubscription<dynamic> _nodeStatusSubscription;
   late StreamSubscription<dynamic> _epicBoxStatusSubscription;
 
-  Color getSyncColor(WalletSyncStatus status) {
+  Color getSyncColor(WalletSyncStatus status, EpicBoxStatus epicBoxStatus) {
     switch (status) {
       case WalletSyncStatus.unableToSync:
         return Theme.of(context).extension<StackColors>()!.accentColorRed;
       case WalletSyncStatus.synced:
-        return Theme.of(context).extension<StackColors>()!.accentColorGreen;
+        switch (epicBoxStatus) {
+          case EpicBoxStatus.connected:
+            // case EpicBoxStatus.listening:
+            return Theme.of(context).extension<StackColors>()!.accentColorGreen;
+          case EpicBoxStatus.unableToConnect:
+            return Theme.of(context).extension<StackColors>()!.accentColorRed;
+        }
       case WalletSyncStatus.syncing:
         return Theme.of(context).extension<StackColors>()!.accentColorYellow;
     }
   }
 
-  String label(WalletSyncStatus status) {
+  String label(WalletSyncStatus status, EpicBoxStatus epicBoxStatus) {
     switch (status) {
       case WalletSyncStatus.unableToSync:
-        return "DISCONNECTED";
+        return "NODE DISCONNECTED";
       case WalletSyncStatus.synced:
-        return "CONNECTED";
+        switch (epicBoxStatus) {
+          case EpicBoxStatus.connected:
+            // case EpicBoxStatus.listening:
+            return "CONNECTED";
+          case EpicBoxStatus.unableToConnect:
+            return "EPICBOX DISCONNECTED";
+        }
       case WalletSyncStatus.syncing:
         return "SYNCHRONIZING";
     }
@@ -189,13 +201,13 @@ class _ConnectionStatusInfoState extends ConsumerState<ConnectionStatusInfo> {
         RoundedContainer(
           width: 6,
           height: 6,
-          color: getSyncColor(_currentSyncStatus),
+          color: getSyncColor(_currentSyncStatus, _currentEpicBoxStatus),
         ),
         const SizedBox(
           width: 5,
         ),
         Text(
-          label(_currentSyncStatus),
+          label(_currentSyncStatus, _currentEpicBoxStatus),
           style: STextStyles.overLine(context),
         )
       ],
