@@ -1,25 +1,54 @@
-import 'dart:convert';
-
 import 'package:epicpay/pages/settings_views/epicbox_settings_view/manage_epicbox_views/add_edit_epicbox_view.dart';
 import 'package:epicpay/utilities/logger.dart';
-import 'package:http/http.dart' as http;
+import 'package:websocket_universal/websocket_universal.dart';
 
-Future<bool> _testEpicBoxConnection(Uri uri) async {
+Future<bool> _testEpicBoxConnection(String host, int port) async {
   try {
-    final client = http.Client();
-    final response = await client.get(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-    ).timeout(const Duration(milliseconds: 2000),
-        onTimeout: () async => http.Response('Error', 408));
+    final websocketConnectionUri = 'wss://$host:$port';
+    const connectionOptions = SocketConnectionOptions(
+      pingIntervalMs: 3000,
+      timeoutConnectionMs: 4000,
 
-    final json = jsonDecode(response.body);
+      /// see ping/pong messages in [logEventStream] stream
+      skipPingMessages: true,
 
-    if (response.statusCode == 200 && json["node_version"] != null) {
-      return true;
-    } else {
-      return false;
+      /// Set this attribute to `true` if do not need any ping/pong
+      /// messages and ping measurement. Default is `false`
+      pingRestrictionForce: false,
+    );
+
+    final IMessageProcessor<String, String> textSocketProcessor =
+        SocketSimpleTextProcessor();
+    final textSocketHandler = IWebSocketHandler<String, String>.createClient(
+      websocketConnectionUri,
+      textSocketProcessor,
+      connectionOptions: connectionOptions,
+    );
+
+    // Listening to webSocket status changes
+    // textSocketHandler.socketHandlerStateStream.listen((stateEvent) {
+    //   debugPrint('> status changed to ${stateEvent.status}');
+    // });
+
+    // Listening to server responses:
+    bool isConnected = true;
+    textSocketHandler.incomingMessagesStream.listen((inMsg) {
+      Logging.instance.log(
+          '> webSocket  got text message from server: "$inMsg" '
+          '[ping: ${textSocketHandler.pingDelayMs}]',
+          level: LogLevel.Info);
+    });
+
+    // Connecting to server:
+    final isTextSocketConnected = await textSocketHandler.connect();
+    if (!isTextSocketConnected) {
+      // ignore: avoid_print
+      Logging.instance.log(
+          'Connection to [$websocketConnectionUri] failed for some reason!',
+          level: LogLevel.Info);
+      isConnected = false;
     }
+    return isConnected;
   } catch (e, s) {
     Logging.instance.log("$e\n$s", level: LogLevel.Warning);
     return false;
@@ -32,7 +61,6 @@ Future<EpicBoxFormData?> testEpicBoxConnection(EpicBoxFormData data) async {
   if (data.host == null || data.port == null || data.useSSL == null) {
     return null;
   }
-  const String path_postfix = "/v1/version";
 
   if (data.host!.startsWith("https://")) {
     data.useSSL = true;
@@ -46,12 +74,8 @@ Future<EpicBoxFormData?> testEpicBoxConnection(EpicBoxFormData data) async {
     }
   }
 
-  Uri uri = Uri.parse(data.host! + path_postfix);
-
-  uri = uri.replace(port: data.port);
-
   try {
-    if (await _testEpicBoxConnection(uri)) {
+    if (await _testEpicBoxConnection(data.host!, data.port!)) {
       return data;
     } else {
       return null;
