@@ -518,6 +518,9 @@ class EpicCashWallet extends CoinServiceAPI {
       debugPrint(
           'Connection to [$websocketConnectionUri] failed for some reason!');
       isConnected = false;
+      _isEpicBoxConnected = false;
+    } else {
+      _isEpicBoxConnected = true;
     }
     return isConnected;
   }
