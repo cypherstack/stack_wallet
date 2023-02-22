@@ -519,6 +519,12 @@ class EpicCashWallet extends CoinServiceAPI {
           'Connection to [$websocketConnectionUri] failed for some reason!');
       isConnected = false;
     }
+
+    // Disconnect from server:
+    await textSocketHandler.disconnect('manual disconnect');
+    // Disposing webSocket:
+    textSocketHandler.close();
+
     return isConnected;
   }
 
