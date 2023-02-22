@@ -1105,26 +1105,30 @@ class EpicCashWallet extends CoinServiceAPI {
         await testEpicboxServer(_epicBox.host, _epicBox.port as int);
 
     if (!connected) {
-      //Default Epic Box is not connected, iterate through list of defaults
-      Logging.instance.log("Default Epic Box server not connected",
-          level: LogLevel.Warning);
+      print("DEFAULT EPIC BOX IS NOT CONNECTED");
 
-      // Copy list of all default EB servers but remove currently-connected one
-      List<EpicBoxModel> alternativeServers = DefaultEpicBoxes.all;
-      alternativeServers.removeWhere((opt) => opt.name == _epicBox?.name);
+      //Get all available hosts
+      final allBoxes = DefaultEpicBoxes.all;
+      final List<EpicBoxModel> alternativeServers = [];
 
-      // Try each alternative Epic Box server
-      bool altConnected = false;
-      for (EpicBoxModel alt in alternativeServers) {
-        altConnected = await testEpicboxServer(alt.host, alt.port as int);
-        if (altConnected == true) {
-          _epicBox = alt;
-          break;
+      for (var i = 0; i < allBoxes.length; i++) {
+        if (allBoxes[i].name != _epicBox?.name) {
+          alternativeServers.add(allBoxes[i]);
         }
       }
-      if (!altConnected) {
-        Logging.instance
-            .log("No Epic Box server connected!", level: LogLevel.Error);
+
+      bool altConnected = false;
+      int i = 1;
+      while (i < alternativeServers.length) {
+        while (altConnected == false) {
+          altConnected = await testEpicboxServer(
+              alternativeServers[i].host, alternativeServers[i].port as int);
+          if (altConnected == true) {
+            _epicBox = alternativeServers[i];
+            break;
+          }
+        }
+        i++;
       }
     }
 
