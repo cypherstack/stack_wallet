@@ -633,6 +633,17 @@ mixin PaynymWalletInterface {
       utxoSigningData[utxo.txid]["output"] as Uint8List,
     );
 
+    // add rest of possible inputs
+    for (var i = 1; i < utxosToUse.length; i++) {
+      final utxo = utxosToUse[i];
+      txb.addInput(
+        utxo.txid,
+        utxo.vout,
+        null,
+        utxoSigningData[utxo.txid]["output"] as Uint8List,
+      );
+    }
+
     // todo: modify address once segwit support is in our bip47
     txb.addOutput(
         targetPaymentCode.notificationAddressP2PKH(), _dustLimitP2PKH);
@@ -696,30 +707,40 @@ mixin PaynymWalletInterface {
     }
   }
 
-  Future<bool?> _checkHasConnectedCache(String paymentCodeString) async {
-    final value = await _secureStorage.read(
-        key: "$_connectedKeyPrefix$paymentCodeString");
-    if (value == null) {
-      return null;
-    } else {
-      final int rawBool = int.parse(value);
-      return rawBool > 0;
-    }
-  }
-
-  Future<void> _setConnectedCache(
-      String paymentCodeString, bool hasConnected) async {
-    await _secureStorage.write(
-        key: "$_connectedKeyPrefix$paymentCodeString",
-        value: hasConnected ? "1" : "0");
-  }
+  // Future<bool?> _checkHasConnectedCache(String paymentCodeString) async {
+  //   final value = await _secureStorage.read(
+  //       key: "$_connectedKeyPrefix$paymentCodeString");
+  //   if (value == null) {
+  //     return null;
+  //   } else {
+  //     final int rawBool = int.parse(value);
+  //     return rawBool > 0;
+  //   }
+  // }
+  //
+  // Future<void> _setConnectedCache(
+  //     String paymentCodeString, bool hasConnected) async {
+  //   await _secureStorage.write(
+  //       key: "$_connectedKeyPrefix$paymentCodeString",
+  //       value: hasConnected ? "1" : "0");
+  // }
 
   // TODO optimize
   Future<bool> hasConnected(String paymentCodeString) async {
-    final didConnect = await _checkHasConnectedCache(paymentCodeString);
-    if (didConnect != null) {
-      return didConnect;
-    }
+    // final didConnect = await _checkHasConnectedCache(paymentCodeString);
+    // if (didConnect == true) {
+    //   return true;
+    // }
+    //
+    // final keys = await lookupKey(paymentCodeString);
+    //
+    // final tx = await _db
+    //     .getTransactions(_walletId)
+    //     .filter()
+    //     .subTypeEqualTo(TransactionSubType.bip47Notification).and()
+    //     .address((q) =>
+    //         q.anyOf<String, Transaction>(keys, (q, e) => q.otherDataEqualTo(e)))
+    //     .findAll();
 
     final myNotificationAddress =
         await getMyNotificationAddress(DerivePathTypeExt.primaryFor(_coin));
@@ -733,19 +754,14 @@ mixin PaynymWalletInterface {
     for (final tx in txns) {
       if (tx.type == TransactionType.incoming &&
           tx.address.value?.value == myNotificationAddress.value) {
-        PaymentCode? unBlindedPaymentCode;
-        unBlindedPaymentCode = await unBlindedPaymentCodeFromTransaction(
-          transaction: tx,
-          myNotificationAddress: myNotificationAddress,
-        );
-        unBlindedPaymentCode = await unBlindedPaymentCodeFromTransaction(
+        final unBlindedPaymentCode = await unBlindedPaymentCodeFromTransaction(
           transaction: tx,
           myNotificationAddress: myNotificationAddress,
         );
 
         if (unBlindedPaymentCode != null &&
             paymentCodeString == unBlindedPaymentCode.toString()) {
-          await _setConnectedCache(paymentCodeString, true);
+          // await _setConnectedCache(paymentCodeString, true);
           return true;
         }
       } else if (tx.type == TransactionType.outgoing) {
@@ -753,7 +769,7 @@ mixin PaynymWalletInterface {
           final code =
               await paymentCodeStringByKey(tx.address.value!.otherData!);
           if (code == paymentCodeString) {
-            await _setConnectedCache(paymentCodeString, true);
+            // await _setConnectedCache(paymentCodeString, true);
             return true;
           }
         }
@@ -761,7 +777,7 @@ mixin PaynymWalletInterface {
     }
 
     // otherwise return no
-    await _setConnectedCache(paymentCodeString, false);
+    // await _setConnectedCache(paymentCodeString, false);
     return false;
   }
 
