@@ -26,6 +26,7 @@ import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
+import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:tuple/tuple.dart';
 
 class PaynymDetailsPopup extends ConsumerStatefulWidget {
@@ -101,6 +102,20 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
       setState(() {
         _showInsufficientFundsInfo = true;
       });
+      return;
+    } catch (e) {
+      if (mounted) {
+        canPop = true;
+        Navigator.of(context).pop();
+      }
+
+      await showDialog<void>(
+        context: context,
+        builder: (context) => StackOkDialog(
+          title: "Error",
+          message: e.toString(),
+        ),
+      );
       return;
     }
 

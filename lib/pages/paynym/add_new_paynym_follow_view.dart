@@ -445,6 +445,7 @@ class _AddNewPaynymFollowViewState
                         .backgroundAppBar
                     : null,
                 child: PaynymCard(
+                  key: UniqueKey(),
                   label: _searchResult!.nymName,
                   paymentCodeString: _searchResult!.codes.first.code,
                   walletId: widget.walletId,

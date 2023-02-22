@@ -262,4 +262,11 @@ abstract class DefaultNodes {
     "epicbox_protocol_unsecure": false,
     "epicbox_address_index": 0,
   });
+
+  static final String epicBoxConfigEUR = jsonEncode({
+    "epicbox_domain": "epicbox.fastepic.eu",
+    "epicbox_port": 443,
+    "epicbox_protocol_unsecure": false,
+    "epicbox_address_index": 0,
+  });
 }
