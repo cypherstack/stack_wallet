@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
 import 'package:stackwallet/exceptions/exchange/pair_unavailable_exception.dart';
+import 'package:stackwallet/exceptions/exchange/unsupported_currency_exception.dart';
 import 'package:stackwallet/external_api_keys.dart';
 import 'package:stackwallet/models/exchange/change_now/cn_exchange_estimate.dart';
 import 'package:stackwallet/models/exchange/change_now/estimated_exchange_amount.dart';
@@ -49,9 +50,16 @@ class ChangeNowAPI {
         headers: {'Content-Type': 'application/json'},
       );
 
-      final parsed = jsonDecode(response.body);
+      try {
+        final parsed = jsonDecode(response.body);
 
-      return parsed;
+        return parsed;
+      } on FormatException catch (e) {
+        return {
+          "error": "Dart format exception",
+          "message": response.body,
+        };
+      }
     } catch (e, s) {
       Logging.instance
           .log("_makeRequest($uri) threw: $e\n$s", level: LogLevel.Error);
@@ -207,7 +215,20 @@ class ChangeNowAPI {
 
     try {
       // json array is expected here
-      final jsonArray = (await _makeGetRequest(uri)) as List;
+
+      final response = await _makeGetRequest(uri);
+
+      if (response is Map && response["error"] != null) {
+        return ExchangeResponse(
+          exception: UnsupportedCurrencyException(
+            response["message"] as String? ?? response["error"].toString(),
+            ExchangeExceptionType.generic,
+            ticker,
+          ),
+        );
+      }
+
+      final jsonArray = response as List;
 
       List<Currency> currencies = [];
       try {

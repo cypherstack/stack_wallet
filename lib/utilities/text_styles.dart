@@ -990,7 +990,7 @@ class STextStyles {
         );
       case ThemeType.oledBlack:
         return GoogleFonts.inter(
-          color: _theme(context).infoItemIcons,
+          color: _theme(context).checkboxBGChecked,
           fontWeight: FontWeight.w500,
           fontSize: 14,
         );

@@ -21,6 +21,13 @@ class MajesticBankExchange extends Exchange {
 
   static const exchangeName = "Majestic Bank";
 
+  static const kMajesticBankCurrencyNames = {
+    "BTC": "Bitcoin",
+    "LTC": "Litecoin",
+    "WOW": "Wownero",
+    "XMR": "Monero",
+  };
+
   @override
   Future<ExchangeResponse<Trade>> createTrade({
     required String from,
@@ -110,7 +117,8 @@ class MajesticBankExchange extends Exchange {
       final currency = Currency(
         exchangeName: MajesticBankExchange.exchangeName,
         ticker: limit.currency,
-        name: limit.currency, // todo: get full coin name
+        name: kMajesticBankCurrencyNames[limit.currency] ??
+            limit.currency, // todo: add more names if MB adds more
         network: "",
         image: "",
         isFiat: false,
