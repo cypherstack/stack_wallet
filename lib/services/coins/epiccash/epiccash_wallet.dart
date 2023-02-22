@@ -533,22 +533,14 @@ class EpicCashWallet extends CoinServiceAPI {
           'Epic Box server test failed: server $host:$port unable to connect',
           level: LogLevel.Warning);
       isConnected = false;
-      _isEpicBoxConnected = false;
-      GlobalEventBus.instance.fire(
-        EpicBoxStatusChangedEvent(
-          EpicBoxStatus.unableToConnect,
-          walletId,
-        ),
-      );
-    } else {
-      _isEpicBoxConnected = true;
-      GlobalEventBus.instance.fire(
-        EpicBoxStatusChangedEvent(
-          EpicBoxStatus.connected,
-          walletId,
-        ),
-      );
     }
+    _isEpicBoxConnected = isConnected;
+    GlobalEventBus.instance.fire(
+      EpicBoxStatusChangedEvent(
+        isConnected ? EpicBoxStatus.connected : EpicBoxStatus.unableToConnect,
+        walletId,
+      ),
+    );
 
     return isConnected;
   }
