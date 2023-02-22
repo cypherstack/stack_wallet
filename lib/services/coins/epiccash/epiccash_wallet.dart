@@ -1720,6 +1720,11 @@ class EpicCashWallet extends CoinServiceAPI {
   @override
   bool get isConnected => _isConnected;
 
+  bool _isEpicBoxConnected = false;
+
+  @override
+  bool get isEpicBoxConnected => _isEpicBoxConnected;
+
   @override
   Future<Decimal> get totalBalance async {
     String walletBalances = await allWalletBalances();
