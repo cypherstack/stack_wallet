@@ -34,18 +34,29 @@ Future<bool> _testEpicBoxConnection(String host, int port) async {
     bool isConnected = true;
     textSocketHandler.incomingMessagesStream.listen((inMsg) {
       Logging.instance.log(
-          '> webSocket  got text message from server: "$inMsg" '
-          '[ping: ${textSocketHandler.pingDelayMs}]',
+          'Epic Box server test webSocket message from server: "$inMsg"',
           level: LogLevel.Info);
+
+      if (inMsg.contains("Challenge")) {
+        // Successful response, close socket
+        Logging.instance
+            .log('Epic Box server test succeeded', level: LogLevel.Info);
+
+        // Disconnect from server:
+        textSocketHandler.disconnect('manual disconnect');
+        // Disposing webSocket:
+        textSocketHandler.close();
+      } /* else if(inMsg.contains("InvalidRequest")) {
+        // Handle when many InvalidRequest responses occur
+      }*/
     });
 
     // Connecting to server:
     final isTextSocketConnected = await textSocketHandler.connect();
     if (!isTextSocketConnected) {
-      // ignore: avoid_print
       Logging.instance.log(
-          'Connection to [$websocketConnectionUri] failed for some reason!',
-          level: LogLevel.Info);
+          'Epic Box server test failed: "$host":"$port" unable to connect',
+          level: LogLevel.Warning);
       isConnected = false;
     }
     return isConnected;
