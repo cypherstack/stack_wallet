@@ -1085,10 +1085,7 @@ class EpicCashWallet extends CoinServiceAPI {
     return stringConfig;
   }
 
-  Future<String> getEpicBoxConfig({EpicBoxModel? epicBox, int? tries}) async {
-    if ((tries ?? 0) > DefaultEpicBoxes.all.length) {
-      throw Exception("No Epic Box servers responded");
-    }
+  Future<String> getEpicBoxConfig({EpicBoxModel? epicBox}) async {
     EpicBoxModel? _epicBox = epicBox ??
         DB.instance.get<EpicBoxModel>(
             boxName: DB.boxNamePrimaryEpicBox, key: 'primary');
@@ -1108,25 +1105,36 @@ class EpicCashWallet extends CoinServiceAPI {
         await testEpicboxServer(_epicBox.host, _epicBox.port as int);
 
     if (!connected) {
-      //Default Epicbox is not connected, default to another
-      if (_epicBox == DefaultEpicBoxes.americas) {
-        _epicBox = DefaultEpicBoxes.europe;
-      } else if (_epicBox == DefaultEpicBoxes.europe) {
-        _epicBox = DefaultEpicBoxes.asia;
-      } else if (_epicBox == DefaultEpicBoxes.asia) {
-        _epicBox = DefaultEpicBoxes.americas;
-      } else {
-        _epicBox = DefaultEpicBoxes.europe;
+      print("DEFAULT EPIC BOX IS NOT CONNECTED");
+
+      //Get all available hosts
+      final allBoxes = DefaultEpicBoxes.all;
+      final List<EpicBoxModel> alternativeServers = [];
+
+      for (var i = 0; i < allBoxes.length; i++) {
+        if (allBoxes[i].name != _epicBox?.name) {
+          alternativeServers.add(allBoxes[i]);
+        }
       }
-      return getEpicBoxConfig(
-          epicBox: _epicBox,
-          tries:
-              tries ?? 0 + 1); // recursively try again until we are connected
+
+      bool altConnected = false;
+      int i = 1;
+      while (i < alternativeServers.length) {
+        while (altConnected == false) {
+          altConnected = await testEpicboxServer(
+              alternativeServers[i].host, alternativeServers[i].port as int);
+          if (altConnected == true) {
+            _epicBox = alternativeServers[i];
+            break;
+          }
+        }
+        i++;
+      }
     }
 
     Map<String, dynamic> _config = {
-      'epicbox_domain': _epicBox.host,
-      'epicbox_port': _epicBox.port,
+      'epicbox_domain': _epicBox?.host,
+      'epicbox_port': _epicBox?.port,
       'epicbox_protocol_unsecure': false,
       'epicbox_address_index': 0,
     };
