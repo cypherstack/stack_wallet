@@ -1109,7 +1109,7 @@ class EpicCashWallet extends CoinServiceAPI {
       Logging.instance.log("Default Epic Box server not connected",
           level: LogLevel.Warning);
 
-      // Copy list of all default EB servers but remove currently-connected one
+      // Copy list of all default EB servers but remove currently-selected one
       List<EpicBoxModel> alternativeServers = DefaultEpicBoxes.all;
       alternativeServers.removeWhere((opt) => opt.name == _epicBox?.name);
 
