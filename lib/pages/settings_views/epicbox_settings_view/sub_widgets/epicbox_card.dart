@@ -144,12 +144,13 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
                   SvgPicture.asset(
                     Assets.svg.networkWired,
                     color: _isCurrentEpicBox
-                        ? /*_currentSyncStatus == WalletSyncStatus.unableToSync
+                        ? _currentEpicBoxStatus == EpicBoxStatus.unableToConnect
                             ? Theme.of(context)
                                 .extension<StackColors>()!
                                 .accentColorRed
-                            :*/
-                        Theme.of(context).extension<StackColors>()!.textLight
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorGreen
                         : Theme.of(context).extension<StackColors>()!.textDark,
                   ),
                   const SizedBox(
@@ -159,12 +160,14 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
                     _epicBox.name,
                     style: STextStyles.bodyBold(context).copyWith(
                       color: _isCurrentEpicBox
-                          ? /*_currentSyncStatus == WalletSyncStatus.unableToSync
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorRed
-                            :*/
-                          Theme.of(context).extension<StackColors>()!.textLight
+                          ? _currentEpicBoxStatus ==
+                                  EpicBoxStatus.unableToConnect
+                              ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorRed
+                              : Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorGreen
                           : Theme.of(context)
                               .extension<StackColors>()!
                               .textDark,
