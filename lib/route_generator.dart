@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
 import 'package:stackwallet/models/contact_address_entry.dart';
+import 'package:stackwallet/models/ethereum/eth_token.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
@@ -126,14 +128,12 @@ import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/nodes_
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/security_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/syncing_preferences_settings.dart';
 import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/services/ethereum/ethereum_token_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:stackwallet/services/tokens/ethereum/ethereum_token.dart';
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:tuple/tuple.dart';
-
-import 'models/isar/models/blockchain_data/transaction.dart';
 
 class RouteGenerator {
   static const bool useMaterialPageRoute = true;
@@ -1431,7 +1431,7 @@ class RouteGenerator {
 
       case MyTokensView.routeName:
         if (args is Tuple4<ChangeNotifierProvider<Manager>, String, String,
-            List<dynamic>>) {
+            List<EthToken>>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => MyTokensView(
@@ -1461,15 +1461,15 @@ class RouteGenerator {
       //   }
 
       case TokenView.routeName:
-        if (args is Tuple4<String, Map<dynamic, dynamic>,
-            ChangeNotifierProvider<Manager>, EthereumToken>) {
+        if (args is Tuple4<String, EthToken, ChangeNotifierProvider<Manager>,
+            EthereumTokenService>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => TokenView(
               walletId: args.item1,
-              tokenData: args.item2,
+              token: args.item2,
               managerProvider: args.item3,
-              token: args.item4,
+              tokenService: args.item4,
             ),
             settings: RouteSettings(
               name: settings.name,

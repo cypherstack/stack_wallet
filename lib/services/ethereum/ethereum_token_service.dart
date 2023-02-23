@@ -1,16 +1,15 @@
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:decimal/decimal.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:http/http.dart';
+import 'package:stackwallet/models/ethereum/eth_token.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart';
+import 'package:stackwallet/services/ethereum/ethereum_api.dart';
 import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/tokens/token_service.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
-import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
@@ -20,55 +19,15 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:web3dart/web3dart.dart' as transaction;
 
-class AbiRequestResponse {
-  final String message;
-  final String result;
-  final String status;
-
-  const AbiRequestResponse({
-    required this.message,
-    required this.result,
-    required this.status,
-  });
-
-  factory AbiRequestResponse.fromJson(Map<String, dynamic> json) {
-    return AbiRequestResponse(
-      message: json['message'] as String,
-      result: json['result'] as String,
-      status: json['status'] as String,
-    );
-  }
-}
-
-class TokenData {
-  final String message;
-  final Map<String, dynamic> result;
-  final String status;
-
-  const TokenData({
-    required this.message,
-    required this.result,
-    required this.status,
-  });
-
-  factory TokenData.fromJson(Map<String, dynamic> json) {
-    return TokenData(
-      message: json['message'] as String,
-      result: json['result'] as Map<String, dynamic>,
-      status: json['status'] as String,
-    );
-  }
-}
-
 const int MINIMUM_CONFIRMATIONS = 3;
 
-class EthereumToken extends TokenServiceAPI {
-  @override
+class EthereumTokenService {
+  final EthToken token;
+
   late bool shouldAutoSync;
   late EthereumAddress _contractAddress;
   late EthPrivateKey _credentials;
   late DeployedContract _contract;
-  late Map<dynamic, dynamic> _tokenData;
   late ContractFunction _balanceFunction;
   late ContractFunction _sendFunction;
   late Future<List<String>> _walletMnemonic;
@@ -80,30 +39,16 @@ class EthereumToken extends TokenServiceAPI {
 
   final _gasLimit = 200000;
 
-  EthereumToken({
-    required Map<dynamic, dynamic> tokenData,
+  EthereumTokenService({
+    required this.token,
     required Future<List<String>> walletMnemonic,
     required SecureStorageInterface secureStore,
   }) {
-    _contractAddress =
-        EthereumAddress.fromHex(tokenData["contractAddress"] as String);
+    _contractAddress = EthereumAddress.fromHex(token.contractAddress);
     _walletMnemonic = walletMnemonic;
-    _tokenData = tokenData;
     _secureStore = secureStore;
   }
 
-  Future<AbiRequestResponse> fetchTokenAbi() async {
-    final response = await get(Uri.parse(
-        "$abiUrl?module=contract&action=getabi&address=$_contractAddress&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
-    if (response.statusCode == 200) {
-      return AbiRequestResponse.fromJson(
-          json.decode(response.body) as Map<String, dynamic>);
-    } else {
-      throw Exception("ERROR GETTING TOKENABI ${response.reasonPhrase}");
-    }
-  }
-
-  @override
   Future<List<String>> get allOwnAddresses =>
       _allOwnAddresses ??= _fetchAllOwnAddresses();
   Future<List<String>>? _allOwnAddresses;
@@ -115,21 +60,18 @@ class EthereumToken extends TokenServiceAPI {
     return addresses;
   }
 
-  @override
   Future<Decimal> get availableBalance async {
     return await totalBalance;
   }
 
-  @override
   Coin get coin => Coin.ethereum;
 
-  @override
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
     final amount = txData['recipientAmt'];
     final decimalAmount =
         Format.satoshisToAmount(amount as int, coin: Coin.ethereum);
-    final bigIntAmount = amountToBigInt(
-        decimalAmount.toDouble(), int.parse(_tokenData["decimals"] as String));
+    final bigIntAmount =
+        amountToBigInt(decimalAmount.toDouble(), token.decimals);
 
     final sentTx = await _client.sendTransaction(
         _credentials,
@@ -147,7 +89,6 @@ class EthereumToken extends TokenServiceAPI {
     return sentTx;
   }
 
-  @override
   Future<String> get currentReceivingAddress async {
     final _currentReceivingAddress = await _credentials.extractAddress();
     final checkSumAddress =
@@ -155,40 +96,21 @@ class EthereumToken extends TokenServiceAPI {
     return checkSumAddress;
   }
 
-  @override
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
-    final fee = estimateFee(
-        feeRate, _gasLimit, int.parse(_tokenData["decimals"] as String));
+    final fee = estimateFee(feeRate, _gasLimit, token.decimals);
     return Format.decimalAmountToSatoshis(Decimal.parse(fee.toString()), coin);
   }
 
-  @override
   Future<FeeObject> get fees => _feeObject ??= _getFees();
   Future<FeeObject>? _feeObject;
 
   Future<FeeObject> _getFees() async {
-    return await getFees();
+    return await EthereumAPI.getFees();
   }
 
-  @override
   Future<void> initializeExisting() async {
-    if ((await _secureStore.read(
-            key: '${_contractAddress.toString()}_tokenAbi')) !=
-        null) {
-      _tokenAbi = (await _secureStore.read(
-          key: '${_contractAddress.toString()}_tokenAbi'))!;
-    } else {
-      AbiRequestResponse abi = await fetchTokenAbi();
-      //Fetch token ABI so we can call token functions
-      if (abi.message == "OK") {
-        _tokenAbi = abi.result;
-        //Store abi in secure store
-        await _secureStore.write(
-            key: '${_contractAddress.toString()}_tokenAbi', value: _tokenAbi);
-      } else {
-        throw Exception('Failed to load token abi');
-      }
-    }
+    _tokenAbi = (await _secureStore.read(
+        key: '${_contractAddress.toString()}_tokenAbi'))!;
 
     final mnemonic = await _walletMnemonic;
     String mnemonicString = mnemonic.join(' ');
@@ -199,8 +121,7 @@ class EthereumToken extends TokenServiceAPI {
     _credentials = EthPrivateKey.fromHex(privateKey);
 
     _contract = DeployedContract(
-        ContractAbi.fromJson(_tokenAbi, _tokenData["name"] as String),
-        _contractAddress);
+        ContractAbi.fromJson(_tokenAbi, token.name), _contractAddress);
     _balanceFunction = _contract.function('balanceOf');
     _sendFunction = _contract.function('transfer');
     _client = await getEthClient();
@@ -208,15 +129,15 @@ class EthereumToken extends TokenServiceAPI {
     // print(_credentials.p)
   }
 
-  @override
   Future<void> initializeNew() async {
-    AbiRequestResponse abi = await fetchTokenAbi();
+    AbiRequestResponse abi =
+        await EthereumAPI.fetchTokenAbi(_contractAddress.hex);
     //Fetch token ABI so we can call token functions
     if (abi.message == "OK") {
       _tokenAbi = abi.result;
       //Store abi in secure store
       await _secureStore.write(
-          key: '${_contractAddress.toString()}_tokenAbi', value: _tokenAbi);
+          key: '${_contractAddress.hex}_tokenAbi', value: _tokenAbi);
     } else {
       throw Exception('Failed to load token abi');
     }
@@ -230,25 +151,21 @@ class EthereumToken extends TokenServiceAPI {
     _credentials = EthPrivateKey.fromHex(privateKey);
 
     _contract = DeployedContract(
-        ContractAbi.fromJson(_tokenAbi, _tokenData["name"] as String),
-        _contractAddress);
+        ContractAbi.fromJson(_tokenAbi, token.name), _contractAddress);
     _balanceFunction = _contract.function('balanceOf');
     _sendFunction = _contract.function('transfer');
     _client = await getEthClient();
   }
 
-  @override
   // TODO: implement isRefreshing
   bool get isRefreshing => throw UnimplementedError();
 
-  @override
   Future<int> get maxFee async {
     final fee = (await fees).fast;
     final feeEstimate = await estimateFeeFor(0, fee);
     return feeEstimate;
   }
 
-  @override
   Future<Map<String, dynamic>> prepareSend(
       {required String address,
       required int satoshiAmount,
@@ -292,13 +209,11 @@ class EthereumToken extends TokenServiceAPI {
     return txData;
   }
 
-  @override
   Future<void> refresh() {
     // TODO: implement refresh
     throw UnimplementedError();
   }
 
-  @override
   Future<Decimal> get totalBalance async {
     final balanceRequest = await _client.call(
         contract: _contract,
@@ -306,40 +221,35 @@ class EthereumToken extends TokenServiceAPI {
         params: [_credentials.address]);
 
     String balance = balanceRequest.first.toString();
-    int tokenDecimals = int.parse(_tokenData["decimals"] as String);
-    final balanceInDecimal = (int.parse(balance) / (pow(10, tokenDecimals)));
+    final balanceInDecimal = Format.satoshisToEthTokenAmount(
+      int.parse(balance),
+      token.decimals,
+    );
     return Decimal.parse(balanceInDecimal.toString());
   }
 
-  @override
   Future<TransactionData> get transactionData =>
       _transactionData ??= _fetchTransactionData();
   Future<TransactionData>? _transactionData;
 
   Future<TransactionData> _fetchTransactionData() async {
     String thisAddress = await currentReceivingAddress;
-    // final cachedTransactions = {} as TransactionData?;
-    int latestTxnBlockHeight = 0;
 
-    // final priceData =
-    //     await _priceAPI.getPricesAnd24hChange(baseCurrency: _prefs.currency);
-    Decimal currentPrice = Decimal.zero;
     final List<Map<String, dynamic>> midSortedArray = [];
 
     AddressTransaction txs =
-        await fetchAddressTransactions(thisAddress, "tokentx");
+        await EthereumAPI.fetchAddressTransactions(thisAddress, "tokentx");
 
     if (txs.message == "OK") {
       final allTxs = txs.result;
-      allTxs.forEach((element) {
+      for (var element in allTxs) {
         Map<String, dynamic> midSortedTx = {};
         // create final tx map
         midSortedTx["txid"] = element["hash"];
         int confirmations = int.parse(element['confirmations'].toString());
 
         int transactionAmount = int.parse(element['value'].toString());
-        int decimal = int.parse(
-            _tokenData["decimals"] as String); //Eth has up to 18 decimal places
+        int decimal = token.decimals; //Eth has up to 18 decimal places
         final transactionAmountInDecimal =
             transactionAmount / (pow(10, decimal));
 
@@ -360,18 +270,12 @@ class EthereumToken extends TokenServiceAPI {
         }
 
         midSortedTx["amount"] = satAmount;
-        final String worthNow = ((currentPrice * Decimal.fromInt(satAmount)) /
-                Decimal.fromInt(Constants.satsPerCoin(coin)))
-            .toDecimal(scaleOnInfinitePrecision: 2)
-            .toStringAsFixed(2);
 
         //Calculate fees (GasLimit * gasPrice)
         int txFee = int.parse(element['gasPrice'].toString()) *
             int.parse(element['gasUsed'].toString());
         final txFeeDecimal = txFee / (pow(10, decimal));
 
-        midSortedTx["worthNow"] = worthNow;
-        midSortedTx["worthAtBlockTimestamp"] = worthNow;
         midSortedTx["aliens"] = <dynamic>[];
         midSortedTx["fees"] = Format.decimalAmountToSatoshis(
             Decimal.parse(txFeeDecimal.toString()), coin);
@@ -383,7 +287,7 @@ class EthereumToken extends TokenServiceAPI {
         midSortedTx["height"] = int.parse(element['blockNumber'].toString());
 
         midSortedArray.add(midSortedTx);
-      });
+      }
     }
 
     midSortedArray.sort((a, b) =>
@@ -428,37 +332,8 @@ class EthereumToken extends TokenServiceAPI {
     return txModel;
   }
 
-  @override
   bool validateAddress(String address) {
     return isValidEthereumAddress(address);
-  }
-
-  //Validate that a custom token is valid and is ERC-20, a token will be valid
-  @override
-  Future<TokenData> getTokenByContractAddress(String contractAddress) async {
-    final response = await get(Uri.parse(
-        "$blockExplorer?module=token&action=getToken&contractaddress=$contractAddress"));
-    if (response.statusCode == 200) {
-      return TokenData.fromJson(
-          json.decode(response.body) as Map<String, dynamic>);
-    } else {
-      throw Exception("ERROR GETTING TOKEN ${response.reasonPhrase}");
-    }
-  }
-
-  //Validate that a custom token is valid and is ERC-20
-  @override
-  Future<bool> isValidToken(String contractAddress) async {
-    TokenData tokenData = await getTokenByContractAddress(contractAddress);
-
-    if (tokenData.message == "OK") {
-      final result = tokenData.result;
-      if (result["type"] == "ERC-20") {
-        return true;
-      }
-      return false;
-    }
-    return false;
   }
 
   Future<NodeModel> getCurrentNode() async {

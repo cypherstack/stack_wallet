@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/models/ethereum/eth_token.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/my_token_select_item.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 
@@ -14,7 +15,7 @@ class MyTokensList extends StatelessWidget {
 
   final ChangeNotifierProvider<Manager> managerProvider;
   final String walletId;
-  final List<dynamic> tokens;
+  final List<EthToken> tokens;
   final String walletAddress;
 
   @override
@@ -31,7 +32,7 @@ class MyTokensList extends StatelessWidget {
                 managerProvider: managerProvider,
                 walletId: walletId,
                 walletAddress: walletAddress,
-                tokenData: tokens[index] as Map<dynamic, dynamic>,
+                token: tokens[index],
               ),
             );
           },

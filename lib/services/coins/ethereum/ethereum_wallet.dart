@@ -11,6 +11,7 @@ import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
+import 'package:stackwallet/services/ethereum/ethereum_api.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
@@ -206,9 +207,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<FeeObject> get fees => _feeObject ??= _getFees();
   Future<FeeObject>? _feeObject;
 
-  Future<FeeObject> _getFees() async {
-    return await getFees();
-  }
+  Future<FeeObject> _getFees() => EthereumAPI.getFees();
 
   //Full rescan is not needed for ETH since we have a balance
   @override
@@ -536,8 +535,9 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
       }
       if (!needsRefresh) {
         var allOwnAddresses = await _fetchAllOwnAddresses();
-        AddressTransaction addressTransactions = await fetchAddressTransactions(
-            allOwnAddresses.elementAt(0).value, "txlist");
+        AddressTransaction addressTransactions =
+            await EthereumAPI.fetchAddressTransactions(
+                allOwnAddresses.elementAt(0).value, "txlist");
         if (addressTransactions.message == "OK") {
           final allTxs = addressTransactions.result;
           for (final element in allTxs) {
@@ -812,7 +812,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
     String thisAddress = await currentReceivingAddress;
 
     AddressTransaction txs =
-        await fetchAddressTransactions(thisAddress, "txlist");
+        await EthereumAPI.fetchAddressTransactions(thisAddress, "txlist");
 
     if (txs.message == "OK") {
       final allTxs = txs.result;

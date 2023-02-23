@@ -3,30 +3,22 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/models/ethereum/eth_token.dart';
+import 'package:stackwallet/pages/token_view/all_tokens_view.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/my_tokens_list.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-
+import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-
-import 'package:stackwallet/pages/token_view/all_tokens_view.dart';
-
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-
+import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
-import 'package:stackwallet/utilities/eth_commons.dart';
-
-import 'package:stackwallet/services/coins/manager.dart';
 
 class MyTokensView extends ConsumerStatefulWidget {
   const MyTokensView({
@@ -41,7 +33,7 @@ class MyTokensView extends ConsumerStatefulWidget {
   final ChangeNotifierProvider<Manager> managerProvider;
   final String walletId;
   final String walletAddress;
-  final List<dynamic> tokens;
+  final List<EthToken> tokens;
 
   @override
   ConsumerState<MyTokensView> createState() => _TokenDetailsViewState();

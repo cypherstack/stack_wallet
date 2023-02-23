@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:decimal/decimal.dart';
@@ -17,6 +18,12 @@ abstract class Format {
             Decimal.fromInt(Constants.satsPerCoin(coin)))
         .toDecimal(
             scaleOnInfinitePrecision: Constants.decimalPlacesForCoin(coin));
+  }
+
+  static Decimal satoshisToEthTokenAmount(int sats, int decimalPlaces) {
+    return (Decimal.fromInt(sats) /
+            Decimal.fromInt(pow(10, decimalPlaces).toInt()))
+        .toDecimal(scaleOnInfinitePrecision: decimalPlaces);
   }
 
   ///

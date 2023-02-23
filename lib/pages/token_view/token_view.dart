@@ -4,6 +4,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/models/ethereum/eth_token.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/token_summary.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart';
@@ -12,10 +13,10 @@ import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/services/ethereum/ethereum_token_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/services/tokens/ethereum/ethereum_token.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
@@ -32,9 +33,9 @@ class TokenView extends ConsumerStatefulWidget {
   const TokenView({
     Key? key,
     required this.walletId,
-    required this.tokenData,
-    required this.managerProvider,
     required this.token,
+    required this.managerProvider,
+    required this.tokenService,
     this.eventBus,
   }) : super(key: key);
 
@@ -42,9 +43,9 @@ class TokenView extends ConsumerStatefulWidget {
   static const double navBarHeight = 65.0;
 
   final String walletId;
-  final Map<dynamic, dynamic> tokenData;
+  final EthToken token;
   final ChangeNotifierProvider<Manager> managerProvider;
-  final EthereumToken token;
+  final EthereumTokenService tokenService;
   final EventBus? eventBus;
 
   @override
@@ -189,7 +190,7 @@ class _TokenViewState extends ConsumerState<TokenView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    widget.token.initializeExisting();
+    widget.tokenService.initializeExisting();
     // print("MY TOTAL BALANCE IS ${widget.token.totalBalance}");
 
     final coin = ref.watch(managerProvider.select((value) => value.coin));
@@ -221,7 +222,7 @@ class _TokenViewState extends ConsumerState<TokenView> {
                 ),
                 Expanded(
                   child: Text(
-                    widget.tokenData["name"] as String,
+                    widget.token.name,
                     style: STextStyles.navBarTitle(context),
                     overflow: TextOverflow.ellipsis,
                   ),
