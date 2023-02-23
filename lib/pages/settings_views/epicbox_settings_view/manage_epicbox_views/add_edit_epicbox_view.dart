@@ -284,7 +284,7 @@ class _AddEditEpicBoxViewState extends ConsumerState<AddEditEpicBoxView>
 
                                   await ref
                                       .read(nodeServiceChangeNotifierProvider)
-                                      .delete(
+                                      .deleteEpicBox(
                                         epicBoxId!,
                                         true,
                                       );

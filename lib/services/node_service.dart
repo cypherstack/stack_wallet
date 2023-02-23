@@ -224,6 +224,15 @@ class NodeService extends ChangeNotifier {
     }
   }
 
+  Future<void> deleteEpicBox(String id, bool shouldNotifyListeners) async {
+    await DB.instance
+        .delete<EpicBoxModel>(boxName: DB.boxNameEpicBoxModels, key: id);
+
+    if (shouldNotifyListeners) {
+      notifyListeners();
+    }
+  }
+
   Future<void> setEnabledState(
     String id,
     bool enabled,
