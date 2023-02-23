@@ -125,14 +125,16 @@ class BitcoinWallet extends CoinServiceAPI
       getMnemonicString: () => mnemonicString,
       getMnemonicPassphrase: () => mnemonicPassphrase,
       getChainHeight: () => chainHeight,
-      getCurrentChangeAddress: () => currentChangeAddressP2PKH,
+      // getCurrentChangeAddress: () => currentChangeAddressP2PKH,
+      getCurrentChangeAddress: () => currentChangeAddress,
       estimateTxFee: estimateTxFee,
       prepareSend: prepareSend,
       getTxCount: getTxCount,
       fetchBuildTxData: fetchBuildTxData,
       refresh: refresh,
-      checkChangeAddressForTransactions:
-          _checkP2PKHChangeAddressForTransactions,
+      checkChangeAddressForTransactions: _checkChangeAddressForTransactions,
+      // checkChangeAddressForTransactions:
+      //     _checkP2PKHChangeAddressForTransactions,
       addDerivation: addDerivation,
       dustLimitP2PKH: DUST_LIMIT_P2PKH,
       minConfirms: MINIMUM_CONFIRMATIONS,
@@ -1016,6 +1018,7 @@ class BitcoinWallet extends CoinServiceAPI
       if (currentHeight != storedHeight) {
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.2, walletId));
         await _checkChangeAddressForTransactions();
+        await _checkP2PKHChangeAddressForTransactions();
 
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
         await _checkCurrentReceivingAddressesForTransactions();
