@@ -131,6 +131,7 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
                 if (mounted) {
                   Navigator.of(context).pop();
 
+                  // Page refresh hack
                   setState(() {
                     Navigator.push(
                       context,
@@ -312,6 +313,21 @@ class _EpicBoxMenuState extends ConsumerState<EpicBoxMenu> {
 
                             if (mounted) {
                               Navigator.of(context).pop();
+
+                              // Page refresh hack
+                              setState(() {
+                                Navigator.push(
+                                  context,
+                                  PageRouteBuilder(
+                                    pageBuilder: (_, __, ___) =>
+                                        const EpicBoxSettingsView(),
+                                    transitionDuration:
+                                        const Duration(seconds: 0),
+                                    reverseTransitionDuration:
+                                        const Duration(seconds: 0),
+                                  ),
+                                );
+                              });
                             }
                           },
                           child: Container(
