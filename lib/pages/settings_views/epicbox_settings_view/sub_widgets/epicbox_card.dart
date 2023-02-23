@@ -306,16 +306,14 @@ class _EpicBoxMenuState extends ConsumerState<EpicBoxMenu> {
                                   epicBox: widget.epicBox,
                                 );
 
-                            if (mounted) {
-                              Navigator.of(context).pop();
-                            }
-
                             await ref
                                 .read(walletProvider)!
                                 .initializeExisting();
                             // await ref.read(walletProvider)!.updateEpicBox(true);
 
                             if (mounted) {
+                              Navigator.of(context).pop();
+
                               // Page refresh hack
                               setState(() {
                                 Navigator.push(
