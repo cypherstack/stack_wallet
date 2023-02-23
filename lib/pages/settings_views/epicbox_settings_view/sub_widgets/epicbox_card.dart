@@ -121,26 +121,28 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
                 showContextMenu(
                     _epicBox, _isCurrentEpicBox, tapDetails.globalPosition);
               } else {
-              await ref
-                  .read(nodeServiceChangeNotifierProvider)
-                  .setPrimaryEpicBox(
-                    epicBox: _epicBox,
-                  );
-              await ref.read(walletProvider)!.initializeExisting();
+                await ref
+                    .read(nodeServiceChangeNotifierProvider)
+                    .setPrimaryEpicBox(
+                      epicBox: _epicBox,
+                    );
+                await ref.read(walletProvider)!.initializeExisting();
 
-              if (mounted) {
-                Navigator.of(context).pop();
+                if (mounted) {
+                  Navigator.of(context).pop();
 
-                setState(() {
-                  Navigator.push(
-                    context,
-                    PageRouteBuilder(
-                      pageBuilder: (_, __, ___) => const EpicBoxSettingsView(),
-                      transitionDuration: const Duration(seconds: 0),
-                      reverseTransitionDuration: const Duration(seconds: 0),
-                    ),
-                  );
-                });
+                  setState(() {
+                    Navigator.push(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (_, __, ___) =>
+                            const EpicBoxSettingsView(),
+                        transitionDuration: const Duration(seconds: 0),
+                        reverseTransitionDuration: const Duration(seconds: 0),
+                      ),
+                    );
+                  });
+                }
               }
             },
             child: Container(
