@@ -1016,6 +1016,7 @@ class BitcoinWallet extends CoinServiceAPI
       if (currentHeight != storedHeight) {
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.2, walletId));
         await _checkChangeAddressForTransactions();
+        await _checkP2PKHChangeAddressForTransactions();
 
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
         await _checkCurrentReceivingAddressesForTransactions();
