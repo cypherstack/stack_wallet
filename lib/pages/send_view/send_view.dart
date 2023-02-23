@@ -241,6 +241,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                               if ((content.startsWith(
                                                           "http://") ||
                                                       content.startsWith(
+                                                          "https://")) &&
                                                   content.contains("@")) {
                                                 content = content.replaceAll(
                                                     "http://", "");
