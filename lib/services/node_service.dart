@@ -208,7 +208,7 @@ class NodeService extends ChangeNotifier {
     bool shouldNotifyListeners,
   ) async {
     await DB.instance.put<EpicBoxModel>(
-        boxName: DB.boxNameNodeModels, key: epicBox.id, value: epicBox);
+        boxName: DB.boxNameEpicBoxModels, key: epicBox.id, value: epicBox);
 
     if (shouldNotifyListeners) {
       notifyListeners();
