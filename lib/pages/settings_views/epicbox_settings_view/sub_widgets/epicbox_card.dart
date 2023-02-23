@@ -109,17 +109,24 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
         Expanded(
           child: GestureDetector(
             onTapDown: (tapDetails) async {
-              if (_isCurrentEpicBox) {
+              if (_isCurrentEpicBox &&
+                  _currentEpicBoxStatus == EpicBoxStatus.connected) {
+                // if this is the current epic box server and we're connected, ignore tap
                 return;
               }
 
+              // TODO re-enable for editing non-default nodes
               // showContextMenu(
               //     _epicBox, _isCurrentEpicBox, tapDetails.globalPosition);
-              await ref
-                  .read(nodeServiceChangeNotifierProvider)
-                  .setPrimaryEpicBox(
-                    epicBox: _epicBox,
-                  );
+
+              if (!_isCurrentEpicBox) {
+                // only set primary epic box if tapped on a different server than the current one
+                await ref
+                    .read(nodeServiceChangeNotifierProvider)
+                    .setPrimaryEpicBox(
+                      epicBox: _epicBox,
+                    );
+              }
               await ref.read(walletProvider)!.initializeExisting();
 
               if (mounted) {
