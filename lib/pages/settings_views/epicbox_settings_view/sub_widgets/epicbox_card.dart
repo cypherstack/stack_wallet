@@ -113,7 +113,8 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
         Expanded(
           child: GestureDetector(
             onTapDown: (tapDetails) async {
-              if (_isCurrentEpicBox) {
+              if (_isCurrentEpicBox &&
+                  DefaultEpicBoxes.defaultIds.contains(_epicBox.id)) {
                 return;
               }
 
