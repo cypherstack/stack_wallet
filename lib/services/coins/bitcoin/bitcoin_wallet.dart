@@ -1024,7 +1024,6 @@ class BitcoinWallet extends CoinServiceAPI
         await checkAllCurrentReceivingPaynymAddressesForTransactions();
 
         final fetchFuture = _refreshTransactions();
-        final utxosRefreshFuture = _updateUTXOs();
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.50, walletId));
 
@@ -1036,12 +1035,12 @@ class BitcoinWallet extends CoinServiceAPI
             .fire(RefreshPercentChangedEvent(0.70, walletId));
         _feeObject = Future(() => feeObj);
 
-        await utxosRefreshFuture;
+        await fetchFuture;
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.80, walletId));
 
-        await fetchFuture;
         await checkForNotificationTransactionsTo(codesToCheck);
+        await _updateUTXOs();
         await getAllTxsToWatch();
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.90, walletId));
@@ -2179,7 +2178,10 @@ class BitcoinWallet extends CoinServiceAPI
           .txidEqualTo(txHash["tx_hash"] as String)
           .findFirst();
 
+      // TODO: remove bip47Notification type check sometime after Q2 2023
       if (storedTx == null ||
+          storedTx.subType ==
+              isar_models.TransactionSubType.bip47Notification ||
           !storedTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)) {
         final tx = await cachedElectrumXClient.getTransaction(
           txHash: txHash["tx_hash"] as String,

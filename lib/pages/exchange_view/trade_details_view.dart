@@ -117,6 +117,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
       status = changeNowTransactionStatusFromStringIgnoreCase(statusString);
     } on ArgumentError catch (_) {
       status = ChangeNowTransactionStatus.Failed;
+      if (statusString == "Processing payment") {
+        status = ChangeNowTransactionStatus.Sending;
+      }
     }
 
     switch (status) {
@@ -158,6 +161,8 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
             trade.status == "failed");
 
     //todo: check if print needed
+    // debugPrint("walletId: $walletId");
+    // debugPrint("transactionIfSentFromStack: $transactionIfSentFromStack");
     // debugPrint("sentFromStack: $sentFromStack");
     // debugPrint("hasTx: $hasTx");
     // debugPrint("trade: ${trade.toString()}");

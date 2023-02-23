@@ -12,6 +12,7 @@ import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -299,12 +300,16 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
   late bool externalCallsEnabled;
 
   late final bool isDesktop;
-  late final bool usePNG;
+  late final bool isSorbet;
+  late final bool isOcean;
 
   @override
   void initState() {
     isDesktop = Util.isDesktop;
-    usePNG = ref.read(colorThemeProvider.state).state == "fruitSorbet";
+    isSorbet = ref.read(colorThemeProvider.state).state.themeType ==
+        ThemeType.fruitSorbet;
+    isOcean = ref.read(colorThemeProvider.state).state.themeType ==
+        ThemeType.oceanBreeze;
     // initial toggle state
     externalCallsEnabled = widget.externalCallsEnabled;
     super.initState();
@@ -348,22 +353,25 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (isDesktop)
-                        const SizedBox(
-                          height: 10,
-                        ),
-                      // Image.asset(
-                      //   // Assets.png.personaEasy,
-                      // ),
-                      SvgPicture.asset(
-                        Assets.svg.personaEasy(context),
-                        width: isDesktop ? 120 : 140,
-                        height: isDesktop ? 120 : 140,
-                      ),
-                      if (isDesktop)
-                        const SizedBox(
-                          height: 12,
-                        ),
+                      // if (isDesktop)
+                      //   const SizedBox(
+                      //     height: 10,
+                      //   ),
+                      (isSorbet || isOcean)
+                          ? Image.asset(
+                              Assets.png.personaEasy(context),
+                              width: 140,
+                              height: 140,
+                            )
+                          : SvgPicture.asset(
+                              Assets.svg.personaEasy(context),
+                              width: 140,
+                              height: 140,
+                            ),
+                      // if (isDesktop)
+                      //   const SizedBox(
+                      //     height: 12,
+                      //   ),
                       Center(
                         child: Text(
                           "Easy Crypto",

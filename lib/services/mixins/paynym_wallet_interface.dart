@@ -27,6 +27,8 @@ import 'package:tuple/tuple.dart';
 const kPaynymDerivePath = "m/47'/0'/0'";
 
 mixin PaynymWalletInterface {
+  static const String _connectedKeyPrefix = "paynym_connected_";
+
   // passed in wallet data
   late final String _walletId;
   late final String _walletName;
@@ -176,17 +178,18 @@ mixin PaynymWalletInterface {
     PaymentCode sender,
     int index,
   ) async {
-    final myPrivateKey = await deriveReceivingPrivateKey(
+    final myPrivateKeyNode = await deriveReceivingPrivateKeyNode(
       mnemonic: (await _getMnemonicString())!,
       mnemonicPassphrase: (await _getMnemonicPassphrase())!,
       index: index,
     );
 
-    final paymentAddress = PaymentAddress.initWithPrivateKey(
-      myPrivateKey,
-      sender,
-      0,
+    final paymentAddress = PaymentAddress(
+      bip32Node: myPrivateKeyNode,
+      paymentCode: sender,
+      networkType: networkType,
     );
+
     final pair = paymentAddress.getReceiveAddressKeyPair();
     final address = await generatePaynymReceivingAddressFromKeyPair(
       pair: pair,
@@ -248,7 +251,7 @@ mixin PaynymWalletInterface {
     return root;
   }
 
-  Future<Uint8List> deriveNotificationPrivateKey({
+  Future<bip32.BIP32> deriveNotificationBip32Node({
     required String mnemonic,
     required String mnemonicPassphrase,
   }) async {
@@ -257,10 +260,10 @@ mixin PaynymWalletInterface {
       mnemonicPassphrase: mnemonicPassphrase,
     );
     final node = root.derivePath(kPaynymDerivePath).derive(0);
-    return node.privateKey!;
+    return node;
   }
 
-  Future<Uint8List> deriveReceivingPrivateKey({
+  Future<bip32.BIP32> deriveReceivingPrivateKeyNode({
     required String mnemonic,
     required String mnemonicPassphrase,
     required int index,
@@ -270,7 +273,7 @@ mixin PaynymWalletInterface {
       mnemonicPassphrase: mnemonicPassphrase,
     );
     final node = root.derivePath(kPaynymDerivePath).derive(index);
-    return node.privateKey!;
+    return node;
   }
 
   /// fetch or generate this wallet's bip47 payment code
@@ -287,11 +290,12 @@ mixin PaynymWalletInterface {
   }
 
   Future<Uint8List> signWithNotificationKey(Uint8List data) async {
-    final privateKey = await deriveNotificationPrivateKey(
+    final myPrivateKeyNode = await deriveNotificationBip32Node(
       mnemonic: (await _getMnemonicString())!,
       mnemonicPassphrase: (await _getMnemonicPassphrase())!,
     );
-    final pair = btc_dart.ECPair.fromPrivateKey(privateKey, network: _network);
+    final pair = btc_dart.ECPair.fromPrivateKey(myPrivateKeyNode.privateKey!,
+        network: _network);
     final signed = pair.sign(SHA256Digest().process(data));
     return signed;
   }
@@ -310,13 +314,13 @@ mixin PaynymWalletInterface {
       throw PaynymSendException(
           "No notification transaction sent to $paymentCode");
     } else {
-      final myPrivateKey = await deriveNotificationPrivateKey(
+      final myPrivateKeyNode = await deriveNotificationBip32Node(
         mnemonic: (await _getMnemonicString())!,
         mnemonicPassphrase: (await _getMnemonicPassphrase())!,
       );
       final sendToAddress = await nextUnusedSendAddressFrom(
         pCode: paymentCode,
-        privateKey: myPrivateKey,
+        privateKeyNode: myPrivateKeyNode,
       );
 
       return _prepareSend(
@@ -331,7 +335,7 @@ mixin PaynymWalletInterface {
   /// and your own private key
   Future<Address> nextUnusedSendAddressFrom({
     required PaymentCode pCode,
-    required Uint8List privateKey,
+    required bip32.BIP32 privateKeyNode,
     int startIndex = 0,
   }) async {
     // https://en.bitcoin.it/wiki/BIP_0047#Path_levels
@@ -356,10 +360,11 @@ mixin PaynymWalletInterface {
           return address;
         }
       } else {
-        final pair = PaymentAddress.initWithPrivateKey(
-          privateKey,
-          pCode,
-          i, // index to use
+        final pair = PaymentAddress(
+          bip32Node: privateKeyNode,
+          index: i, // index to use
+          paymentCode: pCode,
+          networkType: networkType,
         ).getSendAddressKeyPair();
 
         // add address to local db
@@ -393,135 +398,162 @@ mixin PaynymWalletInterface {
     int additionalOutputs = 0,
     List<UTXO>? utxos,
   }) async {
-    final amountToSend = _dustLimitP2PKH;
-    final List<UTXO> availableOutputs =
-        utxos ?? await _db.getUTXOs(_walletId).findAll();
-    final List<UTXO> spendableOutputs = [];
-    int spendableSatoshiValue = 0;
+    try {
+      final amountToSend = _dustLimitP2PKH;
+      final List<UTXO> availableOutputs =
+          utxos ?? await _db.getUTXOs(_walletId).findAll();
+      final List<UTXO> spendableOutputs = [];
+      int spendableSatoshiValue = 0;
 
-    // Build list of spendable outputs and totaling their satoshi amount
-    for (var i = 0; i < availableOutputs.length; i++) {
-      if (availableOutputs[i].isBlocked == false &&
-          availableOutputs[i]
-                  .isConfirmed(await _getChainHeight(), _minConfirms) ==
-              true) {
-        spendableOutputs.add(availableOutputs[i]);
-        spendableSatoshiValue += availableOutputs[i].value;
+      // Build list of spendable outputs and totaling their satoshi amount
+      for (var i = 0; i < availableOutputs.length; i++) {
+        if (availableOutputs[i].isBlocked == false &&
+            availableOutputs[i]
+                    .isConfirmed(await _getChainHeight(), _minConfirms) ==
+                true) {
+          spendableOutputs.add(availableOutputs[i]);
+          spendableSatoshiValue += availableOutputs[i].value;
+        }
       }
-    }
 
-    if (spendableSatoshiValue < amountToSend) {
-      // insufficient balance
-      throw InsufficientBalanceException(
-          "Spendable balance is less than the minimum required for a notification transaction.");
-    } else if (spendableSatoshiValue == amountToSend) {
-      // insufficient balance due to missing amount to cover fee
-      throw InsufficientBalanceException(
-          "Remaining balance does not cover the network fee.");
-    }
-
-    // sort spendable by age (oldest first)
-    spendableOutputs.sort((a, b) => b.blockTime!.compareTo(a.blockTime!));
-
-    int satoshisBeingUsed = 0;
-    int outputsBeingUsed = 0;
-    List<UTXO> utxoObjectsToUse = [];
-
-    for (int i = 0;
-        satoshisBeingUsed < amountToSend && i < spendableOutputs.length;
-        i++) {
-      utxoObjectsToUse.add(spendableOutputs[i]);
-      satoshisBeingUsed += spendableOutputs[i].value;
-      outputsBeingUsed += 1;
-    }
-
-    // add additional outputs if required
-    for (int i = 0;
-        i < additionalOutputs && outputsBeingUsed < spendableOutputs.length;
-        i++) {
-      utxoObjectsToUse.add(spendableOutputs[outputsBeingUsed]);
-      satoshisBeingUsed += spendableOutputs[outputsBeingUsed].value;
-      outputsBeingUsed += 1;
-    }
-
-    // gather required signing data
-    final utxoSigningData = await _fetchBuildTxData(utxoObjectsToUse);
-
-    final int vSizeForNoChange = (await _createNotificationTx(
-            targetPaymentCodeString: targetPaymentCodeString,
-            utxosToUse: utxoObjectsToUse,
-            utxoSigningData: utxoSigningData,
-            change: 0))
-        .item2;
-
-    final int vSizeForWithChange = (await _createNotificationTx(
-            targetPaymentCodeString: targetPaymentCodeString,
-            utxosToUse: utxoObjectsToUse,
-            utxoSigningData: utxoSigningData,
-            change: satoshisBeingUsed - amountToSend))
-        .item2;
-
-    // Assume 2 outputs, for recipient and payment code script
-    int feeForNoChange = _estimateTxFee(
-      vSize: vSizeForNoChange,
-      feeRatePerKB: selectedTxFeeRate,
-    );
-
-    // Assume 3 outputs, for recipient, payment code script, and change
-    int feeForWithChange = _estimateTxFee(
-      vSize: vSizeForWithChange,
-      feeRatePerKB: selectedTxFeeRate,
-    );
-
-    if (_coin == Coin.dogecoin || _coin == Coin.dogecoinTestNet) {
-      if (feeForNoChange < vSizeForNoChange * 1000) {
-        feeForNoChange = vSizeForNoChange * 1000;
+      if (spendableSatoshiValue < amountToSend) {
+        // insufficient balance
+        throw InsufficientBalanceException(
+            "Spendable balance is less than the minimum required for a notification transaction.");
+      } else if (spendableSatoshiValue == amountToSend) {
+        // insufficient balance due to missing amount to cover fee
+        throw InsufficientBalanceException(
+            "Remaining balance does not cover the network fee.");
       }
-      if (feeForWithChange < vSizeForWithChange * 1000) {
-        feeForWithChange = vSizeForWithChange * 1000;
+
+      // sort spendable by age (oldest first)
+      spendableOutputs.sort((a, b) => b.blockTime!.compareTo(a.blockTime!));
+
+      int satoshisBeingUsed = 0;
+      int outputsBeingUsed = 0;
+      List<UTXO> utxoObjectsToUse = [];
+
+      for (int i = 0;
+          satoshisBeingUsed < amountToSend && i < spendableOutputs.length;
+          i++) {
+        utxoObjectsToUse.add(spendableOutputs[i]);
+        satoshisBeingUsed += spendableOutputs[i].value;
+        outputsBeingUsed += 1;
       }
-    }
 
-    if (satoshisBeingUsed - amountToSend > feeForNoChange + _dustLimitP2PKH) {
-      // try to add change output due to "left over" amount being greater than
-      // the estimated fee + the dust limit
-      int changeAmount = satoshisBeingUsed - amountToSend - feeForWithChange;
+      // add additional outputs if required
+      for (int i = 0;
+          i < additionalOutputs && outputsBeingUsed < spendableOutputs.length;
+          i++) {
+        utxoObjectsToUse.add(spendableOutputs[outputsBeingUsed]);
+        satoshisBeingUsed += spendableOutputs[outputsBeingUsed].value;
+        outputsBeingUsed += 1;
+      }
 
-      // check estimates are correct and build notification tx
-      if (changeAmount >= _dustLimitP2PKH &&
-          satoshisBeingUsed - amountToSend - changeAmount == feeForWithChange) {
-        var txn = await _createNotificationTx(
-          targetPaymentCodeString: targetPaymentCodeString,
-          utxosToUse: utxoObjectsToUse,
-          utxoSigningData: utxoSigningData,
-          change: changeAmount,
-        );
+      // gather required signing data
+      final utxoSigningData = await _fetchBuildTxData(utxoObjectsToUse);
 
-        int feeBeingPaid = satoshisBeingUsed - amountToSend - changeAmount;
+      final int vSizeForNoChange = (await _createNotificationTx(
+        targetPaymentCodeString: targetPaymentCodeString,
+        utxosToUse: utxoObjectsToUse,
+        utxoSigningData: utxoSigningData,
+        change: 0,
+        dustLimit:
+            satoshisBeingUsed, // override amount to get around absurd fees error
+      ))
+          .item2;
 
-        // make sure minimum fee is accurate if that is being used
-        if (txn.item2 - feeBeingPaid == 1) {
-          changeAmount -= 1;
-          feeBeingPaid += 1;
-          txn = await _createNotificationTx(
+      final int vSizeForWithChange = (await _createNotificationTx(
+        targetPaymentCodeString: targetPaymentCodeString,
+        utxosToUse: utxoObjectsToUse,
+        utxoSigningData: utxoSigningData,
+        change: satoshisBeingUsed - amountToSend,
+      ))
+          .item2;
+
+      // Assume 2 outputs, for recipient and payment code script
+      int feeForNoChange = _estimateTxFee(
+        vSize: vSizeForNoChange,
+        feeRatePerKB: selectedTxFeeRate,
+      );
+
+      // Assume 3 outputs, for recipient, payment code script, and change
+      int feeForWithChange = _estimateTxFee(
+        vSize: vSizeForWithChange,
+        feeRatePerKB: selectedTxFeeRate,
+      );
+
+      if (_coin == Coin.dogecoin || _coin == Coin.dogecoinTestNet) {
+        if (feeForNoChange < vSizeForNoChange * 1000) {
+          feeForNoChange = vSizeForNoChange * 1000;
+        }
+        if (feeForWithChange < vSizeForWithChange * 1000) {
+          feeForWithChange = vSizeForWithChange * 1000;
+        }
+      }
+
+      if (satoshisBeingUsed - amountToSend > feeForNoChange + _dustLimitP2PKH) {
+        // try to add change output due to "left over" amount being greater than
+        // the estimated fee + the dust limit
+        int changeAmount = satoshisBeingUsed - amountToSend - feeForWithChange;
+
+        // check estimates are correct and build notification tx
+        if (changeAmount >= _dustLimitP2PKH &&
+            satoshisBeingUsed - amountToSend - changeAmount ==
+                feeForWithChange) {
+          var txn = await _createNotificationTx(
             targetPaymentCodeString: targetPaymentCodeString,
             utxosToUse: utxoObjectsToUse,
             utxoSigningData: utxoSigningData,
             change: changeAmount,
           );
-        }
 
-        Map<String, dynamic> transactionObject = {
-          "hex": txn.item1,
-          "recipientPaynym": targetPaymentCodeString,
-          "amount": amountToSend,
-          "fee": feeBeingPaid,
-          "vSize": txn.item2,
-        };
-        return transactionObject;
-      } else {
-        // something broke during fee estimation or the change amount is smaller
-        // than the dust limit. Try without change
+          int feeBeingPaid = satoshisBeingUsed - amountToSend - changeAmount;
+
+          // make sure minimum fee is accurate if that is being used
+          if (txn.item2 - feeBeingPaid == 1) {
+            changeAmount -= 1;
+            feeBeingPaid += 1;
+            txn = await _createNotificationTx(
+              targetPaymentCodeString: targetPaymentCodeString,
+              utxosToUse: utxoObjectsToUse,
+              utxoSigningData: utxoSigningData,
+              change: changeAmount,
+            );
+          }
+
+          Map<String, dynamic> transactionObject = {
+            "hex": txn.item1,
+            "recipientPaynym": targetPaymentCodeString,
+            "amount": amountToSend,
+            "fee": feeBeingPaid,
+            "vSize": txn.item2,
+          };
+          return transactionObject;
+        } else {
+          // something broke during fee estimation or the change amount is smaller
+          // than the dust limit. Try without change
+          final txn = await _createNotificationTx(
+            targetPaymentCodeString: targetPaymentCodeString,
+            utxosToUse: utxoObjectsToUse,
+            utxoSigningData: utxoSigningData,
+            change: 0,
+          );
+
+          int feeBeingPaid = satoshisBeingUsed - amountToSend;
+
+          Map<String, dynamic> transactionObject = {
+            "hex": txn.item1,
+            "recipientPaynym": targetPaymentCodeString,
+            "amount": amountToSend,
+            "fee": feeBeingPaid,
+            "vSize": txn.item2,
+          };
+          return transactionObject;
+        }
+      } else if (satoshisBeingUsed - amountToSend >= feeForNoChange) {
+        // since we already checked if we need to add a change output we can just
+        // build without change here
         final txn = await _createNotificationTx(
           targetPaymentCodeString: targetPaymentCodeString,
           utxosToUse: utxoObjectsToUse,
@@ -539,40 +571,22 @@ mixin PaynymWalletInterface {
           "vSize": txn.item2,
         };
         return transactionObject;
-      }
-    } else if (satoshisBeingUsed - amountToSend >= feeForNoChange) {
-      // since we already checked if we need to add a change output we can just
-      // build without change here
-      final txn = await _createNotificationTx(
-        targetPaymentCodeString: targetPaymentCodeString,
-        utxosToUse: utxoObjectsToUse,
-        utxoSigningData: utxoSigningData,
-        change: 0,
-      );
-
-      int feeBeingPaid = satoshisBeingUsed - amountToSend;
-
-      Map<String, dynamic> transactionObject = {
-        "hex": txn.item1,
-        "recipientPaynym": targetPaymentCodeString,
-        "amount": amountToSend,
-        "fee": feeBeingPaid,
-        "vSize": txn.item2,
-      };
-      return transactionObject;
-    } else {
-      // if we get here we do not have enough funds to cover the tx total so we
-      // check if we have any more available outputs and try again
-      if (spendableOutputs.length > outputsBeingUsed) {
-        return prepareNotificationTx(
-          selectedTxFeeRate: selectedTxFeeRate,
-          targetPaymentCodeString: targetPaymentCodeString,
-          additionalOutputs: additionalOutputs + 1,
-        );
       } else {
-        throw InsufficientBalanceException(
-            "Remaining balance does not cover the network fee.");
+        // if we get here we do not have enough funds to cover the tx total so we
+        // check if we have any more available outputs and try again
+        if (spendableOutputs.length > outputsBeingUsed) {
+          return prepareNotificationTx(
+            selectedTxFeeRate: selectedTxFeeRate,
+            targetPaymentCodeString: targetPaymentCodeString,
+            additionalOutputs: additionalOutputs + 1,
+          );
+        } else {
+          throw InsufficientBalanceException(
+              "Remaining balance does not cover the network fee.");
+        }
       }
+    } catch (e) {
+      rethrow;
     }
   }
 
@@ -583,84 +597,109 @@ mixin PaynymWalletInterface {
     required List<UTXO> utxosToUse,
     required Map<String, dynamic> utxoSigningData,
     required int change,
+    int? dustLimit,
   }) async {
-    final targetPaymentCode =
-        PaymentCode.fromPaymentCode(targetPaymentCodeString, _network);
-    final myCode = await getPaymentCode(DerivePathType.bip44);
+    try {
+      final targetPaymentCode =
+          PaymentCode.fromPaymentCode(targetPaymentCodeString, _network);
+      final myCode = await getPaymentCode(DerivePathType.bip44);
 
-    final utxo = utxosToUse.first;
-    final txPoint = utxo.txid.fromHex.toList();
-    final txPointIndex = utxo.vout;
+      final utxo = utxosToUse.first;
+      final txPoint = utxo.txid.fromHex.toList();
+      final txPointIndex = utxo.vout;
 
-    final rev = Uint8List(txPoint.length + 4);
-    Util.copyBytes(Uint8List.fromList(txPoint), 0, rev, 0, txPoint.length);
-    final buffer = rev.buffer.asByteData();
-    buffer.setUint32(txPoint.length, txPointIndex, Endian.little);
+      final rev = Uint8List(txPoint.length + 4);
+      Util.copyBytes(Uint8List.fromList(txPoint), 0, rev, 0, txPoint.length);
+      final buffer = rev.buffer.asByteData();
+      buffer.setUint32(txPoint.length, txPointIndex, Endian.little);
 
-    final myKeyPair = utxoSigningData[utxo.txid]["keyPair"] as btc_dart.ECPair;
+      final myKeyPair =
+          utxoSigningData[utxo.txid]["keyPair"] as btc_dart.ECPair;
 
-    final S = SecretPoint(
-      myKeyPair.privateKey!,
-      targetPaymentCode.notificationPublicKey(),
-    );
+      final S = SecretPoint(
+        myKeyPair.privateKey!,
+        targetPaymentCode.notificationPublicKey(),
+      );
 
-    final blindingMask = PaymentCode.getMask(S.ecdhSecret(), rev);
+      final blindingMask = PaymentCode.getMask(S.ecdhSecret(), rev);
 
-    final blindedPaymentCode = PaymentCode.blind(
-      myCode.getPayload(),
-      blindingMask,
-    );
+      final blindedPaymentCode = PaymentCode.blind(
+        payload: myCode.getPayload(),
+        mask: blindingMask,
+        unBlind: false,
+      );
 
-    final opReturnScript = bscript.compile([
-      (op.OPS["OP_RETURN"] as int),
-      blindedPaymentCode,
-    ]);
+      final opReturnScript = bscript.compile([
+        (op.OPS["OP_RETURN"] as int),
+        blindedPaymentCode,
+      ]);
 
-    // build a notification tx
-    final txb = btc_dart.TransactionBuilder(network: _network);
-    txb.setVersion(1);
+      // build a notification tx
+      final txb = btc_dart.TransactionBuilder(network: _network);
+      txb.setVersion(1);
 
-    txb.addInput(
-      utxo.txid,
-      txPointIndex,
-      null,
-      utxoSigningData[utxo.txid]["output"] as Uint8List,
-    );
+      txb.addInput(
+        utxo.txid,
+        txPointIndex,
+        null,
+        utxoSigningData[utxo.txid]["output"] as Uint8List,
+      );
 
-    // todo: modify address once segwit support is in our bip47
-    txb.addOutput(
-        targetPaymentCode.notificationAddressP2PKH(), _dustLimitP2PKH);
-    txb.addOutput(opReturnScript, 0);
+      // add rest of possible inputs
+      for (var i = 1; i < utxosToUse.length; i++) {
+        final utxo = utxosToUse[i];
+        txb.addInput(
+          utxo.txid,
+          utxo.vout,
+          null,
+          utxoSigningData[utxo.txid]["output"] as Uint8List,
+        );
+      }
 
-    // TODO: add possible change output and mark output as dangerous
-    if (change > 0) {
-      // generate new change address if current change address has been used
-      await _checkChangeAddressForTransactions();
-      final String changeAddress = await _getCurrentChangeAddress();
-      txb.addOutput(changeAddress, change);
-    }
+      // todo: modify address once segwit support is in our bip47
+      txb.addOutput(
+        targetPaymentCode.notificationAddressP2PKH(),
+        dustLimit ?? _dustLimitP2PKH,
+      );
+      txb.addOutput(opReturnScript, 0);
 
-    txb.sign(
-      vin: 0,
-      keyPair: myKeyPair,
-      witnessValue: utxo.value,
-      witnessScript: utxoSigningData[utxo.txid]["redeemScript"] as Uint8List?,
-    );
+      // TODO: add possible change output and mark output as dangerous
+      if (change > 0) {
+        // generate new change address if current change address has been used
+        await _checkChangeAddressForTransactions();
+        final String changeAddress = await _getCurrentChangeAddress();
+        txb.addOutput(changeAddress, change);
+      }
 
-    // sign rest of possible inputs
-    for (var i = 1; i < utxosToUse.length; i++) {
-      final txid = utxosToUse[i].txid;
       txb.sign(
-        vin: i,
-        keyPair: utxoSigningData[txid]["keyPair"] as btc_dart.ECPair,
-        witnessValue: utxosToUse[i].value,
+        vin: 0,
+        keyPair: myKeyPair,
+        witnessValue: utxo.value,
         witnessScript: utxoSigningData[utxo.txid]["redeemScript"] as Uint8List?,
       );
+
+      // sign rest of possible inputs
+      for (var i = 1; i < utxosToUse.length; i++) {
+        final txid = utxosToUse[i].txid;
+        txb.sign(
+          vin: i,
+          keyPair: utxoSigningData[txid]["keyPair"] as btc_dart.ECPair,
+          witnessValue: utxosToUse[i].value,
+          witnessScript:
+              utxoSigningData[utxo.txid]["redeemScript"] as Uint8List?,
+        );
+      }
+
+      final builtTx = txb.build();
+
+      return Tuple2(builtTx.toHex(), builtTx.virtualSize());
+    } catch (e, s) {
+      Logging.instance.log(
+        "_createNotificationTx(): $e\n$s",
+        level: LogLevel.Error,
+      );
+      rethrow;
     }
-
-    final builtTx = txb.build();
-
-    return Tuple2(builtTx.toHex(), builtTx.virtualSize());
   }
 
   Future<String> broadcastNotificationTx(
@@ -690,8 +729,41 @@ mixin PaynymWalletInterface {
     }
   }
 
+  // Future<bool?> _checkHasConnectedCache(String paymentCodeString) async {
+  //   final value = await _secureStorage.read(
+  //       key: "$_connectedKeyPrefix$paymentCodeString");
+  //   if (value == null) {
+  //     return null;
+  //   } else {
+  //     final int rawBool = int.parse(value);
+  //     return rawBool > 0;
+  //   }
+  // }
+  //
+  // Future<void> _setConnectedCache(
+  //     String paymentCodeString, bool hasConnected) async {
+  //   await _secureStorage.write(
+  //       key: "$_connectedKeyPrefix$paymentCodeString",
+  //       value: hasConnected ? "1" : "0");
+  // }
+
   // TODO optimize
   Future<bool> hasConnected(String paymentCodeString) async {
+    // final didConnect = await _checkHasConnectedCache(paymentCodeString);
+    // if (didConnect == true) {
+    //   return true;
+    // }
+    //
+    // final keys = await lookupKey(paymentCodeString);
+    //
+    // final tx = await _db
+    //     .getTransactions(_walletId)
+    //     .filter()
+    //     .subTypeEqualTo(TransactionSubType.bip47Notification).and()
+    //     .address((q) =>
+    //         q.anyOf<String, Transaction>(keys, (q, e) => q.otherDataEqualTo(e)))
+    //     .findAll();
+
     final myNotificationAddress =
         await getMyNotificationAddress(DerivePathTypeExt.primaryFor(_coin));
 
@@ -702,30 +774,51 @@ mixin PaynymWalletInterface {
         .findAll();
 
     for (final tx in txns) {
-      // quick check that may cause problems?
-      if (tx.address.value?.value == myNotificationAddress.value) {
-        return true;
-      }
+      if (tx.type == TransactionType.incoming &&
+          tx.address.value?.value == myNotificationAddress.value) {
+        final unBlindedPaymentCode = await unBlindedPaymentCodeFromTransaction(
+          transaction: tx,
+          myNotificationAddress: myNotificationAddress,
+        );
 
-      final unBlindedPaymentCode = await unBlindedPaymentCodeFromTransaction(
-        transaction: tx,
-        myNotificationAddress: myNotificationAddress,
-      );
-
-      if (paymentCodeString == unBlindedPaymentCode.toString()) {
-        return true;
-      }
-
-      if (tx.address.value?.otherData != null) {
-        final code = await paymentCodeStringByKey(tx.address.value!.otherData!);
-        if (code == paymentCodeString) {
+        if (unBlindedPaymentCode != null &&
+            paymentCodeString == unBlindedPaymentCode.toString()) {
+          // await _setConnectedCache(paymentCodeString, true);
           return true;
+        }
+      } else if (tx.type == TransactionType.outgoing) {
+        if (tx.address.value?.otherData != null) {
+          final code =
+              await paymentCodeStringByKey(tx.address.value!.otherData!);
+          if (code == paymentCodeString) {
+            // await _setConnectedCache(paymentCodeString, true);
+            return true;
+          }
         }
       }
     }
 
     // otherwise return no
+    // await _setConnectedCache(paymentCodeString, false);
     return false;
+  }
+
+  Uint8List? _pubKeyFromInput(Input input) {
+    final scriptSigComponents = input.scriptSigAsm?.split(" ") ?? [];
+    if (scriptSigComponents.length > 1) {
+      return scriptSigComponents[1].fromHex;
+    }
+    if (input.witness != null) {
+      try {
+        final witnessComponents = jsonDecode(input.witness!) as List;
+        if (witnessComponents.length == 2) {
+          return (witnessComponents[1] as String).fromHex;
+        }
+      } catch (_) {
+        //
+      }
+    }
+    return null;
   }
 
   Future<PaymentCode?> unBlindedPaymentCodeFromTransaction({
@@ -756,21 +849,25 @@ mixin PaynymWalletInterface {
       final buffer = rev.buffer.asByteData();
       buffer.setUint32(txPoint.length, txPointIndex, Endian.little);
 
-      final pubKey = designatedInput.scriptSigAsm!.split(" ")[1].fromHex;
+      final pubKey = _pubKeyFromInput(designatedInput)!;
 
-      final myPrivateKey = await deriveNotificationPrivateKey(
+      final myPrivateKey = (await deriveNotificationBip32Node(
         mnemonic: (await _getMnemonicString())!,
         mnemonicPassphrase: (await _getMnemonicPassphrase())!,
-      );
+      ))
+          .privateKey!;
 
       final S = SecretPoint(myPrivateKey, pubKey);
 
       final mask = PaymentCode.getMask(S.ecdhSecret(), rev);
 
-      final unBlindedPayload = PaymentCode.blind(blindedCodeBytes, mask);
+      final unBlindedPayload = PaymentCode.blind(
+        payload: blindedCodeBytes,
+        mask: mask,
+        unBlind: true,
+      );
 
-      final unBlindedPaymentCode =
-          PaymentCode.initFromPayload(unBlindedPayload);
+      final unBlindedPaymentCode = PaymentCode.fromPayload(unBlindedPayload);
 
       return unBlindedPaymentCode;
     } catch (e) {
@@ -904,7 +1001,7 @@ mixin PaynymWalletInterface {
     final mnemonic = (await _getMnemonicString())!;
     final mnemonicPassphrase = (await _getMnemonicPassphrase())!;
 
-    final mySendPrivateKey = await deriveNotificationPrivateKey(
+    final mySendBip32Node = await deriveNotificationBip32Node(
       mnemonic: mnemonic,
       mnemonicPassphrase: mnemonicPassphrase,
     );
@@ -924,10 +1021,11 @@ mixin PaynymWalletInterface {
                 outgoingGapCounter < maxUnusedAddressGap);
         i++) {
       if (outgoingGapCounter < maxUnusedAddressGap) {
-        final paymentAddressSending = PaymentAddress.initWithPrivateKey(
-          mySendPrivateKey,
-          other,
-          i, // index to use
+        final paymentAddressSending = PaymentAddress(
+          paymentCode: other,
+          bip32Node: mySendBip32Node,
+          index: i,
+          networkType: networkType,
         );
         final pair = paymentAddressSending.getSendAddressKeyPair();
         final address = await generatePaynymSendAddressFromKeyPair(
@@ -948,12 +1046,13 @@ mixin PaynymWalletInterface {
       }
 
       if (receivingGapCounter < maxUnusedAddressGap) {
-        final myReceivingPrivateKey = receivingNode.derive(i).privateKey!;
-        final paymentAddressReceiving = PaymentAddress.initWithPrivateKey(
-          myReceivingPrivateKey,
-          other,
-          0,
+        final paymentAddressReceiving = PaymentAddress(
+          paymentCode: other,
+          bip32Node: receivingNode.derive(i),
+          index: 0,
+          networkType: networkType,
         );
+
         final pair = paymentAddressReceiving.getReceiveAddressKeyPair();
         final address = await generatePaynymReceivingAddressFromKeyPair(
           pair: pair,
@@ -1168,9 +1267,8 @@ mixin PaynymWalletInterface {
         mnemonicPassphrase: (await _getMnemonicPassphrase())!,
       );
       final node = root.derivePath(kPaynymDerivePath);
-      final paymentCode = PaymentCode.initFromPubKey(
-        node.publicKey,
-        node.chainCode,
+      final paymentCode = PaymentCode.fromBip32Node(
+        node,
         _network,
       );
 
