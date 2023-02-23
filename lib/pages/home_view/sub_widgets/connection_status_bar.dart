@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:epicpay/providers/global/wallet_provider.dart';
+import 'package:epicpay/services/event_bus/events/global/epicbox_status_changed_event.dart';
 import 'package:epicpay/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:epicpay/services/event_bus/global_event_bus.dart';
 import 'package:epicpay/utilities/text_styles.dart';
@@ -80,28 +81,42 @@ class _ConnectionStatusInfoState extends ConsumerState<ConnectionStatusInfo> {
   late final EventBus eventBus;
 
   late WalletSyncStatus _currentSyncStatus;
+  late EpicBoxStatus _currentEpicBoxStatus;
   // late NodeConnectionStatus _currentNodeStatus;
 
   late StreamSubscription<dynamic> _syncStatusSubscription;
   // late StreamSubscription<dynamic> _nodeStatusSubscription;
+  late StreamSubscription<dynamic> _epicBoxStatusSubscription;
 
-  Color getSyncColor(WalletSyncStatus status) {
+  Color getSyncColor(WalletSyncStatus status, EpicBoxStatus epicBoxStatus) {
     switch (status) {
       case WalletSyncStatus.unableToSync:
         return Theme.of(context).extension<StackColors>()!.accentColorRed;
       case WalletSyncStatus.synced:
-        return Theme.of(context).extension<StackColors>()!.accentColorGreen;
+        switch (epicBoxStatus) {
+          case EpicBoxStatus.connected:
+            // case EpicBoxStatus.listening:
+            return Theme.of(context).extension<StackColors>()!.accentColorGreen;
+          case EpicBoxStatus.unableToConnect:
+            return Theme.of(context).extension<StackColors>()!.accentColorRed;
+        }
       case WalletSyncStatus.syncing:
         return Theme.of(context).extension<StackColors>()!.accentColorYellow;
     }
   }
 
-  String label(WalletSyncStatus status) {
+  String label(WalletSyncStatus status, EpicBoxStatus epicBoxStatus) {
     switch (status) {
       case WalletSyncStatus.unableToSync:
-        return "DISCONNECTED";
+        return "NODE DISCONNECTED";
       case WalletSyncStatus.synced:
-        return "CONNECTED";
+        switch (epicBoxStatus) {
+          case EpicBoxStatus.connected:
+            // case EpicBoxStatus.listening:
+            return "CONNECTED";
+          case EpicBoxStatus.unableToConnect:
+            return "EPICBOX DISCONNECTED";
+        }
       case WalletSyncStatus.syncing:
         return "SYNCHRONIZING";
     }
@@ -120,6 +135,14 @@ class _ConnectionStatusInfoState extends ConsumerState<ConnectionStatusInfo> {
         // _currentNodeStatus = NodeConnectionStatus.disconnected;
         _currentSyncStatus = WalletSyncStatus.unableToSync;
       }
+    }
+
+    if (ref.read(walletProvider)!.isEpicBoxConnected) {
+      _currentEpicBoxStatus = EpicBoxStatus.connected;
+      // } else if (ref.read(walletProvider)!.isEpicBoxListening) {
+      //   _currentEpicBoxStatus = EpicBoxStatus.listening;
+    } else {
+      _currentEpicBoxStatus = EpicBoxStatus.unableToConnect;
     }
 
     eventBus = widget.eventBus ?? GlobalEventBus.instance;
@@ -146,13 +169,25 @@ class _ConnectionStatusInfoState extends ConsumerState<ConnectionStatusInfo> {
     //   },
     // );
 
+    _epicBoxStatusSubscription =
+        eventBus.on<EpicBoxStatusChangedEvent>().listen(
+      (event) async {
+        if (event.walletId == ref.read(walletProvider)!.walletId) {
+          setState(() {
+            _currentEpicBoxStatus = event.newStatus;
+          });
+        }
+      },
+    );
+
     super.initState();
   }
 
   @override
   dispose() {
-    // _nodeStatusSubscription.cancel();
     _syncStatusSubscription.cancel();
+    // _nodeStatusSubscription.cancel();
+    _epicBoxStatusSubscription.cancel();
     super.dispose();
   }
 
@@ -166,13 +201,13 @@ class _ConnectionStatusInfoState extends ConsumerState<ConnectionStatusInfo> {
         RoundedContainer(
           width: 6,
           height: 6,
-          color: getSyncColor(_currentSyncStatus),
+          color: getSyncColor(_currentSyncStatus, _currentEpicBoxStatus),
         ),
         const SizedBox(
           width: 5,
         ),
         Text(
-          label(_currentSyncStatus),
+          label(_currentSyncStatus, _currentEpicBoxStatus),
           style: STextStyles.overLine(context),
         )
       ],

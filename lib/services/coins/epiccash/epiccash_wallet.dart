@@ -13,6 +13,7 @@ import 'package:epicpay/models/paymint/utxo_model.dart';
 import 'package:epicpay/pages/settings_views/network_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:epicpay/services/coins/coin_service.dart';
 import 'package:epicpay/services/event_bus/events/global/blocks_remaining_event.dart';
+import 'package:epicpay/services/event_bus/events/global/epicbox_status_changed_event.dart';
 import 'package:epicpay/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:epicpay/services/event_bus/events/global/refresh_percent_changed_event.dart';
 import 'package:epicpay/services/event_bus/events/global/updated_in_background_event.dart';
@@ -508,13 +509,23 @@ class EpicCashWallet extends CoinServiceAPI {
     bool isConnected = true;
     textSocketHandler.incomingMessagesStream.listen((inMsg) {
       Logging.instance.log(
-          'Epic Box server test webSocket message from server: "$inMsg"',
+          'Epic Box server test webSocket message from server $host:$port: "$inMsg"',
           level: LogLevel.Info);
 
       if (inMsg.contains("Challenge")) {
         // Successful response, close socket
-        Logging.instance
-            .log('Epic Box server test succeeded', level: LogLevel.Info);
+        Logging.instance.log('Epic Box server $host:$port test succeeded',
+            level: LogLevel.Info);
+
+        _isEpicBoxConnected = isConnected;
+        GlobalEventBus.instance.fire(
+          EpicBoxStatusChangedEvent(
+            isConnected
+                ? EpicBoxStatus.connected
+                : EpicBoxStatus.unableToConnect,
+            walletId,
+          ),
+        );
 
         // Disconnect from server:
         textSocketHandler.disconnect('manual disconnect');
@@ -529,9 +540,16 @@ class EpicCashWallet extends CoinServiceAPI {
     final isTextSocketConnected = await textSocketHandler.connect();
     if (!isTextSocketConnected) {
       Logging.instance.log(
-          'Epic Box server test failed: server unable to connect',
+          'Epic Box server test failed: server $host:$port unable to connect',
           level: LogLevel.Warning);
       isConnected = false;
+      _isEpicBoxConnected = false;
+      GlobalEventBus.instance.fire(
+        EpicBoxStatusChangedEvent(
+          EpicBoxStatus.unableToConnect,
+          walletId,
+        ),
+      );
     }
 
     return isConnected;
@@ -1734,6 +1752,11 @@ class EpicCashWallet extends CoinServiceAPI {
 
   @override
   bool get isConnected => _isConnected;
+
+  bool _isEpicBoxConnected = true;
+
+  @override
+  bool get isEpicBoxConnected => _isEpicBoxConnected;
 
   @override
   Future<Decimal> get totalBalance async {

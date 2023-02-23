@@ -267,6 +267,7 @@ class Manager with ChangeNotifier {
   }
 
   bool get isConnected => _currentWallet.isConnected;
+  bool get isEpicBoxConnected => _currentWallet.isEpicBoxConnected;
 
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
     return _currentWallet.estimateFeeFor(satoshiAmount, feeRate);

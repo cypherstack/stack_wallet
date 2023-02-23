@@ -112,6 +112,7 @@ abstract class CoinServiceAPI {
   void Function(bool isActive)? onIsActiveWalletChanged;
 
   bool get isConnected;
+  bool get isEpicBoxConnected;
 
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate);
 

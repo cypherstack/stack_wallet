@@ -4,11 +4,13 @@ import 'package:epicpay/pages/help/help_view.dart';
 import 'package:epicpay/pages/home_view/sub_widgets/connection_status_bar.dart';
 import 'package:epicpay/pages/receive_view/receive_view.dart';
 import 'package:epicpay/pages/send_view/send_view.dart';
+import 'package:epicpay/pages/settings_views/epicbox_settings_view/epicbox_settings_view.dart';
 import 'package:epicpay/pages/settings_views/network_settings_view/network_settings_view.dart';
 import 'package:epicpay/pages/settings_views/settings_view.dart';
 import 'package:epicpay/pages/wallet_view/wallet_view.dart';
 import 'package:epicpay/providers/global/wallet_provider.dart';
 import 'package:epicpay/providers/ui/home_view_index_provider.dart';
+import 'package:epicpay/services/event_bus/events/global/epicbox_status_changed_event.dart';
 import 'package:epicpay/services/event_bus/events/global/refresh_percent_changed_event.dart';
 import 'package:epicpay/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:epicpay/services/event_bus/global_event_bus.dart';
@@ -53,8 +55,10 @@ class _HomeViewState extends ConsumerState<HomeView> {
   late final EventBus eventBus;
 
   late WalletSyncStatus _currentSyncStatus;
+  late EpicBoxStatus _currentEpicBoxStatus;
 
   late StreamSubscription<dynamic> _syncStatusSubscription;
+  late StreamSubscription<dynamic> _epicBoxStatusSubscription;
   late StreamSubscription<dynamic> _nodeStatusSubscription;
   late StreamSubscription<dynamic> _refreshSubscription;
 
@@ -130,6 +134,12 @@ class _HomeViewState extends ConsumerState<HomeView> {
       }
     }
 
+    if (ref.read(walletProvider)!.isEpicBoxConnected) {
+      _currentEpicBoxStatus = EpicBoxStatus.connected;
+    } else {
+      _currentEpicBoxStatus = EpicBoxStatus.unableToConnect;
+    }
+
     if (_currentSyncStatus == WalletSyncStatus.synced) {
       _percent = 1;
     } else {
@@ -175,6 +185,17 @@ class _HomeViewState extends ConsumerState<HomeView> {
         if (event.walletId == ref.read(walletProvider)!.walletId) {
           setState(() {
             _percent = event.percent.clamp(0.0, 1.0);
+          });
+        }
+      },
+    );
+
+    _epicBoxStatusSubscription =
+        eventBus.on<EpicBoxStatusChangedEvent>().listen(
+      (event) async {
+        if (event.walletId == ref.read(walletProvider)!.walletId) {
+          setState(() {
+            _currentEpicBoxStatus = event.newStatus;
           });
         }
       },
@@ -251,8 +272,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   child: GestureDetector(
                     onTap: () {
                       Navigator.of(context).pushNamed(
-                        NetworkSettingsView.routeName,
-                      );
+                          _currentEpicBoxStatus == EpicBoxStatus.connected
+                              ? NetworkSettingsView.routeName
+                              : EpicBoxSettingsView.routeName);
                     },
                     child: ConnectionStatusBar(
                       currentSyncPercent: _percent,
