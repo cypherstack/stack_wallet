@@ -302,7 +302,7 @@ class _TransactionDetailsViewState
                         const _Divider(),
                         TXDetailsItem(
                           title: "AMOUNT",
-                          info: amount.toStringAsPrecision(1),
+                          info: amount.toStringAsPrecision(2),
                         ),
                         if (_transaction.txType.toLowerCase() == "sent")
                           const _Divider(),
@@ -311,9 +311,9 @@ class _TransactionDetailsViewState
                             title: "FEE",
                             info: showFeePending
                                 ? _transaction.confirmedStatus
-                                    ? fee.toStringAsPrecision(1)
+                                    ? fee.toStringAsPrecision(2)
                                     : "Pending"
-                                : fee.toStringAsPrecision(1),
+                                : fee.toStringAsPrecision(2),
                           ),
                         const _Divider(),
                         TXDetailsItem(
