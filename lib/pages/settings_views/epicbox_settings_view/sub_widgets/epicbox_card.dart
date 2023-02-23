@@ -109,17 +109,18 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
         Expanded(
           child: GestureDetector(
             onTapDown: (tapDetails) async {
-                // if this is the current epic box server and we're connected, ignore tap
+              // if this is the current epic box server and we're connected, ignore tap
               if (_isCurrentEpicBox &&
                   DefaultEpicBoxes.defaultIds.contains(_epicBox.id)) {
                 return;
               }
 
-                // only set primary epic box if tapped on a different server than the current one
               if (!DefaultEpicBoxes.defaultIds.contains(_epicBox.id)) {
+                // only show context menu on custom servers
                 showContextMenu(
                     _epicBox, _isCurrentEpicBox, tapDetails.globalPosition);
               } else {
+                // only set primary epic box if tapped on a different server than the current one
                 await ref
                     .read(nodeServiceChangeNotifierProvider)
                     .setPrimaryEpicBox(
