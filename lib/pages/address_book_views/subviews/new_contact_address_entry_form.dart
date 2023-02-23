@@ -118,6 +118,12 @@ class _NewContactAddressEntryFormState
                             content =
                                 content.substring(0, content.indexOf("\n"));
                           }
+                          if ((content.startsWith("http://") ||
+                                  content.startsWith("https://")) &&
+                              content.contains("@")) {
+                            content.replaceAll("http://", "");
+                            content.replaceAll("https://", "");
+                          }
                           addressController.text = content;
                           ref
                               .read(addressEntryDataProvider(widget.id))

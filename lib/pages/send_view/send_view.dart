@@ -238,6 +238,15 @@ class _SendViewState extends ConsumerState<SendView> {
                                                 content = content.substring(
                                                     0, content.indexOf("\n"));
                                               }
+                                              if ((content.startsWith(
+                                                          "http://") ||
+                                                      content.startsWith(
+                                                  content.contains("@")) {
+                                                content = content.replaceAll(
+                                                    "http://", "");
+                                                content = content.replaceAll(
+                                                    "https://", "");
+                                              }
 
                                               sendToController.text = content;
                                               _address = content;
