@@ -160,8 +160,25 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                   final amount = Format.satoshisToAmount(
                                       _transaction.amount,
                                       coin: coin);
+                                  String amountString =
+                                      amount.toStringAsFixed(8);
+                                  // I'd love to do this more simply
+                                  // Step from the right of the string to the left, break at first non-zero character and return index
+                                  for (int i = amountString.length - 1;
+                                      i > 0;
+                                      i--) {
+                                    if (amountString.split('')[i] != '0') {
+                                      String subStr =
+                                          amountString.substring(0, i);
+                                      if (subStr.isNotEmpty) {
+                                        amountString = subStr;
+                                      }
+                                      break;
+                                    }
+                                  }
+
                                   return Text(
-                                    "${amount.toStringAsFixed(2)} ${coin.ticker}",
+                                    "$amountString ${coin.ticker}",
                                     style: STextStyles.bodySmall(context),
                                   );
                                 },
