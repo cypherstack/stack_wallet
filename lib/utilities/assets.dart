@@ -327,6 +327,8 @@ class _SVG {
         return firoImage(context);
       case Coin.dogecoinTestNet:
         return dogecoinImage(context);
+      case Coin.ethereum:
+        return ethereum;
     }
   }
 }
