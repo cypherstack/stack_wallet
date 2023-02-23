@@ -228,6 +228,8 @@ class NodeService extends ChangeNotifier {
     await DB.instance
         .delete<EpicBoxModel>(boxName: DB.boxNameEpicBoxModels, key: id);
 
+    // TODO check if currently connected to server to be deleted, and if so connect to another one
+
     if (shouldNotifyListeners) {
       notifyListeners();
     }
