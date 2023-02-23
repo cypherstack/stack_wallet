@@ -313,6 +313,7 @@ class _EpicBoxMenuState extends ConsumerState<EpicBoxMenu> {
 
                             if (mounted) {
                               Navigator.of(context).pop();
+                              Navigator.of(context).pop();
 
                               // Page refresh hack
                               setState(() {
