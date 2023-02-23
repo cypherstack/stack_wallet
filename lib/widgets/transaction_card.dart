@@ -169,7 +169,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                       i--) {
                                     if (amountString.split('')[i] != '0') {
                                       String subStr =
-                                          amountString.substring(0, i);
+                                          amountString.substring(0, i + 1);
                                       if (subStr.isNotEmpty) {
                                         amountString = subStr;
                                       }
