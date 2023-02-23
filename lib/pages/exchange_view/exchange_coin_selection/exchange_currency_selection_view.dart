@@ -338,6 +338,7 @@ class _ExchangeCurrencySelectionViewState
                           coin.ticker.toLowerCase() == e.ticker.toLowerCase())
                       .isNotEmpty)
                   .toList(growable: false);
+              items.sort((a, b) => a.name.compareTo(b.name));
 
               return RoundedWhiteContainer(
                 padding: const EdgeInsets.all(0),
@@ -427,6 +428,7 @@ class _ExchangeCurrencySelectionViewState
           Flexible(
             child: Builder(builder: (context) {
               final filtered = filter(_searchString);
+              filtered.sort((a, b) => a.name.compareTo(b.name));
               return RoundedWhiteContainer(
                 padding: const EdgeInsets.all(0),
                 child: ListView.builder(
