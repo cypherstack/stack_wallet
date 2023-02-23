@@ -507,18 +507,33 @@ class EpicCashWallet extends CoinServiceAPI {
     // Listening to server responses:
     bool isConnected = true;
     textSocketHandler.incomingMessagesStream.listen((inMsg) {
-      debugPrint('> webSocket  got text message from server: "$inMsg" '
-          '[ping: ${textSocketHandler.pingDelayMs}]');
+      Logging.instance.log(
+          'Epic Box server test webSocket message from server: "$inMsg"',
+          level: LogLevel.Info);
+
+      if (inMsg.contains("Challenge")) {
+        // Successful response, close socket
+        Logging.instance
+            .log('Epic Box server test succeeded', level: LogLevel.Info);
+
+        // Disconnect from server:
+        textSocketHandler.disconnect('manual disconnect');
+        // Disposing webSocket:
+        textSocketHandler.close();
+      } /* else if(inMsg.contains("InvalidRequest")) {
+        // Handle when many InvalidRequest responses occur
+      }*/
     });
 
     // Connecting to server:
     final isTextSocketConnected = await textSocketHandler.connect();
     if (!isTextSocketConnected) {
-      // ignore: avoid_print
-      debugPrint(
-          'Connection to [$websocketConnectionUri] failed for some reason!');
+      Logging.instance.log(
+          'Epic Box server test failed: server unable to connect',
+          level: LogLevel.Warning);
       isConnected = false;
     }
+
     return isConnected;
   }
 
