@@ -9,7 +9,6 @@ import 'package:epicpay/services/event_bus/events/global/wallet_sync_status_chan
 import 'package:epicpay/services/event_bus/global_event_bus.dart';
 import 'package:epicpay/utilities/assets.dart';
 import 'package:epicpay/utilities/default_epicboxes.dart';
-import 'package:epicpay/utilities/enums/coin_enum.dart';
 import 'package:epicpay/utilities/text_styles.dart';
 import 'package:epicpay/utilities/theme/stack_colors.dart';
 import 'package:epicpay/widgets/conditional_parent.dart';
@@ -352,9 +351,8 @@ class _EpicBoxMenuState extends ConsumerState<EpicBoxMenu> {
                           Navigator.of(context).pop();
                           Navigator.of(context).pushNamed(
                             AddEditEpicBoxView.routeName,
-                            arguments: Tuple4(
+                            arguments: Tuple3(
                               AddEditEpicBoxViewType.edit,
-                              Coin.epicCash,
                               widget.epicBox.id,
                               widget.popBackToRoute,
                             ),
