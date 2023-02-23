@@ -23,6 +23,7 @@ class MajesticBankExchange extends Exchange {
 
   static const kMajesticBankCurrencyNames = {
     "BTC": "Bitcoin",
+    "FIRO": "Firo",
     "LTC": "Litecoin",
     "WOW": "Wownero",
     "XMR": "Monero",
