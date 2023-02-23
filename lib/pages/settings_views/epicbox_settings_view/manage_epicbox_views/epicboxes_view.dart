@@ -1,3 +1,4 @@
+import 'package:epicpay/pages/settings_views/epicbox_settings_view/epicbox_settings_view.dart';
 import 'package:epicpay/pages/settings_views/epicbox_settings_view/manage_epicbox_views/add_edit_epicbox_view.dart';
 import 'package:epicpay/pages/settings_views/epicbox_settings_view/sub_widgets/epicbox_list.dart';
 import 'package:epicpay/utilities/assets.dart';
@@ -82,7 +83,7 @@ class _EpicBoxesViewState extends ConsumerState<EpicBoxesView> {
             Padding(
               padding: const EdgeInsets.all(20),
               child: EpicBoxList(
-                popBackToRoute: EpicBoxesView.routeName,
+                popBackToRoute: EpicBoxSettingsView.routeName,
               ),
             ),
           ],
@@ -149,7 +150,7 @@ class _EpicBoxesViewState extends ConsumerState<EpicBoxesView> {
             ),
             child: SingleChildScrollView(
               child: EpicBoxList(
-                popBackToRoute: EpicBoxesView.routeName,
+                popBackToRoute: EpicBoxSettingsView.routeName,
               ),
             ),
           ),
