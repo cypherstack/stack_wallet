@@ -4,7 +4,6 @@ import 'package:decimal/decimal.dart';
 import 'package:epicpay/models/models.dart';
 import 'package:epicpay/pages/home_view/home_view.dart';
 import 'package:epicpay/pages/wallet_view/transaction_views/dialogs/cancelling_transaction_progress_dialog.dart';
-import 'package:epicpay/pages/wallet_view/wallet_view.dart';
 import 'package:epicpay/providers/global/address_book_service_provider.dart';
 import 'package:epicpay/providers/providers.dart';
 import 'package:epicpay/services/coins/epiccash/epiccash_wallet.dart';
