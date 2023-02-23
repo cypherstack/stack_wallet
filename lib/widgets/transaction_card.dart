@@ -163,7 +163,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                   String amountString =
                                       amount.toStringAsFixed(8);
                                   // I'd love to do this more simply
-                                  // Step from the right of the string to the left, break at first non-zero character and return index
+                                  // Step from the right of the string to the left, break at first non-zero character and make substring up to that point (LTR, unless it's zero)
                                   for (int i = amountString.length - 1;
                                       i > 0;
                                       i--) {
