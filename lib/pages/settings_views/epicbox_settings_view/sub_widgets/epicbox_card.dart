@@ -8,6 +8,7 @@ import 'package:epicpay/providers/providers.dart';
 import 'package:epicpay/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:epicpay/services/event_bus/global_event_bus.dart';
 import 'package:epicpay/utilities/assets.dart';
+import 'package:epicpay/utilities/default_epicboxes.dart';
 import 'package:epicpay/utilities/enums/coin_enum.dart';
 import 'package:epicpay/utilities/text_styles.dart';
 import 'package:epicpay/utilities/theme/stack_colors.dart';
@@ -116,8 +117,10 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
                 return;
               }
 
-              // showContextMenu(
-              //     _epicBox, _isCurrentEpicBox, tapDetails.globalPosition);
+              if (!DefaultEpicBoxes.defaultIds.contains(_epicBox.id)) {
+                showContextMenu(
+                    _epicBox, _isCurrentEpicBox, tapDetails.globalPosition);
+              } else {
               await ref
                   .read(nodeServiceChangeNotifierProvider)
                   .setPrimaryEpicBox(
