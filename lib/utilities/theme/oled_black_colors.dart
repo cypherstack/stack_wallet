@@ -283,7 +283,7 @@ class OledBlackColors extends StackColorTheme {
   @override
   Color get infoItemText => const Color(0xFFDEDEDE);
   @override
-  Color get infoItemIcons => const Color(0xFF5C94F4);
+  Color get infoItemIcons => const Color(0xFFF26822); //const Color(0xFF5C94F4);
 
   // popup
   @override
@@ -321,7 +321,8 @@ class OledBlackColors extends StackColorTheme {
   @override
   Color get myStackContactIconBG => const Color(0xFF747778);
   @override
-  Color get textConfirmTotalAmount => const Color(0xFF144D35);
+  Color get textConfirmTotalAmount =>
+      textFieldSuccessLabel; //const Color(0xFF144D35);
   @override
   Color get textSelectedWordTableItem => const Color(0xFF143D8E);
 
