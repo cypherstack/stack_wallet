@@ -94,14 +94,6 @@ class _WalletEpicBoxSettingsViewState
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text(
-                          "AVAILABLE EPIC BOX SERVERS",
-                          textAlign: TextAlign.left,
-                          style: STextStyles.overLineBold(context),
-                        ),
-                        const SizedBox(
-                          height: 14,
-                        ),
                         EpicBoxList(
                           popBackToRoute: EpicBoxSettingsView.routeName,
                         ),
