@@ -1953,6 +1953,11 @@ class EpicCashWallet extends CoinServiceAPI {
 
   @override
   bool validateAddress(String address) {
+    //Invalid address that contains HTTP and epicbox domain
+    if ((address.startsWith("http://") || address.startsWith("https://")) &&
+        address.contains("@")) {
+      return false;
+    }
     if (address.startsWith("http://") || address.startsWith("https://")) {
       if (Uri.tryParse(address) != null) {
         return true;
