@@ -18,6 +18,7 @@ import 'package:epicpay/pages/settings_views/advanced_views/debug_view.dart';
 import 'package:epicpay/pages/settings_views/currency_view.dart';
 import 'package:epicpay/pages/settings_views/delete_account_view.dart';
 import 'package:epicpay/pages/settings_views/epicbox_settings_view/epicbox_settings_view.dart';
+import 'package:epicpay/pages/settings_views/epicbox_settings_view/manage_epicbox_views/add_edit_epicbox_view.dart';
 import 'package:epicpay/pages/settings_views/hidden_settings.dart';
 import 'package:epicpay/pages/settings_views/language_view.dart';
 import 'package:epicpay/pages/settings_views/network_settings_view/manage_nodes_views/add_edit_node_view.dart';
@@ -201,6 +202,22 @@ class RouteGenerator {
               coin: args.item2,
               nodeId: args.item3,
               routeOnSuccessOrDelete: args.item4,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case AddEditEpicBoxView.routeName:
+        if (args is Tuple3<AddEditEpicBoxViewType, String?, String>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => AddEditEpicBoxView(
+              viewType: args.item1,
+              epicBoxId: args.item2,
+              routeOnSuccessOrDelete: args.item3,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -453,7 +470,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       default:
-        return _routeError("");
+        return _routeError("test");
     }
   }
 

@@ -5,10 +5,10 @@ import 'package:epicpay/models/epicbox_model.dart';
 import 'package:epicpay/pages/settings_views/epicbox_settings_view/epicbox_settings_view.dart';
 import 'package:epicpay/pages/settings_views/epicbox_settings_view/manage_epicbox_views/add_edit_epicbox_view.dart';
 import 'package:epicpay/providers/providers.dart';
-import 'package:epicpay/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:epicpay/services/event_bus/events/global/epicbox_status_changed_event.dart';
 import 'package:epicpay/services/event_bus/global_event_bus.dart';
 import 'package:epicpay/utilities/assets.dart';
-import 'package:epicpay/utilities/enums/coin_enum.dart';
+import 'package:epicpay/utilities/default_epicboxes.dart';
 import 'package:epicpay/utilities/text_styles.dart';
 import 'package:epicpay/utilities/theme/stack_colors.dart';
 import 'package:epicpay/widgets/conditional_parent.dart';
@@ -38,9 +38,9 @@ class EpicBoxCard extends ConsumerStatefulWidget {
 class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
   late final EventBus eventBus;
 
-  late WalletSyncStatus? _currentSyncStatus;
+  late EpicBoxStatus? _currentEpicBoxStatus;
 
-  late StreamSubscription<dynamic>? _syncStatusSubscription;
+  late StreamSubscription<dynamic>? _epicBoxSubscription;
 
   bool _isCurrentEpicBox = false;
 
@@ -60,25 +60,22 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
 
   @override
   void initState() {
-    if (ref.read(walletProvider)!.isRefreshing) {
-      _currentSyncStatus = WalletSyncStatus.syncing;
+    if (ref.read(walletProvider)!.isEpicBoxConnected) {
+      _currentEpicBoxStatus = EpicBoxStatus.connected;
+      // } else if (ref.read(epicBoxListenerProvider)!.isListening) { // Example if a listener provider is added
+      //   _currentEpicBoxStatus = EpicBoxStatus.listening;
     } else {
-      if (ref.read(walletProvider)!.isConnected) {
-        _currentSyncStatus = WalletSyncStatus.synced;
-      } else {
-        _currentSyncStatus = WalletSyncStatus.unableToSync;
-      }
+      _currentEpicBoxStatus = EpicBoxStatus.unableToConnect;
     }
 
     eventBus =
         widget.eventBus != null ? widget.eventBus! : GlobalEventBus.instance;
 
-    _syncStatusSubscription =
-        eventBus.on<WalletSyncStatusChangedEvent>().listen(
+    _epicBoxSubscription = eventBus.on<EpicBoxStatusChangedEvent>().listen(
       (event) async {
         if (event.walletId == ref.read(walletProvider)!.walletId) {
           setState(() {
-            _currentSyncStatus = event.newStatus;
+            _currentEpicBoxStatus = event.newStatus;
           });
         }
       },
@@ -89,7 +86,7 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
 
   @override
   void dispose() {
-    _syncStatusSubscription?.cancel();
+    _epicBoxSubscription?.cancel();
     super.dispose();
   }
 
@@ -112,32 +109,41 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
         Expanded(
           child: GestureDetector(
             onTapDown: (tapDetails) async {
-              if (_isCurrentEpicBox) {
+              // if this is the current epic box server and we're connected, ignore tap
+              if (_isCurrentEpicBox &&
+                  DefaultEpicBoxes.defaultIds.contains(_epicBox.id)) {
                 return;
               }
 
-              // showContextMenu(
-              //     _epicBox, _isCurrentEpicBox, tapDetails.globalPosition);
-              await ref
-                  .read(nodeServiceChangeNotifierProvider)
-                  .setPrimaryEpicBox(
-                    epicBox: _epicBox,
-                  );
-              await ref.read(walletProvider)!.initializeExisting();
+              if (!DefaultEpicBoxes.defaultIds.contains(_epicBox.id)) {
+                // only show context menu on custom servers
+                showContextMenu(
+                    _epicBox, _isCurrentEpicBox, tapDetails.globalPosition);
+              } else {
+                // only set primary epic box if tapped on a different server than the current one
+                await ref
+                    .read(nodeServiceChangeNotifierProvider)
+                    .setPrimaryEpicBox(
+                      epicBox: _epicBox,
+                    );
+                await ref.read(walletProvider)!.initializeExisting();
 
-              if (mounted) {
-                Navigator.of(context).pop();
+                if (mounted) {
+                  Navigator.of(context).pop();
 
-                setState(() {
-                  Navigator.push(
-                    context,
-                    PageRouteBuilder(
-                      pageBuilder: (_, __, ___) => const EpicBoxSettingsView(),
-                      transitionDuration: const Duration(seconds: 0),
-                      reverseTransitionDuration: const Duration(seconds: 0),
-                    ),
-                  );
-                });
+                  // Page refresh hack
+                  setState(() {
+                    Navigator.push(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (_, __, ___) =>
+                            const EpicBoxSettingsView(),
+                        transitionDuration: const Duration(seconds: 0),
+                        reverseTransitionDuration: const Duration(seconds: 0),
+                      ),
+                    );
+                  });
+                }
               }
             },
             child: Container(
@@ -148,12 +154,13 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
                   SvgPicture.asset(
                     Assets.svg.networkWired,
                     color: _isCurrentEpicBox
-                        ? /*_currentSyncStatus == WalletSyncStatus.unableToSync
+                        ? _currentEpicBoxStatus == EpicBoxStatus.unableToConnect
                             ? Theme.of(context)
                                 .extension<StackColors>()!
                                 .accentColorRed
-                            :*/
-                        Theme.of(context).extension<StackColors>()!.textLight
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorGreen
                         : Theme.of(context).extension<StackColors>()!.textDark,
                   ),
                   const SizedBox(
@@ -163,12 +170,14 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
                     _epicBox.name,
                     style: STextStyles.bodyBold(context).copyWith(
                       color: _isCurrentEpicBox
-                          ? /*_currentSyncStatus == WalletSyncStatus.unableToSync
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorRed
-                            :*/
-                          Theme.of(context).extension<StackColors>()!.textLight
+                          ? _currentEpicBoxStatus ==
+                                  EpicBoxStatus.unableToConnect
+                              ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorRed
+                              : Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorGreen
                           : Theme.of(context)
                               .extension<StackColors>()!
                               .textDark,
@@ -179,9 +188,9 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
             ),
           ),
         ),
-        if (_isCurrentEpicBox && _currentSyncStatus != null)
+        if (_isCurrentEpicBox && _currentEpicBoxStatus != null)
           CurrentEpicBoxStatusIcon(
-            status: _currentSyncStatus!,
+            status: _currentEpicBoxStatus!,
           ),
       ],
     );
@@ -194,22 +203,20 @@ class CurrentEpicBoxStatusIcon extends ConsumerWidget {
     required this.status,
   }) : super(key: key);
 
-  final WalletSyncStatus status;
+  final EpicBoxStatus status;
 
   Widget _getAsset(BuildContext context) {
     switch (status) {
-      case WalletSyncStatus.unableToSync:
+      case EpicBoxStatus.unableToConnect:
         return SvgPicture.asset(
           Assets.svg.refresh,
           color: Theme.of(context).extension<StackColors>()!.accentColorRed,
         );
-      case WalletSyncStatus.synced:
-      case WalletSyncStatus.syncing:
+      case EpicBoxStatus.connected:
+        /*case EpicBoxStatus.listening:*/
         return SvgPicture.asset(
           Assets.svg.check,
-          color: Theme.of(context)
-              .extension<StackColors>()!
-              .textLight /*accentColorGreen*/,
+          color: Theme.of(context).extension<StackColors>()!.accentColorGreen,
         );
     }
   }
@@ -217,7 +224,7 @@ class CurrentEpicBoxStatusIcon extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ConditionalParent(
-      condition: status == WalletSyncStatus.unableToSync,
+      condition: status == EpicBoxStatus.unableToConnect,
       builder: (child) {
         return Padding(
           padding: const EdgeInsets.only(right: 10),
@@ -232,7 +239,7 @@ class CurrentEpicBoxStatusIcon extends ConsumerWidget {
         );
       },
       child: ConditionalParent(
-        condition: status != WalletSyncStatus.unableToSync,
+        condition: status != EpicBoxStatus.unableToConnect,
         builder: (child) => Padding(
           padding: const EdgeInsets.only(
             right: 24,
@@ -307,6 +314,22 @@ class _EpicBoxMenuState extends ConsumerState<EpicBoxMenu> {
 
                             if (mounted) {
                               Navigator.of(context).pop();
+                              Navigator.of(context).pop();
+
+                              // Page refresh hack
+                              setState(() {
+                                Navigator.push(
+                                  context,
+                                  PageRouteBuilder(
+                                    pageBuilder: (_, __, ___) =>
+                                        const EpicBoxSettingsView(),
+                                    transitionDuration:
+                                        const Duration(seconds: 0),
+                                    reverseTransitionDuration:
+                                        const Duration(seconds: 0),
+                                  ),
+                                );
+                              });
                             }
                           },
                           child: Container(
@@ -330,9 +353,8 @@ class _EpicBoxMenuState extends ConsumerState<EpicBoxMenu> {
                           Navigator.of(context).pop();
                           Navigator.of(context).pushNamed(
                             AddEditEpicBoxView.routeName,
-                            arguments: Tuple4(
+                            arguments: Tuple3(
                               AddEditEpicBoxViewType.edit,
-                              Coin.epicCash,
                               widget.epicBox.id,
                               widget.popBackToRoute,
                             ),

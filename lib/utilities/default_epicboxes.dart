@@ -4,6 +4,7 @@ abstract class DefaultEpicBoxes {
   static const String defaultName = "Default";
 
   static List<EpicBoxModel> get all => [americas, asia, europe];
+  static List<String> get defaultIds => ['americas', 'asia', 'europe'];
 
   static EpicBoxModel get americas => EpicBoxModel(
         host: 'epicbox.epic.tech',

@@ -208,7 +208,7 @@ class NodeService extends ChangeNotifier {
     bool shouldNotifyListeners,
   ) async {
     await DB.instance.put<EpicBoxModel>(
-        boxName: DB.boxNameNodeModels, key: epicBox.id, value: epicBox);
+        boxName: DB.boxNameEpicBoxModels, key: epicBox.id, value: epicBox);
 
     if (shouldNotifyListeners) {
       notifyListeners();
@@ -219,6 +219,17 @@ class NodeService extends ChangeNotifier {
     await DB.instance.delete<NodeModel>(boxName: DB.boxNameNodeModels, key: id);
 
     await secureStorageInterface.delete(key: "${id}_nodePW");
+    if (shouldNotifyListeners) {
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteEpicBox(String id, bool shouldNotifyListeners) async {
+    await DB.instance
+        .delete<EpicBoxModel>(boxName: DB.boxNameEpicBoxModels, key: id);
+
+    // TODO check if currently connected to server to be deleted, and if so connect to another one
+
     if (shouldNotifyListeners) {
       notifyListeners();
     }

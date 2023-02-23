@@ -284,7 +284,7 @@ class _AddEditEpicBoxViewState extends ConsumerState<AddEditEpicBoxView>
 
                                   await ref
                                       .read(nodeServiceChangeNotifierProvider)
-                                      .delete(
+                                      .deleteEpicBox(
                                         epicBoxId!,
                                         true,
                                       );
@@ -683,7 +683,7 @@ class _EpicBoxFormState extends ConsumerState<EpicBoxForm> {
           focusNode: _hostFocusNode,
           style: STextStyles.body(context),
           decoration: InputDecoration(
-            hintText: "IP address",
+            hintText: "Host or IP address",
             fillColor: _hostFocusNode.hasFocus
                 ? Theme.of(context).extension<StackColors>()!.textFieldActiveBG
                 : Theme.of(context)
@@ -781,58 +781,58 @@ class _EpicBoxFormState extends ConsumerState<EpicBoxForm> {
             setState(() {});
           },
         ),
-        const SizedBox(
-          height: 16,
-        ),
-        Row(
-          children: [
-            GestureDetector(
-              onTap: !widget.readOnly && enableSSLCheckbox
-                  ? () {
-                      setState(() {
-                        _useSSL = !_useSSL;
-                      });
-                      _updateState();
-                    }
-                  : null,
-              child: Container(
-                color: Colors.transparent,
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: Checkbox(
-                        fillColor: widget.readOnly
-                            ? MaterialStateProperty.all(Theme.of(context)
-                                .extension<StackColors>()!
-                                .checkboxBGDisabled)
-                            : null,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        value: _useSSL,
-                        onChanged: !widget.readOnly && enableSSLCheckbox
-                            ? (newValue) {
-                                setState(() {
-                                  _useSSL = newValue!;
-                                });
-                                _updateState();
-                              }
-                            : null,
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 12,
-                    ),
-                    Text(
-                      "Use SSL",
-                      style: STextStyles.itemSubtitle12(context),
-                    )
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+        // const SizedBox(
+        //   height: 16,
+        // ),
+        // Row(
+        //   children: [
+        //     GestureDetector(
+        //       onTap: !widget.readOnly && enableSSLCheckbox
+        //           ? () {
+        //               setState(() {
+        //                 _useSSL = !_useSSL;
+        //               });
+        //               _updateState();
+        //             }
+        //           : null,
+        //       child: Container(
+        //         color: Colors.transparent,
+        //         child: Row(
+        //           children: [
+        //             SizedBox(
+        //               width: 20,
+        //               height: 20,
+        //               child: Checkbox(
+        //                 fillColor: widget.readOnly
+        //                     ? MaterialStateProperty.all(Theme.of(context)
+        //                         .extension<StackColors>()!
+        //                         .checkboxBGDisabled)
+        //                     : null,
+        //                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        //                 value: _useSSL,
+        //                 onChanged: !widget.readOnly && enableSSLCheckbox
+        //                     ? (newValue) {
+        //                         setState(() {
+        //                           _useSSL = newValue!;
+        //                         });
+        //                         _updateState();
+        //                       }
+        //                     : null,
+        //               ),
+        //             ),
+        //             const SizedBox(
+        //               width: 12,
+        //             ),
+        //             Text(
+        //               "Use SSL",
+        //               style: STextStyles.itemSubtitle12(context),
+        //             )
+        //           ],
+        //         ),
+        //       ),
+        //     ),
+        //   ],
+        // ),
       ],
     );
   }

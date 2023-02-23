@@ -69,20 +69,8 @@ Future<bool> _testEpicBoxConnection(String host, int port) async {
 // returns node data with properly formatted host/url if successful, otherwise null
 Future<EpicBoxFormData?> testEpicBoxConnection(EpicBoxFormData data) async {
   // TODO update function to test properly like Likho does with wscat
-  if (data.host == null || data.port == null || data.useSSL == null) {
+  if (data.host == null || data.port == null) {
     return null;
-  }
-
-  if (data.host!.startsWith("https://")) {
-    data.useSSL = true;
-  } else if (data.host!.startsWith("http://")) {
-    data.useSSL = false;
-  } else {
-    if (data.useSSL!) {
-      data.host = "https://${data.host!}";
-    } else {
-      data.host = "http://${data.host!}";
-    }
   }
 
   try {
