@@ -17,8 +17,8 @@ import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widge
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/restore_succeeded_dialog.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/restoring_dialog.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
@@ -32,7 +32,6 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/custom_text_selection_controls.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/enums/form_input_status_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -55,6 +54,7 @@ class RestoreWalletView extends ConsumerStatefulWidget {
     required this.walletName,
     required this.coin,
     required this.seedWordsLength,
+    required this.mnemonicPassphrase,
     required this.restoreFromDate,
     this.barcodeScanner = const BarcodeScannerWrapper(),
     this.clipboard = const ClipboardWrapper(),
@@ -64,6 +64,7 @@ class RestoreWalletView extends ConsumerStatefulWidget {
 
   final String walletName;
   final Coin coin;
+  final String mnemonicPassphrase;
   final int seedWordsLength;
   final DateTime restoreFromDate;
 
@@ -204,8 +205,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         const double overestimateSecondsPerBlock = 61;
         int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
         int approximateHeight = chosenSeconds ~/ overestimateSecondsPerBlock;
-        debugPrint(
-            "approximate height: $approximateHeight chosen_seconds: $chosenSeconds");
+        //todo: check if print needed
+        // debugPrint(
+        //     "approximate height: $approximateHeight chosen_seconds: $chosenSeconds");
         height = approximateHeight;
         if (height < 0) {
           height = 0;
@@ -290,6 +292,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           // without using them
           await manager.recoverFromMnemonic(
             mnemonic: mnemonic,
+            mnemonicPassphrase: widget.mnemonicPassphrase,
             maxUnusedAddressGap: widget.coin == Coin.firo ? 50 : 20,
             maxNumberOfIndexesToCheck: 1000,
             height: height,
@@ -373,17 +376,22 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       FormInputStatus status, String prefix) {
     Color color;
     Color prefixColor;
+    Color borderColor;
     Widget? suffixIcon;
     switch (status) {
       case FormInputStatus.empty:
         color = Theme.of(context).extension<StackColors>()!.textFieldDefaultBG;
         prefixColor = Theme.of(context).extension<StackColors>()!.textSubtitle2;
+        borderColor =
+            Theme.of(context).extension<StackColors>()!.textFieldDefaultBG;
         break;
       case FormInputStatus.invalid:
         color = Theme.of(context).extension<StackColors>()!.textFieldErrorBG;
         prefixColor = Theme.of(context)
             .extension<StackColors>()!
             .textFieldErrorSearchIconLeft;
+        borderColor =
+            Theme.of(context).extension<StackColors>()!.textFieldErrorBorder;
         suffixIcon = SvgPicture.asset(
           Assets.svg.alertCircle,
           width: 16,
@@ -398,6 +406,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         prefixColor = Theme.of(context)
             .extension<StackColors>()!
             .textFieldSuccessSearchIconLeft;
+        borderColor =
+            Theme.of(context).extension<StackColors>()!.textFieldSuccessBorder;
         suffixIcon = SvgPicture.asset(
           Assets.svg.checkCircle,
           width: 16,
@@ -449,11 +459,11 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           child: suffixIcon,
         ),
       ),
-      enabledBorder: _buildOutlineInputBorder(color),
-      focusedBorder: _buildOutlineInputBorder(color),
-      errorBorder: _buildOutlineInputBorder(color),
-      disabledBorder: _buildOutlineInputBorder(color),
-      focusedErrorBorder: _buildOutlineInputBorder(color),
+      enabledBorder: _buildOutlineInputBorder(borderColor),
+      focusedBorder: _buildOutlineInputBorder(borderColor),
+      errorBorder: _buildOutlineInputBorder(borderColor),
+      disabledBorder: _buildOutlineInputBorder(borderColor),
+      focusedErrorBorder: _buildOutlineInputBorder(borderColor),
     );
   }
 
@@ -520,7 +530,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   }
 
   Future<void> pasteMnemonic() async {
-    debugPrint("restoreWalletPasteButton tapped");
+    //todo: check if print needed
+    // debugPrint("restoreWalletPasteButton tapped");
     final ClipboardData? data =
         await widget.clipboard.getData(Clipboard.kTextPlain);
 
@@ -735,6 +746,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                           child: Column(
                                             children: [
                                               TextFormField(
+                                                autocorrect: !isDesktop,
+                                                enableSuggestions: !isDesktop,
                                                 textCapitalization:
                                                     TextCapitalization.none,
                                                 key: Key(
@@ -783,7 +796,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                         .copyWith(
                                                   color: Theme.of(context)
                                                       .extension<StackColors>()!
-                                                      .overlay,
+                                                      .textRestore,
                                                   fontSize: isDesktop ? 16 : 14,
                                                 ),
                                               ),
@@ -830,6 +843,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                           child: Column(
                                             children: [
                                               TextFormField(
+                                                autocorrect: !isDesktop,
+                                                enableSuggestions: !isDesktop,
                                                 textCapitalization:
                                                     TextCapitalization.none,
                                                 key: Key(
@@ -953,6 +968,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                     padding:
                                         const EdgeInsets.symmetric(vertical: 4),
                                     child: TextFormField(
+                                      autocorrect: !isDesktop,
+                                      enableSuggestions: !isDesktop,
                                       textCapitalization:
                                           TextCapitalization.none,
                                       key: Key("restoreMnemonicFormField_$i"),
@@ -986,7 +1003,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                           STextStyles.field(context).copyWith(
                                         color: Theme.of(context)
                                             .extension<StackColors>()!
-                                            .overlay,
+                                            .textRestore,
                                         fontSize: isDesktop ? 16 : 14,
                                       ),
                                     ),

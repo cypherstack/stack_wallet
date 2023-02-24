@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockingjay/mockingjay.dart' as mockingjay;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart' as mockito;
+import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
@@ -29,6 +30,15 @@ void main() {
     mockito
         .when(wallet.walletName)
         .thenAnswer((realInvocation) => "wallet name");
+    mockito.when(wallet.balance).thenAnswer(
+          (_) => Balance(
+            coin: Coin.bitcoin,
+            total: 0,
+            spendable: 0,
+            blockedTotal: 0,
+            pendingSpendable: 0,
+          ),
+        );
 
     final wallets = MockWallets();
     final locale = MockLocaleService();
@@ -43,6 +53,9 @@ void main() {
     mockito
         .when(wallets.getManagerProvider("wallet id"))
         .thenAnswer((realInvocation) => managerProvider);
+    mockito
+        .when(wallets.getManager("wallet id"))
+        .thenAnswer((realInvocation) => manager);
 
     final navigator = mockingjay.MockNavigator();
     mockingjay
@@ -71,8 +84,12 @@ void main() {
       ),
     );
 
+    await widgetTester.pumpAndSettle();
+
     expect(find.byType(MaterialButton), findsOneWidget);
     await widgetTester.tap(find.byType(MaterialButton));
+
+    await widgetTester.pumpAndSettle();
   });
 
   testWidgets('test widget loads correctly', (widgetTester) async {
@@ -82,6 +99,15 @@ void main() {
     mockito
         .when(wallet.walletName)
         .thenAnswer((realInvocation) => "wallet name");
+    mockito.when(wallet.balance).thenAnswer(
+          (_) => Balance(
+            coin: Coin.bitcoin,
+            total: 0,
+            spendable: 0,
+            blockedTotal: 0,
+            pendingSpendable: 0,
+          ),
+        );
 
     final wallets = MockWallets();
     final manager = Manager(wallet);
@@ -110,6 +136,9 @@ void main() {
         ),
       ),
     );
+
+    await widgetTester.pumpAndSettle();
+
     expect(find.byWidget(walletSheetCard), findsOneWidget);
   });
 }

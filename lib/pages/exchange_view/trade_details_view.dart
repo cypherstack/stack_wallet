@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/exchange_view/edit_trade_note_view.dart';
 import 'package:stackwallet/pages/exchange_view/send_from_view.dart';
@@ -18,12 +18,12 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
+import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -117,6 +117,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
       status = changeNowTransactionStatusFromStringIgnoreCase(statusString);
     } on ArgumentError catch (_) {
       status = ChangeNowTransactionStatus.Failed;
+      if (statusString == "Processing payment") {
+        status = ChangeNowTransactionStatus.Sending;
+      }
     }
 
     switch (status) {
@@ -157,9 +160,12 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
             trade.status == "Failed" ||
             trade.status == "failed");
 
-    debugPrint("sentFromStack: $sentFromStack");
-    debugPrint("hasTx: $hasTx");
-    debugPrint("trade: ${trade.toString()}");
+    //todo: check if print needed
+    // debugPrint("walletId: $walletId");
+    // debugPrint("transactionIfSentFromStack: $transactionIfSentFromStack");
+    // debugPrint("sentFromStack: $sentFromStack");
+    // debugPrint("hasTx: $hasTx");
+    // debugPrint("trade: ${trade.toString()}");
 
     final sendAmount =
         Decimal.tryParse(trade.payInAmount) ?? Decimal.parse("-1");
@@ -214,8 +220,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RoundedWhiteContainer(
-                    borderColor:
-                        Theme.of(context).extension<StackColors>()!.background,
+                    borderColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .backgroundAppBar,
                     padding: const EdgeInsets.all(0),
                     child: ListView(
                       primary: false,
@@ -281,7 +288,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     ? BoxDecoration(
                         color: Theme.of(context)
                             .extension<StackColors>()!
-                            .background,
+                            .backgroundAppBar,
                         borderRadius: BorderRadius.vertical(
                           top: Radius.circular(
                             Constants.size.circularBorderRadius,
@@ -515,7 +522,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     const SizedBox(
                       height: 10,
                     ),
-                    BlueTextButton(
+                    CustomTextButton(
                       text: "View transaction",
                       onTap: () {
                         final Coin coin =
@@ -712,7 +719,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                         },
                                         style: Theme.of(context)
                                             .extension<StackColors>()!
-                                            .getSecondaryEnabledButtonColor(
+                                            .getSecondaryEnabledButtonStyle(
                                                 context),
                                         child: Text(
                                           "Cancel",
@@ -1115,31 +1122,44 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                   const SizedBox(
                     height: 4,
                   ),
-                  Builder(builder: (context) {
-                    late final String url;
-                    switch (trade.exchangeName) {
-                      case ChangeNowExchange.exchangeName:
-                        url =
-                            "https://changenow.io/exchange/txs/${trade.tradeId}";
-                        break;
-                      case SimpleSwapExchange.exchangeName:
-                        url =
-                            "https://simpleswap.io/exchange?id=${trade.tradeId}";
-                        break;
-                    }
-                    return GestureDetector(
-                      onTap: () {
-                        launchUrl(
-                          Uri.parse(url),
-                          mode: LaunchMode.externalApplication,
-                        );
-                      },
-                      child: Text(
-                        url,
-                        style: STextStyles.link2(context),
-                      ),
-                    );
-                  }),
+                  Builder(
+                    builder: (context) {
+                      late final String url;
+                      switch (trade.exchangeName) {
+                        case ChangeNowExchange.exchangeName:
+                          url =
+                              "https://changenow.io/exchange/txs/${trade.tradeId}";
+                          break;
+                        case SimpleSwapExchange.exchangeName:
+                          url =
+                              "https://simpleswap.io/exchange?id=${trade.tradeId}";
+                          break;
+                        case MajesticBankExchange.exchangeName:
+                          url =
+                              "https://majesticbank.sc/track?trx=${trade.tradeId}";
+                          break;
+                      }
+                      return ConditionalParent(
+                        condition: isDesktop,
+                        builder: (child) => MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: child,
+                        ),
+                        child: GestureDetector(
+                          onTap: () {
+                            launchUrl(
+                              Uri.parse(url),
+                              mode: LaunchMode.externalApplication,
+                            );
+                          },
+                          child: Text(
+                            url,
+                            style: STextStyles.link2(context),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -1188,7 +1208,7 @@ class _Divider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 1,
-      color: Theme.of(context).extension<StackColors>()!.background,
+      color: Theme.of(context).extension<StackColors>()!.backgroundAppBar,
     );
   }
 }

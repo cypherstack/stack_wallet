@@ -50,6 +50,9 @@ class AddressBookService extends ChangeNotifier {
   }
 
   bool matches(String term, Contact contact) {
+    if (term.isEmpty) {
+      return true;
+    }
     final text = term.toLowerCase();
     if (contact.name.toLowerCase().contains(text)) {
       return true;

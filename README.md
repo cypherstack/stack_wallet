@@ -24,7 +24,7 @@ Highlights include:
 
 The following prerequisities can be installed with the setup script `scripts/setup.sh` or manually as described below:
 
-- Flutter 3.0.5 [(install manually or with git, do not install with snap)](https://docs.flutter.dev/get-started/install)
+- Flutter 3.3.4 [(install manually or with git, do not install with snap)](https://docs.flutter.dev/get-started/install)
 - Dart SDK Requirement (>=2.17.0, up until <3.0.0)
 - Android setup ([Android Studio](https://developer.android.com/studio) and subsequent dependencies)
 

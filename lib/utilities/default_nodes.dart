@@ -18,6 +18,7 @@ abstract class DefaultNodes {
         bitcoincash,
         namecoin,
         wownero,
+        particl,
         bitcoinTestnet,
         litecoinTestNet,
         bitcoincashTestnet,
@@ -107,6 +108,7 @@ abstract class DefaultNodes {
         coinName: Coin.monero.name,
         isFailover: true,
         isDown: false,
+        trusted: true,
       );
 
   static NodeModel get wownero => NodeModel(
@@ -119,6 +121,7 @@ abstract class DefaultNodes {
         coinName: Coin.wownero.name,
         isFailover: true,
         isDown: false,
+        trusted: true,
       );
 
   static NodeModel get epicCash => NodeModel(
@@ -145,8 +148,19 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
+  static NodeModel get particl => NodeModel(
+      host: "particl.stackwallet.com",
+      port: 58002,
+      name: defaultName,
+      id: _nodeId(Coin.particl),
+      useSSL: true,
+      enabled: true,
+      coinName: Coin.particl.name,
+      isFailover: true,
+      isDown: false);
+
   static NodeModel get bitcoinTestnet => NodeModel(
-        host: "electrumx-testnet.cypherstack.com",
+        host: "bitcoin-testnet.stackwallet.com",
         port: 51002,
         name: defaultName,
         id: _nodeId(Coin.bitcoinTestNet),
@@ -222,6 +236,9 @@ abstract class DefaultNodes {
       case Coin.namecoin:
         return namecoin;
 
+      case Coin.particl:
+        return particl;
+
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;
 
@@ -240,7 +257,16 @@ abstract class DefaultNodes {
   }
 
   static final String defaultEpicBoxConfig = jsonEncode({
-    "domain": "209.127.179.199",
-    "port": 13420,
+    "epicbox_domain": "epicbox.epic.tech",
+    "epicbox_port": 443,
+    "epicbox_protocol_unsecure": false,
+    "epicbox_address_index": 0,
+  });
+
+  static final String epicBoxConfigEUR = jsonEncode({
+    "epicbox_domain": "epicbox.fastepic.eu",
+    "epicbox_port": 443,
+    "epicbox_protocol_unsecure": false,
+    "epicbox_address_index": 0,
   });
 }

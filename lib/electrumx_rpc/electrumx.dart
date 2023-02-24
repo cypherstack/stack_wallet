@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:decimal/decimal.dart';
 import 'package:stackwallet/electrumx_rpc/rpc.dart';
+import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:uuid/uuid.dart';
@@ -132,7 +133,17 @@ class ElectrumX {
       final response = await _rpcClient!.request(jsonRequestString);
 
       if (response["error"] != null) {
-        throw Exception("JSONRPC response error: $response");
+        if (response["error"]
+            .toString()
+            .contains("No such mempool or blockchain transaction")) {
+          throw NoSuchTransactionException(
+            "No such mempool or blockchain transaction",
+            args.first.toString(),
+          );
+        }
+
+        throw Exception(
+            "JSONRPC response     \ncommand: $command     \nargs: $args     \nerror: $response");
       }
 
       currentFailoverIndex = -1;
@@ -275,9 +286,9 @@ class ElectrumX {
       final response = await request(
         requestID: requestID,
         command: 'server.ping',
-        connectionTimeout: const Duration(seconds: 1),
+        connectionTimeout: const Duration(seconds: 2),
         retries: retryCount,
-      ).timeout(const Duration(seconds: 1)) as Map<String, dynamic>;
+      ).timeout(const Duration(seconds: 2)) as Map<String, dynamic>;
       return response.keys.contains("result") && response["result"] == null;
     } catch (e) {
       rethrow;
@@ -544,6 +555,10 @@ class ElectrumX {
           verbose,
         ],
       );
+      if (!verbose) {
+        return {"rawtx": response["result"] as String};
+      }
+
       return Map<String, dynamic>.from(response["result"] as Map);
     } catch (e) {
       rethrow;

@@ -32,13 +32,14 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
           .watch(walletsChangeNotifierProvider
               .select((value) => value.getManager(walletId)))
           .wallet as FiroWallet;
-      totalBalanceFuture = firoWallet.availablePublicBalance();
-      availableBalanceFuture = firoWallet.availablePrivateBalance();
+      totalBalanceFuture = Future(() => firoWallet.balance.getSpendable());
+      availableBalanceFuture =
+          Future(() => firoWallet.balancePrivate.getSpendable());
     } else {
-      final wallet = ref.watch(walletsChangeNotifierProvider
+      final manager = ref.watch(walletsChangeNotifierProvider
           .select((value) => value.getManager(walletId)));
-      totalBalanceFuture = wallet.totalBalance;
-      availableBalanceFuture = wallet.availableBalance;
+      totalBalanceFuture = Future(() => manager.balance.getTotal());
+      availableBalanceFuture = Future(() => manager.balance.getSpendable());
     }
 
     return Container(

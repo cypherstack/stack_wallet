@@ -2,18 +2,19 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/notification_model.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
-import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/trade_service.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+
+import 'exchange/exchange.dart';
 
 class NotificationsService extends ChangeNotifier {
   late NodeService nodeService;
@@ -169,12 +170,14 @@ class NotificationsService extends ChangeNotifier {
               }
 
               // replaces the current notification with the updated one
-              add(updatedNotification, true);
+              await add(updatedNotification, true);
             }
           } else {
             // TODO: check non electrumx coins
           }
         }
+      } on NoSuchTransactionException catch (e, s) {
+        await _deleteWatchedTxNotification(notification);
       } catch (e, s) {
         Logging.instance.log("$e $s", level: LogLevel.Error);
       }
@@ -193,15 +196,12 @@ class NotificationsService extends ChangeNotifier {
       }
       final oldTrade = trades.first;
       late final ExchangeResponse<Trade> response;
-      switch (oldTrade.exchangeName) {
-        case SimpleSwapExchange.exchangeName:
-          response = await SimpleSwapExchange().updateTrade(oldTrade);
-          break;
-        case ChangeNowExchange.exchangeName:
-          response = await ChangeNowExchange().updateTrade(oldTrade);
-          break;
-        default:
-          return;
+
+      try {
+        final exchange = Exchange.fromName(oldTrade.exchangeName);
+        response = await exchange.updateTrade(oldTrade);
+      } catch (_) {
+        return;
       }
 
       if (response.value == null) {

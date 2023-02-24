@@ -8,8 +8,6 @@ final addWalletSelectedCoinStateProvider =
     StateProvider.autoDispose<Coin?>((_) {
   if (kDebugMode) {
     _count++;
-    debugPrint(
-        "addWalletSelectedCoinStateProvider instantiation count: $_count");
   }
 
   return null;

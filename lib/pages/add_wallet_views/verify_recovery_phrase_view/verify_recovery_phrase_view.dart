@@ -1,19 +1,19 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/verify_recovery_phrase_view/sub_widgets/word_table.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -161,7 +161,9 @@ class _VerifyRecoveryPhraseViewState
 
     result.insert(random.nextInt(wordsToShow), chosenWord);
 
-    debugPrint("Mnemonic game correct word: $chosenWord");
+    if (kDebugMode) {
+      print("Mnemonic game correct word: $chosenWord");
+    }
 
     return Tuple2(result, chosenWord);
   }
@@ -329,10 +331,10 @@ class _VerifyRecoveryPhraseViewState
                               style: selectedWord.isNotEmpty
                                   ? Theme.of(context)
                                       .extension<StackColors>()!
-                                      .getPrimaryEnabledButtonColor(context)
+                                      .getPrimaryEnabledButtonStyle(context)
                                   : Theme.of(context)
                                       .extension<StackColors>()!
-                                      .getPrimaryDisabledButtonColor(context),
+                                      .getPrimaryDisabledButtonStyle(context),
                               child: isDesktop
                                   ? Text(
                                       "Verify",

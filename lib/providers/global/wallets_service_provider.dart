@@ -9,8 +9,6 @@ final walletsServiceChangeNotifierProvider =
     ChangeNotifierProvider<WalletsService>((ref) {
   if (kDebugMode) {
     _count++;
-    debugPrint(
-        "walletsServiceChangeNotifierProvider instantiation count: $_count");
   }
 
   return WalletsService(

@@ -2,12 +2,13 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/animated_text.dart';
 
 class WalletInfoRowBalanceFuture extends ConsumerWidget {
   const WalletInfoRowBalanceFuture({Key? key, required this.walletId})
@@ -27,43 +28,23 @@ class WalletInfoRowBalanceFuture extends ConsumerWidget {
       ),
     );
 
-    return FutureBuilder(
-      future: manager.totalBalance,
-      builder: (builderContext, AsyncSnapshot<Decimal> snapshot) {
-        if (snapshot.connectionState == ConnectionState.done &&
-            snapshot.hasData) {
-          return Text(
-            "${Format.localizedStringAsFixed(
-              value: snapshot.data!,
-              locale: locale,
-              decimalPlaces: 8,
-            )} ${manager.coin.ticker}",
-            style: Util.isDesktop
-                ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textSubtitle1,
-                  )
-                : STextStyles.itemSubtitle(context),
-          );
-        } else {
-          return AnimatedText(
-            stringsToLoopThrough: const [
-              "Loading balance",
-              "Loading balance.",
-              "Loading balance..",
-              "Loading balance..."
-            ],
-            style: Util.isDesktop
-                ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textSubtitle1,
-                  )
-                : STextStyles.itemSubtitle(context),
-          );
-        }
-      },
+    Decimal balance = manager.balance.getTotal();
+
+    if (manager.coin == Coin.firo || manager.coin == Coin.firoTestNet) {
+      balance += (manager.wallet as FiroWallet).balancePrivate.getTotal();
+    }
+
+    return Text(
+      "${Format.localizedStringAsFixed(
+        value: balance,
+        locale: locale,
+        decimalPlaces: Constants.decimalPlacesForCoin(manager.coin),
+      )} ${manager.coin.ticker}",
+      style: Util.isDesktop
+          ? STextStyles.desktopTextExtraSmall(context).copyWith(
+              color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
+            )
+          : STextStyles.itemSubtitle(context),
     );
   }
 }

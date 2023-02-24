@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
+import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 
-class EmptyWallets extends StatelessWidget {
+class EmptyWallets extends ConsumerWidget {
   const EmptyWallets({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: $runtimeType");
 
     final isDesktop = Util.isDesktop;
+    final bool isSorbet = ref.read(colorThemeProvider.state).state.themeType ==
+        ThemeType.fruitSorbet;
+    final bool isForest =
+        ref.read(colorThemeProvider.state).state.themeType == ThemeType.forest;
 
     return SafeArea(
       child: Padding(
@@ -29,12 +36,21 @@ class EmptyWallets extends StatelessWidget {
               const Spacer(
                 flex: 2,
               ),
-              Image(
-                image: AssetImage(
-                  Assets.png.stack,
-                ),
-                width: isDesktop ? 324 : MediaQuery.of(context).size.width / 3,
-              ),
+              (isSorbet || isForest)
+                  ? SvgPicture.asset(
+                      Assets.svg.stack(context),
+                      width: isDesktop
+                          ? 324
+                          : MediaQuery.of(context).size.width / 3,
+                    )
+                  : Image(
+                      image: AssetImage(
+                        Assets.png.stack(context),
+                      ),
+                      width: isDesktop
+                          ? 324
+                          : MediaQuery.of(context).size.width / 3,
+                    ),
               SizedBox(
                 height: isDesktop ? 30 : 16,
               ),
@@ -94,7 +110,7 @@ class AddWalletButton extends StatelessWidget {
     return TextButton(
       style: Theme.of(context)
           .extension<StackColors>()!
-          .getPrimaryEnabledButtonColor(context),
+          .getPrimaryEnabledButtonStyle(context),
       onPressed: () {
         if (isDesktop) {
           Navigator.of(

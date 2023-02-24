@@ -91,7 +91,7 @@ class _ExchangeLoadingOverlayViewState
                   rightButton: TextButton(
                     style: Theme.of(context)
                         .extension<StackColors>()!
-                        .getSecondaryEnabledButtonColor(context),
+                        .getSecondaryEnabledButtonStyle(context),
                     child: Text(
                       "OK",
                       style: STextStyles.button(context).copyWith(

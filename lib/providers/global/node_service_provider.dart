@@ -8,8 +8,6 @@ final nodeServiceChangeNotifierProvider =
     ChangeNotifierProvider<NodeService>((ref) {
   if (kDebugMode) {
     _count++;
-    debugPrint(
-        "nodeServiceChangeNotifierProvider instantiation count: $_count");
   }
 
   return NodeService(secureStorageInterface: ref.read(secureStoreProvider));

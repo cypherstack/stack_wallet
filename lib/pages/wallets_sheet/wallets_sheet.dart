@@ -17,8 +17,13 @@ class WalletsSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final providers = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManagerProvidersByCoin()))[coin];
+    final providers = ref
+        .watch(walletsChangeNotifierProvider
+            .select((value) => value.getManagerProvidersByCoin()))
+        .where((e) => e.item1 == coin)
+        .map((e) => e.item2)
+        .expand((e) => e)
+        .toList();
 
     final maxHeight = MediaQuery.of(context).size.height * 0.60;
 
@@ -70,7 +75,7 @@ class WalletsSheet extends ConsumerWidget {
               Flexible(
                 child: ListView.builder(
                   shrinkWrap: true,
-                  itemCount: providers!.length,
+                  itemCount: providers.length,
                   itemBuilder: (builderContext, index) {
                     final walletId = ref.watch(
                         providers[index].select((value) => value.walletId));

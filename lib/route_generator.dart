@@ -2,10 +2,12 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/models/buy/response_objects/quote.dart';
 import 'package:stackwallet/models/contact_address_entry.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
@@ -22,9 +24,11 @@ import 'package:stackwallet/pages/address_book_views/subviews/address_book_filte
 import 'package:stackwallet/pages/address_book_views/subviews/contact_details_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/edit_contact_address_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/edit_contact_name_emoji_view.dart';
+import 'package:stackwallet/pages/buy_view/buy_in_wallet_view.dart';
+import 'package:stackwallet/pages/buy_view/buy_quote_preview.dart';
+import 'package:stackwallet/pages/buy_view/buy_view.dart';
 import 'package:stackwallet/pages/exchange_view/choose_from_stack_view.dart';
 import 'package:stackwallet/pages/exchange_view/edit_trade_note_view.dart';
-import 'package:stackwallet/pages/exchange_view/exchange_loading_overlay.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_1_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_2_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_3_view.dart';
@@ -36,7 +40,12 @@ import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/intro_view.dart';
 import 'package:stackwallet/pages/manage_favorites_view/manage_favorites_view.dart';
 import 'package:stackwallet/pages/notification_views/notifications_view.dart';
+import 'package:stackwallet/pages/paynym/add_new_paynym_follow_view.dart';
+import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
+import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
+import 'package:stackwallet/pages/receive_view/addresses/edit_address_label_view.dart';
+import 'package:stackwallet/pages/receive_view/addresses/receiving_addresses_view.dart';
 import 'package:stackwallet/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
@@ -84,30 +93,36 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_deta
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_search_filter_view.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
-import 'package:stackwallet/pages_desktop_specific/create_password/create_password_view.dart';
+import 'package:stackwallet/pages_desktop_specific/address_book_view/desktop_address_book.dart';
+// import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_all_buys_view.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_buy/desktop_buy_view.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_all_trades_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
-import 'package:stackwallet/pages_desktop_specific/forgot_password_desktop_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/address_book_view/desktop_address_book.dart';
-import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/desktop_settings_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/my_stack_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/desktop_wallet_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/delete_wallet_keys_popup.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/desktop_attention_delete_wallet.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/desktop_delete_wallet_dialog.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/qr_code_desktop_popup_content.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/wallet_keys_desktop_popup.dart';
-import 'package:stackwallet/pages_desktop_specific/home/notifications/desktop_notifications_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/advanced_settings/advanced_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/appearance_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/backup_and_restore/backup_and_restore_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/currency_settings/currency_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/nodes_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/security_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/settings_menu.dart';
-import 'package:stackwallet/pages_desktop_specific/home/settings_menu/syncing_preferences_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/home/support_and_about_view/desktop_about_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/support_and_about_view/desktop_support_view.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/my_stack_view.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/delete_wallet_keys_popup.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_attention_delete_wallet.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_delete_wallet_dialog.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/qr_code_desktop_popup_content.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/unlock_wallet_keys_desktop.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/wallet_keys_desktop_popup.dart';
+import 'package:stackwallet/pages_desktop_specific/notifications/desktop_notifications_view.dart';
+import 'package:stackwallet/pages_desktop_specific/password/create_password_view.dart';
+import 'package:stackwallet/pages_desktop_specific/password/delete_password_warning_view.dart';
+import 'package:stackwallet/pages_desktop_specific/password/forgot_password_desktop_view.dart';
+import 'package:stackwallet/pages_desktop_specific/password/forgotten_passphrase_restore_from_swb.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/desktop_settings_view.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/advanced_settings/advanced_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/appearance_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/backup_and_restore/backup_and_restore_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/currency_settings/currency_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/desktop_about_view.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/desktop_support_view.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/language_settings/language_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/nodes_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/security_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/syncing_preferences_settings.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -115,8 +130,7 @@ import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:tuple/tuple.dart';
 
-import 'pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/unlock_wallet_keys_desktop.dart';
-import 'pages_desktop_specific/home/settings_menu/language_settings/language_settings.dart';
+import 'models/isar/models/blockchain_data/transaction.dart';
 
 class RouteGenerator {
   static const bool useMaterialPageRoute = true;
@@ -171,7 +185,7 @@ class RouteGenerator {
         }
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => StackPrivacyCalls(isSettings: false),
+            builder: (_) => const StackPrivacyCalls(isSettings: false),
             settings: RouteSettings(name: settings.name));
 
       case WalletsView.routeName:
@@ -185,6 +199,48 @@ class RouteGenerator {
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const AddWalletView(),
             settings: RouteSettings(name: settings.name));
+
+      case PaynymClaimView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => PaynymClaimView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case PaynymHomeView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => PaynymHomeView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case AddNewPaynymFollowView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => AddNewPaynymFollowView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case GlobalSettingsView.routeName:
         return getRoute(
@@ -419,6 +475,20 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case EditAddressLabelView.routeName:
+        if (args is AddressLabel) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => EditAddressLabelView(
+              addressLabel: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       case EditTradeNoteView.routeName:
         if (args is Tuple2<String, String>) {
           return getRoute(
@@ -641,15 +711,15 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case RestoreWalletView.routeName:
-        if (args is Tuple4<String, Coin, int, DateTime>) {
+        if (args is Tuple5<String, Coin, int, DateTime, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => RestoreWalletView(
-              walletName: args.item1,
-              coin: args.item2,
-              seedWordsLength: args.item3,
-              restoreFromDate: args.item4,
-            ),
+                walletName: args.item1,
+                coin: args.item2,
+                seedWordsLength: args.item3,
+                restoreFromDate: args.item4,
+                mnemonicPassphrase: args.item5),
             settings: RouteSettings(
               name: settings.name,
             ),
@@ -766,6 +836,21 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case ReceivingAddressesView.routeName:
+        if (args is Tuple2<String, bool>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ReceivingAddressesView(
+              walletId: args.item1,
+              isDesktop: args.item2,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       case SendView.routeName:
         if (args is Tuple2<String, Coin>) {
           return getRoute(
@@ -790,6 +875,18 @@ class RouteGenerator {
               name: settings.name,
             ),
           );
+        } else if (args is Tuple3<String, Coin, PaynymAccountLite>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SendView(
+              walletId: args.item1,
+              coin: args.item2,
+              accountLite: args.item3,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
@@ -809,7 +906,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case WalletInitiatedExchangeView.routeName:
-        if (args is Tuple3<String, Coin, VoidCallback>) {
+        if (args is Tuple2<String, Coin>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => Stack(
@@ -818,9 +915,9 @@ class RouteGenerator {
                   walletId: args.item1,
                   coin: args.item2,
                 ),
-                ExchangeLoadingOverlayView(
-                  unawaitedLoad: args.item3,
-                ),
+                // ExchangeLoadingOverlayView(
+                //   unawaitedLoad: args.item3,
+                // ),
               ],
             ),
             settings: RouteSettings(
@@ -998,8 +1095,33 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case BuyQuotePreviewView.routeName:
+        if (args is SimplexQuote) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => BuyQuotePreviewView(
+              quote: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       // == Desktop specific routes ============================================
       case CreatePasswordView.routeName:
+        if (args is bool) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => CreatePasswordView(
+              restoreFromSWB: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const CreatePasswordView(),
@@ -1010,6 +1132,26 @@ class RouteGenerator {
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const ForgotPasswordDesktopView(),
             settings: RouteSettings(name: settings.name));
+
+      case ForgottenPassphraseRestoreFromSWB.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const ForgottenPassphraseRestoreFromSWB(),
+            settings: RouteSettings(name: settings.name));
+
+      case DeletePasswordWarningView.routeName:
+        if (args is bool) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => DeletePasswordWarningView(
+              shouldCreateNew: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case DesktopHomeView.routeName:
         return getRoute(
@@ -1027,6 +1169,36 @@ class RouteGenerator {
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const DesktopExchangeView(),
+            settings: RouteSettings(name: settings.name));
+
+      case BuyView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const BuyView(),
+            settings: RouteSettings(name: settings.name));
+
+      case BuyInWalletView.routeName:
+        if (args is Coin) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => BuyInWalletView(coin: args),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case DesktopBuyView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const DesktopBuyView(),
+            settings: RouteSettings(name: settings.name));
+
+      case DesktopAllTradesView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const DesktopAllTradesView(),
             settings: RouteSettings(name: settings.name));
 
       case DesktopSettingsView.routeName:
@@ -1054,14 +1226,6 @@ class RouteGenerator {
           );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case SettingsMenu.routeName:
-        return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => SettingsMenu(
-                  onSelectionChanged: (int) {},
-                ),
-            settings: RouteSettings(name: settings.name));
 
       case BackupRestoreSettings.routeName:
         return getRoute(

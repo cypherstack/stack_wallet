@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_api.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -109,7 +110,7 @@ class HiddenSettings extends StatelessWidget {
                             onTap: () async {
                               await ref
                                   .read(debugServiceProvider)
-                                  .deleteAllMessages();
+                                  .deleteAllLogs();
 
                               unawaited(showFloatingFlushBar(
                                 type: FlushBarType.success,
@@ -120,6 +121,48 @@ class HiddenSettings extends StatelessWidget {
                             child: RoundedWhiteContainer(
                               child: Text(
                                 "Delete Debug Logs",
+                                style: STextStyles.button(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark),
+                              ),
+                            ),
+                          );
+                        }),
+                        // const SizedBox(
+                        //   height: 12,
+                        // ),
+                        // Consumer(builder: (_, ref, __) {
+                        //   return GestureDetector(
+                        //     onTap: () async {
+                        //       final x =
+                        //           await MajesticBankAPI.instance.getRates();
+                        //       print(x);
+                        //     },
+                        //     child: RoundedWhiteContainer(
+                        //       child: Text(
+                        //         "Click me",
+                        //         style: STextStyles.button(context).copyWith(
+                        //             color: Theme.of(context)
+                        //                 .extension<StackColors>()!
+                        //                 .accentColorDark),
+                        //       ),
+                        //     ),
+                        //   );
+                        // }),
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        Consumer(builder: (_, ref, __) {
+                          return GestureDetector(
+                            onTap: () async {
+                              final x = await MajesticBankAPI.instance
+                                  .getLimit(fromCurrency: 'btc');
+                              print(x);
+                            },
+                            child: RoundedWhiteContainer(
+                              child: Text(
+                                "Click me",
                                 style: STextStyles.button(context).copyWith(
                                     color: Theme.of(context)
                                         .extension<StackColors>()!

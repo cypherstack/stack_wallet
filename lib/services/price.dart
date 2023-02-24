@@ -87,7 +87,7 @@ class PriceAPI {
     Map<Coin, Tuple2<Decimal, double>> result = {};
     try {
       final uri = Uri.parse(
-          "https://api.coingecko.com/api/v3/coins/markets?vs_currency=${baseCurrency.toLowerCase()}&ids=monero,bitcoin,litecoin,epic-cash,zcoin,dogecoin,bitcoin-cash,namecoin,wownero&order=market_cap_desc&per_page=10&page=1&sparkline=false");
+          "https://api.coingecko.com/api/v3/coins/markets?vs_currency=${baseCurrency.toLowerCase()}&ids=monero,bitcoin,litecoin,epic-cash,zcoin,dogecoin,bitcoin-cash,namecoin,wownero,particl&order=market_cap_desc&per_page=10&page=1&sparkline=false");
       // final uri = Uri.parse(
       //     "https://api.coingecko.com/api/v3/coins/markets?vs_currency=${baseCurrency.toLowerCase()}&ids=monero%2Cbitcoin%2Cepic-cash%2Czcoin%2Cdogecoin&order=market_cap_desc&per_page=10&page=1&sparkline=false");
 

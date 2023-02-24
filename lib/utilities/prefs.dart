@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/languages_enum.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
+import 'package:uuid/uuid.dart';
 
 class Prefs extends ChangeNotifier {
   Prefs._();
@@ -17,7 +17,7 @@ class Prefs extends ChangeNotifier {
   Future<void> init() async {
     if (!_initialized) {
       _currency = await _getPreferredCurrency();
-      _exchangeRateType = await _getExchangeRateType();
+      // _exchangeRateType = await _getExchangeRateType();
       _useBiometrics = await _getUseBiometrics();
       _hasPin = await _getHasPin();
       _language = await _getPreferredLanguage();
@@ -38,6 +38,8 @@ class Prefs extends ChangeNotifier {
       _startupWalletId = await _getStartupWalletId();
       _externalCalls = await _getHasExternalCalls();
       _familiarity = await _getHasFamiliarity();
+      _userId = await _getUserId();
+      _signupEpoch = await _getSignupEpoch();
 
       _initialized = true;
     }
@@ -248,44 +250,44 @@ class Prefs extends ChangeNotifier {
 
   // exchange rate type
 
-  ExchangeRateType _exchangeRateType = ExchangeRateType.estimated;
-
-  ExchangeRateType get exchangeRateType => _exchangeRateType;
-
-  set exchangeRateType(ExchangeRateType exchangeRateType) {
-    if (_exchangeRateType != exchangeRateType) {
-      switch (exchangeRateType) {
-        case ExchangeRateType.estimated:
-          DB.instance.put<dynamic>(
-              boxName: DB.boxNamePrefs,
-              key: "exchangeRateType",
-              value: "estimated");
-          break;
-        case ExchangeRateType.fixed:
-          DB.instance.put<dynamic>(
-              boxName: DB.boxNamePrefs,
-              key: "exchangeRateType",
-              value: "fixed");
-          break;
-      }
-      _exchangeRateType = exchangeRateType;
-      notifyListeners();
-    }
-  }
-
-  Future<ExchangeRateType> _getExchangeRateType() async {
-    String? rate = await DB.instance.get<dynamic>(
-        boxName: DB.boxNamePrefs, key: "exchangeRateType") as String?;
-    rate ??= "estimated";
-    switch (rate) {
-      case "estimated":
-        return ExchangeRateType.estimated;
-      case "fixed":
-        return ExchangeRateType.fixed;
-      default:
-        throw Exception("Invalid exchange rate type found in prefs!");
-    }
-  }
+  // ExchangeRateType _exchangeRateType = ExchangeRateType.estimated;
+  //
+  // ExchangeRateType get exchangeRateType => _exchangeRateType;
+  //
+  // set exchangeRateType(ExchangeRateType exchangeRateType) {
+  //   if (_exchangeRateType != exchangeRateType) {
+  //     switch (exchangeRateType) {
+  //       case ExchangeRateType.estimated:
+  //         DB.instance.put<dynamic>(
+  //             boxName: DB.boxNamePrefs,
+  //             key: "exchangeRateType",
+  //             value: "estimated");
+  //         break;
+  //       case ExchangeRateType.fixed:
+  //         DB.instance.put<dynamic>(
+  //             boxName: DB.boxNamePrefs,
+  //             key: "exchangeRateType",
+  //             value: "fixed");
+  //         break;
+  //     }
+  //     _exchangeRateType = exchangeRateType;
+  //     notifyListeners();
+  //   }
+  // }
+  //
+  // Future<ExchangeRateType> _getExchangeRateType() async {
+  //   String? rate = await DB.instance.get<dynamic>(
+  //       boxName: DB.boxNamePrefs, key: "exchangeRateType") as String?;
+  //   rate ??= "estimated";
+  //   switch (rate) {
+  //     case "estimated":
+  //       return ExchangeRateType.estimated;
+  //     case "fixed":
+  //       return ExchangeRateType.fixed;
+  //     default:
+  //       throw Exception("Invalid exchange rate type found in prefs!");
+  //   }
+  // }
 
   // use biometrics
 
@@ -601,5 +603,46 @@ class Prefs extends ChangeNotifier {
       return false;
     }
     return true;
+  }
+
+  String? _userId;
+  String? get userID => _userId;
+
+  Future<String?> _getUserId() async {
+    String? userID = await DB.instance
+        .get<dynamic>(boxName: DB.boxNamePrefs, key: "userID") as String?;
+    if (userID == null) {
+      userID = const Uuid().v4();
+      await saveUserID(userID);
+    }
+    return userID;
+  }
+
+  Future<void> saveUserID(String userId) async {
+    _userId = userId;
+    await DB.instance
+        .put<dynamic>(boxName: DB.boxNamePrefs, key: "userID", value: _userId);
+    // notifyListeners();
+  }
+
+  int? _signupEpoch;
+  int? get signupEpoch => _signupEpoch;
+
+  Future<int?> _getSignupEpoch() async {
+    int? signupEpoch = await DB.instance
+        .get<dynamic>(boxName: DB.boxNamePrefs, key: "signupEpoch") as int?;
+    if (signupEpoch == null) {
+      signupEpoch = DateTime.now().millisecondsSinceEpoch ~/
+          Duration.millisecondsPerSecond;
+      await saveSignupEpoch(signupEpoch);
+    }
+    return signupEpoch;
+  }
+
+  Future<void> saveSignupEpoch(int signupEpoch) async {
+    _signupEpoch = signupEpoch;
+    await DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs, key: "signupEpoch", value: _signupEpoch);
+    // notifyListeners();
   }
 }

@@ -2,12 +2,14 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/stack_privacy_calls.dart';
+import 'package:stackwallet/pages_desktop_specific/password/create_password_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class IntroView extends StatefulWidget {
@@ -52,7 +54,7 @@ class _IntroViewState extends State<IntroView> {
                         ),
                         child: Image(
                           image: AssetImage(
-                            Assets.png.stack,
+                            Assets.png.stack(context),
                           ),
                         ),
                       ),
@@ -135,6 +137,20 @@ class _IntroViewState extends State<IntroView> {
                       GetStartedButton(
                         isDesktop: isDesktop,
                       ),
+                      if (isDesktop)
+                        const SizedBox(
+                          height: 20,
+                        ),
+                      if (isDesktop)
+                        SecondaryButton(
+                          label: "Restore from Stack backup",
+                          onPressed: () {
+                            Navigator.of(context).pushNamed(
+                              CreatePasswordView.routeName,
+                              arguments: true,
+                            );
+                          },
+                        ),
                       const Spacer(
                         flex: 65,
                       ),
@@ -243,7 +259,7 @@ class GetStartedButton extends StatelessWidget {
         ? TextButton(
             style: Theme.of(context)
                 .extension<StackColors>()!
-                .getPrimaryEnabledButtonColor(context),
+                .getPrimaryEnabledButtonStyle(context),
             onPressed: () {
               Prefs.instance.externalCalls = true;
               Navigator.of(context).pushNamed(
@@ -257,12 +273,12 @@ class GetStartedButton extends StatelessWidget {
             ),
           )
         : SizedBox(
-            width: 328,
+            width: double.infinity,
             height: 70,
             child: TextButton(
               style: Theme.of(context)
                   .extension<StackColors>()!
-                  .getPrimaryEnabledButtonColor(context),
+                  .getPrimaryEnabledButtonStyle(context),
               onPressed: () {
                 Navigator.of(context).pushNamed(
                   StackPrivacyCalls.routeName,
@@ -270,7 +286,7 @@ class GetStartedButton extends StatelessWidget {
                 );
               },
               child: Text(
-                "Get started",
+                "Create new Stack",
                 style: STextStyles.button(context).copyWith(fontSize: 20),
               ),
             ),

@@ -17,6 +17,7 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 import 'package:stackwallet/widgets/wallet_info_row/sub_widgets/wallet_info_row_coin_icon.dart';
+import 'package:tuple/tuple.dart';
 
 class DesktopChooseFromStack extends ConsumerStatefulWidget {
   const DesktopChooseFromStack({
@@ -220,10 +221,20 @@ class _DesktopChooseFromStackState
                         const SizedBox(
                           width: 80,
                         ),
-                        BlueTextButton(
+                        CustomTextButton(
                           text: "Select wallet",
-                          onTap: () {
-                            Navigator.of(context).pop(manager.walletId);
+                          onTap: () async {
+                            final address =
+                                await manager.currentReceivingAddress;
+
+                            if (mounted) {
+                              Navigator.of(context).pop(
+                                Tuple2(
+                                  manager.walletName,
+                                  address,
+                                ),
+                              );
+                            }
                           },
                         ),
                       ],
@@ -294,8 +305,9 @@ class _BalanceDisplayState extends ConsumerState<BalanceDisplay> {
     final locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
 
+    // TODO redo this widget now that its not actually a future
     return FutureBuilder(
-      future: manager.availableBalance,
+      future: Future(() => manager.balance.getSpendable()),
       builder: (context, AsyncSnapshot<Decimal> snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             snapshot.hasData &&

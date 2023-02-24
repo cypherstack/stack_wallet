@@ -1,10 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/add_wallet_text.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/mobile_coin_list.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/next_button.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/searchable_coin_list.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -37,11 +39,19 @@ class _AddWalletViewState extends State<AddWalletView> {
 
   final List<Coin> coins = [...Coin.values];
 
+  final bool isDesktop = Util.isDesktop;
+
   @override
   void initState() {
     _searchFieldController = TextEditingController();
     _searchFocusNode = FocusNode();
     coins.remove(Coin.firoTestNet);
+    if (isDesktop) {
+      coins.remove(Coin.wownero);
+      if (Platform.isWindows) {
+        coins.remove(Coin.monero);
+      }
+    }
     super.initState();
   }
 
@@ -56,7 +66,7 @@ class _AddWalletViewState extends State<AddWalletView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    if (Util.isDesktop) {
+    if (isDesktop) {
       return DesktopScaffold(
         appBar: const DesktopAppBar(
           isCompactHeight: false,

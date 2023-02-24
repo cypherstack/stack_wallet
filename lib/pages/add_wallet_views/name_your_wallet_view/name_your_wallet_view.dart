@@ -5,14 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_warning_view/new_wallet_recovery_phrase_warning_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/restore_options_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/global/wallets_service_provider.dart';
 import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/name_generator.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -93,8 +92,9 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint(
-        "BUILD: NameYourWalletView with ${coin.name} ${addWalletType.name}");
+    //todo: check if print needed
+    // debugPrint(
+    //     "BUILD: NameYourWalletView with ${coin.name} ${addWalletType.name}");
 
     if (isDesktop) {
       return DesktopScaffold(
@@ -167,7 +167,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
           if (!isDesktop)
             Image(
               image: AssetImage(
-                Assets.png.imageFor(coin: coin),
+                Assets.png.imageFor(coin: coin, context: context),
               ),
               height: 100,
             ),
@@ -273,17 +273,26 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
           SizedBox(
             height: isDesktop ? 16 : 8,
           ),
-          RoundedWhiteContainer(
-            child: Center(
-              child: Text(
-                "Roll the dice to pick a random name.",
-                style: isDesktop
-                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textSubtitle1,
-                      )
-                    : STextStyles.itemSubtitle(context),
+          GestureDetector(
+            onTap: () async {
+              textEditingController.text = await _generateRandomWalletName();
+              setState(() {
+                _nextEnabled = true;
+                _showDiceIcon = false;
+              });
+            },
+            child: RoundedWhiteContainer(
+              child: Center(
+                child: Text(
+                  "Roll the dice to pick a random name.",
+                  style: isDesktop
+                      ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textSubtitle1,
+                        )
+                      : STextStyles.itemSubtitle(context),
+                ),
               ),
             ),
           ),
@@ -355,10 +364,10 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
               style: _nextEnabled
                   ? Theme.of(context)
                       .extension<StackColors>()!
-                      .getPrimaryEnabledButtonColor(context)
+                      .getPrimaryEnabledButtonStyle(context)
                   : Theme.of(context)
                       .extension<StackColors>()!
-                      .getPrimaryDisabledButtonColor(context),
+                      .getPrimaryDisabledButtonStyle(context),
               child: Text(
                 "Next",
                 style: isDesktop

@@ -70,14 +70,13 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
     switch (coin) {
       case Coin.epicCash:
         try {
-          final uri = Uri.parse(node!.host);
-          if (uri.scheme.startsWith("http")) {
-            final String path = uri.path.isEmpty ? "/v1/version" : uri.path;
-
-            String uriString = "${uri.scheme}://${uri.host}:${node.port}$path";
-
-            testPassed = await testEpicBoxNodeConnection(Uri.parse(uriString));
-          }
+          testPassed = await testEpicNodeConnection(
+                NodeFormData()
+                  ..host = node!.host
+                  ..useSSL = node.useSSL
+                  ..port = node.port,
+              ) !=
+              null;
         } catch (e, s) {
           Logging.instance.log("$e\n$s", level: LogLevel.Warning);
           testPassed = false;
@@ -387,6 +386,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                             port: ref.read(nodeFormDataProvider).port,
                             name: ref.read(nodeFormDataProvider).name,
                             useSSL: ref.read(nodeFormDataProvider).useSSL,
+                            trusted: ref.read(nodeFormDataProvider).trusted,
                             loginName: ref.read(nodeFormDataProvider).login,
                             isFailover:
                                 ref.read(nodeFormDataProvider).isFailover,

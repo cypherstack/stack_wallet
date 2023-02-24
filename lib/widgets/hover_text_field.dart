@@ -1,46 +1,31 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/providers/global/wallets_service_provider.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 
-class HoverTextField extends StatefulWidget {
-  const HoverTextField({
+class DesktopWalletNameField extends ConsumerStatefulWidget {
+  const DesktopWalletNameField({
     Key? key,
-    this.controller,
-    this.focusNode,
-    this.readOnly = false,
-    this.enabled,
-    this.onTap,
-    this.onChanged,
-    this.onEditingComplete,
-    this.style,
-    this.onDone,
+    required this.walletId,
   }) : super(key: key);
 
-  final TextEditingController? controller;
-  final FocusNode? focusNode;
-  final bool readOnly;
-  final bool? enabled;
-  final GestureTapCallback? onTap;
-  final ValueChanged<String>? onChanged;
-  final VoidCallback? onEditingComplete;
-  final TextStyle? style;
-  final VoidCallback? onDone;
+  final String walletId;
 
   @override
-  State<HoverTextField> createState() => _HoverTextFieldState();
+  ConsumerState<DesktopWalletNameField> createState() => _HoverTextFieldState();
 }
 
-class _HoverTextFieldState extends State<HoverTextField> {
-  late final TextEditingController? controller;
-  late final FocusNode? focusNode;
-  late bool readOnly;
-  late bool? enabled;
-  late final GestureTapCallback? onTap;
-  late final ValueChanged<String>? onChanged;
-  late final VoidCallback? onEditingComplete;
-  late final TextStyle? style;
-  late final VoidCallback? onDone;
+class _HoverTextFieldState extends ConsumerState<DesktopWalletNameField> {
+  late final TextEditingController controller;
+  late final FocusNode focusNode;
+  bool readOnly = true;
 
   final InputBorder inputBorder = OutlineInputBorder(
     borderSide: const BorderSide(
@@ -50,33 +35,74 @@ class _HoverTextFieldState extends State<HoverTextField> {
     borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
   );
 
+  Future<void> onDone() async {
+    final currentWalletName = ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(widget.walletId)
+        .walletName;
+    final newName = controller.text;
+    if (newName != currentWalletName) {
+      final success =
+          await ref.read(walletsServiceChangeNotifierProvider).renameWallet(
+                from: currentWalletName,
+                to: newName,
+                shouldNotifyListeners: true,
+              );
+      if (success) {
+        ref
+            .read(walletsChangeNotifierProvider)
+            .getManager(widget.walletId)
+            .walletName = newName;
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.success,
+            message: "Wallet renamed",
+            context: context,
+          ),
+        );
+      } else {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: "Wallet named \"$newName\" already exists",
+            context: context,
+          ),
+        );
+        controller.text = currentWalletName;
+      }
+    }
+  }
+
+  void listenerFunc() {
+    if (!focusNode.hasPrimaryFocus && !readOnly) {
+      setState(() {
+        readOnly = true;
+      });
+      onDone.call();
+    }
+  }
+
   @override
   void initState() {
-    controller = widget.controller;
-    focusNode = widget.focusNode ?? FocusNode();
-    readOnly = widget.readOnly;
-    enabled = widget.enabled;
-    onChanged = widget.onChanged;
-    style = widget.style;
-    onTap = widget.onTap;
-    onEditingComplete = widget.onEditingComplete;
-    onDone = widget.onDone;
+    controller = TextEditingController();
+    focusNode = FocusNode();
 
-    focusNode!.addListener(() {
-      if (!focusNode!.hasPrimaryFocus && !readOnly) {
-        setState(() {
-          readOnly = true;
-        });
-        onDone?.call();
-      }
+    focusNode.addListener(listenerFunc);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.text = ref
+          .read(walletsChangeNotifierProvider)
+          .getManager(widget.walletId)
+          .walletName;
     });
+
     super.initState();
   }
 
   @override
   void dispose() {
-    controller?.dispose();
-    focusNode?.dispose();
+    controller.dispose();
+    focusNode.removeListener(listenerFunc);
     super.dispose();
   }
 
@@ -88,22 +114,18 @@ class _HoverTextFieldState extends State<HoverTextField> {
       controller: controller,
       focusNode: focusNode,
       readOnly: readOnly,
-      enabled: enabled,
       onTap: () {
         setState(() {
           readOnly = false;
         });
-        onTap?.call();
       },
-      onChanged: onChanged,
       onEditingComplete: () {
         setState(() {
           readOnly = true;
         });
-        onEditingComplete?.call();
-        onDone?.call();
+        onDone.call();
       },
-      style: style,
+      style: STextStyles.desktopH3(context),
       decoration: InputDecoration(
         contentPadding: const EdgeInsets.symmetric(
           vertical: 4,

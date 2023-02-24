@@ -13,6 +13,7 @@ class Log {
   @Index()
   late int timestampInMillisUTC;
 
+  @Enumerated(EnumType.name)
   late LogLevel logLevel;
 
   @override

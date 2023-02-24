@@ -140,7 +140,7 @@ class WalletBackupView extends ConsumerWidget {
               TextButton(
                 style: Theme.of(context)
                     .extension<StackColors>()!
-                    .getPrimaryEnabledButtonColor(context),
+                    .getPrimaryEnabledButtonStyle(context),
                 onPressed: () {
                   String data = AddressUtils.encodeQRSeedData(mnemonic);
 
@@ -194,7 +194,7 @@ class WalletBackupView extends ConsumerWidget {
                                   },
                                   style: Theme.of(context)
                                       .extension<StackColors>()!
-                                      .getSecondaryEnabledButtonColor(context),
+                                      .getSecondaryEnabledButtonStyle(context),
                                   child: Text(
                                     "Cancel",
                                     style: STextStyles.button(context).copyWith(

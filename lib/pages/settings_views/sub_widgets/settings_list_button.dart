@@ -72,7 +72,7 @@ class SettingsListButton extends StatelessWidget {
                 style: STextStyles.smallMed14(context).copyWith(
                   color: Theme.of(context)
                       .extension<StackColors>()!
-                      .accentColorDark,
+                      .textDark,
                 ),
               ),
             ),

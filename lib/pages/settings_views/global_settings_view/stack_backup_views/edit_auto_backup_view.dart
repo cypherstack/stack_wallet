@@ -18,7 +18,6 @@ import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -188,7 +187,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
       fileToSave,
       adkString,
       jsonEncode(backup),
-      adkVersion: adkVersion,
+      adkVersion,
     );
 
     // this future should already be complete unless there was an error encrypting
@@ -218,8 +217,10 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
           passwordController.text = "";
           passwordRepeatController.text = "";
 
-          Navigator.of(context)
-              .popUntil(ModalRoute.withName(AutoBackupView.routeName));
+          if (!Util.isDesktop) {
+            Navigator.of(context)
+                .popUntil(ModalRoute.withName(AutoBackupView.routeName));
+          }
         }
       } else {
         await showDialog<dynamic>(
@@ -780,10 +781,10 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
               style: shouldEnableCreate
                   ? Theme.of(context)
                       .extension<StackColors>()!
-                      .getPrimaryEnabledButtonColor(context)
+                      .getPrimaryEnabledButtonStyle(context)
                   : Theme.of(context)
                       .extension<StackColors>()!
-                      .getPrimaryDisabledButtonColor(context),
+                      .getPrimaryDisabledButtonStyle(context),
               onPressed: !shouldEnableCreate ? null : onSavePressed,
               child: Text(
                 "Save",

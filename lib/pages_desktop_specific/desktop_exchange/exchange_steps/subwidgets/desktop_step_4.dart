@@ -1,38 +1,26 @@
 import 'dart:async';
 
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
-import 'package:stackwallet/pages/exchange_view/send_from_view.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_item.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class DesktopStep4 extends ConsumerStatefulWidget {
   const DesktopStep4({
     Key? key,
-    required this.model,
   }) : super(key: key);
-
-  final IncompleteExchangeModel model;
 
   @override
   ConsumerState<DesktopStep4> createState() => _DesktopStep4State();
 }
 
 class _DesktopStep4State extends ConsumerState<DesktopStep4> {
-  late final IncompleteExchangeModel model;
-
   String _statusString = "New";
 
   Timer? _statusTimer;
@@ -51,8 +39,14 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
   }
 
   Future<void> _updateStatus() async {
+    final trade = ref.read(desktopExchangeModelProvider)?.trade;
+
+    if (trade == null) {
+      return;
+    }
+
     final statusResponse =
-        await ref.read(exchangeProvider).updateTrade(model.trade!);
+        await ref.read(exchangeFormStateProvider).exchange.updateTrade(trade);
     String status = "Waiting";
     if (statusResponse.value != null) {
       status = statusResponse.value!.status;
@@ -72,8 +66,6 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
 
   @override
   void initState() {
-    model = widget.model;
-
     _statusTimer = Timer.periodic(const Duration(seconds: 60), (_) {
       _updateStatus();
     });
@@ -93,14 +85,14 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
     return Column(
       children: [
         Text(
-          "Send ${model.sendTicker.toUpperCase()} to the address below",
+          "Send ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker.toUpperCase()))} to the address below",
           style: STextStyles.desktopTextMedium(context),
         ),
         const SizedBox(
           height: 8,
         ),
         Text(
-          "Send ${model.sendTicker.toUpperCase()} to the address below. Once it is received, ${model.trade!.exchangeName} will send the ${model.receiveTicker.toUpperCase()} to the recipient address you provided. You can find this trade details and check its status in the list of trades.",
+          "Send ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker.toUpperCase()))} to the address below. Once it is received, ${ref.watch(desktopExchangeModelProvider.select((value) => value!.trade?.exchangeName))} will send the ${ref.watch(desktopExchangeModelProvider.select((value) => value!.receiveTicker.toUpperCase()))} to the recipient address you provided. You can find this trade details and check its status in the list of trades.",
           style: STextStyles.desktopTextExtraExtraSmall(context),
         ),
         const SizedBox(
@@ -111,7 +103,7 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
           child: RichText(
             text: TextSpan(
               text:
-                  "You must send at least ${model.sendAmount.toString()} ${model.sendTicker}. ",
+                  "You must send at least ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendAmount.toString()))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker))}. ",
               style: STextStyles.label700(context).copyWith(
                 color: Theme.of(context)
                     .extension<StackColors>()!
@@ -121,7 +113,7 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
               children: [
                 TextSpan(
                   text:
-                      "If you send less than ${model.sendAmount.toString()} ${model.sendTicker}, your transaction may not be converted and it may not be refunded.",
+                      "If you send less than ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendAmount.toString()))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker))}, your transaction may not be converted and it may not be refunded.",
                   style: STextStyles.label(context).copyWith(
                     color: Theme.of(context)
                         .extension<StackColors>()!
@@ -143,8 +135,11 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
             children: [
               DesktopStepItem(
                 vertical: true,
-                label: "Send ${model.sendTicker.toUpperCase()} to this address",
-                value: model.trade!.payInAddress,
+                label:
+                    "Send ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker.toUpperCase()))} to this address",
+                value: ref.watch(desktopExchangeModelProvider
+                        .select((value) => value!.trade?.payInAddress)) ??
+                    "Error",
               ),
               Container(
                 height: 1,
@@ -153,7 +148,7 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
               DesktopStepItem(
                 label: "Amount",
                 value:
-                    "${model.sendAmount.toStringAsFixed(8)} ${model.sendTicker.toUpperCase()}",
+                    "${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendAmount.toStringAsFixed(8)))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker.toUpperCase()))}",
               ),
               Container(
                 height: 1,
@@ -161,7 +156,9 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
               ),
               DesktopStepItem(
                 label: "Trade ID",
-                value: model.trade!.tradeId,
+                value: ref.watch(desktopExchangeModelProvider
+                        .select((value) => value!.trade?.tradeId)) ??
+                    "Error",
               ),
               Container(
                 height: 1,
@@ -186,110 +183,6 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
                       ),
                     ),
                   ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(
-            top: 20,
-            bottom: 32,
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: SecondaryButton(
-                  label: "Send from Stack Wallet",
-                  buttonHeight: ButtonHeight.l,
-                  onPressed: () {
-                    final trade = model.trade!;
-                    final amount = Decimal.parse(trade.payInAmount);
-                    final address = trade.payInAddress;
-
-                    final coin =
-                        coinFromTickerCaseInsensitive(trade.payInCurrency);
-
-                    showDialog<void>(
-                      context: context,
-                      builder: (context) => Navigator(
-                        initialRoute: SendFromView.routeName,
-                        onGenerateRoute: RouteGenerator.generateRoute,
-                        onGenerateInitialRoutes: (_, __) {
-                          return [
-                            FadePageRoute(
-                              SendFromView(
-                                coin: coin,
-                                trade: trade,
-                                amount: amount,
-                                address: address,
-                                shouldPopRoot: true,
-                                fromDesktopStep4: true,
-                              ),
-                              const RouteSettings(
-                                name: SendFromView.routeName,
-                              ),
-                            ),
-                          ];
-                        },
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(
-                width: 16,
-              ),
-              Expanded(
-                child: PrimaryButton(
-                  label: "Show QR code",
-                  buttonHeight: ButtonHeight.l,
-                  onPressed: () {
-                    showDialog<dynamic>(
-                      context: context,
-                      barrierColor: Colors.transparent,
-                      barrierDismissible: true,
-                      builder: (_) {
-                        return DesktopDialog(
-                          maxHeight: 720,
-                          maxWidth: 720,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text(
-                                "Send ${model.sendAmount.toStringAsFixed(8)} ${model.sendTicker} to this address",
-                                style: STextStyles.desktopH3(context),
-                              ),
-                              const SizedBox(
-                                height: 48,
-                              ),
-                              Center(
-                                child: QrImage(
-                                  // TODO: grab coin uri scheme from somewhere
-                                  // data: "${coin.uriScheme}:$receivingAddress",
-                                  data: model.trade!.payInAddress,
-                                  size: 290,
-                                  foregroundColor: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .accentColorDark,
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 48,
-                              ),
-                              SecondaryButton(
-                                label: "Cancel",
-                                width: 310,
-                                buttonHeight: ButtonHeight.l,
-                                onPressed: Navigator.of(context).pop,
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    );
-                  },
                 ),
               ),
             ],

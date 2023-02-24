@@ -79,14 +79,16 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                 final firoWallet =
                     ref.watch(managerProvider.select((value) => value.wallet))
                         as FiroWallet;
-                totalBalanceFuture = firoWallet.availablePublicBalance();
-                availableBalanceFuture = firoWallet.availablePrivateBalance();
+                totalBalanceFuture =
+                    Future(() => firoWallet.balance.getSpendable());
+                availableBalanceFuture =
+                    Future(() => firoWallet.balancePrivate.getSpendable());
               } else {
-                totalBalanceFuture = ref.watch(
-                    managerProvider.select((value) => value.totalBalance));
-
-                availableBalanceFuture = ref.watch(
-                    managerProvider.select((value) => value.availableBalance));
+                final manager = ref.watch(walletsChangeNotifierProvider
+                    .select((value) => value.getManager(walletId)));
+                totalBalanceFuture = Future(() => manager.balance.getTotal());
+                availableBalanceFuture =
+                    Future(() => manager.balance.getSpendable());
               }
 
               final locale = ref.watch(localeServiceChangeNotifierProvider
@@ -164,7 +166,7 @@ class _WalletSummaryInfoState extends State<WalletSummaryInfo> {
                         const Spacer(),
                         FittedBox(
                           fit: BoxFit.scaleDown,
-                          child: Text(
+                          child: SelectableText(
                             "${Format.localizedStringAsFixed(
                               value: balanceToShow,
                               locale: locale,

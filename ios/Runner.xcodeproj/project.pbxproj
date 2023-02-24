@@ -456,7 +456,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 83;
+				CURRENT_PROJECT_VERSION = 102;
 				DEVELOPMENT_TEAM = 4DQKUWSG6C;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -510,7 +510,7 @@
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libmonero/cw_shared_external/ios/External/ios/**",
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libepiccash/ios/libs",
 				);
-				MARKETING_VERSION = 1.5.11;
+				MARKETING_VERSION = 1.5.28;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cypherstack.stackwallet;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -643,7 +643,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 83;
+				CURRENT_PROJECT_VERSION = 102;
 				DEVELOPMENT_TEAM = 4DQKUWSG6C;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -697,7 +697,7 @@
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libmonero/cw_shared_external/ios/External/ios/**",
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libepiccash/ios/libs",
 				);
-				MARKETING_VERSION = 1.5.11;
+				MARKETING_VERSION = 1.5.28;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cypherstack.stackwallet;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -722,7 +722,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 83;
+				CURRENT_PROJECT_VERSION = 102;
 				DEVELOPMENT_TEAM = 4DQKUWSG6C;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -776,7 +776,7 @@
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libmonero/cw_shared_external/ios/External/ios/**",
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libepiccash/ios/libs",
 				);
-				MARKETING_VERSION = 1.5.11;
+				MARKETING_VERSION = 1.5.28;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cypherstack.stackwallet;
 				PRODUCT_NAME = "$(TARGET_NAME)";

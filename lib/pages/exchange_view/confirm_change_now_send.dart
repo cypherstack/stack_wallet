@@ -7,8 +7,7 @@ import 'package:stackwallet/models/trade_wallet_lookup.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/sending_transaction_dialog.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
-import 'package:stackwallet/providers/exchange/trade_sent_from_stack_lookup_provider.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
@@ -61,6 +60,8 @@ class _ConfirmChangeNowSendViewState
   late final String walletId;
   late final String routeOnSuccessName;
   late final Trade trade;
+
+  final isDesktop = Util.isDesktop;
 
   Future<void> _attemptSend(BuildContext context) async {
     unawaited(
@@ -136,7 +137,7 @@ class _ConfirmChangeNowSendViewState
             rightButton: TextButton(
               style: Theme.of(context)
                   .extension<StackColors>()!
-                  .getSecondaryEnabledButtonColor(context),
+                  .getSecondaryEnabledButtonStyle(context),
               child: Text(
                 "Ok",
                 style: STextStyles.button(context).copyWith(
@@ -228,8 +229,6 @@ class _ConfirmChangeNowSendViewState
     final managerProvider = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManagerProvider(walletId)));
 
-    final isDesktop = Util.isDesktop;
-
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) {
@@ -239,7 +238,7 @@ class _ConfirmChangeNowSendViewState
                 Theme.of(context).extension<StackColors>()!.background,
             appBar: AppBar(
               backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
+                  Theme.of(context).extension<StackColors>()!.backgroundAppBar,
               leading: AppBarBackButton(
                 onPressed: () async {
                   // if (FocusScope.of(context).hasFocus) {

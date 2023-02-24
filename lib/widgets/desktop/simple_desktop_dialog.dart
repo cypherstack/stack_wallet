@@ -22,41 +22,54 @@ class SimpleDesktopDialog extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: STextStyles.desktopH3(context),
-              ),
-              const DesktopDialogCloseButton(),
-            ],
+          Padding(
+            padding: const EdgeInsets.only(left: 32),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: STextStyles.desktopH3(context),
+                ),
+                const DesktopDialogCloseButton(),
+              ],
+            ),
           ),
           const Spacer(),
-          Text(
-            message,
-            style: STextStyles.desktopTextSmall(context),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              message,
+              style: STextStyles.desktopTextSmall(context),
+            ),
           ),
           const Spacer(
             flex: 2,
           ),
-          Row(
-            children: [
-              const Spacer(),
-              const SizedBox(
-                width: 16,
-              ),
-              Expanded(
-                child: PrimaryButton(
-                  label: "Ok",
-                  buttonHeight: ButtonHeight.l,
-                  onPressed: Navigator.of(
-                    context,
-                    rootNavigator: true,
-                  ).pop,
+          Padding(
+            padding: const EdgeInsets.only(
+              left: 32,
+              right: 32,
+              bottom: 32,
+            ),
+            child: Row(
+              children: [
+                const Spacer(),
+                const SizedBox(
+                  width: 16,
                 ),
-              ),
-            ],
+                Expanded(
+                  child: PrimaryButton(
+                    label: "Ok",
+                    buttonHeight: ButtonHeight.l,
+                    onPressed: Navigator.of(
+                      context,
+                      rootNavigator: true,
+                    ).pop,
+                  ),
+                ),
+              ],
+            ),
           )
         ],
       ),

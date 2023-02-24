@@ -106,12 +106,12 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
                       ManageFavoritesView.routeName,
                     );
                   },
-                )
+                ),
             ],
           ),
         ),
         const SizedBox(
-          height: 12,
+          height: 20,
         ),
         !hasFavorites
             ? Padding(

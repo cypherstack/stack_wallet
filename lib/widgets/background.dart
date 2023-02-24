@@ -17,12 +17,22 @@ class Background extends StatelessWidget {
   Widget build(BuildContext context) {
     Color? color;
 
+    bool shouldPad = false;
+
     switch (Theme.of(context).extension<StackColors>()!.themeType) {
       case ThemeType.light:
       case ThemeType.dark:
+      case ThemeType.oledBlack:
+        color = Theme.of(context).extension<StackColors>()!.background;
+        break;
+      case ThemeType.forest:
         color = Theme.of(context).extension<StackColors>()!.background;
         break;
       case ThemeType.oceanBreeze:
+        shouldPad = true;
+        color = null;
+        break;
+      case ThemeType.fruitSorbet:
         color = null;
         break;
     }
@@ -41,10 +51,12 @@ class Background extends StatelessWidget {
           children: [
             Positioned.fill(
               child: Padding(
-                padding: EdgeInsets.only(
-                  top: MediaQuery.of(context).size.height * (1 / 8),
-                  bottom: MediaQuery.of(context).size.height * (1 / 12),
-                ),
+                padding: shouldPad
+                    ? EdgeInsets.only(
+                        top: MediaQuery.of(context).size.height * (1 / 8),
+                        bottom: MediaQuery.of(context).size.height * (1 / 12),
+                      )
+                    : const EdgeInsets.all(0),
                 child: SvgPicture.asset(
                   bgAsset!,
                   fit: BoxFit.fill,
