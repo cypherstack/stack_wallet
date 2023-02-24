@@ -4,7 +4,6 @@ import 'package:decimal/decimal.dart';
 import 'package:epicpay/models/models.dart';
 import 'package:epicpay/pages/home_view/home_view.dart';
 import 'package:epicpay/pages/wallet_view/transaction_views/dialogs/cancelling_transaction_progress_dialog.dart';
-import 'package:epicpay/pages/wallet_view/wallet_view.dart';
 import 'package:epicpay/providers/global/address_book_service_provider.dart';
 import 'package:epicpay/providers/providers.dart';
 import 'package:epicpay/services/coins/epiccash/epiccash_wallet.dart';
@@ -302,7 +301,7 @@ class _TransactionDetailsViewState
                         const _Divider(),
                         TXDetailsItem(
                           title: "AMOUNT",
-                          info: amount.toStringAsPrecision(2),
+                          info: trimTrailingZeros(amount),
                         ),
                         if (_transaction.txType.toLowerCase() == "sent")
                           const _Divider(),
@@ -311,9 +310,9 @@ class _TransactionDetailsViewState
                             title: "FEE",
                             info: showFeePending
                                 ? _transaction.confirmedStatus
-                                    ? fee.toStringAsPrecision(2)
+                                    ? trimTrailingZeros(fee)
                                     : "Pending"
-                                : fee.toStringAsPrecision(2),
+                                : trimTrailingZeros(fee),
                           ),
                         const _Divider(),
                         TXDetailsItem(
@@ -466,6 +465,22 @@ class _TransactionDetailsViewState
       ),
     );
   }
+}
+
+String trimTrailingZeros(Decimal amount) {
+  String amountString = amount.toStringAsFixed(8);
+  // I'd love to do this more simply
+  // Step from the right of the string to the left, break at first non-zero character and make substring up to that point (LTR, unless it's zero)
+  for (int i = amountString.length - 1; i > 0; i--) {
+    if (amountString.split('')[i] != '0') {
+      String subStr = amountString.substring(0, i + 1);
+      if (subStr.isNotEmpty) {
+        amountString = subStr;
+      }
+      break;
+    }
+  }
+  return amountString;
 }
 
 class _Divider extends StatelessWidget {
