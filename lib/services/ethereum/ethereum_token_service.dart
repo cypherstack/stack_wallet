@@ -16,8 +16,7 @@ import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/eth_commons.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
-import 'package:web3dart/web3dart.dart';
-import 'package:web3dart/web3dart.dart' as transaction;
+import 'package:web3dart/web3dart.dart' as web3dart;
 
 const int MINIMUM_CONFIRMATIONS = 3;
 
@@ -25,15 +24,15 @@ class EthereumTokenService {
   final EthToken token;
 
   late bool shouldAutoSync;
-  late EthereumAddress _contractAddress;
-  late EthPrivateKey _credentials;
-  late DeployedContract _contract;
-  late ContractFunction _balanceFunction;
-  late ContractFunction _sendFunction;
+  late web3dart.EthereumAddress _contractAddress;
+  late web3dart.EthPrivateKey _credentials;
+  late web3dart.DeployedContract _contract;
+  late web3dart.ContractFunction _balanceFunction;
+  late web3dart.ContractFunction _sendFunction;
   late Future<List<String>> _walletMnemonic;
   late SecureStorageInterface _secureStore;
   late String _tokenAbi;
-  late Web3Client _client;
+  late web3dart.Web3Client _client;
   late final TransactionNotificationTracker txTracker;
   TransactionData? cachedTxData;
 
@@ -44,7 +43,7 @@ class EthereumTokenService {
     required Future<List<String>> walletMnemonic,
     required SecureStorageInterface secureStore,
   }) {
-    _contractAddress = EthereumAddress.fromHex(token.contractAddress);
+    _contractAddress = web3dart.EthereumAddress.fromHex(token.contractAddress);
     _walletMnemonic = walletMnemonic;
     _secureStore = secureStore;
   }
@@ -75,16 +74,16 @@ class EthereumTokenService {
 
     final sentTx = await _client.sendTransaction(
         _credentials,
-        transaction.Transaction.callContract(
+        web3dart.Transaction.callContract(
             contract: _contract,
             function: _sendFunction,
             parameters: [
-              EthereumAddress.fromHex(txData['address'] as String),
+              web3dart.EthereumAddress.fromHex(txData['address'] as String),
               bigIntAmount
             ],
             maxGas: _gasLimit,
-            gasPrice: EtherAmount.fromUnitAndValue(
-                EtherUnit.wei, txData['feeInWei'])));
+            gasPrice: web3dart.EtherAmount.fromUnitAndValue(
+                web3dart.EtherUnit.wei, txData['feeInWei'])));
 
     return sentTx;
   }
@@ -118,10 +117,10 @@ class EthereumTokenService {
     //Get private key for given mnemonic
     // TODO: replace empty string with actual passphrase
     String privateKey = getPrivateKey(mnemonicString, "");
-    _credentials = EthPrivateKey.fromHex(privateKey);
+    _credentials = web3dart.EthPrivateKey.fromHex(privateKey);
 
-    _contract = DeployedContract(
-        ContractAbi.fromJson(_tokenAbi, token.name), _contractAddress);
+    _contract = web3dart.DeployedContract(
+        web3dart.ContractAbi.fromJson(_tokenAbi, token.name), _contractAddress);
     _balanceFunction = _contract.function('balanceOf');
     _sendFunction = _contract.function('transfer');
     _client = await getEthClient();
@@ -148,10 +147,10 @@ class EthereumTokenService {
     //Get private key for given mnemonic
     // TODO: replace empty string with actual passphrase
     String privateKey = getPrivateKey(mnemonicString, "");
-    _credentials = EthPrivateKey.fromHex(privateKey);
+    _credentials = web3dart.EthPrivateKey.fromHex(privateKey);
 
-    _contract = DeployedContract(
-        ContractAbi.fromJson(_tokenAbi, token.name), _contractAddress);
+    _contract = web3dart.DeployedContract(
+        web3dart.ContractAbi.fromJson(_tokenAbi, token.name), _contractAddress);
     _balanceFunction = _contract.function('balanceOf');
     _sendFunction = _contract.function('transfer');
     _client = await getEthClient();
@@ -342,8 +341,8 @@ class EthereumTokenService {
         DefaultNodes.getNodeFor(coin);
   }
 
-  Future<Web3Client> getEthClient() async {
+  Future<web3dart.Web3Client> getEthClient() async {
     final node = await getCurrentNode();
-    return Web3Client(node.host, Client());
+    return web3dart.Web3Client(node.host, Client());
   }
 }
