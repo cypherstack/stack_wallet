@@ -14,7 +14,7 @@ Future<bool> _testEpicBoxConnection(String host, int port) async {
 
       /// Set this attribute to `true` if do not need any ping/pong
       /// messages and ping measurement. Default is `false`
-      pingRestrictionForce: false,
+      pingRestrictionForce: true,
     );
 
     final IMessageProcessor<String, String> textSocketProcessor =

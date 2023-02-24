@@ -489,7 +489,7 @@ class EpicCashWallet extends CoinServiceAPI {
 
       /// Set this attribute to `true` if do not need any ping/pong
       /// messages and ping measurement. Default is `false`
-      pingRestrictionForce: false,
+      pingRestrictionForce: true,
     );
 
     final IMessageProcessor<String, String> textSocketProcessor =
@@ -499,11 +499,6 @@ class EpicCashWallet extends CoinServiceAPI {
       textSocketProcessor,
       connectionOptions: connectionOptions,
     );
-
-    // Listening to webSocket status changes
-    // textSocketHandler.socketHandlerStateStream.listen((stateEvent) {
-    //   debugPrint('> status changed to ${stateEvent.status}');
-    // });
 
     // Listening to server responses:
     bool isConnected = true;
