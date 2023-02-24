@@ -4,13 +4,13 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/ethereum/eth_token.dart';
 import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/ethereum/ethereum_token_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
+import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
@@ -48,23 +48,28 @@ class MyTokenSelectItem extends ConsumerWidget {
           borderRadius:
               BorderRadius.circular(Constants.size.circularBorderRadius),
         ),
-        onPressed: () {
+        onPressed: () async {
           final mnemonicList = ref.read(managerProvider).mnemonic;
 
           final tokenService = EthereumTokenService(
-              token: token,
-              walletMnemonic: mnemonicList,
-              secureStore: ref.read(secureStoreProvider));
+            token: token,
+            walletMnemonic: mnemonicList,
+            secureStore: ref.read(secureStoreProvider),
+          );
 
-          Navigator.of(context).pushNamed(
+          await showLoading<void>(
+            whileFuture: tokenService.initializeExisting(),
+            context: context,
+            message: "Loading ${token.name}",
+          );
+
+          await Navigator.of(context).pushNamed(
             TokenView.routeName,
-            arguments: Tuple4(
-                walletId,
-                token,
-                ref
-                    .read(walletsChangeNotifierProvider)
-                    .getManagerProvider(walletId),
-                tokenService),
+            arguments: Tuple3(
+              walletId,
+              token,
+              tokenService,
+            ),
           );
         },
 

@@ -1461,15 +1461,14 @@ class RouteGenerator {
       //   }
 
       case TokenView.routeName:
-        if (args is Tuple4<String, EthToken, ChangeNotifierProvider<Manager>,
+        if (args is Tuple3<String, EthToken,
             EthereumTokenService>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => TokenView(
               walletId: args.item1,
               token: args.item2,
-              managerProvider: args.item3,
-              tokenService: args.item4,
+              tokenService: args.item3,
             ),
             settings: RouteSettings(
               name: settings.name,
