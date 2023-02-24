@@ -144,14 +144,18 @@ abstract class EthereumAPI {
 
   static Future<EthereumResponse<List<EthTokenTx>>> getTokenTransactions({
     required String address,
+    String? contractAddress,
     int? startBlock,
     int? endBlock,
     // todo add more params?
   }) async {
     try {
-      final uri = Uri.parse(
-        "$blockExplorer?module=account&action=tokentx&address=$address",
-      );
+      String uriString =
+          "$blockExplorer?module=account&action=tokentx&address=$address";
+      if (contractAddress != null) {
+        uriString += "&contractAddress=$contractAddress";
+      }
+      final uri = Uri.parse(uriString);
       final response = await get(uri);
 
       if (response.statusCode == 200) {

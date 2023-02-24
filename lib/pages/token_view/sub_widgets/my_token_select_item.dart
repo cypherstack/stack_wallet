@@ -4,8 +4,10 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/ethereum/eth_token.dart';
 import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
+import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/ethereum/ethereum_token_service.dart';
+import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -49,12 +51,12 @@ class MyTokenSelectItem extends ConsumerWidget {
               BorderRadius.circular(Constants.size.circularBorderRadius),
         ),
         onPressed: () async {
-          final mnemonicList = ref.read(managerProvider).mnemonic;
-
           final tokenService = EthereumTokenService(
             token: token,
-            walletMnemonic: mnemonicList,
             secureStore: ref.read(secureStoreProvider),
+            ethWallet: ref.read(managerProvider).wallet as EthereumWallet,
+            tracker: TransactionNotificationTracker(
+                walletId: ref.read(managerProvider).walletId),
           );
 
           await showLoading<void>(

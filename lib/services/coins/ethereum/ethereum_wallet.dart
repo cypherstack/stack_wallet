@@ -130,8 +130,12 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<List<UTXO>> get utxos => db.getUTXOs(walletId).findAll();
 
   @override
-  Future<List<Transaction>> get transactions =>
-      db.getTransactions(walletId).sortByTimestampDesc().findAll();
+  Future<List<Transaction>> get transactions => db
+      .getTransactions(walletId)
+      .filter()
+      .otherDataEqualTo(null)
+      .sortByTimestampDesc()
+      .findAll();
 
   @override
   Future<String> get currentReceivingAddress async {
@@ -143,7 +147,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<Address?> get _currentReceivingAddress => db
       .getAddresses(walletId)
       .filter()
-      .typeEqualTo(AddressType.p2wpkh)
+      .typeEqualTo(AddressType.ethereum)
       .subTypeEqualTo(AddressSubType.receiving)
       .sortByDerivationIndexDesc()
       .findFirst();
@@ -759,8 +763,9 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
         ),
       );
       Logging.instance.log(
-          "Caught exception in refreshWalletData(): $error\n$strace",
-          level: LogLevel.Warning);
+        "Caught exception in $walletName $walletId refresh(): $error\n$strace",
+        level: LogLevel.Warning,
+      );
     }
   }
 
@@ -910,7 +915,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
       }
     } else {
       Logging.instance.log(
-        "Failed to refresh transactions for ${coin.prettyName} $walletName $walletId: $txs",
+        "Failed to refresh transactions for ${coin.prettyName} $walletName $walletId",
         level: LogLevel.Warning,
       );
     }

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/ethereum/eth_token.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart';
+import 'package:stackwallet/pages/token_view/sub_widgets/token_transaction_list_widget.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
 import 'package:stackwallet/services/ethereum/ethereum_token_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -166,9 +166,9 @@ class _TokenViewState extends ConsumerState<TokenView> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Expanded(
-                            child: TransactionsList(
-                              managerProvider: managerProvider,
-                              walletId: walletId,
+                            child: TokenTransactionsList(
+                              tokenService: widget.tokenService,
+                              walletId: widget.walletId,
                             ),
                           ),
                         ],

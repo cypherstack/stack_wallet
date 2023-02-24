@@ -1,13 +1,18 @@
-import 'dart:math';
+import 'dart:async';
 
 import 'package:decimal/decimal.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:http/http.dart';
+import 'package:isar/isar.dart';
 import 'package:stackwallet/models/ethereum/eth_token.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
+import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
 import 'package:stackwallet/services/ethereum/ethereum_api.dart';
+import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
+import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
@@ -16,47 +21,33 @@ import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/eth_commons.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
+import 'package:stackwallet/utilities/logger.dart';
+import 'package:tuple/tuple.dart';
 import 'package:web3dart/web3dart.dart' as web3dart;
-
-const int MINIMUM_CONFIRMATIONS = 3;
 
 class EthereumTokenService {
   final EthToken token;
+  final EthereumWallet ethWallet;
+  final TransactionNotificationTracker tracker;
+  final SecureStorageInterface _secureStore;
 
-  late bool shouldAutoSync;
   late web3dart.EthereumAddress _contractAddress;
   late web3dart.EthPrivateKey _credentials;
   late web3dart.DeployedContract _contract;
   late web3dart.ContractFunction _balanceFunction;
   late web3dart.ContractFunction _sendFunction;
-  late Future<List<String>> _walletMnemonic;
-  late SecureStorageInterface _secureStore;
   late String _tokenAbi;
   late web3dart.Web3Client _client;
-  late final TransactionNotificationTracker txTracker;
-  TransactionData? cachedTxData;
 
-  final _gasLimit = 200000;
+  static const _gasLimit = 200000;
 
   EthereumTokenService({
     required this.token,
-    required Future<List<String>> walletMnemonic,
+    required this.ethWallet,
     required SecureStorageInterface secureStore,
-  }) {
+    required this.tracker,
+  }) : _secureStore = secureStore {
     _contractAddress = web3dart.EthereumAddress.fromHex(token.contractAddress);
-    _walletMnemonic = walletMnemonic;
-    _secureStore = secureStore;
-  }
-
-  Future<List<String>> get allOwnAddresses =>
-      _allOwnAddresses ??= _fetchAllOwnAddresses();
-  Future<List<String>>? _allOwnAddresses;
-
-  Future<List<String>> _fetchAllOwnAddresses() async {
-    List<String> addresses = [];
-    final ownAddress = _credentials.address;
-    addresses.add(ownAddress.toString());
-    return addresses;
   }
 
   Future<Decimal> get availableBalance async {
@@ -89,11 +80,18 @@ class EthereumTokenService {
   }
 
   Future<String> get currentReceivingAddress async {
-    final _currentReceivingAddress = await _credentials.extractAddress();
-    final checkSumAddress =
-        checksumEthereumAddress(_currentReceivingAddress.toString());
-    return checkSumAddress;
+    final address = await _currentReceivingAddress;
+    return address?.value ??
+        checksumEthereumAddress(_credentials.address.toString());
   }
+
+  Future<Address?> get _currentReceivingAddress => ethWallet.db
+      .getAddresses(ethWallet.walletId)
+      .filter()
+      .typeEqualTo(AddressType.ethereum)
+      .subTypeEqualTo(AddressSubType.receiving)
+      .sortByDerivationIndexDesc()
+      .findFirst();
 
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
     final fee = estimateFee(feeRate, _gasLimit, token.decimals);
@@ -111,12 +109,11 @@ class EthereumTokenService {
     _tokenAbi = (await _secureStore.read(
         key: '${_contractAddress.toString()}_tokenAbi'))!;
 
-    final mnemonic = await _walletMnemonic;
-    String mnemonicString = mnemonic.join(' ');
+    String? mnemonicString = await ethWallet.mnemonicString;
 
     //Get private key for given mnemonic
-    // TODO: replace empty string with actual passphrase
-    String privateKey = getPrivateKey(mnemonicString, "");
+    String privateKey = getPrivateKey(
+        mnemonicString!, (await ethWallet.mnemonicPassphrase) ?? "");
     _credentials = web3dart.EthPrivateKey.fromHex(privateKey);
 
     _contract = web3dart.DeployedContract(
@@ -125,7 +122,7 @@ class EthereumTokenService {
     _sendFunction = _contract.function('transfer');
     _client = await getEthClient();
 
-    // print(_credentials.p)
+    unawaited(refresh());
   }
 
   Future<void> initializeNew() async {
@@ -141,12 +138,11 @@ class EthereumTokenService {
       throw Exception('Failed to load token abi');
     }
 
-    final mnemonic = await _walletMnemonic;
-    String mnemonicString = mnemonic.join(' ');
+    String? mnemonicString = await ethWallet.mnemonicString;
 
     //Get private key for given mnemonic
-    // TODO: replace empty string with actual passphrase
-    String privateKey = getPrivateKey(mnemonicString, "");
+    String privateKey = getPrivateKey(
+        mnemonicString!, (await ethWallet.mnemonicPassphrase) ?? "");
     _credentials = web3dart.EthPrivateKey.fromHex(privateKey);
 
     _contract = web3dart.DeployedContract(
@@ -154,16 +150,11 @@ class EthereumTokenService {
     _balanceFunction = _contract.function('balanceOf');
     _sendFunction = _contract.function('transfer');
     _client = await getEthClient();
+
+    unawaited(refresh());
   }
 
-  // TODO: implement isRefreshing
-  bool get isRefreshing => throw UnimplementedError();
-
-  Future<int> get maxFee async {
-    final fee = (await fees).fast;
-    final feeEstimate = await estimateFeeFor(0, fee);
-    return feeEstimate;
-  }
+  bool get isRefreshing => _refreshLock;
 
   Future<Map<String, dynamic>> prepareSend(
       {required String address,
@@ -208,9 +199,22 @@ class EthereumTokenService {
     return txData;
   }
 
-  Future<void> refresh() {
-    // TODO: implement refresh
-    throw UnimplementedError();
+  bool _refreshLock = false;
+
+  Future<void> refresh() async {
+    if (!_refreshLock) {
+      _refreshLock = true;
+      try {
+        await _refreshTransactions();
+      } catch (e, s) {
+        Logging.instance.log(
+          "Caught exception in ${token.name} ${ethWallet.walletName} ${ethWallet.walletId} refresh(): $e\n$s",
+          level: LogLevel.Warning,
+        );
+      } finally {
+        _refreshLock = false;
+      }
+    }
   }
 
   Future<Decimal> get totalBalance async {
@@ -227,108 +231,103 @@ class EthereumTokenService {
     return Decimal.parse(balanceInDecimal.toString());
   }
 
-  Future<TransactionData> get transactionData =>
-      _transactionData ??= _fetchTransactionData();
-  Future<TransactionData>? _transactionData;
+  Future<List<Transaction>> get transactions => ethWallet.db
+      .getTransactions(ethWallet.walletId)
+      .filter()
+      .otherDataEqualTo(token.contractAddress)
+      .sortByTimestampDesc()
+      .findAll();
 
-  Future<TransactionData> _fetchTransactionData() async {
-    String thisAddress = await currentReceivingAddress;
+  Future<void> _refreshTransactions() async {
+    String addressString = await currentReceivingAddress;
 
-    final List<Map<String, dynamic>> midSortedArray = [];
+    final response = await EthereumAPI.getTokenTransactions(
+      address: addressString,
+      contractAddress: token.contractAddress,
+    );
 
-    AddressTransaction txs =
-        await EthereumAPI.fetchAddressTransactions(thisAddress, "tokentx");
-
-    if (txs.message == "OK") {
-      final allTxs = txs.result;
-      for (var element in allTxs) {
-        Map<String, dynamic> midSortedTx = {};
-        // create final tx map
-        midSortedTx["txid"] = element["hash"];
-        int confirmations = int.parse(element['confirmations'].toString());
-
-        int transactionAmount = int.parse(element['value'].toString());
-        int decimal = token.decimals; //Eth has up to 18 decimal places
-        final transactionAmountInDecimal =
-            transactionAmount / (pow(10, decimal));
-
-        //Convert to satoshi, default display for other coins
-        final satAmount = Format.decimalAmountToSatoshis(
-            Decimal.parse(transactionAmountInDecimal.toString()), coin);
-
-        midSortedTx["confirmed_status"] =
-            (confirmations != 0) && (confirmations >= MINIMUM_CONFIRMATIONS);
-        midSortedTx["confirmations"] = confirmations;
-        midSortedTx["timestamp"] = element["timeStamp"];
-
-        if (checksumEthereumAddress(element["from"].toString()) ==
-            thisAddress) {
-          midSortedTx["txType"] = "Sent";
-        } else {
-          midSortedTx["txType"] = "Received";
-        }
-
-        midSortedTx["amount"] = satAmount;
-
-        //Calculate fees (GasLimit * gasPrice)
-        int txFee = int.parse(element['gasPrice'].toString()) *
-            int.parse(element['gasUsed'].toString());
-        final txFeeDecimal = txFee / (pow(10, decimal));
-
-        midSortedTx["aliens"] = <dynamic>[];
-        midSortedTx["fees"] = Format.decimalAmountToSatoshis(
-            Decimal.parse(txFeeDecimal.toString()), coin);
-        midSortedTx["address"] = element["to"];
-        midSortedTx["inputSize"] = 1;
-        midSortedTx["outputSize"] = 1;
-        midSortedTx["inputs"] = <dynamic>[];
-        midSortedTx["outputs"] = <dynamic>[];
-        midSortedTx["height"] = int.parse(element['blockNumber'].toString());
-
-        midSortedArray.add(midSortedTx);
-      }
+    if (response.value == null) {
+      throw Exception("Failed to fetch token transactions");
     }
 
-    midSortedArray.sort((a, b) =>
-        (int.parse(b['timestamp'].toString())) -
-        (int.parse(a['timestamp'].toString())));
+    final List<Tuple2<Transaction, Address?>> txnsData = [];
 
-    // buildDateTimeChunks
-    final Map<String, dynamic> result = {"dateTimeChunks": <dynamic>[]};
-    final dateArray = <dynamic>[];
-
-    for (int i = 0; i < midSortedArray.length; i++) {
-      final txObject = midSortedArray[i];
-      final date =
-          extractDateFromTimestamp(int.parse(txObject['timestamp'].toString()));
-      final txTimeArray = [txObject["timestamp"], date];
-
-      if (dateArray.contains(txTimeArray[1])) {
-        result["dateTimeChunks"].forEach((dynamic chunk) {
-          if (extractDateFromTimestamp(
-                  int.parse(chunk['timestamp'].toString())) ==
-              txTimeArray[1]) {
-            if (chunk["transactions"] == null) {
-              chunk["transactions"] = <Map<String, dynamic>>[];
-            }
-            chunk["transactions"].add(txObject);
-          }
-        });
+    for (final tx in response.value!) {
+      bool isIncoming;
+      if (checksumEthereumAddress(tx.from) == addressString) {
+        isIncoming = false;
       } else {
-        dateArray.add(txTimeArray[1]);
-        final chunk = {
-          "timestamp": txTimeArray[0],
-          "transactions": [txObject],
-        };
-        result["dateTimeChunks"].add(chunk);
+        isIncoming = true;
       }
+
+      final txn = Transaction(
+        walletId: ethWallet.walletId,
+        txid: tx.hash,
+        timestamp: tx.timeStamp,
+        type: isIncoming ? TransactionType.incoming : TransactionType.outgoing,
+        subType: TransactionSubType.ethToken,
+        amount: tx.value.toInt(),
+        fee: tx.gasUsed * tx.gasPrice.toInt(),
+        height: tx.blockNumber,
+        isCancelled: false,
+        isLelantus: false,
+        slateId: null,
+        otherData: tx.contractAddress,
+        inputs: [],
+        outputs: [],
+      );
+
+      Address? transactionAddress = await ethWallet.db
+          .getAddresses(ethWallet.walletId)
+          .filter()
+          .valueEqualTo(addressString)
+          .findFirst();
+
+      if (transactionAddress == null) {
+        if (isIncoming) {
+          transactionAddress = Address(
+            walletId: ethWallet.walletId,
+            value: addressString,
+            publicKey: [],
+            derivationIndex: 0,
+            derivationPath: DerivationPath()..value = "$hdPathEthereum/0",
+            type: AddressType.ethereum,
+            subType: AddressSubType.receiving,
+          );
+        } else {
+          final myRcvAddr = await currentReceivingAddress;
+          final isSentToSelf = myRcvAddr == addressString;
+
+          transactionAddress = Address(
+            walletId: ethWallet.walletId,
+            value: addressString,
+            publicKey: [],
+            derivationIndex: isSentToSelf ? 0 : -1,
+            derivationPath: isSentToSelf
+                ? (DerivationPath()..value = "$hdPathEthereum/0")
+                : null,
+            type: AddressType.ethereum,
+            subType: isSentToSelf
+                ? AddressSubType.receiving
+                : AddressSubType.nonWallet,
+          );
+        }
+      }
+
+      txnsData.add(Tuple2(txn, transactionAddress));
     }
+    await ethWallet.db.addNewTransactionData(txnsData, ethWallet.walletId);
 
-    final txModel = TransactionData.fromMap(
-        TransactionData.fromJson(result).getAllTransactions());
-
-    cachedTxData = txModel;
-    return txModel;
+    // quick hack to notify manager to call notifyListeners if
+    // transactions changed
+    if (txnsData.isNotEmpty) {
+      GlobalEventBus.instance.fire(
+        UpdatedInBackgroundEvent(
+          "${token.name} transactions updated/added for: ${ethWallet.walletId} ${ethWallet.walletName}",
+          ethWallet.walletId,
+        ),
+      );
+    }
   }
 
   bool validateAddress(String address) {

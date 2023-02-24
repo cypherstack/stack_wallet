@@ -208,7 +208,7 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
         .select((value) => value.getManager(widget.walletId)));
 
     return FutureBuilder(
-      future: widget.tokenService.transaction,
+      future: widget.tokenService.transactions,
       builder: (fbContext, AsyncSnapshot<List<Transaction>> snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             snapshot.hasData) {
@@ -237,13 +237,8 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
           _transactions2.sort((a, b) => b.timestamp - a.timestamp);
           return RefreshIndicator(
             onRefresh: () async {
-              //todo: check if print needed
-              // debugPrint("pulled down to refresh on transaction list");
-              final managerProvider = ref
-                  .read(walletsChangeNotifierProvider)
-                  .getManagerProvider(widget.walletId);
-              if (!ref.read(managerProvider).isRefreshing) {
-                unawaited(ref.read(managerProvider).refresh());
+              if (!widget.tokenService.isRefreshing) {
+                unawaited(widget.tokenService.refresh());
               }
             },
             child: Util.isDesktop
