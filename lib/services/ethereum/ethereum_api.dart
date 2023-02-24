@@ -1,15 +1,13 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:http/http.dart';
+import 'package:stackwallet/models/ethereum/erc20_token.dart';
 import 'package:stackwallet/models/ethereum/erc721_token.dart';
+import 'package:stackwallet/models/ethereum/eth_token.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/utilities/eth_commons.dart';
 import 'package:stackwallet/utilities/logger.dart';
-
-import '../../models/ethereum/erc20_token.dart';
-import '../../models/ethereum/eth_token.dart';
 
 class AbiRequestResponse {
   final String message;
@@ -28,6 +26,87 @@ class AbiRequestResponse {
       result: json['result'] as String,
       status: json['status'] as String,
     );
+  }
+}
+
+class EthTokenTx {
+  final String blockHash;
+  final int blockNumber;
+  final int confirmations;
+  final String contractAddress;
+  final int cumulativeGasUsed;
+  final String from;
+  final int gas;
+  final BigInt gasPrice;
+  final int gasUsed;
+  final String hash;
+  final String input;
+  final int logIndex;
+  final int nonce;
+  final int timeStamp;
+  final String to;
+  final int tokenDecimal;
+  final String tokenName;
+  final String tokenSymbol;
+  final int transactionIndex;
+  final BigInt value;
+
+  EthTokenTx({
+    required this.blockHash,
+    required this.blockNumber,
+    required this.confirmations,
+    required this.contractAddress,
+    required this.cumulativeGasUsed,
+    required this.from,
+    required this.gas,
+    required this.gasPrice,
+    required this.gasUsed,
+    required this.hash,
+    required this.input,
+    required this.logIndex,
+    required this.nonce,
+    required this.timeStamp,
+    required this.to,
+    required this.tokenDecimal,
+    required this.tokenName,
+    required this.tokenSymbol,
+    required this.transactionIndex,
+    required this.value,
+  });
+
+  factory EthTokenTx.fromMap({
+    required Map<String, dynamic> map,
+  }) {
+    try {
+      return EthTokenTx(
+        blockHash: map["blockHash"] as String,
+        blockNumber: int.parse(map["blockNumber"] as String),
+        confirmations: int.parse(map["confirmations"] as String),
+        contractAddress: map["contractAddress"] as String,
+        cumulativeGasUsed: int.parse(map["cumulativeGasUsed"] as String),
+        from: map["from"] as String,
+        gas: int.parse(map["gas"] as String),
+        gasPrice: BigInt.parse(map["gasPrice"] as String),
+        gasUsed: int.parse(map["gasUsed"] as String),
+        hash: map["hash"] as String,
+        input: map["input"] as String,
+        logIndex: int.parse(map["logIndex"] as String),
+        nonce: int.parse(map["nonce"] as String),
+        timeStamp: int.parse(map["timeStamp"] as String),
+        to: map["to"] as String,
+        tokenDecimal: int.parse(map["tokenDecimal"] as String),
+        tokenName: map["tokenName"] as String,
+        tokenSymbol: map["tokenSymbol"] as String,
+        transactionIndex: int.parse(map["transactionIndex"] as String),
+        value: BigInt.parse(map["value"] as String),
+      );
+    } catch (e, s) {
+      Logging.instance.log(
+        "EthTokenTx.fromMap() failed: $e\n$s",
+        level: LogLevel.Fatal,
+      );
+      rethrow;
+    }
   }
 }
 
@@ -60,6 +139,53 @@ abstract class EthereumAPI {
       }
     } catch (e, s) {
       throw Exception('ERROR GETTING TRANSACTIONS ${e.toString()}');
+    }
+  }
+
+  static Future<EthereumResponse<List<EthTokenTx>>> getTokenTransactions({
+    required String address,
+    int? startBlock,
+    int? endBlock,
+    // todo add more params?
+  }) async {
+    try {
+      final uri = Uri.parse(
+        "$blockExplorer?module=account&action=tokentx&address=$address",
+      );
+      final response = await get(uri);
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        if (json["message"] == "OK") {
+          final result =
+              List<Map<String, dynamic>>.from(json["result"] as List);
+          final List<EthTokenTx> tokenTxns = [];
+          for (final map in result) {
+            tokenTxns.add(EthTokenTx.fromMap(map: map));
+          }
+
+          return EthereumResponse(
+            tokenTxns,
+            null,
+          );
+        } else {
+          throw Exception(json["message"] as String);
+        }
+      } else {
+        throw Exception(
+          "getWalletTokens($address) failed with status code: "
+          "${response.statusCode}",
+        );
+      }
+    } catch (e, s) {
+      Logging.instance.log(
+        "getWalletTokens(): $e\n$s",
+        level: LogLevel.Error,
+      );
+      return EthereumResponse(
+        null,
+        Exception(e.toString()),
+      );
     }
   }
 
@@ -127,45 +253,6 @@ abstract class EthereumAPI {
         Exception(e.toString()),
       );
     }
-  }
-
-  static Future<List<dynamic>> getWalletTokenTransactions(
-      String address) async {
-    AddressTransaction tokens =
-        await fetchAddressTransactions(address, "tokentx");
-    List<dynamic> tokensList = [];
-    var tokenMap = {};
-    if (tokens.message == "OK") {
-      final allTxs = tokens.result;
-      allTxs.forEach((element) {
-        print("=========================================================");
-        print("THING: $element");
-        print("=========================================================");
-
-        String key = element["tokenSymbol"] as String;
-        tokenMap[key] = {};
-        tokenMap[key]["balance"] = 0;
-
-        if (tokenMap.containsKey(key)) {
-          tokenMap[key]["contractAddress"] =
-              element["contractAddress"] as String;
-          tokenMap[key]["decimals"] = element["tokenDecimal"];
-          tokenMap[key]["name"] = element["tokenName"];
-          tokenMap[key]["symbol"] = element["tokenSymbol"];
-          if (checksumEthereumAddress(address) == address) {
-            tokenMap[key]["balance"] += int.parse(element["value"] as String);
-          } else {
-            tokenMap[key]["balance"] -= int.parse(element["value"] as String);
-          }
-        }
-      });
-
-      tokenMap.forEach((key, value) {
-        tokensList.add(value as Map<dynamic, dynamic>);
-      });
-      return tokensList;
-    }
-    return <dynamic>[];
   }
 
   static Future<GasTracker> getGasOracle() async {
