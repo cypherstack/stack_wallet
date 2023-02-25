@@ -1038,8 +1038,9 @@ class EpicCashWallet extends CoinServiceAPI
   Future<String> getEpicBoxConfig() async {
     String? storedConfig =
         await _secureStore.read(key: '${_walletId}_epicboxConfig');
+
     if (storedConfig == null) {
-      return json.encode(DefaultNodes.defaultEpicBoxConfig);
+      storedConfig = DefaultNodes.defaultEpicBoxConfig;
     } else {
       dynamic decoded = json.decode(storedConfig!);
       final domain = decoded["domain"] ?? "empty";
@@ -1047,20 +1048,20 @@ class EpicCashWallet extends CoinServiceAPI
         //If we have the old invalid config, use the new default one
         // new storage format stores domain under "epicbox_domain", old storage format used "domain"
         storedConfig = DefaultNodes.defaultEpicBoxConfig;
-        decoded = json.decode(storedConfig);
       }
-      //Check Epicbox is up before returning it
-      bool isEpicboxConnected = await testEpicboxServer(
-          decoded["epicbox_domain"] as String, decoded["epicbox_port"] as int);
-
-      if (!isEpicboxConnected) {
-        //Default Epicbox is not connected, Defaulting to Europe
-        storedConfig = json.encode(DefaultNodes.epicBoxConfigEUR);
-        // TODO test this connection before returning it, iterating through the list of default Epic Box servers
-      }
-
-      return storedConfig;
     }
+    final decoded = json.decode(storedConfig);
+    //Check Epicbox is up before returning it
+    bool isEpicboxConnected = await testEpicboxServer(
+        decoded["epicbox_domain"] as String, decoded["epicbox_port"] as int);
+
+    if (!isEpicboxConnected) {
+      //Default Epicbox is not connected, Defaulting to Europe
+      storedConfig = json.encode(DefaultNodes.epicBoxConfigEUR);
+      // TODO test this connection before returning it, iterating through the list of default Epic Box servers
+    }
+
+    return storedConfig;
   }
 
   Future<String> getRealConfig() async {
