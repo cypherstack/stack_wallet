@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/coin_wallets_table.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
@@ -34,6 +35,15 @@ void main() {
 
     when(wallet.walletName).thenAnswer((_) => "some wallet");
     when(wallet.walletId).thenAnswer((_) => "Wallet id 1");
+    when(wallet.balance).thenAnswer(
+      (_) => Balance(
+        coin: Coin.bitcoin,
+        total: 0,
+        spendable: 0,
+        blockedTotal: 0,
+        pendingSpendable: 0,
+      ),
+    );
 
     final manager = Manager(wallet);
 
