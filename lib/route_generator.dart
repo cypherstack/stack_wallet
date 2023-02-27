@@ -128,7 +128,6 @@ import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/nodes_
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/security_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/syncing_preferences_settings.dart';
 import 'package:stackwallet/services/coins/manager.dart';
-import 'package:stackwallet/services/ethereum/ethereum_token_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
@@ -1461,14 +1460,11 @@ class RouteGenerator {
       //   }
 
       case TokenView.routeName:
-        if (args is Tuple3<String, EthToken,
-            EthereumTokenService>) {
+        if (args is String) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => TokenView(
-              walletId: args.item1,
-              token: args.item2,
-              tokenService: args.item3,
+              walletId: args,
             ),
             settings: RouteSettings(
               name: settings.name,

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:decimal/decimal.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/ethereum/eth_token.dart';
@@ -9,10 +10,12 @@ import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
+import 'package:stackwallet/models/token_balance.dart';
 import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
 import 'package:stackwallet/services/ethereum/ethereum_api.dart';
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/mixins/eth_token_cache.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
@@ -25,7 +28,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:tuple/tuple.dart';
 import 'package:web3dart/web3dart.dart' as web3dart;
 
-class EthereumTokenService {
+class EthereumTokenService extends ChangeNotifier with EthTokenCache {
   final EthToken token;
   final EthereumWallet ethWallet;
   final TransactionNotificationTracker tracker;
@@ -48,11 +51,11 @@ class EthereumTokenService {
     required this.tracker,
   }) : _secureStore = secureStore {
     _contractAddress = web3dart.EthereumAddress.fromHex(token.contractAddress);
+    initCache(ethWallet.walletId, token);
   }
 
-  Future<Decimal> get availableBalance async {
-    return await totalBalance;
-  }
+  TokenBalance get balance => _balance ??= getCachedBalance();
+  TokenBalance? _balance;
 
   Coin get coin => Coin.ethereum;
 
@@ -177,18 +180,6 @@ class EthereumTokenService {
 
     final feeEstimate = await estimateFeeFor(satoshiAmount, fee);
 
-    bool isSendAll = false;
-    final balance =
-        Format.decimalAmountToSatoshis(await availableBalance, coin);
-    if (satoshiAmount == balance) {
-      isSendAll = true;
-    }
-
-    if (isSendAll) {
-      //Send the full balance
-      satoshiAmount = balance;
-    }
-
     Map<String, dynamic> txData = {
       "fee": feeEstimate,
       "feeInWei": fee,
@@ -205,6 +196,7 @@ class EthereumTokenService {
     if (!_refreshLock) {
       _refreshLock = true;
       try {
+        await refreshCachedBalance();
         await _refreshTransactions();
       } catch (e, s) {
         Logging.instance.log(
@@ -213,22 +205,33 @@ class EthereumTokenService {
         );
       } finally {
         _refreshLock = false;
+        notifyListeners();
       }
     }
   }
 
-  Future<Decimal> get totalBalance async {
+  Future<void> refreshCachedBalance() async {
     final balanceRequest = await _client.call(
         contract: _contract,
         function: _balanceFunction,
         params: [_credentials.address]);
 
-    String balance = balanceRequest.first.toString();
-    final balanceInDecimal = Format.satoshisToEthTokenAmount(
-      int.parse(balance),
-      token.decimals,
+    print("==========================================");
+    print("balanceRequest: $balanceRequest");
+    print("==========================================");
+
+    String _balance = balanceRequest.first.toString();
+
+    final newBalance = TokenBalance(
+      contractAddress: token.contractAddress,
+      total: int.parse(_balance),
+      spendable: int.parse(_balance),
+      blockedTotal: 0,
+      pendingSpendable: 0,
+      decimalPlaces: token.decimals,
     );
-    return Decimal.parse(balanceInDecimal.toString());
+    await updateCachedBalance(newBalance);
+    notifyListeners();
   }
 
   Future<List<Transaction>> get transactions => ethWallet.db

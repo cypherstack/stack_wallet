@@ -15,7 +15,6 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:tuple/tuple.dart';
 
 class MyTokenSelectItem extends ConsumerWidget {
   const MyTokenSelectItem(
@@ -51,27 +50,25 @@ class MyTokenSelectItem extends ConsumerWidget {
               BorderRadius.circular(Constants.size.circularBorderRadius),
         ),
         onPressed: () async {
-          final tokenService = EthereumTokenService(
+          ref.read(tokenServiceStateProvider.state).state =
+              EthereumTokenService(
             token: token,
             secureStore: ref.read(secureStoreProvider),
             ethWallet: ref.read(managerProvider).wallet as EthereumWallet,
             tracker: TransactionNotificationTracker(
-                walletId: ref.read(managerProvider).walletId),
+              walletId: ref.read(managerProvider).walletId,
+            ),
           );
 
           await showLoading<void>(
-            whileFuture: tokenService.initializeExisting(),
+            whileFuture: ref.read(tokenServiceProvider)!.initializeExisting(),
             context: context,
             message: "Loading ${token.name}",
           );
 
           await Navigator.of(context).pushNamed(
             TokenView.routeName,
-            arguments: Tuple3(
-              walletId,
-              token,
-              tokenService,
-            ),
+            arguments: walletId,
           );
         },
 

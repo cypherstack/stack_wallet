@@ -2,7 +2,6 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/ethereum/eth_token.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/token_transaction_list_widget.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
 import 'package:stackwallet/services/ethereum/ethereum_token_service.dart';
@@ -15,13 +14,16 @@ import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 
+final tokenServiceStateProvider =
+    StateProvider<EthereumTokenService?>((ref) => null);
+final tokenServiceProvider = ChangeNotifierProvider<EthereumTokenService?>(
+    (ref) => ref.watch(tokenServiceStateProvider));
+
 /// [eventBus] should only be set during testing
 class TokenView extends ConsumerStatefulWidget {
   const TokenView({
     Key? key,
     required this.walletId,
-    required this.token,
-    required this.tokenService,
     this.eventBus,
   }) : super(key: key);
 
@@ -29,8 +31,6 @@ class TokenView extends ConsumerStatefulWidget {
   static const double navBarHeight = 65.0;
 
   final String walletId;
-  final EthToken token;
-  final EthereumTokenService tokenService;
   final EventBus? eventBus;
 
   @override
@@ -51,7 +51,6 @@ class _TokenViewState extends ConsumerState<TokenView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    // print("MY TOTAL BALANCE IS ${widget.token.totalBalance}");
 
     return Background(
       child: Scaffold(
@@ -67,7 +66,6 @@ class _TokenViewState extends ConsumerState<TokenView> {
             children: [
               SvgPicture.asset(
                 Assets.svg.iconFor(coin: Coin.ethereum),
-                // color: Theme.of(context).extension<StackColors>()!.accentColorDark
                 width: 24,
                 height: 24,
               ),
@@ -76,14 +74,16 @@ class _TokenViewState extends ConsumerState<TokenView> {
               ),
               Expanded(
                 child: Text(
-                  widget.token.name,
+                  ref.watch(tokenServiceProvider
+                      .select((value) => value!.token.name)),
                   style: STextStyles.navBarTitle(context),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               Expanded(
                 child: Text(
-                  widget.token.symbol,
+                  ref.watch(tokenServiceProvider
+                      .select((value) => value!.token.symbol)),
                   style: STextStyles.navBarTitle(context),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -167,7 +167,8 @@ class _TokenViewState extends ConsumerState<TokenView> {
                         children: [
                           Expanded(
                             child: TokenTransactionsList(
-                              tokenService: widget.tokenService,
+                              tokenService: ref.watch(tokenServiceProvider
+                                  .select((value) => value!)),
                               walletId: widget.walletId,
                             ),
                           ),
