@@ -38,7 +38,7 @@ class EmptyWallets extends ConsumerWidget {
               const Spacer(
                 flex: 2,
               ),
-              (isSorbet || isForest)
+              (isSorbet || isForest || isOcean)
                   ? SvgPicture.asset(
                       Assets.svg.stack(context),
                       width: isDesktop
