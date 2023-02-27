@@ -1,21 +1,21 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Creator: CorelDRAW 2019 (64-Bit) -->
-<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="100%" height="100%" version="1.1" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill-rule="evenodd" clip-rule="evenodd"
-viewBox="0 0 784.37 1277.39"
- xmlns:xlink="http://www.w3.org/1999/xlink"
- xmlns:xodm="http://www.corel.com/coreldraw/odm/2003">
- <g id="Layer_x0020_1">
-  <metadata id="CorelCorpID_0Corel-Layer"/>
-  <g id="_1421394342400">
-   <g>
-    <polygon fill="#343434" fill-rule="nonzero" points="392.07,0 383.5,29.11 383.5,873.74 392.07,882.29 784.13,650.54 "/>
-    <polygon fill="#8C8C8C" fill-rule="nonzero" points="392.07,0 -0,650.54 392.07,882.29 392.07,472.33 "/>
-    <polygon fill="#3C3C3B" fill-rule="nonzero" points="392.07,956.52 387.24,962.41 387.24,1263.28 392.07,1277.38 784.37,724.89 "/>
-    <polygon fill="#8C8C8C" fill-rule="nonzero" points="392.07,1277.38 392.07,956.52 -0,724.89 "/>
-    <polygon fill="#141414" fill-rule="nonzero" points="392.07,882.29 784.13,650.54 392.07,472.33 "/>
-    <polygon fill="#393939" fill-rule="nonzero" points="0,650.54 392.07,882.29 392.07,472.33 "/>
-   </g>
-  </g>
- </g>
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_7503_3080)">
+<circle cx="12" cy="12" r="12" fill="#CDD4F0"/>
+<g clip-path="url(#clip1_7503_3080)">
+<path d="M11.9999 16.4938V21L6.59961 13.2179L11.9999 16.4938Z" fill="#8A92B2"/>
+<path d="M17.3997 13.2186L12 21V16.4939L17.3997 13.2186Z" fill="#62688F"/>
+<path d="M11.9993 3V9.6401L7.21816 11.8643L6.63477 12.1357L6.79429 11.8643L9.44041 7.35817L11.9993 3Z" fill="#8A92B2"/>
+<path d="M17.3639 12.1357L16.7805 11.8643L12 9.6401V3L14.5589 7.35817L17.2043 11.8643L17.3639 12.1357Z" fill="#62688F"/>
+<path d="M17.3639 12.1357L12 15.3977V9.64014L16.7805 11.8643L17.3639 12.1357Z" fill="#454A75"/>
+<path d="M11.9993 9.64014V15.3977L6.63477 12.1357L7.21816 11.8643L11.9993 9.64014Z" fill="#62688F"/>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_7503_3080">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+<clipPath id="clip1_7503_3080">
+<rect width="10.8" height="18" fill="white" transform="translate(6.59961 3)"/>
+</clipPath>
+</defs>
 </svg>
