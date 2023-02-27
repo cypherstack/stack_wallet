@@ -605,7 +605,7 @@ mixin PaynymWalletInterface {
       final myCode = await getPaymentCode(DerivePathType.bip44);
 
       final utxo = utxosToUse.first;
-      final txPoint = utxo.txid.fromHex.toList();
+      final txPoint = utxo.txid.fromHex.reversed.toList();
       final txPointIndex = utxo.vout;
 
       final rev = Uint8List(txPoint.length + 4);
@@ -786,6 +786,18 @@ mixin PaynymWalletInterface {
           // await _setConnectedCache(paymentCodeString, true);
           return true;
         }
+
+        final unBlindedPaymentCodeBad =
+            await unBlindedPaymentCodeFromTransactionBad(
+          transaction: tx,
+          myNotificationAddress: myNotificationAddress,
+        );
+
+        if (unBlindedPaymentCodeBad != null &&
+            paymentCodeString == unBlindedPaymentCodeBad.toString()) {
+          // await _setConnectedCache(paymentCodeString, true);
+          return true;
+        }
       } else if (tx.type == TransactionType.outgoing) {
         if (tx.address.value?.otherData != null) {
           final code =
@@ -822,6 +834,64 @@ mixin PaynymWalletInterface {
   }
 
   Future<PaymentCode?> unBlindedPaymentCodeFromTransaction({
+    required Transaction transaction,
+    required Address myNotificationAddress,
+  }) async {
+    if (transaction.address.value != null &&
+        transaction.address.value!.value != myNotificationAddress.value) {
+      return null;
+    }
+
+    try {
+      final blindedCodeBytes =
+          Bip47Utils.getBlindedPaymentCodeBytesFrom(transaction);
+
+      // transaction does not contain a payment code
+      if (blindedCodeBytes == null) {
+        return null;
+      }
+
+      final designatedInput = transaction.inputs.first;
+
+      final txPoint = designatedInput.txid.fromHex.reversed.toList();
+      final txPointIndex = designatedInput.vout;
+
+      final rev = Uint8List(txPoint.length + 4);
+      Util.copyBytes(Uint8List.fromList(txPoint), 0, rev, 0, txPoint.length);
+      final buffer = rev.buffer.asByteData();
+      buffer.setUint32(txPoint.length, txPointIndex, Endian.little);
+
+      final pubKey = _pubKeyFromInput(designatedInput)!;
+
+      final myPrivateKey = (await deriveNotificationBip32Node(
+        mnemonic: (await _getMnemonicString())!,
+        mnemonicPassphrase: (await _getMnemonicPassphrase())!,
+      ))
+          .privateKey!;
+
+      final S = SecretPoint(myPrivateKey, pubKey);
+
+      final mask = PaymentCode.getMask(S.ecdhSecret(), rev);
+
+      final unBlindedPayload = PaymentCode.blind(
+        payload: blindedCodeBytes,
+        mask: mask,
+        unBlind: true,
+      );
+
+      final unBlindedPaymentCode = PaymentCode.fromPayload(unBlindedPayload);
+
+      return unBlindedPaymentCode;
+    } catch (e) {
+      Logging.instance.log(
+        "unBlindedPaymentCodeFromTransaction() failed: $e",
+        level: LogLevel.Warning,
+      );
+      return null;
+    }
+  }
+
+  Future<PaymentCode?> unBlindedPaymentCodeFromTransactionBad({
     required Transaction transaction,
     required Address myNotificationAddress,
   }) async {
@@ -910,6 +980,17 @@ mixin PaynymWalletInterface {
         if (unBlinded != null &&
             codes.where((e) => e.toString() == unBlinded.toString()).isEmpty) {
           codes.add(unBlinded);
+        }
+
+        final unBlindedBad = await unBlindedPaymentCodeFromTransactionBad(
+          transaction: tx,
+          myNotificationAddress: myAddress,
+        );
+        if (unBlindedBad != null &&
+            codes
+                .where((e) => e.toString() == unBlindedBad.toString())
+                .isEmpty) {
+          codes.add(unBlindedBad);
         }
       }
     }

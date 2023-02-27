@@ -284,15 +284,18 @@ class _SVG {
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/bitcoincash.svg";
   String dogecoinImage(BuildContext context) =>
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/doge.svg";
-  // String get epicCashImage => "assets/images/fruitSorbet/epic-cash.svg";
+  String epicCashImage(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/epic-cash.svg";
   String firoImage(BuildContext context) =>
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/firo.svg";
   String litecoinImage(BuildContext context) =>
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/litecoin.svg";
-  // String get moneroImage => "assets/images/fruitSorbet/monero.svg";
+  String moneroImage(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/monero.svg";
   String wowneroImage(BuildContext context) =>
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/wownero.svg";
-  // String get namecoinImage => "assets/images/fruitSorbet/Namecoin.svg";
+  String namecoinImage(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/namecoin.svg";
   String particlImage(BuildContext context) =>
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/particl.svg";
 
@@ -308,15 +311,15 @@ class _SVG {
       case Coin.dogecoin:
         return dogecoinImage(context);
       case Coin.epicCash:
-        return epicCash;
+        return epicCashImage(context);
       case Coin.firo:
         return firoImage(context);
       case Coin.monero:
-        return monero;
+        return moneroImage(context);
       case Coin.wownero:
         return wowneroImage(context);
       case Coin.namecoin:
-        return namecoin;
+        return namecoinImage(context);
       case Coin.particl:
         return particlImage(context);
       case Coin.bitcoinTestNet:
