@@ -21,6 +21,8 @@ class EmptyWallets extends ConsumerWidget {
         ThemeType.fruitSorbet;
     final bool isForest =
         ref.read(colorThemeProvider.state).state.themeType == ThemeType.forest;
+    final bool isOcean = ref.read(colorThemeProvider.state).state.themeType ==
+        ThemeType.oceanBreeze;
 
     return SafeArea(
       child: Padding(
