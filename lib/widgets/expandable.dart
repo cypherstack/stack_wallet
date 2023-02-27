@@ -19,6 +19,7 @@ class Expandable extends StatefulWidget {
     this.animation,
     this.animationDurationMultiplier = 1.0,
     this.onExpandChanged,
+    this.onExpandWillChange,
     this.controller,
     this.expandOverride,
     this.curve = Curves.easeInOut,
@@ -30,6 +31,7 @@ class Expandable extends StatefulWidget {
   final Animation<double>? animation;
   final double animationDurationMultiplier;
   final void Function(ExpandableState)? onExpandChanged;
+  final void Function(ExpandableState)? onExpandWillChange;
   final ExpandableController? controller;
   final VoidCallback? expandOverride;
   final Curve curve;
@@ -48,10 +50,12 @@ class _ExpandableState extends State<Expandable> with TickerProviderStateMixin {
 
   Future<void> toggle() async {
     if (animation.isDismissed) {
+      widget.onExpandWillChange?.call(ExpandableState.expanded);
       await animationController.forward();
       _toggleState = ExpandableState.expanded;
       widget.onExpandChanged?.call(_toggleState);
     } else if (animation.isCompleted) {
+      widget.onExpandWillChange?.call(ExpandableState.collapsed);
       await animationController.reverse();
       _toggleState = ExpandableState.collapsed;
       widget.onExpandChanged?.call(_toggleState);

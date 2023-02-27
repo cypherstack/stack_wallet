@@ -6,6 +6,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
 import 'package:stackwallet/widgets/expandable.dart';
 
 class ExpandingSubListItem extends StatefulWidget {
@@ -14,11 +15,17 @@ class ExpandingSubListItem extends StatefulWidget {
     required this.title,
     required this.entities,
     required this.initialState,
-  }) : super(key: key);
+    double? animationDurationMultiplier,
+    this.curve = Curves.easeInOutCubicEmphasized,
+  })  : animationDurationMultiplier =
+            animationDurationMultiplier ?? entities.length * 0.11,
+        super(key: key);
 
   final String title;
   final List<AddWalletListEntity> entities;
   final ExpandableState initialState;
+  final double animationDurationMultiplier;
+  final Curve curve;
 
   @override
   State<ExpandingSubListItem> createState() => _ExpandingSubListItemState();
@@ -28,15 +35,14 @@ class _ExpandingSubListItemState extends State<ExpandingSubListItem> {
   final isDesktop = Util.isDesktop;
 
   late final ExpandableController _controller;
-
-  late bool _expandedState;
+  late final RotateIconController _rotateIconController;
 
   @override
   void initState() {
-    _expandedState = widget.initialState == ExpandableState.expanded;
     _controller = ExpandableController();
+    _rotateIconController = RotateIconController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_expandedState) {
+      if (widget.initialState == ExpandableState.expanded) {
         _controller.toggle?.call();
       }
     });
@@ -44,15 +50,25 @@ class _ExpandingSubListItemState extends State<ExpandingSubListItem> {
   }
 
   @override
+  void dispose() {
+    _controller.toggle = null;
+    _rotateIconController.forward = null;
+    _rotateIconController.reverse = null;
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Expandable(
-      animationDurationMultiplier: 0.1 * widget.entities.length,
-      curve: Curves.easeInOutCubicEmphasized,
+      animationDurationMultiplier: widget.animationDurationMultiplier,
+      curve: widget.curve,
       controller: _controller,
-      onExpandChanged: (state) {
-        setState(() {
-          _expandedState = state == ExpandableState.expanded;
-        });
+      onExpandWillChange: (state) {
+        if (state == ExpandableState.expanded) {
+          _rotateIconController.forward?.call();
+        } else {
+          _rotateIconController.reverse?.call();
+        }
       },
       header: Container(
         color: Colors.transparent,
@@ -76,13 +92,18 @@ class _ExpandingSubListItemState extends State<ExpandingSubListItem> {
                     : STextStyles.smallMed12(context),
                 textAlign: TextAlign.left,
               ),
-              SvgPicture.asset(
-                _expandedState ? Assets.svg.chevronUp : Assets.svg.chevronDown,
-                width: 12,
-                height: 6,
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldActiveSearchIconRight,
+              RotateIcon(
+                icon: SvgPicture.asset(
+                  Assets.svg.chevronDown,
+                  width: 12,
+                  height: 6,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldActiveSearchIconRight,
+                ),
+                curve: widget.curve,
+                animationDurationMultiplier: widget.animationDurationMultiplier,
+                controller: _rotateIconController,
               ),
             ],
           ),
