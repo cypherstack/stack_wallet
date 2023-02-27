@@ -294,11 +294,13 @@ class Manager with ChangeNotifier {
         notifyListeners();
       } else {
         throw Exception(
-            'Error updating Epic Box server (getCurrentReceivingAddress and/or listenForSlates');
+            'Error in updateEpicBox updating Epic Box server (updateEpicBox ie. getCurrentReceivingAddress)');
       }
       return success;
     } catch (e, s) {
       Logging.instance.log("$e, $s", level: LogLevel.Error);
+      throw Exception(
+          'Error in updateEpicBox updating Epic Box server (updateEpicBox ie. getCurrentReceivingAddress and/or listenForSlates');
       return false;
     }
   }

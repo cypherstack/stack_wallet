@@ -1187,6 +1187,8 @@ class EpicCashWallet extends CoinServiceAPI {
       _currentReceivingAddress = _getCurrentAddressForChain(0);
       return true;
     } catch (e, s) {
+      Logging.instance.log("$e, $s", level: LogLevel.Error);
+      throw Exception("Error in updateEpicBox (_getCurrentAddressForChain)");
       return false;
     }
   }
