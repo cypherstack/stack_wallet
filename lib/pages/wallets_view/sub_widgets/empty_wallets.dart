@@ -21,6 +21,8 @@ class EmptyWallets extends ConsumerWidget {
         ThemeType.fruitSorbet;
     final bool isForest =
         ref.read(colorThemeProvider.state).state.themeType == ThemeType.forest;
+    final bool isOcean = ref.read(colorThemeProvider.state).state.themeType ==
+        ThemeType.oceanBreeze;
 
     return SafeArea(
       child: Padding(
@@ -100,13 +102,15 @@ class EmptyWallets extends ConsumerWidget {
   }
 }
 
-class AddWalletButton extends StatelessWidget {
+class AddWalletButton extends ConsumerWidget {
   const AddWalletButton({Key? key, required this.isDesktop}) : super(key: key);
 
   final bool isDesktop;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bool isOLED = ref.read(colorThemeProvider.state).state.themeType ==
+        ThemeType.oledBlack;
     return TextButton(
       style: Theme.of(context)
           .extension<StackColors>()!
@@ -129,11 +133,20 @@ class AddWalletButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SvgPicture.asset(
-                Assets.svg.plus,
-                width: isDesktop ? 18 : null,
-                height: isDesktop ? 18 : null,
-              ),
+              isOLED
+                  ? SvgPicture.asset(
+                      Assets.svg.plus,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .buttonTextPrimary,
+                      width: isDesktop ? 18 : null,
+                      height: isDesktop ? 18 : null,
+                    )
+                  : SvgPicture.asset(
+                      Assets.svg.plus,
+                      width: isDesktop ? 18 : null,
+                      height: isDesktop ? 18 : null,
+                    ),
               SizedBox(
                 width: isDesktop ? 8 : 5,
               ),
