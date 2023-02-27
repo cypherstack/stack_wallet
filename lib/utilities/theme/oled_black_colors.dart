@@ -198,7 +198,7 @@ class OledBlackColors extends StackColorTheme {
 
   // text field
   @override
-  Color get textFieldActiveBG => const Color(0xFF232323);
+  Color get textFieldActiveBG => const Color(0xFF3C3C3C);
   @override
   Color get textFieldDefaultBG => const Color(0xFF171717);
   @override
