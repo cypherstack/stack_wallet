@@ -173,9 +173,9 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
     web3.Web3Client client = getEthClient();
-    final int chainId = await client.getNetworkId();
-    final amount = txData['recipientAmt'];
-    final decimalAmount = Format.satoshisToAmount(amount as int, coin: coin);
+    final chainId = await client.getChainId();
+    final amount = txData['recipientAmt'] as int;
+    final decimalAmount = Format.satoshisToAmount(amount, coin: coin);
     final bigIntAmount = amountToBigInt(
       decimalAmount.toDouble(),
       Constants.decimalPlacesForCoin(coin),
@@ -187,8 +187,8 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
             web3.EtherUnit.wei, txData['feeInWei']),
         maxGas: _gasLimit,
         value: web3.EtherAmount.inWei(bigIntAmount));
-    final transaction =
-        await client.sendTransaction(_credentials, tx, chainId: chainId);
+    final transaction = await client.sendTransaction(_credentials, tx,
+        chainId: chainId.toInt());
 
     return transaction;
   }
@@ -773,8 +773,8 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<bool> testNetworkConnection() async {
     web3.Web3Client client = getEthClient();
     try {
-      final result = await client.isListeningForNetwork();
-      return result;
+      await client.getBlockNumber();
+      return true;
     } catch (_) {
       return false;
     }
