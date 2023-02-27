@@ -285,13 +285,21 @@ class Manager with ChangeNotifier {
   Future<bool> updateEpicBox() async {
     // Update address for receive page update
     // generateNewAddress();
-    final success = await (_currentWallet as EpicCashWallet).updateEpicBox();
-    await (_currentWallet as EpicCashWallet)
-        .listenForSlates(); // TODO try-catch this
-    // TODO close old listeners, if there are any.
-    if (success) {
-      notifyListeners();
+    try {
+      final success = await (_currentWallet as EpicCashWallet).updateEpicBox();
+      await (_currentWallet as EpicCashWallet)
+          .listenForSlates(); // TODO try-catch this
+      // TODO close old listeners, if there are any.
+      if (success) {
+        notifyListeners();
+      } else {
+        throw Exception(
+            'Error updating Epic Box server (getCurrentReceivingAddress and/or listenForSlates');
+      }
+      return success;
+    } catch (e, s) {
+      Logging.instance.log("$e, $s", level: LogLevel.Error);
+      return false;
     }
-    return success;
   }
 }
