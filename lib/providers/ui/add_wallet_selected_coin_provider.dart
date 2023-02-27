@@ -1,14 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/mobile_coin_list.dart';
 
-int _count = 0;
-
-final addWalletSelectedCoinStateProvider =
-    StateProvider.autoDispose<Coin?>((_) {
-  if (kDebugMode) {
-    _count++;
-  }
-
-  return null;
-});
+final addWalletSelectedEntityStateProvider =
+    StateProvider.autoDispose<AddWalletListEntity?>((_) => null);

@@ -1,43 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/coin_select_item.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/mobile_coin_list.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 class SearchableCoinList extends ConsumerWidget {
   const SearchableCoinList({
     Key? key,
-    required this.coins,
+    required this.entities,
     required this.isDesktop,
     required this.searchTerm,
   }) : super(key: key);
 
-  final List<Coin> coins;
+  final List<AddWalletListEntity> entities;
   final bool isDesktop;
   final String searchTerm;
 
-  List<Coin> filterCoins(String text, bool showTestNetCoins) {
-    final _coins = [...coins];
+  List<AddWalletListEntity> filterCoins(String text, bool showTestNetCoins) {
+    final _entities = [...entities];
     if (text.isNotEmpty) {
       final lowercaseTerm = text.toLowerCase();
-      _coins.retainWhere((e) =>
-          e.ticker.toLowerCase().contains(lowercaseTerm) ||
-          e.prettyName.toLowerCase().contains(lowercaseTerm) ||
-          e.name.toLowerCase().contains(lowercaseTerm));
+      _entities.retainWhere(
+        (e) =>
+            e.ticker.toLowerCase().contains(lowercaseTerm) ||
+            e.name.toLowerCase().contains(lowercaseTerm) ||
+            e.coin.name.toLowerCase().contains(lowercaseTerm) ||
+            (e is EthTokenEntity &&
+                e.token.contractAddress.toLowerCase().contains(lowercaseTerm)),
+      );
     }
     if (!showTestNetCoins) {
-      _coins.removeWhere(
+      _entities.removeWhere(
           (e) => e.name.endsWith("TestNet") || e == Coin.bitcoincashTestnet);
     }
-    // remove firo testnet regardless
-    _coins.remove(Coin.firoTestNet);
 
-    // Kidgloves for Wownero on desktop
-    // if(isDesktop) {
-    // _coins.remove(Coin.wownero);
-    // }
-
-    return _coins;
+    return _entities;
   }
 
   @override
@@ -46,15 +44,15 @@ class SearchableCoinList extends ConsumerWidget {
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
 
-    final _coins = filterCoins(searchTerm, showTestNet);
+    final _entities = filterCoins(searchTerm, showTestNet);
 
     return ListView.builder(
-      itemCount: _coins.length,
+      itemCount: _entities.length,
       itemBuilder: (ctx, index) {
         return Padding(
           padding: const EdgeInsets.all(4),
           child: CoinSelectItem(
-            coin: _coins[index],
+            entity: _entities[index],
           ),
         );
       },

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/mobile_coin_list.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -12,30 +12,28 @@ import 'package:stackwallet/utilities/util.dart';
 class CoinSelectItem extends ConsumerWidget {
   const CoinSelectItem({
     Key? key,
-    required this.coin,
+    required this.entity,
   }) : super(key: key);
 
-  final Coin coin;
+  final AddWalletListEntity entity;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    debugPrint("BUILD: CoinSelectItem for ${coin.name}");
-    final selectedCoin = ref.watch(addWalletSelectedCoinStateProvider);
+    debugPrint("BUILD: CoinSelectItem for ${entity.name}");
+    final selectedEntity = ref.watch(addWalletSelectedEntityStateProvider);
 
     final isDesktop = Util.isDesktop;
 
     return Container(
       decoration: BoxDecoration(
-        // color: selectedCoin == coin ? CFColors.selection : CFColors.white,
-        color: selectedCoin == coin
+        color: selectedEntity == entity
             ? Theme.of(context).extension<StackColors>()!.textFieldActiveBG
             : Theme.of(context).extension<StackColors>()!.popupBG,
         borderRadius:
             BorderRadius.circular(Constants.size.circularBorderRadius),
       ),
       child: MaterialButton(
-        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-        key: Key("coinSelectItemButtonKey_${coin.name}"),
+        key: Key("coinSelectItemButtonKey_${entity.name}${entity.ticker}"),
         padding: isDesktop
             ? const EdgeInsets.only(left: 24)
             : const EdgeInsets.all(12),
@@ -51,7 +49,7 @@ class CoinSelectItem extends ConsumerWidget {
           child: Row(
             children: [
               SvgPicture.asset(
-                Assets.svg.iconFor(coin: coin),
+                Assets.svg.iconFor(coin: entity.coin),
                 width: 26,
                 height: 26,
               ),
@@ -59,15 +57,15 @@ class CoinSelectItem extends ConsumerWidget {
                 width: isDesktop ? 12 : 10,
               ),
               Text(
-                coin.prettyName,
+                "${entity.name} (${entity.ticker})",
                 style: isDesktop
                     ? STextStyles.desktopTextMedium(context)
                     : STextStyles.subtitle600(context).copyWith(
                         fontSize: 14,
                       ),
               ),
-              if (isDesktop && selectedCoin == coin) const Spacer(),
-              if (isDesktop && selectedCoin == coin)
+              if (isDesktop && selectedEntity == entity) const Spacer(),
+              if (isDesktop && selectedEntity == entity)
                 Padding(
                   padding: const EdgeInsets.only(
                     right: 18,
@@ -86,8 +84,9 @@ class CoinSelectItem extends ConsumerWidget {
             ],
           ),
         ),
-        onPressed: () =>
-            ref.read(addWalletSelectedCoinStateProvider.state).state = coin,
+        onPressed: () {
+          ref.read(addWalletSelectedEntityStateProvider.state).state = entity;
+        },
       ),
     );
   }

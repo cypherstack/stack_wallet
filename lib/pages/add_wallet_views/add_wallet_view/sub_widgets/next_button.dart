@@ -17,7 +17,7 @@ class AddWalletNextButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: NextButton");
     final selectedCoin =
-        ref.watch(addWalletSelectedCoinStateProvider.state).state;
+        ref.watch(addWalletSelectedEntityStateProvider.state).state;
 
     final enabled = selectedCoin != null;
 
@@ -26,10 +26,8 @@ class AddWalletNextButton extends ConsumerWidget {
           ? null
           : () {
               final selectedCoin =
-                  ref.read(addWalletSelectedCoinStateProvider.state).state;
+                  ref.read(addWalletSelectedEntityStateProvider.state).state;
 
-              //todo: check if print needed
-              // debugPrint("Next pressed with ${selectedCoin!.name} selected!");
               Navigator.of(context).pushNamed(
                 CreateOrRestoreWalletView.routeName,
                 arguments: selectedCoin,
