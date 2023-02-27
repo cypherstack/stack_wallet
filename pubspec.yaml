@@ -320,6 +320,9 @@ flutter:
     # oled black theme coin
     - assets/images/oledBlack/
 
+    # ocean breeze theme coin
+    - assets/images/oceanBreeze/
+
     # fruit sorbet theme coin
     - assets/images/fruitSorbet/
 
