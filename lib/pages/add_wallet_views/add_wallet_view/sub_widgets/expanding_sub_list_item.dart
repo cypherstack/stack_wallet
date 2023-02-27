@@ -46,6 +46,8 @@ class _ExpandingSubListItemState extends State<ExpandingSubListItem> {
   @override
   Widget build(BuildContext context) {
     return Expandable(
+      animationDurationMultiplier: 0.1 * widget.entities.length,
+      curve: Curves.easeInOutCubicEmphasized,
       controller: _controller,
       onExpandChanged: (state) {
         setState(() {

@@ -21,6 +21,7 @@ class Expandable extends StatefulWidget {
     this.onExpandChanged,
     this.controller,
     this.expandOverride,
+    this.curve = Curves.easeInOut,
   }) : super(key: key);
 
   final Widget header;
@@ -31,6 +32,7 @@ class Expandable extends StatefulWidget {
   final void Function(ExpandableState)? onExpandChanged;
   final ExpandableController? controller;
   final VoidCallback? expandOverride;
+  final Curve curve;
 
   @override
   State<Expandable> createState() => _ExpandableState();
@@ -73,7 +75,7 @@ class _ExpandableState extends State<Expandable> with TickerProviderStateMixin {
     animation = widget.animation ??
         Tween<double>(begin: 0.0, end: 1.0).animate(
           CurvedAnimation(
-            curve: Curves.easeInOut,
+            curve: widget.curve,
             parent: animationController,
           ),
         );
