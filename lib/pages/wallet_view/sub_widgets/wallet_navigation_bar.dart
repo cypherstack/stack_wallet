@@ -357,6 +357,9 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                             const Spacer(),
                             SvgPicture.asset(
                               Assets.svg.tokens,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorDark,
                               width: 24,
                               height: 24,
                             ),
