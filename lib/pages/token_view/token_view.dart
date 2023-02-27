@@ -2,6 +2,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages/token_view/sub_widgets/token_summary.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/token_transaction_list_widget.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
 import 'package:stackwallet/services/ethereum/ethereum_token_service.dart';
@@ -98,19 +99,12 @@ class _TokenViewState extends ConsumerState<TokenView> {
               const SizedBox(
                 height: 10,
               ),
-              // Center(
-              //   child: Padding(
-              //     padding: const EdgeInsets.symmetric(horizontal: 16),
-              //     child: TokenSummary(
-              //       walletId: widget.walletId,
-              //       managerProvider: managerProvider,
-              //       initialSyncStatus: ref.watch(managerProvider
-              //               .select((value) => value.isRefreshing))
-              //           ? WalletSyncStatus.syncing
-              //           : WalletSyncStatus.synced,
-              //     ),
-              //   ),
-              // ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: TokenSummary(
+                  walletId: widget.walletId,
+                ),
+              ),
               const SizedBox(
                 height: 20,
               ),
