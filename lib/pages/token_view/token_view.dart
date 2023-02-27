@@ -4,8 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/token_summary.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/token_transaction_list_widget.dart';
+import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/ethereum/ethereum_token_service.dart';
+import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -14,6 +17,7 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 
 final tokenServiceStateProvider =
     StateProvider<EthereumTokenService?>((ref) => null);
@@ -29,7 +33,6 @@ class TokenView extends ConsumerStatefulWidget {
   }) : super(key: key);
 
   static const String routeName = "/token";
-  static const double navBarHeight = 65.0;
 
   final String walletId;
   final EventBus? eventBus;
@@ -39,8 +42,13 @@ class TokenView extends ConsumerStatefulWidget {
 }
 
 class _TokenViewState extends ConsumerState<TokenView> {
+  late final WalletSyncStatus initialSyncStatus;
+
   @override
   void initState() {
+    initialSyncStatus = ref.read(tokenServiceProvider)!.isRefreshing
+        ? WalletSyncStatus.syncing
+        : WalletSyncStatus.synced;
     super.initState();
   }
 
@@ -62,35 +70,59 @@ class _TokenViewState extends ConsumerState<TokenView> {
               Navigator.of(context).pop();
             },
           ),
-          titleSpacing: 0,
+          centerTitle: true,
           title: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               SvgPicture.asset(
-                Assets.svg.iconFor(coin: Coin.ethereum),
+                Assets.svg.iconForToken(
+                    contractAddress: ref.watch(tokenServiceProvider
+                        .select((value) => value!.token.contractAddress))),
                 width: 24,
                 height: 24,
               ),
               const SizedBox(
-                width: 16,
+                width: 10,
               ),
-              Expanded(
-                child: Text(
-                  ref.watch(tokenServiceProvider
-                      .select((value) => value!.token.name)),
-                  style: STextStyles.navBarTitle(context),
-                  overflow: TextOverflow.ellipsis,
-                ),
+              Text(
+                ref.watch(
+                    tokenServiceProvider.select((value) => value!.token.name)),
+                style: STextStyles.navBarTitle(context),
+                overflow: TextOverflow.ellipsis,
               ),
-              Expanded(
+              const SizedBox(
+                width: 6,
+              ),
+              RoundedContainer(
+                padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+                radiusMultiplier: 0.25,
+                color: const Color(
+                    0xFF4D5798), // TODO: color theme for multi themes
                 child: Text(
-                  ref.watch(tokenServiceProvider
-                      .select((value) => value!.token.symbol)),
-                  style: STextStyles.navBarTitle(context),
-                  overflow: TextOverflow.ellipsis,
+                  ref.watch(walletsChangeNotifierProvider.select((value) =>
+                      value.getManager(widget.walletId).coin.ticker)),
+                  style: STextStyles.w600_12(context).copyWith(
+                    color: Colors.white, // TODO: design is wrong?
+                  ),
                 ),
               )
             ],
           ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: WalletRefreshButton(
+                  walletId: widget.walletId,
+                  initialSyncStatus: initialSyncStatus,
+                  tokenContractAddress: ref.watch(tokenServiceProvider
+                      .select((value) => value!.token.contractAddress)),
+                ),
+              ),
+            ),
+          ],
         ),
         body: Container(
           color: Theme.of(context).extension<StackColors>()!.background,
@@ -161,8 +193,6 @@ class _TokenViewState extends ConsumerState<TokenView> {
                         children: [
                           Expanded(
                             child: TokenTransactionsList(
-                              tokenService: ref.watch(tokenServiceProvider
-                                  .select((value) => value!)),
                               walletId: widget.walletId,
                             ),
                           ),

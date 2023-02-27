@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
+import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/ethereum/ethereum_token_service.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -25,11 +25,9 @@ class TokenTransactionsList extends ConsumerStatefulWidget {
   const TokenTransactionsList({
     Key? key,
     required this.walletId,
-    required this.tokenService,
   }) : super(key: key);
 
   final String walletId;
-  final EthereumTokenService tokenService;
 
   @override
   ConsumerState<TokenTransactionsList> createState() =>
@@ -208,7 +206,8 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
         .select((value) => value.getManager(widget.walletId)));
 
     return FutureBuilder(
-      future: widget.tokenService.transactions,
+      future: ref
+          .watch(tokenServiceProvider.select((value) => value!.transactions)),
       builder: (fbContext, AsyncSnapshot<List<Transaction>> snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             snapshot.hasData) {
@@ -237,8 +236,8 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
           _transactions2.sort((a, b) => b.timestamp - a.timestamp);
           return RefreshIndicator(
             onRefresh: () async {
-              if (!widget.tokenService.isRefreshing) {
-                unawaited(widget.tokenService.refresh());
+              if (!ref.read(tokenServiceProvider)!.isRefreshing) {
+                unawaited(ref.read(tokenServiceProvider)!.refresh());
               }
             },
             child: Util.isDesktop

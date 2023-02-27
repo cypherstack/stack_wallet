@@ -14,6 +14,7 @@ import 'package:stackwallet/models/token_balance.dart';
 import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
 import 'package:stackwallet/services/ethereum/ethereum_api.dart';
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/eth_token_cache.dart';
 import 'package:stackwallet/services/node_service.dart';
@@ -196,6 +197,14 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
     if (!_refreshLock) {
       _refreshLock = true;
       try {
+        GlobalEventBus.instance.fire(
+          WalletSyncStatusChangedEvent(
+            WalletSyncStatus.syncing,
+            ethWallet.walletId + token.contractAddress,
+            coin,
+          ),
+        );
+
         await refreshCachedBalance();
         await _refreshTransactions();
       } catch (e, s) {
@@ -205,6 +214,13 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
         );
       } finally {
         _refreshLock = false;
+        GlobalEventBus.instance.fire(
+          WalletSyncStatusChangedEvent(
+            WalletSyncStatus.synced,
+            ethWallet.walletId + token.contractAddress,
+            coin,
+          ),
+        );
         notifyListeners();
       }
     }
@@ -217,7 +233,7 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
         params: [_credentials.address]);
 
     print("==========================================");
-    print("balanceRequest: $balanceRequest");
+    print("${token.name} balanceRequest: $balanceRequest");
     print("==========================================");
 
     String _balance = balanceRequest.first.toString();

@@ -278,6 +278,13 @@ class _SVG {
     }
   }
 
+  String iconForToken({required String contractAddress}) {
+    switch (contractAddress) {
+      default:
+        return ethereum;
+    }
+  }
+
   // big icons
   String bitcoinImage(BuildContext context) =>
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/bitcoin.svg";

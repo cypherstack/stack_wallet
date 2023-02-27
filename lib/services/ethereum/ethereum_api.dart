@@ -111,10 +111,13 @@ class EthTokenTx {
 }
 
 class EthereumResponse<T> {
+  EthereumResponse(this.value, this.exception);
+
   final T? value;
   final Exception? exception;
 
-  EthereumResponse(this.value, this.exception);
+  @override
+  toString() => "EthereumResponse{ value: $value, exception: $exception";
 }
 
 abstract class EthereumAPI {
