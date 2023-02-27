@@ -1179,6 +1179,18 @@ class EpicCashWallet extends CoinServiceAPI {
     return jsonEncode(_config);
   }
 
+  // Used to update receiving address when updating epic box config
+  // Because we don't generate a new address for epic but we do change the
+  // address based on the epicbox host/domain/URL we must force an update here
+  Future<bool> updateEpicBox() async {
+    try {
+      _currentReceivingAddress = _getCurrentAddressForChain(0);
+      return true;
+    } catch (e, s) {
+      return false;
+    }
+  }
+
   Future<String> getRealConfig() async {
     String? config = await _secureStore.read(key: '${_walletId}_config');
     if (Platform.isIOS) {

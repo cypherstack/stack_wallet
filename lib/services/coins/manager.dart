@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:decimal/decimal.dart';
 import 'package:epicpay/models/models.dart';
 import 'package:epicpay/services/coins/coin_service.dart';
+import 'package:epicpay/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:epicpay/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:epicpay/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:epicpay/services/event_bus/global_event_bus.dart';
@@ -275,6 +276,19 @@ class Manager with ChangeNotifier {
 
   Future<bool> generateNewAddress() async {
     final success = await _currentWallet.generateNewAddress();
+    if (success) {
+      notifyListeners();
+    }
+    return success;
+  }
+
+  Future<bool> updateEpicBox() async {
+    // Update address for receive page update
+    // generateNewAddress();
+    final success = await (_currentWallet as EpicCashWallet).updateEpicBox();
+    await (_currentWallet as EpicCashWallet)
+        .listenForSlates(); // TODO try-catch this
+    // TODO close old listeners, if there are any.
     if (success) {
       notifyListeners();
     }
