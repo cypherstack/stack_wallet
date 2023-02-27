@@ -66,7 +66,19 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton>
         eventBus.on<WalletSyncStatusChangedEvent>().listen(
       (event) async {
         if (event.walletId == widget.walletId &&
-                widget.tokenContractAddress == null ||
+            widget.tokenContractAddress == null) {
+          switch (event.newStatus) {
+            case WalletSyncStatus.unableToSync:
+              _spinController?.stop();
+              break;
+            case WalletSyncStatus.synced:
+              _spinController?.stop();
+              break;
+            case WalletSyncStatus.syncing:
+              unawaited(_spinController?.repeat());
+              break;
+          }
+        } else if (widget.tokenContractAddress != null &&
             event.walletId == widget.walletId + widget.tokenContractAddress!) {
           switch (event.newStatus) {
             case WalletSyncStatus.unableToSync:
