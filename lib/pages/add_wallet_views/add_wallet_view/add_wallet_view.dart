@@ -3,10 +3,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/models/add_wallet_list_entity/add_wallet_list_entity.dart';
+import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/coin_entity.dart';
+import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/add_wallet_text.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/mobile_coin_list.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/expanding_sub_list_item.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/next_button.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/searchable_coin_list.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -51,6 +53,26 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
   final List<AddWalletListEntity> tokenEntities = [];
 
   final bool isDesktop = Util.isDesktop;
+
+  List<AddWalletListEntity> filter(
+    String text,
+    List<AddWalletListEntity> entities,
+  ) {
+    final _entities = [...entities];
+    if (text.isNotEmpty) {
+      final lowercaseTerm = text.toLowerCase();
+      _entities.retainWhere(
+        (e) =>
+            e.ticker.toLowerCase().contains(lowercaseTerm) ||
+            e.name.toLowerCase().contains(lowercaseTerm) ||
+            e.coin.name.toLowerCase().contains(lowercaseTerm) ||
+            (e is EthTokenEntity &&
+                e.token.contractAddress.toLowerCase().contains(lowercaseTerm)),
+      );
+    }
+
+    return _entities;
+  }
 
   @override
   void initState() {
@@ -186,10 +208,21 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                         ),
                       ),
                       Expanded(
-                        child: SearchableCoinList(
-                          entities: coinEntities,
-                          isDesktop: true,
-                          searchTerm: _searchTerm,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              ExpandingSubListItem(
+                                title: "Coins",
+                                entities: filter(_searchTerm, coinEntities),
+                                initialState: ExpandableState.expanded,
+                              ),
+                              ExpandingSubListItem(
+                                title: "Tokens",
+                                entities: filter(_searchTerm, tokenEntities),
+                                initialState: ExpandableState.collapsed,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
@@ -238,18 +271,73 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                   const SizedBox(
                     height: 16,
                   ),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                    child: TextField(
+                      autofocus: isDesktop,
+                      autocorrect: !isDesktop,
+                      enableSuggestions: !isDesktop,
+                      controller: _searchFieldController,
+                      focusNode: _searchFocusNode,
+                      onChanged: (value) => setState(() => _searchTerm = value),
+                      style: STextStyles.field(context),
+                      decoration: standardInputDecoration(
+                        "Search",
+                        _searchFocusNode,
+                        context,
+                        desktopMed: isDesktop,
+                      ).copyWith(
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 16,
+                          ),
+                          child: SvgPicture.asset(
+                            Assets.svg.search,
+                            width: 16,
+                            height: 16,
+                          ),
+                        ),
+                        suffixIcon: _searchFieldController.text.isNotEmpty
+                            ? Padding(
+                                padding: const EdgeInsets.only(right: 0),
+                                child: UnconstrainedBox(
+                                  child: Row(
+                                    children: [
+                                      TextFieldIconButton(
+                                        child: const XIcon(),
+                                        onTap: () async {
+                                          setState(() {
+                                            _searchFieldController.text = "";
+                                            _searchTerm = "";
+                                          });
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            : null,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
                   Expanded(
                     child: SingleChildScrollView(
                       child: Column(
                         children: [
                           ExpandingSubListItem(
                             title: "Coins",
-                            entities: coinEntities,
+                            entities: filter(_searchTerm, coinEntities),
                             initialState: ExpandableState.expanded,
                           ),
                           ExpandingSubListItem(
                             title: "Tokens",
-                            entities: tokenEntities,
+                            entities: filter(_searchTerm, tokenEntities),
                             initialState: ExpandableState.collapsed,
                           ),
                         ],
@@ -269,93 +357,5 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
         ),
       );
     }
-  }
-}
-
-class ExpandingSubListItem extends StatefulWidget {
-  const ExpandingSubListItem({
-    Key? key,
-    required this.title,
-    required this.entities,
-    required this.initialState,
-  }) : super(key: key);
-
-  final String title;
-  final List<AddWalletListEntity> entities;
-  final ExpandableState initialState;
-
-  @override
-  State<ExpandingSubListItem> createState() => _ExpandingSubListItemState();
-}
-
-class _ExpandingSubListItemState extends State<ExpandingSubListItem> {
-  final isDesktop = Util.isDesktop;
-
-  late final ExpandableController _controller;
-
-  late bool _expandedState;
-
-  @override
-  void initState() {
-    _expandedState = widget.initialState == ExpandableState.expanded;
-    _controller = ExpandableController();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_expandedState) {
-        _controller.toggle?.call();
-      }
-    });
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Expandable(
-      controller: _controller,
-      onExpandChanged: (state) {
-        setState(() {
-          _expandedState = state == ExpandableState.expanded;
-        });
-      },
-      header: Container(
-        color: Colors.transparent,
-        child: Padding(
-          padding: const EdgeInsets.only(
-            top: 8.0,
-            bottom: 8.0,
-            right: 10,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                widget.title,
-                style: isDesktop
-                    ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark3,
-                      )
-                    : STextStyles.smallMed12(context),
-                textAlign: TextAlign.left,
-              ),
-              SvgPicture.asset(
-                _expandedState ? Assets.svg.chevronUp : Assets.svg.chevronDown,
-                width: 12,
-                height: 6,
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldActiveSearchIconRight,
-              ),
-            ],
-          ),
-        ),
-      ),
-      body: SingleChildScrollView(
-        primary: false,
-        child: MobileCoinList(
-          entities: widget.entities,
-        ),
-      ),
-    );
   }
 }
