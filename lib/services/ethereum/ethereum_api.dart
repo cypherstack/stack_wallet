@@ -110,11 +110,20 @@ class EthTokenTx {
   }
 }
 
+class EthApiException with Exception {
+  EthApiException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => "$runtimeType: $message";
+}
+
 class EthereumResponse<T> {
   EthereumResponse(this.value, this.exception);
 
   final T? value;
-  final Exception? exception;
+  final EthApiException? exception;
 
   @override
   toString() => "EthereumResponse{ value: $value, exception: $exception";
@@ -176,14 +185,19 @@ abstract class EthereumAPI {
             null,
           );
         } else {
-          throw Exception(json["message"] as String);
+          throw EthApiException(json["message"] as String);
         }
       } else {
-        throw Exception(
+        throw EthApiException(
           "getWalletTokens($address) failed with status code: "
           "${response.statusCode}",
         );
       }
+    } on EthApiException catch (e) {
+      return EthereumResponse(
+        null,
+        e,
+      );
     } catch (e, s) {
       Logging.instance.log(
         "getWalletTokens(): $e\n$s",
@@ -191,7 +205,7 @@ abstract class EthereumAPI {
       );
       return EthereumResponse(
         null,
-        Exception(e.toString()),
+        EthApiException(e.toString()),
       );
     }
   }
@@ -233,7 +247,8 @@ abstract class EthereumAPI {
                 ),
               );
             } else {
-              throw Exception("Unsupported token type found: ${map["type"]}");
+              throw EthApiException(
+                  "Unsupported token type found: ${map["type"]}");
             }
           }
 
@@ -242,14 +257,19 @@ abstract class EthereumAPI {
             null,
           );
         } else {
-          throw Exception(json["message"] as String);
+          throw EthApiException(json["message"] as String);
         }
       } else {
-        throw Exception(
+        throw EthApiException(
           "getWalletTokens($address) failed with status code: "
           "${response.statusCode}",
         );
       }
+    } on EthApiException catch (e) {
+      return EthereumResponse(
+        null,
+        e,
+      );
     } catch (e, s) {
       Logging.instance.log(
         "getWalletTokens(): $e\n$s",
@@ -257,7 +277,7 @@ abstract class EthereumAPI {
       );
       return EthereumResponse(
         null,
-        Exception(e.toString()),
+        EthApiException(e.toString()),
       );
     }
   }
@@ -300,7 +320,7 @@ abstract class EthereumAPI {
           EthToken? token;
           if (map["type"] == "ERC-20") {
             token = Erc20Token(
-              balance: int.parse(map["balance"] as String),
+              balance: 0, //int.parse(map["balance"] as String),
               contractAddress: map["contractAddress"] as String,
               decimals: int.parse(map["decimals"] as String),
               name: map["name"] as String,
@@ -308,14 +328,15 @@ abstract class EthereumAPI {
             );
           } else if (map["type"] == "ERC-721") {
             token = Erc721Token(
-              balance: int.parse(map["balance"] as String),
+              balance: 0, //int.parse(map["balance"] as String),
               contractAddress: map["contractAddress"] as String,
               decimals: int.parse(map["decimals"] as String),
               name: map["name"] as String,
               symbol: map["symbol"] as String,
             );
           } else {
-            throw Exception("Unsupported token type found: ${map["type"]}");
+            throw EthApiException(
+                "Unsupported token type found: ${map["type"]}");
           }
 
           return EthereumResponse(
@@ -323,14 +344,19 @@ abstract class EthereumAPI {
             null,
           );
         } else {
-          throw Exception(json["message"] as String);
+          throw EthApiException(json["message"] as String);
         }
       } else {
-        throw Exception(
+        throw EthApiException(
           "getTokenByContractAddress($contractAddress) failed with status code: "
           "${response.statusCode}",
         );
       }
+    } on EthApiException catch (e) {
+      return EthereumResponse(
+        null,
+        e,
+      );
     } catch (e, s) {
       Logging.instance.log(
         "getWalletTokens(): $e\n$s",
@@ -338,7 +364,7 @@ abstract class EthereumAPI {
       );
       return EthereumResponse(
         null,
-        Exception(e.toString()),
+        EthApiException(e.toString()),
       );
     }
   }
