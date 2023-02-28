@@ -294,6 +294,8 @@ class _SVG {
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/doge.svg";
   String epicCashImage(BuildContext context) =>
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/epic-cash.svg";
+  String ethereumImage(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/ethereum.svg";
   String firoImage(BuildContext context) =>
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/firo.svg";
   String litecoinImage(BuildContext context) =>
@@ -339,7 +341,7 @@ class _SVG {
       case Coin.dogecoinTestNet:
         return dogecoinImage(context);
       case Coin.ethereum:
-        return ethereum;
+        return ethereumImage(context);
     }
   }
 }
