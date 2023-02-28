@@ -1653,7 +1653,8 @@ class EpicCashWallet extends CoinServiceAPI {
       );
       refreshMutex = false;
       if (shouldAutoSync) {
-        timer ??= Timer.periodic(const Duration(seconds: 60), (timer) async {
+        timer ??= Timer.periodic(
+            Duration(seconds: _prefs.refreshPeriod ?? 60), (timer) async {
           Logging.instance.log(
               "Periodic refresh check for $walletId $walletName in object instance: $hashCode",
               level: LogLevel.Info);
