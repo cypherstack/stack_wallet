@@ -148,6 +148,7 @@ class _TokenDetailsViewState extends ConsumerState<MyTokensView> {
                       onPressed: () {
                         Navigator.of(context).pushNamed(
                           AddTokenView.routeName,
+                          arguments: widget.walletId,
                         );
                       },
                     ),

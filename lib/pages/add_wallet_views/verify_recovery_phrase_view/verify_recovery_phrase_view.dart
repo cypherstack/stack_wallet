@@ -113,6 +113,7 @@ class _VerifyRecoveryPhraseViewState
             unawaited(
               Navigator.of(context).pushNamed(
                 AddTokenView.routeName,
+                arguments: widget.manager.walletId,
               ),
             );
           }

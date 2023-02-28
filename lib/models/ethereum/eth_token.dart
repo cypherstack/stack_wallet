@@ -12,4 +12,15 @@ class EthToken {
   final String symbol;
   final int decimals;
   final int balance;
+
+  @override
+  String toString() {
+    return "$runtimeType: { "
+        "name: $name, "
+        "symbol: $symbol, "
+        "contractAddress: $contractAddress, "
+        "decimals: $decimals, "
+        "balance: $balance"
+        " }";
+  }
 }

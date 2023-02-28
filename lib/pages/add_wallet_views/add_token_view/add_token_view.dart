@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/add_wallet_list_entity/add_wallet_list_entity.dart';
-import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/add_wallet_entity_list.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/add_wallet_text.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/next_button.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_list.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_list_element.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_text.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_eth_tokens.dart';
@@ -17,6 +16,7 @@ import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
@@ -25,7 +25,10 @@ import 'package:stackwallet/widgets/textfield_icon_button.dart';
 class AddTokenView extends ConsumerStatefulWidget {
   const AddTokenView({
     Key? key,
+    required this.walletId,
   }) : super(key: key);
+
+  final String walletId;
 
   static const routeName = "/addToken";
 
@@ -39,27 +42,32 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
 
   String _searchTerm = "";
 
-  final List<AddWalletListEntity> tokenEntities = [];
+  final List<AddTokenListElementData> tokenEntities = [];
 
   final bool isDesktop = Util.isDesktop;
 
-  List<AddWalletListEntity> filter(
+  List<AddTokenListElementData> filter(
     String text,
-    List<AddWalletListEntity> entities,
+    List<AddTokenListElementData> entities,
   ) {
     final _entities = [...entities];
     if (text.isNotEmpty) {
       final lowercaseTerm = text.toLowerCase();
       _entities.retainWhere(
         (e) =>
-            e.ticker.toLowerCase().contains(lowercaseTerm) ||
-            e.name.toLowerCase().contains(lowercaseTerm) ||
-            (e is EthTokenEntity &&
-                e.token.contractAddress.toLowerCase().contains(lowercaseTerm)),
+            e.token.name.toLowerCase().contains(lowercaseTerm) ||
+            e.token.symbol.toLowerCase().contains(lowercaseTerm) ||
+            e.token.contractAddress.toLowerCase().contains(lowercaseTerm),
       );
     }
 
     return _entities;
+  }
+
+  void onNextPressed() {
+    final selectedTokens =
+        tokenEntities.where((e) => e.selected).map((e) => e.token);
+    print("SELECTED TOKENS: $selectedTokens");
   }
 
   @override
@@ -67,8 +75,9 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
     _searchFieldController = TextEditingController();
     _searchFocusNode = FocusNode();
 
-    tokenEntities.addAll(DefaultTokens.list.map((e) => EthTokenEntity(e)));
-    tokenEntities.sort((a, b) => a.name.compareTo(b.name));
+    tokenEntities
+        .addAll(DefaultTokens.list.map((e) => AddTokenListElementData(e)));
+    tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
 
     super.initState();
   }
@@ -83,6 +92,8 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
+    final walletName = ref.watch(walletsChangeNotifierProvider
+        .select((value) => value.getManager(widget.walletId).walletName));
 
     if (isDesktop) {
       return DesktopScaffold(
@@ -93,8 +104,9 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
         ),
         body: Column(
           children: [
-            const AddWalletText(
+            AddTokenText(
               isDesktop: true,
+              walletName: walletName,
             ),
             const SizedBox(
               height: 16,
@@ -183,8 +195,8 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
                         ),
                       ),
                       Expanded(
-                        child: AddWalletEntityList(
-                          entities: filter(_searchTerm, tokenEntities),
+                        child: AddTokenList(
+                          items: filter(_searchTerm, tokenEntities),
                         ),
                       ),
                     ],
@@ -195,11 +207,12 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
             const SizedBox(
               height: 16,
             ),
-            const SizedBox(
+            SizedBox(
               height: 70,
               width: 480,
-              child: AddWalletNextButton(
-                isDesktop: true,
+              child: PrimaryButton(
+                label: "Next",
+                onPressed: onNextPressed,
               ),
             ),
             const SizedBox(
@@ -219,6 +232,25 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
                 Navigator.of(context).pop();
               },
             ),
+            actions: [
+              AspectRatio(
+                aspectRatio: 1,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: AppBarIconButton(
+                    icon: SvgPicture.asset(
+                      Assets.svg.circlePlusFilled,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .topNavIconPrimary,
+                    ),
+                    onPressed: () {
+                      // todo add custom token
+                    },
+                  ),
+                ),
+              ),
+            ],
           ),
           body: Container(
             color: Theme.of(context).extension<StackColors>()!.background,
@@ -227,8 +259,9 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const AddWalletText(
+                  AddTokenText(
                     isDesktop: false,
+                    walletName: walletName,
                   ),
                   const SizedBox(
                     height: 16,
@@ -289,15 +322,16 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
                     height: 10,
                   ),
                   Expanded(
-                    child: AddWalletEntityList(
-                      entities: filter(_searchTerm, tokenEntities),
+                    child: AddTokenList(
+                      items: filter(_searchTerm, tokenEntities),
                     ),
                   ),
                   const SizedBox(
                     height: 16,
                   ),
-                  const AddWalletNextButton(
-                    isDesktop: false,
+                  PrimaryButton(
+                    label: "Next",
+                    onPressed: onNextPressed,
                   ),
                 ],
               ),

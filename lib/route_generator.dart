@@ -205,10 +205,18 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name));
 
       case AddTokenView.routeName:
-        return getRoute(
+        if (args is String) {
+          return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const AddTokenView(),
-            settings: RouteSettings(name: settings.name));
+            builder: (_) => AddTokenView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case PaynymClaimView.routeName:
         if (args is String) {
