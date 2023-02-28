@@ -5,11 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
+import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -19,8 +21,6 @@ import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/trade_card.dart';
 import 'package:stackwallet/widgets/transaction_card.dart';
 import 'package:tuple/tuple.dart';
-
-import '../../../utilities/enums/coin_enum.dart';
 
 class TransactionsList extends ConsumerStatefulWidget {
   const TransactionsList({
@@ -281,17 +281,30 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                     itemCount: _transactions2.length,
                     itemBuilder: (context, index) {
                       BorderRadius? radius;
+                      bool shouldWrap = false;
                       if (_transactions2.length == 1) {
                         radius = BorderRadius.circular(
                           Constants.size.circularBorderRadius,
                         );
                       } else if (index == _transactions2.length - 1) {
                         radius = _borderRadiusLast;
+                        shouldWrap = true;
                       } else if (index == 0) {
                         radius = _borderRadiusFirst;
                       }
                       final tx = _transactions2[index];
-                      return itemBuilder(context, tx, radius, manager.coin);
+                      if (shouldWrap) {
+                        return Column(
+                          children: [
+                            itemBuilder(context, tx, radius, manager.coin),
+                            const SizedBox(
+                              height: WalletView.navBarHeight + 14,
+                            ),
+                          ],
+                        );
+                      } else {
+                        return itemBuilder(context, tx, radius, manager.coin);
+                      }
                     },
                   ),
           );
