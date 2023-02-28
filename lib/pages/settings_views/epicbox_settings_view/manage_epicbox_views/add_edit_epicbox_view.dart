@@ -206,7 +206,7 @@ class _AddEditEpicBoxViewState extends ConsumerState<AddEditEpicBoxView>
       case AddEditEpicBoxViewType.add:
         EpicBoxModel epicBox = EpicBoxModel(
           host: formData!.host!,
-          port: formData.port!,
+          port: formData.port ?? 443,
           name: formData.name!,
           id: const Uuid().v1(),
           useSSL: formData.useSSL!,
