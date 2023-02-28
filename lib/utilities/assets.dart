@@ -228,6 +228,8 @@ class _SVG {
   String get namecoin => "assets/svg/coin_icons/Namecoin.svg";
   String get particl => "assets/svg/coin_icons/Particl.svg";
 
+  String get bnbIcon => "assets/svg/coin_icons/bnb_icon.svg";
+
   String get chevronRight => "assets/svg/chevron-right.svg";
   String get minimize => "assets/svg/minimize.svg";
   String get walletFa => "assets/svg/wallet-fa.svg";
