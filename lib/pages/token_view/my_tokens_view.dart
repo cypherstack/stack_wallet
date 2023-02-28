@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/ethereum/eth_token.dart';
-import 'package:stackwallet/pages/token_view/all_tokens_view.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_token_view.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/my_tokens_list.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -41,13 +41,11 @@ class MyTokensView extends ConsumerStatefulWidget {
 
 class _TokenDetailsViewState extends ConsumerState<MyTokensView> {
   late final String walletAddress;
-  // late final String walletName;
   late final TextEditingController _searchController;
   final searchFieldFocusNode = FocusNode();
 
   @override
   void initState() {
-    // walletAddress = widget.walletAddress;
     _searchController = TextEditingController();
 
     super.initState();
@@ -133,7 +131,7 @@ class _TokenDetailsViewState extends ConsumerState<MyTokensView> {
                   child: AspectRatio(
                     aspectRatio: 1,
                     child: AppBarIconButton(
-                      key: const Key("transactionSearchFilterViewButton"),
+                      key: const Key("addTokenAppBarIconButtonKey"),
                       size: 36,
                       shadows: const [],
                       color: Theme.of(context)
@@ -149,7 +147,7 @@ class _TokenDetailsViewState extends ConsumerState<MyTokensView> {
                       ),
                       onPressed: () {
                         Navigator.of(context).pushNamed(
-                          AllTokensView.routeName,
+                          AddTokenView.routeName,
                         );
                       },
                     ),
@@ -258,10 +256,11 @@ class _TokenDetailsViewState extends ConsumerState<MyTokensView> {
             ),
             Expanded(
               child: MyTokensList(
-                  managerProvider: widget.managerProvider,
-                  walletId: widget.walletId,
-                  tokens: widget.tokens,
-                  walletAddress: widget.walletAddress),
+                managerProvider: widget.managerProvider,
+                walletId: widget.walletId,
+                tokens: widget.tokens,
+                walletAddress: widget.walletAddress,
+              ),
             ),
           ],
         ),
