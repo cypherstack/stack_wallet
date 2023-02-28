@@ -569,10 +569,10 @@ class _NodeFormState extends ConsumerState<NodeForm> {
 
   bool get canTestConnection {
     // 65535 is max tcp port
-    return _hostController.text.isNotEmpty &&
-        port != null &&
-        port! >= 0 &&
-        port! <= 65535;
+    final bool _portNullOrInRange =
+        (port != null && port! >= 0 && port! <= 65535) ||
+            port == null; // need to allow null and default to 443
+    return _hostController.text.isNotEmpty && _portNullOrInRange;
   }
 
   bool enableField(TextEditingController controller) {
