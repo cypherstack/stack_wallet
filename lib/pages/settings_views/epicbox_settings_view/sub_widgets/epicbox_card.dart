@@ -126,7 +126,10 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
                     .setPrimaryEpicBox(
                       epicBox: _epicBox,
                     );
-                await ref.read(walletProvider)!.initializeExisting();
+
+                await (ref.read(walletProvider)!).updateEpicBox();
+                // await ref.read(walletProvider)!.initializeExisting();
+                // await ref.read(walletProvider)!.generateNewAddress();
 
                 if (mounted) {
                   Navigator.of(context).pop();
@@ -307,10 +310,13 @@ class _EpicBoxMenuState extends ConsumerState<EpicBoxMenu> {
                                   epicBox: widget.epicBox,
                                 );
 
-                            await ref
-                                .read(walletProvider)!
-                                .initializeExisting();
-                            // await ref.read(walletProvider)!.updateEpicBox(true);
+                            await ref.read(walletProvider)!.updateEpicBox();
+                            // await ref
+                            //     .read(walletProvider)!
+                            //     .initializeExisting();
+                            // await ref
+                            //     .read(walletProvider)!
+                            //     .generateNewAddress();
 
                             if (mounted) {
                               Navigator.of(context).pop();
@@ -411,12 +417,15 @@ class _EpicBoxMenuState extends ConsumerState<EpicBoxMenu> {
                                     .setPrimaryEpicBox(
                                       epicBox: widget.epicBox,
                                     );
+
+                                await ref.read(walletProvider)!.updateEpicBox();
                                 // await ref
                                 //     .read(walletProvider)!
-                                //     .updateEpicBox(true);
-                                await ref
-                                    .read(walletProvider)!
-                                    .initializeExisting();
+                                //     .initializeExisting();
+                                // await ref
+                                //     .read(walletProvider)!
+                                //     .generateNewAddress();
+
                                 if (mounted) {
                                   Navigator.of(context).pop();
                                 }
