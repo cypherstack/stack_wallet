@@ -9,15 +9,23 @@ import 'package:tuple/tuple.dart';
 
 class PriceService extends ChangeNotifier {
   late final String baseTicker;
+  static Set<String> tokenContractAddressesToCheck = {};
   final Duration updateInterval = const Duration(seconds: 60);
 
   Timer? _timer;
   final Map<Coin, Tuple2<Decimal, double>> _cachedPrices = {
     for (final coin in Coin.values) coin: Tuple2(Decimal.zero, 0.0)
   };
+
+  final Map<String, Tuple2<Decimal, double>> _cachedTokenPrices = {};
+
   final _priceAPI = PriceAPI(Client());
 
   Tuple2<Decimal, double> getPrice(Coin coin) => _cachedPrices[coin]!;
+
+  Tuple2<Decimal, double> getTokenPrice(String contractAddress) =>
+      _cachedTokenPrices[contractAddress.toLowerCase()] ??
+      Tuple2(Decimal.zero, 0);
 
   PriceService(this.baseTicker);
 
@@ -30,6 +38,20 @@ class PriceService extends ChangeNotifier {
       if (_cachedPrices[map.key] != map.value) {
         _cachedPrices[map.key] = map.value;
         shouldNotify = true;
+      }
+    }
+
+    if (tokenContractAddressesToCheck.isNotEmpty) {
+      final tokenPriceMap = await _priceAPI.getPricesAnd24hChangeForEthTokens(
+        contractAddresses: tokenContractAddressesToCheck,
+        baseCurrency: baseTicker,
+      );
+
+      for (final map in tokenPriceMap.entries) {
+        if (_cachedTokenPrices[map.key] != map.value) {
+          _cachedTokenPrices[map.key] = map.value;
+          shouldNotify = true;
+        }
       }
     }
 
