@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_custom_token_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_list_element.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -10,9 +11,11 @@ import 'package:stackwallet/widgets/conditional_parent.dart';
 class AddTokenList extends StatelessWidget {
   const AddTokenList({
     Key? key,
+    required this.walletId,
     required this.items,
   }) : super(key: key);
 
+  final String walletId;
   final List<AddTokenListElementData> items;
 
   @override
@@ -29,7 +32,7 @@ class AddTokenList extends StatelessWidget {
             children: [
               child,
               Padding(
-                padding: const EdgeInsets.all(4),
+                padding: const EdgeInsets.symmetric(vertical: 4),
                 child: RawMaterialButton(
                   fillColor:
                       Theme.of(context).extension<StackColors>()!.popupBG,
@@ -44,7 +47,10 @@ class AddTokenList extends StatelessWidget {
                     ),
                   ),
                   onPressed: () {
-                    // todo add custom token
+                    Navigator.of(context).pushNamed(
+                      AddCustomTokenView.routeName,
+                      arguments: walletId,
+                    );
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(12),
@@ -73,7 +79,7 @@ class AddTokenList extends StatelessWidget {
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.all(4),
+            padding: const EdgeInsets.symmetric(vertical: 4),
             child: AddTokenListElement(
               data: items[index],
             ),

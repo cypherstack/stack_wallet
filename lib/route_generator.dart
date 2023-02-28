@@ -12,6 +12,7 @@ import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart'
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_custom_token_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_token_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
@@ -209,6 +210,20 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => AddTokenView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case AddCustomTokenView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => AddCustomTokenView(
               walletId: args,
             ),
             settings: RouteSettings(

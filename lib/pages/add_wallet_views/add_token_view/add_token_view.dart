@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_custom_token_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_list.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_list_element.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_text.dart';
@@ -68,6 +69,13 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
     final selectedTokens =
         tokenEntities.where((e) => e.selected).map((e) => e.token);
     print("SELECTED TOKENS: $selectedTokens");
+  }
+
+  void onAddCustomTokenPressed() {
+    Navigator.of(context).pushNamed(
+      AddCustomTokenView.routeName,
+      arguments: widget.walletId,
+    );
   }
 
   @override
@@ -196,6 +204,7 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
                       ),
                       Expanded(
                         child: AddTokenList(
+                          walletId: widget.walletId,
                           items: filter(_searchTerm, tokenEntities),
                         ),
                       ),
@@ -244,9 +253,7 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
                           .extension<StackColors>()!
                           .topNavIconPrimary,
                     ),
-                    onPressed: () {
-                      // todo add custom token
-                    },
+                    onPressed: onAddCustomTokenPressed,
                   ),
                 ),
               ),
@@ -323,6 +330,7 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
                   ),
                   Expanded(
                     child: AddTokenList(
+                      walletId: widget.walletId,
                       items: filter(_searchTerm, tokenEntities),
                     ),
                   ),
