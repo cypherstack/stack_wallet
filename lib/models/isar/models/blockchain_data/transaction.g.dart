@@ -330,12 +330,14 @@ const _TransactionsubTypeEnumValueMap = {
   'bip47Notification': 1,
   'mint': 2,
   'join': 3,
+  'ethToken': 4,
 };
 const _TransactionsubTypeValueEnumMap = {
   0: TransactionSubType.none,
   1: TransactionSubType.bip47Notification,
   2: TransactionSubType.mint,
   3: TransactionSubType.join,
+  4: TransactionSubType.ethToken,
 };
 const _TransactiontypeEnumValueMap = {
   'outgoing': 0,

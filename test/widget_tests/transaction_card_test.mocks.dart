@@ -2454,6 +2454,21 @@ class MockPriceService extends _i1.Mock implements _i26.PriceService {
         ),
       ) as _i15.Tuple2<_i14.Decimal, double>);
   @override
+  _i15.Tuple2<_i14.Decimal, double> getTokenPrice(String? contractAddress) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getTokenPrice,
+          [contractAddress],
+        ),
+        returnValue: _FakeTuple2_13<_i14.Decimal, double>(
+          this,
+          Invocation.method(
+            #getTokenPrice,
+            [contractAddress],
+          ),
+        ),
+      ) as _i15.Tuple2<_i14.Decimal, double>);
+  @override
   _i18.Future<void> updatePrice() => (super.noSuchMethod(
         Invocation.method(
           #updatePrice,

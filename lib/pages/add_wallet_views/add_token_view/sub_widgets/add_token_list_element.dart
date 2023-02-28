@@ -5,6 +5,7 @@ import 'package:stackwallet/models/ethereum/eth_token.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
+import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -30,23 +31,16 @@ class _AddTokenListElementState extends State<AddTokenListElement> {
   Widget build(BuildContext context) {
     final currency = ExchangeDataLoadingService.instance.isar.currencies
         .where()
-        .tickerExchangeNameEqualToAnyName(
-          "${widget.data.token.symbol}ERC20",
-          ChangeNowExchange.exchangeName,
-        )
-        .or()
-        .tickerExchangeNameEqualToAnyName(
-          widget.data.token.symbol,
-          ChangeNowExchange.exchangeName,
-        )
-        .or()
-        .tickerExchangeNameEqualToAnyName(
-          "${widget.data.token.symbol}BSC",
-          ChangeNowExchange.exchangeName,
-        )
+        .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
         .filter()
+        .tokenContractEqualTo(
+          widget.data.token.contractAddress,
+          caseSensitive: false,
+        )
+        .and()
         .imageIsNotEmpty()
         .findFirstSync();
+
     return RoundedWhiteContainer(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -59,10 +53,12 @@ class _AddTokenListElementState extends State<AddTokenListElement> {
                       width: 24,
                       height: 24,
                     )
-                  : Container(
+                  : SvgPicture.asset(
+                      widget.data.token.symbol == "BNB"
+                          ? Assets.svg.bnbIcon
+                          : Assets.svg.ethereum,
                       width: 24,
                       height: 24,
-                      color: Colors.red,
                     ),
               const SizedBox(
                 width: 12,

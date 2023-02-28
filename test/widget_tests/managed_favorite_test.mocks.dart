@@ -1780,6 +1780,22 @@ class MockBitcoinWallet extends _i1.Mock implements _i25.BitcoinWallet {
         returnValue: _i22.Future<_i17.PaymentCode?>.value(),
       ) as _i22.Future<_i17.PaymentCode?>);
   @override
+  _i22.Future<_i17.PaymentCode?> unBlindedPaymentCodeFromTransactionBad({
+    required _i15.Transaction? transaction,
+    required _i15.Address? myNotificationAddress,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #unBlindedPaymentCodeFromTransactionBad,
+          [],
+          {
+            #transaction: transaction,
+            #myNotificationAddress: myNotificationAddress,
+          },
+        ),
+        returnValue: _i22.Future<_i17.PaymentCode?>.value(),
+      ) as _i22.Future<_i17.PaymentCode?>);
+  @override
   _i22.Future<List<_i17.PaymentCode>>
       getAllPaymentCodesFromNotificationTransactions() => (super.noSuchMethod(
             Invocation.method(

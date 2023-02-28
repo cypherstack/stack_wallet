@@ -67,6 +67,7 @@ class SimpleSwapExchange extends Exchange {
                   : SupportedRateType.estimated,
               isAvailable: true,
               isStackCoin: Currency.checkIsStackCoin(e.symbol),
+              tokenContract: null,
             ),
           )
           .toList();

@@ -67,6 +67,11 @@ const CurrencySchema = CollectionSchema(
       id: 9,
       name: r'ticker',
       type: IsarType.string,
+    ),
+    r'tokenContract': PropertySchema(
+      id: 10,
+      name: r'tokenContract',
+      type: IsarType.string,
     )
   },
   estimateSize: _currencyEstimateSize,
@@ -150,6 +155,12 @@ int _currencyEstimateSize(
   bytesCount += 3 + object.name.length * 3;
   bytesCount += 3 + object.network.length * 3;
   bytesCount += 3 + object.ticker.length * 3;
+  {
+    final value = object.tokenContract;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   return bytesCount;
 }
 
@@ -169,6 +180,7 @@ void _currencySerialize(
   writer.writeString(offsets[7], object.network);
   writer.writeByte(offsets[8], object.rateType.index);
   writer.writeString(offsets[9], object.ticker);
+  writer.writeString(offsets[10], object.tokenContract);
 }
 
 Currency _currencyDeserialize(
@@ -190,6 +202,7 @@ Currency _currencyDeserialize(
         _CurrencyrateTypeValueEnumMap[reader.readByteOrNull(offsets[8])] ??
             SupportedRateType.fixed,
     ticker: reader.readString(offsets[9]),
+    tokenContract: reader.readStringOrNull(offsets[10]),
   );
   object.id = id;
   return object;
@@ -223,6 +236,8 @@ P _currencyDeserializeProp<P>(
           SupportedRateType.fixed) as P;
     case 9:
       return (reader.readString(offset)) as P;
+    case 10:
+      return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -1533,6 +1548,158 @@ extension CurrencyQueryFilter
       ));
     });
   }
+
+  QueryBuilder<Currency, Currency, QAfterFilterCondition>
+      tokenContractIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'tokenContract',
+      ));
+    });
+  }
+
+  QueryBuilder<Currency, Currency, QAfterFilterCondition>
+      tokenContractIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'tokenContract',
+      ));
+    });
+  }
+
+  QueryBuilder<Currency, Currency, QAfterFilterCondition> tokenContractEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'tokenContract',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Currency, Currency, QAfterFilterCondition>
+      tokenContractGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'tokenContract',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Currency, Currency, QAfterFilterCondition> tokenContractLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'tokenContract',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Currency, Currency, QAfterFilterCondition> tokenContractBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'tokenContract',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Currency, Currency, QAfterFilterCondition>
+      tokenContractStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'tokenContract',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Currency, Currency, QAfterFilterCondition> tokenContractEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'tokenContract',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Currency, Currency, QAfterFilterCondition> tokenContractContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'tokenContract',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Currency, Currency, QAfterFilterCondition> tokenContractMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'tokenContract',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Currency, Currency, QAfterFilterCondition>
+      tokenContractIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'tokenContract',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Currency, Currency, QAfterFilterCondition>
+      tokenContractIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'tokenContract',
+        value: '',
+      ));
+    });
+  }
 }
 
 extension CurrencyQueryObject
@@ -1659,6 +1826,18 @@ extension CurrencyQuerySortBy on QueryBuilder<Currency, Currency, QSortBy> {
   QueryBuilder<Currency, Currency, QAfterSortBy> sortByTickerDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'ticker', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Currency, Currency, QAfterSortBy> sortByTokenContract() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'tokenContract', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Currency, Currency, QAfterSortBy> sortByTokenContractDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'tokenContract', Sort.desc);
     });
   }
 }
@@ -1796,6 +1975,18 @@ extension CurrencyQuerySortThenBy
       return query.addSortBy(r'ticker', Sort.desc);
     });
   }
+
+  QueryBuilder<Currency, Currency, QAfterSortBy> thenByTokenContract() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'tokenContract', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Currency, Currency, QAfterSortBy> thenByTokenContractDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'tokenContract', Sort.desc);
+    });
+  }
 }
 
 extension CurrencyQueryWhereDistinct
@@ -1863,6 +2054,14 @@ extension CurrencyQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'ticker', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Currency, Currency, QDistinct> distinctByTokenContract(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'tokenContract',
+          caseSensitive: caseSensitive);
     });
   }
 }
@@ -1933,6 +2132,12 @@ extension CurrencyQueryProperty
   QueryBuilder<Currency, String, QQueryOperations> tickerProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'ticker');
+    });
+  }
+
+  QueryBuilder<Currency, String?, QQueryOperations> tokenContractProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'tokenContract');
     });
   }
 }
