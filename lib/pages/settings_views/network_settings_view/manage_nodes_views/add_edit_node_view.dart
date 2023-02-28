@@ -726,7 +726,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
           focusNode: _hostFocusNode,
           style: STextStyles.body(context),
           decoration: InputDecoration(
-            hintText: "IP address",
+            hintText: "Host or IP address",
             fillColor: _hostFocusNode.hasFocus
                 ? Theme.of(context).extension<StackColors>()!.textFieldActiveBG
                 : Theme.of(context)
