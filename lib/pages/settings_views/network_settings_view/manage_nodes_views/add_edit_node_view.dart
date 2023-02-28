@@ -208,7 +208,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
       case AddEditNodeViewType.add:
         NodeModel node = NodeModel(
           host: formData!.host!,
-          port: formData.port!,
+          port: formData.port ?? 3413,
           name: formData.name!,
           id: const Uuid().v1(),
           useSSL: formData.useSSL!,
