@@ -744,7 +744,7 @@ class _EpicBoxFormState extends ConsumerState<EpicBoxForm> {
           keyboardType: TextInputType.number,
           style: STextStyles.body(context),
           decoration: InputDecoration(
-            hintText: "Port",
+            hintText: "Port (optional)",
             fillColor: _portFocusNode.hasFocus
                 ? Theme.of(context).extension<StackColors>()!.textFieldActiveBG
                 : Theme.of(context)
