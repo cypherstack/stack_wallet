@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
@@ -109,37 +110,24 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
     return await EthereumAPI.getFees();
   }
 
-  Future<void> initializeExisting() async {
-    _tokenAbi = (await _secureStore.read(
-        key: '${_contractAddress.toString()}_tokenAbi'))!;
+  Future<void> initialize() async {
+    final storedABI =
+        await _secureStore.read(key: '${_contractAddress.toString()}_tokenAbi');
 
-    String? mnemonicString = await ethWallet.mnemonicString;
-
-    //Get private key for given mnemonic
-    String privateKey = getPrivateKey(
-        mnemonicString!, (await ethWallet.mnemonicPassphrase) ?? "");
-    _credentials = web3dart.EthPrivateKey.fromHex(privateKey);
-
-    _contract = web3dart.DeployedContract(
-        web3dart.ContractAbi.fromJson(_tokenAbi, token.name), _contractAddress);
-    _balanceFunction = _contract.function('balanceOf');
-    _sendFunction = _contract.function('transfer');
-    _client = await getEthClient();
-
-    unawaited(refresh());
-  }
-
-  Future<void> initializeNew() async {
-    AbiRequestResponse abi =
-        await EthereumAPI.fetchTokenAbi(_contractAddress.hex);
-    //Fetch token ABI so we can call token functions
-    if (abi.message == "OK") {
-      _tokenAbi = abi.result;
-      //Store abi in secure store
-      await _secureStore.write(
-          key: '${_contractAddress.hex}_tokenAbi', value: _tokenAbi);
+    if (storedABI == null) {
+      AbiRequestResponse abi =
+          await EthereumAPI.fetchTokenAbi(_contractAddress.hex);
+      //Fetch token ABI so we can call token functions
+      if (abi.message == "OK") {
+        _tokenAbi = abi.result;
+        //Store abi in secure store
+        await _secureStore.write(
+            key: '${_contractAddress.hex}_tokenAbi', value: _tokenAbi);
+      } else {
+        throw Exception('Failed to load token abi');
+      }
     } else {
-      throw Exception('Failed to load token abi');
+      _tokenAbi = storedABI;
     }
 
     String? mnemonicString = await ethWallet.mnemonicString;
@@ -151,8 +139,63 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
 
     _contract = web3dart.DeployedContract(
         web3dart.ContractAbi.fromJson(_tokenAbi, token.name), _contractAddress);
-    _balanceFunction = _contract.function('balanceOf');
-    _sendFunction = _contract.function('transfer');
+
+    bool hackInBalanceOf = false, hackInTransfer = false;
+    try {
+      _balanceFunction = _contract.function('balanceOf');
+    } catch (_) {
+      // function not found so likely a proxy so we need to hack the function in
+      hackInBalanceOf = true;
+    }
+
+    try {
+      _sendFunction = _contract.function('transfer');
+    } catch (_) {
+      // function not found so likely a proxy so we need to hack the function in
+      hackInTransfer = true;
+    }
+
+    if (hackInBalanceOf || hackInTransfer) {
+      final json = jsonDecode(_tokenAbi) as List;
+      if (hackInBalanceOf) {
+        json.add({
+          "constant": true,
+          "inputs": [
+            {"name": "", "type": "address"}
+          ],
+          "name": "balanceOf",
+          "outputs": [
+            {"name": "", "type": "uint256"}
+          ],
+          "payable": false,
+          "type": "function"
+        });
+      }
+      if (hackInTransfer) {
+        json.add({
+          "constant": false,
+          "inputs": [
+            {"name": "_to", "type": "address"},
+            {"name": "_value", "type": "uint256"}
+          ],
+          "name": "transfer",
+          "outputs": <dynamic>[],
+          "payable": false,
+          "type": "function"
+        });
+      }
+      _tokenAbi = jsonEncode(json);
+      await _secureStore.write(
+          key: '${_contractAddress.hex}_tokenAbi', value: _tokenAbi);
+
+      _contract = web3dart.DeployedContract(
+          web3dart.ContractAbi.fromJson(_tokenAbi, token.name),
+          _contractAddress);
+
+      _balanceFunction = _contract.function('balanceOf');
+      _sendFunction = _contract.function('transfer');
+    }
+
     _client = await getEthClient();
 
     unawaited(refresh());
@@ -228,13 +271,10 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
 
   Future<void> refreshCachedBalance() async {
     final balanceRequest = await _client.call(
-        contract: _contract,
-        function: _balanceFunction,
-        params: [_credentials.address]);
-
-    print("==========================================");
-    print("${token.name} balanceRequest: $balanceRequest");
-    print("==========================================");
+      contract: _contract,
+      function: _balanceFunction,
+      params: [_credentials.address],
+    );
 
     String _balance = balanceRequest.first.toString();
 
@@ -266,7 +306,8 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
     );
 
     if (response.value == null) {
-      throw Exception("Failed to fetch token transactions");
+      throw response.exception ??
+          Exception("Failed to fetch token transactions");
     }
 
     final List<Tuple2<Transaction, Address?>> txnsData = [];
