@@ -137,10 +137,9 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
-  //TODO - Update with correct node details for ETH
   static NodeModel get ethereum => NodeModel(
-        host: "https://mainnet.infura.io/v3/22677300bf774e49a458b73313ee56ba",
-        port: 1234,
+        host: "https://eth.stackwallet.com",
+        port: 443,
         name: defaultName,
         id: _nodeId(Coin.ethereum),
         useSSL: true,
