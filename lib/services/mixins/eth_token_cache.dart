@@ -35,8 +35,6 @@ mixin EthTokenCache {
     }
     return TokenBalance.fromJson(
       jsonString,
-      _token.contractAddress,
-      _token.decimals,
     );
   }
 
