@@ -16,6 +16,7 @@ abstract class DefaultNodes {
         firo,
         monero,
         epicCash,
+        ethereum,
         bitcoincash,
         namecoin,
         wownero,
