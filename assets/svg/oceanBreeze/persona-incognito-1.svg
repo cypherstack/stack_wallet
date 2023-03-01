@@ -66,16 +66,6 @@
 <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
 <feBlend mode="normal" in2="shape" result="effect1_innerShadow_86_26"/>
 </filter>
-<filter id="filter6_d_86_26" x="1070.29" y="150.851" width="525.707" height="597.933" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-<feFlood flood-opacity="0" result="BackgroundImageFix"/>
-<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
-<feOffset dy="4"/>
-<feGaussianBlur stdDeviation="25"/>
-<feComposite in2="hardAlpha" operator="out"/>
-<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
-<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_86_26"/>
-<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_86_26" result="shape"/>
-</filter>
 <pattern id="pattern2" patternContentUnits="objectBoundingBox" width="1" height="1">
 <use xlink:href="#image2_86_26" transform="scale(0.0005)"/>
 </pattern>
@@ -112,8 +102,6 @@
 <g filter="url(#filter5_i_86_26)">
 <path d="M816 1309C910.591 1295.72 992.099 1396.22 1086 1385C1150 1377.36 1091.33 1316.43 1198 1287C1314 1255 1378 1323 1426 1339C1620.38 1403.8 1355.76 1189.08 1484 1145C1612 1101 1802.57 1356.71 1654 1613C1494 1889 1244 1729.14 1170 1671C1114 1627 1058 1846.72 640.001 1735C500 1697.58 574.001 1561 594.003 1483C611.914 1413.15 424 1565 320.001 1447C233.367 1348.7 398.466 1275.2 462.001 1287C602.001 1313 651 1363 723 1385C779.804 1402.36 701.998 1325 816 1309Z" fill="url(#paint1_linear_86_26)"/>
 </g>
-<g filter="url(#filter6_d_86_26)">
-<path d="M1137 529C1061 316 1260.33 183 1412 198C1348 244 1307 390 1317 446C1340.49 577.583 1439 600 1546 630C1452 720 1212.64 740.989 1137 529Z" fill="white"/>
-</g>
+<path d="M1413.46 200.03L1418.84 196.164L1412.25 195.512C1335.67 187.939 1247.19 217.699 1187.38 276.213C1127.43 334.856 1096.3 422.369 1134.65 529.84C1172.81 636.805 1252.41 685.121 1334.31 695.227C1416.01 705.31 1500.13 677.381 1547.73 631.806L1550.89 628.776L1546.68 627.593C1542.57 626.442 1538.48 625.303 1534.42 624.17C1485.29 610.487 1438.97 597.585 1401.52 573.978C1361.17 548.55 1331.08 510.657 1319.46 445.561C1317.03 431.955 1317.68 412.644 1321.1 390.475C1324.51 368.352 1330.66 343.56 1339.11 319.066C1356.07 269.934 1382.11 222.561 1413.46 200.03Z" fill="white" stroke="#C4C4C4" stroke-width="5"/>
 <rect opacity="0.1" x="100" y="100" width="1800" height="1800" fill="url(#pattern2)"/>
 </svg>
