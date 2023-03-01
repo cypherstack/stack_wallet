@@ -439,6 +439,18 @@ class EpicCashWallet extends CoinServiceAPI
     final String wallet =
         (await _secureStore.read(key: '${_walletId}_wallet'))!;
 
+    //Get current chain height
+    final currentChainHeight = await chainHeight;
+    final lastScannedHeight = storedChainHeight;
+
+    print("CURRENT CHAIN HEIGHT IS $currentChainHeight");
+    print("STORED CHAIN HEIGHT IS $lastScannedHeight");
+
+    if (lastScannedHeight != currentChainHeight) {
+      //When wallet needs to rescan, do not attempt to cancel
+      throw ("Please wait for wallet to finish syncing before cancelling");
+    }
+
     String? result;
     await m.protect(() async {
       result = await compute(
