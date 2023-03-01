@@ -46,6 +46,7 @@ class TokenBalance extends Balance {
 
   @override
   String toJsonIgnoreCoin() => jsonEncode({
+        "contractAddress": contractAddress,
         "decimalPlaces": decimalPlaces,
         "total": total,
         "spendable": spendable,
@@ -55,12 +56,10 @@ class TokenBalance extends Balance {
 
   factory TokenBalance.fromJson(
     String json,
-    String contractAddress,
-    int decimalPlaces,
   ) {
     final decoded = jsonDecode(json);
     return TokenBalance(
-      contractAddress: contractAddress,
+      contractAddress: decoded["contractAddress"] as String,
       decimalPlaces: decoded["decimalPlaces"] as int,
       total: decoded["total"] as int,
       spendable: decoded["spendable"] as int,
