@@ -90,7 +90,7 @@ class EthTokenTx {
         gasUsed: int.parse(map["gasUsed"] as String),
         hash: map["hash"] as String,
         input: map["input"] as String,
-        logIndex: int.parse(map["logIndex"] as String),
+        logIndex: int.parse(map["logIndex"] as String? ?? "-1"),
         nonce: int.parse(map["nonce"] as String),
         timeStamp: int.parse(map["timeStamp"] as String),
         to: map["to"] as String,
@@ -130,7 +130,7 @@ class EthereumResponse<T> {
 }
 
 abstract class EthereumAPI {
-  static const blockScout = "https://blockscout.com/eth/mainnet/api";
+  // static const blockScout = "https://blockscout.com/eth/mainnet/api";
   static const etherscanApi =
       "https://api.etherscan.io/api"; //TODO - Once our server has abi functionality update
 
@@ -138,10 +138,11 @@ abstract class EthereumAPI {
       "https://blockscout.com/eth/mainnet/api/v1/gas-price-oracle";
 
   static Future<AddressTransaction> fetchAddressTransactions(
-      String address, String action) async {
+      String address) async {
     try {
       final response = await get(Uri.parse(
-          "$blockScout?module=account&action=$action&address=$address"));
+          // "$blockScout?module=account&action=txlist&address=$address"));
+          "$etherscanApi?module=account&action=txlist&address=$address&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
       if (response.statusCode == 200) {
         return AddressTransaction.fromJson(
             jsonDecode(response.body) as Map<String, dynamic>);
@@ -163,7 +164,8 @@ abstract class EthereumAPI {
   }) async {
     try {
       String uriString =
-          "$blockScout?module=account&action=tokentx&address=$address";
+          // "$blockScout?module=account&action=tokentx&address=$address";
+          "$etherscanApi?module=account&action=tokentx&address=$address&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP";
       if (contractAddress != null) {
         uriString += "&contractAddress=$contractAddress";
       }
@@ -289,8 +291,8 @@ abstract class EthereumAPI {
   }) async {
     try {
       final uri = Uri.parse(
-        "$blockScout?module=account&action=tokenbalance"
-        "&contractaddress=$contractAddress&address=$address",
+        "$etherscanApi?module=account&action=tokenbalance"
+        "&contractaddress=$contractAddress&address=$address&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP",
       );
       final response = await get(uri);
 
@@ -359,7 +361,8 @@ abstract class EthereumAPI {
       String contractAddress) async {
     try {
       final response = await get(Uri.parse(
-          "$blockScout?module=token&action=getToken&contractaddress=$contractAddress"));
+          "$etherscanApi?module=token&action=getToken&contractaddress=$contractAddress&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
+      // "$blockScout?module=token&action=getToken&contractaddress=$contractAddress"));
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
         if (json["message"] == "OK") {
