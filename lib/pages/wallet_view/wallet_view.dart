@@ -690,18 +690,34 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         children: [
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Padding(
-                              padding: const EdgeInsets.only(bottom: 14),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(
-                                    Constants.size.circularBorderRadius,
-                                  ),
-                                  bottom: Radius.circular(
-                                    // WalletView.navBarHeight / 2.0,
-                                    Constants.size.circularBorderRadius,
-                                  ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(
+                                  Constants.size.circularBorderRadius,
                                 ),
+                                bottom: Radius.circular(
+                                  // WalletView.navBarHeight / 2.0,
+                                  Constants.size.circularBorderRadius,
+                                ),
+                              ),
+                              child: ShaderMask(
+                                blendMode: BlendMode.dstOut,
+                                shaderCallback: (Rect bounds) {
+                                  return const LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Colors.transparent,
+                                      Colors.transparent,
+                                      Colors.white,
+                                    ],
+                                    stops: [
+                                      0.0,
+                                      0.8,
+                                      1.0,
+                                    ], // 10% purple, 80% transparent, 10% purple
+                                  ).createShader(bounds);
+                                },
                                 child: Container(
                                   decoration: BoxDecoration(
                                     color: Colors.transparent,
