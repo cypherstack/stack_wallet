@@ -29,7 +29,7 @@ import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 import 'package:tuple/tuple.dart';
 
-import '../../db/main_db.dart';
+import '../../db/isar/main_db.dart';
 
 class DesktopAllTradesView extends ConsumerStatefulWidget {
   const DesktopAllTradesView({Key? key}) : super(key: key);

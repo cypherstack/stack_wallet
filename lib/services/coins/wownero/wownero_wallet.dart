@@ -25,8 +25,8 @@ import 'package:flutter_libmonero/view_model/send/output.dart'
 import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
-import 'package:stackwallet/db/main_db.dart';
-import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/db/hive/db.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/node_model.dart';

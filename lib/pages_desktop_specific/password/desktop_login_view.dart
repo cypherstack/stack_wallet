@@ -20,7 +20,7 @@ import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 
-import '../../hive/db.dart';
+import '../../db/hive/db.dart';
 import '../../utilities/db_version_migration.dart';
 import '../../utilities/logger.dart';
 
