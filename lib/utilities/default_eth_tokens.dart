@@ -2,18 +2,18 @@ import 'package:stackwallet/models/ethereum/erc20_token.dart';
 import 'package:stackwallet/models/ethereum/eth_token.dart';
 
 abstract class DefaultTokens {
-  static List<EthContractInfo> list = [
+  static const List<EthContractInfo> list = [
     Erc20ContractInfo(
       contractAddress: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
       name: "USD Coin",
       symbol: "USDC",
-      decimals: 18,
+      decimals: 6,
     ),
     Erc20ContractInfo(
       contractAddress: "0xdac17f958d2ee523a2206206994597c13d831ec7",
       name: "Tether",
       symbol: "USDT",
-      decimals: 18,
+      decimals: 6,
     ),
     Erc20ContractInfo(
       contractAddress: "0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce",
