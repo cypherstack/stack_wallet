@@ -1998,7 +1998,10 @@ class EpicCashWallet extends CoinServiceAPI {
 
     String validate = validateSendAddress(address);
     if (int.parse(validate) == 1) {
-      return true;
+      if (address.contains("@")) {
+        return true;
+      }
+      return false;
     } else {
       return false;
     }
