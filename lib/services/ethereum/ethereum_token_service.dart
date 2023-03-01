@@ -86,8 +86,8 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
 
   Future<String> get currentReceivingAddress async {
     final address = await _currentReceivingAddress;
-    return address?.value ??
-        checksumEthereumAddress(_credentials.address.toString());
+    return checksumEthereumAddress(
+        address?.value ?? _credentials.address.toString());
   }
 
   Future<Address?> get _currentReceivingAddress => ethWallet.db

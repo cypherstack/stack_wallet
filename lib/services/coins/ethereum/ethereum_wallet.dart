@@ -168,8 +168,8 @@ class EthereumWallet extends CoinServiceAPI
   @override
   Future<String> get currentReceivingAddress async {
     final address = await _currentReceivingAddress;
-    return address?.value ??
-        checksumEthereumAddress(_credentials.address.toString());
+    return checksumEthereumAddress(
+        address?.value ?? _credentials.address.toString());
   }
 
   Future<Address?> get _currentReceivingAddress => db
@@ -569,7 +569,8 @@ class EthereumWallet extends CoinServiceAPI
         var allOwnAddresses = await _fetchAllOwnAddresses();
         AddressTransaction addressTransactions =
             await EthereumAPI.fetchAddressTransactions(
-                allOwnAddresses.elementAt(0).value, "txlist");
+          allOwnAddresses.elementAt(0).value,
+        );
         if (addressTransactions.message == "OK") {
           final allTxs = addressTransactions.result;
           for (final element in allTxs) {
@@ -845,7 +846,7 @@ class EthereumWallet extends CoinServiceAPI
     String thisAddress = await currentReceivingAddress;
 
     AddressTransaction txs =
-        await EthereumAPI.fetchAddressTransactions(thisAddress, "txlist");
+        await EthereumAPI.fetchAddressTransactions(thisAddress);
 
     if (txs.message == "OK") {
       final allTxs = txs.result;
@@ -875,7 +876,7 @@ class EthereumWallet extends CoinServiceAPI
         final txn = Transaction(
           walletId: walletId,
           txid: element["hash"] as String,
-          timestamp: element["timeStamp"] as int,
+          timestamp: int.parse(element["timeStamp"].toString()),
           type:
               isIncoming ? TransactionType.incoming : TransactionType.outgoing,
           subType: TransactionSubType.none,
