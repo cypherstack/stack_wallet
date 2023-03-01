@@ -130,8 +130,8 @@ class EthereumResponse<T> {
 }
 
 abstract class EthereumAPI {
-  static const blockExplorer = "https://blockscout.com/eth/mainnet/api";
-  static const abiUrl =
+  static const blockScout = "https://blockscout.com/eth/mainnet/api";
+  static const etherscanApi =
       "https://api.etherscan.io/api"; //TODO - Once our server has abi functionality update
 
   static const gasTrackerUrl =
@@ -141,7 +141,7 @@ abstract class EthereumAPI {
       String address, String action) async {
     try {
       final response = await get(Uri.parse(
-          "$blockExplorer?module=account&action=$action&address=$address"));
+          "$blockScout?module=account&action=$action&address=$address"));
       if (response.statusCode == 200) {
         return AddressTransaction.fromJson(
             jsonDecode(response.body) as Map<String, dynamic>);
@@ -163,7 +163,7 @@ abstract class EthereumAPI {
   }) async {
     try {
       String uriString =
-          "$blockExplorer?module=account&action=tokentx&address=$address";
+          "$blockScout?module=account&action=tokentx&address=$address";
       if (contractAddress != null) {
         uriString += "&contractAddress=$contractAddress";
       }
@@ -283,6 +283,52 @@ abstract class EthereumAPI {
   //   }
   // }
 
+  static Future<EthereumResponse<int>> getWalletTokenBalance({
+    required String address,
+    required String contractAddress,
+  }) async {
+    try {
+      final uri = Uri.parse(
+        "$blockScout?module=account&action=tokenbalance"
+        "&contractaddress=$contractAddress&address=$address",
+      );
+      final response = await get(uri);
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        if (json["message"] == "OK") {
+          final result = json["result"] as String;
+
+          return EthereumResponse(
+            int.parse(result),
+            null,
+          );
+        } else {
+          throw EthApiException(json["message"] as String);
+        }
+      } else {
+        throw EthApiException(
+          "getWalletTokens($address) failed with status code: "
+          "${response.statusCode}",
+        );
+      }
+    } on EthApiException catch (e) {
+      return EthereumResponse(
+        null,
+        e,
+      );
+    } catch (e, s) {
+      Logging.instance.log(
+        "getWalletTokens(): $e\n$s",
+        level: LogLevel.Error,
+      );
+      return EthereumResponse(
+        null,
+        EthApiException(e.toString()),
+      );
+    }
+  }
+
   static Future<GasTracker> getGasOracle() async {
     final response = await get(Uri.parse(gasTrackerUrl));
     if (response.statusCode == 200) {
@@ -313,7 +359,7 @@ abstract class EthereumAPI {
       String contractAddress) async {
     try {
       final response = await get(Uri.parse(
-          "$blockExplorer?module=token&action=getToken&contractaddress=$contractAddress"));
+          "$blockScout?module=token&action=getToken&contractaddress=$contractAddress"));
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
         if (json["message"] == "OK") {
@@ -371,7 +417,7 @@ abstract class EthereumAPI {
   static Future<AbiRequestResponse> fetchTokenAbi(
       String contractAddress) async {
     final response = await get(Uri.parse(
-        "$abiUrl?module=contract&action=getabi&address=$contractAddress&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
+        "$etherscanApi?module=contract&action=getabi&address=$contractAddress&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
     if (response.statusCode == 200) {
       return AbiRequestResponse.fromJson(
           json.decode(response.body) as Map<String, dynamic>);
