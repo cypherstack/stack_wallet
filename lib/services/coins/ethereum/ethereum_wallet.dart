@@ -7,6 +7,7 @@ import 'package:http/http.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/models/balance.dart';
+import 'package:stackwallet/models/ethereum/eth_token.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
@@ -17,6 +18,7 @@ import 'package:stackwallet/services/event_bus/events/global/refresh_percent_cha
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/mixins/eth_extras_wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
@@ -37,7 +39,8 @@ import 'package:web3dart/web3dart.dart' as web3;
 
 const int MINIMUM_CONFIRMATIONS = 3;
 
-class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
+class EthereumWallet extends CoinServiceAPI
+    with WalletCache, WalletDB, EthExtrasWalletCache {
   EthereumWallet({
     required String walletId,
     required String walletName,
@@ -52,6 +55,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
     _coin = coin;
     _secureStore = secureStore;
     initCache(walletId, coin);
+    initEthExtrasCache(walletId);
     initWalletDB(mockableOverride: mockableOverride);
   }
 
@@ -61,6 +65,30 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Timer? timer;
   Timer? _networkAliveTimer;
+
+  Set<EthContractInfo> get contracts => getCachedTokenContracts();
+
+  Future<void> addTokenContract(Set<EthContractInfo> contractInfo) =>
+      updateCachedTokenContracts(contracts..addAll(contractInfo)).then(
+        (value) => GlobalEventBus.instance.fire(
+          UpdatedInBackgroundEvent(
+            "$contractInfo updated/added for: $walletId $walletName",
+            walletId,
+          ),
+        ),
+      );
+
+  Future<void> removeTokenContract(String contractAddress) =>
+      updateCachedTokenContracts(contracts
+            ..removeWhere((e) => e.contractAddress == contractAddress))
+          .then(
+        (value) => GlobalEventBus.instance.fire(
+          UpdatedInBackgroundEvent(
+            "$contractAddress removed for: $walletId $walletName",
+            walletId,
+          ),
+        ),
+      );
 
   @override
   String get walletId => _walletId;

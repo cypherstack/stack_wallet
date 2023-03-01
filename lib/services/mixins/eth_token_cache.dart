@@ -10,9 +10,9 @@ abstract class _Keys {
 
 mixin EthTokenCache {
   late final String _walletId;
-  late final EthToken _token;
+  late final EthContractInfo _token;
 
-  void initCache(String walletId, EthToken token) {
+  void initCache(String walletId, EthContractInfo token) {
     _walletId = walletId;
     _token = token;
   }

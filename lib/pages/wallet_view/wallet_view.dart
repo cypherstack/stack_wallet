@@ -5,7 +5,6 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/ethereum/eth_token.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/buy_view/buy_in_wallet_view.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
@@ -28,7 +27,6 @@ import 'package:stackwallet/providers/wallet/public_private_balance_state_provid
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
-import 'package:stackwallet/services/ethereum/ethereum_api.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
@@ -37,7 +35,6 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
-import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -796,49 +793,11 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                           arguments: coin,
                                         ));
                                       },
-                                      onTokensPressed: () async {
-                                        final walletAddress = await ref
-                                            .read(managerProvider)
-                                            .currentReceivingAddress;
-
-                                        final response = await showLoading<
-                                            EthereumResponse<List<EthToken>>>(
-                                          whileFuture:
-                                              EthereumAPI.getWalletTokens(
-                                                  address: await ref
-                                                      .read(managerProvider)
-                                                      .currentReceivingAddress),
-                                          message: "Loading tokens",
-                                          isDesktop: false,
-                                          context: context,
+                                      onTokensPressed: () {
+                                        Navigator.of(context).pushNamed(
+                                          MyTokensView.routeName,
+                                          arguments: walletId,
                                         );
-
-                                        if (mounted) {
-                                          if (response.value != null) {
-                                            await Navigator.of(context)
-                                                .pushNamed(
-                                              MyTokensView.routeName,
-                                              arguments: Tuple4(
-                                                managerProvider,
-                                                walletId,
-                                                walletAddress,
-                                                response.value!,
-                                              ),
-                                            );
-                                          } else {
-                                            await showDialog<void>(
-                                              context: context,
-                                              builder: (context) {
-                                                return StackOkDialog(
-                                                  title:
-                                                      "Failed to fetch tokens",
-                                                  message: response.exception
-                                                      .toString(),
-                                                );
-                                              },
-                                            );
-                                          }
-                                        }
                                       },
                                     ),
                                   ),

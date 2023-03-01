@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/models/ethereum/eth_token.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_custom_token_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_list.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_list_element.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_text.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_eth_tokens.dart';
@@ -65,17 +67,36 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
     return _entities;
   }
 
-  void onNextPressed() {
+  Future<void> onNextPressed() async {
     final selectedTokens =
-        tokenEntities.where((e) => e.selected).map((e) => e.token);
-    print("SELECTED TOKENS: $selectedTokens");
+        tokenEntities.where((e) => e.selected).map((e) => e.token).toSet();
+
+    final ethWallet = ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(widget.walletId)
+        .wallet as EthereumWallet;
+
+    await ethWallet.addTokenContract(selectedTokens);
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
   }
 
-  void onAddCustomTokenPressed() {
-    Navigator.of(context).pushNamed(
+  Future<void> _addToken() async {
+    final token = await Navigator.of(context).pushNamed(
       AddCustomTokenView.routeName,
       arguments: widget.walletId,
     );
+    if (token is EthContractInfo) {
+      setState(() {
+        if (tokenEntities
+            .where((e) => e.token.contractAddress == token.contractAddress)
+            .isEmpty) {
+          tokenEntities.add(AddTokenListElementData(token)..selected = true);
+          tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
+        }
+      });
+    }
   }
 
   @override
@@ -206,6 +227,7 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
                         child: AddTokenList(
                           walletId: widget.walletId,
                           items: filter(_searchTerm, tokenEntities),
+                          addFunction: _addToken,
                         ),
                       ),
                     ],
@@ -253,7 +275,7 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
                           .extension<StackColors>()!
                           .topNavIconPrimary,
                     ),
-                    onPressed: onAddCustomTokenPressed,
+                    onPressed: _addToken,
                   ),
                 ),
               ),
@@ -332,6 +354,7 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
                     child: AddTokenList(
                       walletId: widget.walletId,
                       items: filter(_searchTerm, tokenEntities),
+                      addFunction: _addToken,
                     ),
                   ),
                   const SizedBox(

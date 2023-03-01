@@ -2,37 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/ethereum/eth_token.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/my_token_select_item.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 
 class MyTokensList extends StatelessWidget {
   const MyTokensList({
     Key? key,
-    required this.managerProvider,
     required this.walletId,
     required this.tokens,
-    required this.walletAddress,
   }) : super(key: key);
 
-  final ChangeNotifierProvider<Manager> managerProvider;
   final String walletId;
-  final List<EthToken> tokens;
-  final String walletAddress;
+  final List<EthContractInfo> tokens;
 
   @override
   Widget build(BuildContext context) {
     return Consumer(
       builder: (_, ref, __) {
-        print("TOKENS LENGTH IS ${tokens.length}");
         return ListView.builder(
           itemCount: tokens.length,
           itemBuilder: (ctx, index) {
+            final token = tokens[index];
             return Padding(
+              key: Key(token.contractAddress),
               padding: const EdgeInsets.all(4),
               child: MyTokenSelectItem(
-                managerProvider: managerProvider,
                 walletId: walletId,
-                walletAddress: walletAddress,
-                token: tokens[index],
+                token: token,
               ),
             );
           },

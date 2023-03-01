@@ -6,7 +6,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/ethereum/eth_token.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_token_view.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/my_tokens_list.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -23,17 +24,11 @@ import 'package:stackwallet/widgets/textfield_icon_button.dart';
 class MyTokensView extends ConsumerStatefulWidget {
   const MyTokensView({
     Key? key,
-    required this.managerProvider,
     required this.walletId,
-    required this.walletAddress,
-    required this.tokens,
   }) : super(key: key);
 
   static const String routeName = "/myTokens";
-  final ChangeNotifierProvider<Manager> managerProvider;
   final String walletId;
-  final String walletAddress;
-  final List<EthToken> tokens;
 
   @override
   ConsumerState<MyTokensView> createState() => _TokenDetailsViewState();
@@ -60,9 +55,23 @@ class _TokenDetailsViewState extends ConsumerState<MyTokensView> {
 
   String _searchString = "";
 
+  List<EthContractInfo> _filter(
+      Set<EthContractInfo> tokens, String searchTerm) {
+    if (searchTerm.isEmpty) {
+      return tokens.toList();
+    }
+    //implement search/filter
+    return tokens.toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
+
+    final tokens = (ref.watch(walletsChangeNotifierProvider
+                .select((value) => value.getManager(widget.walletId).wallet))
+            as EthereumWallet)
+        .contracts;
 
     return MasterScaffold(
       background: Theme.of(context).extension<StackColors>()!.background,
@@ -96,7 +105,10 @@ class _TokenDetailsViewState extends ConsumerState<MyTokensView> {
                     width: 12,
                   ),
                   Text(
-                    "${ref.read(widget.managerProvider).walletName} Tokens",
+                    "${ref.watch(
+                      walletsChangeNotifierProvider.select((value) =>
+                          value.getManager(widget.walletId).walletName),
+                    )} Tokens",
                     style: STextStyles.desktopH3(context),
                   ),
                 ],
@@ -118,7 +130,10 @@ class _TokenDetailsViewState extends ConsumerState<MyTokensView> {
                 },
               ),
               title: Text(
-                "${ref.read(widget.managerProvider).walletName} Tokens",
+                "${ref.watch(
+                  walletsChangeNotifierProvider.select(
+                      (value) => value.getManager(widget.walletId).walletName),
+                )} Tokens",
                 style: STextStyles.navBarTitle(context),
               ),
               actions: [
@@ -257,10 +272,8 @@ class _TokenDetailsViewState extends ConsumerState<MyTokensView> {
             ),
             Expanded(
               child: MyTokensList(
-                managerProvider: widget.managerProvider,
                 walletId: widget.walletId,
-                tokens: widget.tokens,
-                walletAddress: widget.walletAddress,
+                tokens: _filter(tokens, _searchString),
               ),
             ),
           ],

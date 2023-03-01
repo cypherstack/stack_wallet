@@ -13,7 +13,7 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 class AddTokenListElementData {
   AddTokenListElementData(this.token);
 
-  final EthToken token;
+  final EthContractInfo token;
   bool selected = false;
 }
 

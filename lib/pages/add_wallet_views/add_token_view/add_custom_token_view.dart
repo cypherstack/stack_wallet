@@ -39,7 +39,7 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
   bool enableSubFields = false;
   bool addTokenButtonEnabled = false;
 
-  EthToken? currentToken;
+  EthContractInfo? currentToken;
 
   @override
   Widget build(BuildContext context) {
@@ -66,10 +66,6 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
                 "Add custom ETH token",
                 style: STextStyles.pageTitleH1(context),
               ),
-              const SizedBox(
-                height: 16,
-              ),
-              Text("Add custom ETH token"),
               const SizedBox(
                 height: 16,
               ),
@@ -178,7 +174,9 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
               PrimaryButton(
                 label: "Add token",
                 enabled: addTokenButtonEnabled,
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).pop(currentToken!);
+                },
               ),
             ],
           ),

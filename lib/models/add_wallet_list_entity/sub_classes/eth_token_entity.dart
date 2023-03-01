@@ -5,7 +5,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 class EthTokenEntity extends AddWalletListEntity {
   EthTokenEntity(this.token);
 
-  final EthToken token;
+  final EthContractInfo token;
 
   @override
   Coin get coin => Coin.ethereum;

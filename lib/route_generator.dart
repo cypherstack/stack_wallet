@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
 import 'package:stackwallet/models/contact_address_entry.dart';
-import 'package:stackwallet/models/ethereum/eth_token.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
@@ -1460,15 +1459,12 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case MyTokensView.routeName:
-        if (args is Tuple4<ChangeNotifierProvider<Manager>, String, String,
-            List<EthToken>>) {
+        if (args is String) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => MyTokensView(
-                managerProvider: args.item1,
-                walletId: args.item2,
-                walletAddress: args.item3,
-                tokens: args.item4),
+              walletId: args,
+            ),
             settings: RouteSettings(
               name: settings.name,
             ),

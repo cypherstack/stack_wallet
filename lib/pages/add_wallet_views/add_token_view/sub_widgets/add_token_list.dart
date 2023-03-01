@@ -13,10 +13,12 @@ class AddTokenList extends StatelessWidget {
     Key? key,
     required this.walletId,
     required this.items,
+    required this.addFunction,
   }) : super(key: key);
 
   final String walletId;
   final List<AddTokenListElementData> items;
+  final VoidCallback addFunction;
 
   @override
   Widget build(BuildContext context) {
@@ -46,12 +48,7 @@ class AddTokenList extends StatelessWidget {
                       Constants.size.circularBorderRadius,
                     ),
                   ),
-                  onPressed: () {
-                    Navigator.of(context).pushNamed(
-                      AddCustomTokenView.routeName,
-                      arguments: walletId,
-                    );
-                  },
+                  onPressed: addFunction,
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Row(

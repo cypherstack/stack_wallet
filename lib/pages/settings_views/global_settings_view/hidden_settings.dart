@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/models/ethereum/eth_token.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -11,6 +12,8 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import '../../../models/ethereum/erc20_token.dart';
 
 class HiddenSettings extends StatelessWidget {
   const HiddenSettings({Key? key}) : super(key: key);
@@ -171,6 +174,38 @@ class HiddenSettings extends StatelessWidget {
 
                               print(
                                   "PRICE 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48: $x");
+                            },
+                            child: RoundedWhiteContainer(
+                              child: Text(
+                                "Click me",
+                                style: STextStyles.button(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark),
+                              ),
+                            ),
+                          );
+                        }),
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        Consumer(builder: (_, ref, __) {
+                          return GestureDetector(
+                            onTap: () async {
+                              final erc20 = Erc20ContractInfo(
+                                contractAddress: 'some con',
+                                name: "loonamsn",
+                                symbol: "DD",
+                                decimals: 19,
+                              );
+
+                              final json = erc20.toJson();
+
+                              print(json);
+
+                              final ee = EthContractInfo.fromJson(json);
+
+                              print(ee);
                             },
                             child: RoundedWhiteContainer(
                               child: Text(

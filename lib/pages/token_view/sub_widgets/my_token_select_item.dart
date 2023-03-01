@@ -4,8 +4,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/ethereum/eth_token.dart';
 import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
+import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/ethereum/ethereum_token_service.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -18,23 +18,16 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class MyTokenSelectItem extends ConsumerWidget {
   const MyTokenSelectItem(
-      {Key? key,
-      required this.managerProvider,
-      required this.walletId,
-      required this.walletAddress,
-      required this.token,
-      required})
+      {Key? key, required this.walletId, required this.token, required})
       : super(key: key);
 
-  final ChangeNotifierProvider<Manager> managerProvider;
   final String walletId;
-  final String walletAddress;
-  final EthToken token;
+  final EthContractInfo token;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final balanceInDecimal = Format.satoshisToEthTokenAmount(
-      token.balance,
+      1111111111111, //token.balance,
       token.decimals,
     );
 
@@ -54,9 +47,12 @@ class MyTokenSelectItem extends ConsumerWidget {
               EthereumTokenService(
             token: token,
             secureStore: ref.read(secureStoreProvider),
-            ethWallet: ref.read(managerProvider).wallet as EthereumWallet,
+            ethWallet: ref
+                .read(walletsChangeNotifierProvider)
+                .getManager(walletId)
+                .wallet as EthereumWallet,
             tracker: TransactionNotificationTracker(
-              walletId: ref.read(managerProvider).walletId,
+              walletId: walletId,
             ),
           );
 

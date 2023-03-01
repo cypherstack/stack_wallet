@@ -210,77 +210,78 @@ abstract class EthereumAPI {
     }
   }
 
-  static Future<EthereumResponse<List<EthToken>>> getWalletTokens({
-    required String address,
-  }) async {
-    try {
-      final uri = Uri.parse(
-        "$blockExplorer?module=account&action=tokenlist&address=$address",
-      );
-      final response = await get(uri);
-
-      if (response.statusCode == 200) {
-        final json = jsonDecode(response.body);
-        if (json["message"] == "OK") {
-          final result =
-              List<Map<String, dynamic>>.from(json["result"] as List);
-          final List<EthToken> tokens = [];
-          for (final map in result) {
-            if (map["type"] == "ERC-20") {
-              tokens.add(
-                Erc20Token(
-                  balance: int.parse(map["balance"] as String),
-                  contractAddress: map["contractAddress"] as String,
-                  decimals: int.parse(map["decimals"] as String),
-                  name: map["name"] as String,
-                  symbol: map["symbol"] as String,
-                ),
-              );
-            } else if (map["type"] == "ERC-721") {
-              tokens.add(
-                Erc721Token(
-                  balance: int.parse(map["balance"] as String),
-                  contractAddress: map["contractAddress"] as String,
-                  decimals: int.parse(map["decimals"] as String),
-                  name: map["name"] as String,
-                  symbol: map["symbol"] as String,
-                ),
-              );
-            } else {
-              throw EthApiException(
-                  "Unsupported token type found: ${map["type"]}");
-            }
-          }
-
-          return EthereumResponse(
-            tokens,
-            null,
-          );
-        } else {
-          throw EthApiException(json["message"] as String);
-        }
-      } else {
-        throw EthApiException(
-          "getWalletTokens($address) failed with status code: "
-          "${response.statusCode}",
-        );
-      }
-    } on EthApiException catch (e) {
-      return EthereumResponse(
-        null,
-        e,
-      );
-    } catch (e, s) {
-      Logging.instance.log(
-        "getWalletTokens(): $e\n$s",
-        level: LogLevel.Error,
-      );
-      return EthereumResponse(
-        null,
-        EthApiException(e.toString()),
-      );
-    }
-  }
+// ONLY FETCHES WALLET TOKENS WITH A NON ZERO BALANCE
+  // static Future<EthereumResponse<List<EthToken>>> getWalletTokens({
+  //   required String address,
+  // }) async {
+  //   try {
+  //     final uri = Uri.parse(
+  //       "$blockExplorer?module=account&action=tokenlist&address=$address",
+  //     );
+  //     final response = await get(uri);
+  //
+  //     if (response.statusCode == 200) {
+  //       final json = jsonDecode(response.body);
+  //       if (json["message"] == "OK") {
+  //         final result =
+  //             List<Map<String, dynamic>>.from(json["result"] as List);
+  //         final List<EthToken> tokens = [];
+  //         for (final map in result) {
+  //           if (map["type"] == "ERC-20") {
+  //             tokens.add(
+  //               Erc20Token(
+  //                 balance: int.parse(map["balance"] as String),
+  //                 contractAddress: map["contractAddress"] as String,
+  //                 decimals: int.parse(map["decimals"] as String),
+  //                 name: map["name"] as String,
+  //                 symbol: map["symbol"] as String,
+  //               ),
+  //             );
+  //           } else if (map["type"] == "ERC-721") {
+  //             tokens.add(
+  //               Erc721Token(
+  //                 balance: int.parse(map["balance"] as String),
+  //                 contractAddress: map["contractAddress"] as String,
+  //                 decimals: int.parse(map["decimals"] as String),
+  //                 name: map["name"] as String,
+  //                 symbol: map["symbol"] as String,
+  //               ),
+  //             );
+  //           } else {
+  //             throw EthApiException(
+  //                 "Unsupported token type found: ${map["type"]}");
+  //           }
+  //         }
+  //
+  //         return EthereumResponse(
+  //           tokens,
+  //           null,
+  //         );
+  //       } else {
+  //         throw EthApiException(json["message"] as String);
+  //       }
+  //     } else {
+  //       throw EthApiException(
+  //         "getWalletTokens($address) failed with status code: "
+  //         "${response.statusCode}",
+  //       );
+  //     }
+  //   } on EthApiException catch (e) {
+  //     return EthereumResponse(
+  //       null,
+  //       e,
+  //     );
+  //   } catch (e, s) {
+  //     Logging.instance.log(
+  //       "getWalletTokens(): $e\n$s",
+  //       level: LogLevel.Error,
+  //     );
+  //     return EthereumResponse(
+  //       null,
+  //       EthApiException(e.toString()),
+  //     );
+  //   }
+  // }
 
   static Future<GasTracker> getGasOracle() async {
     final response = await get(Uri.parse(gasTrackerUrl));
@@ -308,7 +309,7 @@ abstract class EthereumAPI {
   }
 
   //Validate that a custom token is valid and is ERC-20, a token will be valid
-  static Future<EthereumResponse<EthToken>> getTokenByContractAddress(
+  static Future<EthereumResponse<EthContractInfo>> getTokenByContractAddress(
       String contractAddress) async {
     try {
       final response = await get(Uri.parse(
@@ -317,18 +318,16 @@ abstract class EthereumAPI {
         final json = jsonDecode(response.body);
         if (json["message"] == "OK") {
           final map = Map<String, dynamic>.from(json["result"] as Map);
-          EthToken? token;
+          EthContractInfo? token;
           if (map["type"] == "ERC-20") {
-            token = Erc20Token(
-              balance: 0, //int.parse(map["balance"] as String),
+            token = Erc20ContractInfo(
               contractAddress: map["contractAddress"] as String,
               decimals: int.parse(map["decimals"] as String),
               name: map["name"] as String,
               symbol: map["symbol"] as String,
             );
           } else if (map["type"] == "ERC-721") {
-            token = Erc721Token(
-              balance: 0, //int.parse(map["balance"] as String),
+            token = Erc721ContractInfo(
               contractAddress: map["contractAddress"] as String,
               decimals: int.parse(map["decimals"] as String),
               name: map["name"] as String,

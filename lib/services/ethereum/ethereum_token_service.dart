@@ -30,7 +30,7 @@ import 'package:tuple/tuple.dart';
 import 'package:web3dart/web3dart.dart' as web3dart;
 
 class EthereumTokenService extends ChangeNotifier with EthTokenCache {
-  final EthToken token;
+  final EthContractInfo token;
   final EthereumWallet ethWallet;
   final TransactionNotificationTracker tracker;
   final SecureStorageInterface _secureStore;
