@@ -69,6 +69,6 @@ class EpicBoxConfigModel {
 
   @override
   String toString() {
-    return json.encode(toJson()) as String;
+    return json.encode(toJson());
   }
 }
