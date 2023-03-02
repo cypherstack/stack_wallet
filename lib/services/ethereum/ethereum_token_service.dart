@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
@@ -115,16 +114,17 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
         await _secureStore.read(key: '${_contractAddress.toString()}_tokenAbi');
 
     if (storedABI == null) {
-      AbiRequestResponse abi =
-          await EthereumAPI.fetchTokenAbi(_contractAddress.hex);
+      final abiResponse = await EthereumAPI.getTokenAbi(_contractAddress.hex);
       //Fetch token ABI so we can call token functions
-      if (abi.message == "OK") {
-        _tokenAbi = abi.result;
+      if (abiResponse.value != null) {
+        _tokenAbi = abiResponse.value!;
         //Store abi in secure store
         await _secureStore.write(
-            key: '${_contractAddress.hex}_tokenAbi', value: _tokenAbi);
+          key: '${_contractAddress.hex}_tokenAbi',
+          value: _tokenAbi,
+        );
       } else {
-        throw Exception('Failed to load token abi');
+        throw abiResponse.exception!;
       }
     } else {
       _tokenAbi = storedABI;
@@ -140,61 +140,38 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
     _contract = web3dart.DeployedContract(
         web3dart.ContractAbi.fromJson(_tokenAbi, token.name), _contractAddress);
 
-    bool hackInBalanceOf = false, hackInTransfer = false;
     try {
       _balanceFunction = _contract.function('balanceOf');
-    } catch (_) {
-      // function not found so likely a proxy so we need to hack the function in
-      hackInBalanceOf = true;
-    }
-
-    try {
       _sendFunction = _contract.function('transfer');
     } catch (_) {
-      // function not found so likely a proxy so we need to hack the function in
-      hackInTransfer = true;
+      // function not found so likely a proxy so we need to fetch the impl
+      final response =
+          await EthereumAPI.getProxyTokenImplementation(_contractAddress.hex);
+
+      if (response.value != null) {
+        final abiResponse = await EthereumAPI.getTokenAbi(response.value!);
+        if (abiResponse.value != null) {
+          _tokenAbi = abiResponse.value!;
+          await _secureStore.write(
+              key: '${_contractAddress.hex}_tokenAbi', value: _tokenAbi);
+        } else {
+          throw abiResponse.exception!;
+        }
+      } else {
+        throw response.exception!;
+      }
     }
 
-    if (hackInBalanceOf || hackInTransfer) {
-      final json = jsonDecode(_tokenAbi) as List;
-      if (hackInBalanceOf) {
-        json.add({
-          "constant": true,
-          "inputs": [
-            {"name": "", "type": "address"}
-          ],
-          "name": "balanceOf",
-          "outputs": [
-            {"name": "", "type": "uint256"}
-          ],
-          "payable": false,
-          "type": "function"
-        });
-      }
-      if (hackInTransfer) {
-        json.add({
-          "constant": false,
-          "inputs": [
-            {"name": "_to", "type": "address"},
-            {"name": "_value", "type": "uint256"}
-          ],
-          "name": "transfer",
-          "outputs": <dynamic>[],
-          "payable": false,
-          "type": "function"
-        });
-      }
-      _tokenAbi = jsonEncode(json);
-      await _secureStore.write(
-          key: '${_contractAddress.hex}_tokenAbi', value: _tokenAbi);
+    _contract = web3dart.DeployedContract(
+      web3dart.ContractAbi.fromJson(
+        _tokenAbi,
+        token.name,
+      ),
+      _contractAddress,
+    );
 
-      _contract = web3dart.DeployedContract(
-          web3dart.ContractAbi.fromJson(_tokenAbi, token.name),
-          _contractAddress);
-
-      _balanceFunction = _contract.function('balanceOf');
-      _sendFunction = _contract.function('transfer');
-    }
+    _balanceFunction = _contract.function('balanceOf');
+    _sendFunction = _contract.function('transfer');
 
     _client = await getEthClient();
 

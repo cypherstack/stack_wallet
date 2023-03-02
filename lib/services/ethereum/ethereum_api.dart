@@ -9,26 +9,6 @@ import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/utilities/eth_commons.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
-class AbiRequestResponse {
-  final String message;
-  final String result;
-  final String status;
-
-  const AbiRequestResponse({
-    required this.message,
-    required this.result,
-    required this.status,
-  });
-
-  factory AbiRequestResponse.fromJson(Map<String, dynamic> json) {
-    return AbiRequestResponse(
-      message: json['message'] as String,
-      result: json['result'] as String,
-      status: json['status'] as String,
-    );
-  }
-}
-
 class EthTokenTx {
   final String blockHash;
   final int blockNumber;
@@ -191,7 +171,7 @@ abstract class EthereumAPI {
         }
       } else {
         throw EthApiException(
-          "getWalletTokens($address) failed with status code: "
+          "getTokenTransactions($address) failed with status code: "
           "${response.statusCode}",
         );
       }
@@ -202,7 +182,7 @@ abstract class EthereumAPI {
       );
     } catch (e, s) {
       Logging.instance.log(
-        "getWalletTokens(): $e\n$s",
+        "getTokenTransactions(): $e\n$s",
         level: LogLevel.Error,
       );
       return EthereumResponse(
@@ -310,7 +290,7 @@ abstract class EthereumAPI {
         }
       } else {
         throw EthApiException(
-          "getWalletTokens($address) failed with status code: "
+          "getWalletTokenBalance($address) failed with status code: "
           "${response.statusCode}",
         );
       }
@@ -321,7 +301,7 @@ abstract class EthereumAPI {
       );
     } catch (e, s) {
       Logging.instance.log(
-        "getWalletTokens(): $e\n$s",
+        "getWalletTokenBalance(): $e\n$s",
         level: LogLevel.Error,
       );
       return EthereumResponse(
@@ -356,7 +336,6 @@ abstract class EthereumAPI {
         slow: feesSlow.toInt());
   }
 
-  //Validate that a custom token is valid and is ERC-20, a token will be valid
   static Future<EthereumResponse<EthContractInfo>> getTokenByContractAddress(
       String contractAddress) async {
     try {
@@ -407,7 +386,7 @@ abstract class EthereumAPI {
       );
     } catch (e, s) {
       Logging.instance.log(
-        "getWalletTokens(): $e\n$s",
+        "getTokenByContractAddress(): $e\n$s",
         level: LogLevel.Error,
       );
       return EthereumResponse(
@@ -417,15 +396,82 @@ abstract class EthereumAPI {
     }
   }
 
-  static Future<AbiRequestResponse> fetchTokenAbi(
+  static Future<EthereumResponse<String>> getTokenAbi(
       String contractAddress) async {
-    final response = await get(Uri.parse(
-        "$etherscanApi?module=contract&action=getabi&address=$contractAddress&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
-    if (response.statusCode == 200) {
-      return AbiRequestResponse.fromJson(
-          json.decode(response.body) as Map<String, dynamic>);
-    } else {
-      throw Exception("ERROR GETTING TOKENABI ${response.reasonPhrase}");
+    try {
+      final response = await get(Uri.parse(
+          "$etherscanApi?module=contract&action=getabi&address=$contractAddress&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        if (json["message"] == "OK") {
+          return EthereumResponse(
+            json["result"] as String,
+            null,
+          );
+        } else {
+          throw EthApiException(json["message"] as String);
+        }
+      } else {
+        throw EthApiException(
+          "getTokenAbi($contractAddress) failed with status code: "
+          "${response.statusCode}",
+        );
+      }
+    } on EthApiException catch (e) {
+      return EthereumResponse(
+        null,
+        e,
+      );
+    } catch (e, s) {
+      Logging.instance.log(
+        "getTokenAbi(): $e\n$s",
+        level: LogLevel.Error,
+      );
+      return EthereumResponse(
+        null,
+        EthApiException(e.toString()),
+      );
+    }
+  }
+
+  static Future<EthereumResponse<String>> getProxyTokenImplementation(
+      String contractAddress) async {
+    try {
+      final response = await get(Uri.parse(
+          "$etherscanApi?module=contract&action=getsourcecode&address=$contractAddress&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        if (json["message"] == "OK") {
+          final list = json["result"] as List;
+          final map = Map<String, dynamic>.from(list.first as Map);
+
+          return EthereumResponse(
+            map["Implementation"] as String,
+            null,
+          );
+        } else {
+          throw EthApiException(json["message"] as String);
+        }
+      } else {
+        throw EthApiException(
+          "fetchProxyTokenImplementation($contractAddress) failed with status code: "
+          "${response.statusCode}",
+        );
+      }
+    } on EthApiException catch (e) {
+      return EthereumResponse(
+        null,
+        e,
+      );
+    } catch (e, s) {
+      Logging.instance.log(
+        "fetchProxyTokenImplementation(): $e\n$s",
+        level: LogLevel.Error,
+      );
+      return EthereumResponse(
+        null,
+        EthApiException(e.toString()),
+      );
     }
   }
 }
