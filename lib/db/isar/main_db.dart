@@ -27,6 +27,7 @@ class MainDB {
         UTXOSchema,
         AddressSchema,
         AddressLabelSchema,
+        EthContractSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       // inspector: kDebugMode,
