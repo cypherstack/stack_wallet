@@ -1,4 +1,4 @@
-import 'package:epicpay/models/epicbox_model.dart';
+import 'package:epicpay/models/epicbox_server_model.dart';
 import 'package:epicpay/pages/settings_views/epicbox_settings_view/sub_widgets/epicbox_card.dart';
 import 'package:epicpay/providers/global/node_service_provider.dart';
 import 'package:epicpay/utilities/default_epicboxes.dart';
@@ -20,7 +20,7 @@ class EpicBoxList extends ConsumerWidget {
         .select((value) => value.getEpicBoxes()));
 
     final defaultEpicBoxes = DefaultEpicBoxes.all;
-    List<EpicBoxModel> customEpicBoxes = epicBoxes;
+    List<EpicBoxServerModel> customEpicBoxes = epicBoxes;
     customEpicBoxes.removeWhere(
         (epicBox) => DefaultEpicBoxes.defaultIds.contains(epicBox.id));
 

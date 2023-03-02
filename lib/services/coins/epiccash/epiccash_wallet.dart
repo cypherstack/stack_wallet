@@ -5,7 +5,8 @@ import 'dart:isolate';
 
 import 'package:decimal/decimal.dart';
 import 'package:epicpay/hive/db.dart';
-import 'package:epicpay/models/epicbox_model.dart';
+import 'package:epicpay/models/epicbox_config_model.dart';
+import 'package:epicpay/models/epicbox_server_model.dart';
 import 'package:epicpay/models/node_model.dart';
 import 'package:epicpay/models/paymint/fee_object_model.dart';
 import 'package:epicpay/models/paymint/transactions_model.dart';
@@ -29,7 +30,6 @@ import 'package:epicpay/utilities/flutter_secure_storage_interface.dart';
 import 'package:epicpay/utilities/logger.dart';
 import 'package:epicpay/utilities/prefs.dart';
 import 'package:epicpay/utilities/test_epic_node_connection.dart';
-// import 'package:epicpay/utilities/test_epic_box_connection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libepiccash/epic_cash.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -1113,9 +1113,10 @@ class EpicCashWallet extends CoinServiceAPI {
     return stringConfig;
   }
 
-  Future<String> getEpicBoxConfig({EpicBoxModel? epicBox}) async {
-    EpicBoxModel? _epicBox = epicBox ??
-        DB.instance.get<EpicBoxModel>(
+  Future<String> getEpicBoxConfig({EpicBoxServerModel? epicBox}) async {
+    // read primary epicbox server model saved in hive and build config from that
+    EpicBoxServerModel? _epicBox = epicBox ??
+        DB.instance.get<EpicBoxServerModel>(
             boxName: DB.boxNamePrimaryEpicBox, key: 'primary');
     Logging.instance.log(
         "Read primary Epic Box config: ${jsonEncode(_epicBox)}",
@@ -1123,7 +1124,7 @@ class EpicCashWallet extends CoinServiceAPI {
 
     if (_epicBox == null) {
       Logging.instance.log(
-          "Using default Epic Box config: ${jsonEncode(DefaultEpicBoxes.defaultEpicBoxConfig)}",
+          "Did not read Epic Box config, using default as primary: ${jsonEncode(DefaultEpicBoxes.defaultEpicBoxConfig)}",
           level: LogLevel.Info);
       _epicBox = DefaultEpicBoxes.defaultEpicBoxConfig;
     }
@@ -1134,12 +1135,12 @@ class EpicCashWallet extends CoinServiceAPI {
 
     if (!connected) {
       //Default Epic Box is not connected, iterate through list of defaults
-      Logging.instance.log("Default Epic Box server not connected",
+      Logging.instance.log("Primary Epic Box server not connected",
           level: LogLevel.Warning);
 
       //Get all available hosts
-      final allBoxes = DefaultEpicBoxes.all;
-      final List<EpicBoxModel> alternativeServers = [];
+      final List<EpicBoxServerModel> allBoxes = DefaultEpicBoxes.all;
+      final List<EpicBoxServerModel> alternativeServers = [];
 
       for (var i = 0; i < allBoxes.length; i++) {
         if (allBoxes[i].name != _epicBox?.name) {
@@ -1169,14 +1170,12 @@ class EpicCashWallet extends CoinServiceAPI {
       }
     }
 
-    Map<String, dynamic> _config = {
-      'epicbox_domain': _epicBox?.host,
-      'epicbox_port': _epicBox?.port,
-      'epicbox_protocol_unsecure': false,
-      'epicbox_address_index': 0,
-    };
+    EpicBoxConfigModel _config = EpicBoxConfigModel(
+      host: _epicBox!.host,
+      port: _epicBox.port,
+    );
 
-    return jsonEncode(_config);
+    return _config.toString();
   }
 
   // Used to update receiving address when updating epic box config

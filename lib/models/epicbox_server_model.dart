@@ -1,9 +1,9 @@
 import 'package:hive/hive.dart';
 
-part 'type_adaptors/epicbox_model.g.dart';
+part 'type_adaptors/epicbox_server_model.g.dart';
 
 // @HiveType(typeId: 13)
-class EpicBoxModel {
+class EpicBoxServerModel {
   // @HiveField(0)
   final String id;
   // @HiveField(1)
@@ -21,7 +21,7 @@ class EpicBoxModel {
   // @HiveField(7)
   final bool? isDown;
 
-  EpicBoxModel({
+  EpicBoxServerModel({
     required this.id,
     required this.host,
     this.port,
@@ -32,7 +32,7 @@ class EpicBoxModel {
     this.isDown,
   });
 
-  EpicBoxModel copyWith({
+  EpicBoxServerModel copyWith({
     String? host,
     int? port,
     String? name,
@@ -41,7 +41,7 @@ class EpicBoxModel {
     bool? isFailover,
     bool? isDown,
   }) {
-    return EpicBoxModel(
+    return EpicBoxServerModel(
       id: id,
       host: host ?? this.host,
       port: port ?? this.port,
