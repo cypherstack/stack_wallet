@@ -72,7 +72,7 @@ class HiddenSettings extends StatelessWidget {
                             onTap: () async {
                               await ref
                                   .read(debugServiceProvider)
-                                  .deleteAllMessages();
+                                  .deleteAllLogs();
 
                               // unawaited(showFloatingFlushBar(
                               //   type: FlushBarType.success,
