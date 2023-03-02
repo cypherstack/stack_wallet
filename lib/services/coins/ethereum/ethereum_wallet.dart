@@ -567,14 +567,13 @@ class EthereumWallet extends CoinServiceAPI
       }
       if (!needsRefresh) {
         var allOwnAddresses = await _fetchAllOwnAddresses();
-        AddressTransaction addressTransactions =
-            await EthereumAPI.fetchAddressTransactions(
+        final response = await EthereumAPI.getEthTransactions(
           allOwnAddresses.elementAt(0).value,
         );
-        if (addressTransactions.message == "OK") {
-          final allTxs = addressTransactions.result;
+        if (response.value != null) {
+          final allTxs = response.value!;
           for (final element in allTxs) {
-            final txid = element["hash"] as String;
+            final txid = element.hash;
             if ((await db
                     .getTransactions(walletId)
                     .filter()
@@ -582,7 +581,7 @@ class EthereumWallet extends CoinServiceAPI
                     .findFirst()) ==
                 null) {
               Logging.instance.log(
-                  " txid not found in address history already ${element['hash']}",
+                  " txid not found in address history already $txid",
                   level: LogLevel.Info);
               needsRefresh = true;
               break;
@@ -845,20 +844,18 @@ class EthereumWallet extends CoinServiceAPI
   Future<void> _refreshTransactions() async {
     String thisAddress = await currentReceivingAddress;
 
-    AddressTransaction txs =
-        await EthereumAPI.fetchAddressTransactions(thisAddress);
+    final txsResponse = await EthereumAPI.getEthTransactions(thisAddress);
 
-    if (txs.message == "OK") {
-      final allTxs = txs.result;
+    if (txsResponse.value != null) {
+      final allTxs = txsResponse.value!;
       final List<Tuple2<Transaction, Address?>> txnsData = [];
       for (final element in allTxs) {
-        int transactionAmount = int.parse(element['value'].toString());
+        int transactionAmount = element.value;
 
         bool isIncoming;
         bool txFailed = false;
-        if (checksumEthereumAddress(element["from"].toString()) ==
-            thisAddress) {
-          if (!(int.parse(element["isError"] as String) == 0)) {
+        if (checksumEthereumAddress(element.from) == thisAddress) {
+          if (element.isError != 0) {
             txFailed = true;
           }
           isIncoming = false;
@@ -867,16 +864,16 @@ class EthereumWallet extends CoinServiceAPI
         }
 
         //Calculate fees (GasLimit * gasPrice)
-        int txFee = int.parse(element['gasPrice'].toString()) *
-            int.parse(element['gasUsed'].toString());
+        // int txFee = element.gasPrice * element.gasUsed;
+        int txFee = element.gasCost;
 
-        final String addressString = element["to"] as String;
-        final int height = int.parse(element['blockNumber'].toString());
+        final String addressString = checksumEthereumAddress(element.to);
+        final int height = element.blockNumber;
 
         final txn = Transaction(
           walletId: walletId,
-          txid: element["hash"] as String,
-          timestamp: int.parse(element["timeStamp"].toString()),
+          txid: element.hash,
+          timestamp: element.timestamp,
           type:
               isIncoming ? TransactionType.incoming : TransactionType.outgoing,
           subType: TransactionSubType.none,

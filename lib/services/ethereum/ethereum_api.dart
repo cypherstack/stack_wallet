@@ -3,6 +3,8 @@ import 'dart:math';
 
 import 'package:decimal/decimal.dart';
 import 'package:http/http.dart';
+import 'package:stackwallet/dto/ethereum/eth_token_tx_dto.dart';
+import 'package:stackwallet/dto/ethereum/eth_tx_dto.dart';
 import 'package:stackwallet/models/ethereum/erc20_token.dart';
 import 'package:stackwallet/models/ethereum/erc721_token.dart';
 import 'package:stackwallet/models/ethereum/eth_token.dart';
@@ -10,87 +12,6 @@ import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/eth_commons.dart';
 import 'package:stackwallet/utilities/logger.dart';
-
-class EthTokenTx {
-  final String blockHash;
-  final int blockNumber;
-  final int confirmations;
-  final String contractAddress;
-  final int cumulativeGasUsed;
-  final String from;
-  final int gas;
-  final BigInt gasPrice;
-  final int gasUsed;
-  final String hash;
-  final String input;
-  final int logIndex;
-  final int nonce;
-  final int timeStamp;
-  final String to;
-  final int tokenDecimal;
-  final String tokenName;
-  final String tokenSymbol;
-  final int transactionIndex;
-  final BigInt value;
-
-  EthTokenTx({
-    required this.blockHash,
-    required this.blockNumber,
-    required this.confirmations,
-    required this.contractAddress,
-    required this.cumulativeGasUsed,
-    required this.from,
-    required this.gas,
-    required this.gasPrice,
-    required this.gasUsed,
-    required this.hash,
-    required this.input,
-    required this.logIndex,
-    required this.nonce,
-    required this.timeStamp,
-    required this.to,
-    required this.tokenDecimal,
-    required this.tokenName,
-    required this.tokenSymbol,
-    required this.transactionIndex,
-    required this.value,
-  });
-
-  factory EthTokenTx.fromMap({
-    required Map<String, dynamic> map,
-  }) {
-    try {
-      return EthTokenTx(
-        blockHash: map["blockHash"] as String,
-        blockNumber: int.parse(map["blockNumber"] as String),
-        confirmations: int.parse(map["confirmations"] as String),
-        contractAddress: map["contractAddress"] as String,
-        cumulativeGasUsed: int.parse(map["cumulativeGasUsed"] as String),
-        from: map["from"] as String,
-        gas: int.parse(map["gas"] as String),
-        gasPrice: BigInt.parse(map["gasPrice"] as String),
-        gasUsed: int.parse(map["gasUsed"] as String),
-        hash: map["hash"] as String,
-        input: map["input"] as String,
-        logIndex: int.parse(map["logIndex"] as String? ?? "-1"),
-        nonce: int.parse(map["nonce"] as String),
-        timeStamp: int.parse(map["timeStamp"] as String),
-        to: map["to"] as String,
-        tokenDecimal: int.parse(map["tokenDecimal"] as String),
-        tokenName: map["tokenName"] as String,
-        tokenSymbol: map["tokenSymbol"] as String,
-        transactionIndex: int.parse(map["transactionIndex"] as String),
-        value: BigInt.parse(map["value"] as String),
-      );
-    } catch (e, s) {
-      Logging.instance.log(
-        "EthTokenTx.fromMap() failed: $e\n$s",
-        level: LogLevel.Fatal,
-      );
-      rethrow;
-    }
-  }
-}
 
 class EthApiException with Exception {
   EthApiException(this.message);
@@ -123,7 +44,7 @@ abstract class EthereumAPI {
   static const gasTrackerUrl =
       "https://blockscout.com/eth/mainnet/api/v1/gas-price-oracle";
 
-  static Future<AddressTransaction> fetchAddressTransactions(
+  static Future<EthereumResponse<List<EthTxDTO>>> getEthTransactions(
       String address) async {
     try {
       final response = await get(
@@ -135,19 +56,50 @@ abstract class EthereumAPI {
       );
 
       // "$etherscanApi?module=account&action=txlist&address=$address&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
+
       if (response.statusCode == 200) {
-        return AddressTransaction.fromJson(
-            jsonDecode(response.body)["data"] as List);
+        if (response.body.isNotEmpty) {
+          final json = jsonDecode(response.body) as Map;
+          final list = json["data"] as List?;
+
+          final List<EthTxDTO> txns = [];
+          for (final map in list!) {
+            txns.add(EthTxDTO.fromMap(Map<String, dynamic>.from(map as Map)));
+          }
+          return EthereumResponse(
+            txns,
+            null,
+          );
+        } else {
+          throw EthApiException(
+            "getEthTransactions($address) response is empty but status code is "
+            "${response.statusCode}",
+          );
+        }
       } else {
-        throw Exception(
-            'ERROR GETTING TRANSACTIONS WITH STATUS ${response.statusCode}');
+        throw EthApiException(
+          "getEthTransactions($address) failed with status code: "
+          "${response.statusCode}",
+        );
       }
+    } on EthApiException catch (e) {
+      return EthereumResponse(
+        null,
+        e,
+      );
     } catch (e, s) {
-      throw Exception('ERROR GETTING TRANSACTIONS ${e.toString()}');
+      Logging.instance.log(
+        "getEthTransactions(): $e\n$s",
+        level: LogLevel.Error,
+      );
+      return EthereumResponse(
+        null,
+        EthApiException(e.toString()),
+      );
     }
   }
 
-  static Future<EthereumResponse<List<EthTokenTx>>> getTokenTransactions({
+  static Future<EthereumResponse<List<EthTokenTxDTO>>> getTokenTransactions({
     required String address,
     String? contractAddress,
     int? startBlock,
@@ -170,9 +122,9 @@ abstract class EthereumAPI {
         if (json["message"] == "OK") {
           final result =
               List<Map<String, dynamic>>.from(json["result"] as List);
-          final List<EthTokenTx> tokenTxns = [];
+          final List<EthTokenTxDTO> tokenTxns = [];
           for (final map in result) {
-            tokenTxns.add(EthTokenTx.fromMap(map: map));
+            tokenTxns.add(EthTokenTxDTO.fromMap(map: map));
           }
 
           return EthereumResponse(
