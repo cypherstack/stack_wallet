@@ -1040,14 +1040,17 @@ class EpicCashWallet extends CoinServiceAPI
         await _secureStore.read(key: '${_walletId}_epicboxConfig');
 
     if (storedConfig == null) {
-      storedConfig = DefaultNodes.defaultEpicBoxConfig;
+      storedConfig = json.encode(DefaultNodes.defaultEpicBoxConfig);
     } else {
       dynamic decoded = json.decode(storedConfig!);
+      if (decoded is String) { // we should make a model instead
+        decoded = json.decode(storedConfig!);
+      }
       final domain = decoded["domain"] ?? "empty";
       if (domain != "empty") {
         //If we have the old invalid config, use the new default one
         // new storage format stores domain under "epicbox_domain", old storage format used "domain"
-        storedConfig = DefaultNodes.defaultEpicBoxConfig;
+        storedConfig = json.encode(DefaultNodes.defaultEpicBoxConfig);
       }
     }
     final decoded = json.decode(storedConfig);
