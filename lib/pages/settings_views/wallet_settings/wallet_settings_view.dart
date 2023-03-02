@@ -166,6 +166,30 @@ class WalletSettingsView extends ConsumerWidget {
                             ),
                           ),
                         ),
+                        const SizedBox(
+                          height: 16,
+                        ),
+                        TextField(
+                          textAlignVertical: TextAlignVertical.center,
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          key: const Key("addCustomEpicCashRefreshPeriodFieldKey"),
+                          controller: _refreshPeriodController,
+                          focusNode: _refreshPeriodFocusNode,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          keyboardType: TextInputType.number,
+                          style: STextStyles.body(context),
+                          decoration: InputDecoration(
+                            hintText: "Refresh period (60)",
+                            fillColor: _refreshPeriodFocusNode.hasFocus
+                                ? Theme.of(context).extension<StackColors>()!.textFieldActiveBG
+                                : Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFieldDefaultBG,
+                            isCollapsed: true,
+                            hintStyle: STextStyles.body(context).copyWith(
+                              color: Theme.of(context).extension<StackColors>()!.textMedium,
+                            ),
                       ],
                     ),
                   ),
