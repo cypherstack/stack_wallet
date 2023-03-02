@@ -15,11 +15,11 @@ class AddressTransaction {
     required this.status,
   });
 
-  factory AddressTransaction.fromJson(Map<String, dynamic> json) {
+  factory AddressTransaction.fromJson(List<dynamic> json) {
     return AddressTransaction(
-      message: json['message'] as String,
-      result: json['result'] as List<dynamic>,
-      status: json['status'] as String,
+      message: "",
+      result: json,
+      status: "",
     );
   }
 

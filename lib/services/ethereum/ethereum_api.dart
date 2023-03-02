@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:decimal/decimal.dart';
 import 'package:http/http.dart';
 import 'package:stackwallet/models/ethereum/erc20_token.dart';
 import 'package:stackwallet/models/ethereum/erc721_token.dart';
 import 'package:stackwallet/models/ethereum/eth_token.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
+import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/eth_commons.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
@@ -106,10 +108,14 @@ class EthereumResponse<T> {
   final EthApiException? exception;
 
   @override
-  toString() => "EthereumResponse{ value: $value, exception: $exception";
+  toString() => "EthereumResponse: { value: $value, exception: $exception }";
 }
 
 abstract class EthereumAPI {
+  static String get stackBaseServer => DefaultNodes.ethereum.host;
+
+  static String stackURI = "$stackBaseServer/eth/mainnet/api";
+
   // static const blockScout = "https://blockscout.com/eth/mainnet/api";
   static const etherscanApi =
       "https://api.etherscan.io/api"; //TODO - Once our server has abi functionality update
@@ -120,12 +126,18 @@ abstract class EthereumAPI {
   static Future<AddressTransaction> fetchAddressTransactions(
       String address) async {
     try {
-      final response = await get(Uri.parse(
+      final response = await get(
+        Uri.parse(
           // "$blockScout?module=account&action=txlist&address=$address"));
-          "$etherscanApi?module=account&action=txlist&address=$address&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
+          // "stackURI?module=account&action=txlist&address=$address"));
+          "$stackBaseServer/export?addrs=$address",
+        ),
+      );
+
+      // "$etherscanApi?module=account&action=txlist&address=$address&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
       if (response.statusCode == 200) {
         return AddressTransaction.fromJson(
-            jsonDecode(response.body) as Map<String, dynamic>);
+            jsonDecode(response.body)["data"] as List);
       } else {
         throw Exception(
             'ERROR GETTING TRANSACTIONS WITH STATUS ${response.statusCode}');
@@ -145,6 +157,7 @@ abstract class EthereumAPI {
     try {
       String uriString =
           // "$blockScout?module=account&action=tokentx&address=$address";
+          // "stackURI?module=account&action=tokentx&address=$address";
           "$etherscanApi?module=account&action=tokentx&address=$address&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP";
       if (contractAddress != null) {
         uriString += "&contractAddress=$contractAddress";
@@ -271,18 +284,28 @@ abstract class EthereumAPI {
   }) async {
     try {
       final uri = Uri.parse(
-        "$etherscanApi?module=account&action=tokenbalance"
-        "&contractaddress=$contractAddress&address=$address&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP",
+        "$stackBaseServer/tokens?addrs=$contractAddress $address",
       );
       final response = await get(uri);
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
-        if (json["message"] == "OK") {
-          final result = json["result"] as String;
+        if (json["data"] is List) {
+          final map = json["data"].first as Map;
+
+          final bal = Decimal.tryParse(map["balance"].toString());
+          final int balance;
+          if (bal == null) {
+            balance = 0;
+          } else {
+            final int decimals = map["decimals"] as int;
+            balance = (bal * Decimal.fromInt(pow(10, decimals).truncate()))
+                .toBigInt()
+                .toInt();
+          }
 
           return EthereumResponse(
-            int.parse(result),
+            balance,
             null,
           );
         } else {
@@ -341,6 +364,7 @@ abstract class EthereumAPI {
     try {
       final response = await get(Uri.parse(
           "$etherscanApi?module=token&action=getToken&contractaddress=$contractAddress&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
+      // "stackURI?module=token&action=getToken&contractaddress=$contractAddress"));
       // "$blockScout?module=token&action=getToken&contractaddress=$contractAddress"));
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
@@ -399,18 +423,28 @@ abstract class EthereumAPI {
   static Future<EthereumResponse<String>> getTokenAbi(
       String contractAddress) async {
     try {
-      final response = await get(Uri.parse(
-          "$etherscanApi?module=contract&action=getabi&address=$contractAddress&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
+      final response = await get(
+        Uri.parse(
+          "$stackBaseServer/abis?addrs=$contractAddress",
+        ),
+      );
+
       if (response.statusCode == 200) {
-        final json = jsonDecode(response.body);
-        if (json["message"] == "OK") {
-          return EthereumResponse(
-            json["result"] as String,
-            null,
-          );
-        } else {
-          throw EthApiException(json["message"] as String);
+        final json = jsonDecode(response.body)["data"] as List;
+
+        // trueblocks api does not contain the `anonymous` value
+        // web3dart expects it so hack it in
+        // TODO: fix this if we ever actually need to use contract ABI events
+        for (final map in json) {
+          if (map["type"] == "event") {
+            map["anonymous"] = false;
+          }
         }
+
+        return EthereumResponse(
+          jsonEncode(json),
+          null,
+        );
       } else {
         throw EthApiException(
           "getTokenAbi($contractAddress) failed with status code: "
@@ -438,6 +472,7 @@ abstract class EthereumAPI {
       String contractAddress) async {
     try {
       final response = await get(Uri.parse(
+          // "$stackURI?module=contract&action=getsourcecode&address=$contractAddress"));
           "$etherscanApi?module=contract&action=getsourcecode&address=$contractAddress&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
