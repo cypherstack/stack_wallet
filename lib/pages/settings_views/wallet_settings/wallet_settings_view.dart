@@ -163,7 +163,7 @@ class WalletSettingsView extends ConsumerWidget {
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 16),
                                 child: Text(
-                                  "Update wallet refresh period",
+                                  "Refresh period",
                                   style: STextStyles.bodyBold(context),
                                 ),
                               ),

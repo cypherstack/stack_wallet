@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:epicpay/providers/providers.dart';
 import 'package:epicpay/utilities/text_styles.dart';
 import 'package:epicpay/utilities/theme/stack_colors.dart';
 import 'package:epicpay/widgets/background.dart';
@@ -40,6 +41,8 @@ class _RefreshPeriodViewState extends ConsumerState<RefreshPeriodView>
   @override
   void initState() {
     _refreshPeriodController = TextEditingController();
+    _refreshPeriodController.text =
+        "${ref.read(prefsChangeNotifierProvider).refreshPeriod ?? 60}";
 
     ref.refresh(refreshPeriodFormDataProvider);
     animationController = AnimationController(
@@ -77,7 +80,7 @@ class _RefreshPeriodViewState extends ConsumerState<RefreshPeriodView>
           ),
           centerTitle: true,
           title: Text(
-            "Wallet refresh period",
+            "Refresh period",
             style: STextStyles.titleH4(context),
           ),
           // actions: [
@@ -124,6 +127,14 @@ class _RefreshPeriodViewState extends ConsumerState<RefreshPeriodView>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          Text(
+                            "REFRESH PERIOD (IN SECONDS)",
+                            textAlign: TextAlign.left,
+                            style: STextStyles.overLineBold(context),
+                          ),
+                          const SizedBox(
+                            height: 14,
+                          ),
                           TextField(
                             textAlignVertical: TextAlignVertical.center,
                             autocorrect: false,
