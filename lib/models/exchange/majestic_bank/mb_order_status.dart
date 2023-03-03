@@ -24,9 +24,18 @@ class MBOrderStatus extends MBObject {
   final Decimal received;
   final Decimal confirmed;
 
+  Map<String, dynamic> toMap() => {
+        "orderId": orderId,
+        "status": status,
+        "fromCurrency": fromCurrency,
+        "fromAmount": fromAmount,
+        "receiveCurrency": receiveCurrency,
+        "receiveAmount": receiveAmount,
+        "address": address,
+        "received": received,
+        "confirmed": confirmed,
+      };
+
   @override
-  String toString() {
-    // todo: full toString
-    return status;
-  }
+  String toString() => toMap().toString();
 }

@@ -116,9 +116,16 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
       }
       status = changeNowTransactionStatusFromStringIgnoreCase(statusString);
     } on ArgumentError catch (_) {
-      status = ChangeNowTransactionStatus.Failed;
-      if (statusString == "Processing payment") {
-        status = ChangeNowTransactionStatus.Sending;
+      switch (statusString.toLowerCase()) {
+        case "funds confirming":
+        case "processing payment":
+          return Assets.svg.txExchangePending(context);
+
+        case "completed":
+          return Assets.svg.txExchange(context);
+
+        default:
+          status = ChangeNowTransactionStatus.Failed;
       }
     }
 
