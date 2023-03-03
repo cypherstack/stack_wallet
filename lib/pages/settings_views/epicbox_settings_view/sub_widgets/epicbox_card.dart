@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:epicpay/models/epicbox_model.dart';
+import 'package:epicpay/models/epicbox_server_model.dart';
 import 'package:epicpay/pages/settings_views/epicbox_settings_view/epicbox_settings_view.dart';
 import 'package:epicpay/pages/settings_views/epicbox_settings_view/manage_epicbox_views/add_edit_epicbox_view.dart';
 import 'package:epicpay/providers/providers.dart';
@@ -45,7 +45,7 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
   bool _isCurrentEpicBox = false;
 
   void showContextMenu(
-      EpicBoxModel epicBox, bool isConnected, Offset tapPosition) {
+      EpicBoxServerModel epicBox, bool isConnected, Offset tapPosition) {
     showDialog<void>(
       context: context,
       barrierColor: Colors.transparent,
@@ -264,7 +264,7 @@ class EpicBoxMenu extends ConsumerStatefulWidget {
     required this.tapPosition,
   }) : super(key: key);
 
-  final EpicBoxModel epicBox;
+  final EpicBoxServerModel epicBox;
   final String popBackToRoute;
   final bool isConnected;
   final Offset tapPosition;

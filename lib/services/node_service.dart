@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:epicpay/hive/db.dart';
-import 'package:epicpay/models/epicbox_model.dart';
+import 'package:epicpay/models/epicbox_server_model.dart';
 import 'package:epicpay/models/node_model.dart';
 import 'package:epicpay/utilities/default_epicboxes.dart';
 import 'package:epicpay/utilities/default_nodes.dart';
@@ -64,17 +64,17 @@ class NodeService extends ChangeNotifier {
     final primaryEpicBox = getPrimaryEpicBox();
 
     for (final defaultEpicBox in DefaultEpicBoxes.all) {
-      final savedEpicBox = DB.instance.get<EpicBoxModel>(
+      final savedEpicBox = DB.instance.get<EpicBoxServerModel>(
           boxName: DB.boxNameEpicBoxModels, key: defaultEpicBox.id);
       if (savedEpicBox == null) {
         // save the default epic box server to hive
-        await DB.instance.put<EpicBoxModel>(
+        await DB.instance.put<EpicBoxServerModel>(
             boxName: DB.boxNameEpicBoxModels,
             key: defaultEpicBox.id,
             value: defaultEpicBox);
       } else {
         // update all fields but copy over previously set enabled state
-        await DB.instance.put<EpicBoxModel>(
+        await DB.instance.put<EpicBoxServerModel>(
             boxName: DB.boxNameEpicBoxModels,
             key: savedEpicBox.id,
             value: defaultEpicBox.copyWith(enabled: savedEpicBox.enabled));
@@ -108,7 +108,7 @@ class NodeService extends ChangeNotifier {
   }
 
   Future<void> setPrimaryEpicBox({
-    required EpicBoxModel epicBox,
+    required EpicBoxServerModel epicBox,
     bool shouldNotifyListeners = false,
   }) async {
     Logging.instance.log(
@@ -116,16 +116,16 @@ class NodeService extends ChangeNotifier {
       level: LogLevel.Info,
     );
 
-    await DB.instance.put<EpicBoxModel>(
+    await DB.instance.put<EpicBoxServerModel>(
         boxName: DB.boxNamePrimaryEpicBox, key: 'primary', value: epicBox);
     if (shouldNotifyListeners) {
       notifyListeners();
     }
   }
 
-  EpicBoxModel? getPrimaryEpicBox() {
-    return DB.instance
-        .get<EpicBoxModel>(boxName: DB.boxNamePrimaryEpicBox, key: 'primary');
+  EpicBoxServerModel? getPrimaryEpicBox() {
+    return DB.instance.get<EpicBoxServerModel>(
+        boxName: DB.boxNamePrimaryEpicBox, key: 'primary');
   }
 
   List<NodeModel> get nodes {
@@ -136,12 +136,14 @@ class NodeService extends ChangeNotifier {
     return DB.instance.values<NodeModel>(boxName: DB.boxNamePrimaryNodes);
   }
 
-  List<EpicBoxModel> get epicBoxes {
-    return DB.instance.values<EpicBoxModel>(boxName: DB.boxNameEpicBoxModels);
+  List<EpicBoxServerModel> get epicBoxes {
+    return DB.instance
+        .values<EpicBoxServerModel>(boxName: DB.boxNameEpicBoxModels);
   }
 
-  List<EpicBoxModel> get primaryEpicBox {
-    return DB.instance.values<EpicBoxModel>(boxName: DB.boxNamePrimaryEpicBox);
+  List<EpicBoxServerModel> get primaryEpicBox {
+    return DB.instance
+        .values<EpicBoxServerModel>(boxName: DB.boxNamePrimaryEpicBox);
   }
 
   List<NodeModel> getNodesFor(Coin coin) {
@@ -162,17 +164,17 @@ class NodeService extends ChangeNotifier {
     return list.reversed.toList();
   }
 
-  List<EpicBoxModel> getEpicBoxes() {
+  List<EpicBoxServerModel> getEpicBoxes() {
     final list = DB.instance
-        .values<EpicBoxModel>(boxName: DB.boxNameEpicBoxModels)
+        .values<EpicBoxServerModel>(boxName: DB.boxNameEpicBoxModels)
         .toList();
 
     return list.toList();
   }
 
-  EpicBoxModel? getEpicBoxById({required String id}) {
+  EpicBoxServerModel? getEpicBoxById({required String id}) {
     return DB.instance
-        .get<EpicBoxModel>(boxName: DB.boxNameEpicBoxModels, key: id);
+        .get<EpicBoxServerModel>(boxName: DB.boxNameEpicBoxModels, key: id);
   }
 
   NodeModel? getNodeById({required String id}) {
@@ -204,10 +206,10 @@ class NodeService extends ChangeNotifier {
   }
 
   Future<void> addEpicBox(
-    EpicBoxModel epicBox,
+    EpicBoxServerModel epicBox,
     bool shouldNotifyListeners,
   ) async {
-    await DB.instance.put<EpicBoxModel>(
+    await DB.instance.put<EpicBoxServerModel>(
         boxName: DB.boxNameEpicBoxModels, key: epicBox.id, value: epicBox);
 
     if (shouldNotifyListeners) {
@@ -226,7 +228,7 @@ class NodeService extends ChangeNotifier {
 
   Future<void> deleteEpicBox(String id, bool shouldNotifyListeners) async {
     await DB.instance
-        .delete<EpicBoxModel>(boxName: DB.boxNameEpicBoxModels, key: id);
+        .delete<EpicBoxServerModel>(boxName: DB.boxNameEpicBoxModels, key: id);
 
     // TODO check if currently connected to server to be deleted, and if so connect to another one
 
