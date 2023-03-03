@@ -36,10 +36,7 @@ class CoinImage extends ConsumerWidget {
                 coin != Coin.monero &&
                 coin != Coin.namecoin) ||
             (isForest && coin != Coin.dogecoin) ||
-            ((isOcean || isOled || isLight || isDark) &&
-                (coin != Coin.dogecoin &&
-                    coin != Coin.firo &&
-                    coin != Coin.monero)))
+            ((isOcean || isOled || isLight || isDark) && (coin != Coin.monero)))
         ? SvgPicture.asset(
             Assets.svg.imageFor(coin: coin, context: context),
             width: isDesktop ? 324 : MediaQuery.of(context).size.width,
