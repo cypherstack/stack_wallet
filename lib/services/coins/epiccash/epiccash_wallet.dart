@@ -219,43 +219,34 @@ Future<String> _cancelTransactionWrapper(Tuple2<String, String> data) async {
   return cancelTransaction(data.item1, data.item2);
 }
 
-Future<String> _deleteWalletWrapper(String wallet) async {
-  return deleteWallet(wallet);
+Future<String> _deleteWalletWrapper(Tuple2<String, String> data) async {
+  return deleteWallet(data.item1, data.item2);
 }
 
 Future<String> deleteEpicWallet({
   required String walletId,
   required SecureStorageInterface secureStore,
 }) async {
-  // is this even needed for anything?
-  // String? config = await secureStore.read(key: '${walletId}_config');
-  // // TODO: why double check for iOS?
-  // if (Platform.isIOS) {
-  //   Directory appDir = await StackFileSystem.applicationRootDirectory();
-  //   // todo why double check for ios?
-  //   // if (Platform.isIOS) {
-  //   //   appDir = (await getLibraryDirectory());
-  //   // }
-  //   // if (Platform.isLinux) {
-  //   //   appDir = Directory("${appDir.path}/.stackwallet");
-  //   // }
-  //   final path = "${appDir.path}/epiccash";
-  //   final String name = walletId;
-  //
-  //   final walletDir = '$path/$name';
-  //   var editConfig = jsonDecode(config as String);
-  //
-  //   editConfig["wallet_dir"] = walletDir;
-  //   config = jsonEncode(editConfig);
-  // }
-
   final wallet = await secureStore.read(key: '${walletId}_wallet');
+  String? config = await secureStore.read(key: '${walletId}_config');
+  if (Platform.isIOS) {
+    Directory appDir = await StackFileSystem.applicationRootDirectory();
+
+    final path = "${appDir.path}/epiccash";
+    final String name = walletId.trim();
+    final walletDir = '$path/$name';
+
+    var editConfig = jsonDecode(config as String);
+
+    editConfig["wallet_dir"] = walletDir;
+    config = jsonEncode(editConfig);
+  }
 
   if (wallet == null) {
     return "Tried to delete non existent epic wallet file with walletId=$walletId";
   } else {
     try {
-      return compute(_deleteWalletWrapper, wallet);
+      return _deleteWalletWrapper(Tuple2(wallet, config!));
     } catch (e, s) {
       Logging.instance.log("$e\n$s", level: LogLevel.Error);
       return "deleteEpicWallet($walletId) failed...";
