@@ -222,8 +222,8 @@ Future<String> _cancelTransactionWrapper(Tuple2<String, String> data) async {
   return cancelTransaction(data.item1, data.item2);
 }
 
-Future<String> _deleteWalletWrapper(String wallet) async {
-  return deleteWallet(wallet);
+Future<String> _deleteWalletWrapper(Tuple2<String, String> data) async {
+  return deleteWallet(data.item1, data.item2);
 }
 
 Future<String> deleteEpicWallet({
@@ -251,7 +251,16 @@ Future<String> deleteEpicWallet({
 
   final wallet = await secureStore.read(key: '${walletId}_wallet');
 
-  return compute(_deleteWalletWrapper, wallet!);
+  if (wallet == null) {
+    return "Tried to delete non existent epic wallet file with walletId=$walletId";
+  } else {
+    try {
+      return _deleteWalletWrapper(Tuple2(wallet, config!));
+    } catch (e, s) {
+      Logging.instance.log("$e\n$s", level: LogLevel.Error);
+      return "deleteEpicWallet($walletId) failed...";
+    }
+  }
 }
 
 Future<String> _initWalletWrapper(
