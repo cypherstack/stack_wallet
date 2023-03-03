@@ -9,6 +9,7 @@ import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/eth_commons.dart';
+import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 class EthApiException with Exception {
@@ -55,6 +56,9 @@ abstract class EthereumAPI {
 
       // "$etherscanApi?module=account&action=txlist&address=$address&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
 
+      final BigInt myReceivingAddressInt = address.toBigIntFromHex;
+
+      // print(response.body);
       if (response.statusCode == 200) {
         if (response.body.isNotEmpty) {
           final json = jsonDecode(response.body) as Map;
@@ -63,6 +67,24 @@ abstract class EthereumAPI {
           final List<EthTxDTO> txns = [];
           for (final map in list!) {
             final txn = EthTxDTO.fromMap(Map<String, dynamic>.from(map as Map));
+
+            final logs = map["receipt"]["logs"] as List;
+
+            for (final log in logs) {
+              final map = log as Map;
+
+              final contractAddress = map["address"] as String;
+              final topics = List<String>.from(map["topics"] as List);
+
+              for (int i = 0; i < topics.length; i++) {
+                if (topics[i].toBigIntFromHex == myReceivingAddressInt) {
+                  print("================================================");
+                  print("Contract: $contractAddress");
+                  Logger.print((log).toString(), normalLength: false);
+                }
+              }
+            }
+
             if (txn.hasToken == 0) {
               txns.add(txn);
             }
