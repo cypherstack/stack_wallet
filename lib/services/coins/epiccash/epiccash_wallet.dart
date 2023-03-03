@@ -230,36 +230,23 @@ Future<String> deleteEpicWallet({
   required String walletId,
   required FlutterSecureStorageInterface secureStore,
 }) async {
-  // String? config = await secureStore.read(key: '${walletId}_config');
-  // if (Platform.isIOS) {
-  //   Directory appDir = (await getApplicationDocumentsDirectory());
-  //   if (Platform.isIOS) {
-  //     appDir = (await getLibraryDirectory());
-  //   }
-  //   if (Platform.isLinux) {
-  //     appDir = Directory("${appDir.path}/.epicmobile");
-  //   }
-  //   final path = "${appDir.path}/epicpay/epiccash";
-  //   final String name = walletId;
-  //
-  //   final walletDir = '$path/$name';
-  //   var editConfig = jsonDecode(config as String);
-  //
-  //   editConfig["wallet_dir"] = walletDir;
-  //   config = jsonEncode(editConfig);
-  // }
-
-  final wallet = await secureStore.read(key: '${walletId}_wallet');
-
-  if (wallet == null) {
-    return "Tried to delete non existent epic wallet file with walletId=$walletId";
-  } else {
-    try {
-      return compute(_deleteWalletWrapper, wallet!);
-    } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Error);
-      return "deleteEpicWallet($walletId) failed...";
+  String? config = await secureStore.read(key: '${walletId}_config');
+  if (Platform.isIOS) {
+    Directory appDir = (await getApplicationDocumentsDirectory());
+    if (Platform.isIOS) {
+      appDir = (await getLibraryDirectory());
     }
+    if (Platform.isLinux) {
+      appDir = Directory("${appDir.path}/.epicmobile");
+    }
+    final path = "${appDir.path}/epicpay/epiccash";
+    final String name = walletId;
+
+    final walletDir = '$path/$name';
+    var editConfig = jsonDecode(config as String);
+
+    editConfig["wallet_dir"] = walletDir;
+    config = jsonEncode(editConfig);
   }
 
   final wallet = await secureStore.read(key: '${walletId}_wallet');
