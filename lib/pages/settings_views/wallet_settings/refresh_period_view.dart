@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:epicpay/providers/providers.dart';
+import 'package:epicpay/utilities/logger.dart';
 import 'package:epicpay/utilities/text_styles.dart';
 import 'package:epicpay/utilities/theme/stack_colors.dart';
 import 'package:epicpay/widgets/background.dart';
@@ -9,6 +10,7 @@ import 'package:epicpay/widgets/desktop/primary_button.dart';
 import 'package:epicpay/widgets/icon_widgets/x_icon.dart';
 import 'package:epicpay/widgets/textfield_icon_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class RefreshPeriodView extends ConsumerStatefulWidget {
@@ -141,8 +143,7 @@ class _RefreshPeriodViewState extends ConsumerState<RefreshPeriodView>
                             enableSuggestions: false,
                             controller: _refreshPeriodController,
                             // readOnly: widget.readOnly,
-                            // enabled: enableField(_refreshPeriodController),
-                            keyboardType: TextInputType.number,
+                            // enabled: enableField(_refreshPeriodController),\
                             focusNode: _refreshPeriodFocusNode,
                             style: STextStyles.body(context),
                             decoration: InputDecoration(
@@ -186,6 +187,18 @@ class _RefreshPeriodViewState extends ConsumerState<RefreshPeriodView>
                               // _updateState();
                               setState(() {});
                             },
+                            inputFormatters: [
+                              // Thank you Julian
+                              TextInputFormatter.withFunction((oldValue,
+                                      newValue) =>
+                                  RegExp(r'^([0-9]*)$').hasMatch(newValue.text)
+                                      ? newValue
+                                      : oldValue),
+                            ],
+                            keyboardType: const TextInputType.numberWithOptions(
+                              signed: false,
+                              decimal: false,
+                            ),
                           ),
                           const Spacer(),
                           Row(
@@ -208,7 +221,35 @@ class _RefreshPeriodViewState extends ConsumerState<RefreshPeriodView>
                                   label: "SAVE",
                                   // enabled: editable,
                                   onPressed: () {
-                                    print(333);
+                                    Logging.instance.log(
+                                        'Update refresh button pushed',
+                                        level: LogLevel.Info);
+                                    try {
+                                      int? refreshPeriod = int.parse(
+                                          _refreshPeriodController.text);
+                                      if (refreshPeriod !=
+                                          ref
+                                              .read(prefsChangeNotifierProvider)
+                                              .refreshPeriod) {
+                                        Logging.instance.log(
+                                            'Attempting to update refresh period',
+                                            level: LogLevel.Info);
+                                        ref
+                                            .read(prefsChangeNotifierProvider)
+                                            .refreshPeriod = refreshPeriod;
+                                        Logging.instance.log(
+                                            "Updated refresh period to $refreshPeriod",
+                                            level: LogLevel.Info);
+                                      } else {
+                                        Logging.instance.log(
+                                            "No need to update refresh period; already $refreshPeriod",
+                                            level: LogLevel.Info);
+                                      }
+                                    } catch (e, s) {
+                                      Logging.instance.log(
+                                          "Error updating refresh period: $e, $s",
+                                          level: LogLevel.Error);
+                                    }
                                   },
                                 ),
                               ),
