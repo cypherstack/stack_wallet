@@ -227,52 +227,26 @@ Future<String> deleteEpicWallet({
   required String walletId,
   required SecureStorageInterface secureStore,
 }) async {
-  // is this even needed for anything?
-  // String? config = await secureStore.read(key: '${walletId}_config');
-  // // TODO: why double check for iOS?
-  // if (Platform.isIOS) {
-  //   Directory appDir = await StackFileSystem.applicationRootDirectory();
-  //   // todo why double check for ios?
-  //   // if (Platform.isIOS) {
-  //   //   appDir = (await getLibraryDirectory());
-  //   // }
-  //   // if (Platform.isLinux) {
-  //   //   appDir = Directory("${appDir.path}/.stackwallet");
-  //   // }
-  //   final path = "${appDir.path}/epiccash";
-  //   final String name = walletId;
-  //
-  //   final walletDir = '$path/$name';
-  //   var editConfig = jsonDecode(config as String);
-  //
-  //   editConfig["wallet_dir"] = walletDir;
-  //   config = jsonEncode(editConfig);
-  // }
-  String? storedConfig =
-      await secureStore.read(key: '${walletId}_epicboxConfig');
-
-  if (storedConfig == null) {
-    storedConfig = DefaultNodes.defaultEpicBoxConfig;
-  } else {
-    dynamic decoded = json.decode(storedConfig!);
-    if (decoded is String) {
-      decoded = json.decode(decoded);
-    }
-    final domain = decoded["domain"] ?? "empty";
-    if (domain != "empty") {
-      //If we have the old invalid config, use the new default one
-      // new storage format stores domain under "epicbox_domain", old storage format used "domain"
-      storedConfig = DefaultNodes.defaultEpicBoxConfig;
-    }
-  }
-
   final wallet = await secureStore.read(key: '${walletId}_wallet');
+  String? config = await secureStore.read(key: '${walletId}_config');
+  if (Platform.isIOS) {
+    Directory appDir = await StackFileSystem.applicationRootDirectory();
+
+    final path = "${appDir.path}/epiccash";
+    final String name = walletId.trim();
+    final walletDir = '$path/$name';
+
+    var editConfig = jsonDecode(config as String);
+
+    editConfig["wallet_dir"] = walletDir;
+    config = jsonEncode(editConfig);
+  }
 
   if (wallet == null) {
     return "Tried to delete non existent epic wallet file with walletId=$walletId";
   } else {
     try {
-      return compute(_deleteWalletWrapper, Tuple2(wallet, storedConfig));
+      return _deleteWalletWrapper(Tuple2(wallet, config!));
     } catch (e, s) {
       Logging.instance.log("$e\n$s", level: LogLevel.Error);
       return "deleteEpicWallet($walletId) failed...";
