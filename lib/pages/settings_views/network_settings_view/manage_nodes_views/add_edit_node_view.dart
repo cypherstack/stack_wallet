@@ -208,7 +208,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView>
       case AddEditNodeViewType.add:
         NodeModel node = NodeModel(
           host: formData!.host!,
-          port: formData.port!,
+          port: formData.port ?? 3413,
           name: formData.name!,
           id: const Uuid().v1(),
           useSSL: formData.useSSL!,
@@ -569,10 +569,10 @@ class _NodeFormState extends ConsumerState<NodeForm> {
 
   bool get canTestConnection {
     // 65535 is max tcp port
-    return _hostController.text.isNotEmpty &&
-        port != null &&
-        port! >= 0 &&
-        port! <= 65535;
+    final bool _portNullOrInRange =
+        (port != null && port! >= 0 && port! <= 65535) ||
+            port == null; // need to allow null and default to 443
+    return _hostController.text.isNotEmpty && _portNullOrInRange;
   }
 
   bool enableField(TextEditingController controller) {
@@ -726,7 +726,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
           focusNode: _hostFocusNode,
           style: STextStyles.body(context),
           decoration: InputDecoration(
-            hintText: "IP address",
+            hintText: "Host or IP address",
             fillColor: _hostFocusNode.hasFocus
                 ? Theme.of(context).extension<StackColors>()!.textFieldActiveBG
                 : Theme.of(context)
@@ -788,7 +788,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
           keyboardType: TextInputType.number,
           style: STextStyles.body(context),
           decoration: InputDecoration(
-            hintText: "Port",
+            hintText: "Port (optional)",
             fillColor: _portFocusNode.hasFocus
                 ? Theme.of(context).extension<StackColors>()!.textFieldActiveBG
                 : Theme.of(context)

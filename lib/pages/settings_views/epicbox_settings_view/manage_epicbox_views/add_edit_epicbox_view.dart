@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:epicpay/models/epicbox_model.dart';
+import 'package:epicpay/models/epicbox_server_model.dart';
 import 'package:epicpay/providers/providers.dart';
 import 'package:epicpay/utilities/assets.dart';
 import 'package:epicpay/utilities/constants.dart';
@@ -204,9 +204,9 @@ class _AddEditEpicBoxViewState extends ConsumerState<AddEditEpicBoxView>
 
     switch (viewType) {
       case AddEditEpicBoxViewType.add:
-        EpicBoxModel epicBox = EpicBoxModel(
+        EpicBoxServerModel epicBox = EpicBoxServerModel(
           host: formData!.host!,
-          port: formData.port!,
+          port: formData.port ?? 443,
           name: formData.name!,
           id: const Uuid().v1(),
           useSSL: formData.useSSL!,
@@ -225,7 +225,7 @@ class _AddEditEpicBoxViewState extends ConsumerState<AddEditEpicBoxView>
         }
         break;
       case AddEditEpicBoxViewType.edit:
-        EpicBoxModel epicBox = EpicBoxModel(
+        EpicBoxServerModel epicBox = EpicBoxServerModel(
           host: formData!.host!,
           port: formData.port!,
           name: formData.name!,
@@ -353,7 +353,7 @@ class _AddEditEpicBoxViewState extends ConsumerState<AddEditEpicBoxView>
 
   @override
   Widget build(BuildContext context) {
-    final EpicBoxModel? epicBox =
+    final EpicBoxServerModel? epicBox =
         viewType == AddEditEpicBoxViewType.edit && epicBoxId != null
             ? ref.watch(nodeServiceChangeNotifierProvider
                 .select((value) => value.getEpicBoxById(id: epicBoxId!)))
@@ -511,7 +511,7 @@ class EpicBoxForm extends ConsumerStatefulWidget {
     this.onChanged,
   }) : super(key: key);
 
-  final EpicBoxModel? epicBox;
+  final EpicBoxServerModel? epicBox;
   final bool readOnly;
   final void Function(bool canSave, bool canTestConnection)? onChanged;
 
@@ -546,16 +546,15 @@ class _EpicBoxFormState extends ConsumerState<EpicBoxForm> {
   }
 
   bool get canSave {
-    // 65535 is max tcp port
     return _nameController.text.isNotEmpty && canTestConnection;
   }
 
   bool get canTestConnection {
     // 65535 is max tcp port
-    return _hostController.text.isNotEmpty &&
-        port != null &&
-        port! >= 0 &&
-        port! <= 65535;
+    final bool _portNullOrInRange =
+        (port != null && port! >= 0 && port! <= 65535) ||
+            port == null; // need to allow null and default to 443
+    return _hostController.text.isNotEmpty && _portNullOrInRange;
   }
 
   bool enableField(TextEditingController controller) {
@@ -745,7 +744,7 @@ class _EpicBoxFormState extends ConsumerState<EpicBoxForm> {
           keyboardType: TextInputType.number,
           style: STextStyles.body(context),
           decoration: InputDecoration(
-            hintText: "Port",
+            hintText: "Port (optional)",
             fillColor: _portFocusNode.hasFocus
                 ? Theme.of(context).extension<StackColors>()!.textFieldActiveBG
                 : Theme.of(context)

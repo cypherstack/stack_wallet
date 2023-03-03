@@ -1,12 +1,12 @@
-import 'package:epicpay/models/epicbox_model.dart';
+import 'package:epicpay/models/epicbox_server_model.dart';
 
 abstract class DefaultEpicBoxes {
   static const String defaultName = "Default";
 
-  static List<EpicBoxModel> get all => [americas, asia, europe];
+  static List<EpicBoxServerModel> get all => [americas, asia, europe];
   static List<String> get defaultIds => ['americas', 'asia', 'europe'];
 
-  static EpicBoxModel get americas => EpicBoxModel(
+  static EpicBoxServerModel get americas => EpicBoxServerModel(
         host: 'epicbox.epic.tech',
         port: 443,
         name: 'Americas',
@@ -17,7 +17,7 @@ abstract class DefaultEpicBoxes {
         isDown: false,
       );
 
-  static EpicBoxModel get asia => EpicBoxModel(
+  static EpicBoxServerModel get asia => EpicBoxServerModel(
         host: 'epicbox.hyperbig.com',
         port: 443,
         name: 'Asia',
@@ -28,7 +28,7 @@ abstract class DefaultEpicBoxes {
         isDown: false,
       );
 
-  static EpicBoxModel get europe => EpicBoxModel(
+  static EpicBoxServerModel get europe => EpicBoxServerModel(
         host: 'epicbox.fastepic.eu',
         port: 443,
         name: 'Europe',
