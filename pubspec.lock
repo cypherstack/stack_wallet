@@ -355,14 +355,14 @@ packages:
     source: hosted
     version: "1.0.0"
   dart_bs58:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: dart_bs58
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.1"
   dart_bs58check:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: dart_bs58check
       url: "https://pub.dartlang.org"
@@ -716,7 +716,7 @@ packages:
     source: hosted
     version: "2.2.0"
   hex:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: hex
       url: "https://pub.dartlang.org"

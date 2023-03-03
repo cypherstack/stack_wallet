@@ -146,6 +146,9 @@ dependencies:
   dropdown_button2: 1.7.2
   string_validator: ^0.3.0
   equatable: ^2.0.5
+  dart_bs58: ^1.0.1
+  dart_bs58check: ^3.0.2
+  hex: ^0.2.0
 
 dev_dependencies:
   flutter_test:
