@@ -601,6 +601,11 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
               break;
             }
           }
+        } else {
+          Logging.instance.log(
+            " refreshIfThereIsNewData get eth transactions failed: ${response.exception}",
+            level: LogLevel.Error,
+          );
         }
       }
       return needsRefresh;
