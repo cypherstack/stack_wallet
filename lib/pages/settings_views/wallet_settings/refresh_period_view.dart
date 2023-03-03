@@ -1,18 +1,14 @@
 import 'dart:async';
 
-import 'package:epicpay/utilities/assets.dart';
-import 'package:epicpay/utilities/constants.dart';
 import 'package:epicpay/utilities/text_styles.dart';
 import 'package:epicpay/utilities/theme/stack_colors.dart';
 import 'package:epicpay/widgets/background.dart';
 import 'package:epicpay/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:epicpay/widgets/desktop/primary_button.dart';
 import 'package:epicpay/widgets/icon_widgets/x_icon.dart';
-import 'package:epicpay/widgets/rounded_container.dart';
 import 'package:epicpay/widgets/textfield_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 
 class RefreshPeriodView extends ConsumerStatefulWidget {
   const RefreshPeriodView({
@@ -40,89 +36,6 @@ class _RefreshPeriodViewState extends ConsumerState<RefreshPeriodView>
   late final TextEditingController _refreshPeriodController;
 
   final _refreshPeriodFocusNode = FocusNode();
-
-  Future<void> showTestResult(
-    BuildContext context,
-    bool testPassed,
-  ) async {
-    OverlayState? overlayState = Overlay.of(context);
-
-    OverlayEntry entry = OverlayEntry(
-      builder: (context) {
-        return Positioned(
-          left: 24,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 100,
-          child: ClipRRect(
-            borderRadius:
-                BorderRadius.circular(Constants.size.circularBorderRadius),
-            child: Material(
-              color: Colors.transparent,
-              child: FadeTransition(
-                opacity: animation,
-                child: RoundedContainer(
-                  width: MediaQuery.of(context).size.width - 48,
-                  color: Theme.of(context).extension<StackColors>()!.popupBG,
-                  child: Row(
-                    children: [
-                      SvgPicture.asset(
-                        testPassed
-                            ? Assets.svg.circleCheck
-                            : Assets.svg.circleRedX,
-                        color: testPassed
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorGreen
-                            : Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorRed,
-                        width: 24,
-                        height: 24,
-                      ),
-                      const SizedBox(
-                        width: 12,
-                      ),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              testPassed
-                                  ? "Connection successful"
-                                  : "Could not connect. Please try again or use a different Epic Box server.",
-                              style: STextStyles.bodySmall(context).copyWith(
-                                color: testPassed
-                                    ? Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorGreen
-                                    : Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorRed,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-    animationController.addListener(() {
-      overlayState?.setState(() {});
-    });
-    overlayState?.insert(entry);
-    await animationController
-        .forward()
-        .whenComplete(() => Future<void>.delayed(
-              const Duration(seconds: 2),
-            ))
-        .whenComplete(() => animationController.reverse())
-        .whenComplete(() => entry.remove());
-  }
 
   @override
   void initState() {
