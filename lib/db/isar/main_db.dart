@@ -366,8 +366,8 @@ class MainDB {
   QueryBuilder<EthContract, EthContract, QWhere> getEthContracts() =>
       isar.ethContracts.where();
 
-  Future<void> putEthContract(EthContract contract) => isar.writeTxn(() async {
-        await isar.ethContracts.put(contract);
+  Future<int> putEthContract(EthContract contract) => isar.writeTxn(() async {
+        return await isar.ethContracts.put(contract);
       });
 
   Future<void> putEthContracts(List<EthContract> contracts) =>

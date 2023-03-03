@@ -78,7 +78,7 @@ class _TokenViewState extends ConsumerState<TokenView> {
               SvgPicture.asset(
                 Assets.svg.iconForToken(
                     contractAddress: ref.watch(tokenServiceProvider
-                        .select((value) => value!.token.address))),
+                        .select((value) => value!.tokenContract.address))),
                 width: 24,
                 height: 24,
               ),
@@ -86,8 +86,8 @@ class _TokenViewState extends ConsumerState<TokenView> {
                 width: 10,
               ),
               Text(
-                ref.watch(
-                    tokenServiceProvider.select((value) => value!.token.name)),
+                ref.watch(tokenServiceProvider
+                    .select((value) => value!.tokenContract.name)),
                 style: STextStyles.navBarTitle(context),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -118,7 +118,7 @@ class _TokenViewState extends ConsumerState<TokenView> {
                   walletId: widget.walletId,
                   initialSyncStatus: initialSyncStatus,
                   tokenContractAddress: ref.watch(tokenServiceProvider
-                      .select((value) => value!.token.address)),
+                      .select((value) => value!.tokenContract.address)),
                 ),
               ),
             ),

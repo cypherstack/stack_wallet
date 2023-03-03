@@ -20,7 +20,7 @@ class TokenSummary extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final token =
-        ref.watch(tokenServiceProvider.select((value) => value!.token));
+        ref.watch(tokenServiceProvider.select((value) => value!.tokenContract));
     final balance =
         ref.watch(tokenServiceProvider.select((value) => value!.balance));
 

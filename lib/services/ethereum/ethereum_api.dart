@@ -425,6 +425,7 @@ abstract class EthereumAPI {
     }
   }
 
+  /// Fetch the underlying contract address that a proxy contract points to
   static Future<EthereumResponse<String>> getProxyTokenImplementation(
       String contractAddress) async {
     try {

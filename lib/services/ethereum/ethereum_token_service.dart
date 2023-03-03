@@ -5,6 +5,7 @@ import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart';
 import 'package:isar/isar.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
@@ -28,30 +29,32 @@ import 'package:tuple/tuple.dart';
 import 'package:web3dart/web3dart.dart' as web3dart;
 
 class EthereumTokenService extends ChangeNotifier with EthTokenCache {
-  final EthContract token;
   final EthereumWallet ethWallet;
   final TransactionNotificationTracker tracker;
   final SecureStorageInterface _secureStore;
 
-  late web3dart.EthereumAddress _contractAddress;
+  // late web3dart.EthereumAddress _contractAddress;
   late web3dart.EthPrivateKey _credentials;
-  late web3dart.DeployedContract _contract;
+  late web3dart.DeployedContract _deployedContract;
   late web3dart.ContractFunction _balanceFunction;
   late web3dart.ContractFunction _sendFunction;
-  late String _tokenAbi;
   late web3dart.Web3Client _client;
 
   static const _gasLimit = 200000;
 
   EthereumTokenService({
-    required this.token,
+    required EthContract token,
     required this.ethWallet,
     required SecureStorageInterface secureStore,
     required this.tracker,
-  }) : _secureStore = secureStore {
-    _contractAddress = web3dart.EthereumAddress.fromHex(token.address);
+  })  : _secureStore = secureStore,
+        _tokenContract = token {
+    // _contractAddress = web3dart.EthereumAddress.fromHex(token.address);
     initCache(ethWallet.walletId, token);
   }
+
+  EthContract get tokenContract => _tokenContract;
+  EthContract _tokenContract;
 
   TokenBalance get balance => _balance ??= getCachedBalance();
   TokenBalance? _balance;
@@ -63,12 +66,12 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
     final decimalAmount =
         Format.satoshisToAmount(amount as int, coin: Coin.ethereum);
     final bigIntAmount =
-        amountToBigInt(decimalAmount.toDouble(), token.decimals);
+        amountToBigInt(decimalAmount.toDouble(), tokenContract.decimals);
 
     final sentTx = await _client.sendTransaction(
         _credentials,
         web3dart.Transaction.callContract(
-            contract: _contract,
+            contract: _deployedContract,
             function: _sendFunction,
             parameters: [
               web3dart.EthereumAddress.fromHex(txData['address'] as String),
@@ -96,7 +99,7 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
       .findFirst();
 
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
-    final fee = estimateFee(feeRate, _gasLimit, token.decimals);
+    final fee = estimateFee(feeRate, _gasLimit, tokenContract.decimals);
     return Format.decimalAmountToSatoshis(Decimal.parse(fee.toString()), coin);
   }
 
@@ -107,69 +110,75 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
     return await EthereumAPI.getFees();
   }
 
-  Future<void> initialize() async {
-    final storedABI =
-        await _secureStore.read(key: '${_contractAddress.toString()}_tokenAbi');
-
-    if (storedABI == null) {
-      final abiResponse = await EthereumAPI.getTokenAbi(_contractAddress.hex);
-      //Fetch token ABI so we can call token functions
-      if (abiResponse.value != null) {
-        _tokenAbi = abiResponse.value!;
-        //Store abi in secure store
-        await _secureStore.write(
-          key: '${_contractAddress.hex}_tokenAbi',
-          value: _tokenAbi,
-        );
-      } else {
-        throw abiResponse.exception!;
-      }
+  Future<EthContract> _updateTokenABI({
+    required EthContract forContract,
+    required String usingContractAddress,
+  }) async {
+    final abiResponse = await EthereumAPI.getTokenAbi(usingContractAddress);
+    // Fetch token ABI so we can call token functions
+    if (abiResponse.value != null) {
+      final updatedToken = forContract.copyWith(abi: abiResponse.value!);
+      // Store updated contract
+      final id = await MainDB.instance.putEthContract(updatedToken);
+      return updatedToken..id = id;
     } else {
-      _tokenAbi = storedABI;
+      throw abiResponse.exception!;
+    }
+  }
+
+  Future<void> initialize() async {
+    final contractAddress =
+        web3dart.EthereumAddress.fromHex(tokenContract.address);
+
+    if (tokenContract.abi == null) {
+      _tokenContract = await _updateTokenABI(
+        forContract: tokenContract,
+        usingContractAddress: contractAddress.hex,
+      );
     }
 
     String? mnemonicString = await ethWallet.mnemonicString;
 
     //Get private key for given mnemonic
     String privateKey = getPrivateKey(
-        mnemonicString!, (await ethWallet.mnemonicPassphrase) ?? "");
+      mnemonicString!,
+      (await ethWallet.mnemonicPassphrase) ?? "",
+    );
     _credentials = web3dart.EthPrivateKey.fromHex(privateKey);
 
-    _contract = web3dart.DeployedContract(
-        web3dart.ContractAbi.fromJson(_tokenAbi, token.name), _contractAddress);
+    _deployedContract = web3dart.DeployedContract(
+      web3dart.ContractAbi.fromJson(tokenContract.abi!, tokenContract.name),
+      contractAddress,
+    );
 
     try {
-      _balanceFunction = _contract.function('balanceOf');
-      _sendFunction = _contract.function('transfer');
+      _balanceFunction = _deployedContract.function('balanceOf');
+      _sendFunction = _deployedContract.function('transfer');
     } catch (_) {
       // function not found so likely a proxy so we need to fetch the impl
-      final response =
-          await EthereumAPI.getProxyTokenImplementation(_contractAddress.hex);
+      final contractAddressResponse =
+          await EthereumAPI.getProxyTokenImplementation(contractAddress.hex);
 
-      if (response.value != null) {
-        final abiResponse = await EthereumAPI.getTokenAbi(response.value!);
-        if (abiResponse.value != null) {
-          _tokenAbi = abiResponse.value!;
-          await _secureStore.write(
-              key: '${_contractAddress.hex}_tokenAbi', value: _tokenAbi);
-        } else {
-          throw abiResponse.exception!;
-        }
+      if (contractAddressResponse.value != null) {
+        _tokenContract = await _updateTokenABI(
+          forContract: tokenContract,
+          usingContractAddress: contractAddressResponse.value!,
+        );
       } else {
-        throw response.exception!;
+        throw contractAddressResponse.exception!;
       }
     }
 
-    _contract = web3dart.DeployedContract(
+    _deployedContract = web3dart.DeployedContract(
       web3dart.ContractAbi.fromJson(
-        _tokenAbi,
-        token.name,
+        tokenContract.abi!,
+        tokenContract.name,
       ),
-      _contractAddress,
+      contractAddress,
     );
 
-    _balanceFunction = _contract.function('balanceOf');
-    _sendFunction = _contract.function('transfer');
+    _balanceFunction = _deployedContract.function('balanceOf');
+    _sendFunction = _deployedContract.function('transfer');
 
     _client = await getEthClient();
 
@@ -218,7 +227,7 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
         GlobalEventBus.instance.fire(
           WalletSyncStatusChangedEvent(
             WalletSyncStatus.syncing,
-            ethWallet.walletId + token.address,
+            ethWallet.walletId + tokenContract.address,
             coin,
           ),
         );
@@ -227,7 +236,7 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
         await _refreshTransactions();
       } catch (e, s) {
         Logging.instance.log(
-          "Caught exception in ${token.name} ${ethWallet.walletName} ${ethWallet.walletId} refresh(): $e\n$s",
+          "Caught exception in ${tokenContract.name} ${ethWallet.walletName} ${ethWallet.walletId} refresh(): $e\n$s",
           level: LogLevel.Warning,
         );
       } finally {
@@ -235,7 +244,7 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
         GlobalEventBus.instance.fire(
           WalletSyncStatusChangedEvent(
             WalletSyncStatus.synced,
-            ethWallet.walletId + token.address,
+            ethWallet.walletId + tokenContract.address,
             coin,
           ),
         );
@@ -246,7 +255,7 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
 
   Future<void> refreshCachedBalance() async {
     final balanceRequest = await _client.call(
-      contract: _contract,
+      contract: _deployedContract,
       function: _balanceFunction,
       params: [_credentials.address],
     );
@@ -254,12 +263,12 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
     String _balance = balanceRequest.first.toString();
 
     final newBalance = TokenBalance(
-      contractAddress: token.address,
+      contractAddress: tokenContract.address,
       total: int.parse(_balance),
       spendable: int.parse(_balance),
       blockedTotal: 0,
       pendingSpendable: 0,
-      decimalPlaces: token.decimals,
+      decimalPlaces: tokenContract.decimals,
     );
     await updateCachedBalance(newBalance);
     notifyListeners();
@@ -268,7 +277,7 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
   Future<List<Transaction>> get transactions => ethWallet.db
       .getTransactions(ethWallet.walletId)
       .filter()
-      .otherDataEqualTo(token.address)
+      .otherDataEqualTo(tokenContract.address)
       .sortByTimestampDesc()
       .findAll();
 
@@ -277,7 +286,7 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
 
     final response = await EthereumAPI.getTokenTransactions(
       address: addressString,
-      contractAddress: token.address,
+      contractAddress: tokenContract.address,
     );
 
     if (response.value == null) {
@@ -358,7 +367,7 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
     if (txnsData.isNotEmpty) {
       GlobalEventBus.instance.fire(
         UpdatedInBackgroundEvent(
-          "${token.name} transactions updated/added for: ${ethWallet.walletId} ${ethWallet.walletName}",
+          "${tokenContract.name} transactions updated/added for: ${ethWallet.walletId} ${ethWallet.walletName}",
           ethWallet.walletId,
         ),
       );
