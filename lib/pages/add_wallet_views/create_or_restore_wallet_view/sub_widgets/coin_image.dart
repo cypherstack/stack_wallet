@@ -22,20 +22,28 @@ class CoinImage extends ConsumerWidget {
         ThemeType.fruitSorbet;
     final bool isForest =
         ref.read(colorThemeProvider.state).state.themeType == ThemeType.forest;
+    final bool isOcean = ref.read(colorThemeProvider.state).state.themeType ==
+        ThemeType.oceanBreeze;
+    final bool isOled = ref.read(colorThemeProvider.state).state.themeType ==
+        ThemeType.oledBlack;
+    final bool isLight =
+        ref.read(colorThemeProvider.state).state.themeType == ThemeType.light;
+    final bool isDark =
+        ref.read(colorThemeProvider.state).state.themeType == ThemeType.dark;
 
     return ((isSorbet &&
                 coin != Coin.epicCash &&
                 coin != Coin.monero &&
                 coin != Coin.namecoin) ||
-            (isForest && coin != Coin.dogecoin))
+            (isForest && coin != Coin.dogecoin) ||
+            ((isOcean || isOled || isLight || isDark) &&
+                (coin != Coin.dogecoin &&
+                    coin != Coin.firo &&
+                    coin != Coin.monero)))
         ? SvgPicture.asset(
             Assets.svg.imageFor(coin: coin, context: context),
             width: isDesktop ? 324 : MediaQuery.of(context).size.width,
           )
-        // : Image(
-        //     image: AssetImage(
-        //     Assets.png.imageFor(coin: coin, context: context),
-        //   )))
         : Image(
             image: AssetImage(
               Assets.png.imageFor(coin: coin, context: context),

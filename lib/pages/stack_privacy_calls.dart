@@ -357,7 +357,7 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                       //   const SizedBox(
                       //     height: 10,
                       //   ),
-                      (isSorbet || isOcean)
+                      (isSorbet)
                           ? Image.asset(
                               Assets.png.personaEasy(context),
                               width: 140,
@@ -468,11 +468,17 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                         const SizedBox(
                           height: 10,
                         ),
-                      SvgPicture.asset(
-                        Assets.svg.personaIncognito(context),
-                        width: isDesktop ? 120 : 140,
-                        height: isDesktop ? 120 : 140,
-                      ),
+                      (isSorbet)
+                          ? Image.asset(
+                              Assets.png.personaIncognito(context),
+                              width: 140,
+                              height: 140,
+                            )
+                          : SvgPicture.asset(
+                              Assets.svg.personaIncognito(context),
+                              width: 140,
+                              height: 140,
+                            ),
                       if (isDesktop)
                         const SizedBox(
                           height: 12,
