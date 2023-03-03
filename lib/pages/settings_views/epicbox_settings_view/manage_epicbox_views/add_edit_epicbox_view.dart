@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:epicpay/models/epicbox_model.dart';
+import 'package:epicpay/models/epicbox_server_model.dart';
 import 'package:epicpay/providers/providers.dart';
 import 'package:epicpay/utilities/assets.dart';
 import 'package:epicpay/utilities/constants.dart';
@@ -204,7 +204,7 @@ class _AddEditEpicBoxViewState extends ConsumerState<AddEditEpicBoxView>
 
     switch (viewType) {
       case AddEditEpicBoxViewType.add:
-        EpicBoxModel epicBox = EpicBoxModel(
+        EpicBoxServerModel epicBox = EpicBoxServerModel(
           host: formData!.host!,
           port: formData.port ?? 443,
           name: formData.name!,
@@ -225,7 +225,7 @@ class _AddEditEpicBoxViewState extends ConsumerState<AddEditEpicBoxView>
         }
         break;
       case AddEditEpicBoxViewType.edit:
-        EpicBoxModel epicBox = EpicBoxModel(
+        EpicBoxServerModel epicBox = EpicBoxServerModel(
           host: formData!.host!,
           port: formData.port!,
           name: formData.name!,
@@ -353,7 +353,7 @@ class _AddEditEpicBoxViewState extends ConsumerState<AddEditEpicBoxView>
 
   @override
   Widget build(BuildContext context) {
-    final EpicBoxModel? epicBox =
+    final EpicBoxServerModel? epicBox =
         viewType == AddEditEpicBoxViewType.edit && epicBoxId != null
             ? ref.watch(nodeServiceChangeNotifierProvider
                 .select((value) => value.getEpicBoxById(id: epicBoxId!)))
@@ -511,7 +511,7 @@ class EpicBoxForm extends ConsumerStatefulWidget {
     this.onChanged,
   }) : super(key: key);
 
-  final EpicBoxModel? epicBox;
+  final EpicBoxServerModel? epicBox;
   final bool readOnly;
   final void Function(bool canSave, bool canTestConnection)? onChanged;
 
