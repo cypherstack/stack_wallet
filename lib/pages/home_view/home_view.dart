@@ -17,6 +17,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -34,6 +35,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
   final GlobalKey<ScaffoldState> _key = GlobalKey<ScaffoldState>();
 
   late final PageController _pageController;
+  late final RotateIconController _rotateIconController;
 
   late final List<Widget> _children;
 
@@ -102,6 +104,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
   @override
   void initState() {
     _pageController = PageController();
+    _rotateIconController = RotateIconController();
     _children = [
       const WalletsView(),
       if (Constants.enableExchange)
@@ -131,6 +134,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
   @override
   dispose() {
     _pageController.dispose();
+    _rotateIconController.forward = null;
+    _rotateIconController.reverse = null;
+    _rotateIconController.reset = null;
     super.dispose();
   }
 
@@ -138,6 +144,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
   int _hiddenCount = 0;
 
   void _hiddenOptions() {
+    _rotateIconController.reset?.call();
+    _rotateIconController.forward?.call();
     if (_hiddenCount == 5) {
       Navigator.of(context).pushNamed(HiddenSettings.routeName);
     }
@@ -168,10 +176,15 @@ class _HomeViewState extends ConsumerState<HomeView> {
               children: [
                 GestureDetector(
                   onTap: _hiddenOptions,
-                  child: SvgPicture.asset(
-                    Assets.svg.stackIcon(context),
-                    width: 24,
-                    height: 24,
+                  child: RotateIcon(
+                    icon: SvgPicture.asset(
+                      Assets.svg.stackIcon(context),
+                      width: 24,
+                      height: 24,
+                    ),
+                    curve: Curves.easeInOutCubic,
+                    rotationPercent: 1.0,
+                    controller: _rotateIconController,
                   ),
                 ),
                 const SizedBox(
