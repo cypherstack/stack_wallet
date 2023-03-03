@@ -245,6 +245,7 @@ class _RefreshPeriodViewState extends ConsumerState<RefreshPeriodView>
                                             "No need to update refresh period; already $refreshPeriod",
                                             level: LogLevel.Info);
                                       }
+                                      Navigator.of(context).pop();
                                     } catch (e, s) {
                                       Logging.instance.log(
                                           "Error updating refresh period: $e, $s",
