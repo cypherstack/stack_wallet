@@ -1,5 +1,6 @@
 import 'package:epicpay/pages/pinpad_views/lock_screen_view.dart';
 import 'package:epicpay/pages/settings_views/wallet_settings/delete_wallet_recovery_phrase_view.dart';
+import 'package:epicpay/pages/settings_views/wallet_settings/refresh_period_view.dart';
 import 'package:epicpay/providers/providers.dart';
 import 'package:epicpay/route_generator.dart';
 import 'package:epicpay/utilities/text_styles.dart';
@@ -146,34 +147,73 @@ class WalletSettingsView extends ConsumerWidget {
             ),
             child: SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      requestDelete(context, ref);
-                    },
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            color: Colors.transparent,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              child: Text(
-                                "Delete wallet",
-                                style: STextStyles.bodyBold(context),
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context)
+                            .pushNamed(RefreshPeriodView.routeName);
+                      },
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              color: Colors.transparent,
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                child: Text(
+                                  "Refresh period",
+                                  style: STextStyles.bodyBold(context),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                    const _Div(),
+                    GestureDetector(
+                      onTap: () {
+                        requestDelete(context, ref);
+                      },
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              color: Colors.transparent,
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                child: Text(
+                                  "Delete wallet",
+                                  style: STextStyles.bodyBold(context),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ]),
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _Div extends StatelessWidget {
+  const _Div({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 1),
+      child: Container(
+        height: 0.5,
+        color: Theme.of(context).extension<StackColors>()!.popupBG,
       ),
     );
   }

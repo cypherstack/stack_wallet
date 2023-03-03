@@ -27,6 +27,7 @@ class Prefs extends ChangeNotifier {
       _lastUnlockedTimeout = await _getLastUnlockedTimeout();
       _showTestNetCoins = await _getShowTestNetCoins();
       _hideBlockExplorerWarning = await _getHideBlockExplorerWarning();
+      _refreshPeriod = await _getRefreshPeriod();
 
       _initialized = true;
     }
@@ -325,5 +326,31 @@ class Prefs extends ChangeNotifier {
             boxName: DB.boxNamePrefs,
             key: "hideBlockExplorerWarning") as bool? ??
         false;
+  }
+
+  // refresh period, in seconds
+
+  int? _refreshPeriod = 60;
+
+  int? get refreshPeriod => _refreshPeriod;
+
+  set refreshPeriod(int? refreshPeriod) {
+    if (_refreshPeriod != (refreshPeriod ?? 60)) {
+      DB.instance
+          .put<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: "refreshPeriod",
+              value: refreshPeriod ?? 60)
+          .then((_) {
+        _refreshPeriod = refreshPeriod;
+        notifyListeners();
+      });
+    }
+  }
+
+  Future<int> _getRefreshPeriod() async {
+    return await DB.instance.get<dynamic>(
+            boxName: DB.boxNamePrefs, key: "refreshPeriod") as int? ??
+        60;
   }
 }
