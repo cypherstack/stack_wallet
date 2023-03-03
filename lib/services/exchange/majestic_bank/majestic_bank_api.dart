@@ -349,8 +349,10 @@ class MajesticBankAPI {
 
       return ExchangeResponse(value: status);
     } catch (e, s) {
-      Logging.instance
-          .log("createOrder exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.log(
+        "trackOrder exception when trying to parse $json: $e\n$s",
+        level: LogLevel.Error,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
