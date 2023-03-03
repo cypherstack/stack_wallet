@@ -78,7 +78,7 @@ class _TokenViewState extends ConsumerState<TokenView> {
               SvgPicture.asset(
                 Assets.svg.iconForToken(
                     contractAddress: ref.watch(tokenServiceProvider
-                        .select((value) => value!.token.contractAddress))),
+                        .select((value) => value!.token.address))),
                 width: 24,
                 height: 24,
               ),
@@ -118,7 +118,7 @@ class _TokenViewState extends ConsumerState<TokenView> {
                   walletId: widget.walletId,
                   initialSyncStatus: initialSyncStatus,
                   tokenContractAddress: ref.watch(tokenServiceProvider
-                      .select((value) => value!.token.contractAddress)),
+                      .select((value) => value!.token.address)),
                 ),
               ),
             ),

@@ -1,4 +1,4 @@
-import 'package:stackwallet/models/ethereum/eth_token.dart';
+import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/models/token_balance.dart';
 import 'package:stackwallet/services/ethereum/ethereum_api.dart';
 import 'package:stackwallet/services/mixins/eth_token_cache.dart';
@@ -6,7 +6,7 @@ import 'package:stackwallet/utilities/logger.dart';
 
 class CachedEthTokenBalance with EthTokenCache {
   final String walletId;
-  final EthContractInfo token;
+  final EthContract token;
 
   CachedEthTokenBalance(this.walletId, this.token) {
     initCache(walletId, token);
@@ -15,13 +15,13 @@ class CachedEthTokenBalance with EthTokenCache {
   Future<void> fetchAndUpdateCachedBalance(String address) async {
     final response = await EthereumAPI.getWalletTokenBalance(
       address: address,
-      contractAddress: token.contractAddress,
+      contractAddress: token.address,
     );
 
     if (response.value != null) {
       await updateCachedBalance(
         TokenBalance(
-          contractAddress: token.contractAddress,
+          contractAddress: token.address,
           decimalPlaces: token.decimals,
           total: response.value!,
           spendable: response.value!,

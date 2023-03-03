@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/ethereum/eth_token.dart';
+import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -24,7 +24,7 @@ class MyTokenSelectItem extends ConsumerStatefulWidget {
   }) : super(key: key);
 
   final String walletId;
-  final EthContractInfo token;
+  final EthContract token;
 
   @override
   ConsumerState<MyTokenSelectItem> createState() => _MyTokenSelectItemState();
@@ -133,7 +133,7 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
                           Text("${ref.watch(
                             priceAnd24hChangeNotifierProvider.select(
                               (value) => value
-                                  .getTokenPrice(widget.token.contractAddress)
+                                  .getTokenPrice(widget.token.address)
                                   .item1
                                   .toStringAsFixed(2),
                             ),

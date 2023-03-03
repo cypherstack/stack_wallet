@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/ethereum/eth_token.dart';
+import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/my_token_select_item.dart';
 
 class MyTokensList extends StatelessWidget {
@@ -11,7 +11,7 @@ class MyTokensList extends StatelessWidget {
   }) : super(key: key);
 
   final String walletId;
-  final List<EthContractInfo> tokens;
+  final List<EthContract> tokens;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +22,7 @@ class MyTokensList extends StatelessWidget {
           itemBuilder: (ctx, index) {
             final token = tokens[index];
             return Padding(
-              key: Key(token.contractAddress),
+              key: Key(token.address),
               padding: const EdgeInsets.all(4),
               child: MyTokenSelectItem(
                 walletId: walletId,

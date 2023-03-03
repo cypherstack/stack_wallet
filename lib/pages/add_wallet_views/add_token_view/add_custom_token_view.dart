@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/ethereum/eth_token.dart';
+import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/services/ethereum/ethereum_api.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -39,7 +39,7 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
   bool enableSubFields = false;
   bool addTokenButtonEnabled = false;
 
-  EthContractInfo? currentToken;
+  EthContract? currentToken;
 
   @override
   Widget build(BuildContext context) {
@@ -96,6 +96,7 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
                     nameController.text = currentToken!.name;
                     symbolController.text = currentToken!.symbol;
                     decimalsController.text = currentToken!.decimals.toString();
+                    currentToken!.walletIds.add(widget.walletId);
                   } else {
                     nameController.text = "";
                     symbolController.text = "";

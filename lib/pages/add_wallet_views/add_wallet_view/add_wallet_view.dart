@@ -3,9 +3,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:isar/isar.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/coin_entity.dart';
 import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
+import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/add_wallet_text.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/expanding_sub_list_item.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/next_button.dart';
@@ -67,7 +70,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
             e.name.toLowerCase().contains(lowercaseTerm) ||
             e.coin.name.toLowerCase().contains(lowercaseTerm) ||
             (e is EthTokenEntity &&
-                e.token.contractAddress.toLowerCase().contains(lowercaseTerm)),
+                e.token.address.toLowerCase().contains(lowercaseTerm)),
       );
     }
 
@@ -92,8 +95,15 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
       coinEntities.addAll(_coinsTestnet.map((e) => CoinEntity(e)));
     }
 
-    tokenEntities.addAll(DefaultTokens.list.map((e) => EthTokenEntity(e)));
-    tokenEntities.sort((a, b) => a.name.compareTo(b.name));
+    final contracts =
+        MainDB.instance.getEthContracts().sortByName().findAllSync();
+
+    if (contracts.isEmpty) {
+      contracts.addAll(DefaultTokens.list);
+      MainDB.instance.putEthContracts(contracts);
+    }
+
+    tokenEntities.addAll(contracts.map((e) => EthTokenEntity(e)));
 
     super.initState();
   }

@@ -11,6 +11,7 @@ class EthContract extends Contract {
     required this.symbol,
     required this.decimals,
     required this.type,
+    required this.walletIds,
     this.abi,
     this.otherData,
   });
@@ -28,10 +29,34 @@ class EthContract extends Contract {
 
   late final String? abi;
 
+  late final List<String> walletIds;
+
   @enumerated
   late final EthContractType type;
 
   late final String? otherData;
+
+  EthContract copyWith({
+    Id? id,
+    String? address,
+    String? name,
+    String? symbol,
+    int? decimals,
+    EthContractType? type,
+    List<String>? walletIds,
+    String? abi,
+    String? otherData,
+  }) =>
+      EthContract(
+        address: address ?? this.address,
+        name: name ?? this.name,
+        symbol: symbol ?? this.symbol,
+        decimals: decimals ?? this.decimals,
+        type: type ?? this.type,
+        walletIds: walletIds ?? this.walletIds,
+        abi: abi ?? this.abi,
+        otherData: otherData ?? this.otherData,
+      )..id = id ?? this.id;
 }
 
 // Used in Isar db and stored there as int indexes so adding/removing values

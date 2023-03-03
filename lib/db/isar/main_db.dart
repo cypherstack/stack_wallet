@@ -358,4 +358,20 @@ class MainDB {
       throw MainDBException("failed addNewTransactionData", e);
     }
   }
+
+  // ========== Ethereum =======================================================
+
+  // eth contracts
+
+  QueryBuilder<EthContract, EthContract, QWhere> getEthContracts() =>
+      isar.ethContracts.where();
+
+  Future<void> putEthContract(EthContract contract) => isar.writeTxn(() async {
+        await isar.ethContracts.put(contract);
+      });
+
+  Future<void> putEthContracts(List<EthContract> contracts) =>
+      isar.writeTxn(() async {
+        await isar.ethContracts.putAll(contracts);
+      });
 }

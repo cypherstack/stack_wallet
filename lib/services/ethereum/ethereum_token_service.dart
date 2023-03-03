@@ -5,9 +5,7 @@ import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/ethereum/eth_token.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/token_balance.dart';
@@ -30,7 +28,7 @@ import 'package:tuple/tuple.dart';
 import 'package:web3dart/web3dart.dart' as web3dart;
 
 class EthereumTokenService extends ChangeNotifier with EthTokenCache {
-  final EthContractInfo token;
+  final EthContract token;
   final EthereumWallet ethWallet;
   final TransactionNotificationTracker tracker;
   final SecureStorageInterface _secureStore;
@@ -51,7 +49,7 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
     required SecureStorageInterface secureStore,
     required this.tracker,
   }) : _secureStore = secureStore {
-    _contractAddress = web3dart.EthereumAddress.fromHex(token.contractAddress);
+    _contractAddress = web3dart.EthereumAddress.fromHex(token.address);
     initCache(ethWallet.walletId, token);
   }
 
@@ -220,7 +218,7 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
         GlobalEventBus.instance.fire(
           WalletSyncStatusChangedEvent(
             WalletSyncStatus.syncing,
-            ethWallet.walletId + token.contractAddress,
+            ethWallet.walletId + token.address,
             coin,
           ),
         );
@@ -237,7 +235,7 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
         GlobalEventBus.instance.fire(
           WalletSyncStatusChangedEvent(
             WalletSyncStatus.synced,
-            ethWallet.walletId + token.contractAddress,
+            ethWallet.walletId + token.address,
             coin,
           ),
         );
@@ -256,7 +254,7 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
     String _balance = balanceRequest.first.toString();
 
     final newBalance = TokenBalance(
-      contractAddress: token.contractAddress,
+      contractAddress: token.address,
       total: int.parse(_balance),
       spendable: int.parse(_balance),
       blockedTotal: 0,
@@ -270,7 +268,7 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
   Future<List<Transaction>> get transactions => ethWallet.db
       .getTransactions(ethWallet.walletId)
       .filter()
-      .otherDataEqualTo(token.contractAddress)
+      .otherDataEqualTo(token.address)
       .sortByTimestampDesc()
       .findAll();
 
@@ -279,7 +277,7 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
 
     final response = await EthereumAPI.getTokenTransactions(
       address: addressString,
-      contractAddress: token.contractAddress,
+      contractAddress: token.address,
     );
 
     if (response.value == null) {

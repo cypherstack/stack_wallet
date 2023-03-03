@@ -5,9 +5,7 @@ import 'package:decimal/decimal.dart';
 import 'package:http/http.dart';
 import 'package:stackwallet/dto/ethereum/eth_token_tx_dto.dart';
 import 'package:stackwallet/dto/ethereum/eth_tx_dto.dart';
-import 'package:stackwallet/models/ethereum/erc20_token.dart';
-import 'package:stackwallet/models/ethereum/erc721_token.dart';
-import 'package:stackwallet/models/ethereum/eth_token.dart';
+import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/eth_commons.dart';
@@ -64,7 +62,10 @@ abstract class EthereumAPI {
 
           final List<EthTxDTO> txns = [];
           for (final map in list!) {
-            txns.add(EthTxDTO.fromMap(Map<String, dynamic>.from(map as Map)));
+            final txn = EthTxDTO.fromMap(Map<String, dynamic>.from(map as Map));
+            if (txn.hasToken == 0) {
+              txns.add(txn);
+            }
           }
           return EthereumResponse(
             txns,
@@ -311,7 +312,7 @@ abstract class EthereumAPI {
         slow: feesSlow.toInt());
   }
 
-  static Future<EthereumResponse<EthContractInfo>> getTokenByContractAddress(
+  static Future<EthereumResponse<EthContract>> getTokenByContractAddress(
       String contractAddress) async {
     try {
       final response = await get(Uri.parse(
@@ -322,20 +323,24 @@ abstract class EthereumAPI {
         final json = jsonDecode(response.body);
         if (json["message"] == "OK") {
           final map = Map<String, dynamic>.from(json["result"] as Map);
-          EthContractInfo? token;
+          EthContract? token;
           if (map["type"] == "ERC-20") {
-            token = Erc20ContractInfo(
-              contractAddress: map["contractAddress"] as String,
+            token = EthContract(
+              address: map["contractAddress"] as String,
               decimals: int.parse(map["decimals"] as String),
               name: map["name"] as String,
               symbol: map["symbol"] as String,
+              type: EthContractType.erc20,
+              walletIds: [],
             );
           } else if (map["type"] == "ERC-721") {
-            token = Erc721ContractInfo(
-              contractAddress: map["contractAddress"] as String,
+            token = EthContract(
+              address: map["contractAddress"] as String,
               decimals: int.parse(map["decimals"] as String),
               name: map["name"] as String,
               symbol: map["symbol"] as String,
+              type: EthContractType.erc721,
+              walletIds: [],
             );
           } else {
             throw EthApiException(

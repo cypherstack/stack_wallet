@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/ethereum/eth_token.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
+import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -13,7 +13,7 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 class AddTokenListElementData {
   AddTokenListElementData(this.token);
 
-  final EthContractInfo token;
+  final EthContract token;
   bool selected = false;
 }
 
@@ -34,7 +34,7 @@ class _AddTokenListElementState extends State<AddTokenListElement> {
         .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
         .filter()
         .tokenContractEqualTo(
-          widget.data.token.contractAddress,
+          widget.data.token.address,
           caseSensitive: false,
         )
         .and()

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/ethereum/eth_token.dart';
+import 'package:isar/isar.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
+import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_custom_token_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_list.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_list_element.dart';
@@ -60,7 +62,7 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
         (e) =>
             e.token.name.toLowerCase().contains(lowercaseTerm) ||
             e.token.symbol.toLowerCase().contains(lowercaseTerm) ||
-            e.token.contractAddress.toLowerCase().contains(lowercaseTerm),
+            e.token.address.toLowerCase().contains(lowercaseTerm),
       );
     }
 
@@ -69,16 +71,16 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
 
   Future<void> onNextPressed() async {
     final selectedTokens =
-        tokenEntities.where((e) => e.selected).map((e) => e.token).toSet();
+        tokenEntities.where((e) => e.selected).map((e) => e.token).toList();
 
     final ethWallet = ref
         .read(walletsChangeNotifierProvider)
         .getManager(widget.walletId)
         .wallet as EthereumWallet;
 
-    await ethWallet.addTokenContract(selectedTokens);
+    await ethWallet.addTokenContracts(selectedTokens);
     if (mounted) {
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(42);
     }
   }
 
@@ -87,15 +89,18 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
       AddCustomTokenView.routeName,
       arguments: widget.walletId,
     );
-    if (token is EthContractInfo) {
-      setState(() {
-        if (tokenEntities
-            .where((e) => e.token.contractAddress == token.contractAddress)
-            .isEmpty) {
-          tokenEntities.add(AddTokenListElementData(token)..selected = true);
-          tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
-        }
-      });
+    if (token is EthContract) {
+      await MainDB.instance.putEthContract(token);
+      if (mounted) {
+        setState(() {
+          if (tokenEntities
+              .where((e) => e.token.address == token.address)
+              .isEmpty) {
+            tokenEntities.add(AddTokenListElementData(token)..selected = true);
+            tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
+          }
+        });
+      }
     }
   }
 
@@ -104,9 +109,15 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
     _searchFieldController = TextEditingController();
     _searchFocusNode = FocusNode();
 
-    tokenEntities
-        .addAll(DefaultTokens.list.map((e) => AddTokenListElementData(e)));
-    tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
+    final contracts =
+        MainDB.instance.getEthContracts().sortByName().findAllSync();
+
+    if (contracts.isEmpty) {
+      contracts.addAll(DefaultTokens.list);
+      MainDB.instance.putEthContracts(contracts);
+    }
+
+    tokenEntities.addAll(contracts.map((e) => AddTokenListElementData(e)));
 
     super.initState();
   }
