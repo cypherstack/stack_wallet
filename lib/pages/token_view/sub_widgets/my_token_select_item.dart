@@ -64,8 +64,7 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
               BorderRadius.circular(Constants.size.circularBorderRadius),
         ),
         onPressed: () async {
-          ref.read(tokenServiceStateProvider.state).state =
-              EthereumTokenService(
+          ref.read(tokenServiceStateProvider.state).state = EthTokenWallet(
             token: widget.token,
             secureStore: ref.read(secureStoreProvider),
             ethWallet: ref

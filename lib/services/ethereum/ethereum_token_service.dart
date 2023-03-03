@@ -28,7 +28,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:tuple/tuple.dart';
 import 'package:web3dart/web3dart.dart' as web3dart;
 
-class EthereumTokenService extends ChangeNotifier with EthTokenCache {
+class EthTokenWallet extends ChangeNotifier with EthTokenCache {
   final EthereumWallet ethWallet;
   final TransactionNotificationTracker tracker;
   final SecureStorageInterface _secureStore;
@@ -42,7 +42,7 @@ class EthereumTokenService extends ChangeNotifier with EthTokenCache {
 
   static const _gasLimit = 200000;
 
-  EthereumTokenService({
+  EthTokenWallet({
     required EthContract token,
     required this.ethWallet,
     required SecureStorageInterface secureStore,

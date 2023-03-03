@@ -19,9 +19,8 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 
-final tokenServiceStateProvider =
-    StateProvider<EthereumTokenService?>((ref) => null);
-final tokenServiceProvider = ChangeNotifierProvider<EthereumTokenService?>(
+final tokenServiceStateProvider = StateProvider<EthTokenWallet?>((ref) => null);
+final tokenServiceProvider = ChangeNotifierProvider<EthTokenWallet?>(
     (ref) => ref.watch(tokenServiceStateProvider));
 
 /// [eventBus] should only be set during testing
