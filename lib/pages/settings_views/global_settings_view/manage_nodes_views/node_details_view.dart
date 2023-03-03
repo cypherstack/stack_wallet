@@ -126,6 +126,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
       case Coin.litecoin:
       case Coin.dogecoin:
       case Coin.firo:
+      case Coin.particl:
       case Coin.bitcoinTestNet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
