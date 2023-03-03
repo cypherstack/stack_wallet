@@ -31,6 +31,7 @@ import 'package:epicpay/pages/settings_views/settings_view.dart';
 import 'package:epicpay/pages/settings_views/wallet_backup_views/wallet_backup_view.dart';
 import 'package:epicpay/pages/settings_views/wallet_settings/confirm_delete_wallet_view.dart';
 import 'package:epicpay/pages/settings_views/wallet_settings/delete_wallet_recovery_phrase_view.dart';
+import 'package:epicpay/pages/settings_views/wallet_settings/refresh_period_view.dart';
 import 'package:epicpay/pages/settings_views/wallet_settings/verify_mnemonic_view.dart';
 import 'package:epicpay/pages/settings_views/wallet_settings/wallet_settings_view.dart';
 import 'package:epicpay/pages/wallet_view/transaction_views/transaction_details_view.dart';
@@ -278,6 +279,15 @@ class RouteGenerator {
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
           builder: (_) => const WalletSettingsView(),
+          settings: RouteSettings(
+            name: settings.name,
+          ),
+        );
+
+      case RefreshPeriodView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const RefreshPeriodView(),
           settings: RouteSettings(
             name: settings.name,
           ),

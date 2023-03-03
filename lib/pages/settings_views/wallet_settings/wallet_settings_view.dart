@@ -1,5 +1,6 @@
 import 'package:epicpay/pages/pinpad_views/lock_screen_view.dart';
 import 'package:epicpay/pages/settings_views/wallet_settings/delete_wallet_recovery_phrase_view.dart';
+import 'package:epicpay/pages/settings_views/wallet_settings/refresh_period_view.dart';
 import 'package:epicpay/providers/providers.dart';
 import 'package:epicpay/route_generator.dart';
 import 'package:epicpay/utilities/text_styles.dart';
@@ -146,58 +147,73 @@ class WalletSettingsView extends ConsumerWidget {
             ),
             child: SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      requestDelete(context, ref);
-                    },
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            color: Colors.transparent,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              child: Text(
-                                "Delete wallet",
-                                style: STextStyles.bodyBold(context),
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context)
+                            .pushNamed(RefreshPeriodView.routeName);
+                      },
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              color: Colors.transparent,
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                child: Text(
+                                  "Update wallet refresh period",
+                                  style: STextStyles.bodyBold(context),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                        TextField(
-                          textAlignVertical: TextAlignVertical.center,
-                          autocorrect: false,
-                          enableSuggestions: false,
-                          key: const Key("addCustomEpicCashRefreshPeriodFieldKey"),
-                          controller: _refreshPeriodController,
-                          focusNode: _refreshPeriodFocusNode,
-                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                          keyboardType: TextInputType.number,
-                          style: STextStyles.body(context),
-                          decoration: InputDecoration(
-                            hintText: "Refresh period (60)",
-                            fillColor: _refreshPeriodFocusNode.hasFocus
-                                ? Theme.of(context).extension<StackColors>()!.textFieldActiveBG
-                                : Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFieldDefaultBG,
-                            isCollapsed: true,
-                            hintStyle: STextStyles.body(context).copyWith(
-                              color: Theme.of(context).extension<StackColors>()!.textMedium,
-                            ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                    const _Div(),
+                    GestureDetector(
+                      onTap: () {
+                        requestDelete(context, ref);
+                      },
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              color: Colors.transparent,
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                child: Text(
+                                  "Delete wallet",
+                                  style: STextStyles.bodyBold(context),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ]),
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _Div extends StatelessWidget {
+  const _Div({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 1),
+      child: Container(
+        height: 0.5,
+        color: Theme.of(context).extension<StackColors>()!.popupBG,
       ),
     );
   }
