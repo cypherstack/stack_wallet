@@ -20,7 +20,7 @@ class AddCustomTokenView extends ConsumerStatefulWidget {
     required this.walletId,
   }) : super(key: key);
 
-  final String walletId;
+  final String? walletId;
 
   static const routeName = "/addCustomToken";
 
@@ -96,7 +96,10 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
                     nameController.text = currentToken!.name;
                     symbolController.text = currentToken!.symbol;
                     decimalsController.text = currentToken!.decimals.toString();
-                    currentToken!.walletIds.add(widget.walletId);
+                    if (widget.walletId != null) {
+                      // TODO: this needs to be changed?
+                      currentToken!.walletIds.add(widget.walletId!);
+                    }
                   } else {
                     nameController.text = "";
                     symbolController.text = "";

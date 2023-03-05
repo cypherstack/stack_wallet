@@ -14,6 +14,7 @@ class ExpandingSubListItem extends StatefulWidget {
     Key? key,
     required this.title,
     required this.entities,
+    this.trailing,
     required this.initialState,
     double? animationDurationMultiplier,
     this.curve = Curves.easeInOutCubicEmphasized,
@@ -23,6 +24,7 @@ class ExpandingSubListItem extends StatefulWidget {
 
   final String title;
   final List<AddWalletListEntity> entities;
+  final Widget? trailing;
   final ExpandableState initialState;
   final double animationDurationMultiplier;
   final Curve curve;
@@ -113,6 +115,7 @@ class _ExpandingSubListItemState extends State<ExpandingSubListItem> {
         primary: false,
         child: AddWalletEntityList(
           entities: widget.entities,
+          trailing: widget.trailing,
         ),
       ),
     );

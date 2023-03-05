@@ -9,6 +9,8 @@ import 'package:stackwallet/models/add_wallet_list_entity/add_wallet_list_entity
 import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/coin_entity.dart';
 import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
 import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_custom_token_view.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_custom_token_selector.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/add_wallet_text.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/expanding_sub_list_item.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/next_button.dart';
@@ -53,7 +55,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
     ...Coin.values.sublist(0, Coin.values.length - kTestNetCoinCount - 1)
   ];
   final List<AddWalletListEntity> coinEntities = [];
-  final List<AddWalletListEntity> tokenEntities = [];
+  final List<EthTokenEntity> tokenEntities = [];
 
   final bool isDesktop = Util.isDesktop;
 
@@ -75,6 +77,26 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
     }
 
     return _entities;
+  }
+
+  Future<void> _addToken() async {
+    final token = await Navigator.of(context).pushNamed(
+      AddCustomTokenView.routeName,
+      arguments: null, // no walletId as no wallet has been selected/created yet
+    );
+    if (token is EthContract) {
+      await MainDB.instance.putEthContract(token);
+      if (mounted) {
+        setState(() {
+          if (tokenEntities
+              .where((e) => e.token.address == token.address)
+              .isEmpty) {
+            tokenEntities.add(EthTokenEntity(token));
+            tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
+          }
+        });
+      }
+    }
   }
 
   @override
@@ -233,6 +255,9 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                                 title: "Tokens",
                                 entities: filter(_searchTerm, tokenEntities),
                                 initialState: ExpandableState.collapsed,
+                                trailing: AddCustomTokenSelector(
+                                  addFunction: _addToken,
+                                ),
                               ),
                             ],
                           ),

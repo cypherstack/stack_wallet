@@ -6,23 +6,32 @@ class AddWalletEntityList extends StatelessWidget {
   const AddWalletEntityList({
     Key? key,
     required this.entities,
+    this.trailing,
   }) : super(key: key);
 
   final List<AddWalletListEntity> entities;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
       shrinkWrap: true,
       primary: false,
-      itemCount: entities.length,
+      itemCount: trailing != null ? entities.length + 1 : entities.length,
       itemBuilder: (ctx, index) {
-        return Padding(
-          padding: const EdgeInsets.all(4),
-          child: CoinSelectItem(
-            entity: entities[index],
-          ),
-        );
+        if (trailing != null && index == entities.length) {
+          return Padding(
+            padding: const EdgeInsets.all(4),
+            child: trailing,
+          );
+        } else {
+          return Padding(
+            padding: const EdgeInsets.all(4),
+            child: CoinSelectItem(
+              entity: entities[index],
+            ),
+          );
+        }
       },
     );
   }
