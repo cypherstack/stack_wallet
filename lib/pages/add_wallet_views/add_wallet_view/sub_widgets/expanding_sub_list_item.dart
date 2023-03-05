@@ -84,7 +84,7 @@ class _ExpandingSubListItemState extends State<ExpandingSubListItem> {
               Text(
                 widget.title,
                 style: isDesktop
-                    ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                    ? STextStyles.desktopTextMedium(context).copyWith(
                         color: Theme.of(context)
                             .extension<StackColors>()!
                             .textDark3,
@@ -95,8 +95,8 @@ class _ExpandingSubListItemState extends State<ExpandingSubListItem> {
               RotateIcon(
                 icon: SvgPicture.asset(
                   Assets.svg.chevronDown,
-                  width: 12,
-                  height: 6,
+                  width: isDesktop ? 20 : 12,
+                  height: isDesktop ? 10 : 6,
                   color: Theme.of(context)
                       .extension<StackColors>()!
                       .textFieldActiveSearchIconRight,

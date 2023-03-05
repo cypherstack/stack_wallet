@@ -217,6 +217,9 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                           ),
                         ),
                       ),
+                      const SizedBox(
+                        height: 8,
+                      ),
                       Expanded(
                         child: SingleChildScrollView(
                           child: Column(
@@ -234,6 +237,9 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                             ],
                           ),
                         ),
+                      ),
+                      const SizedBox(
+                        height: 20,
                       ),
                     ],
                   ),
