@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:isar/isar.dart';
 import 'package:stackwallet/models/add_wallet_list_entity/add_wallet_list_entity.dart';
+import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
+import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
+import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -23,6 +28,22 @@ class CoinSelectItem extends ConsumerWidget {
     final selectedEntity = ref.watch(addWalletSelectedEntityStateProvider);
 
     final isDesktop = Util.isDesktop;
+
+    String? tokenImageUri;
+    if (entity is EthTokenEntity) {
+      final currency = ExchangeDataLoadingService.instance.isar.currencies
+          .where()
+          .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
+          .filter()
+          .tokenContractEqualTo(
+            (entity as EthTokenEntity).token.address,
+            caseSensitive: false,
+          )
+          .and()
+          .imageIsNotEmpty()
+          .findFirstSync();
+      tokenImageUri = currency?.image;
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -48,11 +69,17 @@ class CoinSelectItem extends ConsumerWidget {
           ),
           child: Row(
             children: [
-              SvgPicture.asset(
-                Assets.svg.iconFor(coin: entity.coin),
-                width: 26,
-                height: 26,
-              ),
+              tokenImageUri != null
+                  ? SvgPicture.network(
+                      tokenImageUri,
+                      width: 26,
+                      height: 26,
+                    )
+                  : SvgPicture.asset(
+                      Assets.svg.iconFor(coin: entity.coin),
+                      width: 26,
+                      height: 26,
+                    ),
               SizedBox(
                 width: isDesktop ? 12 : 10,
               ),
