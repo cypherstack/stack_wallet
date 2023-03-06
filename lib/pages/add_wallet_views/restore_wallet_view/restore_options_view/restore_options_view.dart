@@ -282,10 +282,8 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 flex: isDesktop ? 10 : 1,
               ),
               if (!isDesktop)
-                Image(
-                  image: AssetImage(
-                    Assets.png.imageFor(coin: coin, context: context),
-                  ),
+                SvgPicture.asset(
+                  Assets.svg.imageFor(coin: coin, context: context),
                   height: 100,
                 ),
               SizedBox(
