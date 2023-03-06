@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:decimal/decimal.dart';
 import 'package:http/http.dart' as http;
 import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
+import 'package:stackwallet/exceptions/exchange/majestic_bank/mb_exception.dart';
 import 'package:stackwallet/exceptions/exchange/pair_unavailable_exception.dart';
 import 'package:stackwallet/models/exchange/majestic_bank/mb_limit.dart';
 import 'package:stackwallet/models/exchange/majestic_bank/mb_order.dart';
@@ -334,6 +335,15 @@ class MajesticBankAPI {
     try {
       final jsonObject = await _makeGetRequest(uri);
       final json = Map<String, dynamic>.from(jsonObject as Map);
+
+      if (json.length == 2) {
+        return ExchangeResponse(
+          exception: MBException(
+            json["status"] as String,
+            ExchangeExceptionType.orderNotFound,
+          ),
+        );
+      }
 
       final status = MBOrderStatus(
         orderId: json["trx"] as String,

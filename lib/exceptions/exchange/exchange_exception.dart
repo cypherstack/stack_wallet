@@ -1,6 +1,6 @@
 import 'package:stackwallet/exceptions/sw_exception.dart';
 
-enum ExchangeExceptionType { generic, serializeResponseError }
+enum ExchangeExceptionType { generic, serializeResponseError, orderNotFound }
 
 class ExchangeException extends SWException {
   ExchangeExceptionType type;
