@@ -580,6 +580,21 @@ class _SendViewState extends ConsumerState<SendView> {
       });
     }
 
+    if (coin == Coin.epicCash) {
+      sendToController.addListener(() {
+        _address = sendToController.text;
+
+        if (_address != null && _address!.isNotEmpty) {
+          _address = _address!.trim();
+          if (_address!.contains("\n")) {
+            _address = _address!.substring(0, _address!.indexOf("\n"));
+          }
+
+          sendToController.text = httpXOREpicBox(_address!);
+        }
+      });
+    }
+
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -904,6 +919,13 @@ class _SendViewState extends ConsumerState<SendView> {
                                                                     "\n"));
                                                       }
 
+                                                      if (coin ==
+                                                          Coin.epicCash) {
+                                                        // strip http:// and https:// if content contains @
+                                                        content =
+                                                            httpXOREpicBox(
+                                                                content);
+                                                      }
                                                       sendToController.text =
                                                           content;
                                                       _address = content;
@@ -1753,4 +1775,15 @@ class _SendViewState extends ConsumerState<SendView> {
       ),
     );
   }
+}
+
+// strip http:// and https:// if epicAddress contains @
+String httpXOREpicBox(String epicAddress) {
+  if ((epicAddress.startsWith("http://") ||
+          epicAddress.startsWith("https://")) &&
+      epicAddress.contains("@")) {
+    epicAddress = epicAddress.replaceAll("http://", "");
+    epicAddress = epicAddress.replaceAll("https://", "");
+  }
+  return epicAddress;
 }
