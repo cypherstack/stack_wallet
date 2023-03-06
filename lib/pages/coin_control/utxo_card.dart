@@ -46,22 +46,11 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
     final coin = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManager(widget.walletId).coin));
 
-    final addr = MainDB.instance.isar.transactions
-        .where()
-        .txidWalletIdEqualTo(
-          utxo.txid,
-          widget.walletId,
-        )
-        .findFirstSync()
-        ?.address
-        .value
-        ?.value;
-
     String? label;
-    if (addr != null) {
+    if (utxo.address != null) {
       label = MainDB.instance.isar.addressLabels
           .where()
-          .addressStringWalletIdEqualTo(addr, widget.walletId)
+          .addressStringWalletIdEqualTo(utxo.address!, widget.walletId)
           .findFirstSync()
           ?.value;
     }
@@ -100,7 +89,7 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
                   children: [
                     Flexible(
                       child: Text(
-                        label ?? addr ?? utxo.txid,
+                        label ?? utxo.address ?? utxo.txid,
                         style: STextStyles.w500_12(context).copyWith(
                           color: Theme.of(context)
                               .extension<StackColors>()!
