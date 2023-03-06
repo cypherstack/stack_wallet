@@ -668,11 +668,15 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                       text: address,
                                     ),
                                   );
-                                  unawaited(showFloatingFlushBar(
-                                    type: FlushBarType.info,
-                                    message: "Copied to clipboard",
-                                    context: context,
-                                  ));
+                                  if (mounted) {
+                                    unawaited(
+                                      showFloatingFlushBar(
+                                        type: FlushBarType.info,
+                                        message: "Copied to clipboard",
+                                        context: context,
+                                      ),
+                                    );
+                                  }
                                 },
                                 child: Row(
                                   children: [
@@ -1123,11 +1127,15 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           onTap: () async {
                             final data = ClipboardData(text: trade.tradeId);
                             await clipboard.setData(data);
-                            unawaited(showFloatingFlushBar(
-                              type: FlushBarType.info,
-                              message: "Copied to clipboard",
-                              context: context,
-                            ));
+                            if (mounted) {
+                              unawaited(
+                                showFloatingFlushBar(
+                                  type: FlushBarType.info,
+                                  message: "Copied to clipboard",
+                                  context: context,
+                                ),
+                              );
+                            }
                           },
                           child: SvgPicture.asset(
                             Assets.svg.copy,
