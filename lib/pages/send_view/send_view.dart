@@ -580,6 +580,7 @@ class _SendViewState extends ConsumerState<SendView> {
       });
     }
 
+    // add listener for epic cash to strip http:// and https:// prefixes if the address also ocntains an @ symbol (indicating an epicbox address)
     if (coin == Coin.epicCash) {
       sendToController.addListener(() {
         _address = sendToController.text;
