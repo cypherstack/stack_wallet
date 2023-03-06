@@ -18,46 +18,40 @@ class AddCustomTokenSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: RawMaterialButton(
-        fillColor: Theme.of(context).extension<StackColors>()!.popupBG,
-        elevation: 0,
-        focusElevation: 0,
-        hoverElevation: 0,
-        highlightElevation: 0,
-        constraints: const BoxConstraints(),
+      child: MaterialButton(
+        key: const Key("coinSelectItemButtonKey_add_custom"),
+        padding: Util.isDesktop
+            ? const EdgeInsets.only(left: 24)
+            : const EdgeInsets.all(12),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(
             Constants.size.circularBorderRadius,
           ),
         ),
         onPressed: addFunction,
-        child: Padding(
-          padding: Util.isDesktop
-              ? const EdgeInsets.only(left: 24)
-              : const EdgeInsets.all(12),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: Util.isDesktop ? 70 : 0,
-            ),
-            child: Row(
-              children: [
-                SvgPicture.asset(
-                  Assets.svg.circlePlusFilled,
-                  color: Theme.of(context).extension<StackColors>()!.textDark,
-                  width: 26,
-                  height: 26,
-                ),
-                const SizedBox(
-                  width: 12,
-                ),
-                Text(
-                  "Add custom token",
-                  style: Util.isDesktop
-                      ? STextStyles.desktopTextMedium(context)
-                      : STextStyles.w600_14(context),
-                ),
-              ],
-            ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: Util.isDesktop ? 70 : 0,
+          ),
+          child: Row(
+            children: [
+              SvgPicture.asset(
+                Assets.svg.circlePlusFilled,
+                color: Theme.of(context).extension<StackColors>()!.textDark,
+                width: 26,
+                height: 26,
+              ),
+              const SizedBox(
+                width: 12,
+              ),
+              Text(
+                "Add custom token",
+                style: Util.isDesktop
+                    ? STextStyles.desktopTextMedium(context)
+                    : STextStyles.w600_14(context),
+              ),
+            ],
           ),
         ),
       ),
