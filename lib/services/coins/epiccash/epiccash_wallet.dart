@@ -449,7 +449,10 @@ class EpicCashWallet extends CoinServiceAPI
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
     try {
       final wallet = await _secureStore.read(key: '${_walletId}_wallet');
+
       EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
+
+      print("EPICBOX CONFIG HERE IS $epicboxConfig");
 
       // TODO determine whether it is worth sending change to a change address.
       dynamic message;
@@ -496,7 +499,7 @@ class EpicCashWallet extends CoinServiceAPI
             "amount": txData['recipientAmt'],
             "address": txData['addresss'],
             "secretKeyIndex": 0,
-            "epicboxConfig": epicboxConfig,
+            "epicboxConfig": epicboxConfig.toString(),
             "minimumConfirmations": MINIMUM_CONFIRMATIONS,
           }, name: walletName);
 
@@ -1186,6 +1189,8 @@ class EpicCashWallet extends CoinServiceAPI
       await _secureStore.write(key: '${_walletId}_mnemonic', value: mnemonic);
       await _secureStore.write(key: '${_walletId}_config', value: stringConfig);
       await _secureStore.write(key: '${_walletId}_password', value: password);
+
+      print("EPIC BOX MODEL IS ${epicboxConfig.toString()}");
       await _secureStore.write(
           key: '${_walletId}_epicboxConfig', value: epicboxConfig.toString());
 
