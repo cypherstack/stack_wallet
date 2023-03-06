@@ -59,7 +59,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   late StreamSubscription<dynamic> _syncStatusSubscription;
   late StreamSubscription<dynamic> _epicBoxStatusSubscription;
-  late StreamSubscription<dynamic> _nodeStatusSubscription;
+  // late StreamSubscription<dynamic> _nodeStatusSubscription;
   late StreamSubscription<dynamic> _refreshSubscription;
 
   int currentIndex = 1;
@@ -206,7 +206,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   @override
   dispose() {
-    _nodeStatusSubscription.cancel();
+    // _nodeStatusSubscription.cancel();
+    _epicBoxStatusSubscription.cancel();
     _syncStatusSubscription.cancel();
     _refreshSubscription.cancel();
     _pageController.dispose();
