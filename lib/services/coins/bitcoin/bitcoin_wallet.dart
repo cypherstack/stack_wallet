@@ -1806,8 +1806,10 @@ class BitcoinWallet extends CoinServiceAPI
 
       for (int i = 0; i < fetchedUtxoList.length; i++) {
         for (int j = 0; j < fetchedUtxoList[i].length; j++) {
+          final jsonUTXO = fetchedUtxoList[i][j];
+
           final txn = await cachedElectrumXClient.getTransaction(
-            txHash: fetchedUtxoList[i][j]["tx_hash"] as String,
+            txHash: jsonUTXO["tx_hash"] as String,
             verbose: true,
             coin: coin,
           );
@@ -1815,7 +1817,7 @@ class BitcoinWallet extends CoinServiceAPI
           // fetch stored tx to see if paynym notification tx and block utxo
           final storedTx = await db.getTransaction(
             walletId,
-            fetchedUtxoList[i][j]["tx_hash"] as String,
+            jsonUTXO["tx_hash"] as String,
           );
 
           bool shouldBlock = false;
@@ -1832,18 +1834,33 @@ class BitcoinWallet extends CoinServiceAPI
             blockReason = "Incoming paynym notification transaction.";
           }
 
+          final vout = jsonUTXO["tx_pos"] as int;
+
+          final outputs = txn["vout"] as List;
+
+          String? utxoOwnerAddress;
+          // get UTXO owner address
+          for (final output in outputs) {
+            if (output["n"] == vout) {
+              utxoOwnerAddress =
+                  output["scriptPubKey"]?["addresses"]?[0] as String? ??
+                      output["scriptPubKey"]?["address"] as String?;
+            }
+          }
+
           final utxo = isar_models.UTXO(
             walletId: walletId,
             txid: txn["txid"] as String,
-            vout: fetchedUtxoList[i][j]["tx_pos"] as int,
-            value: fetchedUtxoList[i][j]["value"] as int,
+            vout: vout,
+            value: jsonUTXO["value"] as int,
             name: "",
             isBlocked: shouldBlock,
             blockedReason: blockReason,
             isCoinbase: txn["is_coinbase"] as bool? ?? false,
             blockHash: txn["blockhash"] as String?,
-            blockHeight: fetchedUtxoList[i][j]["height"] as int?,
+            blockHeight: jsonUTXO["height"] as int?,
             blockTime: txn["blocktime"] as int?,
+            address: utxoOwnerAddress,
           );
 
           satoshiBalanceTotal += utxo.value;

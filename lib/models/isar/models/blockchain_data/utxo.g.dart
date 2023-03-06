@@ -17,63 +17,68 @@ const UTXOSchema = CollectionSchema(
   name: r'UTXO',
   id: 5934032492047519621,
   properties: {
-    r'blockHash': PropertySchema(
+    r'address': PropertySchema(
       id: 0,
+      name: r'address',
+      type: IsarType.string,
+    ),
+    r'blockHash': PropertySchema(
+      id: 1,
       name: r'blockHash',
       type: IsarType.string,
     ),
     r'blockHeight': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'blockHeight',
       type: IsarType.long,
     ),
     r'blockTime': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'blockTime',
       type: IsarType.long,
     ),
     r'blockedReason': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'blockedReason',
       type: IsarType.string,
     ),
     r'isBlocked': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'isBlocked',
       type: IsarType.bool,
     ),
     r'isCoinbase': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'isCoinbase',
       type: IsarType.bool,
     ),
     r'name': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'name',
       type: IsarType.string,
     ),
     r'otherData': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'otherData',
       type: IsarType.string,
     ),
     r'txid': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'txid',
       type: IsarType.string,
     ),
     r'value': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'value',
       type: IsarType.long,
     ),
     r'vout': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'vout',
       type: IsarType.long,
     ),
     r'walletId': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'walletId',
       type: IsarType.string,
     )
@@ -144,6 +149,12 @@ int _uTXOEstimateSize(
 ) {
   var bytesCount = offsets.last;
   {
+    final value = object.address;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.blockHash;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -173,18 +184,19 @@ void _uTXOSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.blockHash);
-  writer.writeLong(offsets[1], object.blockHeight);
-  writer.writeLong(offsets[2], object.blockTime);
-  writer.writeString(offsets[3], object.blockedReason);
-  writer.writeBool(offsets[4], object.isBlocked);
-  writer.writeBool(offsets[5], object.isCoinbase);
-  writer.writeString(offsets[6], object.name);
-  writer.writeString(offsets[7], object.otherData);
-  writer.writeString(offsets[8], object.txid);
-  writer.writeLong(offsets[9], object.value);
-  writer.writeLong(offsets[10], object.vout);
-  writer.writeString(offsets[11], object.walletId);
+  writer.writeString(offsets[0], object.address);
+  writer.writeString(offsets[1], object.blockHash);
+  writer.writeLong(offsets[2], object.blockHeight);
+  writer.writeLong(offsets[3], object.blockTime);
+  writer.writeString(offsets[4], object.blockedReason);
+  writer.writeBool(offsets[5], object.isBlocked);
+  writer.writeBool(offsets[6], object.isCoinbase);
+  writer.writeString(offsets[7], object.name);
+  writer.writeString(offsets[8], object.otherData);
+  writer.writeString(offsets[9], object.txid);
+  writer.writeLong(offsets[10], object.value);
+  writer.writeLong(offsets[11], object.vout);
+  writer.writeString(offsets[12], object.walletId);
 }
 
 UTXO _uTXODeserialize(
@@ -194,18 +206,19 @@ UTXO _uTXODeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = UTXO(
-    blockHash: reader.readStringOrNull(offsets[0]),
-    blockHeight: reader.readLongOrNull(offsets[1]),
-    blockTime: reader.readLongOrNull(offsets[2]),
-    blockedReason: reader.readStringOrNull(offsets[3]),
-    isBlocked: reader.readBool(offsets[4]),
-    isCoinbase: reader.readBool(offsets[5]),
-    name: reader.readString(offsets[6]),
-    otherData: reader.readStringOrNull(offsets[7]),
-    txid: reader.readString(offsets[8]),
-    value: reader.readLong(offsets[9]),
-    vout: reader.readLong(offsets[10]),
-    walletId: reader.readString(offsets[11]),
+    address: reader.readStringOrNull(offsets[0]),
+    blockHash: reader.readStringOrNull(offsets[1]),
+    blockHeight: reader.readLongOrNull(offsets[2]),
+    blockTime: reader.readLongOrNull(offsets[3]),
+    blockedReason: reader.readStringOrNull(offsets[4]),
+    isBlocked: reader.readBool(offsets[5]),
+    isCoinbase: reader.readBool(offsets[6]),
+    name: reader.readString(offsets[7]),
+    otherData: reader.readStringOrNull(offsets[8]),
+    txid: reader.readString(offsets[9]),
+    value: reader.readLong(offsets[10]),
+    vout: reader.readLong(offsets[11]),
+    walletId: reader.readString(offsets[12]),
   );
   object.id = id;
   return object;
@@ -221,26 +234,28 @@ P _uTXODeserializeProp<P>(
     case 0:
       return (reader.readStringOrNull(offset)) as P;
     case 1:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 2:
       return (reader.readLongOrNull(offset)) as P;
     case 3:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 4:
-      return (reader.readBool(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 5:
       return (reader.readBool(offset)) as P;
     case 6:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 7:
-      return (reader.readStringOrNull(offset)) as P;
-    case 8:
       return (reader.readString(offset)) as P;
+    case 8:
+      return (reader.readStringOrNull(offset)) as P;
     case 9:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 10:
       return (reader.readLong(offset)) as P;
     case 11:
+      return (reader.readLong(offset)) as P;
+    case 12:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -608,6 +623,150 @@ extension UTXOQueryWhere on QueryBuilder<UTXO, UTXO, QWhereClause> {
 }
 
 extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'address',
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'address',
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'address',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'address',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'address',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'address',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'address',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'address',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressContains(String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'address',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressMatches(String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'address',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'address',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'address',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHashIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1749,6 +1908,18 @@ extension UTXOQueryObject on QueryBuilder<UTXO, UTXO, QFilterCondition> {}
 extension UTXOQueryLinks on QueryBuilder<UTXO, UTXO, QFilterCondition> {}
 
 extension UTXOQuerySortBy on QueryBuilder<UTXO, UTXO, QSortBy> {
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByAddress() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'address', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByAddressDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'address', Sort.desc);
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByBlockHash() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'blockHash', Sort.asc);
@@ -1895,6 +2066,18 @@ extension UTXOQuerySortBy on QueryBuilder<UTXO, UTXO, QSortBy> {
 }
 
 extension UTXOQuerySortThenBy on QueryBuilder<UTXO, UTXO, QSortThenBy> {
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByAddress() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'address', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByAddressDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'address', Sort.desc);
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByBlockHash() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'blockHash', Sort.asc);
@@ -2053,6 +2236,13 @@ extension UTXOQuerySortThenBy on QueryBuilder<UTXO, UTXO, QSortThenBy> {
 }
 
 extension UTXOQueryWhereDistinct on QueryBuilder<UTXO, UTXO, QDistinct> {
+  QueryBuilder<UTXO, UTXO, QDistinct> distinctByAddress(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'address', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QDistinct> distinctByBlockHash(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2137,6 +2327,12 @@ extension UTXOQueryProperty on QueryBuilder<UTXO, UTXO, QQueryProperty> {
   QueryBuilder<UTXO, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<UTXO, String?, QQueryOperations> addressProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'address');
     });
   }
 

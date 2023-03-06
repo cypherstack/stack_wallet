@@ -18,6 +18,7 @@ class UTXO {
     required this.blockHash,
     required this.blockHeight,
     required this.blockTime,
+    this.address,
     this.otherData,
   });
 
@@ -48,6 +49,8 @@ class UTXO {
 
   late final int? blockTime;
 
+  late final String? address;
+
   late final String? otherData;
 
   int getConfirmations(int currentChainHeight) {
@@ -75,5 +78,7 @@ class UTXO {
       "blockHash: $blockHash, "
       "blockHeight: $blockHeight, "
       "blockTime: $blockTime, "
+      "address: $address, "
+      "otherData: $otherData, "
       "}";
 }
