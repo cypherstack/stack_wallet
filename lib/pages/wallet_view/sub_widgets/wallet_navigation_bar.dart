@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/providers/global/paynym_api_provider.dart';
@@ -112,10 +113,10 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                       if (mounted) {
                         Navigator.of(context).pop();
 
-                        // Navigator.of(context).pushNamed(
-                        //   PaynymHomeView.routeName,
-                        //   arguments: widget.walletId,
-                        // );
+                        Navigator.of(context).pushNamed(
+                          CoinControlView.routeName,
+                          arguments: widget.walletId,
+                        );
                       }
                     },
                     child: Container(
