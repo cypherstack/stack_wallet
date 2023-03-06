@@ -197,7 +197,7 @@ class FruitSorbetColors extends StackColorTheme {
 
   // text field
   @override
-  Color get textFieldActiveBG => const Color(0xFFFFFBF6);
+  Color get textFieldActiveBG => const Color(0xFFF7EEE1);
   @override
   Color get textFieldDefaultBG => const Color(0xFFFFF8EE);
   @override
