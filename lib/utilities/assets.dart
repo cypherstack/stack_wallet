@@ -60,7 +60,7 @@ class _COIN_CONTROL {
 class _SVG {
   const _SVG();
 
-  static const coinControl = _COIN_CONTROL();
+  final coinControl = const _COIN_CONTROL();
 
   String? background(BuildContext context) {
     switch (Theme.of(context).extension<StackColors>()!.themeType) {

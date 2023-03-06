@@ -324,6 +324,9 @@ flutter:
     # coin icons
     - assets/svg/coin_icons/
 
+    # coin control icons
+    - assets/svg/coin_control/
+
     # lottie animations
     - assets/lottie/test.json
     - assets/lottie/test2.json

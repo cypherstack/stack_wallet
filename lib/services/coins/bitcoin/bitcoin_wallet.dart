@@ -24,6 +24,7 @@ import 'package:stackwallet/services/event_bus/events/global/refresh_percent_cha
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/services/mixins/electrum_x_parsing.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
@@ -94,7 +95,12 @@ String constructDerivePath({
 }
 
 class BitcoinWallet extends CoinServiceAPI
-    with WalletCache, WalletDB, ElectrumXParsing, PaynymWalletInterface {
+    with
+        WalletCache,
+        WalletDB,
+        ElectrumXParsing,
+        PaynymWalletInterface,
+        CoinControlInterface {
   BitcoinWallet({
     required String walletId,
     required String walletName,

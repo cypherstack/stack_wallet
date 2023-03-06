@@ -50,6 +50,11 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
 
   @override
   Widget build(BuildContext context) {
+    final showMore = ref.watch(walletsChangeNotifierProvider.select(
+            (value) => value.getManager(widget.walletId).hasPaynymSupport)) ||
+        ref.watch(walletsChangeNotifierProvider.select((value) =>
+            value.getManager(widget.walletId).hasCoinControlSupport));
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -97,62 +102,20 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
               // const SizedBox(
               //   height: 8,
               // ),
-              AnimatedOpacity(
-                opacity: scale,
-                duration: duration,
-                child: Consumer(builder: (context, ref, __) {
-                  return GestureDetector(
-                    onTap: () async {
-                      setState(() {
-                        scale = 0;
-                      });
-                      unawaited(
-                        showDialog(
-                          context: context,
-                          builder: (context) => const LoadingIndicator(
-                            width: 100,
-                          ),
-                        ),
-                      );
-
-                      final manager = ref
-                          .read(walletsChangeNotifierProvider)
-                          .getManager(widget.walletId);
-
-                      final paynymInterface =
-                          manager.wallet as PaynymWalletInterface;
-
-                      final code = await paynymInterface.getPaymentCode(
-                          DerivePathTypeExt.primaryFor(manager.coin));
-
-                      final account = await ref
-                          .read(paynymAPIProvider)
-                          .nym(code.toString());
-
-                      Logging.instance.log(
-                        "my nym account: $account",
-                        level: LogLevel.Info,
-                      );
-
+              if (ref.watch(walletsChangeNotifierProvider.select((value) =>
+                  value.getManager(widget.walletId).hasCoinControlSupport)))
+                AnimatedOpacity(
+                  opacity: scale,
+                  duration: duration,
+                  child: GestureDetector(
+                    onTap: () {
                       if (mounted) {
                         Navigator.of(context).pop();
 
-                        // check if account exists and for matching code to see if claimed
-                        if (account.value != null &&
-                            account.value!.codes.first.claimed) {
-                          ref.read(myPaynymAccountStateProvider.state).state =
-                              account.value!;
-
-                          await Navigator.of(context).pushNamed(
-                            PaynymHomeView.routeName,
-                            arguments: widget.walletId,
-                          );
-                        } else {
-                          await Navigator.of(context).pushNamed(
-                            PaynymClaimView.routeName,
-                            arguments: widget.walletId,
-                          );
-                        }
+                        // Navigator.of(context).pushNamed(
+                        //   PaynymHomeView.routeName,
+                        //   arguments: widget.walletId,
+                        // );
                       }
                     },
                     child: Container(
@@ -174,14 +137,14 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            "Paynym",
+                            "Coin control",
                             style: STextStyles.buttonSmall(context),
                           ),
                           const SizedBox(
                             width: 16,
                           ),
                           SvgPicture.asset(
-                            Assets.svg.robotHead,
+                            Assets.svg.coinControl.gamePad,
                             height: 20,
                             width: 20,
                             color: Theme.of(context)
@@ -191,9 +154,117 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                         ],
                       ),
                     ),
-                  );
-                }),
-              ),
+                  ),
+                ),
+              if (ref.watch(walletsChangeNotifierProvider.select((value) =>
+                      value
+                          .getManager(widget.walletId)
+                          .hasCoinControlSupport)) &&
+                  ref.watch(walletsChangeNotifierProvider.select((value) =>
+                      value.getManager(widget.walletId).hasPaynymSupport)))
+                const SizedBox(
+                  height: 8,
+                ),
+              if (ref.watch(walletsChangeNotifierProvider.select((value) =>
+                  value.getManager(widget.walletId).hasPaynymSupport)))
+                AnimatedOpacity(
+                  opacity: scale,
+                  duration: duration,
+                  child: Consumer(builder: (context, ref, __) {
+                    return GestureDetector(
+                      onTap: () async {
+                        setState(() {
+                          scale = 0;
+                        });
+                        unawaited(
+                          showDialog(
+                            context: context,
+                            builder: (context) => const LoadingIndicator(
+                              width: 100,
+                            ),
+                          ),
+                        );
+
+                        final manager = ref
+                            .read(walletsChangeNotifierProvider)
+                            .getManager(widget.walletId);
+
+                        final paynymInterface =
+                            manager.wallet as PaynymWalletInterface;
+
+                        final code = await paynymInterface.getPaymentCode(
+                            DerivePathTypeExt.primaryFor(manager.coin));
+
+                        final account = await ref
+                            .read(paynymAPIProvider)
+                            .nym(code.toString());
+
+                        Logging.instance.log(
+                          "my nym account: $account",
+                          level: LogLevel.Info,
+                        );
+
+                        if (mounted) {
+                          Navigator.of(context).pop();
+
+                          // check if account exists and for matching code to see if claimed
+                          if (account.value != null &&
+                              account.value!.codes.first.claimed) {
+                            ref.read(myPaynymAccountStateProvider.state).state =
+                                account.value!;
+
+                            await Navigator.of(context).pushNamed(
+                              PaynymHomeView.routeName,
+                              arguments: widget.walletId,
+                            );
+                          } else {
+                            await Navigator.of(context).pushNamed(
+                              PaynymClaimView.routeName,
+                              arguments: widget.walletId,
+                            );
+                          }
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        width: 146,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .popupBG,
+                          boxShadow: [
+                            Theme.of(context)
+                                .extension<StackColors>()!
+                                .standardBoxShadow
+                          ],
+                          borderRadius: BorderRadius.circular(
+                            widget.height / 2.0,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Paynym",
+                              style: STextStyles.buttonSmall(context),
+                            ),
+                            const SizedBox(
+                              width: 16,
+                            ),
+                            SvgPicture.asset(
+                              Assets.svg.robotHead,
+                              height: 20,
+                              width: 20,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .bottomNavIconIcon,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                ),
               const SizedBox(
                 height: 8,
               ),
@@ -410,8 +481,7 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                       ),
                     ),
                   ),
-                if (ref.watch(walletsChangeNotifierProvider.select((value) =>
-                    value.getManager(widget.walletId).hasPaynymSupport)))
+                if (showMore)
                   RawMaterialButton(
                     constraints: const BoxConstraints(
                       minWidth: 66,
