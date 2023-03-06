@@ -849,13 +849,12 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
-      case ReceivingAddressesView.routeName:
-        if (args is Tuple2<String, bool>) {
+      case WalletAddressesView.routeName:
+        if (args is String) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => ReceivingAddressesView(
-              walletId: args.item1,
-              isDesktop: args.item2,
+            builder: (_) => WalletAddressesView(
+              walletId: args,
             ),
             settings: RouteSettings(
               name: settings.name,

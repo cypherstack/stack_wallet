@@ -53,6 +53,10 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
           .addressStringWalletIdEqualTo(utxo.address!, widget.walletId)
           .findFirstSync()
           ?.value;
+
+      if (label != null && label.isEmpty) {
+        label = null;
+      }
     }
 
     return RoundedWhiteContainer(

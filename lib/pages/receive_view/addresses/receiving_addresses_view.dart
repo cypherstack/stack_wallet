@@ -5,32 +5,40 @@ import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/receive_view/addresses/address_card.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
+import 'package:stackwallet/widgets/toggle.dart';
 
-class ReceivingAddressesView extends ConsumerWidget {
-  const ReceivingAddressesView({
+class WalletAddressesView extends ConsumerStatefulWidget {
+  const WalletAddressesView({
     Key? key,
     required this.walletId,
-    required this.isDesktop,
-    this.clipboard = const ClipboardWrapper(),
   }) : super(key: key);
 
-  static const String routeName = "/receivingAddressesView";
+  static const String routeName = "/walletAddressesView";
 
   final String walletId;
-  final bool isDesktop;
-  final ClipboardInterface clipboard;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<WalletAddressesView> createState() =>
+      _WalletAddressesViewState();
+}
+
+class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
+  final bool isDesktop = Util.isDesktop;
+
+  bool _showChange = false;
+
+  @override
+  Widget build(BuildContext context) {
     final coin = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId).coin));
+        .select((value) => value.getManager(widget.walletId).coin));
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -45,8 +53,9 @@ class ReceivingAddressesView extends ConsumerWidget {
                 Navigator.of(context).pop();
               },
             ),
+            titleSpacing: 0,
             title: Text(
-              "Receiving addresses",
+              "Wallet addresses",
               style: STextStyles.navBarTitle(context),
             ),
           ),
@@ -56,40 +65,81 @@ class ReceivingAddressesView extends ConsumerWidget {
           ),
         ),
       ),
-      child: FutureBuilder(
-        future: MainDB.instance
-            .getAddresses(walletId)
-            .filter()
-            .subTypeEqualTo(AddressSubType.receiving)
-            .and()
-            .not()
-            .typeEqualTo(AddressType.nonWallet)
-            .sortByDerivationIndex()
-            .findAll(),
-        builder: (context, AsyncSnapshot<List<Address>> snapshot) {
-          if (snapshot.connectionState == ConnectionState.done &&
-              snapshot.data != null) {
-            // listview
-            return ListView.separated(
-              itemCount: snapshot.data!.length,
-              separatorBuilder: (_, __) => Container(
-                height: 10,
+      child: Column(
+        children: [
+          SizedBox(
+            height: isDesktop ? 56 : 48,
+            width: isDesktop ? 490 : null,
+            child: Toggle(
+              key: UniqueKey(),
+              onColor: Theme.of(context).extension<StackColors>()!.popupBG,
+              onText: "Receiving",
+              offColor: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldDefaultBG,
+              offText: "Change",
+              isOn: _showChange,
+              onValueChanged: (value) {
+                setState(() {
+                  _showChange = value;
+                });
+              },
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
+                ),
               ),
-              itemBuilder: (_, index) => AddressCard(
-                walletId: walletId,
-                address: snapshot.data![index],
-                coin: coin,
-              ),
-            );
-          } else {
-            return const Center(
-              child: LoadingIndicator(
-                height: 200,
-                width: 200,
-              ),
-            );
-          }
-        },
+            ),
+          ),
+          SizedBox(
+            height: isDesktop ? 20 : 16,
+          ),
+          Expanded(
+            child: FutureBuilder(
+              future: MainDB.instance
+                  .getAddresses(widget.walletId)
+                  .filter()
+                  .group(
+                    (q) => _showChange
+                        ? q.subTypeEqualTo(AddressSubType.change)
+                        : q
+                            .subTypeEqualTo(AddressSubType.receiving)
+                            .or()
+                            .subTypeEqualTo(AddressSubType.paynymReceive),
+                  )
+                  .and()
+                  .not()
+                  .typeEqualTo(AddressType.nonWallet)
+                  .sortByDerivationIndex()
+                  .findAll(),
+              builder: (context, AsyncSnapshot<List<Address>> snapshot) {
+                if (snapshot.connectionState == ConnectionState.done &&
+                    snapshot.data != null) {
+                  // listview
+                  return ListView.separated(
+                    itemCount: snapshot.data!.length,
+                    separatorBuilder: (_, __) => Container(
+                      height: 10,
+                    ),
+                    itemBuilder: (_, index) => AddressCard(
+                      walletId: widget.walletId,
+                      address: snapshot.data![index],
+                      coin: coin,
+                    ),
+                  );
+                } else {
+                  return const Center(
+                    child: LoadingIndicator(
+                      height: 200,
+                      width: 200,
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

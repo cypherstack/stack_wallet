@@ -21,7 +21,6 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:tuple/tuple.dart';
 
 class ReceiveView extends ConsumerStatefulWidget {
   const ReceiveView({
@@ -182,8 +181,8 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                                       onTap: () {
                                         Navigator.of(context).pop();
                                         Navigator.of(context).pushNamed(
-                                          ReceivingAddressesView.routeName,
-                                          arguments: Tuple2(walletId, false),
+                                          WalletAddressesView.routeName,
+                                          arguments: walletId,
                                         );
                                       },
                                       child: RoundedWhiteContainer(
