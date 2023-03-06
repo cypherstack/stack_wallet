@@ -489,11 +489,11 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case EditAddressLabelView.routeName:
-        if (args is AddressLabel) {
+        if (args is int) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => EditAddressLabelView(
-              addressLabel: args,
+              addressLabelId: args,
             ),
             settings: RouteSettings(
               name: settings.name,

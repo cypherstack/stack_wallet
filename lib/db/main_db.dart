@@ -1,6 +1,5 @@
 import 'package:isar/isar.dart';
 import 'package:stackwallet/exceptions/main_db/main_db_exception.dart';
-import 'package:stackwallet/exceptions/sw_exception.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:tuple/tuple.dart';
@@ -236,10 +235,6 @@ class MainDB {
   Future<int> updateAddressLabel(AddressLabel addressLabel) async {
     try {
       return await isar.writeTxn(() async {
-        final deleted = await isar.addresses.delete(addressLabel.id);
-        if (!deleted) {
-          throw SWException("Failed to delete $addressLabel before updating");
-        }
         return await isar.addressLabels.put(addressLabel);
       });
     } catch (e) {

@@ -84,7 +84,7 @@ class _AddressCardState extends State<AddressCard> {
                       onTap: () {
                         Navigator.of(context).pushNamed(
                           EditAddressLabelView.routeName,
-                          arguments: label!,
+                          arguments: label!.id,
                         );
                       },
                     ),
@@ -122,13 +122,15 @@ class _AddressCardState extends State<AddressCard> {
                               text: widget.address.value,
                             ),
                           );
-                          unawaited(
-                            showFloatingFlushBar(
-                              type: FlushBarType.info,
-                              message: "Copied to clipboard",
-                              context: context,
-                            ),
-                          );
+                          if (mounted) {
+                            unawaited(
+                              showFloatingFlushBar(
+                                type: FlushBarType.info,
+                                message: "Copied to clipboard",
+                                context: context,
+                              ),
+                            );
+                          }
                         },
                       ),
                     ),
