@@ -111,7 +111,10 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                   child: GestureDetector(
                     onTap: () {
                       if (mounted) {
-                        Navigator.of(context).pop();
+                        // hide more context menu
+                        setState(() {
+                          scale = 0;
+                        });
 
                         Navigator.of(context).pushNamed(
                           CoinControlView.routeName,
