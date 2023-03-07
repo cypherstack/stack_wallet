@@ -19,13 +19,15 @@ class UtxoCard extends ConsumerStatefulWidget {
     Key? key,
     required this.utxo,
     required this.walletId,
-    this.selectable = false,
+    required this.onSelectedChanged,
+    required this.initialSelectedState,
     this.onPressed,
   }) : super(key: key);
 
   final String walletId;
   final UTXO utxo;
-  final bool selectable;
+  final void Function(bool) onSelectedChanged;
+  final bool initialSelectedState;
   final VoidCallback? onPressed;
 
   @override
@@ -35,10 +37,11 @@ class UtxoCard extends ConsumerStatefulWidget {
 class _UtxoCardState extends ConsumerState<UtxoCard> {
   late final UTXO utxo;
 
-  bool _selected = false;
+  late bool _selected;
 
   @override
   void initState() {
+    _selected = widget.initialSelectedState;
     utxo = widget.utxo;
     super.initState();
   }
@@ -87,14 +90,21 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
             : Colors.transparent,
         child: Row(
           children: [
-            SvgPicture.asset(
-              _selected
-                  ? Assets.svg.coinControl.selected
-                  : utxo.isBlocked
-                      ? Assets.svg.coinControl.blocked
-                      : Assets.svg.coinControl.unBlocked,
-              width: 32,
-              height: 32,
+            GestureDetector(
+              onTap: () {
+                _selected = !_selected;
+                widget.onSelectedChanged(_selected);
+                setState(() {});
+              },
+              child: SvgPicture.asset(
+                _selected
+                    ? Assets.svg.coinControl.selected
+                    : utxo.isBlocked
+                        ? Assets.svg.coinControl.blocked
+                        : Assets.svg.coinControl.unBlocked,
+                width: 32,
+                height: 32,
+              ),
             ),
             const SizedBox(
               width: 10,

@@ -218,11 +218,24 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case CoinControlView.routeName:
-        if (args is String) {
+        if (args is Tuple2<String, CoinControlViewType>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => CoinControlView(
-              walletId: args,
+              walletId: args.item1,
+              type: args.item2,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        } else if (args is Tuple3<String, CoinControlViewType, int?>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => CoinControlView(
+              walletId: args.item1,
+              type: args.item2,
+              requestedTotal: args.item3,
             ),
             settings: RouteSettings(
               name: settings.name,

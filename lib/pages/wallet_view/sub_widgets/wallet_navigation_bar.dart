@@ -17,6 +17,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
+import 'package:tuple/tuple.dart';
 
 class WalletNavigationBar extends ConsumerStatefulWidget {
   const WalletNavigationBar({
@@ -118,7 +119,10 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
 
                         Navigator.of(context).pushNamed(
                           CoinControlView.routeName,
-                          arguments: widget.walletId,
+                          arguments: Tuple2(
+                            widget.walletId,
+                            CoinControlViewType.manage,
+                          ),
                         );
                       }
                     },
