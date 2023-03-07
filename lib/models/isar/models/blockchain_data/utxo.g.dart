@@ -102,9 +102,9 @@ const UTXOSchema = CollectionSchema(
         )
       ],
     ),
-    r'txid_walletId': IndexSchema(
-      id: -2771771174176035985,
-      name: r'txid_walletId',
+    r'txid_walletId_vout': IndexSchema(
+      id: -2984264099359759359,
+      name: r'txid_walletId_vout',
       unique: true,
       replace: true,
       properties: [
@@ -117,6 +117,11 @@ const UTXOSchema = CollectionSchema(
           name: r'walletId',
           type: IndexType.hash,
           caseSensitive: true,
+        ),
+        IndexPropertySchema(
+          name: r'vout',
+          type: IndexType.value,
+          caseSensitive: false,
         )
       ],
     ),
@@ -275,89 +280,91 @@ void _uTXOAttach(IsarCollection<dynamic> col, Id id, UTXO object) {
 }
 
 extension UTXOByIndex on IsarCollection<UTXO> {
-  Future<UTXO?> getByTxidWalletId(String txid, String walletId) {
-    return getByIndex(r'txid_walletId', [txid, walletId]);
+  Future<UTXO?> getByTxidWalletIdVout(String txid, String walletId, int vout) {
+    return getByIndex(r'txid_walletId_vout', [txid, walletId, vout]);
   }
 
-  UTXO? getByTxidWalletIdSync(String txid, String walletId) {
-    return getByIndexSync(r'txid_walletId', [txid, walletId]);
+  UTXO? getByTxidWalletIdVoutSync(String txid, String walletId, int vout) {
+    return getByIndexSync(r'txid_walletId_vout', [txid, walletId, vout]);
   }
 
-  Future<bool> deleteByTxidWalletId(String txid, String walletId) {
-    return deleteByIndex(r'txid_walletId', [txid, walletId]);
+  Future<bool> deleteByTxidWalletIdVout(
+      String txid, String walletId, int vout) {
+    return deleteByIndex(r'txid_walletId_vout', [txid, walletId, vout]);
   }
 
-  bool deleteByTxidWalletIdSync(String txid, String walletId) {
-    return deleteByIndexSync(r'txid_walletId', [txid, walletId]);
+  bool deleteByTxidWalletIdVoutSync(String txid, String walletId, int vout) {
+    return deleteByIndexSync(r'txid_walletId_vout', [txid, walletId, vout]);
   }
 
-  Future<List<UTXO?>> getAllByTxidWalletId(
-      List<String> txidValues, List<String> walletIdValues) {
+  Future<List<UTXO?>> getAllByTxidWalletIdVout(List<String> txidValues,
+      List<String> walletIdValues, List<int> voutValues) {
     final len = txidValues.length;
-    assert(walletIdValues.length == len,
+    assert(walletIdValues.length == len && voutValues.length == len,
         'All index values must have the same length');
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
-      values.add([txidValues[i], walletIdValues[i]]);
+      values.add([txidValues[i], walletIdValues[i], voutValues[i]]);
     }
 
-    return getAllByIndex(r'txid_walletId', values);
+    return getAllByIndex(r'txid_walletId_vout', values);
   }
 
-  List<UTXO?> getAllByTxidWalletIdSync(
-      List<String> txidValues, List<String> walletIdValues) {
+  List<UTXO?> getAllByTxidWalletIdVoutSync(List<String> txidValues,
+      List<String> walletIdValues, List<int> voutValues) {
     final len = txidValues.length;
-    assert(walletIdValues.length == len,
+    assert(walletIdValues.length == len && voutValues.length == len,
         'All index values must have the same length');
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
-      values.add([txidValues[i], walletIdValues[i]]);
+      values.add([txidValues[i], walletIdValues[i], voutValues[i]]);
     }
 
-    return getAllByIndexSync(r'txid_walletId', values);
+    return getAllByIndexSync(r'txid_walletId_vout', values);
   }
 
-  Future<int> deleteAllByTxidWalletId(
-      List<String> txidValues, List<String> walletIdValues) {
+  Future<int> deleteAllByTxidWalletIdVout(List<String> txidValues,
+      List<String> walletIdValues, List<int> voutValues) {
     final len = txidValues.length;
-    assert(walletIdValues.length == len,
+    assert(walletIdValues.length == len && voutValues.length == len,
         'All index values must have the same length');
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
-      values.add([txidValues[i], walletIdValues[i]]);
+      values.add([txidValues[i], walletIdValues[i], voutValues[i]]);
     }
 
-    return deleteAllByIndex(r'txid_walletId', values);
+    return deleteAllByIndex(r'txid_walletId_vout', values);
   }
 
-  int deleteAllByTxidWalletIdSync(
-      List<String> txidValues, List<String> walletIdValues) {
+  int deleteAllByTxidWalletIdVoutSync(List<String> txidValues,
+      List<String> walletIdValues, List<int> voutValues) {
     final len = txidValues.length;
-    assert(walletIdValues.length == len,
+    assert(walletIdValues.length == len && voutValues.length == len,
         'All index values must have the same length');
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
-      values.add([txidValues[i], walletIdValues[i]]);
+      values.add([txidValues[i], walletIdValues[i], voutValues[i]]);
     }
 
-    return deleteAllByIndexSync(r'txid_walletId', values);
+    return deleteAllByIndexSync(r'txid_walletId_vout', values);
   }
 
-  Future<Id> putByTxidWalletId(UTXO object) {
-    return putByIndex(r'txid_walletId', object);
+  Future<Id> putByTxidWalletIdVout(UTXO object) {
+    return putByIndex(r'txid_walletId_vout', object);
   }
 
-  Id putByTxidWalletIdSync(UTXO object, {bool saveLinks = true}) {
-    return putByIndexSync(r'txid_walletId', object, saveLinks: saveLinks);
+  Id putByTxidWalletIdVoutSync(UTXO object, {bool saveLinks = true}) {
+    return putByIndexSync(r'txid_walletId_vout', object, saveLinks: saveLinks);
   }
 
-  Future<List<Id>> putAllByTxidWalletId(List<UTXO> objects) {
-    return putAllByIndex(r'txid_walletId', objects);
+  Future<List<Id>> putAllByTxidWalletIdVout(List<UTXO> objects) {
+    return putAllByIndex(r'txid_walletId_vout', objects);
   }
 
-  List<Id> putAllByTxidWalletIdSync(List<UTXO> objects,
+  List<Id> putAllByTxidWalletIdVoutSync(List<UTXO> objects,
       {bool saveLinks = true}) {
-    return putAllByIndexSync(r'txid_walletId', objects, saveLinks: saveLinks);
+    return putAllByIndexSync(r'txid_walletId_vout', objects,
+        saveLinks: saveLinks);
   }
 }
 
@@ -487,29 +494,29 @@ extension UTXOQueryWhere on QueryBuilder<UTXO, UTXO, QWhereClause> {
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidEqualToAnyWalletId(
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidEqualToAnyWalletIdVout(
       String txid) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'txid_walletId',
+        indexName: r'txid_walletId_vout',
         value: [txid],
       ));
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidNotEqualToAnyWalletId(
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidNotEqualToAnyWalletIdVout(
       String txid) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId',
+              indexName: r'txid_walletId_vout',
               lower: [],
               upper: [txid],
               includeUpper: false,
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId',
+              indexName: r'txid_walletId_vout',
               lower: [txid],
               includeLower: false,
               upper: [],
@@ -517,13 +524,13 @@ extension UTXOQueryWhere on QueryBuilder<UTXO, UTXO, QWhereClause> {
       } else {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId',
+              indexName: r'txid_walletId_vout',
               lower: [txid],
               includeLower: false,
               upper: [],
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId',
+              indexName: r'txid_walletId_vout',
               lower: [],
               upper: [txid],
               includeUpper: false,
@@ -532,29 +539,29 @@ extension UTXOQueryWhere on QueryBuilder<UTXO, UTXO, QWhereClause> {
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidWalletIdEqualTo(
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidWalletIdEqualToAnyVout(
       String txid, String walletId) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'txid_walletId',
+        indexName: r'txid_walletId_vout',
         value: [txid, walletId],
       ));
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidEqualToWalletIdNotEqualTo(
-      String txid, String walletId) {
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause>
+      txidEqualToWalletIdNotEqualToAnyVout(String txid, String walletId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId',
+              indexName: r'txid_walletId_vout',
               lower: [txid],
               upper: [txid, walletId],
               includeUpper: false,
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId',
+              indexName: r'txid_walletId_vout',
               lower: [txid, walletId],
               includeLower: false,
               upper: [txid],
@@ -562,18 +569,115 @@ extension UTXOQueryWhere on QueryBuilder<UTXO, UTXO, QWhereClause> {
       } else {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId',
+              indexName: r'txid_walletId_vout',
               lower: [txid, walletId],
               includeLower: false,
               upper: [txid],
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId',
+              indexName: r'txid_walletId_vout',
               lower: [txid],
               upper: [txid, walletId],
               includeUpper: false,
             ));
       }
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidWalletIdVoutEqualTo(
+      String txid, String walletId, int vout) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'txid_walletId_vout',
+        value: [txid, walletId, vout],
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidWalletIdEqualToVoutNotEqualTo(
+      String txid, String walletId, int vout) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid_walletId_vout',
+              lower: [txid, walletId],
+              upper: [txid, walletId, vout],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid_walletId_vout',
+              lower: [txid, walletId, vout],
+              includeLower: false,
+              upper: [txid, walletId],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid_walletId_vout',
+              lower: [txid, walletId, vout],
+              includeLower: false,
+              upper: [txid, walletId],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid_walletId_vout',
+              lower: [txid, walletId],
+              upper: [txid, walletId, vout],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause>
+      txidWalletIdEqualToVoutGreaterThan(
+    String txid,
+    String walletId,
+    int vout, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'txid_walletId_vout',
+        lower: [txid, walletId, vout],
+        includeLower: include,
+        upper: [txid, walletId],
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidWalletIdEqualToVoutLessThan(
+    String txid,
+    String walletId,
+    int vout, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'txid_walletId_vout',
+        lower: [txid, walletId],
+        upper: [txid, walletId, vout],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidWalletIdEqualToVoutBetween(
+    String txid,
+    String walletId,
+    int lowerVout,
+    int upperVout, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'txid_walletId_vout',
+        lower: [txid, walletId, lowerVout],
+        includeLower: includeLower,
+        upper: [txid, walletId, upperVout],
+        includeUpper: includeUpper,
+      ));
     });
   }
 
