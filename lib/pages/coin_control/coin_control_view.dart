@@ -68,8 +68,14 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
               ),
               RoundedWhiteContainer(
                 child: Text(
-                  "This option allows you to control, freeze, and utilize outputs at your discretion. Tap the output circle to select.",
-                  style: STextStyles.subtitle(context),
+                  "This option allows you to control, freeze, and utilize "
+                  "outputs at your discretion. Tap the output circle to "
+                  "select.",
+                  style: STextStyles.w500_14(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle1,
+                  ),
                 ),
               ),
               const SizedBox(
