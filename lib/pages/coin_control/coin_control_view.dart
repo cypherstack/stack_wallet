@@ -42,8 +42,6 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
         .idProperty()
         .findAllSync();
 
-    print(ids);
-
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -120,14 +118,17 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                       key: Key("${utxo.walletId}_${utxo.id}"),
                       walletId: widget.walletId,
                       utxo: utxo,
-                      onPressed: () {
-                        Navigator.of(context).pushNamed(
+                      onPressed: () async {
+                        final result = await Navigator.of(context).pushNamed(
                           UtxoDetailsView.routeName,
                           arguments: Tuple2(
                             utxo.id,
                             widget.walletId,
                           ),
                         );
+                        if (mounted && result == "refresh") {
+                          setState(() {});
+                        }
                       },
                     );
                   },

@@ -67,6 +67,38 @@ class UTXO {
     return confirmations >= minimumConfirms;
   }
 
+  UTXO copyWith({
+    Id? id,
+    String? walletId,
+    String? txid,
+    int? vout,
+    int? value,
+    String? name,
+    bool? isBlocked,
+    String? blockedReason,
+    bool? isCoinbase,
+    String? blockHash,
+    int? blockHeight,
+    int? blockTime,
+    String? address,
+    String? otherData,
+  }) =>
+      UTXO(
+        walletId: walletId ?? this.walletId,
+        txid: txid ?? this.txid,
+        vout: vout ?? this.vout,
+        value: value ?? this.value,
+        name: name ?? this.name,
+        isBlocked: isBlocked ?? this.isBlocked,
+        blockedReason: blockedReason ?? this.blockedReason,
+        isCoinbase: isCoinbase ?? this.isCoinbase,
+        blockHash: blockHash ?? this.blockHash,
+        blockHeight: blockHeight ?? this.blockHeight,
+        blockTime: blockTime ?? this.blockTime,
+        address: address ?? this.address,
+        otherData: otherData ?? this.otherData,
+      )..id = id ?? this.id;
+
   @override
   String toString() => "{ "
       "id: $id, "

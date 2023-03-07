@@ -173,7 +173,14 @@ class MainDB {
         if (storedUtxo != null) {
           // update
           set.remove(utxo);
-          set.add(storedUtxo);
+          set.add(
+            storedUtxo.copyWith(
+              value: utxo.value,
+              address: utxo.address,
+              blockTime: utxo.blockTime,
+              blockHeight: utxo.blockHeight,
+            ),
+          );
         }
       }
 
