@@ -94,6 +94,9 @@ class EpicBoxConfigModel {
       _epicBox['epicbox_address_index'] = _epicBox['address_index'];
     }
 
+    _epicBox['epicbox_protocol_insecure'] ??= false;
+    _epicBox['epicbox_address_index'] ??= 0;
+
     return EpicBoxConfigModel(
       host: _epicBox['epicbox_domain'] as String,
       port: _epicBox['epicbox_port'] as int,
