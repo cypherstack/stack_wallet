@@ -179,6 +179,7 @@ class MainDB {
               address: utxo.address,
               blockTime: utxo.blockTime,
               blockHeight: utxo.blockHeight,
+              blockHash: utxo.blockHash,
             ),
           );
         }
