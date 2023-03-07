@@ -160,6 +160,28 @@ class MainDB {
         await isar.utxos.putAll(utxos);
       });
 
+  Future<void> updateUTXOs(String walletId, List<UTXO> utxos) async {
+    await isar.writeTxn(() async {
+      final set = utxos.toSet();
+      for (final utxo in utxos) {
+        // check if utxo exists in db and update accordingly
+        final storedUtxo = await isar.utxos
+            .where()
+            .txidWalletIdVoutEqualTo(utxo.txid, utxo.walletId, utxo.vout)
+            .findFirst();
+
+        if (storedUtxo != null) {
+          // update
+          set.remove(utxo);
+          set.add(storedUtxo);
+        }
+      }
+
+      await isar.utxos.where().walletIdEqualTo(walletId).deleteAll();
+      await isar.utxos.putAll(set.toList());
+    });
+  }
+
   // transaction notes
   QueryBuilder<TransactionNote, TransactionNote, QAfterWhereClause>
       getTransactionNotes(String walletId) =>

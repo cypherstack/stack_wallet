@@ -4,7 +4,7 @@ import 'package:isar/isar.dart';
 
 part 'utxo.g.dart';
 
-@Collection(accessor: "utxos")
+@Collection(accessor: "utxos", inheritance: false)
 class UTXO {
   UTXO({
     required this.walletId,
@@ -84,4 +84,16 @@ class UTXO {
       "address: $address, "
       "otherData: $otherData, "
       "}";
+
+  @override
+  bool operator ==(Object other) {
+    return other is UTXO &&
+        other.walletId == walletId &&
+        other.txid == txid &&
+        other.vout == vout;
+  }
+
+  @override
+  @ignore
+  int get hashCode => Object.hashAll([walletId, txid, vout]);
 }

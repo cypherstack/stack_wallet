@@ -1796,13 +1796,7 @@ class BitcoinWallet extends CoinServiceAPI
         }
       }
 
-      final currentChainHeight = await chainHeight;
-
       final List<isar_models.UTXO> outputArray = [];
-      int satoshiBalanceTotal = 0;
-      int satoshiBalancePending = 0;
-      int satoshiBalanceSpendable = 0;
-      int satoshiBalanceBlocked = 0;
 
       for (int i = 0; i < fetchedUtxoList.length; i++) {
         for (int j = 0; j < fetchedUtxoList[i].length; j++) {
@@ -1863,18 +1857,6 @@ class BitcoinWallet extends CoinServiceAPI
             address: utxoOwnerAddress,
           );
 
-          satoshiBalanceTotal += utxo.value;
-
-          if (utxo.isBlocked) {
-            satoshiBalanceBlocked += utxo.value;
-          } else {
-            if (utxo.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
-              satoshiBalanceSpendable += utxo.value;
-            } else {
-              satoshiBalancePending += utxo.value;
-            }
-          }
-
           outputArray.add(utxo);
         }
       }
@@ -1882,25 +1864,47 @@ class BitcoinWallet extends CoinServiceAPI
       Logging.instance
           .log('Outputs fetched: $outputArray', level: LogLevel.Info);
 
-      // TODO move this out of here and into IDB
-      await db.isar.writeTxn(() async {
-        await db.isar.utxos.where().walletIdEqualTo(walletId).deleteAll();
-        await db.isar.utxos.putAll(outputArray);
-      });
+      await db.updateUTXOs(walletId, outputArray);
 
       // finally update balance
-      _balance = Balance(
-        coin: coin,
-        total: satoshiBalanceTotal,
-        spendable: satoshiBalanceSpendable,
-        blockedTotal: satoshiBalanceBlocked,
-        pendingSpendable: satoshiBalancePending,
-      );
-      await updateCachedBalance(_balance!);
+      await _updateBalance();
     } catch (e, s) {
       Logging.instance
           .log("Output fetch unsuccessful: $e\n$s", level: LogLevel.Error);
     }
+  }
+
+  Future<void> _updateBalance() async {
+    final utxos = await db.getUTXOs(walletId).findAll();
+    final currentChainHeight = await chainHeight;
+
+    int satoshiBalanceTotal = 0;
+    int satoshiBalancePending = 0;
+    int satoshiBalanceSpendable = 0;
+    int satoshiBalanceBlocked = 0;
+
+    for (final utxo in utxos) {
+      satoshiBalanceTotal += utxo.value;
+
+      if (utxo.isBlocked) {
+        satoshiBalanceBlocked += utxo.value;
+      } else {
+        if (utxo.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
+          satoshiBalanceSpendable += utxo.value;
+        } else {
+          satoshiBalancePending += utxo.value;
+        }
+      }
+    }
+
+    _balance = Balance(
+      coin: coin,
+      total: satoshiBalanceTotal,
+      spendable: satoshiBalanceSpendable,
+      blockedTotal: satoshiBalanceBlocked,
+      pendingSpendable: satoshiBalancePending,
+    );
+    await updateCachedBalance(_balance!);
   }
 
   @override
