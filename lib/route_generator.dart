@@ -2,6 +2,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:isar/isar.dart';
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
 import 'package:stackwallet/models/contact_address_entry.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
@@ -28,6 +29,7 @@ import 'package:stackwallet/pages/buy_view/buy_in_wallet_view.dart';
 import 'package:stackwallet/pages/buy_view/buy_quote_preview.dart';
 import 'package:stackwallet/pages/buy_view/buy_view.dart';
 import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
+import 'package:stackwallet/pages/coin_control/utxo_details_view.dart';
 import 'package:stackwallet/pages/exchange_view/choose_from_stack_view.dart';
 import 'package:stackwallet/pages/exchange_view/edit_trade_note_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_1_view.dart';
@@ -199,11 +201,11 @@ class RouteGenerator {
             builder: (_) => const AddWalletView(),
             settings: RouteSettings(name: settings.name));
 
-      case PaynymClaimView.routeName:
+      case CoinControlView.routeName:
         if (args is String) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => PaynymClaimView(
+            builder: (_) => CoinControlView(
               walletId: args,
             ),
             settings: RouteSettings(
@@ -213,11 +215,26 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
-      case CoinControlView.routeName:
+      case UtxoDetailsView.routeName:
+        if (args is Tuple2<Id, String>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => UtxoDetailsView(
+              walletId: args.item2,
+              utxoId: args.item1,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case PaynymClaimView.routeName:
         if (args is String) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => CoinControlView(
+            builder: (_) => PaynymClaimView(
               walletId: args,
             ),
             settings: RouteSettings(

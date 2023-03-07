@@ -6,11 +6,13 @@ import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 
 class UtxoCard extends ConsumerStatefulWidget {
   const UtxoCard({
@@ -18,11 +20,13 @@ class UtxoCard extends ConsumerStatefulWidget {
     required this.utxo,
     required this.walletId,
     this.selectable = false,
+    this.onPressed,
   }) : super(key: key);
 
   final String walletId;
   final UTXO utxo;
   final bool selectable;
+  final VoidCallback? onPressed;
 
   @override
   ConsumerState<UtxoCard> createState() => _UtxoCardState();
@@ -59,54 +63,76 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
       }
     }
 
-    return RoundedWhiteContainer(
-      child: Row(
-        children: [
-          SvgPicture.asset(
-            _selected
-                ? Assets.svg.coinControl.selected
-                : utxo.isBlocked
-                    ? Assets.svg.coinControl.blocked
-                    : Assets.svg.coinControl.unBlocked,
-            width: 32,
-            height: 32,
-          ),
-          const SizedBox(
-            width: 10,
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  "${Format.satoshisToAmount(
-                    utxo.value,
-                    coin: coin,
-                  ).toStringAsFixed(coin.decimals)} ${coin.ticker}",
-                  style: STextStyles.w600_14(context),
-                ),
-                const SizedBox(
-                  height: 2,
-                ),
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        label ?? utxo.address ?? utxo.txid,
-                        style: STextStyles.w500_12(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textSubtitle1,
+    return ConditionalParent(
+      condition: widget.onPressed != null,
+      builder: (child) => MaterialButton(
+        padding: const EdgeInsets.all(0),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        color: Theme.of(context).extension<StackColors>()!.popupBG,
+        elevation: 0,
+        disabledElevation: 0,
+        hoverElevation: 0,
+        focusElevation: 0,
+        highlightElevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius:
+              BorderRadius.circular(Constants.size.circularBorderRadius),
+        ),
+        onPressed: widget.onPressed,
+        child: child,
+      ),
+      child: RoundedContainer(
+        color: widget.onPressed == null
+            ? Theme.of(context).extension<StackColors>()!.popupBG
+            : Colors.transparent,
+        child: Row(
+          children: [
+            SvgPicture.asset(
+              _selected
+                  ? Assets.svg.coinControl.selected
+                  : utxo.isBlocked
+                      ? Assets.svg.coinControl.blocked
+                      : Assets.svg.coinControl.unBlocked,
+              width: 32,
+              height: 32,
+            ),
+            const SizedBox(
+              width: 10,
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "${Format.satoshisToAmount(
+                      utxo.value,
+                      coin: coin,
+                    ).toStringAsFixed(coin.decimals)} ${coin.ticker}",
+                    style: STextStyles.w600_14(context),
+                  ),
+                  const SizedBox(
+                    height: 2,
+                  ),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          label ?? utxo.address ?? utxo.txid,
+                          style: STextStyles.w500_12(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textSubtitle1,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

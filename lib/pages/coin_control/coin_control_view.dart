@@ -4,6 +4,7 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/coin_control/utxo_card.dart';
+import 'package:stackwallet/pages/coin_control/utxo_details_view.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -11,6 +12,7 @@ import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/toggle.dart';
+import 'package:tuple/tuple.dart';
 
 class CoinControlView extends ConsumerStatefulWidget {
   const CoinControlView({
@@ -39,6 +41,8 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
         .isBlockedEqualTo(_showAvailable)
         .idProperty()
         .findAllSync();
+
+    print(ids);
 
     return Background(
       child: Scaffold(
@@ -116,6 +120,15 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                       key: Key("${utxo.walletId}_${utxo.id}"),
                       walletId: widget.walletId,
                       utxo: utxo,
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          UtxoDetailsView.routeName,
+                          arguments: Tuple2(
+                            utxo.id,
+                            widget.walletId,
+                          ),
+                        );
+                      },
                     );
                   },
                 ),

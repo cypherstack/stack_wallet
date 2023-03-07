@@ -182,6 +182,13 @@ class MainDB {
     });
   }
 
+  Stream<UTXO?> watchUTXO({
+    required Id id,
+    bool fireImmediately = false,
+  }) {
+    return isar.utxos.watchObject(id, fireImmediately: fireImmediately);
+  }
+
   // transaction notes
   QueryBuilder<TransactionNote, TransactionNote, QAfterWhereClause>
       getTransactionNotes(String walletId) =>
