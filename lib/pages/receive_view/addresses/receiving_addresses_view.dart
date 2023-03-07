@@ -112,8 +112,9 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
                   .not()
                   .typeEqualTo(AddressType.nonWallet)
                   .sortByDerivationIndex()
+                  .idProperty()
                   .findAll(),
-              builder: (context, AsyncSnapshot<List<Address>> snapshot) {
+              builder: (context, AsyncSnapshot<List<int>> snapshot) {
                 if (snapshot.connectionState == ConnectionState.done &&
                     snapshot.data != null) {
                   // listview
@@ -124,7 +125,7 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
                     ),
                     itemBuilder: (_, index) => AddressCard(
                       walletId: widget.walletId,
-                      address: snapshot.data![index],
+                      addressId: snapshot.data![index],
                       coin: coin,
                     ),
                   );

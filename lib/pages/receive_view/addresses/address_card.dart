@@ -21,13 +21,13 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 class AddressCard extends StatefulWidget {
   const AddressCard({
     Key? key,
-    required this.address,
+    required this.addressId,
     required this.walletId,
     required this.coin,
     this.clipboard = const ClipboardWrapper(),
   }) : super(key: key);
 
-  final Address address;
+  final int addressId;
   final String walletId;
   final Coin coin;
   final ClipboardInterface clipboard;
@@ -38,18 +38,23 @@ class AddressCard extends StatefulWidget {
 
 class _AddressCardState extends State<AddressCard> {
   late Stream<AddressLabel?> stream;
+  late final Address address;
 
   AddressLabel? label;
 
   @override
   void initState() {
-    label = MainDB.instance
-        .getAddressLabelSync(widget.walletId, widget.address.value);
+    address = MainDB.instance.isar.addresses
+        .where()
+        .idEqualTo(widget.addressId)
+        .findFirstSync()!;
+
+    label = MainDB.instance.getAddressLabelSync(widget.walletId, address.value);
     Id? id = label?.id;
     if (id == null) {
       label = AddressLabel(
         walletId: widget.walletId,
-        addressString: widget.address.value,
+        addressString: address.value,
         value: "",
       );
       id = MainDB.instance.putAddressLabelSync(label!);
@@ -97,7 +102,7 @@ class _AddressCardState extends State<AddressCard> {
                   children: [
                     Expanded(
                       child: SelectableText(
-                        widget.address.value,
+                        address.value,
                         style: STextStyles.itemSubtitle12(context),
                       ),
                     )
@@ -119,7 +124,7 @@ class _AddressCardState extends State<AddressCard> {
                         onPressed: () async {
                           await widget.clipboard.setData(
                             ClipboardData(
-                              text: widget.address.value,
+                              text: address.value,
                             ),
                           );
                           if (mounted) {
@@ -149,7 +154,7 @@ class _AddressCardState extends State<AddressCard> {
                           showDialog<void>(
                             context: context,
                             builder: (context) => AddressQrPopup(
-                              addressString: widget.address.value,
+                              addressString: address.value,
                               coin: widget.coin,
                               clipboard: widget.clipboard,
                             ),
