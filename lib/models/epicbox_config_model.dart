@@ -85,9 +85,9 @@ class EpicBoxConfigModel {
     if (oldPort != "empty") {
       _epicBox['epicbox_port'] = _epicBox['port'];
     }
-    final oldProtocolInsecure = _epicBox["protocol_insecur"] ?? "empty";
+    final oldProtocolInsecure = _epicBox["protocol_insecure"] ?? "empty";
     if (oldProtocolInsecure != "empty") {
-      _epicBox['epicbox_protocol_insecure'] = _epicBox['protocol_insecur'];
+      _epicBox['epicbox_protocol_insecure'] = _epicBox['protocol_insecure'];
     }
     final oldAddressIndex = _epicBox["address_index"] ?? "empty";
     if (oldAddressIndex != "empty") {
