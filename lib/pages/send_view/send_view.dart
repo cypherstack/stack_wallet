@@ -1789,5 +1789,9 @@ String formatAddress(String epicAddress) {
   if (epicAddress.startsWith("mailto:")) {
     epicAddress = epicAddress.replaceAll("mailto:", "");
   }
+  // strip / suffix if the address contains an @ symbol (and is thus an epicbox address)
+  if (epicAddress.endsWith("/") && epicAddress.contains("@")) {
+    epicAddress = epicAddress.substring(0, epicAddress.length - 1);
+  }
   return epicAddress;
 }
