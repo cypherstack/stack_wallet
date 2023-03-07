@@ -1785,5 +1785,9 @@ String formatAddress(String epicAddress) {
     epicAddress = epicAddress.replaceAll("http://", "");
     epicAddress = epicAddress.replaceAll("https://", "");
   }
+  // strip mailto: prefix
+  if (epicAddress.startsWith("mailto:")) {
+    epicAddress = epicAddress.replaceAll("mailto:", "");
+  }
   return epicAddress;
 }
