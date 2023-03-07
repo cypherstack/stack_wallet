@@ -21,6 +21,7 @@ class UtxoCard extends ConsumerStatefulWidget {
     required this.walletId,
     required this.onSelectedChanged,
     required this.initialSelectedState,
+    required this.canSelect,
     this.onPressed,
   }) : super(key: key);
 
@@ -29,6 +30,7 @@ class UtxoCard extends ConsumerStatefulWidget {
   final void Function(bool) onSelectedChanged;
   final bool initialSelectedState;
   final VoidCallback? onPressed;
+  final bool canSelect;
 
   @override
   ConsumerState<UtxoCard> createState() => _UtxoCardState();
@@ -90,12 +92,16 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
             : Colors.transparent,
         child: Row(
           children: [
-            GestureDetector(
-              onTap: () {
-                _selected = !_selected;
-                widget.onSelectedChanged(_selected);
-                setState(() {});
-              },
+            ConditionalParent(
+              condition: widget.canSelect,
+              builder: (child) => GestureDetector(
+                onTap: () {
+                  _selected = !_selected;
+                  widget.onSelectedChanged(_selected);
+                  setState(() {});
+                },
+                child: child,
+              ),
               child: SvgPicture.asset(
                 _selected
                     ? Assets.svg.coinControl.selected

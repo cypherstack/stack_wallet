@@ -229,13 +229,15 @@ class RouteGenerator {
               name: settings.name,
             ),
           );
-        } else if (args is Tuple3<String, CoinControlViewType, int?>) {
+        } else if (args
+            is Tuple4<String, CoinControlViewType, int?, Set<UTXO>?>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => CoinControlView(
               walletId: args.item1,
               type: args.item2,
               requestedTotal: args.item3,
+              selectedUTXOs: args.item4,
             ),
             settings: RouteSettings(
               name: settings.name,

@@ -7,9 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
+import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/firo_balance_selection_sheet.dart';
@@ -43,9 +45,11 @@ import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
+import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
+import 'package:tuple/tuple.dart';
 
 class SendView extends ConsumerStatefulWidget {
   const SendView({
@@ -103,6 +107,8 @@ class _SendViewState extends ConsumerState<SendView> {
   late VoidCallback onCryptoAmountChanged;
 
   Decimal? _cachedBalance;
+
+  Set<UTXO> selectedUTXOs = {};
 
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
@@ -313,51 +319,54 @@ class _SendViewState extends ConsumerState<SendView> {
           Format.decimalAmountToSatoshis(manager.balance.getSpendable(), coin);
     }
 
-    // confirm send all
-    if (amount == availableBalance) {
-      final bool? shouldSendAll = await showDialog<bool>(
-        context: context,
-        useSafeArea: false,
-        barrierDismissible: true,
-        builder: (context) {
-          return StackDialog(
-            title: "Confirm send all",
-            message:
-                "You are about to send your entire balance. Would you like to continue?",
-            leftButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getSecondaryEnabledButtonStyle(context),
-              child: Text(
-                "Cancel",
-                style: STextStyles.button(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorDark),
+    if (!manager.hasCoinControlSupport ||
+        (manager.hasCoinControlSupport && selectedUTXOs.isEmpty)) {
+      // confirm send all
+      if (amount == availableBalance) {
+        final bool? shouldSendAll = await showDialog<bool>(
+          context: context,
+          useSafeArea: false,
+          barrierDismissible: true,
+          builder: (context) {
+            return StackDialog(
+              title: "Confirm send all",
+              message:
+                  "You are about to send your entire balance. Would you like to continue?",
+              leftButton: TextButton(
+                style: Theme.of(context)
+                    .extension<StackColors>()!
+                    .getSecondaryEnabledButtonStyle(context),
+                child: Text(
+                  "Cancel",
+                  style: STextStyles.button(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                },
               ),
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-            ),
-            rightButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getPrimaryEnabledButtonStyle(context),
-              child: Text(
-                "Yes",
-                style: STextStyles.button(context),
+              rightButton: TextButton(
+                style: Theme.of(context)
+                    .extension<StackColors>()!
+                    .getPrimaryEnabledButtonStyle(context),
+                child: Text(
+                  "Yes",
+                  style: STextStyles.button(context),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
               ),
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-            ),
-          );
-        },
-      );
+            );
+          },
+        );
 
-      if (shouldSendAll == null || shouldSendAll == false) {
-        // cancel preview
-        return;
+        if (shouldSendAll == null || shouldSendAll == false) {
+          // cancel preview
+          return;
+        }
       }
     }
 
@@ -393,7 +402,12 @@ class _SendViewState extends ConsumerState<SendView> {
         txData = await wallet.preparePaymentCodeSend(
           paymentCode: paymentCode,
           satoshiAmount: amount,
-          args: {"feeRate": feeRate},
+          args: {
+            "feeRate": feeRate,
+            "UTXOs": (manager.hasCoinControlSupport && selectedUTXOs.isNotEmpty)
+                ? selectedUTXOs
+                : null,
+          },
         );
       } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
           ref.read(publicPrivateBalanceStateProvider.state).state !=
@@ -407,7 +421,12 @@ class _SendViewState extends ConsumerState<SendView> {
         txData = await manager.prepareSend(
           address: _address!,
           satoshiAmount: amount,
-          args: {"feeRate": ref.read(feeRateTypeStateProvider)},
+          args: {
+            "feeRate": ref.read(feeRateTypeStateProvider),
+            "UTXOs": (manager.hasCoinControlSupport && selectedUTXOs.isNotEmpty)
+                ? selectedUTXOs
+                : null,
+          },
         );
       }
 
@@ -564,6 +583,12 @@ class _SendViewState extends ConsumerState<SendView> {
         .select((value) => value.getManagerProvider(walletId)));
     final String locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
+
+    final showCoinControl = ref.watch(
+      walletsChangeNotifierProvider.select(
+        (value) => value.getManager(walletId).hasCoinControlSupport,
+      ),
+    );
 
     if (coin == Coin.firo || coin == Coin.firoTestNet) {
       ref.listen(publicPrivateBalanceStateProvider, (previous, next) {
@@ -1482,6 +1507,56 @@ class _SendViewState extends ConsumerState<SendView> {
                                     ),
                                   ),
                                 ),
+                              ),
+                            ),
+                          if (showCoinControl)
+                            const SizedBox(
+                              height: 8,
+                            ),
+                          if (showCoinControl)
+                            RoundedWhiteContainer(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Coin control",
+                                    style:
+                                        STextStyles.w500_14(context).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textSubtitle1,
+                                    ),
+                                  ),
+                                  CustomTextButton(
+                                    text: selectedUTXOs.isEmpty
+                                        ? "Select coins"
+                                        : "Selected coins (${selectedUTXOs.length})",
+                                    onTap: () async {
+                                      final result =
+                                          await Navigator.of(context).pushNamed(
+                                        CoinControlView.routeName,
+                                        arguments: Tuple4(
+                                          walletId,
+                                          CoinControlViewType.use,
+                                          _amountToSend != null
+                                              ? Format.decimalAmountToSatoshis(
+                                                  _amountToSend!,
+                                                  coin,
+                                                )
+                                              : null,
+                                          selectedUTXOs,
+                                        ),
+                                      );
+
+                                      if (result is Set<UTXO>) {
+                                        setState(() {
+                                          selectedUTXOs = result;
+                                        });
+                                      }
+                                    },
+                                  ),
+                                ],
                               ),
                             ),
                           const SizedBox(
