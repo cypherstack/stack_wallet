@@ -239,7 +239,7 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                       height: 4,
                     ),
                     Text(
-                      "${currentHeight - utxo!.blockHeight!}",
+                      "${utxo!.getConfirmations(currentHeight)}",
                       style: STextStyles.w500_14(context),
                     ),
                   ],
