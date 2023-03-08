@@ -578,6 +578,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         content = content.substring(0, content.indexOf("\n"));
       }
 
+      if (coin == Coin.epicCash) {
+        // strip http:// and https:// if content contains @
+        content = formatAddress(content);
+      }
+
       sendToController.text = content;
       _address = content;
 
@@ -741,6 +746,22 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         .select((value) => value.getManagerProvider(walletId)));
     final String locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
+
+    // add listener for epic cash to strip http:// and https:// prefixes if the address also ocntains an @ symbol (indicating an epicbox address)
+    if (coin == Coin.epicCash) {
+      sendToController.addListener(() {
+        _address = sendToController.text;
+
+        if (_address != null && _address!.isNotEmpty) {
+          _address = _address!.trim();
+          if (_address!.contains("\n")) {
+            _address = _address!.substring(0, _address!.indexOf("\n"));
+          }
+
+          sendToController.text = formatAddress(_address!);
+        }
+      });
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1322,4 +1343,23 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       ],
     );
   }
+}
+
+String formatAddress(String epicAddress) {
+  // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an epicbox address)
+  if ((epicAddress.startsWith("http://") ||
+          epicAddress.startsWith("https://")) &&
+      epicAddress.contains("@")) {
+    epicAddress = epicAddress.replaceAll("http://", "");
+    epicAddress = epicAddress.replaceAll("https://", "");
+  }
+  // strip mailto: prefix
+  if (epicAddress.startsWith("mailto:")) {
+    epicAddress = epicAddress.replaceAll("mailto:", "");
+  }
+  // strip / suffix if the address contains an @ symbol (and is thus an epicbox address)
+  if (epicAddress.endsWith("/") && epicAddress.contains("@")) {
+    epicAddress = epicAddress.substring(0, epicAddress.length - 1);
+  }
+  return epicAddress;
 }

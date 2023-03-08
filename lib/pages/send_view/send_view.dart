@@ -605,6 +605,22 @@ class _SendViewState extends ConsumerState<SendView> {
       });
     }
 
+    // add listener for epic cash to strip http:// and https:// prefixes if the address also ocntains an @ symbol (indicating an epicbox address)
+    if (coin == Coin.epicCash) {
+      sendToController.addListener(() {
+        _address = sendToController.text;
+
+        if (_address != null && _address!.isNotEmpty) {
+          _address = _address!.trim();
+          if (_address!.contains("\n")) {
+            _address = _address!.substring(0, _address!.indexOf("\n"));
+          }
+
+          sendToController.text = formatAddress(_address!);
+        }
+      });
+    }
+
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -929,6 +945,12 @@ class _SendViewState extends ConsumerState<SendView> {
                                                                     "\n"));
                                                       }
 
+                                                      if (coin ==
+                                                          Coin.epicCash) {
+                                                        // strip http:// and https:// if content contains @
+                                                        content = formatAddress(
+                                                            content);
+                                                      }
                                                       sendToController.text =
                                                           content;
                                                       _address = content;
@@ -1828,4 +1850,23 @@ class _SendViewState extends ConsumerState<SendView> {
       ),
     );
   }
+}
+
+String formatAddress(String epicAddress) {
+  // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an epicbox address)
+  if ((epicAddress.startsWith("http://") ||
+          epicAddress.startsWith("https://")) &&
+      epicAddress.contains("@")) {
+    epicAddress = epicAddress.replaceAll("http://", "");
+    epicAddress = epicAddress.replaceAll("https://", "");
+  }
+  // strip mailto: prefix
+  if (epicAddress.startsWith("mailto:")) {
+    epicAddress = epicAddress.replaceAll("mailto:", "");
+  }
+  // strip / suffix if the address contains an @ symbol (and is thus an epicbox address)
+  if (epicAddress.endsWith("/") && epicAddress.contains("@")) {
+    epicAddress = epicAddress.substring(0, epicAddress.length - 1);
+  }
+  return epicAddress;
 }
