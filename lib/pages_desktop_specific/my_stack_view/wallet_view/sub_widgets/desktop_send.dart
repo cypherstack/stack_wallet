@@ -580,7 +580,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       if (coin == Coin.epicCash) {
         // strip http:// and https:// if content contains @
-        content = httpXOREpicBox(content);
+        content = formatAddress(content);
       }
 
       sendToController.text = content;
@@ -758,7 +758,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             _address = _address!.substring(0, _address!.indexOf("\n"));
           }
 
-          sendToController.text = httpXOREpicBox(_address!);
+          sendToController.text = formatAddress(_address!);
         }
       });
     }
@@ -1345,13 +1345,21 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 }
 
-// strip http:// and https:// if epicAddress contains @
-String httpXOREpicBox(String epicAddress) {
+String formatAddress(String epicAddress) {
+  // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an epicbox address)
   if ((epicAddress.startsWith("http://") ||
           epicAddress.startsWith("https://")) &&
       epicAddress.contains("@")) {
     epicAddress = epicAddress.replaceAll("http://", "");
     epicAddress = epicAddress.replaceAll("https://", "");
+  }
+  // strip mailto: prefix
+  if (epicAddress.startsWith("mailto:")) {
+    epicAddress = epicAddress.replaceAll("mailto:", "");
+  }
+  // strip / suffix if the address contains an @ symbol (and is thus an epicbox address)
+  if (epicAddress.endsWith("/") && epicAddress.contains("@")) {
+    epicAddress = epicAddress.substring(0, epicAddress.length - 1);
   }
   return epicAddress;
 }
