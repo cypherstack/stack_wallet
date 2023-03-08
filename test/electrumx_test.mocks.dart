@@ -373,6 +373,19 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValueForMissingStub: null,
       );
   @override
+  bool get enableCoinControl => (super.noSuchMethod(
+        Invocation.getter(#enableCoinControl),
+        returnValue: false,
+      ) as bool);
+  @override
+  set enableCoinControl(bool? enableCoinControl) => super.noSuchMethod(
+        Invocation.setter(
+          #enableCoinControl,
+          enableCoinControl,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
