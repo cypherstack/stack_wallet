@@ -74,6 +74,11 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
       ),
     );
 
+    final confirmed = utxo!.isConfirmed(
+      currentHeight,
+      coin.requiredConfirmations,
+    );
+
     return ConditionalParent(
       condition: !Util.isDesktop,
       builder: (child) => Background(
@@ -137,15 +142,23 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                       style: STextStyles.pageTitleH2(context),
                     ),
                     Text(
-                      utxo!.isBlocked ? "Frozen" : "Available",
+                      utxo!.isBlocked
+                          ? "Frozen"
+                          : confirmed
+                              ? "Available"
+                              : "Unconfirmed",
                       style: STextStyles.w500_14(context).copyWith(
                         color: utxo!.isBlocked
                             ? Theme.of(context)
                                 .extension<StackColors>()!
                                 .accentColorBlue
-                            : Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorGreen,
+                            : confirmed
+                                ? Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorGreen
+                                : Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorYellow,
                       ),
                     ),
                   ],

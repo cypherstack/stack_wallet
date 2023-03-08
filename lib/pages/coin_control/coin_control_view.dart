@@ -73,6 +73,16 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
       ),
     );
 
+    final currentChainHeight = ref.watch(
+      walletsChangeNotifierProvider.select(
+        (value) => value
+            .getManager(
+              widget.walletId,
+            )
+            .currentHeight,
+      ),
+    );
+
     final ids = MainDB.instance
         .getUTXOs(widget.walletId)
         .filter()
@@ -206,7 +216,11 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                 canSelect: widget.type ==
                                         CoinControlViewType.manage ||
                                     (widget.type == CoinControlViewType.use &&
-                                        !_showBlocked),
+                                        !_showBlocked &&
+                                        utxo.isConfirmed(
+                                          currentChainHeight,
+                                          coin.requiredConfirmations,
+                                        )),
                                 initialSelectedState: isSelected,
                                 onSelectedChanged: (value) {
                                   if (value) {
