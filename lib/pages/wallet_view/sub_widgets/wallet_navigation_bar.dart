@@ -7,6 +7,7 @@ import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/providers/global/paynym_api_provider.dart';
+import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
@@ -52,10 +53,22 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
 
   @override
   Widget build(BuildContext context) {
-    final showMore = ref.watch(walletsChangeNotifierProvider.select(
-            (value) => value.getManager(widget.walletId).hasPaynymSupport)) ||
-        ref.watch(walletsChangeNotifierProvider.select((value) =>
-            value.getManager(widget.walletId).hasCoinControlSupport));
+    final showMore = ref.watch(
+          walletsChangeNotifierProvider.select(
+            (value) => value.getManager(widget.walletId).hasPaynymSupport,
+          ),
+        ) ||
+        (ref.watch(
+              walletsChangeNotifierProvider.select(
+                (value) =>
+                    value.getManager(widget.walletId).hasCoinControlSupport,
+              ),
+            ) &&
+            ref.watch(
+              prefsChangeNotifierProvider.select(
+                (value) => value.enableCoinControl,
+              ),
+            ));
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -104,8 +117,18 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
               // const SizedBox(
               //   height: 8,
               // ),
-              if (ref.watch(walletsChangeNotifierProvider.select((value) =>
-                  value.getManager(widget.walletId).hasCoinControlSupport)))
+              if (ref.watch(
+                    walletsChangeNotifierProvider.select(
+                      (value) => value
+                          .getManager(widget.walletId)
+                          .hasCoinControlSupport,
+                    ),
+                  ) &&
+                  ref.watch(
+                    prefsChangeNotifierProvider.select(
+                      (value) => value.enableCoinControl,
+                    ),
+                  ))
                 AnimatedOpacity(
                   opacity: scale,
                   duration: duration,
@@ -164,12 +187,24 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                     ),
                   ),
                 ),
-              if (ref.watch(walletsChangeNotifierProvider.select((value) =>
-                      value
+              if (ref.watch(
+                    walletsChangeNotifierProvider.select(
+                      (value) => value
                           .getManager(widget.walletId)
-                          .hasCoinControlSupport)) &&
-                  ref.watch(walletsChangeNotifierProvider.select((value) =>
-                      value.getManager(widget.walletId).hasPaynymSupport)))
+                          .hasCoinControlSupport,
+                    ),
+                  ) &&
+                  ref.watch(
+                    prefsChangeNotifierProvider.select(
+                      (value) => value.enableCoinControl,
+                    ),
+                  ) &&
+                  ref.watch(
+                    walletsChangeNotifierProvider.select(
+                      (value) =>
+                          value.getManager(widget.walletId).hasPaynymSupport,
+                    ),
+                  ))
                 const SizedBox(
                   height: 8,
                 ),

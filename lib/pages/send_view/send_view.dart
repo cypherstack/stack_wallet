@@ -319,8 +319,13 @@ class _SendViewState extends ConsumerState<SendView> {
           Format.decimalAmountToSatoshis(manager.balance.getSpendable(), coin);
     }
 
-    if (!manager.hasCoinControlSupport ||
-        (manager.hasCoinControlSupport && selectedUTXOs.isEmpty)) {
+    final coinControlEnabled =
+        ref.read(prefsChangeNotifierProvider).enableCoinControl;
+
+    if (!(manager.hasCoinControlSupport && coinControlEnabled) ||
+        (manager.hasCoinControlSupport &&
+            coinControlEnabled &&
+            selectedUTXOs.isEmpty)) {
       // confirm send all
       if (amount == availableBalance) {
         final bool? shouldSendAll = await showDialog<bool>(
@@ -404,7 +409,9 @@ class _SendViewState extends ConsumerState<SendView> {
           satoshiAmount: amount,
           args: {
             "feeRate": feeRate,
-            "UTXOs": (manager.hasCoinControlSupport && selectedUTXOs.isNotEmpty)
+            "UTXOs": (manager.hasCoinControlSupport &&
+                    coinControlEnabled &&
+                    selectedUTXOs.isNotEmpty)
                 ? selectedUTXOs
                 : null,
           },
@@ -423,7 +430,9 @@ class _SendViewState extends ConsumerState<SendView> {
           satoshiAmount: amount,
           args: {
             "feeRate": ref.read(feeRateTypeStateProvider),
-            "UTXOs": (manager.hasCoinControlSupport && selectedUTXOs.isNotEmpty)
+            "UTXOs": (manager.hasCoinControlSupport &&
+                    coinControlEnabled &&
+                    selectedUTXOs.isNotEmpty)
                 ? selectedUTXOs
                 : null,
           },
@@ -585,10 +594,15 @@ class _SendViewState extends ConsumerState<SendView> {
         localeServiceChangeNotifierProvider.select((value) => value.locale));
 
     final showCoinControl = ref.watch(
-      walletsChangeNotifierProvider.select(
-        (value) => value.getManager(walletId).hasCoinControlSupport,
-      ),
-    );
+          walletsChangeNotifierProvider.select(
+            (value) => value.getManager(walletId).hasCoinControlSupport,
+          ),
+        ) &&
+        ref.watch(
+          prefsChangeNotifierProvider.select(
+            (value) => value.enableCoinControl,
+          ),
+        );
 
     if (coin == Coin.firo || coin == Coin.firoTestNet) {
       ref.listen(publicPrivateBalanceStateProvider, (previous, next) {
