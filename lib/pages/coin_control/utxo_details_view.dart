@@ -163,9 +163,7 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                               : "Unconfirmed",
                       style: STextStyles.w500_14(context).copyWith(
                         color: utxo!.isBlocked
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorBlue
+                            ? const Color(0xFF7FA2D4) // todo theme
                             : confirmed
                                 ? Theme.of(context)
                                     .extension<StackColors>()!
