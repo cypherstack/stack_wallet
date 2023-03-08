@@ -4,7 +4,7 @@ import 'package:isar/isar.dart';
 
 part 'utxo.g.dart';
 
-@Collection(accessor: "utxos")
+@Collection(accessor: "utxos", inheritance: false)
 class UTXO {
   UTXO({
     required this.walletId,
@@ -18,6 +18,8 @@ class UTXO {
     required this.blockHash,
     required this.blockHeight,
     required this.blockTime,
+    this.address,
+    this.used,
     this.otherData,
   });
 
@@ -26,7 +28,10 @@ class UTXO {
   @Index()
   late final String walletId;
 
-  @Index(unique: true, replace: true, composite: [CompositeIndex("walletId")])
+  @Index(unique: true, replace: true, composite: [
+    CompositeIndex("walletId"),
+    CompositeIndex("vout"),
+  ])
   late final String txid;
 
   late final int vout;
@@ -48,6 +53,10 @@ class UTXO {
 
   late final int? blockTime;
 
+  late final String? address;
+
+  late final bool? used;
+
   late final String? otherData;
 
   int getConfirmations(int currentChainHeight) {
@@ -60,6 +69,40 @@ class UTXO {
     final confirmations = getConfirmations(currentChainHeight);
     return confirmations >= minimumConfirms;
   }
+
+  UTXO copyWith({
+    Id? id,
+    String? walletId,
+    String? txid,
+    int? vout,
+    int? value,
+    String? name,
+    bool? isBlocked,
+    String? blockedReason,
+    bool? isCoinbase,
+    String? blockHash,
+    int? blockHeight,
+    int? blockTime,
+    String? address,
+    bool? used,
+    String? otherData,
+  }) =>
+      UTXO(
+        walletId: walletId ?? this.walletId,
+        txid: txid ?? this.txid,
+        vout: vout ?? this.vout,
+        value: value ?? this.value,
+        name: name ?? this.name,
+        isBlocked: isBlocked ?? this.isBlocked,
+        blockedReason: blockedReason ?? this.blockedReason,
+        isCoinbase: isCoinbase ?? this.isCoinbase,
+        blockHash: blockHash ?? this.blockHash,
+        blockHeight: blockHeight ?? this.blockHeight,
+        blockTime: blockTime ?? this.blockTime,
+        address: address ?? this.address,
+        used: used ?? this.used,
+        otherData: otherData ?? this.otherData,
+      )..id = id ?? this.id;
 
   @override
   String toString() => "{ "
@@ -75,5 +118,20 @@ class UTXO {
       "blockHash: $blockHash, "
       "blockHeight: $blockHeight, "
       "blockTime: $blockTime, "
+      "address: $address, "
+      "used: $used, "
+      "otherData: $otherData, "
       "}";
+
+  @override
+  bool operator ==(Object other) {
+    return other is UTXO &&
+        other.walletId == walletId &&
+        other.txid == txid &&
+        other.vout == vout;
+  }
+
+  @override
+  @ignore
+  int get hashCode => Object.hashAll([walletId, txid, vout]);
 }

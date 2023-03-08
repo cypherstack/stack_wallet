@@ -48,8 +48,20 @@ class _BUY {
   }
 }
 
+class _COIN_CONTROL {
+  const _COIN_CONTROL();
+
+  String get blocked => "assets/svg/coin_control/frozen.svg";
+  String get unBlocked => "assets/svg/coin_control/unfrozen.svg";
+  String get gamePad => "assets/svg/coin_control/gamepad.svg";
+  String get selected => "assets/svg/coin_control/selected.svg";
+}
+
 class _SVG {
   const _SVG();
+
+  final coinControl = const _COIN_CONTROL();
+
   String? background(BuildContext context) {
     switch (Theme.of(context).extension<StackColors>()!.themeType) {
       case ThemeType.light:

@@ -17,63 +17,73 @@ const UTXOSchema = CollectionSchema(
   name: r'UTXO',
   id: 5934032492047519621,
   properties: {
-    r'blockHash': PropertySchema(
+    r'address': PropertySchema(
       id: 0,
+      name: r'address',
+      type: IsarType.string,
+    ),
+    r'blockHash': PropertySchema(
+      id: 1,
       name: r'blockHash',
       type: IsarType.string,
     ),
     r'blockHeight': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'blockHeight',
       type: IsarType.long,
     ),
     r'blockTime': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'blockTime',
       type: IsarType.long,
     ),
     r'blockedReason': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'blockedReason',
       type: IsarType.string,
     ),
     r'isBlocked': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'isBlocked',
       type: IsarType.bool,
     ),
     r'isCoinbase': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'isCoinbase',
       type: IsarType.bool,
     ),
     r'name': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'name',
       type: IsarType.string,
     ),
     r'otherData': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'otherData',
       type: IsarType.string,
     ),
     r'txid': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'txid',
       type: IsarType.string,
     ),
+    r'used': PropertySchema(
+      id: 10,
+      name: r'used',
+      type: IsarType.bool,
+    ),
     r'value': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'value',
       type: IsarType.long,
     ),
     r'vout': PropertySchema(
-      id: 10,
+      id: 12,
       name: r'vout',
       type: IsarType.long,
     ),
     r'walletId': PropertySchema(
-      id: 11,
+      id: 13,
       name: r'walletId',
       type: IsarType.string,
     )
@@ -97,9 +107,9 @@ const UTXOSchema = CollectionSchema(
         )
       ],
     ),
-    r'txid_walletId': IndexSchema(
-      id: -2771771174176035985,
-      name: r'txid_walletId',
+    r'txid_walletId_vout': IndexSchema(
+      id: -2984264099359759359,
+      name: r'txid_walletId_vout',
       unique: true,
       replace: true,
       properties: [
@@ -112,6 +122,11 @@ const UTXOSchema = CollectionSchema(
           name: r'walletId',
           type: IndexType.hash,
           caseSensitive: true,
+        ),
+        IndexPropertySchema(
+          name: r'vout',
+          type: IndexType.value,
+          caseSensitive: false,
         )
       ],
     ),
@@ -144,6 +159,12 @@ int _uTXOEstimateSize(
 ) {
   var bytesCount = offsets.last;
   {
+    final value = object.address;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.blockHash;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -173,18 +194,20 @@ void _uTXOSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.blockHash);
-  writer.writeLong(offsets[1], object.blockHeight);
-  writer.writeLong(offsets[2], object.blockTime);
-  writer.writeString(offsets[3], object.blockedReason);
-  writer.writeBool(offsets[4], object.isBlocked);
-  writer.writeBool(offsets[5], object.isCoinbase);
-  writer.writeString(offsets[6], object.name);
-  writer.writeString(offsets[7], object.otherData);
-  writer.writeString(offsets[8], object.txid);
-  writer.writeLong(offsets[9], object.value);
-  writer.writeLong(offsets[10], object.vout);
-  writer.writeString(offsets[11], object.walletId);
+  writer.writeString(offsets[0], object.address);
+  writer.writeString(offsets[1], object.blockHash);
+  writer.writeLong(offsets[2], object.blockHeight);
+  writer.writeLong(offsets[3], object.blockTime);
+  writer.writeString(offsets[4], object.blockedReason);
+  writer.writeBool(offsets[5], object.isBlocked);
+  writer.writeBool(offsets[6], object.isCoinbase);
+  writer.writeString(offsets[7], object.name);
+  writer.writeString(offsets[8], object.otherData);
+  writer.writeString(offsets[9], object.txid);
+  writer.writeBool(offsets[10], object.used);
+  writer.writeLong(offsets[11], object.value);
+  writer.writeLong(offsets[12], object.vout);
+  writer.writeString(offsets[13], object.walletId);
 }
 
 UTXO _uTXODeserialize(
@@ -194,18 +217,20 @@ UTXO _uTXODeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = UTXO(
-    blockHash: reader.readStringOrNull(offsets[0]),
-    blockHeight: reader.readLongOrNull(offsets[1]),
-    blockTime: reader.readLongOrNull(offsets[2]),
-    blockedReason: reader.readStringOrNull(offsets[3]),
-    isBlocked: reader.readBool(offsets[4]),
-    isCoinbase: reader.readBool(offsets[5]),
-    name: reader.readString(offsets[6]),
-    otherData: reader.readStringOrNull(offsets[7]),
-    txid: reader.readString(offsets[8]),
-    value: reader.readLong(offsets[9]),
-    vout: reader.readLong(offsets[10]),
-    walletId: reader.readString(offsets[11]),
+    address: reader.readStringOrNull(offsets[0]),
+    blockHash: reader.readStringOrNull(offsets[1]),
+    blockHeight: reader.readLongOrNull(offsets[2]),
+    blockTime: reader.readLongOrNull(offsets[3]),
+    blockedReason: reader.readStringOrNull(offsets[4]),
+    isBlocked: reader.readBool(offsets[5]),
+    isCoinbase: reader.readBool(offsets[6]),
+    name: reader.readString(offsets[7]),
+    otherData: reader.readStringOrNull(offsets[8]),
+    txid: reader.readString(offsets[9]),
+    used: reader.readBoolOrNull(offsets[10]),
+    value: reader.readLong(offsets[11]),
+    vout: reader.readLong(offsets[12]),
+    walletId: reader.readString(offsets[13]),
   );
   object.id = id;
   return object;
@@ -221,26 +246,30 @@ P _uTXODeserializeProp<P>(
     case 0:
       return (reader.readStringOrNull(offset)) as P;
     case 1:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 2:
       return (reader.readLongOrNull(offset)) as P;
     case 3:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 4:
-      return (reader.readBool(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 5:
       return (reader.readBool(offset)) as P;
     case 6:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 7:
-      return (reader.readStringOrNull(offset)) as P;
-    case 8:
       return (reader.readString(offset)) as P;
+    case 8:
+      return (reader.readStringOrNull(offset)) as P;
     case 9:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 10:
-      return (reader.readLong(offset)) as P;
+      return (reader.readBoolOrNull(offset)) as P;
     case 11:
+      return (reader.readLong(offset)) as P;
+    case 12:
+      return (reader.readLong(offset)) as P;
+    case 13:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -260,89 +289,91 @@ void _uTXOAttach(IsarCollection<dynamic> col, Id id, UTXO object) {
 }
 
 extension UTXOByIndex on IsarCollection<UTXO> {
-  Future<UTXO?> getByTxidWalletId(String txid, String walletId) {
-    return getByIndex(r'txid_walletId', [txid, walletId]);
+  Future<UTXO?> getByTxidWalletIdVout(String txid, String walletId, int vout) {
+    return getByIndex(r'txid_walletId_vout', [txid, walletId, vout]);
   }
 
-  UTXO? getByTxidWalletIdSync(String txid, String walletId) {
-    return getByIndexSync(r'txid_walletId', [txid, walletId]);
+  UTXO? getByTxidWalletIdVoutSync(String txid, String walletId, int vout) {
+    return getByIndexSync(r'txid_walletId_vout', [txid, walletId, vout]);
   }
 
-  Future<bool> deleteByTxidWalletId(String txid, String walletId) {
-    return deleteByIndex(r'txid_walletId', [txid, walletId]);
+  Future<bool> deleteByTxidWalletIdVout(
+      String txid, String walletId, int vout) {
+    return deleteByIndex(r'txid_walletId_vout', [txid, walletId, vout]);
   }
 
-  bool deleteByTxidWalletIdSync(String txid, String walletId) {
-    return deleteByIndexSync(r'txid_walletId', [txid, walletId]);
+  bool deleteByTxidWalletIdVoutSync(String txid, String walletId, int vout) {
+    return deleteByIndexSync(r'txid_walletId_vout', [txid, walletId, vout]);
   }
 
-  Future<List<UTXO?>> getAllByTxidWalletId(
-      List<String> txidValues, List<String> walletIdValues) {
+  Future<List<UTXO?>> getAllByTxidWalletIdVout(List<String> txidValues,
+      List<String> walletIdValues, List<int> voutValues) {
     final len = txidValues.length;
-    assert(walletIdValues.length == len,
+    assert(walletIdValues.length == len && voutValues.length == len,
         'All index values must have the same length');
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
-      values.add([txidValues[i], walletIdValues[i]]);
+      values.add([txidValues[i], walletIdValues[i], voutValues[i]]);
     }
 
-    return getAllByIndex(r'txid_walletId', values);
+    return getAllByIndex(r'txid_walletId_vout', values);
   }
 
-  List<UTXO?> getAllByTxidWalletIdSync(
-      List<String> txidValues, List<String> walletIdValues) {
+  List<UTXO?> getAllByTxidWalletIdVoutSync(List<String> txidValues,
+      List<String> walletIdValues, List<int> voutValues) {
     final len = txidValues.length;
-    assert(walletIdValues.length == len,
+    assert(walletIdValues.length == len && voutValues.length == len,
         'All index values must have the same length');
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
-      values.add([txidValues[i], walletIdValues[i]]);
+      values.add([txidValues[i], walletIdValues[i], voutValues[i]]);
     }
 
-    return getAllByIndexSync(r'txid_walletId', values);
+    return getAllByIndexSync(r'txid_walletId_vout', values);
   }
 
-  Future<int> deleteAllByTxidWalletId(
-      List<String> txidValues, List<String> walletIdValues) {
+  Future<int> deleteAllByTxidWalletIdVout(List<String> txidValues,
+      List<String> walletIdValues, List<int> voutValues) {
     final len = txidValues.length;
-    assert(walletIdValues.length == len,
+    assert(walletIdValues.length == len && voutValues.length == len,
         'All index values must have the same length');
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
-      values.add([txidValues[i], walletIdValues[i]]);
+      values.add([txidValues[i], walletIdValues[i], voutValues[i]]);
     }
 
-    return deleteAllByIndex(r'txid_walletId', values);
+    return deleteAllByIndex(r'txid_walletId_vout', values);
   }
 
-  int deleteAllByTxidWalletIdSync(
-      List<String> txidValues, List<String> walletIdValues) {
+  int deleteAllByTxidWalletIdVoutSync(List<String> txidValues,
+      List<String> walletIdValues, List<int> voutValues) {
     final len = txidValues.length;
-    assert(walletIdValues.length == len,
+    assert(walletIdValues.length == len && voutValues.length == len,
         'All index values must have the same length');
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
-      values.add([txidValues[i], walletIdValues[i]]);
+      values.add([txidValues[i], walletIdValues[i], voutValues[i]]);
     }
 
-    return deleteAllByIndexSync(r'txid_walletId', values);
+    return deleteAllByIndexSync(r'txid_walletId_vout', values);
   }
 
-  Future<Id> putByTxidWalletId(UTXO object) {
-    return putByIndex(r'txid_walletId', object);
+  Future<Id> putByTxidWalletIdVout(UTXO object) {
+    return putByIndex(r'txid_walletId_vout', object);
   }
 
-  Id putByTxidWalletIdSync(UTXO object, {bool saveLinks = true}) {
-    return putByIndexSync(r'txid_walletId', object, saveLinks: saveLinks);
+  Id putByTxidWalletIdVoutSync(UTXO object, {bool saveLinks = true}) {
+    return putByIndexSync(r'txid_walletId_vout', object, saveLinks: saveLinks);
   }
 
-  Future<List<Id>> putAllByTxidWalletId(List<UTXO> objects) {
-    return putAllByIndex(r'txid_walletId', objects);
+  Future<List<Id>> putAllByTxidWalletIdVout(List<UTXO> objects) {
+    return putAllByIndex(r'txid_walletId_vout', objects);
   }
 
-  List<Id> putAllByTxidWalletIdSync(List<UTXO> objects,
+  List<Id> putAllByTxidWalletIdVoutSync(List<UTXO> objects,
       {bool saveLinks = true}) {
-    return putAllByIndexSync(r'txid_walletId', objects, saveLinks: saveLinks);
+    return putAllByIndexSync(r'txid_walletId_vout', objects,
+        saveLinks: saveLinks);
   }
 }
 
@@ -472,29 +503,29 @@ extension UTXOQueryWhere on QueryBuilder<UTXO, UTXO, QWhereClause> {
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidEqualToAnyWalletId(
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidEqualToAnyWalletIdVout(
       String txid) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'txid_walletId',
+        indexName: r'txid_walletId_vout',
         value: [txid],
       ));
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidNotEqualToAnyWalletId(
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidNotEqualToAnyWalletIdVout(
       String txid) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId',
+              indexName: r'txid_walletId_vout',
               lower: [],
               upper: [txid],
               includeUpper: false,
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId',
+              indexName: r'txid_walletId_vout',
               lower: [txid],
               includeLower: false,
               upper: [],
@@ -502,13 +533,13 @@ extension UTXOQueryWhere on QueryBuilder<UTXO, UTXO, QWhereClause> {
       } else {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId',
+              indexName: r'txid_walletId_vout',
               lower: [txid],
               includeLower: false,
               upper: [],
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId',
+              indexName: r'txid_walletId_vout',
               lower: [],
               upper: [txid],
               includeUpper: false,
@@ -517,29 +548,29 @@ extension UTXOQueryWhere on QueryBuilder<UTXO, UTXO, QWhereClause> {
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidWalletIdEqualTo(
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidWalletIdEqualToAnyVout(
       String txid, String walletId) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'txid_walletId',
+        indexName: r'txid_walletId_vout',
         value: [txid, walletId],
       ));
     });
   }
 
-  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidEqualToWalletIdNotEqualTo(
-      String txid, String walletId) {
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause>
+      txidEqualToWalletIdNotEqualToAnyVout(String txid, String walletId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId',
+              indexName: r'txid_walletId_vout',
               lower: [txid],
               upper: [txid, walletId],
               includeUpper: false,
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId',
+              indexName: r'txid_walletId_vout',
               lower: [txid, walletId],
               includeLower: false,
               upper: [txid],
@@ -547,18 +578,115 @@ extension UTXOQueryWhere on QueryBuilder<UTXO, UTXO, QWhereClause> {
       } else {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId',
+              indexName: r'txid_walletId_vout',
               lower: [txid, walletId],
               includeLower: false,
               upper: [txid],
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'txid_walletId',
+              indexName: r'txid_walletId_vout',
               lower: [txid],
               upper: [txid, walletId],
               includeUpper: false,
             ));
       }
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidWalletIdVoutEqualTo(
+      String txid, String walletId, int vout) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'txid_walletId_vout',
+        value: [txid, walletId, vout],
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidWalletIdEqualToVoutNotEqualTo(
+      String txid, String walletId, int vout) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid_walletId_vout',
+              lower: [txid, walletId],
+              upper: [txid, walletId, vout],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid_walletId_vout',
+              lower: [txid, walletId, vout],
+              includeLower: false,
+              upper: [txid, walletId],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid_walletId_vout',
+              lower: [txid, walletId, vout],
+              includeLower: false,
+              upper: [txid, walletId],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'txid_walletId_vout',
+              lower: [txid, walletId],
+              upper: [txid, walletId, vout],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause>
+      txidWalletIdEqualToVoutGreaterThan(
+    String txid,
+    String walletId,
+    int vout, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'txid_walletId_vout',
+        lower: [txid, walletId, vout],
+        includeLower: include,
+        upper: [txid, walletId],
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidWalletIdEqualToVoutLessThan(
+    String txid,
+    String walletId,
+    int vout, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'txid_walletId_vout',
+        lower: [txid, walletId],
+        upper: [txid, walletId, vout],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause> txidWalletIdEqualToVoutBetween(
+    String txid,
+    String walletId,
+    int lowerVout,
+    int upperVout, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'txid_walletId_vout',
+        lower: [txid, walletId, lowerVout],
+        includeLower: includeLower,
+        upper: [txid, walletId, upperVout],
+        includeUpper: includeUpper,
+      ));
     });
   }
 
@@ -608,6 +736,150 @@ extension UTXOQueryWhere on QueryBuilder<UTXO, UTXO, QWhereClause> {
 }
 
 extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'address',
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'address',
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'address',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'address',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'address',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'address',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'address',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'address',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressContains(String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'address',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressMatches(String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'address',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'address',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> addressIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'address',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> blockHashIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1510,6 +1782,31 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     });
   }
 
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> usedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'used',
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> usedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'used',
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> usedEqualTo(bool? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'used',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> valueEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -1749,6 +2046,18 @@ extension UTXOQueryObject on QueryBuilder<UTXO, UTXO, QFilterCondition> {}
 extension UTXOQueryLinks on QueryBuilder<UTXO, UTXO, QFilterCondition> {}
 
 extension UTXOQuerySortBy on QueryBuilder<UTXO, UTXO, QSortBy> {
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByAddress() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'address', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByAddressDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'address', Sort.desc);
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByBlockHash() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'blockHash', Sort.asc);
@@ -1857,6 +2166,18 @@ extension UTXOQuerySortBy on QueryBuilder<UTXO, UTXO, QSortBy> {
     });
   }
 
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByUsed() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'used', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByUsedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'used', Sort.desc);
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByValue() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'value', Sort.asc);
@@ -1895,6 +2216,18 @@ extension UTXOQuerySortBy on QueryBuilder<UTXO, UTXO, QSortBy> {
 }
 
 extension UTXOQuerySortThenBy on QueryBuilder<UTXO, UTXO, QSortThenBy> {
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByAddress() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'address', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByAddressDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'address', Sort.desc);
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByBlockHash() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'blockHash', Sort.asc);
@@ -2015,6 +2348,18 @@ extension UTXOQuerySortThenBy on QueryBuilder<UTXO, UTXO, QSortThenBy> {
     });
   }
 
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByUsed() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'used', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByUsedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'used', Sort.desc);
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByValue() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'value', Sort.asc);
@@ -2053,6 +2398,13 @@ extension UTXOQuerySortThenBy on QueryBuilder<UTXO, UTXO, QSortThenBy> {
 }
 
 extension UTXOQueryWhereDistinct on QueryBuilder<UTXO, UTXO, QDistinct> {
+  QueryBuilder<UTXO, UTXO, QDistinct> distinctByAddress(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'address', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QDistinct> distinctByBlockHash(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2113,6 +2465,12 @@ extension UTXOQueryWhereDistinct on QueryBuilder<UTXO, UTXO, QDistinct> {
     });
   }
 
+  QueryBuilder<UTXO, UTXO, QDistinct> distinctByUsed() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'used');
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QDistinct> distinctByValue() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'value');
@@ -2137,6 +2495,12 @@ extension UTXOQueryProperty on QueryBuilder<UTXO, UTXO, QQueryProperty> {
   QueryBuilder<UTXO, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<UTXO, String?, QQueryOperations> addressProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'address');
     });
   }
 
@@ -2191,6 +2555,12 @@ extension UTXOQueryProperty on QueryBuilder<UTXO, UTXO, QQueryProperty> {
   QueryBuilder<UTXO, String, QQueryOperations> txidProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'txid');
+    });
+  }
+
+  QueryBuilder<UTXO, bool?, QQueryOperations> usedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'used');
     });
   }
 

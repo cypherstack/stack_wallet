@@ -814,6 +814,8 @@ class _DesktopTransactionCardRowState
       } else {
         return "Sending";
       }
+    } else if (type == TransactionType.sentToSelf) {
+      return "Sent to self";
     } else {
       return type.name;
     }

@@ -19,7 +19,7 @@ class Balance {
     required this.pendingSpendable,
   });
 
-  Decimal getTotal({bool includeBlocked = false}) => Format.satoshisToAmount(
+  Decimal getTotal({bool includeBlocked = true}) => Format.satoshisToAmount(
         includeBlocked ? total : total - blockedTotal,
         coin: coin,
       );
@@ -39,12 +39,7 @@ class Balance {
         coin: coin,
       );
 
-  String toJsonIgnoreCoin() => jsonEncode({
-        "total": total,
-        "spendable": spendable,
-        "blockedTotal": blockedTotal,
-        "pendingSpendable": pendingSpendable,
-      });
+  String toJsonIgnoreCoin() => jsonEncode(toMap()..remove("coin"));
 
   factory Balance.fromJson(String json, Coin coin) {
     final decoded = jsonDecode(json);
@@ -55,5 +50,18 @@ class Balance {
       blockedTotal: decoded["blockedTotal"] as int,
       pendingSpendable: decoded["pendingSpendable"] as int,
     );
+  }
+
+  Map<String, dynamic> toMap() => {
+        "coin": coin,
+        "total": total,
+        "spendable": spendable,
+        "blockedTotal": blockedTotal,
+        "pendingSpendable": pendingSpendable,
+      };
+
+  @override
+  String toString() {
+    return toMap().toString();
   }
 }

@@ -957,23 +957,24 @@ class MockBitcoinWallet extends _i1.Mock implements _i23.BitcoinWallet {
         returnValue: 0,
       ) as int);
   @override
-  dynamic coinSelection(
-    int? satoshiAmountToSend,
-    int? selectedTxFeeRate,
-    String? _recipientAddress,
-    bool? isSendAll, {
+  dynamic coinSelection({
+    required int? satoshiAmountToSend,
+    required int? selectedTxFeeRate,
+    required String? recipientAddress,
+    required bool? coinControl,
+    required bool? isSendAll,
     int? additionalOutputs = 0,
     List<_i15.UTXO>? utxos,
   }) =>
       super.noSuchMethod(Invocation.method(
         #coinSelection,
-        [
-          satoshiAmountToSend,
-          selectedTxFeeRate,
-          _recipientAddress,
-          isSendAll,
-        ],
+        [],
         {
+          #satoshiAmountToSend: satoshiAmountToSend,
+          #selectedTxFeeRate: selectedTxFeeRate,
+          #recipientAddress: recipientAddress,
+          #coinControl: coinControl,
+          #isSendAll: isSendAll,
           #additionalOutputs: additionalOutputs,
           #utxos: utxos,
         },
@@ -1530,6 +1531,22 @@ class MockBitcoinWallet extends _i1.Mock implements _i23.BitcoinWallet {
         returnValue: _i20.Future<_i17.PaymentCode?>.value(),
       ) as _i20.Future<_i17.PaymentCode?>);
   @override
+  _i20.Future<_i17.PaymentCode?> unBlindedPaymentCodeFromTransactionBad({
+    required _i15.Transaction? transaction,
+    required _i15.Address? myNotificationAddress,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #unBlindedPaymentCodeFromTransactionBad,
+          [],
+          {
+            #transaction: transaction,
+            #myNotificationAddress: myNotificationAddress,
+          },
+        ),
+        returnValue: _i20.Future<_i17.PaymentCode?>.value(),
+      ) as _i20.Future<_i17.PaymentCode?>);
+  @override
   _i20.Future<List<_i17.PaymentCode>>
       getAllPaymentCodesFromNotificationTransactions() => (super.noSuchMethod(
             Invocation.method(
@@ -1694,6 +1711,41 @@ class MockBitcoinWallet extends _i1.Mock implements _i23.BitcoinWallet {
         ),
         returnValue: _i20.Future<String>.value(''),
       ) as _i20.Future<String>);
+  @override
+  void initCoinControlInterface({
+    required String? walletId,
+    required String? walletName,
+    required _i19.Coin? coin,
+    required _i12.MainDB? db,
+    required _i20.Future<int> Function()? getChainHeight,
+    required _i20.Future<void> Function(_i11.Balance)? refreshedBalanceCallback,
+  }) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #initCoinControlInterface,
+          [],
+          {
+            #walletId: walletId,
+            #walletName: walletName,
+            #coin: coin,
+            #db: db,
+            #getChainHeight: getChainHeight,
+            #refreshedBalanceCallback: refreshedBalanceCallback,
+          },
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i20.Future<void> refreshBalance({bool? notify = false}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #refreshBalance,
+          [],
+          {#notify: notify},
+        ),
+        returnValue: _i20.Future<void>.value(),
+        returnValueForMissingStub: _i20.Future<void>.value(),
+      ) as _i20.Future<void>);
 }
 
 /// A class which mocks [LocaleService].

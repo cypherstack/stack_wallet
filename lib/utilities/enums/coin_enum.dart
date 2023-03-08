@@ -14,6 +14,7 @@ import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart'
 import 'package:stackwallet/services/coins/particl/particl_wallet.dart'
     as particl;
 import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart' as wow;
+import 'package:stackwallet/utilities/constants.dart';
 
 enum Coin {
   bitcoin,
@@ -232,6 +233,8 @@ extension CoinExt on Coin {
         return nmc.MINIMUM_CONFIRMATIONS;
     }
   }
+
+  int get decimals => Constants.decimalPlacesForCoin(this);
 }
 
 Coin coinFromPrettyName(String name) {
