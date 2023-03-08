@@ -1194,6 +1194,27 @@ class MockBitcoinWallet extends _i1.Mock implements _i24.BitcoinWallet {
         returnValue: 0,
       ) as int);
   @override
+  _i21.Future<void> f({
+    required int? satoshiAmountToSend,
+    required int? selectedTxFeeRate,
+    required String? recipientAddress,
+    required List<_i15.UTXO>? utxos,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #f,
+          [],
+          {
+            #satoshiAmountToSend: satoshiAmountToSend,
+            #selectedTxFeeRate: selectedTxFeeRate,
+            #recipientAddress: recipientAddress,
+            #utxos: utxos,
+          },
+        ),
+        returnValue: _i21.Future<void>.value(),
+        returnValueForMissingStub: _i21.Future<void>.value(),
+      ) as _i21.Future<void>);
+  @override
   dynamic coinSelection(
     int? satoshiAmountToSend,
     int? selectedTxFeeRate,
