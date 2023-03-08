@@ -1112,6 +1112,7 @@ class BitcoinWallet extends CoinServiceAPI
     try {
       final feeRateType = args?["feeRate"];
       final feeRateAmount = args?["feeRateAmount"];
+      final utxos = args?["UTXOs"] as Set<isar_models.UTXO>?;
       if (feeRateType is FeeRateType || feeRateAmount is int) {
         late final int rate;
         if (feeRateType is FeeRateType) {
@@ -1139,8 +1140,14 @@ class BitcoinWallet extends CoinServiceAPI
           isSendAll = true;
         }
 
-        final txData =
-            await coinSelection(satoshiAmount, rate, address, isSendAll);
+        final txData = await coinSelection(
+          satoshiAmountToSend: satoshiAmount,
+          selectedTxFeeRate: rate,
+          recipientAddress: address,
+          isSendAll: isSendAll,
+          utxos: utxos?.toList(),
+          coinControl: utxos is List<isar_models.UTXO>,
+        );
 
         Logging.instance.log("prepare send: $txData", level: LogLevel.Info);
         try {
@@ -2279,11 +2286,12 @@ class BitcoinWallet extends CoinServiceAPI
   /// with [satoshiAmountToSend] and [selectedTxFeeRate]. If so, it will call buildTrasaction() and return
   /// a map containing the tx hex along with other important information. If not, then it will return
   /// an integer (1 or 2)
-  dynamic coinSelection(
-    int satoshiAmountToSend,
-    int selectedTxFeeRate,
-    String _recipientAddress,
-    bool isSendAll, {
+  dynamic coinSelection({
+    required int satoshiAmountToSend,
+    required int selectedTxFeeRate,
+    required String recipientAddress,
+    required bool coinControl,
+    required bool isSendAll,
     int additionalOutputs = 0,
     List<isar_models.UTXO>? utxos,
   }) async {
@@ -2295,18 +2303,26 @@ class BitcoinWallet extends CoinServiceAPI
     int spendableSatoshiValue = 0;
 
     // Build list of spendable outputs and totaling their satoshi amount
-    for (var i = 0; i < availableOutputs.length; i++) {
-      if (availableOutputs[i].isBlocked == false &&
-          availableOutputs[i]
-                  .isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS) ==
-              true) {
-        spendableOutputs.add(availableOutputs[i]);
-        spendableSatoshiValue += availableOutputs[i].value;
+    for (final utxo in availableOutputs) {
+      if (utxo.isBlocked == false &&
+          utxo.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS) &&
+          utxo.used != true) {
+        spendableOutputs.add(utxo);
+        spendableSatoshiValue += utxo.value;
       }
     }
 
-    // sort spendable by age (oldest first)
-    spendableOutputs.sort((a, b) => b.blockTime!.compareTo(a.blockTime!));
+    if (coinControl) {
+      if (spendableOutputs.length < availableOutputs.length) {
+        throw ArgumentError("Attempted to use an unavailable utxo");
+      }
+    }
+
+    // don't care about sorting if using all utxos
+    if (!coinControl) {
+      // sort spendable by age (oldest first)
+      spendableOutputs.sort((a, b) => b.blockTime!.compareTo(a.blockTime!));
+    }
 
     Logging.instance.log("spendableOutputs.length: ${spendableOutputs.length}",
         level: LogLevel.Info);
@@ -2337,19 +2353,26 @@ class BitcoinWallet extends CoinServiceAPI
     int inputsBeingConsumed = 0;
     List<isar_models.UTXO> utxoObjectsToUse = [];
 
-    for (var i = 0;
-        satoshisBeingUsed < satoshiAmountToSend && i < spendableOutputs.length;
-        i++) {
-      utxoObjectsToUse.add(spendableOutputs[i]);
-      satoshisBeingUsed += spendableOutputs[i].value;
-      inputsBeingConsumed += 1;
-    }
-    for (int i = 0;
-        i < additionalOutputs && inputsBeingConsumed < spendableOutputs.length;
-        i++) {
-      utxoObjectsToUse.add(spendableOutputs[inputsBeingConsumed]);
-      satoshisBeingUsed += spendableOutputs[inputsBeingConsumed].value;
-      inputsBeingConsumed += 1;
+    if (!coinControl) {
+      for (var i = 0;
+          satoshisBeingUsed < satoshiAmountToSend &&
+              i < spendableOutputs.length;
+          i++) {
+        utxoObjectsToUse.add(spendableOutputs[i]);
+        satoshisBeingUsed += spendableOutputs[i].value;
+        inputsBeingConsumed += 1;
+      }
+      for (int i = 0;
+          i < additionalOutputs &&
+              inputsBeingConsumed < spendableOutputs.length;
+          i++) {
+        utxoObjectsToUse.add(spendableOutputs[inputsBeingConsumed]);
+        satoshisBeingUsed += spendableOutputs[inputsBeingConsumed].value;
+        inputsBeingConsumed += 1;
+      }
+    } else {
+      satoshisBeingUsed = spendableSatoshiValue;
+      utxoObjectsToUse = spendableOutputs;
     }
 
     Logging.instance
@@ -2360,7 +2383,7 @@ class BitcoinWallet extends CoinServiceAPI
         .log('utxoObjectsToUse: $utxoObjectsToUse', level: LogLevel.Info);
 
     // numberOfOutputs' length must always be equal to that of recipientsArray and recipientsAmtArray
-    List<String> recipientsArray = [_recipientAddress];
+    List<String> recipientsArray = [recipientAddress];
     List<int> recipientsAmtArray = [satoshiAmountToSend];
 
     // gather required signing data
@@ -2373,7 +2396,7 @@ class BitcoinWallet extends CoinServiceAPI
       final int vSizeForOneOutput = (await buildTransaction(
         utxosToUse: utxoObjectsToUse,
         utxoSigningData: utxoSigningData,
-        recipients: [_recipientAddress],
+        recipients: [recipientAddress],
         satoshiAmounts: [satoshisBeingUsed - 1],
       ))["vSize"] as int;
       int feeForOneOutput = estimateTxFee(
@@ -2409,7 +2432,7 @@ class BitcoinWallet extends CoinServiceAPI
       vSizeForOneOutput = (await buildTransaction(
         utxosToUse: utxoObjectsToUse,
         utxoSigningData: utxoSigningData,
-        recipients: [_recipientAddress],
+        recipients: [recipientAddress],
         satoshiAmounts: [satoshisBeingUsed - 1],
       ))["vSize"] as int;
     } catch (e) {
@@ -2423,7 +2446,7 @@ class BitcoinWallet extends CoinServiceAPI
         utxosToUse: utxoObjectsToUse,
         utxoSigningData: utxoSigningData,
         recipients: [
-          _recipientAddress,
+          recipientAddress,
           await _getCurrentAddressForChain(
               1, DerivePathTypeExt.primaryFor(coin)),
         ],
@@ -2628,9 +2651,15 @@ class BitcoinWallet extends CoinServiceAPI
           level: LogLevel.Warning);
       // try adding more outputs
       if (spendableOutputs.length > inputsBeingConsumed) {
-        return coinSelection(satoshiAmountToSend, selectedTxFeeRate,
-            _recipientAddress, isSendAll,
-            additionalOutputs: additionalOutputs + 1, utxos: utxos);
+        return coinSelection(
+          satoshiAmountToSend: satoshiAmountToSend,
+          selectedTxFeeRate: selectedTxFeeRate,
+          recipientAddress: recipientAddress,
+          isSendAll: isSendAll,
+          additionalOutputs: additionalOutputs + 1,
+          utxos: utxos,
+          coinControl: coinControl,
+        );
       }
       return 2;
     }
