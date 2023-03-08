@@ -77,6 +77,10 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
         .getUTXOs(widget.walletId)
         .filter()
         .isBlockedEqualTo(_showBlocked)
+        .and()
+        .group(
+          (q) => q.usedIsNull().or().usedEqualTo(false),
+        )
         .idProperty()
         .findAllSync();
 
