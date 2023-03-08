@@ -67,18 +67,23 @@ const UTXOSchema = CollectionSchema(
       name: r'txid',
       type: IsarType.string,
     ),
-    r'value': PropertySchema(
+    r'used': PropertySchema(
       id: 10,
+      name: r'used',
+      type: IsarType.bool,
+    ),
+    r'value': PropertySchema(
+      id: 11,
       name: r'value',
       type: IsarType.long,
     ),
     r'vout': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'vout',
       type: IsarType.long,
     ),
     r'walletId': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'walletId',
       type: IsarType.string,
     )
@@ -199,9 +204,10 @@ void _uTXOSerialize(
   writer.writeString(offsets[7], object.name);
   writer.writeString(offsets[8], object.otherData);
   writer.writeString(offsets[9], object.txid);
-  writer.writeLong(offsets[10], object.value);
-  writer.writeLong(offsets[11], object.vout);
-  writer.writeString(offsets[12], object.walletId);
+  writer.writeBool(offsets[10], object.used);
+  writer.writeLong(offsets[11], object.value);
+  writer.writeLong(offsets[12], object.vout);
+  writer.writeString(offsets[13], object.walletId);
 }
 
 UTXO _uTXODeserialize(
@@ -221,9 +227,10 @@ UTXO _uTXODeserialize(
     name: reader.readString(offsets[7]),
     otherData: reader.readStringOrNull(offsets[8]),
     txid: reader.readString(offsets[9]),
-    value: reader.readLong(offsets[10]),
-    vout: reader.readLong(offsets[11]),
-    walletId: reader.readString(offsets[12]),
+    used: reader.readBoolOrNull(offsets[10]),
+    value: reader.readLong(offsets[11]),
+    vout: reader.readLong(offsets[12]),
+    walletId: reader.readString(offsets[13]),
   );
   object.id = id;
   return object;
@@ -257,10 +264,12 @@ P _uTXODeserializeProp<P>(
     case 9:
       return (reader.readString(offset)) as P;
     case 10:
-      return (reader.readLong(offset)) as P;
+      return (reader.readBoolOrNull(offset)) as P;
     case 11:
       return (reader.readLong(offset)) as P;
     case 12:
+      return (reader.readLong(offset)) as P;
+    case 13:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1773,6 +1782,31 @@ extension UTXOQueryFilter on QueryBuilder<UTXO, UTXO, QFilterCondition> {
     });
   }
 
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> usedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'used',
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> usedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'used',
+      ));
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> usedEqualTo(bool? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'used',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> valueEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -2132,6 +2166,18 @@ extension UTXOQuerySortBy on QueryBuilder<UTXO, UTXO, QSortBy> {
     });
   }
 
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByUsed() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'used', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByUsedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'used', Sort.desc);
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QAfterSortBy> sortByValue() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'value', Sort.asc);
@@ -2302,6 +2348,18 @@ extension UTXOQuerySortThenBy on QueryBuilder<UTXO, UTXO, QSortThenBy> {
     });
   }
 
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByUsed() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'used', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByUsedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'used', Sort.desc);
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QAfterSortBy> thenByValue() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'value', Sort.asc);
@@ -2407,6 +2465,12 @@ extension UTXOQueryWhereDistinct on QueryBuilder<UTXO, UTXO, QDistinct> {
     });
   }
 
+  QueryBuilder<UTXO, UTXO, QDistinct> distinctByUsed() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'used');
+    });
+  }
+
   QueryBuilder<UTXO, UTXO, QDistinct> distinctByValue() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'value');
@@ -2491,6 +2555,12 @@ extension UTXOQueryProperty on QueryBuilder<UTXO, UTXO, QQueryProperty> {
   QueryBuilder<UTXO, String, QQueryOperations> txidProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'txid');
+    });
+  }
+
+  QueryBuilder<UTXO, bool?, QQueryOperations> usedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'used');
     });
   }
 

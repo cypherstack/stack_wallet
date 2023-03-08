@@ -19,6 +19,7 @@ class UTXO {
     required this.blockHeight,
     required this.blockTime,
     this.address,
+    this.used,
     this.otherData,
   });
 
@@ -54,6 +55,8 @@ class UTXO {
 
   late final String? address;
 
+  late final bool? used;
+
   late final String? otherData;
 
   int getConfirmations(int currentChainHeight) {
@@ -81,6 +84,7 @@ class UTXO {
     int? blockHeight,
     int? blockTime,
     String? address,
+    bool? used,
     String? otherData,
   }) =>
       UTXO(
@@ -96,6 +100,7 @@ class UTXO {
         blockHeight: blockHeight ?? this.blockHeight,
         blockTime: blockTime ?? this.blockTime,
         address: address ?? this.address,
+        used: used ?? this.used,
         otherData: otherData ?? this.otherData,
       )..id = id ?? this.id;
 
@@ -114,6 +119,7 @@ class UTXO {
       "blockHeight: $blockHeight, "
       "blockTime: $blockTime, "
       "address: $address, "
+      "used: $used, "
       "otherData: $otherData, "
       "}";
 
