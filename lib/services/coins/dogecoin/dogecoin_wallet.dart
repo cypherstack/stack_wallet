@@ -24,6 +24,7 @@ import 'package:stackwallet/services/event_bus/events/global/refresh_percent_cha
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/services/mixins/electrum_x_parsing.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
@@ -85,7 +86,7 @@ String constructDerivePath({
 }
 
 class DogecoinWallet extends CoinServiceAPI
-    with WalletCache, WalletDB, ElectrumXParsing {
+    with WalletCache, WalletDB, ElectrumXParsing, CoinControlInterface {
   DogecoinWallet({
     required String walletId,
     required String walletName,
@@ -105,6 +106,17 @@ class DogecoinWallet extends CoinServiceAPI
     _secureStore = secureStore;
     initCache(walletId, coin);
     initWalletDB(mockableOverride: mockableOverride);
+    initCoinControlInterface(
+      walletId: walletId,
+      walletName: walletName,
+      coin: coin,
+      db: db,
+      getChainHeight: () => chainHeight,
+      refreshedBalanceCallback: (balance) async {
+        _balance = balance;
+        await updateCachedBalance(_balance!);
+      },
+    );
 
     // paynym stuff
     // initPaynymWalletInterface(
@@ -907,6 +919,7 @@ class DogecoinWallet extends CoinServiceAPI
     try {
       final feeRateType = args?["feeRate"];
       final feeRateAmount = args?["feeRateAmount"];
+      final utxos = args?["UTXOs"] as Set<isar_models.UTXO>?;
       if (feeRateType is FeeRateType || feeRateAmount is int) {
         late final int rate;
         if (feeRateType is FeeRateType) {
@@ -933,9 +946,17 @@ class DogecoinWallet extends CoinServiceAPI
           isSendAll = true;
         }
 
-        final result =
-            await coinSelection(satoshiAmount, rate, address, isSendAll);
-        Logging.instance.log("SEND RESULT: $result", level: LogLevel.Info);
+        final result = await coinSelection(
+          satoshiAmountToSend: satoshiAmount,
+          selectedTxFeeRate: rate,
+          recipientAddress: address,
+          isSendAll: isSendAll,
+          utxos: utxos?.toList(),
+          coinControl: utxos is List<isar_models.UTXO>,
+        );
+
+        Logging.instance
+            .log("PREPARE SEND RESULT: $result", level: LogLevel.Info);
         if (result is int) {
           switch (result) {
             case 1:
@@ -981,6 +1002,12 @@ class DogecoinWallet extends CoinServiceAPI
       final txHash = await _electrumXClient.broadcastTransaction(
           rawTx: txData["hex"] as String);
       Logging.instance.log("Sent txHash: $txHash", level: LogLevel.Info);
+
+      final utxos = txData["usedUTXOs"] as List<isar_models.UTXO>;
+
+      // mark utxos as used
+      await db.putUTXOs(utxos.map((e) => e.copyWith(used: true)).toList());
+
       return txHash;
     } catch (e, s) {
       Logging.instance.log("Exception rethrown from confirmSend(): $e\n$s",
@@ -1537,18 +1564,14 @@ class DogecoinWallet extends CoinServiceAPI
         }
       }
 
-      final currentChainHeight = await chainHeight;
-
       final List<isar_models.UTXO> outputArray = [];
-      int satoshiBalanceTotal = 0;
-      int satoshiBalancePending = 0;
-      int satoshiBalanceSpendable = 0;
-      int satoshiBalanceBlocked = 0;
 
       for (int i = 0; i < fetchedUtxoList.length; i++) {
         for (int j = 0; j < fetchedUtxoList[i].length; j++) {
+          final jsonUTXO = fetchedUtxoList[i][j];
+
           final txn = await cachedElectrumXClient.getTransaction(
-            txHash: fetchedUtxoList[i][j]["tx_hash"] as String,
+            txHash: jsonUTXO["tx_hash"] as String,
             verbose: true,
             coin: coin,
           );
@@ -1556,7 +1579,7 @@ class DogecoinWallet extends CoinServiceAPI
           // fetch stored tx to see if paynym notification tx and block utxo
           final storedTx = await db.getTransaction(
             walletId,
-            fetchedUtxoList[i][j]["tx_hash"] as String,
+            jsonUTXO["tx_hash"] as String,
           );
 
           bool shouldBlock = false;
@@ -1573,31 +1596,34 @@ class DogecoinWallet extends CoinServiceAPI
             blockReason = "Incoming paynym notification transaction.";
           }
 
+          final vout = jsonUTXO["tx_pos"] as int;
+
+          final outputs = txn["vout"] as List;
+
+          String? utxoOwnerAddress;
+          // get UTXO owner address
+          for (final output in outputs) {
+            if (output["n"] == vout) {
+              utxoOwnerAddress =
+                  output["scriptPubKey"]?["addresses"]?[0] as String? ??
+                      output["scriptPubKey"]?["address"] as String?;
+            }
+          }
+
           final utxo = isar_models.UTXO(
             walletId: walletId,
             txid: txn["txid"] as String,
-            vout: fetchedUtxoList[i][j]["tx_pos"] as int,
-            value: fetchedUtxoList[i][j]["value"] as int,
+            vout: vout,
+            value: jsonUTXO["value"] as int,
             name: "",
             isBlocked: shouldBlock,
             blockedReason: blockReason,
             isCoinbase: txn["is_coinbase"] as bool? ?? false,
             blockHash: txn["blockhash"] as String?,
-            blockHeight: fetchedUtxoList[i][j]["height"] as int?,
+            blockHeight: jsonUTXO["height"] as int?,
             blockTime: txn["blocktime"] as int?,
+            address: utxoOwnerAddress,
           );
-
-          satoshiBalanceTotal += utxo.value;
-
-          if (utxo.isBlocked) {
-            satoshiBalanceBlocked += utxo.value;
-          } else {
-            if (utxo.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
-              satoshiBalanceSpendable += utxo.value;
-            } else {
-              satoshiBalancePending += utxo.value;
-            }
-          }
 
           outputArray.add(utxo);
         }
@@ -1606,25 +1632,18 @@ class DogecoinWallet extends CoinServiceAPI
       Logging.instance
           .log('Outputs fetched: $outputArray', level: LogLevel.Info);
 
-      // TODO move this out of here and into IDB
-      await db.isar.writeTxn(() async {
-        await db.isar.utxos.where().walletIdEqualTo(walletId).deleteAll();
-        await db.isar.utxos.putAll(outputArray);
-      });
+      await db.updateUTXOs(walletId, outputArray);
 
       // finally update balance
-      _balance = Balance(
-        coin: coin,
-        total: satoshiBalanceTotal,
-        spendable: satoshiBalanceSpendable,
-        blockedTotal: satoshiBalanceBlocked,
-        pendingSpendable: satoshiBalancePending,
-      );
-      await updateCachedBalance(_balance!);
+      await _updateBalance();
     } catch (e, s) {
       Logging.instance
           .log("Output fetch unsuccessful: $e\n$s", level: LogLevel.Error);
     }
+  }
+
+  Future<void> _updateBalance() async {
+    await refreshBalance();
   }
 
   @override
@@ -2022,11 +2041,12 @@ class DogecoinWallet extends CoinServiceAPI
   /// with [satoshiAmountToSend] and [selectedTxFeeRate]. If so, it will call buildTrasaction() and return
   /// a map containing the tx hex along with other important information. If not, then it will return
   /// an integer (1 or 2)
-  dynamic coinSelection(
-    int satoshiAmountToSend,
-    int selectedTxFeeRate,
-    String _recipientAddress,
-    bool isSendAll, {
+  dynamic coinSelection({
+    required int satoshiAmountToSend,
+    required int selectedTxFeeRate,
+    required String recipientAddress,
+    required bool coinControl,
+    required bool isSendAll,
     int additionalOutputs = 0,
     List<isar_models.UTXO>? utxos,
   }) async {
@@ -2038,18 +2058,26 @@ class DogecoinWallet extends CoinServiceAPI
     int spendableSatoshiValue = 0;
 
     // Build list of spendable outputs and totaling their satoshi amount
-    for (var i = 0; i < availableOutputs.length; i++) {
-      if (availableOutputs[i].isBlocked == false &&
-          availableOutputs[i]
-                  .isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS) ==
-              true) {
-        spendableOutputs.add(availableOutputs[i]);
-        spendableSatoshiValue += availableOutputs[i].value;
+    for (final utxo in availableOutputs) {
+      if (utxo.isBlocked == false &&
+          utxo.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS) &&
+          utxo.used != true) {
+        spendableOutputs.add(utxo);
+        spendableSatoshiValue += utxo.value;
       }
     }
 
-    // sort spendable by age (oldest first)
-    spendableOutputs.sort((a, b) => b.blockTime!.compareTo(a.blockTime!));
+    if (coinControl) {
+      if (spendableOutputs.length < availableOutputs.length) {
+        throw ArgumentError("Attempted to use an unavailable utxo");
+      }
+    }
+
+    // don't care about sorting if using all utxos
+    if (!coinControl) {
+      // sort spendable by age (oldest first)
+      spendableOutputs.sort((a, b) => b.blockTime!.compareTo(a.blockTime!));
+    }
 
     Logging.instance.log("spendableOutputs.length: ${spendableOutputs.length}",
         level: LogLevel.Info);
@@ -2078,19 +2106,26 @@ class DogecoinWallet extends CoinServiceAPI
     int inputsBeingConsumed = 0;
     List<isar_models.UTXO> utxoObjectsToUse = [];
 
-    for (var i = 0;
-        satoshisBeingUsed < satoshiAmountToSend && i < spendableOutputs.length;
-        i++) {
-      utxoObjectsToUse.add(spendableOutputs[i]);
-      satoshisBeingUsed += spendableOutputs[i].value;
-      inputsBeingConsumed += 1;
-    }
-    for (int i = 0;
-        i < additionalOutputs && inputsBeingConsumed < spendableOutputs.length;
-        i++) {
-      utxoObjectsToUse.add(spendableOutputs[inputsBeingConsumed]);
-      satoshisBeingUsed += spendableOutputs[inputsBeingConsumed].value;
-      inputsBeingConsumed += 1;
+    if (!coinControl) {
+      for (var i = 0;
+          satoshisBeingUsed < satoshiAmountToSend &&
+              i < spendableOutputs.length;
+          i++) {
+        utxoObjectsToUse.add(spendableOutputs[i]);
+        satoshisBeingUsed += spendableOutputs[i].value;
+        inputsBeingConsumed += 1;
+      }
+      for (int i = 0;
+          i < additionalOutputs &&
+              inputsBeingConsumed < spendableOutputs.length;
+          i++) {
+        utxoObjectsToUse.add(spendableOutputs[inputsBeingConsumed]);
+        satoshisBeingUsed += spendableOutputs[inputsBeingConsumed].value;
+        inputsBeingConsumed += 1;
+      }
+    } else {
+      satoshisBeingUsed = spendableSatoshiValue;
+      utxoObjectsToUse = spendableOutputs;
     }
 
     Logging.instance
@@ -2103,7 +2138,7 @@ class DogecoinWallet extends CoinServiceAPI
         .log('satoshiAmountToSend $satoshiAmountToSend', level: LogLevel.Info);
 
     // numberOfOutputs' length must always be equal to that of recipientsArray and recipientsAmtArray
-    List<String> recipientsArray = [_recipientAddress];
+    List<String> recipientsArray = [recipientAddress];
     List<int> recipientsAmtArray = [satoshiAmountToSend];
 
     // gather required signing data
@@ -2116,7 +2151,7 @@ class DogecoinWallet extends CoinServiceAPI
       final int vSizeForOneOutput = (await buildTransaction(
         utxosToUse: utxoObjectsToUse,
         utxoSigningData: utxoSigningData,
-        recipients: [_recipientAddress],
+        recipients: [recipientAddress],
         satoshiAmounts: [satoshisBeingUsed - 1],
       ))["vSize"] as int;
       int feeForOneOutput = estimateTxFee(
@@ -2140,6 +2175,7 @@ class DogecoinWallet extends CoinServiceAPI
         "recipientAmt": amount,
         "fee": feeForOneOutput,
         "vSize": txn["vSize"],
+        "usedUTXOs": utxoObjectsToUse,
       };
       return transactionObject;
     }
@@ -2147,14 +2183,14 @@ class DogecoinWallet extends CoinServiceAPI
     final int vSizeForOneOutput = (await buildTransaction(
       utxosToUse: utxoObjectsToUse,
       utxoSigningData: utxoSigningData,
-      recipients: [_recipientAddress],
+      recipients: [recipientAddress],
       satoshiAmounts: [satoshisBeingUsed - 1],
     ))["vSize"] as int;
     final int vSizeForTwoOutPuts = (await buildTransaction(
       utxosToUse: utxoObjectsToUse,
       utxoSigningData: utxoSigningData,
       recipients: [
-        _recipientAddress,
+        recipientAddress,
         await _getCurrentAddressForChain(1, DerivePathTypeExt.primaryFor(coin)),
       ],
       satoshiAmounts: [
@@ -2272,6 +2308,7 @@ class DogecoinWallet extends CoinServiceAPI
             "recipientAmt": recipientsAmtArray[0],
             "fee": feeBeingPaid,
             "vSize": txn["vSize"],
+            "usedUTXOs": utxoObjectsToUse,
           };
           return transactionObject;
         } else {
@@ -2299,6 +2336,7 @@ class DogecoinWallet extends CoinServiceAPI
             "recipientAmt": recipientsAmtArray[0],
             "fee": satoshisBeingUsed - satoshiAmountToSend,
             "vSize": txn["vSize"],
+            "usedUTXOs": utxoObjectsToUse,
           };
           return transactionObject;
         }
@@ -2328,6 +2366,7 @@ class DogecoinWallet extends CoinServiceAPI
           "recipientAmt": recipientsAmtArray[0],
           "fee": satoshisBeingUsed - satoshiAmountToSend,
           "vSize": txn["vSize"],
+          "usedUTXOs": utxoObjectsToUse,
         };
         return transactionObject;
       }
@@ -2357,6 +2396,7 @@ class DogecoinWallet extends CoinServiceAPI
         "recipientAmt": recipientsAmtArray[0],
         "fee": feeForOneOutput,
         "vSize": txn["vSize"],
+        "usedUTXOs": utxoObjectsToUse,
       };
       return transactionObject;
     } else {
@@ -2368,9 +2408,15 @@ class DogecoinWallet extends CoinServiceAPI
           level: LogLevel.Warning);
       // try adding more outputs
       if (spendableOutputs.length > inputsBeingConsumed) {
-        return coinSelection(satoshiAmountToSend, selectedTxFeeRate,
-            _recipientAddress, isSendAll,
-            additionalOutputs: additionalOutputs + 1, utxos: utxos);
+        return coinSelection(
+          satoshiAmountToSend: satoshiAmountToSend,
+          selectedTxFeeRate: selectedTxFeeRate,
+          recipientAddress: recipientAddress,
+          isSendAll: isSendAll,
+          additionalOutputs: additionalOutputs + 1,
+          utxos: utxos,
+          coinControl: coinControl,
+        );
       }
       return 2;
     }
