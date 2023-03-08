@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
+import 'package:stackwallet/widgets/icon_widgets/utxo_status_icon.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 
 class UtxoCard extends ConsumerStatefulWidget {
@@ -54,6 +53,9 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
 
     final coin = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManager(widget.walletId).coin));
+
+    final currentChainHeight = ref.watch(walletsChangeNotifierProvider
+        .select((value) => value.getManager(widget.walletId).currentHeight));
 
     String? label;
     if (utxo.address != null) {
@@ -102,12 +104,16 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
                 },
                 child: child,
               ),
-              child: SvgPicture.asset(
-                _selected
-                    ? Assets.svg.coinControl.selected
-                    : utxo.isBlocked
-                        ? Assets.svg.coinControl.blocked
-                        : Assets.svg.coinControl.unBlocked,
+              child: UTXOStatusIcon(
+                blocked: utxo.isBlocked,
+                status: utxo.isConfirmed(
+                  currentChainHeight,
+                  coin.requiredConfirmations,
+                )
+                    ? UTXOStatusIconStatus.confirmed
+                    : UTXOStatusIconStatus.unconfirmed,
+                background: Theme.of(context).extension<StackColors>()!.popupBG,
+                selected: _selected,
                 width: 32,
                 height: 32,
               ),
