@@ -126,7 +126,10 @@ class BitcoinWallet extends CoinServiceAPI
       coin: coin,
       db: db,
       getChainHeight: () => chainHeight,
-      refreshedBalanceCallback: updateCachedBalance,
+      refreshedBalanceCallback: (balance) async {
+        _balance = balance;
+        await updateCachedBalance(_balance!);
+      },
     );
     initPaynymWalletInterface(
       walletId: walletId,
