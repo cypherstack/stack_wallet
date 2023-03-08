@@ -38,8 +38,11 @@ class UtxoDetailsView extends ConsumerStatefulWidget {
 class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
   static const double _spacing = 12;
 
-  late Stream<UTXO?> stream;
+  late Stream<UTXO?> streamUTXO;
   UTXO? utxo;
+
+  Stream<AddressLabel?>? streamLabel;
+  AddressLabel? label;
 
   bool _popWithRefresh = false;
 
@@ -55,7 +58,18 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
         .idEqualTo(widget.utxoId)
         .findFirstSync()!;
 
-    stream = MainDB.instance.watchUTXO(id: widget.utxoId);
+    streamUTXO = MainDB.instance.watchUTXO(id: widget.utxoId);
+
+    if (utxo?.address != null) {
+      label = MainDB.instance.getAddressLabelSync(
+        widget.walletId,
+        utxo!.address!,
+      );
+
+      if (label != null) {
+        streamLabel = MainDB.instance.watchAddressLabel(id: label!.id);
+      }
+    }
 
     super.initState();
   }
@@ -116,7 +130,7 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
         ),
       ),
       child: StreamBuilder<UTXO?>(
-        stream: stream,
+        stream: streamUTXO,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             utxo = snapshot.data!;
@@ -164,6 +178,42 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                   ],
                 ),
               ),
+              if (label != null && label!.value.isNotEmpty)
+                const SizedBox(
+                  height: _spacing,
+                ),
+              if (label != null && label!.value.isNotEmpty)
+                RoundedWhiteContainer(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Address label",
+                            style: STextStyles.w500_14(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textSubtitle1,
+                            ),
+                          ),
+                          SimpleCopyButton(
+                            data: label!.value,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 4,
+                      ),
+                      Text(
+                        label!.value,
+                        style: STextStyles.w500_14(context),
+                      ),
+                    ],
+                  ),
+                ),
               const SizedBox(
                 height: _spacing,
               ),
