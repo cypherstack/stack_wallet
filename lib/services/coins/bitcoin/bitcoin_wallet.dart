@@ -1210,6 +1210,11 @@ class BitcoinWallet extends CoinServiceAPI
       final txHash = await _electrumXClient.broadcastTransaction(rawTx: hex);
       Logging.instance.log("Sent txHash: $txHash", level: LogLevel.Info);
 
+      final utxos = txData["usedUTXOs"] as List<isar_models.UTXO>;
+
+      // mark utxos as used
+      await db.putUTXOs(utxos.map((e) => e.copyWith(used: true)).toList());
+
       return txHash;
     } catch (e, s) {
       Logging.instance.log("Exception rethrown from confirmSend(): $e\n$s",
@@ -2423,6 +2428,7 @@ class BitcoinWallet extends CoinServiceAPI
         "recipientAmt": amount,
         "fee": feeForOneOutput,
         "vSize": txn["vSize"],
+        "usedUTXOs": utxoObjectsToUse,
       };
       return transactionObject;
     }
@@ -2555,6 +2561,7 @@ class BitcoinWallet extends CoinServiceAPI
             "recipientAmt": recipientsAmtArray[0],
             "fee": feeBeingPaid,
             "vSize": txn["vSize"],
+            "usedUTXOs": utxoObjectsToUse,
           };
           return transactionObject;
         } else {
@@ -2582,6 +2589,7 @@ class BitcoinWallet extends CoinServiceAPI
             "recipientAmt": recipientsAmtArray[0],
             "fee": satoshisBeingUsed - satoshiAmountToSend,
             "vSize": txn["vSize"],
+            "usedUTXOs": utxoObjectsToUse,
           };
           return transactionObject;
         }
@@ -2611,6 +2619,7 @@ class BitcoinWallet extends CoinServiceAPI
           "recipientAmt": recipientsAmtArray[0],
           "fee": satoshisBeingUsed - satoshiAmountToSend,
           "vSize": txn["vSize"],
+          "usedUTXOs": utxoObjectsToUse,
         };
         return transactionObject;
       }
@@ -2640,6 +2649,7 @@ class BitcoinWallet extends CoinServiceAPI
         "recipientAmt": recipientsAmtArray[0],
         "fee": feeForOneOutput,
         "vSize": txn["vSize"],
+        "usedUTXOs": utxoObjectsToUse,
       };
       return transactionObject;
     } else {
