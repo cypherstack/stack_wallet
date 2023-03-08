@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
@@ -6,6 +8,7 @@ import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/coin_control/utxo_card.dart';
 import 'package:stackwallet/pages/coin_control/utxo_details_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
@@ -50,6 +53,14 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
 
   final Set<UTXO> _selectedAvailable = {};
   final Set<UTXO> _selectedBlocked = {};
+
+  Future<void> _refreshBalance() async {
+    final coinControlInterface = ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(widget.walletId)
+        .wallet as CoinControlInterface;
+    await coinControlInterface.refreshBalance(notify: true);
+  }
 
   @override
   void initState() {
@@ -96,6 +107,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
 
     return WillPopScope(
       onWillPop: () async {
+        unawaited(_refreshBalance());
         Navigator.of(context).pop(
             widget.type == CoinControlViewType.use ? _selectedAvailable : null);
         return false;
@@ -123,6 +135,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                   )
                 : AppBarBackButton(
                     onPressed: () {
+                      unawaited(_refreshBalance());
                       Navigator.of(context).pop(
                           widget.type == CoinControlViewType.use
                               ? _selectedAvailable

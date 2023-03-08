@@ -120,6 +120,14 @@ class BitcoinWallet extends CoinServiceAPI
     _secureStore = secureStore;
     initCache(walletId, coin);
     initWalletDB(mockableOverride: mockableOverride);
+    initCoinControlInterface(
+      walletId: walletId,
+      walletName: walletName,
+      coin: coin,
+      db: db,
+      getChainHeight: () => chainHeight,
+      refreshedBalanceCallback: updateCachedBalance,
+    );
     initPaynymWalletInterface(
       walletId: walletId,
       walletName: walletName,
@@ -1887,36 +1895,7 @@ class BitcoinWallet extends CoinServiceAPI
   }
 
   Future<void> _updateBalance() async {
-    final utxos = await db.getUTXOs(walletId).findAll();
-    final currentChainHeight = await chainHeight;
-
-    int satoshiBalanceTotal = 0;
-    int satoshiBalancePending = 0;
-    int satoshiBalanceSpendable = 0;
-    int satoshiBalanceBlocked = 0;
-
-    for (final utxo in utxos) {
-      satoshiBalanceTotal += utxo.value;
-
-      if (utxo.isBlocked) {
-        satoshiBalanceBlocked += utxo.value;
-      } else {
-        if (utxo.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
-          satoshiBalanceSpendable += utxo.value;
-        } else {
-          satoshiBalancePending += utxo.value;
-        }
-      }
-    }
-
-    _balance = Balance(
-      coin: coin,
-      total: satoshiBalanceTotal,
-      spendable: satoshiBalanceSpendable,
-      blockedTotal: satoshiBalanceBlocked,
-      pendingSpendable: satoshiBalancePending,
-    );
-    await updateCachedBalance(_balance!);
+    await refreshBalance();
   }
 
   @override
