@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_warning_view/new_wallet_recovery_phrase_warning_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/restore_options_view.dart';
@@ -165,10 +166,8 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
               flex: 1,
             ),
           if (!isDesktop)
-            Image(
-              image: AssetImage(
-                Assets.png.imageFor(coin: coin, context: context),
-              ),
+            SvgPicture.asset(
+              Assets.svg.imageFor(coin: coin, context: context),
               height: 100,
             ),
           SizedBox(
