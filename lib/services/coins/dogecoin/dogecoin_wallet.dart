@@ -1589,14 +1589,16 @@ class DogecoinWallet extends CoinServiceAPI
           String? blockReason;
 
           if (storedTx?.subType ==
-                  isar_models.TransactionSubType.bip47Notification &&
-              storedTx?.type == isar_models.TransactionType.incoming) {
-            // probably safe to assume this is an incoming tx as it is a utxo
-            // belonging to this wallet. The extra check may be redundant but
-            // just in case...
-
-            shouldBlock = true;
-            blockReason = "Incoming paynym notification transaction.";
+              isar_models.TransactionSubType.bip47Notification) {
+            if (storedTx?.type == isar_models.TransactionType.incoming) {
+              shouldBlock = true;
+              blockReason = "Incoming paynym notification transaction.";
+            } else if (storedTx?.type == isar_models.TransactionType.outgoing) {
+              shouldBlock = true;
+              blockReason = "Paynym notification change output. Incautious "
+                  "handling of change outputs from notification transactions "
+                  "may cause unintended loss of privacy.";
+            }
           }
 
           final vout = jsonUTXO["tx_pos"] as int;
