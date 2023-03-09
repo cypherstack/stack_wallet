@@ -176,6 +176,82 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                   ],
                 ),
               ),
+              const SizedBox(
+                height: _spacing,
+              ),
+              RoundedWhiteContainer(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Label",
+                          style: STextStyles.w500_14(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textSubtitle1,
+                          ),
+                        ),
+                        SimpleEditButton(
+                          editValue: utxo!.name,
+                          editLabel: "label",
+                          onValueChanged: (newName) {
+                            MainDB.instance.putUTXO(
+                              utxo!.copyWith(
+                                name: newName,
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 4,
+                    ),
+                    Text(
+                      utxo!.name,
+                      style: STextStyles.w500_14(context),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(
+                height: _spacing,
+              ),
+              RoundedWhiteContainer(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Address",
+                          style: STextStyles.w500_14(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textSubtitle1,
+                          ),
+                        ),
+                        SimpleCopyButton(
+                          data: utxo!.address!,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 4,
+                    ),
+                    Text(
+                      utxo!.address!,
+                      style: STextStyles.w500_14(context),
+                    ),
+                  ],
+                ),
+              ),
               if (label != null && label!.value.isNotEmpty)
                 const SizedBox(
                   height: _spacing,
@@ -212,40 +288,6 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                     ],
                   ),
                 ),
-              const SizedBox(
-                height: _spacing,
-              ),
-              RoundedWhiteContainer(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Address",
-                          style: STextStyles.w500_14(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textSubtitle1,
-                          ),
-                        ),
-                        SimpleCopyButton(
-                          data: utxo!.address!,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 4,
-                    ),
-                    Text(
-                      utxo!.address!,
-                      style: STextStyles.w500_14(context),
-                    ),
-                  ],
-                ),
-              ),
               const SizedBox(
                 height: _spacing,
               ),
@@ -301,48 +343,6 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                     ),
                     Text(
                       "${utxo!.getConfirmations(currentHeight)}",
-                      style: STextStyles.w500_14(context),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(
-                height: _spacing,
-              ),
-              RoundedWhiteContainer(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Note",
-                          style: STextStyles.w500_14(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textSubtitle1,
-                          ),
-                        ),
-                        SimpleEditButton(
-                          editValue: utxo!.name,
-                          editLabel: "note",
-                          onValueChanged: (newName) {
-                            MainDB.instance.putUTXO(
-                              utxo!.copyWith(
-                                name: newName,
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 4,
-                    ),
-                    Text(
-                      utxo!.name,
                       style: STextStyles.w500_14(context),
                     ),
                   ],
