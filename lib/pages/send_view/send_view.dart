@@ -146,17 +146,45 @@ class _SendViewState extends ConsumerState<SendView> {
 
       _updatePreviewButtonState(_address, _amountToSend);
 
-      // if (_amountToSend == null) {
-      //   setState(() {
-      //     _calculateFeesFuture = calculateFees(0);
-      //   });
-      // } else {
-      //   setState(() {
-      //     _calculateFeesFuture =
-      //         calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
-      //   });
-      // }
+      _cryptoAmountChangedFeeUpdateTimer?.cancel();
+      _cryptoAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
+        if (coin != Coin.epicCash && !_baseFocus.hasFocus) {
+          setState(() {
+            _calculateFeesFuture = calculateFees(
+              _amountToSend == null
+                  ? 0
+                  : Format.decimalAmountToSatoshis(
+                      _amountToSend!,
+                      coin,
+                    ),
+            );
+          });
+        }
+      });
     }
+  }
+
+  final updateFeesTimerDuration = const Duration(milliseconds: 500);
+
+  Timer? _cryptoAmountChangedFeeUpdateTimer;
+  Timer? _baseAmountChangedFeeUpdateTimer;
+
+  void _baseAmountChanged() {
+    _baseAmountChangedFeeUpdateTimer?.cancel();
+    _baseAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
+      if (coin != Coin.epicCash && !_cryptoFocus.hasFocus) {
+        setState(() {
+          _calculateFeesFuture = calculateFees(
+            _amountToSend == null
+                ? 0
+                : Format.decimalAmountToSatoshis(
+                    _amountToSend!,
+                    coin,
+                  ),
+          );
+        });
+      }
+    });
   }
 
   int _currentFee = 0;
@@ -538,6 +566,7 @@ class _SendViewState extends ConsumerState<SendView> {
 
     onCryptoAmountChanged = _cryptoAmountChanged;
     cryptoAmountController.addListener(onCryptoAmountChanged);
+    baseAmountController.addListener(_baseAmountChanged);
 
     if (_data != null) {
       if (_data!.amount != null) {
@@ -553,43 +582,47 @@ class _SendViewState extends ConsumerState<SendView> {
       noteController.text = "PayNym send";
     }
 
-    if (coin != Coin.epicCash) {
-      _cryptoFocus.addListener(() {
-        if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-          if (_amountToSend == null) {
-            setState(() {
-              _calculateFeesFuture = calculateFees(0);
-            });
-          } else {
-            setState(() {
-              _calculateFeesFuture = calculateFees(
-                  Format.decimalAmountToSatoshis(_amountToSend!, coin));
-            });
-          }
-        }
-      });
+    // if (coin != Coin.epicCash) {
+    // _cryptoFocus.addListener(() {
+    //   if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
+    //     if (_amountToSend == null) {
+    //       setState(() {
+    //         _calculateFeesFuture = calculateFees(0);
+    //       });
+    //     } else {
+    //       setState(() {
+    //         _calculateFeesFuture = calculateFees(
+    //             Format.decimalAmountToSatoshis(_amountToSend!, coin));
+    //       });
+    //     }
+    //   }
+    // });
 
-      _baseFocus.addListener(() {
-        if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-          if (_amountToSend == null) {
-            setState(() {
-              _calculateFeesFuture = calculateFees(0);
-            });
-          } else {
-            setState(() {
-              _calculateFeesFuture = calculateFees(
-                  Format.decimalAmountToSatoshis(_amountToSend!, coin));
-            });
-          }
-        }
-      });
-    }
+    // _baseFocus.addListener(() {
+    //   if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
+    //     if (_amountToSend == null) {
+    //       setState(() {
+    //         _calculateFeesFuture = calculateFees(0);
+    //       });
+    //     } else {
+    //       setState(() {
+    //         _calculateFeesFuture = calculateFees(
+    //             Format.decimalAmountToSatoshis(_amountToSend!, coin));
+    //       });
+    //     }
+    //   }
+    // });
+    // }
     super.initState();
   }
 
   @override
   void dispose() {
+    _cryptoAmountChangedFeeUpdateTimer?.cancel();
+    _baseAmountChangedFeeUpdateTimer?.cancel();
+
     cryptoAmountController.removeListener(onCryptoAmountChanged);
+    baseAmountController.removeListener(_baseAmountChanged);
 
     sendToController.dispose();
     cryptoAmountController.dispose();
