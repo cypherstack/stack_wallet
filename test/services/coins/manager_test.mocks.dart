@@ -12,8 +12,9 @@ import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i5;
 import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i4;
 import 'package:stackwallet/models/balance.dart' as _i6;
 import 'package:stackwallet/models/isar/models/isar_models.dart' as _i12;
-import 'package:stackwallet/models/lelantus_coin.dart' as _i13;
+import 'package:stackwallet/models/lelantus_coin.dart' as _i14;
 import 'package:stackwallet/models/paymint/fee_object_model.dart' as _i3;
+import 'package:stackwallet/models/signing_data.dart' as _i13;
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as _i9;
 import 'package:stackwallet/services/transaction_notification_tracker.dart'
     as _i2;
@@ -485,7 +486,7 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
         },
       ));
   @override
-  _i10.Future<Map<String, dynamic>> fetchBuildTxData(
+  _i10.Future<List<_i13.SigningData>> fetchBuildTxData(
           List<_i12.UTXO>? utxosToUse) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -493,12 +494,11 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
           [utxosToUse],
         ),
         returnValue:
-            _i10.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
-      ) as _i10.Future<Map<String, dynamic>>);
+            _i10.Future<List<_i13.SigningData>>.value(<_i13.SigningData>[]),
+      ) as _i10.Future<List<_i13.SigningData>>);
   @override
   _i10.Future<Map<String, dynamic>> buildTransaction({
-    required List<_i12.UTXO>? utxosToUse,
-    required Map<String, dynamic>? utxoSigningData,
+    required List<_i13.SigningData>? utxoSigningData,
     required List<String>? recipients,
     required List<int>? satoshiAmounts,
   }) =>
@@ -507,7 +507,6 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
           #buildTransaction,
           [],
           {
-            #utxosToUse: utxosToUse,
             #utxoSigningData: utxoSigningData,
             #recipients: recipients,
             #satoshiAmounts: satoshiAmounts,
@@ -570,14 +569,14 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
         returnValueForMissingStub: _i10.Future<void>.value(),
       ) as _i10.Future<void>);
   @override
-  List<Map<dynamic, _i13.LelantusCoin>> getLelantusCoinMap() =>
+  List<Map<dynamic, _i14.LelantusCoin>> getLelantusCoinMap() =>
       (super.noSuchMethod(
         Invocation.method(
           #getLelantusCoinMap,
           [],
         ),
-        returnValue: <Map<dynamic, _i13.LelantusCoin>>[],
-      ) as List<Map<dynamic, _i13.LelantusCoin>>);
+        returnValue: <Map<dynamic, _i14.LelantusCoin>>[],
+      ) as List<Map<dynamic, _i14.LelantusCoin>>);
   @override
   _i10.Future<void> anonymizeAllPublicFunds() => (super.noSuchMethod(
         Invocation.method(

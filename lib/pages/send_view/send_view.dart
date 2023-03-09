@@ -146,16 +146,58 @@ class _SendViewState extends ConsumerState<SendView> {
 
       _updatePreviewButtonState(_address, _amountToSend);
 
-      // if (_amountToSend == null) {
-      //   setState(() {
-      //     _calculateFeesFuture = calculateFees(0);
-      //   });
-      // } else {
-      //   setState(() {
-      //     _calculateFeesFuture =
-      //         calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
-      //   });
-      // }
+      _cryptoAmountChangedFeeUpdateTimer?.cancel();
+      _cryptoAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
+        if (coin != Coin.epicCash && !_baseFocus.hasFocus) {
+          setState(() {
+            _calculateFeesFuture = calculateFees(
+              _amountToSend == null
+                  ? 0
+                  : Format.decimalAmountToSatoshis(
+                      _amountToSend!,
+                      coin,
+                    ),
+            );
+          });
+        }
+      });
+    }
+  }
+
+  final updateFeesTimerDuration = const Duration(milliseconds: 500);
+
+  Timer? _cryptoAmountChangedFeeUpdateTimer;
+  Timer? _baseAmountChangedFeeUpdateTimer;
+
+  void _baseAmountChanged() {
+    _baseAmountChangedFeeUpdateTimer?.cancel();
+    _baseAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
+      if (coin != Coin.epicCash && !_cryptoFocus.hasFocus) {
+        setState(() {
+          _calculateFeesFuture = calculateFees(
+            _amountToSend == null
+                ? 0
+                : Format.decimalAmountToSatoshis(
+                    _amountToSend!,
+                    coin,
+                  ),
+          );
+        });
+      }
+    });
+  }
+
+  int _currentFee = 0;
+
+  void _setCurrentFee(String fee, bool shouldSetState) {
+    final value = Format.decimalAmountToSatoshis(
+      Decimal.parse(fee),
+      coin,
+    );
+    if (shouldSetState) {
+      setState(() => _currentFee = value);
+    } else {
+      _currentFee = value;
     }
   }
 
@@ -328,45 +370,48 @@ class _SendViewState extends ConsumerState<SendView> {
             selectedUTXOs.isEmpty)) {
       // confirm send all
       if (amount == availableBalance) {
-        final bool? shouldSendAll = await showDialog<bool>(
-          context: context,
-          useSafeArea: false,
-          barrierDismissible: true,
-          builder: (context) {
-            return StackDialog(
-              title: "Confirm send all",
-              message:
-                  "You are about to send your entire balance. Would you like to continue?",
-              leftButton: TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getSecondaryEnabledButtonStyle(context),
-                child: Text(
-                  "Cancel",
-                  style: STextStyles.button(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark),
+        bool? shouldSendAll;
+        if (mounted) {
+          shouldSendAll = await showDialog<bool>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: true,
+            builder: (context) {
+              return StackDialog(
+                title: "Confirm send all",
+                message:
+                    "You are about to send your entire balance. Would you like to continue?",
+                leftButton: TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getSecondaryEnabledButtonStyle(context),
+                  child: Text(
+                    "Cancel",
+                    style: STextStyles.button(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop(false);
+                  },
                 ),
-                onPressed: () {
-                  Navigator.of(context).pop(false);
-                },
-              ),
-              rightButton: TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getPrimaryEnabledButtonStyle(context),
-                child: Text(
-                  "Yes",
-                  style: STextStyles.button(context),
+                rightButton: TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getPrimaryEnabledButtonStyle(context),
+                  child: Text(
+                    "Yes",
+                    style: STextStyles.button(context),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop(true);
+                  },
                 ),
-                onPressed: () {
-                  Navigator.of(context).pop(true);
-                },
-              ),
-            );
-          },
-        );
+              );
+            },
+          );
+        }
 
         if (shouldSendAll == null || shouldSendAll == false) {
           // cancel preview
@@ -378,22 +423,24 @@ class _SendViewState extends ConsumerState<SendView> {
     try {
       bool wasCancelled = false;
 
-      unawaited(
-        showDialog<dynamic>(
-          context: context,
-          useSafeArea: false,
-          barrierDismissible: false,
-          builder: (context) {
-            return BuildingTransactionDialog(
-              onCancel: () {
-                wasCancelled = true;
+      if (mounted) {
+        unawaited(
+          showDialog<void>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: false,
+            builder: (context) {
+              return BuildingTransactionDialog(
+                onCancel: () {
+                  wasCancelled = true;
 
-                Navigator.of(context).pop();
-              },
-            );
-          },
-        ),
-      );
+                  Navigator.of(context).pop();
+                },
+              );
+            },
+          ),
+        );
+      }
 
       Map<String, dynamic> txData;
 
@@ -519,6 +566,7 @@ class _SendViewState extends ConsumerState<SendView> {
 
     onCryptoAmountChanged = _cryptoAmountChanged;
     cryptoAmountController.addListener(onCryptoAmountChanged);
+    baseAmountController.addListener(_baseAmountChanged);
 
     if (_data != null) {
       if (_data!.amount != null) {
@@ -534,43 +582,47 @@ class _SendViewState extends ConsumerState<SendView> {
       noteController.text = "PayNym send";
     }
 
-    if (coin != Coin.epicCash) {
-      _cryptoFocus.addListener(() {
-        if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-          if (_amountToSend == null) {
-            setState(() {
-              _calculateFeesFuture = calculateFees(0);
-            });
-          } else {
-            setState(() {
-              _calculateFeesFuture = calculateFees(
-                  Format.decimalAmountToSatoshis(_amountToSend!, coin));
-            });
-          }
-        }
-      });
+    // if (coin != Coin.epicCash) {
+    // _cryptoFocus.addListener(() {
+    //   if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
+    //     if (_amountToSend == null) {
+    //       setState(() {
+    //         _calculateFeesFuture = calculateFees(0);
+    //       });
+    //     } else {
+    //       setState(() {
+    //         _calculateFeesFuture = calculateFees(
+    //             Format.decimalAmountToSatoshis(_amountToSend!, coin));
+    //       });
+    //     }
+    //   }
+    // });
 
-      _baseFocus.addListener(() {
-        if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-          if (_amountToSend == null) {
-            setState(() {
-              _calculateFeesFuture = calculateFees(0);
-            });
-          } else {
-            setState(() {
-              _calculateFeesFuture = calculateFees(
-                  Format.decimalAmountToSatoshis(_amountToSend!, coin));
-            });
-          }
-        }
-      });
-    }
+    // _baseFocus.addListener(() {
+    //   if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
+    //     if (_amountToSend == null) {
+    //       setState(() {
+    //         _calculateFeesFuture = calculateFees(0);
+    //       });
+    //     } else {
+    //       setState(() {
+    //         _calculateFeesFuture = calculateFees(
+    //             Format.decimalAmountToSatoshis(_amountToSend!, coin));
+    //       });
+    //     }
+    //   }
+    // });
+    // }
     super.initState();
   }
 
   @override
   void dispose() {
+    _cryptoAmountChangedFeeUpdateTimer?.cancel();
+    _baseAmountChangedFeeUpdateTimer?.cancel();
+
     cryptoAmountController.removeListener(onCryptoAmountChanged);
+    baseAmountController.removeListener(_baseAmountChanged);
 
     sendToController.dispose();
     cryptoAmountController.dispose();
@@ -1569,26 +1621,52 @@ class _SendViewState extends ConsumerState<SendView> {
                                         ? "Select coins"
                                         : "Selected coins (${selectedUTXOs.length})",
                                     onTap: () async {
-                                      final result =
-                                          await Navigator.of(context).pushNamed(
-                                        CoinControlView.routeName,
-                                        arguments: Tuple4(
-                                          walletId,
-                                          CoinControlViewType.use,
-                                          _amountToSend != null
-                                              ? Format.decimalAmountToSatoshis(
-                                                  _amountToSend!,
-                                                  coin,
-                                                )
-                                              : null,
-                                          selectedUTXOs,
-                                        ),
-                                      );
+                                      if (FocusScope.of(context).hasFocus) {
+                                        FocusScope.of(context).unfocus();
+                                        await Future<void>.delayed(
+                                          const Duration(milliseconds: 100),
+                                        );
+                                      }
 
-                                      if (result is Set<UTXO>) {
-                                        setState(() {
-                                          selectedUTXOs = result;
-                                        });
+                                      if (mounted) {
+                                        final spendable = ref
+                                            .read(walletsChangeNotifierProvider)
+                                            .getManager(widget.walletId)
+                                            .balance
+                                            .spendable;
+
+                                        int? amount;
+                                        if (_amountToSend != null) {
+                                          amount =
+                                              Format.decimalAmountToSatoshis(
+                                            _amountToSend!,
+                                            coin,
+                                          );
+
+                                          if (spendable == amount) {
+                                            // this is now a send all
+                                          } else {
+                                            amount += _currentFee;
+                                          }
+                                        }
+
+                                        final result =
+                                            await Navigator.of(context)
+                                                .pushNamed(
+                                          CoinControlView.routeName,
+                                          arguments: Tuple4(
+                                            walletId,
+                                            CoinControlViewType.use,
+                                            amount,
+                                            selectedUTXOs,
+                                          ),
+                                        );
+
+                                        if (result is Set<UTXO>) {
+                                          setState(() {
+                                            selectedUTXOs = result;
+                                          });
+                                        }
                                       }
                                     },
                                   ),
@@ -1711,6 +1789,10 @@ class _SendViewState extends ConsumerState<SendView> {
                                                             .text) ??
                                                     Decimal.zero,
                                                 updateChosen: (String fee) {
+                                                  _setCurrentFee(
+                                                    fee,
+                                                    true,
+                                                  );
                                                   setState(() {
                                                     _calculateFeesFuture =
                                                         Future(() => fee);
@@ -1736,6 +1818,10 @@ class _SendViewState extends ConsumerState<SendView> {
                                                           ConnectionState
                                                               .done &&
                                                       snapshot.hasData) {
+                                                    _setCurrentFee(
+                                                      snapshot.data! as String,
+                                                      false,
+                                                    );
                                                     return Text(
                                                       "~${snapshot.data! as String} ${coin.ticker}",
                                                       style: STextStyles
@@ -1788,6 +1874,11 @@ class _SendViewState extends ConsumerState<SendView> {
                                                               ConnectionState
                                                                   .done &&
                                                           snapshot.hasData) {
+                                                        _setCurrentFee(
+                                                          snapshot.data!
+                                                              as String,
+                                                          false,
+                                                        );
                                                         return Text(
                                                           "~${snapshot.data! as String} ${coin.ticker}",
                                                           style: STextStyles

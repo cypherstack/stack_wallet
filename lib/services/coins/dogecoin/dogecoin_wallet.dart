@@ -18,6 +18,7 @@ import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
+import 'package:stackwallet/models/signing_data.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
@@ -946,13 +947,15 @@ class DogecoinWallet extends CoinServiceAPI
           isSendAll = true;
         }
 
+        final bool coinControl = utxos != null;
+
         final result = await coinSelection(
           satoshiAmountToSend: satoshiAmount,
           selectedTxFeeRate: rate,
           recipientAddress: address,
           isSendAll: isSendAll,
           utxos: utxos?.toList(),
-          coinControl: utxos is List<isar_models.UTXO>,
+          coinControl: coinControl,
         );
 
         Logging.instance
@@ -1586,14 +1589,16 @@ class DogecoinWallet extends CoinServiceAPI
           String? blockReason;
 
           if (storedTx?.subType ==
-                  isar_models.TransactionSubType.bip47Notification &&
-              storedTx?.type == isar_models.TransactionType.incoming) {
-            // probably safe to assume this is an incoming tx as it is a utxo
-            // belonging to this wallet. The extra check may be redundant but
-            // just in case...
-
-            shouldBlock = true;
-            blockReason = "Incoming paynym notification transaction.";
+              isar_models.TransactionSubType.bip47Notification) {
+            if (storedTx?.type == isar_models.TransactionType.incoming) {
+              shouldBlock = true;
+              blockReason = "Incoming paynym notification transaction.";
+            } else if (storedTx?.type == isar_models.TransactionType.outgoing) {
+              shouldBlock = true;
+              blockReason = "Paynym notification change output. Incautious "
+                  "handling of change outputs from notification transactions "
+                  "may cause unintended loss of privacy.";
+            }
           }
 
           final vout = jsonUTXO["tx_pos"] as int;
@@ -2126,6 +2131,7 @@ class DogecoinWallet extends CoinServiceAPI
     } else {
       satoshisBeingUsed = spendableSatoshiValue;
       utxoObjectsToUse = spendableOutputs;
+      inputsBeingConsumed = spendableOutputs.length;
     }
 
     Logging.instance
@@ -2149,7 +2155,6 @@ class DogecoinWallet extends CoinServiceAPI
           .log("Attempting to send all $coin", level: LogLevel.Info);
 
       final int vSizeForOneOutput = (await buildTransaction(
-        utxosToUse: utxoObjectsToUse,
         utxoSigningData: utxoSigningData,
         recipients: [recipientAddress],
         satoshiAmounts: [satoshisBeingUsed - 1],
@@ -2164,7 +2169,6 @@ class DogecoinWallet extends CoinServiceAPI
 
       final int amount = satoshiAmountToSend - feeForOneOutput;
       dynamic txn = await buildTransaction(
-        utxosToUse: utxoObjectsToUse,
         utxoSigningData: utxoSigningData,
         recipients: recipientsArray,
         satoshiAmounts: [amount],
@@ -2175,19 +2179,17 @@ class DogecoinWallet extends CoinServiceAPI
         "recipientAmt": amount,
         "fee": feeForOneOutput,
         "vSize": txn["vSize"],
-        "usedUTXOs": utxoObjectsToUse,
+        "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
       };
       return transactionObject;
     }
 
     final int vSizeForOneOutput = (await buildTransaction(
-      utxosToUse: utxoObjectsToUse,
       utxoSigningData: utxoSigningData,
       recipients: [recipientAddress],
       satoshiAmounts: [satoshisBeingUsed - 1],
     ))["vSize"] as int;
     final int vSizeForTwoOutPuts = (await buildTransaction(
-      utxosToUse: utxoObjectsToUse,
       utxoSigningData: utxoSigningData,
       recipients: [
         recipientAddress,
@@ -2267,7 +2269,6 @@ class DogecoinWallet extends CoinServiceAPI
           Logging.instance
               .log('Estimated fee: $feeForTwoOutputs', level: LogLevel.Info);
           dynamic txn = await buildTransaction(
-            utxosToUse: utxoObjectsToUse,
             utxoSigningData: utxoSigningData,
             recipients: recipientsArray,
             satoshiAmounts: recipientsAmtArray,
@@ -2295,7 +2296,6 @@ class DogecoinWallet extends CoinServiceAPI
             Logging.instance.log('Adjusted Estimated fee: $feeForTwoOutputs',
                 level: LogLevel.Info);
             txn = await buildTransaction(
-              utxosToUse: utxoObjectsToUse,
               utxoSigningData: utxoSigningData,
               recipients: recipientsArray,
               satoshiAmounts: recipientsAmtArray,
@@ -2308,7 +2308,7 @@ class DogecoinWallet extends CoinServiceAPI
             "recipientAmt": recipientsAmtArray[0],
             "fee": feeBeingPaid,
             "vSize": txn["vSize"],
-            "usedUTXOs": utxoObjectsToUse,
+            "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
           };
           return transactionObject;
         } else {
@@ -2325,7 +2325,6 @@ class DogecoinWallet extends CoinServiceAPI
           Logging.instance
               .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
           dynamic txn = await buildTransaction(
-            utxosToUse: utxoObjectsToUse,
             utxoSigningData: utxoSigningData,
             recipients: recipientsArray,
             satoshiAmounts: recipientsAmtArray,
@@ -2336,7 +2335,7 @@ class DogecoinWallet extends CoinServiceAPI
             "recipientAmt": recipientsAmtArray[0],
             "fee": satoshisBeingUsed - satoshiAmountToSend,
             "vSize": txn["vSize"],
-            "usedUTXOs": utxoObjectsToUse,
+            "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
           };
           return transactionObject;
         }
@@ -2355,7 +2354,6 @@ class DogecoinWallet extends CoinServiceAPI
         Logging.instance
             .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
         dynamic txn = await buildTransaction(
-          utxosToUse: utxoObjectsToUse,
           utxoSigningData: utxoSigningData,
           recipients: recipientsArray,
           satoshiAmounts: recipientsAmtArray,
@@ -2366,7 +2364,7 @@ class DogecoinWallet extends CoinServiceAPI
           "recipientAmt": recipientsAmtArray[0],
           "fee": satoshisBeingUsed - satoshiAmountToSend,
           "vSize": txn["vSize"],
-          "usedUTXOs": utxoObjectsToUse,
+          "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
         };
         return transactionObject;
       }
@@ -2385,7 +2383,6 @@ class DogecoinWallet extends CoinServiceAPI
       Logging.instance
           .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
       dynamic txn = await buildTransaction(
-        utxosToUse: utxoObjectsToUse,
         utxoSigningData: utxoSigningData,
         recipients: recipientsArray,
         satoshiAmounts: recipientsAmtArray,
@@ -2396,7 +2393,7 @@ class DogecoinWallet extends CoinServiceAPI
         "recipientAmt": recipientsAmtArray[0],
         "fee": feeForOneOutput,
         "vSize": txn["vSize"],
-        "usedUTXOs": utxoObjectsToUse,
+        "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
       };
       return transactionObject;
     } else {
@@ -2422,103 +2419,120 @@ class DogecoinWallet extends CoinServiceAPI
     }
   }
 
-  Future<Map<String, dynamic>> fetchBuildTxData(
+  Future<List<SigningData>> fetchBuildTxData(
     List<isar_models.UTXO> utxosToUse,
   ) async {
     // return data
-    Map<String, dynamic> results = {};
-    Map<String, List<String>> addressTxid = {};
-
-    // addresses to check
-    List<String> addressesP2PKH = [];
+    List<SigningData> signingData = [];
 
     try {
       // Populating the addresses to check
       for (var i = 0; i < utxosToUse.length; i++) {
-        final txid = utxosToUse[i].txid;
-        final tx = await _cachedElectrumXClient.getTransaction(
-          txHash: txid,
-          coin: coin,
-        );
-
-        for (final output in tx["vout"] as List) {
-          final n = output["n"];
-          if (n != null && n == utxosToUse[i].vout) {
-            final address = output["scriptPubKey"]["addresses"][0] as String;
-            if (!addressTxid.containsKey(address)) {
-              addressTxid[address] = <String>[];
-            }
-            (addressTxid[address] as List).add(txid);
-            switch (addressType(address: address)) {
-              case DerivePathType.bip44:
-                addressesP2PKH.add(address);
-                break;
-              default:
-                throw Exception("Unsupported DerivePathType");
+        if (utxosToUse[i].address == null) {
+          final txid = utxosToUse[i].txid;
+          final tx = await _cachedElectrumXClient.getTransaction(
+            txHash: txid,
+            coin: coin,
+          );
+          for (final output in tx["vout"] as List) {
+            final n = output["n"];
+            if (n != null && n == utxosToUse[i].vout) {
+              utxosToUse[i] = utxosToUse[i].copyWith(
+                address: output["scriptPubKey"]?["addresses"]?[0] as String? ??
+                    output["scriptPubKey"]["address"] as String,
+              );
             }
           }
         }
+
+        final derivePathType = addressType(address: utxosToUse[i].address!);
+
+        signingData.add(
+          SigningData(
+            derivePathType: derivePathType,
+            utxo: utxosToUse[i],
+          ),
+        );
       }
 
-      // p2pkh / bip44
-      final p2pkhLength = addressesP2PKH.length;
-      if (p2pkhLength > 0) {
-        final receiveDerivations = await _fetchDerivations(
-          chain: 0,
-          derivePathType: DerivePathType.bip44,
-        );
-        final changeDerivations = await _fetchDerivations(
-          chain: 1,
-          derivePathType: DerivePathType.bip44,
-        );
-        for (int i = 0; i < p2pkhLength; i++) {
-          // receives
-          final receiveDerivation = receiveDerivations[addressesP2PKH[i]];
-          // if a match exists it will not be null
-          if (receiveDerivation != null) {
-            final data = P2PKH(
-              data: PaymentData(
-                  pubkey: Format.stringToUint8List(
-                      receiveDerivation["pubKey"] as String)),
-              network: network,
-            ).data;
+      Map<DerivePathType, Map<String, dynamic>> receiveDerivations = {};
+      Map<DerivePathType, Map<String, dynamic>> changeDerivations = {};
 
-            for (String tx in addressTxid[addressesP2PKH[i]]!) {
-              results[tx] = {
-                "output": data.output,
-                "keyPair": ECPair.fromWIF(
-                  receiveDerivation["wif"] as String,
-                  network: network,
-                ),
-              };
-            }
-          } else {
-            // if its not a receive, check change
-            final changeDerivation = changeDerivations[addressesP2PKH[i]];
-            // if a match exists it will not be null
-            if (changeDerivation != null) {
-              final data = P2PKH(
+      for (final sd in signingData) {
+        String? pubKey;
+        String? wif;
+
+        // fetch receiving derivations if null
+        receiveDerivations[sd.derivePathType] ??= await _fetchDerivations(
+          chain: 0,
+          derivePathType: sd.derivePathType,
+        );
+        final receiveDerivation =
+            receiveDerivations[sd.derivePathType]![sd.utxo.address!];
+
+        if (receiveDerivation != null) {
+          pubKey = receiveDerivation["pubKey"] as String;
+          wif = receiveDerivation["wif"] as String;
+        } else {
+          // fetch change derivations if null
+          changeDerivations[sd.derivePathType] ??= await _fetchDerivations(
+            chain: 1,
+            derivePathType: sd.derivePathType,
+          );
+          final changeDerivation =
+              changeDerivations[sd.derivePathType]![sd.utxo.address!];
+          if (changeDerivation != null) {
+            pubKey = changeDerivation["pubKey"] as String;
+            wif = changeDerivation["wif"] as String;
+          }
+        }
+
+        if (wif == null || pubKey == null) {
+          final address = await db.getAddress(walletId, sd.utxo.address!);
+          if (address?.derivationPath != null) {
+            final node = await Bip32Utils.getBip32Node(
+              (await mnemonicString)!,
+              (await mnemonicPassphrase)!,
+              network,
+              address!.derivationPath!.value,
+            );
+
+            wif = node.toWIF();
+            pubKey = Format.uint8listToString(node.publicKey);
+          }
+        }
+
+        if (wif != null && pubKey != null) {
+          final PaymentData data;
+          final Uint8List? redeemScript;
+
+          switch (sd.derivePathType) {
+            case DerivePathType.bip44:
+              data = P2PKH(
                 data: PaymentData(
-                    pubkey: Format.stringToUint8List(
-                        changeDerivation["pubKey"] as String)),
+                  pubkey: Format.stringToUint8List(pubKey),
+                ),
                 network: network,
               ).data;
+              redeemScript = null;
+              break;
 
-              for (String tx in addressTxid[addressesP2PKH[i]]!) {
-                results[tx] = {
-                  "output": data.output,
-                  "keyPair": ECPair.fromWIF(
-                    changeDerivation["wif"] as String,
-                    network: network,
-                  ),
-                };
-              }
-            }
+            default:
+              throw Exception("DerivePathType unsupported");
           }
+
+          final keyPair = ECPair.fromWIF(
+            wif,
+            network: network,
+          );
+
+          sd.redeemScript = redeemScript;
+          sd.output = data.output;
+          sd.keyPair = keyPair;
         }
       }
 
-      return results;
+      return signingData;
     } catch (e, s) {
       Logging.instance
           .log("fetchBuildTxData() threw: $e,\n$s", level: LogLevel.Error);
@@ -2528,8 +2542,7 @@ class DogecoinWallet extends CoinServiceAPI
 
   /// Builds and signs a transaction
   Future<Map<String, dynamic>> buildTransaction({
-    required List<isar_models.UTXO> utxosToUse,
-    required Map<String, dynamic> utxoSigningData,
+    required List<SigningData> utxoSigningData,
     required List<String> recipients,
     required List<int> satoshiAmounts,
   }) async {
@@ -2540,10 +2553,14 @@ class DogecoinWallet extends CoinServiceAPI
     txb.setVersion(1);
 
     // Add transaction inputs
-    for (var i = 0; i < utxosToUse.length; i++) {
-      final txid = utxosToUse[i].txid;
-      txb.addInput(txid, utxosToUse[i].vout, null,
-          utxoSigningData[txid]["output"] as Uint8List);
+    for (var i = 0; i < utxoSigningData.length; i++) {
+      final txid = utxoSigningData[i].utxo.txid;
+      txb.addInput(
+        txid,
+        utxoSigningData[i].utxo.vout,
+        null,
+        utxoSigningData[i].output!,
+      );
     }
 
     // Add transaction output
@@ -2553,13 +2570,12 @@ class DogecoinWallet extends CoinServiceAPI
 
     try {
       // Sign the transaction accordingly
-      for (var i = 0; i < utxosToUse.length; i++) {
-        final txid = utxosToUse[i].txid;
+      for (var i = 0; i < utxoSigningData.length; i++) {
         txb.sign(
           vin: i,
-          keyPair: utxoSigningData[txid]["keyPair"] as ECPair,
-          witnessValue: utxosToUse[i].value,
-          redeemScript: utxoSigningData[txid]["redeemScript"] as Uint8List?,
+          keyPair: utxoSigningData[i].keyPair!,
+          witnessValue: utxoSigningData[i].utxo.value,
+          redeemScript: utxoSigningData[i].redeemScript,
         );
       }
     } catch (e, s) {
