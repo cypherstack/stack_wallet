@@ -2660,6 +2660,21 @@ class LitecoinWallet extends CoinServiceAPI
           }
         }
 
+        if (wif == null || pubKey == null) {
+          final address = await db.getAddress(walletId, sd.utxo.address!);
+          if (address?.derivationPath != null) {
+            final node = await Bip32Utils.getBip32Node(
+              (await mnemonicString)!,
+              (await mnemonicPassphrase)!,
+              _network,
+              address!.derivationPath!.value,
+            );
+
+            wif = node.toWIF();
+            pubKey = Format.uint8listToString(node.publicKey);
+          }
+        }
+
         if (wif != null && pubKey != null) {
           final PaymentData data;
           final Uint8List? redeemScript;
