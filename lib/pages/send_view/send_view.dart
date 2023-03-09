@@ -1621,41 +1621,52 @@ class _SendViewState extends ConsumerState<SendView> {
                                         ? "Select coins"
                                         : "Selected coins (${selectedUTXOs.length})",
                                     onTap: () async {
-                                      final spendable = ref
-                                          .read(walletsChangeNotifierProvider)
-                                          .getManager(widget.walletId)
-                                          .balance
-                                          .spendable;
-
-                                      int? amount;
-                                      if (_amountToSend != null) {
-                                        amount = Format.decimalAmountToSatoshis(
-                                          _amountToSend!,
-                                          coin,
+                                      if (FocusScope.of(context).hasFocus) {
+                                        FocusScope.of(context).unfocus();
+                                        await Future<void>.delayed(
+                                          const Duration(milliseconds: 100),
                                         );
-
-                                        if (spendable == amount) {
-                                          // this is now a send all
-                                        } else {
-                                          amount += _currentFee;
-                                        }
                                       }
 
-                                      final result =
-                                          await Navigator.of(context).pushNamed(
-                                        CoinControlView.routeName,
-                                        arguments: Tuple4(
-                                          walletId,
-                                          CoinControlViewType.use,
-                                          amount,
-                                          selectedUTXOs,
-                                        ),
-                                      );
+                                      if (mounted) {
+                                        final spendable = ref
+                                            .read(walletsChangeNotifierProvider)
+                                            .getManager(widget.walletId)
+                                            .balance
+                                            .spendable;
 
-                                      if (result is Set<UTXO>) {
-                                        setState(() {
-                                          selectedUTXOs = result;
-                                        });
+                                        int? amount;
+                                        if (_amountToSend != null) {
+                                          amount =
+                                              Format.decimalAmountToSatoshis(
+                                            _amountToSend!,
+                                            coin,
+                                          );
+
+                                          if (spendable == amount) {
+                                            // this is now a send all
+                                          } else {
+                                            amount += _currentFee;
+                                          }
+                                        }
+
+                                        final result =
+                                            await Navigator.of(context)
+                                                .pushNamed(
+                                          CoinControlView.routeName,
+                                          arguments: Tuple4(
+                                            walletId,
+                                            CoinControlViewType.use,
+                                            amount,
+                                            selectedUTXOs,
+                                          ),
+                                        );
+
+                                        if (result is Set<UTXO>) {
+                                          setState(() {
+                                            selectedUTXOs = result;
+                                          });
+                                        }
                                       }
                                     },
                                   ),
