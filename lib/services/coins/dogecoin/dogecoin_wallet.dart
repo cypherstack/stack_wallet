@@ -946,13 +946,15 @@ class DogecoinWallet extends CoinServiceAPI
           isSendAll = true;
         }
 
+        final bool coinControl = utxos != null;
+
         final result = await coinSelection(
           satoshiAmountToSend: satoshiAmount,
           selectedTxFeeRate: rate,
           recipientAddress: address,
           isSendAll: isSendAll,
           utxos: utxos?.toList(),
-          coinControl: utxos is List<isar_models.UTXO>,
+          coinControl: coinControl,
         );
 
         Logging.instance
@@ -2126,6 +2128,7 @@ class DogecoinWallet extends CoinServiceAPI
     } else {
       satoshisBeingUsed = spendableSatoshiValue;
       utxoObjectsToUse = spendableOutputs;
+      inputsBeingConsumed = spendableOutputs.length;
     }
 
     Logging.instance
