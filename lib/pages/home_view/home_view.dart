@@ -107,23 +107,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
     _rotateIconController = RotateIconController();
     _children = [
       const WalletsView(),
-      if (Constants.enableExchange)
-        Stack(
-          children: [
-            const ExchangeView(),
-            // ExchangeLoadingOverlayView(
-            //   unawaitedLoad: _loadCNData,
-            // ),
-          ],
-        ),
-      if (Constants.enableBuy)
-        // Stack(
-        //   children: [
-        const BuyView(),
-      // BuyLoadingOverlayView(
-      //   unawaitedLoad: _loadSimplexData,
-      // ),
-      //   ],
+      if (Constants.enableExchange) const ExchangeView(),
+      if (Constants.enableExchange) const BuyView(),
     ];
 
     ref.read(notificationsProvider).startCheckingWatchedNotifications();

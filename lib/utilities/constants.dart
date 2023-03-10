@@ -23,7 +23,7 @@ abstract class Constants {
   static bool enableExchange = Util.isDesktop || !Platform.isIOS;
   // just use enable exchange flag
   // static bool enableBuy = enableExchange;
-  // // true; // true for development, TODO change to "Util.isDesktop || !Platform.isIOS;" as above or even just = enableExchange
+  // // true; // true for development,
 
   //TODO: correct for monero?
   static const int _satsPerCoinMonero = 1000000000000;
