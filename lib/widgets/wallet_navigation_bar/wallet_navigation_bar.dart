@@ -4,9 +4,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/wallet_navigation_bar_item.dart';
-
-const _kMaxItems = 5;
 
 final walletNavBarMore = StateProvider.autoDispose((ref) => false);
 
@@ -14,9 +13,11 @@ class WalletNavigationBar extends ConsumerStatefulWidget {
   const WalletNavigationBar({
     Key? key,
     required this.items,
+    required this.moreItems,
   }) : super(key: key);
 
   final List<WalletNavigationBarItemData> items;
+  final List<WalletNavigationBarItemData> moreItems;
 
   @override
   ConsumerState<WalletNavigationBar> createState() =>
@@ -28,23 +29,18 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
 
   final _moreDuration = const Duration(milliseconds: 200);
 
-  late final bool hasMore;
-
-  double _moreScale = 0;
-
   void _onMorePressed() {
     ref.read(walletNavBarMore.state).state =
         !ref.read(walletNavBarMore.state).state;
   }
 
   @override
-  void initState() {
-    hasMore = widget.items.length > _kMaxItems;
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width - 40;
+
+    final hasMore = widget.moreItems.isNotEmpty;
+    final buttonCount = widget.items.length + (hasMore ? 1 : 0);
+
     return Stack(
       alignment: Alignment.bottomCenter,
       children: [
@@ -93,7 +89,7 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            ...widget.items.sublist(_kMaxItems - 1).map(
+                            ...widget.moreItems.map(
                               (e) {
                                 return Column(
                                   children: [
@@ -133,94 +129,92 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           vertical: 6,
-                          horizontal: 12,
+                          horizontal: 20,
                         ),
-                        child: IntrinsicWidth(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Spacer(),
-                              if (!hasMore)
+                        // child: IntrinsicWidth(
+                        child: ConditionalParent(
+                          condition: buttonCount > 4,
+                          builder: (child) => SizedBox(
+                            width: width * 0.9,
+                            child: child,
+                          ),
+                          child: ConditionalParent(
+                            condition: buttonCount <= 4,
+                            builder: (child) => SizedBox(
+                              width: width * 0.2 * buttonCount,
+                              child: child,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
                                 ...widget.items.map(
-                                  (e) => Flexible(
-                                    flex: 10000,
+                                  (e) => Expanded(
                                     child: WalletNavigationBarItem(
                                       data: e,
                                       disableDuration: _moreDuration,
                                     ),
                                   ),
                                 ),
-                              if (hasMore)
-                                ...widget.items.sublist(0, _kMaxItems - 1).map(
-                                      (e) => Flexible(
-                                        flex: 10000,
-                                        child: WalletNavigationBarItem(
-                                          data: e,
-                                          disableDuration: _moreDuration,
-                                        ),
-                                      ),
-                                    ),
-                              if (hasMore)
-                                Flexible(
-                                  flex: 10000,
-                                  child: WalletNavigationBarItem(
-                                    data: WalletNavigationBarItemData(
-                                      icon: AnimatedCrossFade(
-                                        firstChild: SvgPicture.asset(
-                                          Assets.svg.bars,
-                                          width: 20,
-                                          height: 20,
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .bottomNavIconIcon,
-                                        ),
-                                        secondChild: SvgPicture.asset(
-                                          Assets.svg.bars,
-                                          width: 20,
-                                          height: 20,
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .infoItemIcons,
-                                        ),
-                                        crossFadeState: ref
-                                                .watch(walletNavBarMore.state)
-                                                .state
-                                            ? CrossFadeState.showSecond
-                                            : CrossFadeState.showFirst,
-                                        duration: _moreDuration,
-                                      ),
-                                      overrideText: AnimatedCrossFade(
-                                        firstChild: Text(
-                                          "More",
-                                          style:
-                                              STextStyles.buttonSmall(context),
-                                        ),
-                                        secondChild: Text(
-                                          "More",
-                                          style:
-                                              STextStyles.buttonSmall(context)
-                                                  .copyWith(
+                                if (hasMore)
+                                  Expanded(
+                                    child: WalletNavigationBarItem(
+                                      data: WalletNavigationBarItemData(
+                                        icon: AnimatedCrossFade(
+                                          firstChild: SvgPicture.asset(
+                                            Assets.svg.bars,
+                                            width: 20,
+                                            height: 20,
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .bottomNavIconIcon,
+                                          ),
+                                          secondChild: SvgPicture.asset(
+                                            Assets.svg.bars,
+                                            width: 20,
+                                            height: 20,
                                             color: Theme.of(context)
                                                 .extension<StackColors>()!
                                                 .infoItemIcons,
                                           ),
+                                          crossFadeState: ref
+                                                  .watch(walletNavBarMore.state)
+                                                  .state
+                                              ? CrossFadeState.showSecond
+                                              : CrossFadeState.showFirst,
+                                          duration: _moreDuration,
                                         ),
-                                        crossFadeState: ref
-                                                .watch(walletNavBarMore.state)
-                                                .state
-                                            ? CrossFadeState.showSecond
-                                            : CrossFadeState.showFirst,
-                                        duration: _moreDuration,
+                                        overrideText: AnimatedCrossFade(
+                                          firstChild: Text(
+                                            "More",
+                                            style: STextStyles.buttonSmall(
+                                                context),
+                                          ),
+                                          secondChild: Text(
+                                            "More",
+                                            style:
+                                                STextStyles.buttonSmall(context)
+                                                    .copyWith(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .infoItemIcons,
+                                            ),
+                                          ),
+                                          crossFadeState: ref
+                                                  .watch(walletNavBarMore.state)
+                                                  .state
+                                              ? CrossFadeState.showSecond
+                                              : CrossFadeState.showFirst,
+                                          duration: _moreDuration,
+                                        ),
+                                        label: null,
+                                        isMore: true,
+                                        onTap: _onMorePressed,
                                       ),
-                                      label: null,
-                                      isMore: true,
-                                      onTap: _onMorePressed,
+                                      disableDuration: _moreDuration,
                                     ),
-                                    disableDuration: _moreDuration,
                                   ),
-                                ),
-                              const Spacer(),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),

@@ -5,6 +5,8 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:isar/isar.dart';
+import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/buy_view/buy_in_wallet_view.dart';
 import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
@@ -33,6 +35,7 @@ import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -255,19 +258,14 @@ class _WalletViewState extends ConsumerState<WalletView> {
   }
 
   void _onExchangePressed(BuildContext context) async {
-    // too expensive
-    // unawaited(ExchangeDataLoadingService.instance.loadAll(ref));
-
     final coin = ref.read(managerProvider).coin;
 
-    if (coin == Coin.epicCash) {
-      await showDialog<void>(
-        context: context,
-        builder: (_) => const StackOkDialog(
-          title: "Exchange not available for Epic Cash",
-        ),
-      );
-    } else if (coin.name.endsWith("TestNet")) {
+    final currency = ExchangeDataLoadingService.instance.isar.currencies
+        .where()
+        .tickerEqualToAnyExchangeNameName(coin.ticker)
+        .findFirstSync();
+
+    if (coin.isTestNet) {
       await showDialog<void>(
         context: context,
         builder: (_) => const StackOkDialog(
@@ -275,42 +273,36 @@ class _WalletViewState extends ConsumerState<WalletView> {
         ),
       );
     } else {
-      // ref.read(currentExchangeNameStateProvider.state).state =
-      //     ChangeNowExchange.exchangeName;
-      // final walletId = ref.read(managerProvider).walletId;
-      // ref.read(prefsChangeNotifierProvider).exchangeRateType =
-      //     ExchangeRateType.estimated;
-      //
-      // final currencies = ref
-      //     .read(availableChangeNowCurrenciesProvider)
-      //     .currencies
-      //     .where((element) =>
-      //         element.ticker.toLowerCase() == coin.ticker.toLowerCase());
-      //
-      // if (currencies.isNotEmpty) {
-      //   ref
-      //       .read(exchangeFormStateProvider(ExchangeRateType.estimated))
-      //       .setCurrencies(
-      //         currencies.first,
-      //         ref
-      //             .read(availableChangeNowCurrenciesProvider)
-      //             .currencies
-      //             .firstWhere(
-      //               (element) =>
-      //                   element.ticker.toLowerCase() !=
-      //                   coin.ticker.toLowerCase(),
-      //             ),
-      //       );
-      // }
-
       if (mounted) {
         unawaited(
           Navigator.of(context).pushNamed(
             WalletInitiatedExchangeView.routeName,
             arguments: Tuple2(
               walletId,
-              coin,
+              currency == null ? Coin.bitcoin : coin,
             ),
+          ),
+        );
+      }
+    }
+  }
+
+  void _onBuyPressed(BuildContext context) async {
+    final coin = ref.read(managerProvider).coin;
+
+    if (coin.isTestNet) {
+      await showDialog<void>(
+        context: context,
+        builder: (_) => const StackOkDialog(
+          title: "Buy not available for test net coins",
+        ),
+      );
+    } else {
+      if (mounted) {
+        unawaited(
+          Navigator.of(context).pushNamed(
+            BuyInWalletView.routeName,
+            arguments: coin.hasBuySupport ? coin : Coin.bitcoin,
           ),
         );
       }
@@ -818,23 +810,20 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       );
                     },
                   ),
-                  WalletNavigationBarItemData(
-                    label: "Exchange",
-                    icon: const ExchangeNavIcon(),
-                    onTap: () => _onExchangePressed(context),
-                  ),
-                  WalletNavigationBarItemData(
-                    label: "Buy",
-                    icon: const BuyNavIcon(),
-                    onTap: () {
-                      unawaited(
-                        Navigator.of(context).pushNamed(
-                          BuyInWalletView.routeName,
-                          arguments: coin,
-                        ),
-                      );
-                    },
-                  ),
+                  if (Constants.enableExchange)
+                    WalletNavigationBarItemData(
+                      label: "Swap",
+                      icon: const ExchangeNavIcon(),
+                      onTap: () => _onExchangePressed(context),
+                    ),
+                  if (Constants.enableExchange)
+                    WalletNavigationBarItemData(
+                      label: "Buy",
+                      icon: const BuyNavIcon(),
+                      onTap: () => _onBuyPressed(context),
+                    ),
+                ],
+                moreItems: [
                   if (ref.watch(
                         walletsChangeNotifierProvider.select(
                           (value) => value
