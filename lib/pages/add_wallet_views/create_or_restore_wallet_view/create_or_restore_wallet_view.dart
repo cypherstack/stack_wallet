@@ -89,41 +89,40 @@ class CreateOrRestoreWalletView extends StatelessWidget {
               },
             ),
           ),
-          body: Container(
-            color: Theme.of(context).extension<StackColors>()!.background,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(31),
-                    child: CoinImage(
+          body: SafeArea(
+            child: Container(
+              color: Theme.of(context).extension<StackColors>()!.background,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    CoinImage(
                       coin: coin,
                       isDesktop: isDesktop,
                     ),
-                  ),
-                  const Spacer(
-                    flex: 2,
-                  ),
-                  CreateRestoreWalletTitle(
-                    coin: coin,
-                    isDesktop: isDesktop,
-                  ),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  CreateRestoreWalletSubTitle(
-                    isDesktop: isDesktop,
-                  ),
-                  const Spacer(
-                    flex: 5,
-                  ),
-                  CreateWalletButtonGroup(
-                    coin: coin,
-                    isDesktop: isDesktop,
-                  ),
-                ],
+                    const Spacer(
+                      flex: 2,
+                    ),
+                    CreateRestoreWalletTitle(
+                      coin: coin,
+                      isDesktop: isDesktop,
+                    ),
+                    const SizedBox(
+                      height: 8,
+                    ),
+                    CreateRestoreWalletSubTitle(
+                      isDesktop: isDesktop,
+                    ),
+                    const Spacer(
+                      flex: 5,
+                    ),
+                    CreateWalletButtonGroup(
+                      coin: coin,
+                      isDesktop: isDesktop,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
