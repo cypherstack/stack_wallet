@@ -848,7 +848,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           enabled: ref.watch(
               exchangeFormStateProvider.select((value) => value.canExchange)),
           onPressed: onExchangePressed,
-          label: "Exchange",
+          label: "Swap",
         )
       ],
     );

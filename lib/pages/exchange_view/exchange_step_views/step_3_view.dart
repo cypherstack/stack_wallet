@@ -72,7 +72,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
             },
           ),
           title: Text(
-            "Exchange",
+            "Swap",
             style: STextStyles.navBarTitle(context),
           ),
         ),

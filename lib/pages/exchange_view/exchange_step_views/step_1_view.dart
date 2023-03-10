@@ -56,7 +56,7 @@ class _Step1ViewState extends State<Step1View> {
             },
           ),
           title: Text(
-            "Exchange",
+            "Swap",
             style: STextStyles.navBarTitle(context),
           ),
         ),

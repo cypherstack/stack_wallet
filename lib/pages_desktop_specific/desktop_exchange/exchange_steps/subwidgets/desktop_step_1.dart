@@ -37,7 +37,7 @@ class DesktopStep1 extends ConsumerWidget {
           child: Column(
             children: [
               DesktopStepItem(
-                label: "Exchange",
+                label: "Swap",
                 value: ref.watch(exchangeFormStateProvider
                     .select((value) => value.exchange.name)),
               ),
