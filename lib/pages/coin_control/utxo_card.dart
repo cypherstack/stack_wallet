@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
 import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
@@ -36,7 +35,8 @@ class UtxoCard extends ConsumerStatefulWidget {
 }
 
 class _UtxoCardState extends ConsumerState<UtxoCard> {
-  late final UTXO utxo;
+  late Stream<UTXO?> stream;
+  late UTXO utxo;
 
   late bool _selected;
 
@@ -44,6 +44,8 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
   void initState() {
     _selected = widget.initialSelectedState;
     utxo = widget.utxo;
+
+    stream = MainDB.instance.watchUTXO(id: utxo.id);
     super.initState();
   }
 
@@ -56,19 +58,6 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
 
     final currentChainHeight = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManager(widget.walletId).currentHeight));
-
-    String? label;
-    if (utxo.address != null) {
-      label = MainDB.instance.isar.addressLabels
-          .where()
-          .addressStringWalletIdEqualTo(utxo.address!, widget.walletId)
-          .findFirstSync()
-          ?.value;
-
-      if (label != null && label.isEmpty) {
-        label = null;
-      }
-    }
 
     return ConditionalParent(
       condition: widget.onPressed != null,
@@ -92,69 +81,79 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
         color: widget.onPressed == null
             ? Theme.of(context).extension<StackColors>()!.popupBG
             : Colors.transparent,
-        child: Row(
-          children: [
-            ConditionalParent(
-              condition: widget.canSelect,
-              builder: (child) => GestureDetector(
-                onTap: () {
-                  _selected = !_selected;
-                  widget.onSelectedChanged(_selected);
-                  setState(() {});
-                },
-                child: child,
-              ),
-              child: UTXOStatusIcon(
-                blocked: utxo.isBlocked,
-                status: utxo.isConfirmed(
-                  currentChainHeight,
-                  coin.requiredConfirmations,
-                )
-                    ? UTXOStatusIconStatus.confirmed
-                    : UTXOStatusIconStatus.unconfirmed,
-                background: Theme.of(context).extension<StackColors>()!.popupBG,
-                selected: _selected,
-                width: 32,
-                height: 32,
-              ),
-            ),
-            const SizedBox(
-              width: 10,
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
+        child: StreamBuilder<UTXO?>(
+            stream: stream,
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                utxo = snapshot.data!;
+              }
+              return Row(
                 children: [
-                  Text(
-                    "${Format.satoshisToAmount(
-                      utxo.value,
-                      coin: coin,
-                    ).toStringAsFixed(coin.decimals)} ${coin.ticker}",
-                    style: STextStyles.w600_14(context),
+                  ConditionalParent(
+                    condition: widget.canSelect,
+                    builder: (child) => GestureDetector(
+                      onTap: () {
+                        _selected = !_selected;
+                        widget.onSelectedChanged(_selected);
+                        setState(() {});
+                      },
+                      child: child,
+                    ),
+                    child: UTXOStatusIcon(
+                      blocked: utxo.isBlocked,
+                      status: utxo.isConfirmed(
+                        currentChainHeight,
+                        coin.requiredConfirmations,
+                      )
+                          ? UTXOStatusIconStatus.confirmed
+                          : UTXOStatusIconStatus.unconfirmed,
+                      background:
+                          Theme.of(context).extension<StackColors>()!.popupBG,
+                      selected: _selected,
+                      width: 32,
+                      height: 32,
+                    ),
                   ),
                   const SizedBox(
-                    height: 2,
+                    width: 10,
                   ),
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          label ?? utxo.address ?? utxo.txid,
-                          style: STextStyles.w500_12(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textSubtitle1,
-                          ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "${Format.satoshisToAmount(
+                            utxo.value,
+                            coin: coin,
+                          ).toStringAsFixed(coin.decimals)} ${coin.ticker}",
+                          style: STextStyles.w600_14(context),
                         ),
-                      ),
-                    ],
+                        const SizedBox(
+                          height: 2,
+                        ),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                utxo.name.isNotEmpty
+                                    ? utxo.name
+                                    : utxo.address ?? utxo.txid,
+                                style: STextStyles.w500_12(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textSubtitle1,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
-              ),
-            ),
-          ],
-        ),
+              );
+            }),
       ),
     );
   }

@@ -111,7 +111,7 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
               // }
             },
             child: Text(
-              "Exchange",
+              "Swap",
               style: STextStyles.button(context).copyWith(
                 fontSize: 14,
                 color: selectedIndex == 1

@@ -18,7 +18,7 @@ class CoinImage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return SvgPicture.asset(
       Assets.svg.imageFor(coin: coin, context: context),
-      width: isDesktop ? 324 : MediaQuery.of(context).size.width,
+      width: isDesktop ? 324 : MediaQuery.of(context).size.width / 1.6,
     );
   }
 }

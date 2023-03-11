@@ -618,6 +618,16 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     if (walletInitiated) {
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
         ref.read(exchangeFormStateProvider).reset(shouldNotifyListeners: true);
+        ExchangeDataLoadingService.instance
+            .getAggregateCurrency(
+          coin!.ticker,
+          ExchangeRateType.estimated,
+        )
+            .then((value) {
+          if (value != null) {
+            ref.read(exchangeFormStateProvider).updateSendCurrency(value, true);
+          }
+        });
       });
     } else {
       _sendController.text =
@@ -848,7 +858,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           enabled: ref.watch(
               exchangeFormStateProvider.select((value) => value.canExchange)),
           onPressed: onExchangePressed,
-          label: "Exchange",
+          label: "Swap",
         )
       ],
     );

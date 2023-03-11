@@ -127,7 +127,7 @@ class _WalletInitiatedExchangeViewState
               },
             ),
             title: Text(
-              "Exchange",
+              "Swap",
               style: STextStyles.navBarTitle(context),
             ),
           ),

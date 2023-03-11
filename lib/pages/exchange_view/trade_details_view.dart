@@ -322,7 +322,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                               width: 16,
                             ),
                             SelectableText(
-                              "Exchange",
+                              "Swap service",
                               style: STextStyles.desktopTextMedium(context),
                             ),
                           ],
@@ -1052,7 +1052,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Exchange",
+                        "Swap service",
                         style: STextStyles.itemSubtitle(context),
                       ),
                       if (isDesktop)
