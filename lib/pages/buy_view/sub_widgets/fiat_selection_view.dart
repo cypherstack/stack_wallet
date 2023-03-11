@@ -76,7 +76,7 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
   @override
   Widget build(BuildContext context) {
     Locale locale = Localizations.localeOf(context);
-    var format = NumberFormat.simpleCurrency(locale: locale.toString());
+    final format = NumberFormat.simpleCurrency(locale: locale.toString());
     // See https://stackoverflow.com/a/67055685
 
     final isDesktop = Util.isDesktop;
@@ -186,80 +186,178 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
             height: 12,
           ),
           Flexible(
-            child: RoundedWhiteContainer(
-              padding: const EdgeInsets.all(0),
-              child: ListView.builder(
-                shrinkWrap: true,
-                primary: isDesktop ? false : null,
-                itemCount: _fiats.length,
-                itemBuilder: (builderContext, index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).pop(_fiats[index]);
-                      },
-                      child: RoundedWhiteContainer(
-                        child: Row(
+            child: SingleChildScrollView(
+              child: RoundedWhiteContainer(
+                padding: const EdgeInsets.all(0),
+                child: Table(
+                  columnWidths: const {
+                    0: IntrinsicColumnWidth(),
+                    1: FlexColumnWidth(),
+                  },
+                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                  children: [
+                    ..._fiats.map(
+                      (e) {
+                        return TableRow(
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(7.5),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .currencyListItemBG,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                format.simpleCurrencySymbol(
-                                    _fiats[index].ticker.toUpperCase()),
-                                style: STextStyles.subtitle(context).apply(
-                                    fontSizeFactor: (1 /
-                                        format
-                                            .simpleCurrencySymbol(_fiats[index]
-                                                .ticker
-                                                .toUpperCase())
-                                            .length * // Couldn't get pow() working here
-                                        format
-                                            .simpleCurrencySymbol(_fiats[index]
-                                                .ticker
-                                                .toUpperCase())
-                                            .length)),
-                                textAlign: TextAlign.center,
+                            TableCell(
+                              verticalAlignment:
+                                  TableCellVerticalAlignment.fill,
+                              child: GestureDetector(
+                                onTap: () => Navigator.of(context).pop(e),
+                                child: Container(
+                                  color: Colors.transparent,
+                                  padding: const EdgeInsets.only(left: 12),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(7.5),
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .currencyListItemBG,
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          format.simpleCurrencySymbol(
+                                              e.ticker.toUpperCase()),
+                                          style: STextStyles.subtitle(context)
+                                              .apply(
+                                            fontSizeFactor: (1 /
+                                                format
+                                                    .simpleCurrencySymbol(
+                                                        e.ticker.toUpperCase())
+                                                    .length * // Couldn't get pow() working here
+                                                format
+                                                    .simpleCurrencySymbol(
+                                                        e.ticker.toUpperCase())
+                                                    .length),
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
-                            const SizedBox(
-                              width: 10,
-                            ),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _fiats[index].name,
-                                    style: STextStyles.largeMedium14(context),
+                            GestureDetector(
+                              onTap: () => Navigator.of(context).pop(e),
+                              child: Container(
+                                color: Colors.transparent,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        e.name,
+                                        style:
+                                            STextStyles.largeMedium14(context),
+                                      ),
+                                      const SizedBox(
+                                        height: 2,
+                                      ),
+                                      Text(
+                                        e.ticker.toUpperCase(),
+                                        style: STextStyles.smallMed12(context)
+                                            .copyWith(
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textSubtitle1,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(
-                                    height: 2,
-                                  ),
-                                  Text(
-                                    _fiats[index].ticker.toUpperCase(),
-                                    style: STextStyles.smallMed12(context)
-                                        .copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textSubtitle1,
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
                           ],
-                        ),
-                      ),
+                        );
+                      },
                     ),
-                  );
-                },
+                  ],
+                ),
+
+                // child: ListView.builder(
+                //   shrinkWrap: true,
+                //   primary: isDesktop ? false : null,
+                //   itemCount: _fiats.length,
+                //   itemBuilder: (builderContext, index) {
+                //     return Padding(
+                //       padding: const EdgeInsets.symmetric(vertical: 4),
+                //       child: GestureDetector(
+                //         onTap: () {
+                //           Navigator.of(context).pop(_fiats[index]);
+                //         },
+                //         child: RoundedWhiteContainer(
+                //           child: Row(
+                //             children: [
+                //               Container(
+                //                 padding: const EdgeInsets.all(7.5),
+                //                 decoration: BoxDecoration(
+                //                   color: Theme.of(context)
+                //                       .extension<StackColors>()!
+                //                       .currencyListItemBG,
+                //                   borderRadius: BorderRadius.circular(4),
+                //                 ),
+                //                 child: Text(
+                //                   format.simpleCurrencySymbol(
+                //                       _fiats[index].ticker.toUpperCase()),
+                //                   style: STextStyles.subtitle(context).apply(
+                //                       fontSizeFactor: (1 /
+                //                           format
+                //                               .simpleCurrencySymbol(_fiats[index]
+                //                                   .ticker
+                //                                   .toUpperCase())
+                //                               .length * // Couldn't get pow() working here
+                //                           format
+                //                               .simpleCurrencySymbol(_fiats[index]
+                //                                   .ticker
+                //                                   .toUpperCase())
+                //                               .length)),
+                //                   textAlign: TextAlign.center,
+                //                 ),
+                //               ),
+                //               const SizedBox(
+                //                 width: 10,
+                //               ),
+                //               Expanded(
+                //                 child: Column(
+                //                   crossAxisAlignment: CrossAxisAlignment.start,
+                //                   children: [
+                //                     Text(
+                //                       _fiats[index].name,
+                //                       style: STextStyles.largeMedium14(context),
+                //                     ),
+                //                     const SizedBox(
+                //                       height: 2,
+                //                     ),
+                //                     Text(
+                //                       _fiats[index].ticker.toUpperCase(),
+                //                       style: STextStyles.smallMed12(context)
+                //                           .copyWith(
+                //                         color: Theme.of(context)
+                //                             .extension<StackColors>()!
+                //                             .textSubtitle1,
+                //                       ),
+                //                     ),
+                //                   ],
+                //                 ),
+                //               ),
+                //             ],
+                //           ),
+                //         ),
+                //       ),
+                //     );
+                //   },
+                // ),
               ),
             ),
           ),
