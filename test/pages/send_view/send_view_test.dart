@@ -52,6 +52,7 @@ void main() {
 
     when(mockLocaleService.locale).thenAnswer((_) => "en_US");
     when(mockPrefs.currency).thenAnswer((_) => "USD");
+    when(mockPrefs.enableCoinControl).thenAnswer((_) => false);
     when(wallet.validateAddress("send to address"))
         .thenAnswer((realInvocation) => true);
 
@@ -114,6 +115,7 @@ void main() {
 
     when(mockLocaleService.locale).thenAnswer((_) => "en_US");
     when(mockPrefs.currency).thenAnswer((_) => "USD");
+    when(mockPrefs.enableCoinControl).thenAnswer((_) => false);
     when(wallet.validateAddress("send to address"))
         .thenAnswer((realInvocation) => false);
 

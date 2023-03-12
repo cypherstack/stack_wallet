@@ -82,6 +82,8 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
       } else {
         return "Sending";
       }
+    } else if (type == TransactionType.sentToSelf) {
+      return "Sent to self";
     } else {
       return type.name;
     }

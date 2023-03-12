@@ -504,7 +504,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                     //   onPressed: () {
                     //     _onExchangePressed(context);
                     //   },
-                    //   label: "Exchange",
+                    //   label: "Swap",
                     //   icon: Container(
                     //     width: 24,
                     //     height: 24,

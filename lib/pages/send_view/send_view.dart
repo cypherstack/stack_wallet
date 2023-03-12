@@ -7,9 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
+import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/firo_balance_selection_sheet.dart';
@@ -43,9 +45,11 @@ import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
+import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
+import 'package:tuple/tuple.dart';
 
 class SendView extends ConsumerStatefulWidget {
   const SendView({
@@ -104,6 +108,8 @@ class _SendViewState extends ConsumerState<SendView> {
 
   Decimal? _cachedBalance;
 
+  Set<UTXO> selectedUTXOs = {};
+
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
       final String cryptoAmount = cryptoAmountController.text;
@@ -140,16 +146,58 @@ class _SendViewState extends ConsumerState<SendView> {
 
       _updatePreviewButtonState(_address, _amountToSend);
 
-      // if (_amountToSend == null) {
-      //   setState(() {
-      //     _calculateFeesFuture = calculateFees(0);
-      //   });
-      // } else {
-      //   setState(() {
-      //     _calculateFeesFuture =
-      //         calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
-      //   });
-      // }
+      _cryptoAmountChangedFeeUpdateTimer?.cancel();
+      _cryptoAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
+        if (coin != Coin.epicCash && !_baseFocus.hasFocus) {
+          setState(() {
+            _calculateFeesFuture = calculateFees(
+              _amountToSend == null
+                  ? 0
+                  : Format.decimalAmountToSatoshis(
+                      _amountToSend!,
+                      coin,
+                    ),
+            );
+          });
+        }
+      });
+    }
+  }
+
+  final updateFeesTimerDuration = const Duration(milliseconds: 500);
+
+  Timer? _cryptoAmountChangedFeeUpdateTimer;
+  Timer? _baseAmountChangedFeeUpdateTimer;
+
+  void _baseAmountChanged() {
+    _baseAmountChangedFeeUpdateTimer?.cancel();
+    _baseAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
+      if (coin != Coin.epicCash && !_cryptoFocus.hasFocus) {
+        setState(() {
+          _calculateFeesFuture = calculateFees(
+            _amountToSend == null
+                ? 0
+                : Format.decimalAmountToSatoshis(
+                    _amountToSend!,
+                    coin,
+                  ),
+          );
+        });
+      }
+    });
+  }
+
+  int _currentFee = 0;
+
+  void _setCurrentFee(String fee, bool shouldSetState) {
+    final value = Format.decimalAmountToSatoshis(
+      Decimal.parse(fee),
+      coin,
+    );
+    if (shouldSetState) {
+      setState(() => _currentFee = value);
+    } else {
+      _currentFee = value;
     }
   }
 
@@ -313,73 +361,86 @@ class _SendViewState extends ConsumerState<SendView> {
           Format.decimalAmountToSatoshis(manager.balance.getSpendable(), coin);
     }
 
-    // confirm send all
-    if (amount == availableBalance) {
-      final bool? shouldSendAll = await showDialog<bool>(
-        context: context,
-        useSafeArea: false,
-        barrierDismissible: true,
-        builder: (context) {
-          return StackDialog(
-            title: "Confirm send all",
-            message:
-                "You are about to send your entire balance. Would you like to continue?",
-            leftButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getSecondaryEnabledButtonStyle(context),
-              child: Text(
-                "Cancel",
-                style: STextStyles.button(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorDark),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-            ),
-            rightButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getPrimaryEnabledButtonStyle(context),
-              child: Text(
-                "Yes",
-                style: STextStyles.button(context),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-            ),
-          );
-        },
-      );
+    final coinControlEnabled =
+        ref.read(prefsChangeNotifierProvider).enableCoinControl;
 
-      if (shouldSendAll == null || shouldSendAll == false) {
-        // cancel preview
-        return;
+    if (!(manager.hasCoinControlSupport && coinControlEnabled) ||
+        (manager.hasCoinControlSupport &&
+            coinControlEnabled &&
+            selectedUTXOs.isEmpty)) {
+      // confirm send all
+      if (amount == availableBalance) {
+        bool? shouldSendAll;
+        if (mounted) {
+          shouldSendAll = await showDialog<bool>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: true,
+            builder: (context) {
+              return StackDialog(
+                title: "Confirm send all",
+                message:
+                    "You are about to send your entire balance. Would you like to continue?",
+                leftButton: TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getSecondaryEnabledButtonStyle(context),
+                  child: Text(
+                    "Cancel",
+                    style: STextStyles.button(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop(false);
+                  },
+                ),
+                rightButton: TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getPrimaryEnabledButtonStyle(context),
+                  child: Text(
+                    "Yes",
+                    style: STextStyles.button(context),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop(true);
+                  },
+                ),
+              );
+            },
+          );
+        }
+
+        if (shouldSendAll == null || shouldSendAll == false) {
+          // cancel preview
+          return;
+        }
       }
     }
 
     try {
       bool wasCancelled = false;
 
-      unawaited(
-        showDialog<dynamic>(
-          context: context,
-          useSafeArea: false,
-          barrierDismissible: false,
-          builder: (context) {
-            return BuildingTransactionDialog(
-              onCancel: () {
-                wasCancelled = true;
+      if (mounted) {
+        unawaited(
+          showDialog<void>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: false,
+            builder: (context) {
+              return BuildingTransactionDialog(
+                onCancel: () {
+                  wasCancelled = true;
 
-                Navigator.of(context).pop();
-              },
-            );
-          },
-        ),
-      );
+                  Navigator.of(context).pop();
+                },
+              );
+            },
+          ),
+        );
+      }
 
       Map<String, dynamic> txData;
 
@@ -393,7 +454,14 @@ class _SendViewState extends ConsumerState<SendView> {
         txData = await wallet.preparePaymentCodeSend(
           paymentCode: paymentCode,
           satoshiAmount: amount,
-          args: {"feeRate": feeRate},
+          args: {
+            "feeRate": feeRate,
+            "UTXOs": (manager.hasCoinControlSupport &&
+                    coinControlEnabled &&
+                    selectedUTXOs.isNotEmpty)
+                ? selectedUTXOs
+                : null,
+          },
         );
       } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
           ref.read(publicPrivateBalanceStateProvider.state).state !=
@@ -407,7 +475,14 @@ class _SendViewState extends ConsumerState<SendView> {
         txData = await manager.prepareSend(
           address: _address!,
           satoshiAmount: amount,
-          args: {"feeRate": ref.read(feeRateTypeStateProvider)},
+          args: {
+            "feeRate": ref.read(feeRateTypeStateProvider),
+            "UTXOs": (manager.hasCoinControlSupport &&
+                    coinControlEnabled &&
+                    selectedUTXOs.isNotEmpty)
+                ? selectedUTXOs
+                : null,
+          },
         );
       }
 
@@ -491,6 +566,7 @@ class _SendViewState extends ConsumerState<SendView> {
 
     onCryptoAmountChanged = _cryptoAmountChanged;
     cryptoAmountController.addListener(onCryptoAmountChanged);
+    baseAmountController.addListener(_baseAmountChanged);
 
     if (_data != null) {
       if (_data!.amount != null) {
@@ -506,43 +582,47 @@ class _SendViewState extends ConsumerState<SendView> {
       noteController.text = "PayNym send";
     }
 
-    if (coin != Coin.epicCash) {
-      _cryptoFocus.addListener(() {
-        if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-          if (_amountToSend == null) {
-            setState(() {
-              _calculateFeesFuture = calculateFees(0);
-            });
-          } else {
-            setState(() {
-              _calculateFeesFuture = calculateFees(
-                  Format.decimalAmountToSatoshis(_amountToSend!, coin));
-            });
-          }
-        }
-      });
+    // if (coin != Coin.epicCash) {
+    // _cryptoFocus.addListener(() {
+    //   if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
+    //     if (_amountToSend == null) {
+    //       setState(() {
+    //         _calculateFeesFuture = calculateFees(0);
+    //       });
+    //     } else {
+    //       setState(() {
+    //         _calculateFeesFuture = calculateFees(
+    //             Format.decimalAmountToSatoshis(_amountToSend!, coin));
+    //       });
+    //     }
+    //   }
+    // });
 
-      _baseFocus.addListener(() {
-        if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-          if (_amountToSend == null) {
-            setState(() {
-              _calculateFeesFuture = calculateFees(0);
-            });
-          } else {
-            setState(() {
-              _calculateFeesFuture = calculateFees(
-                  Format.decimalAmountToSatoshis(_amountToSend!, coin));
-            });
-          }
-        }
-      });
-    }
+    // _baseFocus.addListener(() {
+    //   if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
+    //     if (_amountToSend == null) {
+    //       setState(() {
+    //         _calculateFeesFuture = calculateFees(0);
+    //       });
+    //     } else {
+    //       setState(() {
+    //         _calculateFeesFuture = calculateFees(
+    //             Format.decimalAmountToSatoshis(_amountToSend!, coin));
+    //       });
+    //     }
+    //   }
+    // });
+    // }
     super.initState();
   }
 
   @override
   void dispose() {
+    _cryptoAmountChangedFeeUpdateTimer?.cancel();
+    _baseAmountChangedFeeUpdateTimer?.cancel();
+
     cryptoAmountController.removeListener(onCryptoAmountChanged);
+    baseAmountController.removeListener(_baseAmountChanged);
 
     sendToController.dispose();
     cryptoAmountController.dispose();
@@ -565,6 +645,17 @@ class _SendViewState extends ConsumerState<SendView> {
     final String locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
 
+    final showCoinControl = ref.watch(
+          walletsChangeNotifierProvider.select(
+            (value) => value.getManager(walletId).hasCoinControlSupport,
+          ),
+        ) &&
+        ref.watch(
+          prefsChangeNotifierProvider.select(
+            (value) => value.enableCoinControl,
+          ),
+        );
+
     if (coin == Coin.firo || coin == Coin.firoTestNet) {
       ref.listen(publicPrivateBalanceStateProvider, (previous, next) {
         if (_amountToSend == null) {
@@ -576,6 +667,22 @@ class _SendViewState extends ConsumerState<SendView> {
             _calculateFeesFuture = calculateFees(
                 Format.decimalAmountToSatoshis(_amountToSend!, coin));
           });
+        }
+      });
+    }
+
+    // add listener for epic cash to strip http:// and https:// prefixes if the address also ocntains an @ symbol (indicating an epicbox address)
+    if (coin == Coin.epicCash) {
+      sendToController.addListener(() {
+        _address = sendToController.text;
+
+        if (_address != null && _address!.isNotEmpty) {
+          _address = _address!.trim();
+          if (_address!.contains("\n")) {
+            _address = _address!.substring(0, _address!.indexOf("\n"));
+          }
+
+          sendToController.text = formatAddress(_address!);
         }
       });
     }
@@ -904,6 +1011,12 @@ class _SendViewState extends ConsumerState<SendView> {
                                                                     "\n"));
                                                       }
 
+                                                      if (coin ==
+                                                          Coin.epicCash) {
+                                                        // strip http:// and https:// if content contains @
+                                                        content = formatAddress(
+                                                            content);
+                                                      }
                                                       sendToController.text =
                                                           content;
                                                       _address = content;
@@ -1484,6 +1597,82 @@ class _SendViewState extends ConsumerState<SendView> {
                                 ),
                               ),
                             ),
+                          if (showCoinControl)
+                            const SizedBox(
+                              height: 8,
+                            ),
+                          if (showCoinControl)
+                            RoundedWhiteContainer(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Coin control",
+                                    style:
+                                        STextStyles.w500_14(context).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textSubtitle1,
+                                    ),
+                                  ),
+                                  CustomTextButton(
+                                    text: selectedUTXOs.isEmpty
+                                        ? "Select coins"
+                                        : "Selected coins (${selectedUTXOs.length})",
+                                    onTap: () async {
+                                      if (FocusScope.of(context).hasFocus) {
+                                        FocusScope.of(context).unfocus();
+                                        await Future<void>.delayed(
+                                          const Duration(milliseconds: 100),
+                                        );
+                                      }
+
+                                      if (mounted) {
+                                        final spendable = ref
+                                            .read(walletsChangeNotifierProvider)
+                                            .getManager(widget.walletId)
+                                            .balance
+                                            .spendable;
+
+                                        int? amount;
+                                        if (_amountToSend != null) {
+                                          amount =
+                                              Format.decimalAmountToSatoshis(
+                                            _amountToSend!,
+                                            coin,
+                                          );
+
+                                          if (spendable == amount) {
+                                            // this is now a send all
+                                          } else {
+                                            amount += _currentFee;
+                                          }
+                                        }
+
+                                        final result =
+                                            await Navigator.of(context)
+                                                .pushNamed(
+                                          CoinControlView.routeName,
+                                          arguments: Tuple4(
+                                            walletId,
+                                            CoinControlViewType.use,
+                                            amount,
+                                            selectedUTXOs,
+                                          ),
+                                        );
+
+                                        if (result is Set<UTXO>) {
+                                          setState(() {
+                                            selectedUTXOs = result;
+                                          });
+                                        }
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
                           const SizedBox(
                             height: 12,
                           ),
@@ -1600,6 +1789,10 @@ class _SendViewState extends ConsumerState<SendView> {
                                                             .text) ??
                                                     Decimal.zero,
                                                 updateChosen: (String fee) {
+                                                  _setCurrentFee(
+                                                    fee,
+                                                    true,
+                                                  );
                                                   setState(() {
                                                     _calculateFeesFuture =
                                                         Future(() => fee);
@@ -1625,6 +1818,10 @@ class _SendViewState extends ConsumerState<SendView> {
                                                           ConnectionState
                                                               .done &&
                                                       snapshot.hasData) {
+                                                    _setCurrentFee(
+                                                      snapshot.data! as String,
+                                                      false,
+                                                    );
                                                     return Text(
                                                       "~${snapshot.data! as String} ${coin.ticker}",
                                                       style: STextStyles
@@ -1677,6 +1874,11 @@ class _SendViewState extends ConsumerState<SendView> {
                                                               ConnectionState
                                                                   .done &&
                                                           snapshot.hasData) {
+                                                        _setCurrentFee(
+                                                          snapshot.data!
+                                                              as String,
+                                                          false,
+                                                        );
                                                         return Text(
                                                           "~${snapshot.data! as String} ${coin.ticker}",
                                                           style: STextStyles
@@ -1753,4 +1955,23 @@ class _SendViewState extends ConsumerState<SendView> {
       ),
     );
   }
+}
+
+String formatAddress(String epicAddress) {
+  // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an epicbox address)
+  if ((epicAddress.startsWith("http://") ||
+          epicAddress.startsWith("https://")) &&
+      epicAddress.contains("@")) {
+    epicAddress = epicAddress.replaceAll("http://", "");
+    epicAddress = epicAddress.replaceAll("https://", "");
+  }
+  // strip mailto: prefix
+  if (epicAddress.startsWith("mailto:")) {
+    epicAddress = epicAddress.replaceAll("mailto:", "");
+  }
+  // strip / suffix if the address contains an @ symbol (and is thus an epicbox address)
+  if (epicAddress.endsWith("/") && epicAddress.contains("@")) {
+    epicAddress = epicAddress.substring(0, epicAddress.length - 1);
+  }
+  return epicAddress;
 }

@@ -14,6 +14,7 @@ import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart'
 import 'package:stackwallet/services/coins/particl/particl_wallet.dart'
     as particl;
 import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart' as wow;
+import 'package:stackwallet/utilities/constants.dart';
 
 enum Coin {
   bitcoin,
@@ -194,6 +195,29 @@ extension CoinExt on Coin {
     }
   }
 
+  bool get isTestNet {
+    switch (this) {
+      case Coin.bitcoin:
+      case Coin.litecoin:
+      case Coin.bitcoincash:
+      case Coin.dogecoin:
+      case Coin.firo:
+      case Coin.namecoin:
+      case Coin.particl:
+      case Coin.epicCash:
+      case Coin.monero:
+      case Coin.wownero:
+        return false;
+
+      case Coin.dogecoinTestNet:
+      case Coin.bitcoinTestNet:
+      case Coin.litecoinTestNet:
+      case Coin.bitcoincashTestnet:
+      case Coin.firoTestNet:
+        return true;
+    }
+  }
+
   int get requiredConfirmations {
     switch (this) {
       case Coin.bitcoin:
@@ -232,6 +256,8 @@ extension CoinExt on Coin {
         return nmc.MINIMUM_CONFIRMATIONS;
     }
   }
+
+  int get decimals => Constants.decimalPlacesForCoin(this);
 }
 
 Coin coinFromPrettyName(String name) {

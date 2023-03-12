@@ -48,8 +48,20 @@ class _BUY {
   }
 }
 
+class _COIN_CONTROL {
+  const _COIN_CONTROL();
+
+  String get blocked => "assets/svg/coin_control/frozen.svg";
+  String get unBlocked => "assets/svg/coin_control/unfrozen.svg";
+  String get gamePad => "assets/svg/coin_control/gamepad.svg";
+  String get selected => "assets/svg/coin_control/selected.svg";
+}
+
 class _SVG {
   const _SVG();
+
+  final coinControl = const _COIN_CONTROL();
+
   String? background(BuildContext context) {
     switch (Theme.of(context).extension<StackColors>()!.themeType) {
       case ThemeType.light:
@@ -279,15 +291,18 @@ class _SVG {
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/bitcoincash.svg";
   String dogecoinImage(BuildContext context) =>
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/doge.svg";
-  // String get epicCashImage => "assets/images/fruitSorbet/epic-cash.svg";
+  String epicCashImage(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/epic-cash.svg";
   String firoImage(BuildContext context) =>
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/firo.svg";
   String litecoinImage(BuildContext context) =>
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/litecoin.svg";
-  // String get moneroImage => "assets/images/fruitSorbet/monero.svg";
+  String moneroImage(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/monero.svg";
   String wowneroImage(BuildContext context) =>
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/wownero.svg";
-  // String get namecoinImage => "assets/images/fruitSorbet/Namecoin.svg";
+  String namecoinImage(BuildContext context) =>
+      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/namecoin.svg";
   String particlImage(BuildContext context) =>
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/particl.svg";
 
@@ -303,15 +318,15 @@ class _SVG {
       case Coin.dogecoin:
         return dogecoinImage(context);
       case Coin.epicCash:
-        return epicCash;
+        return epicCashImage(context);
       case Coin.firo:
         return firoImage(context);
       case Coin.monero:
-        return monero;
+        return moneroImage(context);
       case Coin.wownero:
         return wowneroImage(context);
       case Coin.namecoin:
-        return namecoin;
+        return namecoinImage(context);
       case Coin.particl:
         return particlImage(context);
       case Coin.bitcoinTestNet:
@@ -334,26 +349,26 @@ class _PNG {
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/stack.png";
   String get splash => "assets/images/splash.png";
 
-  String monero(BuildContext context) =>
-      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/monero.png";
-  String wownero(BuildContext context) =>
-      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/wownero.png";
-  String firo(BuildContext context) =>
-      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/firo.png";
-  String dogecoin(BuildContext context) =>
-      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/doge.png";
-  String bitcoin(BuildContext context) =>
-      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/bitcoin.png";
-  String litecoin(BuildContext context) =>
-      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/litecoin.png";
-  String epicCash(BuildContext context) =>
-      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/epic-cash.png";
-  String bitcoincash(BuildContext context) =>
-      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/bitcoincash.png";
-  String namecoin(BuildContext context) =>
-      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/namecoin.png";
-  String particl(BuildContext context) =>
-      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/particl.png";
+  // String monero(BuildContext context) =>
+  //     "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/monero.png";
+  // String wownero(BuildContext context) =>
+  //     "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/wownero.png";
+  // String firo(BuildContext context) =>
+  //     "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/firo.png";
+  // String dogecoin(BuildContext context) =>
+  //     "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/doge.png";
+  // String bitcoin(BuildContext context) =>
+  //     "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/bitcoin.png";
+  // String litecoin(BuildContext context) =>
+  //     "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/litecoin.png";
+  // String epicCash(BuildContext context) =>
+  //     "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/epic-cash.png";
+  // String bitcoincash(BuildContext context) =>
+  //     "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/bitcoincash.png";
+  // String namecoin(BuildContext context) =>
+  //     "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/namecoin.png";
+  // String particl(BuildContext context) =>
+  //     "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/particl.png";
 
   String personaIncognito(BuildContext context) =>
       "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/persona-incognito-1.png";
@@ -363,36 +378,36 @@ class _PNG {
   String get glasses => "assets/images/glasses.png";
   String get glassesHidden => "assets/images/glasses-hidden.png";
 
-  String imageFor({required BuildContext context, required Coin coin}) {
-    switch (coin) {
-      case Coin.bitcoin:
-      case Coin.bitcoinTestNet:
-        return bitcoin(context);
-      case Coin.litecoin:
-      case Coin.litecoinTestNet:
-        return litecoin(context);
-      case Coin.bitcoincash:
-      case Coin.bitcoincashTestnet:
-        return bitcoincash(context);
-      case Coin.dogecoin:
-      case Coin.dogecoinTestNet:
-        return dogecoin(context);
-      case Coin.epicCash:
-        return epicCash(context);
-      case Coin.firo:
-        return firo(context);
-      case Coin.firoTestNet:
-        return firo(context);
-      case Coin.monero:
-        return monero(context);
-      case Coin.wownero:
-        return wownero(context);
-      case Coin.namecoin:
-        return namecoin(context);
-      case Coin.particl:
-        return particl(context);
-    }
-  }
+  // String imageFor({required BuildContext context, required Coin coin}) {
+  //   switch (coin) {
+  //     case Coin.bitcoin:
+  //     case Coin.bitcoinTestNet:
+  //       return bitcoin(context);
+  //     case Coin.litecoin:
+  //     case Coin.litecoinTestNet:
+  //       return litecoin(context);
+  //     case Coin.bitcoincash:
+  //     case Coin.bitcoincashTestnet:
+  //       return bitcoincash(context);
+  //     case Coin.dogecoin:
+  //     case Coin.dogecoinTestNet:
+  //       return dogecoin(context);
+  //     case Coin.epicCash:
+  //       return epicCash(context);
+  //     case Coin.firo:
+  //       return firo(context);
+  //     case Coin.firoTestNet:
+  //       return firo(context);
+  //     case Coin.monero:
+  //       return monero(context);
+  //     case Coin.wownero:
+  //       return wownero(context);
+  //     case Coin.namecoin:
+  //       return namecoin(context);
+  //     case Coin.particl:
+  //       return particl(context);
+  //   }
+  // }
 }
 
 class _ANIMATIONS {

@@ -4,7 +4,7 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i22;
-import 'dart:typed_data' as _i28;
+import 'dart:typed_data' as _i29;
 import 'dart:ui' as _i24;
 
 import 'package:bip32/bip32.dart' as _i17;
@@ -20,19 +20,20 @@ import 'package:stackwallet/models/balance.dart' as _i12;
 import 'package:stackwallet/models/isar/models/isar_models.dart' as _i16;
 import 'package:stackwallet/models/node_model.dart' as _i25;
 import 'package:stackwallet/models/paymint/fee_object_model.dart' as _i9;
+import 'package:stackwallet/models/signing_data.dart' as _i28;
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart' as _i26;
 import 'package:stackwallet/services/coins/coin_service.dart' as _i19;
 import 'package:stackwallet/services/coins/manager.dart' as _i6;
-import 'package:stackwallet/services/locale_service.dart' as _i29;
+import 'package:stackwallet/services/locale_service.dart' as _i30;
 import 'package:stackwallet/services/node_service.dart' as _i3;
 import 'package:stackwallet/services/transaction_notification_tracker.dart'
     as _i8;
 import 'package:stackwallet/services/wallets.dart' as _i20;
 import 'package:stackwallet/services/wallets_service.dart' as _i2;
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i31;
+import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i32;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i21;
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart' as _i27;
-import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i30;
+import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i31;
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
     as _i7;
 import 'package:stackwallet/utilities/prefs.dart' as _i23;
@@ -1415,29 +1416,30 @@ class MockBitcoinWallet extends _i1.Mock implements _i26.BitcoinWallet {
         returnValue: 0,
       ) as int);
   @override
-  dynamic coinSelection(
-    int? satoshiAmountToSend,
-    int? selectedTxFeeRate,
-    String? _recipientAddress,
-    bool? isSendAll, {
+  dynamic coinSelection({
+    required int? satoshiAmountToSend,
+    required int? selectedTxFeeRate,
+    required String? recipientAddress,
+    required bool? coinControl,
+    required bool? isSendAll,
     int? additionalOutputs = 0,
     List<_i16.UTXO>? utxos,
   }) =>
       super.noSuchMethod(Invocation.method(
         #coinSelection,
-        [
-          satoshiAmountToSend,
-          selectedTxFeeRate,
-          _recipientAddress,
-          isSendAll,
-        ],
+        [],
         {
+          #satoshiAmountToSend: satoshiAmountToSend,
+          #selectedTxFeeRate: selectedTxFeeRate,
+          #recipientAddress: recipientAddress,
+          #coinControl: coinControl,
+          #isSendAll: isSendAll,
           #additionalOutputs: additionalOutputs,
           #utxos: utxos,
         },
       ));
   @override
-  _i22.Future<Map<String, dynamic>> fetchBuildTxData(
+  _i22.Future<List<_i28.SigningData>> fetchBuildTxData(
           List<_i16.UTXO>? utxosToUse) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -1445,12 +1447,11 @@ class MockBitcoinWallet extends _i1.Mock implements _i26.BitcoinWallet {
           [utxosToUse],
         ),
         returnValue:
-            _i22.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
-      ) as _i22.Future<Map<String, dynamic>>);
+            _i22.Future<List<_i28.SigningData>>.value(<_i28.SigningData>[]),
+      ) as _i22.Future<List<_i28.SigningData>>);
   @override
   _i22.Future<Map<String, dynamic>> buildTransaction({
-    required List<_i16.UTXO>? utxosToUse,
-    required Map<String, dynamic>? utxoSigningData,
+    required List<_i28.SigningData>? utxoSigningData,
     required List<String>? recipients,
     required List<int>? satoshiAmounts,
   }) =>
@@ -1459,7 +1460,6 @@ class MockBitcoinWallet extends _i1.Mock implements _i26.BitcoinWallet {
           #buildTransaction,
           [],
           {
-            #utxosToUse: utxosToUse,
             #utxoSigningData: utxoSigningData,
             #recipients: recipients,
             #satoshiAmounts: satoshiAmounts,
@@ -1713,7 +1713,7 @@ class MockBitcoinWallet extends _i1.Mock implements _i26.BitcoinWallet {
     })?
         prepareSend,
     required _i22.Future<int> Function({required String address})? getTxCount,
-    required _i22.Future<Map<String, dynamic>> Function(List<_i16.UTXO>)?
+    required _i22.Future<List<_i28.SigningData>> Function(List<_i16.UTXO>)?
         fetchBuildTxData,
     required _i22.Future<void> Function()? refresh,
     required _i22.Future<void> Function()? checkChangeAddressForTransactions,
@@ -1865,14 +1865,14 @@ class MockBitcoinWallet extends _i1.Mock implements _i26.BitcoinWallet {
         )),
       ) as _i22.Future<_i18.PaymentCode>);
   @override
-  _i22.Future<_i28.Uint8List> signWithNotificationKey(_i28.Uint8List? data) =>
+  _i22.Future<_i29.Uint8List> signWithNotificationKey(_i29.Uint8List? data) =>
       (super.noSuchMethod(
         Invocation.method(
           #signWithNotificationKey,
           [data],
         ),
-        returnValue: _i22.Future<_i28.Uint8List>.value(_i28.Uint8List(0)),
-      ) as _i22.Future<_i28.Uint8List>);
+        returnValue: _i22.Future<_i29.Uint8List>.value(_i29.Uint8List(0)),
+      ) as _i22.Future<_i29.Uint8List>);
   @override
   _i22.Future<String> signStringWithNotificationKey(String? data) =>
       (super.noSuchMethod(
@@ -1979,6 +1979,22 @@ class MockBitcoinWallet extends _i1.Mock implements _i26.BitcoinWallet {
       (super.noSuchMethod(
         Invocation.method(
           #unBlindedPaymentCodeFromTransaction,
+          [],
+          {
+            #transaction: transaction,
+            #myNotificationAddress: myNotificationAddress,
+          },
+        ),
+        returnValue: _i22.Future<_i18.PaymentCode?>.value(),
+      ) as _i22.Future<_i18.PaymentCode?>);
+  @override
+  _i22.Future<_i18.PaymentCode?> unBlindedPaymentCodeFromTransactionBad({
+    required _i16.Transaction? transaction,
+    required _i16.Address? myNotificationAddress,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #unBlindedPaymentCodeFromTransactionBad,
           [],
           {
             #transaction: transaction,
@@ -2152,12 +2168,47 @@ class MockBitcoinWallet extends _i1.Mock implements _i26.BitcoinWallet {
         ),
         returnValue: _i22.Future<String>.value(''),
       ) as _i22.Future<String>);
+  @override
+  void initCoinControlInterface({
+    required String? walletId,
+    required String? walletName,
+    required _i21.Coin? coin,
+    required _i13.MainDB? db,
+    required _i22.Future<int> Function()? getChainHeight,
+    required _i22.Future<void> Function(_i12.Balance)? refreshedBalanceCallback,
+  }) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #initCoinControlInterface,
+          [],
+          {
+            #walletId: walletId,
+            #walletName: walletName,
+            #coin: coin,
+            #db: db,
+            #getChainHeight: getChainHeight,
+            #refreshedBalanceCallback: refreshedBalanceCallback,
+          },
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i22.Future<void> refreshBalance({bool? notify = false}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #refreshBalance,
+          [],
+          {#notify: notify},
+        ),
+        returnValue: _i22.Future<void>.value(),
+        returnValueForMissingStub: _i22.Future<void>.value(),
+      ) as _i22.Future<void>);
 }
 
 /// A class which mocks [LocaleService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockLocaleService extends _i1.Mock implements _i29.LocaleService {
+class MockLocaleService extends _i1.Mock implements _i30.LocaleService {
   MockLocaleService() {
     _i1.throwOnMissingStub(this);
   }
@@ -2275,12 +2326,12 @@ class MockPrefs extends _i1.Mock implements _i23.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i30.SyncingType get syncType => (super.noSuchMethod(
+  _i31.SyncingType get syncType => (super.noSuchMethod(
         Invocation.getter(#syncType),
-        returnValue: _i30.SyncingType.currentWalletOnly,
-      ) as _i30.SyncingType);
+        returnValue: _i31.SyncingType.currentWalletOnly,
+      ) as _i31.SyncingType);
   @override
-  set syncType(_i30.SyncingType? syncType) => super.noSuchMethod(
+  set syncType(_i31.SyncingType? syncType) => super.noSuchMethod(
         Invocation.setter(
           #syncType,
           syncType,
@@ -2413,12 +2464,12 @@ class MockPrefs extends _i1.Mock implements _i23.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i31.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
+  _i32.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
         Invocation.getter(#backupFrequencyType),
-        returnValue: _i31.BackupFrequencyType.everyTenMinutes,
-      ) as _i31.BackupFrequencyType);
+        returnValue: _i32.BackupFrequencyType.everyTenMinutes,
+      ) as _i32.BackupFrequencyType);
   @override
-  set backupFrequencyType(_i31.BackupFrequencyType? backupFrequencyType) =>
+  set backupFrequencyType(_i32.BackupFrequencyType? backupFrequencyType) =>
       super.noSuchMethod(
         Invocation.setter(
           #backupFrequencyType,
@@ -2479,6 +2530,19 @@ class MockPrefs extends _i1.Mock implements _i23.Prefs {
         Invocation.setter(
           #externalCalls,
           externalCalls,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  bool get enableCoinControl => (super.noSuchMethod(
+        Invocation.getter(#enableCoinControl),
+        returnValue: false,
+      ) as bool);
+  @override
+  set enableCoinControl(bool? enableCoinControl) => super.noSuchMethod(
+        Invocation.setter(
+          #enableCoinControl,
+          enableCoinControl,
         ),
         returnValueForMissingStub: null,
       );
@@ -2709,6 +2773,11 @@ class MockManager extends _i1.Mock implements _i6.Manager {
   @override
   bool get hasPaynymSupport => (super.noSuchMethod(
         Invocation.getter(#hasPaynymSupport),
+        returnValue: false,
+      ) as bool);
+  @override
+  bool get hasCoinControlSupport => (super.noSuchMethod(
+        Invocation.getter(#hasCoinControlSupport),
         returnValue: false,
       ) as bool);
   @override

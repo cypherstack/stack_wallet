@@ -17,12 +17,14 @@ import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
+import 'package:stackwallet/models/signing_data.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
@@ -81,7 +83,8 @@ String constructDerivePath({
   return "m/$purpose'/$coinType'/$account'/$chain/$index";
 }
 
-class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
+class ParticlWallet extends CoinServiceAPI
+    with WalletCache, WalletDB, CoinControlInterface {
   ParticlWallet({
     required String walletId,
     required String walletName,
@@ -101,6 +104,17 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
     _secureStore = secureStore;
     initCache(walletId, coin);
     initWalletDB(mockableOverride: mockableOverride);
+    initCoinControlInterface(
+      walletId: walletId,
+      walletName: walletName,
+      coin: coin,
+      db: db,
+      getChainHeight: () => chainHeight,
+      refreshedBalanceCallback: (balance) async {
+        _balance = balance;
+        await updateCachedBalance(_balance!);
+      },
+    );
   }
 
   static const integrationTestFlag =
@@ -935,6 +949,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
     try {
       final feeRateType = args?["feeRate"];
       final feeRateAmount = args?["feeRateAmount"];
+      final utxos = args?["UTXOs"] as Set<isar_models.UTXO>?;
       if (feeRateType is FeeRateType || feeRateAmount is int) {
         late final int rate;
         if (feeRateType is FeeRateType) {
@@ -962,8 +977,16 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
           isSendAll = true;
         }
 
-        final txData =
-            await coinSelection(satoshiAmount, rate, address, isSendAll);
+        final bool coinControl = utxos != null;
+
+        final txData = await coinSelection(
+          satoshiAmountToSend: satoshiAmount,
+          selectedTxFeeRate: rate,
+          recipientAddress: address,
+          isSendAll: isSendAll,
+          utxos: utxos?.toList(),
+          coinControl: coinControl,
+        );
 
         Logging.instance.log("prepare send: $txData", level: LogLevel.Info);
         try {
@@ -1025,6 +1048,11 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       final txHash = await _electrumXClient.broadcastTransaction(rawTx: hex);
       Logging.instance.log("Sent txHash: $txHash", level: LogLevel.Info);
+
+      final utxos = txData["usedUTXOs"] as List<isar_models.UTXO>;
+
+      // mark utxos as used
+      await db.putUTXOs(utxos.map((e) => e.copyWith(used: true)).toList());
 
       return txHash;
     } catch (e, s) {
@@ -1595,48 +1623,46 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
         }
       }
 
-      final currentChainHeight = await chainHeight;
-
       final List<isar_models.UTXO> outputArray = [];
-      int satoshiBalanceTotal = 0;
-      int satoshiBalancePending = 0;
-      int satoshiBalanceSpendable = 0;
-      int satoshiBalanceBlocked = 0;
 
       for (int i = 0; i < fetchedUtxoList.length; i++) {
         for (int j = 0; j < fetchedUtxoList[i].length; j++) {
+          final jsonUTXO = fetchedUtxoList[i][j];
+
           final txn = await cachedElectrumXClient.getTransaction(
-            txHash: fetchedUtxoList[i][j]["tx_hash"] as String,
+            txHash: jsonUTXO["tx_hash"] as String,
             verbose: true,
             coin: coin,
           );
 
-          // todo check here if we should mark as blocked
+          final vout = jsonUTXO["tx_pos"] as int;
+
+          final outputs = txn["vout"] as List;
+
+          String? utxoOwnerAddress;
+          // get UTXO owner address
+          for (final output in outputs) {
+            if (output["n"] == vout) {
+              utxoOwnerAddress =
+                  output["scriptPubKey"]?["addresses"]?[0] as String? ??
+                      output["scriptPubKey"]?["address"] as String?;
+            }
+          }
+
           final utxo = isar_models.UTXO(
             walletId: walletId,
             txid: txn["txid"] as String,
-            vout: fetchedUtxoList[i][j]["tx_pos"] as int,
-            value: fetchedUtxoList[i][j]["value"] as int,
+            vout: vout,
+            value: jsonUTXO["value"] as int,
             name: "",
             isBlocked: false,
             blockedReason: null,
             isCoinbase: txn["is_coinbase"] as bool? ?? false,
             blockHash: txn["blockhash"] as String?,
-            blockHeight: fetchedUtxoList[i][j]["height"] as int?,
+            blockHeight: jsonUTXO["height"] as int?,
             blockTime: txn["blocktime"] as int?,
+            address: utxoOwnerAddress,
           );
-
-          satoshiBalanceTotal += utxo.value;
-
-          if (utxo.isBlocked) {
-            satoshiBalanceBlocked += utxo.value;
-          } else {
-            if (utxo.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
-              satoshiBalanceSpendable += utxo.value;
-            } else {
-              satoshiBalancePending += utxo.value;
-            }
-          }
 
           outputArray.add(utxo);
         }
@@ -1645,25 +1671,18 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
       Logging.instance
           .log('Outputs fetched: $outputArray', level: LogLevel.Info);
 
-      // TODO move this out of here and into IDB
-      await db.isar.writeTxn(() async {
-        await db.isar.utxos.where().walletIdEqualTo(walletId).deleteAll();
-        await db.isar.utxos.putAll(outputArray);
-      });
+      await db.updateUTXOs(walletId, outputArray);
 
       // finally update balance
-      _balance = Balance(
-        coin: coin,
-        total: satoshiBalanceTotal,
-        spendable: satoshiBalanceSpendable,
-        blockedTotal: satoshiBalanceBlocked,
-        pendingSpendable: satoshiBalancePending,
-      );
-      await updateCachedBalance(_balance!);
+      await _updateBalance();
     } catch (e, s) {
       Logging.instance
           .log("Output fetch unsuccessful: $e\n$s", level: LogLevel.Error);
     }
+  }
+
+  Future<void> _updateBalance() async {
+    await refreshBalance();
   }
 
   @override
@@ -2367,11 +2386,12 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
   /// with [satoshiAmountToSend] and [selectedTxFeeRate]. If so, it will call buildTrasaction() and return
   /// a map containing the tx hex along with other important information. If not, then it will return
   /// an integer (1 or 2)
-  dynamic coinSelection(
-    int satoshiAmountToSend,
-    int selectedTxFeeRate,
-    String _recipientAddress,
-    bool isSendAll, {
+  dynamic coinSelection({
+    required int satoshiAmountToSend,
+    required int selectedTxFeeRate,
+    required String recipientAddress,
+    required bool coinControl,
+    required bool isSendAll,
     int additionalOutputs = 0,
     List<isar_models.UTXO>? utxos,
   }) async {
@@ -2381,19 +2401,28 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
     final currentChainHeight = await chainHeight;
     final List<isar_models.UTXO> spendableOutputs = [];
     int spendableSatoshiValue = 0;
+
     // Build list of spendable outputs and totaling their satoshi amount
-    for (var i = 0; i < availableOutputs.length; i++) {
-      if (availableOutputs[i].isBlocked == false &&
-          availableOutputs[i]
-                  .isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS) ==
-              true) {
-        spendableOutputs.add(availableOutputs[i]);
-        spendableSatoshiValue += availableOutputs[i].value;
+    for (final utxo in availableOutputs) {
+      if (utxo.isBlocked == false &&
+          utxo.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS) &&
+          utxo.used != true) {
+        spendableOutputs.add(utxo);
+        spendableSatoshiValue += utxo.value;
       }
     }
 
-    // sort spendable by age (oldest first)
-    spendableOutputs.sort((a, b) => b.blockTime!.compareTo(a.blockTime!));
+    if (coinControl) {
+      if (spendableOutputs.length < availableOutputs.length) {
+        throw ArgumentError("Attempted to use an unavailable utxo");
+      }
+    }
+
+    // don't care about sorting if using all utxos
+    if (!coinControl) {
+      // sort spendable by age (oldest first)
+      spendableOutputs.sort((a, b) => b.blockTime!.compareTo(a.blockTime!));
+    }
 
     Logging.instance.log("spendableOutputs.length: ${spendableOutputs.length}",
         level: LogLevel.Info);
@@ -2422,19 +2451,27 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
     int inputsBeingConsumed = 0;
     List<isar_models.UTXO> utxoObjectsToUse = [];
 
-    for (var i = 0;
-        satoshisBeingUsed < satoshiAmountToSend && i < spendableOutputs.length;
-        i++) {
-      utxoObjectsToUse.add(spendableOutputs[i]);
-      satoshisBeingUsed += spendableOutputs[i].value;
-      inputsBeingConsumed += 1;
-    }
-    for (int i = 0;
-        i < additionalOutputs && inputsBeingConsumed < spendableOutputs.length;
-        i++) {
-      utxoObjectsToUse.add(spendableOutputs[inputsBeingConsumed]);
-      satoshisBeingUsed += spendableOutputs[inputsBeingConsumed].value;
-      inputsBeingConsumed += 1;
+    if (!coinControl) {
+      for (var i = 0;
+          satoshisBeingUsed < satoshiAmountToSend &&
+              i < spendableOutputs.length;
+          i++) {
+        utxoObjectsToUse.add(spendableOutputs[i]);
+        satoshisBeingUsed += spendableOutputs[i].value;
+        inputsBeingConsumed += 1;
+      }
+      for (int i = 0;
+          i < additionalOutputs &&
+              inputsBeingConsumed < spendableOutputs.length;
+          i++) {
+        utxoObjectsToUse.add(spendableOutputs[inputsBeingConsumed]);
+        satoshisBeingUsed += spendableOutputs[inputsBeingConsumed].value;
+        inputsBeingConsumed += 1;
+      }
+    } else {
+      satoshisBeingUsed = spendableSatoshiValue;
+      utxoObjectsToUse = spendableOutputs;
+      inputsBeingConsumed = spendableOutputs.length;
     }
 
     Logging.instance
@@ -2445,7 +2482,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
         .log('utxoObjectsToUse: $utxoObjectsToUse', level: LogLevel.Info);
 
     // numberOfOutputs' length must always be equal to that of recipientsArray and recipientsAmtArray
-    List<String> recipientsArray = [_recipientAddress];
+    List<String> recipientsArray = [recipientAddress];
     List<int> recipientsAmtArray = [satoshiAmountToSend];
 
     // gather required signing data
@@ -2456,9 +2493,8 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
           .log("Attempting to send all $coin", level: LogLevel.Info);
 
       final int vSizeForOneOutput = (await buildTransaction(
-        utxosToUse: utxoObjectsToUse,
         utxoSigningData: utxoSigningData,
-        recipients: [_recipientAddress],
+        recipients: [recipientAddress],
         satoshiAmounts: [satoshisBeingUsed - 1],
       ))["vSize"] as int;
       int feeForOneOutput = estimateTxFee(
@@ -2474,7 +2510,6 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
       final int amount = satoshiAmountToSend - feeForOneOutput;
       dynamic txn = await buildTransaction(
-        utxosToUse: utxoObjectsToUse,
         utxoSigningData: utxoSigningData,
         recipients: recipientsArray,
         satoshiAmounts: [amount],
@@ -2485,21 +2520,20 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
         "recipientAmt": amount,
         "fee": feeForOneOutput,
         "vSize": txn["vSize"],
+        "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
       };
       return transactionObject;
     }
 
     final int vSizeForOneOutput = (await buildTransaction(
-      utxosToUse: utxoObjectsToUse,
       utxoSigningData: utxoSigningData,
-      recipients: [_recipientAddress],
+      recipients: [recipientAddress],
       satoshiAmounts: [satoshisBeingUsed - 1],
     ))["vSize"] as int;
     final int vSizeForTwoOutPuts = (await buildTransaction(
-      utxosToUse: utxoObjectsToUse,
       utxoSigningData: utxoSigningData,
       recipients: [
-        _recipientAddress,
+        recipientAddress,
         await _getCurrentAddressForChain(1, DerivePathTypeExt.primaryFor(coin)),
       ],
       satoshiAmounts: [
@@ -2562,7 +2596,6 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
           Logging.instance
               .log('Estimated fee: $feeForTwoOutputs', level: LogLevel.Info);
           dynamic txn = await buildTransaction(
-            utxosToUse: utxoObjectsToUse,
             utxoSigningData: utxoSigningData,
             recipients: recipientsArray,
             satoshiAmounts: recipientsAmtArray,
@@ -2590,7 +2623,6 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
             Logging.instance.log('Adjusted Estimated fee: $feeForTwoOutputs',
                 level: LogLevel.Info);
             txn = await buildTransaction(
-              utxosToUse: utxoObjectsToUse,
               utxoSigningData: utxoSigningData,
               recipients: recipientsArray,
               satoshiAmounts: recipientsAmtArray,
@@ -2603,6 +2635,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
             "recipientAmt": recipientsAmtArray[0],
             "fee": feeBeingPaid,
             "vSize": txn["vSize"],
+            "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
           };
           return transactionObject;
         } else {
@@ -2619,7 +2652,6 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
           Logging.instance
               .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
           dynamic txn = await buildTransaction(
-            utxosToUse: utxoObjectsToUse,
             utxoSigningData: utxoSigningData,
             recipients: recipientsArray,
             satoshiAmounts: recipientsAmtArray,
@@ -2630,6 +2662,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
             "recipientAmt": recipientsAmtArray[0],
             "fee": satoshisBeingUsed - satoshiAmountToSend,
             "vSize": txn["vSize"],
+            "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
           };
           return transactionObject;
         }
@@ -2648,7 +2681,6 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
         Logging.instance
             .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
         dynamic txn = await buildTransaction(
-          utxosToUse: utxoObjectsToUse,
           utxoSigningData: utxoSigningData,
           recipients: recipientsArray,
           satoshiAmounts: recipientsAmtArray,
@@ -2659,6 +2691,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
           "recipientAmt": recipientsAmtArray[0],
           "fee": satoshisBeingUsed - satoshiAmountToSend,
           "vSize": txn["vSize"],
+          "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
         };
         return transactionObject;
       }
@@ -2677,7 +2710,6 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
       Logging.instance
           .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
       dynamic txn = await buildTransaction(
-        utxosToUse: utxoObjectsToUse,
         utxoSigningData: utxoSigningData,
         recipients: recipientsArray,
         satoshiAmounts: recipientsAmtArray,
@@ -2688,6 +2720,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
         "recipientAmt": recipientsAmtArray[0],
         "fee": feeForOneOutput,
         "vSize": txn["vSize"],
+        "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
       };
       return transactionObject;
     } else {
@@ -2699,176 +2732,144 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
           level: LogLevel.Warning);
       // try adding more outputs
       if (spendableOutputs.length > inputsBeingConsumed) {
-        return coinSelection(satoshiAmountToSend, selectedTxFeeRate,
-            _recipientAddress, isSendAll,
-            additionalOutputs: additionalOutputs + 1, utxos: utxos);
+        return coinSelection(
+          satoshiAmountToSend: satoshiAmountToSend,
+          selectedTxFeeRate: selectedTxFeeRate,
+          recipientAddress: recipientAddress,
+          isSendAll: isSendAll,
+          additionalOutputs: additionalOutputs + 1,
+          utxos: utxos,
+          coinControl: coinControl,
+        );
       }
       return 2;
     }
   }
 
-  Future<Map<String, dynamic>> fetchBuildTxData(
+  Future<List<SigningData>> fetchBuildTxData(
     List<isar_models.UTXO> utxosToUse,
   ) async {
     // return data
-    Map<String, dynamic> results = {};
-    Map<String, List<String>> addressTxid = {};
-
-    // addresses to check
-    List<String> addressesP2PKH = [];
-    List<String> addressesP2WPKH = [];
+    List<SigningData> signingData = [];
 
     try {
       // Populating the addresses to check
       for (var i = 0; i < utxosToUse.length; i++) {
-        final txid = utxosToUse[i].txid;
-        final tx = await _cachedElectrumXClient.getTransaction(
-          txHash: txid,
-          coin: coin,
-        );
-
-        for (final output in tx["vout"] as List) {
-          final n = output["n"];
-          if (n != null && n == utxosToUse[i].vout) {
-            final address = output["scriptPubKey"]["addresses"][0] as String;
-            if (!addressTxid.containsKey(address)) {
-              addressTxid[address] = <String>[];
-            }
-            (addressTxid[address] as List).add(txid);
-            switch (addressType(address: address)) {
-              case DerivePathType.bip44:
-                addressesP2PKH.add(address);
-                break;
-              case DerivePathType.bip84:
-                addressesP2WPKH.add(address);
-                break;
-              default:
-                throw Exception(
-                    "DerivePathType ${addressType(address: address)} not supported");
+        if (utxosToUse[i].address == null) {
+          final txid = utxosToUse[i].txid;
+          final tx = await _cachedElectrumXClient.getTransaction(
+            txHash: txid,
+            coin: coin,
+          );
+          for (final output in tx["vout"] as List) {
+            final n = output["n"];
+            if (n != null && n == utxosToUse[i].vout) {
+              utxosToUse[i] = utxosToUse[i].copyWith(
+                address: output["scriptPubKey"]?["addresses"]?[0] as String? ??
+                    output["scriptPubKey"]["address"] as String,
+              );
             }
           }
         }
+
+        final derivePathType = addressType(address: utxosToUse[i].address!);
+
+        signingData.add(
+          SigningData(
+            derivePathType: derivePathType,
+            utxo: utxosToUse[i],
+          ),
+        );
       }
 
-      // p2pkh / bip44
-      final p2pkhLength = addressesP2PKH.length;
-      if (p2pkhLength > 0) {
-        final receiveDerivations = await _fetchDerivations(
-          chain: 0,
-          derivePathType: DerivePathType.bip44,
-        );
-        final changeDerivations = await _fetchDerivations(
-          chain: 1,
-          derivePathType: DerivePathType.bip44,
-        );
-        for (int i = 0; i < p2pkhLength; i++) {
-          // receives
-          final receiveDerivation = receiveDerivations[addressesP2PKH[i]];
-          // if a match exists it will not be null
-          if (receiveDerivation != null) {
-            final data = P2PKH(
-              data: PaymentData(
-                  pubkey: Format.stringToUint8List(
-                      receiveDerivation["pubKey"] as String)),
-              network: _network,
-            ).data;
+      Map<DerivePathType, Map<String, dynamic>> receiveDerivations = {};
+      Map<DerivePathType, Map<String, dynamic>> changeDerivations = {};
 
-            for (String tx in addressTxid[addressesP2PKH[i]]!) {
-              results[tx] = {
-                "output": data.output,
-                "keyPair": ECPair.fromWIF(
-                  receiveDerivation["wif"] as String,
-                  network: _network,
-                ),
-              };
-            }
-          } else {
-            // if its not a receive, check change
-            final changeDerivation = changeDerivations[addressesP2PKH[i]];
-            // if a match exists it will not be null
-            if (changeDerivation != null) {
-              final data = P2PKH(
+      for (final sd in signingData) {
+        String? pubKey;
+        String? wif;
+
+        // fetch receiving derivations if null
+        receiveDerivations[sd.derivePathType] ??= await _fetchDerivations(
+          chain: 0,
+          derivePathType: sd.derivePathType,
+        );
+        final receiveDerivation =
+            receiveDerivations[sd.derivePathType]![sd.utxo.address!];
+
+        if (receiveDerivation != null) {
+          pubKey = receiveDerivation["pubKey"] as String;
+          wif = receiveDerivation["wif"] as String;
+        } else {
+          // fetch change derivations if null
+          changeDerivations[sd.derivePathType] ??= await _fetchDerivations(
+            chain: 1,
+            derivePathType: sd.derivePathType,
+          );
+          final changeDerivation =
+              changeDerivations[sd.derivePathType]![sd.utxo.address!];
+          if (changeDerivation != null) {
+            pubKey = changeDerivation["pubKey"] as String;
+            wif = changeDerivation["wif"] as String;
+          }
+        }
+
+        if (wif == null || pubKey == null) {
+          final address = await db.getAddress(walletId, sd.utxo.address!);
+          if (address?.derivationPath != null) {
+            final node = await Bip32Utils.getBip32Node(
+              (await mnemonicString)!,
+              (await mnemonicPassphrase)!,
+              _network,
+              address!.derivationPath!.value,
+            );
+
+            wif = node.toWIF();
+            pubKey = Format.uint8listToString(node.publicKey);
+          }
+        }
+
+        if (wif != null && pubKey != null) {
+          final PaymentData data;
+          final Uint8List? redeemScript;
+
+          switch (sd.derivePathType) {
+            case DerivePathType.bip44:
+              data = P2PKH(
                 data: PaymentData(
-                    pubkey: Format.stringToUint8List(
-                        changeDerivation["pubKey"] as String)),
+                  pubkey: Format.stringToUint8List(pubKey),
+                ),
                 network: _network,
               ).data;
+              redeemScript = null;
+              break;
 
-              for (String tx in addressTxid[addressesP2PKH[i]]!) {
-                results[tx] = {
-                  "output": data.output,
-                  "keyPair": ECPair.fromWIF(
-                    changeDerivation["wif"] as String,
-                    network: _network,
-                  ),
-                };
-              }
-            }
-          }
-        }
-      }
-
-      // p2wpkh / bip84
-      final p2wpkhLength = addressesP2WPKH.length;
-      if (p2wpkhLength > 0) {
-        final receiveDerivations = await _fetchDerivations(
-          chain: 0,
-          derivePathType: DerivePathType.bip84,
-        );
-        final changeDerivations = await _fetchDerivations(
-          chain: 1,
-          derivePathType: DerivePathType.bip84,
-        );
-
-        for (int i = 0; i < p2wpkhLength; i++) {
-          // receives
-          final receiveDerivation = receiveDerivations[addressesP2WPKH[i]];
-          // if a match exists it will not be null
-          if (receiveDerivation != null) {
-            final data = P2WPKH(
-              data: PaymentData(
-                  pubkey: Format.stringToUint8List(
-                      receiveDerivation["pubKey"] as String)),
-              network: _network,
-            ).data;
-
-            for (String tx in addressTxid[addressesP2WPKH[i]]!) {
-              results[tx] = {
-                "output": data.output,
-                "keyPair": ECPair.fromWIF(
-                  receiveDerivation["wif"] as String,
-                  network: _network,
-                ),
-              };
-            }
-          } else {
-            // if its not a receive, check change
-            final changeDerivation = changeDerivations[addressesP2WPKH[i]];
-            // if a match exists it will not be null
-            if (changeDerivation != null) {
-              final data = P2WPKH(
+            case DerivePathType.bip84:
+              data = P2WPKH(
                 data: PaymentData(
-                    pubkey: Format.stringToUint8List(
-                        changeDerivation["pubKey"] as String)),
+                  pubkey: Format.stringToUint8List(pubKey),
+                ),
                 network: _network,
               ).data;
+              redeemScript = null;
+              break;
 
-              for (String tx in addressTxid[addressesP2WPKH[i]]!) {
-                results[tx] = {
-                  "output": data.output,
-                  "keyPair": ECPair.fromWIF(
-                    changeDerivation["wif"] as String,
-                    network: _network,
-                  ),
-                };
-              }
-            }
+            default:
+              throw Exception("DerivePathType unsupported");
           }
+
+          final keyPair = ECPair.fromWIF(
+            wif,
+            network: _network,
+          );
+
+          sd.redeemScript = redeemScript;
+          sd.output = data.output;
+          sd.keyPair = keyPair;
         }
       }
-      Logging.instance.log("FETCHED TX BUILD DATA IS -----$results",
-          level: LogLevel.Info, printFullLength: true);
-      return results;
+
+      return signingData;
     } catch (e, s) {
       Logging.instance
           .log("fetchBuildTxData() threw: $e,\n$s", level: LogLevel.Error);
@@ -2878,8 +2879,7 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   /// Builds and signs a transaction
   Future<Map<String, dynamic>> buildTransaction({
-    required List<isar_models.UTXO> utxosToUse,
-    required Map<String, dynamic> utxoSigningData,
+    required List<SigningData> utxoSigningData,
     required List<String> recipients,
     required List<int> satoshiAmounts,
   }) async {
@@ -2893,11 +2893,15 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
     txb.setVersion(160);
 
     // Add transaction inputs
-    for (var i = 0; i < utxosToUse.length; i++) {
-      final txid = utxosToUse[i].txid;
-
-      txb.addInput(txid, utxosToUse[i].vout, null,
-          utxoSigningData[txid]["output"] as Uint8List, '');
+    for (var i = 0; i < utxoSigningData.length; i++) {
+      final txid = utxoSigningData[i].utxo.txid;
+      txb.addInput(
+        txid,
+        utxoSigningData[i].utxo.vout,
+        null,
+        utxoSigningData[i].output!,
+        '',
+      );
     }
 
     // Add transaction output
@@ -2907,13 +2911,13 @@ class ParticlWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
     try {
       // Sign the transaction accordingly
-      for (var i = 0; i < utxosToUse.length; i++) {
-        final txid = utxosToUse[i].txid;
+      for (var i = 0; i < utxoSigningData.length; i++) {
         txb.sign(
-            vin: i,
-            keyPair: utxoSigningData[txid]["keyPair"] as ECPair,
-            witnessValue: utxosToUse[i].value,
-            redeemScript: utxoSigningData[txid]["redeemScript"] as Uint8List?);
+          vin: i,
+          keyPair: utxoSigningData[i].keyPair!,
+          witnessValue: utxoSigningData[i].utxo.value,
+          redeemScript: utxoSigningData[i].redeemScript,
+        );
       }
     } catch (e, s) {
       Logging.instance.log("Caught exception while signing transaction: $e\n$s",

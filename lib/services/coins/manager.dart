@@ -10,6 +10,7 @@ import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -228,6 +229,8 @@ class Manager with ChangeNotifier {
   int get currentHeight => _currentWallet.storedChainHeight;
 
   bool get hasPaynymSupport => _currentWallet is PaynymWalletInterface;
+
+  bool get hasCoinControlSupport => _currentWallet is CoinControlInterface;
 
   int get rescanOnOpenVersion =>
       DB.instance.get<dynamic>(

@@ -116,9 +116,16 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
       }
       status = changeNowTransactionStatusFromStringIgnoreCase(statusString);
     } on ArgumentError catch (_) {
-      status = ChangeNowTransactionStatus.Failed;
-      if (statusString == "Processing payment") {
-        status = ChangeNowTransactionStatus.Sending;
+      switch (statusString.toLowerCase()) {
+        case "funds confirming":
+        case "processing payment":
+          return Assets.svg.txExchangePending(context);
+
+        case "completed":
+          return Assets.svg.txExchange(context);
+
+        default:
+          status = ChangeNowTransactionStatus.Failed;
       }
     }
 
@@ -315,7 +322,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                               width: 16,
                             ),
                             SelectableText(
-                              "Exchange",
+                              "Swap service",
                               style: STextStyles.desktopTextMedium(context),
                             ),
                           ],
@@ -370,12 +377,46 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
               padding: isDesktop
                   ? const EdgeInsets.all(16)
                   : const EdgeInsets.all(12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "Status",
-                    style: STextStyles.itemSubtitle(context),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Status",
+                        style: STextStyles.itemSubtitle(context),
+                      ),
+                      if (trade.exchangeName ==
+                              MajesticBankExchange.exchangeName &&
+                          trade.status == "Completed")
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                showDialog<void>(
+                                  context: context,
+                                  builder: (context) => const StackOkDialog(
+                                    title: "Trade Info",
+                                    message:
+                                        "Majestic Bank does not store order data indefinitely",
+                                  ),
+                                );
+                              },
+                              child: SvgPicture.asset(
+                                Assets.svg.circleInfo,
+                                height: 20,
+                                width: 20,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .infoItemIcons,
+                              ),
+                            ),
+                          ],
+                        )
+                    ],
                   ),
                   const SizedBox(
                     height: 4,
@@ -388,8 +429,6 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           .colorForStatus(trade.status),
                     ),
                   ),
-                  //   ),
-                  // ),
                 ],
               ),
             ),
@@ -629,11 +668,15 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                       text: address,
                                     ),
                                   );
-                                  unawaited(showFloatingFlushBar(
-                                    type: FlushBarType.info,
-                                    message: "Copied to clipboard",
-                                    context: context,
-                                  ));
+                                  if (mounted) {
+                                    unawaited(
+                                      showFloatingFlushBar(
+                                        type: FlushBarType.info,
+                                        message: "Copied to clipboard",
+                                        context: context,
+                                      ),
+                                    );
+                                  }
                                 },
                                 child: Row(
                                   children: [
@@ -1009,7 +1052,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Exchange",
+                        "Swap service",
                         style: STextStyles.itemSubtitle(context),
                       ),
                       if (isDesktop)
@@ -1084,11 +1127,15 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           onTap: () async {
                             final data = ClipboardData(text: trade.tradeId);
                             await clipboard.setData(data);
-                            unawaited(showFloatingFlushBar(
-                              type: FlushBarType.info,
-                              message: "Copied to clipboard",
-                              context: context,
-                            ));
+                            if (mounted) {
+                              unawaited(
+                                showFloatingFlushBar(
+                                  type: FlushBarType.info,
+                                  message: "Copied to clipboard",
+                                  context: context,
+                                ),
+                              );
+                            }
                           },
                           child: SvgPicture.asset(
                             Assets.svg.copy,
