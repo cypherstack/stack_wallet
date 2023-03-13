@@ -74,39 +74,56 @@ class _ConfirmTransactionViewState
   late final TextEditingController noteController;
 
   Future<void> _attemptSend(BuildContext context) async {
+    final manager =
+        ref.read(walletsChangeNotifierProvider).getManager(walletId);
     unawaited(
       showDialog<dynamic>(
         context: context,
         useSafeArea: false,
         barrierDismissible: false,
         builder: (context) {
-          return const SendingTransactionDialog();
+          return SendingTransactionDialog(
+            coin: manager.coin,
+          );
         },
       ),
     );
 
+    final time = Future<dynamic>.delayed(
+      const Duration(
+        seconds: 3,
+      ),
+    );
+
+    late String txid;
+    Future<String> txidFuture;
+
     final note = noteController.text;
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
     try {
-      String txid;
       if (widget.isPaynymNotificationTransaction) {
-        txid = await (manager.wallet as PaynymWalletInterface)
+        txidFuture = (manager.wallet as PaynymWalletInterface)
             .broadcastNotificationTx(preparedTx: transactionInfo);
       } else if (widget.isPaynymTransaction) {
-        txid = await manager.confirmSend(txData: transactionInfo);
+        txidFuture = manager.confirmSend(txData: transactionInfo);
       } else {
         final coin = manager.coin;
         if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
             ref.read(publicPrivateBalanceStateProvider.state).state !=
                 "Private") {
-          txid = await (manager.wallet as FiroWallet)
+          txidFuture = (manager.wallet as FiroWallet)
               .confirmSendPublic(txData: transactionInfo);
         } else {
-          txid = await manager.confirmSend(txData: transactionInfo);
+          txidFuture = manager.confirmSend(txData: transactionInfo);
         }
       }
+
+      final results = await Future.wait([
+        txidFuture,
+        time,
+      ]);
+
+      txid = results.first as String;
 
       // save note
       await ref

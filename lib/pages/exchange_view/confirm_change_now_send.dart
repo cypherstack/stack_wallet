@@ -64,32 +64,48 @@ class _ConfirmChangeNowSendViewState
   final isDesktop = Util.isDesktop;
 
   Future<void> _attemptSend(BuildContext context) async {
+    final manager =
+        ref.read(walletsChangeNotifierProvider).getManager(walletId);
     unawaited(
       showDialog<void>(
         context: context,
         useSafeArea: false,
         barrierDismissible: false,
         builder: (context) {
-          return const SendingTransactionDialog();
+          return SendingTransactionDialog(
+            coin: manager.coin,
+          );
         },
       ),
     );
 
+    final time = Future<dynamic>.delayed(
+      const Duration(
+        seconds: 3,
+      ),
+    );
+
+    late String txid;
+    Future<String> txidFuture;
+
     final String note = transactionInfo["note"] as String? ?? "";
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
     try {
-      late final String txid;
-
       if (widget.shouldSendPublicFiroFunds == true) {
-        txid = await (manager.wallet as FiroWallet)
+        txidFuture = (manager.wallet as FiroWallet)
             .confirmSendPublic(txData: transactionInfo);
       } else {
-        txid = await manager.confirmSend(txData: transactionInfo);
+        txidFuture = manager.confirmSend(txData: transactionInfo);
       }
 
       unawaited(manager.refresh());
+
+      final results = await Future.wait([
+        txidFuture,
+        time,
+      ]);
+
+      txid = results.first as String;
 
       // save note
       await ref

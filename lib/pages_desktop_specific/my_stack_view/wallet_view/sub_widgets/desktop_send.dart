@@ -219,29 +219,41 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     try {
       bool wasCancelled = false;
 
-      unawaited(showDialog<dynamic>(
-        context: context,
-        useSafeArea: false,
-        barrierDismissible: false,
-        builder: (context) {
-          return DesktopDialog(
-            maxWidth: 400,
-            maxHeight: double.infinity,
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: BuildingTransactionDialog(
-                onCancel: () {
-                  wasCancelled = true;
+      if (mounted) {
+        unawaited(
+          showDialog<dynamic>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: false,
+            builder: (context) {
+              return DesktopDialog(
+                maxWidth: 400,
+                maxHeight: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: BuildingTransactionDialog(
+                    coin: manager.coin,
+                    onCancel: () {
+                      wasCancelled = true;
 
-                  Navigator.of(context).pop();
-                },
-              ),
-            ),
-          );
-        },
-      ));
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      }
+
+      final time = Future<dynamic>.delayed(
+        const Duration(
+          seconds: 3,
+        ),
+      );
 
       Map<String, dynamic> txData;
+      Future<Map<String, dynamic>> txDataFuture;
 
       if (isPaynymSend) {
         final wallet = manager.wallet as PaynymWalletInterface;
@@ -250,7 +262,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           wallet.networkType,
         );
         final feeRate = ref.read(feeRateTypeStateProvider);
-        txData = await wallet.preparePaymentCodeSend(
+        txDataFuture = wallet.preparePaymentCodeSend(
           paymentCode: paymentCode,
           satoshiAmount: amount,
           args: {"feeRate": feeRate},
@@ -258,18 +270,25 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
           ref.read(publicPrivateBalanceStateProvider.state).state !=
               "Private") {
-        txData = await (manager.wallet as FiroWallet).prepareSendPublic(
+        txDataFuture = (manager.wallet as FiroWallet).prepareSendPublic(
           address: _address!,
           satoshiAmount: amount,
           args: {"feeRate": ref.read(feeRateTypeStateProvider)},
         );
       } else {
-        txData = await manager.prepareSend(
+        txDataFuture = manager.prepareSend(
           address: _address!,
           satoshiAmount: amount,
           args: {"feeRate": ref.read(feeRateTypeStateProvider)},
         );
       }
+
+      final results = await Future.wait([
+        txDataFuture,
+        time,
+      ]);
+
+      txData = results.first as Map<String, dynamic>;
 
       if (!wasCancelled && mounted) {
         if (isPaynymSend) {

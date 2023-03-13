@@ -39,9 +39,6 @@ class _EXCHANGE {
 class _BUY {
   const _BUY();
 
-  String buy(BuildContext context) =>
-      "assets/svg/${Theme.of(context).extension<StackColors>()!.themeType.name}/buy-coins-icon.svg";
-
   String simplexLogo(BuildContext context) {
     switch (Theme.of(context).extension<StackColors>()!.themeType) {
       case ThemeType.dark:
@@ -223,7 +220,6 @@ class _SVG {
   String get anonymizeFailed => "assets/svg/tx-icon-anonymize-failed.svg";
   String get addressBookDesktop => "assets/svg/address-book-desktop.svg";
   String get exchangeDesktop => "assets/svg/exchange-desktop.svg";
-  String get buyDesktop => "assets/svg/light/buy-coins-icon.svg";
   String get aboutDesktop => "assets/svg/about-desktop.svg";
   String get walletDesktop => "assets/svg/wallet-desktop.svg";
   String get exitDesktop => "assets/svg/exit-desktop.svg";
@@ -371,6 +367,13 @@ class _PNG {
 class _ANIMATIONS {
   const _ANIMATIONS();
 
-  String get test => "assets/lottie/test.json";
   String get test2 => "assets/lottie/test2.json";
+
+  String plain(Coin coin) {
+    return "assets/lottie/coins/${coin.mainNetVersion.name}/plain.lottie.json";
+  }
+
+  String kiss(Coin coin) {
+    return "assets/lottie/coins/${coin.mainNetVersion.name}/kiss.lottie.json";
+  }
 }

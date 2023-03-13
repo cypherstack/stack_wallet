@@ -57,11 +57,15 @@ class HiddenSettings extends StatelessWidget {
                                   .read(notificationsProvider)
                                   .delete(notifs[0], true);
 
-                              unawaited(showFloatingFlushBar(
-                                type: FlushBarType.success,
-                                message: "Notification history deleted",
-                                context: context,
-                              ));
+                              if (context.mounted) {
+                                unawaited(
+                                  showFloatingFlushBar(
+                                    type: FlushBarType.success,
+                                    message: "Notification history deleted",
+                                    context: context,
+                                  ),
+                                );
+                              }
                             },
                             child: RoundedWhiteContainer(
                               child: Text(
@@ -112,11 +116,15 @@ class HiddenSettings extends StatelessWidget {
                                   .read(debugServiceProvider)
                                   .deleteAllLogs();
 
-                              unawaited(showFloatingFlushBar(
-                                type: FlushBarType.success,
-                                message: "Debug Logs deleted",
-                                context: context,
-                              ));
+                              if (context.mounted) {
+                                unawaited(
+                                  showFloatingFlushBar(
+                                    type: FlushBarType.success,
+                                    message: "Debug Logs deleted",
+                                    context: context,
+                                  ),
+                                );
+                              }
                             },
                             child: RoundedWhiteContainer(
                               child: Text(
@@ -217,9 +225,9 @@ class HiddenSettings extends StatelessWidget {
                         //       builder: (_) {
                         //         return StackDialogBase(
                         //           child: SizedBox(
-                        //             width: 200,
+                        //             width: 300,
                         //             child: Lottie.asset(
-                        //               Assets.lottie.test2,
+                        //               Assets.lottie.plain(Coin.bitcoincash),
                         //             ),
                         //           ),
                         //         );
@@ -230,8 +238,9 @@ class HiddenSettings extends StatelessWidget {
                         //     child: Text(
                         //       "Lottie test",
                         //       style: STextStyles.button(context).copyWith(
-                        //         color: Theme.of(context).extension<StackColors>()!.accentColorDark
-                        //       ),
+                        //           color: Theme.of(context)
+                        //               .extension<StackColors>()!
+                        //               .accentColorDark),
                         //     ),
                         //   ),
                         // ),

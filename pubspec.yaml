@@ -320,9 +320,6 @@ flutter:
     # coin control icons
     - assets/svg/coin_control/
 
-    # lottie animations
-    - assets/lottie/test.json
-    - assets/lottie/test2.json
     # socials
     - assets/svg/socials/
 
@@ -357,6 +354,24 @@ flutter:
 
     # buy
     - assets/svg/buy/
+
+
+    # lottie animations
+    # basic
+    - assets/lottie/test2.json
+
+    # coin animations
+    - assets/lottie/coins/bitcoin/
+    - assets/lottie/coins/bitcoincash/
+    - assets/lottie/coins/dogecoin/
+    - assets/lottie/coins/epiccash/
+    - assets/lottie/coins/ethereum/
+    - assets/lottie/coins/firo/
+    - assets/lottie/coins/litecoin/
+    - assets/lottie/coins/monero/
+    - assets/lottie/coins/namecoin/
+    - assets/lottie/coins/particl/
+    - assets/lottie/coins/wownero/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
