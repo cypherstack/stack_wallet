@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/pages/coin_control/utxo_details_view.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/utxo_status_icon.dart';
@@ -57,69 +58,85 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
     final currentChainHeight = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManager(widget.walletId).currentHeight));
 
-    return RoundedWhiteContainer(
-      child: Row(
-        children: [
-          Checkbox(
-            value: _selected,
-            onChanged: (value) => setState(() {
-              _selected = value!;
-            }),
-          ),
-          const SizedBox(
-            width: 10,
-          ),
-          UTXOStatusIcon(
-            blocked: utxo.isBlocked,
-            status: utxo.isConfirmed(
-              currentChainHeight,
-              coin.requiredConfirmations,
-            )
-                ? UTXOStatusIconStatus.confirmed
-                : UTXOStatusIconStatus.unconfirmed,
-            background: Theme.of(context).extension<StackColors>()!.popupBG,
-            selected: false,
-            width: 32,
-            height: 32,
-          ),
-          const SizedBox(
-            width: 10,
-          ),
-          Text(
-            "${Format.satoshisToAmount(
-              utxo.value,
-              coin: coin,
-            ).toStringAsFixed(coin.decimals)} ${coin.ticker}",
-            textAlign: TextAlign.right,
-            style: STextStyles.w600_14(context),
-          ),
-          const SizedBox(
-            width: 10,
-          ),
-          Expanded(
-            flex: 13,
-            child: Text(
-              utxo.name.isNotEmpty ? utxo.name : utxo.address ?? utxo.txid,
-              textAlign: TextAlign.center,
-              style: STextStyles.w500_12(context).copyWith(
-                color:
-                    Theme.of(context).extension<StackColors>()!.textSubtitle1,
+    return StreamBuilder<UTXO?>(
+      stream: stream,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          utxo = snapshot.data!;
+        }
+
+        return RoundedWhiteContainer(
+          child: Row(
+            children: [
+              Checkbox(
+                value: _selected,
+                onChanged: (value) => setState(() {
+                  _selected = value!;
+                }),
               ),
-            ),
+              const SizedBox(
+                width: 10,
+              ),
+              UTXOStatusIcon(
+                blocked: utxo.isBlocked,
+                status: utxo.isConfirmed(
+                  currentChainHeight,
+                  coin.requiredConfirmations,
+                )
+                    ? UTXOStatusIconStatus.confirmed
+                    : UTXOStatusIconStatus.unconfirmed,
+                background: Theme.of(context).extension<StackColors>()!.popupBG,
+                selected: false,
+                width: 32,
+                height: 32,
+              ),
+              const SizedBox(
+                width: 10,
+              ),
+              Text(
+                "${Format.satoshisToAmount(
+                  utxo.value,
+                  coin: coin,
+                ).toStringAsFixed(coin.decimals)} ${coin.ticker}",
+                textAlign: TextAlign.right,
+                style: STextStyles.w600_14(context),
+              ),
+              const SizedBox(
+                width: 10,
+              ),
+              Expanded(
+                flex: 13,
+                child: Text(
+                  utxo.name.isNotEmpty ? utxo.name : utxo.address ?? utxo.txid,
+                  textAlign: TextAlign.center,
+                  style: STextStyles.w500_12(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle1,
+                  ),
+                ),
+              ),
+              const SizedBox(
+                width: 10,
+              ),
+              SecondaryButton(
+                width: 120,
+                buttonHeight: ButtonHeight.xs,
+                label: "Details",
+                onPressed: () async {
+                  await showDialog<String?>(
+                    context: context,
+                    builder: (context) => UtxoDetailsView(
+                      utxoId: utxo.id,
+                      walletId: widget.walletId,
+                    ),
+                  );
+                },
+              )
+            ],
           ),
-          const SizedBox(
-            width: 10,
-          ),
-          SecondaryButton(
-            width: 120,
-            buttonHeight: ButtonHeight.xs,
-            label: "Details",
-            onPressed: () {
-              //todo
-            },
-          )
-        ],
-      ),
+        );
+      },
     );
   }
 }

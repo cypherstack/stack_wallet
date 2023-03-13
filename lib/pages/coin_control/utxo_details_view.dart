@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
@@ -16,6 +17,8 @@ import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/simple_edit_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -36,6 +39,7 @@ class UtxoDetailsView extends ConsumerStatefulWidget {
 }
 
 class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
+  final isDesktop = Util.isDesktop;
   static const double _spacing = 12;
 
   late Stream<UTXO?> streamUTXO;
@@ -94,7 +98,7 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
     );
 
     return ConditionalParent(
-      condition: !Util.isDesktop,
+      condition: !isDesktop,
       builder: (child) => Background(
         child: Scaffold(
           backgroundColor:
@@ -129,134 +133,86 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
           ),
         ),
       ),
-      child: StreamBuilder<UTXO?>(
-        stream: streamUTXO,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            utxo = snapshot.data!;
-          }
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(
-                height: 10,
-              ),
-              RoundedWhiteContainer(
-                child: Row(
+      child: ConditionalParent(
+        condition: isDesktop,
+        builder: (child) {
+          return DesktopDialog(
+            maxHeight: double.infinity,
+            child: Column(
+              children: [
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      "${Format.satoshisToAmount(
-                        utxo!.value,
-                        coin: coin,
-                      ).toStringAsFixed(
-                        coin.decimals,
-                      )} ${coin.ticker}",
-                      style: STextStyles.pageTitleH2(context),
-                    ),
-                    Text(
-                      utxo!.isBlocked
-                          ? "Frozen"
-                          : confirmed
-                              ? "Available"
-                              : "Unconfirmed",
-                      style: STextStyles.w500_14(context).copyWith(
-                        color: utxo!.isBlocked
-                            ? const Color(0xFF7FA2D4) // todo theme
-                            : confirmed
-                                ? Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorGreen
-                                : Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorYellow,
+                    Padding(
+                      padding: const EdgeInsets.only(left: 32),
+                      child: Text(
+                        "Output details",
+                        style: STextStyles.desktopH3(context),
                       ),
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(
-                height: _spacing,
-              ),
-              RoundedWhiteContainer(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Label",
-                          style: STextStyles.w500_14(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textSubtitle1,
-                          ),
-                        ),
-                        SimpleEditButton(
-                          editValue: utxo!.name,
-                          editLabel: "label",
-                          onValueChanged: (newName) {
-                            MainDB.instance.putUTXO(
-                              utxo!.copyWith(
-                                name: newName,
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 4,
-                    ),
-                    Text(
-                      utxo!.name,
-                      style: STextStyles.w500_14(context),
+                    DesktopDialogCloseButton(
+                      onPressedOverride: () {
+                        Navigator.of(context)
+                            .pop(_popWithRefresh ? "refresh" : null);
+                      },
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(
-                height: _spacing,
-              ),
-              RoundedWhiteContainer(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Address",
-                          style: STextStyles.w500_14(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textSubtitle1,
-                          ),
-                        ),
-                        SimpleCopyButton(
-                          data: utxo!.address!,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 4,
-                    ),
-                    Text(
-                      utxo!.address!,
-                      style: STextStyles.w500_14(context),
-                    ),
-                  ],
+                child,
+              ],
+            ),
+          );
+        },
+        child: StreamBuilder<UTXO?>(
+          stream: streamUTXO,
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              utxo = snapshot.data!;
+            }
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(
+                  height: 10,
                 ),
-              ),
-              if (label != null && label!.value.isNotEmpty)
+                RoundedWhiteContainer(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "${Format.satoshisToAmount(
+                          utxo!.value,
+                          coin: coin,
+                        ).toStringAsFixed(
+                          coin.decimals,
+                        )} ${coin.ticker}",
+                        style: STextStyles.pageTitleH2(context),
+                      ),
+                      Text(
+                        utxo!.isBlocked
+                            ? "Frozen"
+                            : confirmed
+                                ? "Available"
+                                : "Unconfirmed",
+                        style: STextStyles.w500_14(context).copyWith(
+                          color: utxo!.isBlocked
+                              ? const Color(0xFF7FA2D4) // todo theme
+                              : confirmed
+                                  ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorGreen
+                                  : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorYellow,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(
                   height: _spacing,
                 ),
-              if (label != null && label!.value.isNotEmpty)
                 RoundedWhiteContainer(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -266,15 +222,23 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "Address label",
+                            "Label",
                             style: STextStyles.w500_14(context).copyWith(
                               color: Theme.of(context)
                                   .extension<StackColors>()!
                                   .textSubtitle1,
                             ),
                           ),
-                          SimpleCopyButton(
-                            data: label!.value,
+                          SimpleEditButton(
+                            editValue: utxo!.name,
+                            editLabel: "label",
+                            onValueChanged: (newName) {
+                              MainDB.instance.putUTXO(
+                                utxo!.copyWith(
+                                  name: newName,
+                                ),
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -282,135 +246,218 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                         height: 4,
                       ),
                       Text(
-                        label!.value,
+                        utxo!.name,
                         style: STextStyles.w500_14(context),
                       ),
                     ],
                   ),
                 ),
-              const SizedBox(
-                height: _spacing,
-              ),
-              RoundedWhiteContainer(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Transaction ID",
-                          style: STextStyles.w500_14(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textSubtitle1,
+                const SizedBox(
+                  height: _spacing,
+                ),
+                RoundedWhiteContainer(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Address",
+                            style: STextStyles.w500_14(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textSubtitle1,
+                            ),
                           ),
+                          isDesktop
+                              ? IconCopyButton(
+                                  data: utxo!.address!,
+                                )
+                              : SimpleCopyButton(
+                                  data: utxo!.address!,
+                                ),
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 4,
+                      ),
+                      Text(
+                        utxo!.address!,
+                        style: STextStyles.w500_14(context),
+                      ),
+                    ],
+                  ),
+                ),
+                if (label != null && label!.value.isNotEmpty)
+                  const SizedBox(
+                    height: _spacing,
+                  ),
+                if (label != null && label!.value.isNotEmpty)
+                  RoundedWhiteContainer(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Address label",
+                              style: STextStyles.w500_14(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textSubtitle1,
+                              ),
+                            ),
+                            isDesktop
+                                ? IconCopyButton(
+                                    data: utxo!.address!,
+                                  )
+                                : SimpleCopyButton(
+                                    data: label!.value,
+                                  ),
+                          ],
                         ),
-                        SimpleCopyButton(
-                          data: utxo!.txid,
+                        const SizedBox(
+                          height: 4,
+                        ),
+                        Text(
+                          label!.value,
+                          style: STextStyles.w500_14(context),
                         ),
                       ],
                     ),
-                    const SizedBox(
-                      height: 4,
-                    ),
-                    Text(
-                      utxo!.txid,
-                      style: STextStyles.w500_14(context),
-                    ),
-                  ],
+                  ),
+                const SizedBox(
+                  height: _spacing,
                 ),
-              ),
-              const SizedBox(
-                height: _spacing,
-              ),
-              RoundedWhiteContainer(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Confirmations",
-                      style: STextStyles.w500_14(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textSubtitle1,
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 4,
-                    ),
-                    Text(
-                      "${utxo!.getConfirmations(currentHeight)}",
-                      style: STextStyles.w500_14(context),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(
-                height: _spacing,
-              ),
-              if (utxo!.isBlocked)
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    RoundedWhiteContainer(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                RoundedWhiteContainer(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Freeze reason",
-                                style: STextStyles.w500_14(context).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textSubtitle1,
-                                ),
-                              ),
-                              SimpleEditButton(
-                                editValue: utxo!.blockedReason ?? "",
-                                editLabel: "freeze reason",
-                                onValueChanged: (newReason) {
-                                  MainDB.instance.putUTXO(
-                                    utxo!.copyWith(
-                                      blockedReason: newReason,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                          const SizedBox(
-                            height: 4,
-                          ),
                           Text(
-                            utxo!.blockedReason ?? "",
-                            style: STextStyles.w500_14(context),
+                            "Transaction ID",
+                            style: STextStyles.w500_14(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textSubtitle1,
+                            ),
                           ),
+                          isDesktop
+                              ? IconCopyButton(
+                                  data: utxo!.address!,
+                                )
+                              : SimpleCopyButton(
+                                  data: utxo!.txid,
+                                ),
                         ],
                       ),
-                    ),
-                    const SizedBox(
-                      height: _spacing,
-                    ),
-                  ],
+                      const SizedBox(
+                        height: 4,
+                      ),
+                      Text(
+                        utxo!.txid,
+                        style: STextStyles.w500_14(context),
+                      ),
+                    ],
+                  ),
                 ),
-              const Spacer(),
-              SecondaryButton(
-                label: utxo!.isBlocked ? "Unfreeze" : "Freeze",
-                onPressed: _toggleFreeze,
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-            ],
-          );
-        },
+                const SizedBox(
+                  height: _spacing,
+                ),
+                RoundedWhiteContainer(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Confirmations",
+                        style: STextStyles.w500_14(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textSubtitle1,
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 4,
+                      ),
+                      Text(
+                        "${utxo!.getConfirmations(currentHeight)}",
+                        style: STextStyles.w500_14(context),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: _spacing,
+                ),
+                if (utxo!.isBlocked)
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      RoundedWhiteContainer(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Freeze reason",
+                                  style: STextStyles.w500_14(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textSubtitle1,
+                                  ),
+                                ),
+                                SimpleEditButton(
+                                  editValue: utxo!.blockedReason ?? "",
+                                  editLabel: "freeze reason",
+                                  onValueChanged: (newReason) {
+                                    MainDB.instance.putUTXO(
+                                      utxo!.copyWith(
+                                        blockedReason: newReason,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                            const SizedBox(
+                              height: 4,
+                            ),
+                            Text(
+                              utxo!.blockedReason ?? "",
+                              style: STextStyles.w500_14(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(
+                        height: _spacing,
+                      ),
+                    ],
+                  ),
+                if (!isDesktop) const Spacer(),
+                SecondaryButton(
+                  label: utxo!.isBlocked ? "Unfreeze" : "Freeze",
+                  onPressed: _toggleFreeze,
+                ),
+                const SizedBox(
+                  height: 16,
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

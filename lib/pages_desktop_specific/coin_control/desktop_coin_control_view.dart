@@ -275,6 +275,7 @@ class _DesktopCoinControlViewState
                   //     : _selectedAvailable.contains(utxo);
 
                   return UtxoRow(
+                    key: Key("${utxo.walletId}_${utxo.id}_${utxo.isBlocked}"),
                     utxo: utxo,
                     walletId: widget.walletId,
                     onSelectedChanged: (value) {
