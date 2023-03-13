@@ -1,213 +1,41 @@
-import 'dart:async';
-
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 
-class MoreFeaturesDialog extends ConsumerWidget {
+class MoreFeaturesDialog extends ConsumerStatefulWidget {
   const MoreFeaturesDialog({
     Key? key,
     required this.walletId,
+    required this.onPaynymPressed,
+    required this.onCoinControlPressed,
+    required this.onAnonymizeAllPressed,
+    required this.onWhirlpoolPressed,
   }) : super(key: key);
 
   final String walletId;
-
-  Future<void> _onAnonymizeAllPressed(
-      BuildContext context, WidgetRef ref,) async {
-    Navigator.of(context, rootNavigator: true).pop();
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => DesktopDialog(
-        maxWidth: 500,
-        maxHeight: 210,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-          child: Column(
-            children: [
-              Text(
-                "Attention!",
-                style: STextStyles.desktopH2(context),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                "You're about to anonymize all of your public funds.",
-                style: STextStyles.desktopTextSmall(context),
-              ),
-              const SizedBox(height: 32),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SecondaryButton(
-                    width: 200,
-                    buttonHeight: ButtonHeight.l,
-                    label: "Cancel",
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  const SizedBox(width: 20),
-                  PrimaryButton(
-                    width: 200,
-                    buttonHeight: ButtonHeight.l,
-                    label: "Continue",
-                    onPressed: () {
-                      Navigator.of(context).pop();
-
-                      unawaited(
-                        _attemptAnonymize(context, ref),
-                      );
-                    },
-                  )
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _attemptAnonymize(BuildContext context, WidgetRef ref) async {
-    final managerProvider =
-        ref.read(walletsChangeNotifierProvider).getManagerProvider(walletId);
-
-    bool shouldPop = false;
-    unawaited(
-      showDialog(
-        context: context,
-        builder: (context) => WillPopScope(
-          child: const CustomLoadingOverlay(
-            message: "Anonymizing balance",
-            eventBus: null,
-          ),
-          onWillPop: () async => shouldPop,
-        ),
-      ),
-    );
-    final firoWallet = ref.read(managerProvider).wallet as FiroWallet;
-
-    final publicBalance = firoWallet.availablePublicBalance();
-    if (publicBalance <= Decimal.zero) {
-      shouldPop = true;
-      if (context.mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
-        Navigator.of(context).popUntil(
-          ModalRoute.withName(DesktopWalletView.routeName),
-        );
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.info,
-            message: "No funds available to anonymize!",
-            context: context,
-          ),
-        );
-      }
-      return;
-    }
-
-    try {
-      await firoWallet.anonymizeAllPublicFunds();
-      shouldPop = true;
-      if (context.mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
-        Navigator.of(context).popUntil(
-          ModalRoute.withName(DesktopWalletView.routeName),
-        );
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.success,
-            message: "Anonymize transaction submitted",
-            context: context,
-          ),
-        );
-      }
-    } catch (e) {
-      shouldPop = true;
-      if (context.mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
-        Navigator.of(context).popUntil(
-          ModalRoute.withName(DesktopWalletView.routeName),
-        );
-        await showDialog<dynamic>(
-          context: context,
-          builder: (_) => DesktopDialog(
-            maxWidth: 400,
-            maxHeight: 300,
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Anonymize all failed",
-                    style: STextStyles.desktopH3(context),
-                  ),
-                  const Spacer(
-                    flex: 1,
-                  ),
-                  Text(
-                    "Reason: $e",
-                    style: STextStyles.desktopTextSmall(context),
-                  ),
-                  const Spacer(
-                    flex: 2,
-                  ),
-                  Row(
-                    children: [
-                      const Spacer(),
-                      const SizedBox(
-                        width: 16,
-                      ),
-                      Expanded(
-                        child: PrimaryButton(
-                          label: "Ok",
-                          buttonHeight: ButtonHeight.l,
-                          onPressed:
-                              Navigator.of(context, rootNavigator: true).pop,
-                        ),
-                      ),
-                    ],
-                  )
-                ],
-              ),
-            ),
-          ),
-        );
-      }
-    }
-  }
-
-  void _onWhirlpoolPressed(
-      BuildContext context, WidgetRef ref,) {
-    Navigator.of(context, rootNavigator: true).pop();}
-  void _onCoinControlPressed(
-      BuildContext context, WidgetRef ref,) {
-    Navigator.of(context, rootNavigator: true).pop();}
-  void _onPaynymPressed(
-      BuildContext context, WidgetRef ref,) {
-    Navigator.of(context, rootNavigator: true).pop();}
+  final VoidCallback? onPaynymPressed;
+  final VoidCallback? onCoinControlPressed;
+  final VoidCallback? onAnonymizeAllPressed;
+  final VoidCallback? onWhirlpoolPressed;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MoreFeaturesDialog> createState() => _MoreFeaturesDialogState();
+}
+
+class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
+  @override
+  Widget build(BuildContext context) {
     final manager = ref.watch(
       walletsChangeNotifierProvider.select(
-        (value) => value.getManager(walletId),
+        (value) => value.getManager(widget.walletId),
       ),
     );
 
@@ -235,28 +63,28 @@ class MoreFeaturesDialog extends ConsumerWidget {
               label: "Anonymize funds",
               detail: "Anonymize funds",
               iconAsset: Assets.svg.anonymize,
-              onPressed: () => _onAnonymizeAllPressed(context, ref),
+              onPressed: () => widget.onAnonymizeAllPressed?.call(),
             ),
           if (manager.hasWhirlpoolSupport)
             _MoreFeaturesItem(
               label: "Whirlpool",
               detail: "Powerful Bitcoin privacy enhancer",
               iconAsset: Assets.svg.whirlPool,
-              onPressed:  () =>_onWhirlpoolPressed(context, ref),
+              onPressed: () => widget.onWhirlpoolPressed?.call(),
             ),
           if (manager.hasCoinControlSupport)
             _MoreFeaturesItem(
               label: "Coin control",
               detail: "Control, freeze, and utilize outputs at your discretion",
               iconAsset: Assets.svg.coinControl.gamePad,
-              onPressed:  () =>_onCoinControlPressed(context, ref),
+              onPressed: () => widget.onCoinControlPressed?.call(),
             ),
           if (manager.hasPaynymSupport)
             _MoreFeaturesItem(
               label: "PayNym",
               detail: "Increased address privacy using BIP47",
               iconAsset: Assets.svg.robotHead,
-              onPressed: () => _onPaynymPressed(context, ref),
+              onPressed: () => widget.onPaynymPressed?.call(),
             ),
           const SizedBox(
             height: 28,
@@ -277,7 +105,7 @@ class _MoreFeaturesItem extends StatelessWidget {
   }) : super(key: key);
 
   static const double iconSizeBG = 46;
-  static const double iconSize = 26;
+  static const double iconSize = 24;
 
   final String label;
   final String detail;
