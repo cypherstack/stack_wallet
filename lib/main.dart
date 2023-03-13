@@ -6,6 +6,7 @@ import 'package:cw_core/node.dart';
 import 'package:cw_core/unspent_coins_info.dart';
 import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_type.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_libmonero/monero/monero.dart';
@@ -91,7 +92,7 @@ void main() async {
     setWindowMaxSize(Size.infinite);
 
     final screenHeight = screen?.frame.height;
-    if (screenHeight != null) {
+    if (screenHeight != null && !kDebugMode) {
       // starting to height be 3/4 screen height or 900, whichever is smaller
       final height = min<double>(screenHeight * 0.75, 900);
       setWindowFrame(

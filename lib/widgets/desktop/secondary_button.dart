@@ -155,6 +155,7 @@ class SecondaryButton extends StatelessWidget {
                 .getSecondaryDisabledButtonStyle(context),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             if (icon != null) icon!,
             if (icon != null && label != null)

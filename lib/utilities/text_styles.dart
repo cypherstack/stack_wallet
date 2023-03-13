@@ -1255,6 +1255,23 @@ class STextStyles {
     }
   }
 
+  static TextStyle w600_20(BuildContext context) {
+    switch (_theme(context).themeType) {
+      case ThemeType.light:
+      case ThemeType.oceanBreeze:
+      case ThemeType.dark:
+      case ThemeType.oledBlack:
+      case ThemeType.fruitSorbet:
+      case ThemeType.forest:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 20,
+          height: 30 / 20,
+        );
+    }
+  }
+
   static TextStyle syncPercent(BuildContext context) {
     switch (_theme(context).themeType) {
       case ThemeType.light:
