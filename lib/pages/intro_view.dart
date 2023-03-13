@@ -52,10 +52,10 @@ class _IntroViewState extends State<IntroView> {
                         constraints: const BoxConstraints(
                           maxWidth: 300,
                         ),
-                        child: Image(
-                          image: AssetImage(
-                            Assets.png.stack(context),
-                          ),
+                        child: SvgPicture.asset(
+                          Assets.svg.stack(context),
+                          width: isDesktop ? 324 : 266,
+                          height: isDesktop ? 324 : 266,
                         ),
                       ),
                     ),
