@@ -191,12 +191,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                             label: "Yes",
                             onPressed: () {
                               Navigator.of(context).pop(true);
-
-                              setState(() {
-                                sendToController.text = "";
-                                cryptoAmountController.text = "";
-                                baseAmountController.text = "";
-                              });
                             },
                           ),
                         ),
