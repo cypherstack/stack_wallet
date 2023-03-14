@@ -1,33 +1,52 @@
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/pages_desktop_specific/coin_control/utxo_row.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/custom_buttons/dropdown_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 enum CCFilter {
-  frozen,
+  all,
   available,
-  all;
+  frozen;
+
+  @override
+  String toString() {
+    if (this == all) {
+      return "Show $name outputs";
+    }
+
+    return "${name.capitalize()} outputs";
+  }
 }
 
 enum CCSortDescriptor {
-  address,
   age,
+  address,
   value;
+
+  @override
+  String toString() {
+    return name.toString().capitalize();
+  }
 }
 
 class DesktopCoinControlView extends ConsumerStatefulWidget {
@@ -48,6 +67,7 @@ class DesktopCoinControlView extends ConsumerStatefulWidget {
 class _DesktopCoinControlViewState
     extends ConsumerState<DesktopCoinControlView> {
   late final TextEditingController _searchController;
+  late final Coin coin;
   final searchFieldFocusNode = FocusNode();
 
   final Set<UtxoRowData> _selectedUTXOs = {};
@@ -75,7 +95,10 @@ class _DesktopCoinControlViewState
   @override
   void initState() {
     _searchController = TextEditingController();
-
+    coin = ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(widget.walletId)
+        .coin;
     super.initState();
   }
 
@@ -90,24 +113,68 @@ class _DesktopCoinControlViewState
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final ids = MainDB.instance
-        .getUTXOs(widget.walletId)
-        .filter()
-        .group((q) {
-          final qq = q.group(
-            (q) => q.usedIsNull().or().usedEqualTo(false),
-          );
-          switch (_filter) {
-            case CCFilter.frozen:
-              return qq.and().isBlockedEqualTo(true);
-            case CCFilter.available:
-              return qq.and().isBlockedEqualTo(false);
-            case CCFilter.all:
-              return qq;
+    var preSort = MainDB.instance.getUTXOs(widget.walletId).filter().group((q) {
+      final qq = q.group(
+        (q) => q.usedIsNull().or().usedEqualTo(false),
+      );
+      switch (_filter) {
+        case CCFilter.frozen:
+          return qq.and().isBlockedEqualTo(true);
+        case CCFilter.available:
+          return qq.and().isBlockedEqualTo(false);
+        case CCFilter.all:
+          return qq;
+      }
+    });
+
+    if (_searchString.isNotEmpty) {
+      preSort = preSort.and().group(
+        (q) {
+          var qq = q.addressContains(_searchString, caseSensitive: false);
+
+          qq = qq.or().nameContains(_searchString, caseSensitive: false);
+          qq = qq.or().group(
+                (q) => q
+                    .isBlockedEqualTo(true)
+                    .and()
+                    .blockedReasonContains(_searchString, caseSensitive: false),
+              );
+
+          qq = qq.or().txidContains(_searchString, caseSensitive: false);
+          qq = qq.or().blockHashContains(_searchString, caseSensitive: false);
+
+          final maybeDecimal = Decimal.tryParse(_searchString);
+          if (maybeDecimal != null) {
+            qq = qq.or().valueEqualTo(
+                  Format.decimalAmountToSatoshis(
+                    maybeDecimal,
+                    coin,
+                  ),
+                );
           }
-        })
-        .idProperty()
-        .findAllSync();
+
+          final maybeInt = int.tryParse(_searchString);
+          if (maybeInt != null) {
+            qq = qq.or().valueEqualTo(maybeInt);
+          }
+
+          return qq;
+        },
+      );
+    }
+
+    final List<Id> ids;
+    switch (_sort) {
+      case CCSortDescriptor.age:
+        ids = preSort.sortByBlockHeight().idProperty().findAllSync();
+        break;
+      case CCSortDescriptor.address:
+        ids = preSort.sortByAddress().idProperty().findAllSync();
+        break;
+      case CCSortDescriptor.value:
+        ids = preSort.sortByValueDesc().idProperty().findAllSync();
+        break;
+    }
 
     return DesktopScaffold(
       appBar: DesktopAppBar(
@@ -231,12 +298,18 @@ class _DesktopCoinControlViewState
                   width: 24,
                 ),
                 AnimatedCrossFade(
-                  firstChild: SecondaryButton(
-                    buttonHeight: ButtonHeight.l,
+                  firstChild: JDropdownButton(
+                    redrawOnScreenSizeChanged: true,
+                    showIcon: true,
                     width: 200,
-                    label: "Show all outputs",
-                    onPressed: () {
-                      //
+                    items: CCFilter.values.toSet(),
+                    groupValue: _filter,
+                    onSelectionChanged: (CCFilter? newValue) {
+                      if (newValue != null && newValue != _filter) {
+                        setState(() {
+                          _filter = newValue;
+                        });
+                      }
                     },
                   ),
                   secondChild: PrimaryButton(
@@ -257,12 +330,18 @@ class _DesktopCoinControlViewState
                 const SizedBox(
                   width: 24,
                 ),
-                SecondaryButton(
-                  buttonHeight: ButtonHeight.l,
+                JDropdownButton(
+                  redrawOnScreenSizeChanged: true,
+                  label: "Sort by...",
                   width: 200,
-                  label: "Sort by",
-                  onPressed: () {
-                    //
+                  groupValue: _sort,
+                  items: CCSortDescriptor.values.toSet(),
+                  onSelectionChanged: (CCSortDescriptor? newValue) {
+                    if (newValue != null && newValue != _sort) {
+                      setState(() {
+                        _sort = newValue;
+                      });
+                    }
                   },
                 ),
               ],
