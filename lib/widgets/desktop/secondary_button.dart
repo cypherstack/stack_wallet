@@ -13,6 +13,7 @@ class SecondaryButton extends StatelessWidget {
     this.height,
     this.label,
     this.icon,
+    this.trailingIcon,
     this.onPressed,
     this.enabled = true,
     this.buttonHeight,
@@ -25,6 +26,7 @@ class SecondaryButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool enabled;
   final Widget? icon;
+  final Widget? trailingIcon;
   final ButtonHeight? buttonHeight;
   final double iconSpacing;
 
@@ -178,6 +180,11 @@ class SecondaryButton extends StatelessWidget {
                     ),
                 ],
               ),
+            if (trailingIcon != null)
+              SizedBox(
+                width: iconSpacing,
+              ),
+            if (trailingIcon != null) trailingIcon!,
           ],
         ),
       ),
