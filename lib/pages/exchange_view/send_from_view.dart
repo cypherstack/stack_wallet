@@ -254,7 +254,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
 
       final time = Future<dynamic>.delayed(
         const Duration(
-          seconds: 3,
+          milliseconds: 2500,
         ),
       );
 

@@ -248,7 +248,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       final time = Future<dynamic>.delayed(
         const Duration(
-          seconds: 3,
+          milliseconds: 2500,
         ),
       );
 

@@ -445,7 +445,7 @@ class _SendViewState extends ConsumerState<SendView> {
 
       final time = Future<dynamic>.delayed(
         const Duration(
-          seconds: 3,
+          milliseconds: 2500,
         ),
       );
 

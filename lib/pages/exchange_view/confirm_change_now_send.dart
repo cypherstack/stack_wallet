@@ -81,7 +81,7 @@ class _ConfirmChangeNowSendViewState
 
     final time = Future<dynamic>.delayed(
       const Duration(
-        seconds: 3,
+        milliseconds: 2500,
       ),
     );
 

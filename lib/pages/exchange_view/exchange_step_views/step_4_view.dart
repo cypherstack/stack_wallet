@@ -558,7 +558,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                               final time =
                                                   Future<dynamic>.delayed(
                                                 const Duration(
-                                                  seconds: 3,
+                                                  milliseconds: 2500,
                                                 ),
                                               );
 
