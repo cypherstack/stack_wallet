@@ -12,6 +12,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -316,8 +317,34 @@ class _DesktopCoinControlViewState
                     buttonHeight: ButtonHeight.l,
                     width: 200,
                     label: _freezeLabel(_selectedUTXOs),
-                    onPressed: () {
-                      //
+                    onPressed: () async {
+                      switch (_freezeLabelCache) {
+                        case "Freeze":
+                          for (final e in _selectedUTXOs) {
+                            e.utxo = e.utxo.copyWith(isBlocked: true);
+                          }
+                          break;
+
+                        case "Unfreeze":
+                          for (final e in _selectedUTXOs) {
+                            e.utxo = e.utxo.copyWith(isBlocked: false);
+                          }
+                          break;
+
+                        default:
+                          Logging.instance.log(
+                            "Unknown utxo method name found in $runtimeType",
+                            level: LogLevel.Fatal,
+                          );
+                          return;
+                      }
+
+                      // final update utxo set in db
+                      await MainDB.instance
+                          .putUTXOs(_selectedUTXOs.map((e) => e.utxo).toList());
+
+                      // change label of freeze/unfreeze button
+                      setState(() {});
                     },
                   ),
                   crossFadeState: _selectedUTXOs.isEmpty
