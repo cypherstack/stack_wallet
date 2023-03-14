@@ -1,33 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/coin_control/utxo_details_view.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/format.dart';
+import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/utxo_status_icon.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
-import '../../db/main_db.dart';
-import '../../providers/global/wallets_provider.dart';
-import '../../utilities/format.dart';
-import '../../utilities/text_styles.dart';
-import '../../utilities/theme/stack_colors.dart';
+class UtxoRowData {
+  UtxoRowData(this.utxo, this.selected);
+
+  UTXO utxo;
+  bool selected;
+
+  @override
+  String toString() {
+    return "selected=$selected: $utxo";
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is UtxoRowData && other.utxo == utxo;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([utxo.hashCode]);
+}
 
 class UtxoRow extends ConsumerStatefulWidget {
   const UtxoRow({
     Key? key,
-    required this.utxo,
+    required this.data,
     required this.walletId,
-    required this.onSelectedChanged,
-    required this.initialSelectedState,
-    this.onPressed,
+    this.onSelectionChanged,
   }) : super(key: key);
 
   final String walletId;
-  final UTXO utxo;
-  final void Function(bool) onSelectedChanged;
-  final bool initialSelectedState;
-  final VoidCallback? onPressed;
+  final UtxoRowData data;
+  final void Function(UtxoRowData)? onSelectionChanged;
 
   @override
   ConsumerState<UtxoRow> createState() => _UtxoRowState();
@@ -37,12 +52,9 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
   late Stream<UTXO?> stream;
   late UTXO utxo;
 
-  late bool _selected;
-
   @override
   void initState() {
-    _selected = widget.initialSelectedState;
-    utxo = widget.utxo;
+    utxo = widget.data.utxo;
 
     stream = MainDB.instance.watchUTXO(id: utxo.id);
     super.initState();
@@ -66,13 +78,21 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
         }
 
         return RoundedWhiteContainer(
+          boxShadow: widget.data.selected
+              ? [
+                  Theme.of(context).extension<StackColors>()!.standardBoxShadow,
+                ]
+              : null,
           child: Row(
             children: [
               Checkbox(
-                value: _selected,
-                onChanged: (value) => setState(() {
-                  _selected = value!;
-                }),
+                value: widget.data.selected,
+                onChanged: (value) {
+                  setState(() {
+                    widget.data.selected = value!;
+                  });
+                  widget.onSelectionChanged?.call(widget.data);
+                },
               ),
               const SizedBox(
                 width: 10,
@@ -132,7 +152,7 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
                     ),
                   );
                 },
-              )
+              ),
             ],
           ),
         );

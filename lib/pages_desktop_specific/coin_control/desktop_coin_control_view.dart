@@ -5,7 +5,6 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/pages_desktop_specific/coin_control/utxo_row.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -13,6 +12,7 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
@@ -50,9 +50,27 @@ class _DesktopCoinControlViewState
   late final TextEditingController _searchController;
   final searchFieldFocusNode = FocusNode();
 
+  final Set<UtxoRowData> _selectedUTXOs = {};
+
   String _searchString = "";
+  String _freezeLabelCache = "Freeze";
+
   CCFilter _filter = CCFilter.all;
   CCSortDescriptor _sort = CCSortDescriptor.age;
+
+  String _freezeLabel(Set<UtxoRowData> dataSet) {
+    if (dataSet.isEmpty) return _freezeLabelCache;
+
+    bool hasUnblocked = false;
+    for (final data in dataSet) {
+      if (!data.utxo.isBlocked) {
+        hasUnblocked = true;
+        break;
+      }
+    }
+    _freezeLabelCache = hasUnblocked ? "Freeze" : "Unfreeze";
+    return _freezeLabelCache;
+  }
 
   @override
   void initState() {
@@ -71,26 +89,6 @@ class _DesktopCoinControlViewState
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-
-    final coin = ref.watch(
-      walletsChangeNotifierProvider.select(
-        (value) => value
-            .getManager(
-              widget.walletId,
-            )
-            .coin,
-      ),
-    );
-
-    final currentChainHeight = ref.watch(
-      walletsChangeNotifierProvider.select(
-        (value) => value
-            .getManager(
-              widget.walletId,
-            )
-            .currentHeight,
-      ),
-    );
 
     final ids = MainDB.instance
         .getUTXOs(widget.walletId)
@@ -232,13 +230,29 @@ class _DesktopCoinControlViewState
                 const SizedBox(
                   width: 24,
                 ),
-                SecondaryButton(
-                  buttonHeight: ButtonHeight.l,
-                  width: 200,
-                  label: "Show all outputs",
-                  onPressed: () {
-                    //
-                  },
+                AnimatedCrossFade(
+                  firstChild: SecondaryButton(
+                    buttonHeight: ButtonHeight.l,
+                    width: 200,
+                    label: "Show all outputs",
+                    onPressed: () {
+                      //
+                    },
+                  ),
+                  secondChild: PrimaryButton(
+                    buttonHeight: ButtonHeight.l,
+                    width: 200,
+                    label: _freezeLabel(_selectedUTXOs),
+                    onPressed: () {
+                      //
+                    },
+                  ),
+                  crossFadeState: _selectedUTXOs.isEmpty
+                      ? CrossFadeState.showFirst
+                      : CrossFadeState.showSecond,
+                  duration: const Duration(
+                    milliseconds: 200,
+                  ),
                 ),
                 const SizedBox(
                   width: 24,
@@ -269,67 +283,23 @@ class _DesktopCoinControlViewState
                       .where()
                       .idEqualTo(ids[index])
                       .findFirstSync()!;
-
-                  // final isSelected = _showBlocked
-                  //     ? _selectedBlocked.contains(utxo)
-                  //     : _selectedAvailable.contains(utxo);
+                  final data = UtxoRowData(utxo, false);
+                  data.selected = _selectedUTXOs.contains(data);
 
                   return UtxoRow(
                     key: Key("${utxo.walletId}_${utxo.id}_${utxo.isBlocked}"),
-                    utxo: utxo,
+                    data: data,
                     walletId: widget.walletId,
-                    onSelectedChanged: (value) {
-                      // if (value) {
-                      //   _showBlocked
-                      //       ? _selectedBlocked.add(utxo)
-                      //       : _selectedAvailable.add(utxo);
-                      // } else {
-                      //   _showBlocked
-                      //       ? _selectedBlocked.remove(utxo)
-                      //       : _selectedAvailable.remove(utxo);
-                      // }
-                      // setState(() {});
+                    onSelectionChanged: (value) {
+                      setState(() {
+                        if (data.selected) {
+                          _selectedUTXOs.add(value);
+                        } else {
+                          _selectedUTXOs.remove(value);
+                        }
+                      });
                     },
-                    initialSelectedState: false,
                   );
-
-                  // return UtxoCard(
-                  //   key: Key("${utxo.walletId}_${utxo.id}_$isSelected"),
-                  //   walletId: widget.walletId,
-                  //   utxo: utxo,
-                  //   canSelect: widget.type == CoinControlViewType.manage ||
-                  //       (widget.type == CoinControlViewType.use &&
-                  //           !_showBlocked &&
-                  //           utxo.isConfirmed(
-                  //             currentChainHeight,
-                  //             coin.requiredConfirmations,
-                  //           )),
-                  //   initialSelectedState: isSelected,
-                  //   onSelectedChanged: (value) {
-                  //     if (value) {
-                  //       _showBlocked
-                  //           ? _selectedBlocked.add(utxo)
-                  //           : _selectedAvailable.add(utxo);
-                  //     } else {
-                  //       _showBlocked
-                  //           ? _selectedBlocked.remove(utxo)
-                  //           : _selectedAvailable.remove(utxo);
-                  //     }
-                  //     setState(() {});
-                  //   },
-                  //   onPressed: () async {
-                  //     final result = await Navigator.of(context).pushNamed(
-                  //       UtxoDetailsView.routeName,
-                  //       arguments: Tuple2(
-                  //         utxo.id,
-                  //         widget.walletId,
-                  //       ),
-                  //     );
-                  //     if (mounted && result == "refresh") {
-                  //       setState(() {});
-                  //     }
-                  //   },
-                  // );
                 },
               ),
             ),
