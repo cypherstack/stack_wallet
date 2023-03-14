@@ -20,6 +20,7 @@ import 'package:stackwallet/widgets/custom_buttons/dropdown_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
@@ -91,6 +92,35 @@ class _DesktopCoinControlViewState
     }
     _freezeLabelCache = hasUnblocked ? "Freeze" : "Unfreeze";
     return _freezeLabelCache;
+  }
+
+  Future<void> _onFreezeStateButtonPressed() async {
+    switch (_freezeLabelCache) {
+      case "Freeze":
+        for (final e in _selectedUTXOs) {
+          e.utxo = e.utxo.copyWith(isBlocked: true);
+        }
+        break;
+
+      case "Unfreeze":
+        for (final e in _selectedUTXOs) {
+          e.utxo = e.utxo.copyWith(isBlocked: false);
+        }
+        break;
+
+      default:
+        Logging.instance.log(
+          "Unknown utxo method name found in $runtimeType",
+          level: LogLevel.Fatal,
+        );
+        return;
+    }
+
+    // final update utxo set in db
+    await MainDB.instance.putUTXOs(_selectedUTXOs.map((e) => e.utxo).toList());
+
+    // change label of freeze/unfreeze button
+    setState(() {});
   }
 
   @override
@@ -317,35 +347,7 @@ class _DesktopCoinControlViewState
                     buttonHeight: ButtonHeight.l,
                     width: 200,
                     label: _freezeLabel(_selectedUTXOs),
-                    onPressed: () async {
-                      switch (_freezeLabelCache) {
-                        case "Freeze":
-                          for (final e in _selectedUTXOs) {
-                            e.utxo = e.utxo.copyWith(isBlocked: true);
-                          }
-                          break;
-
-                        case "Unfreeze":
-                          for (final e in _selectedUTXOs) {
-                            e.utxo = e.utxo.copyWith(isBlocked: false);
-                          }
-                          break;
-
-                        default:
-                          Logging.instance.log(
-                            "Unknown utxo method name found in $runtimeType",
-                            level: LogLevel.Fatal,
-                          );
-                          return;
-                      }
-
-                      // final update utxo set in db
-                      await MainDB.instance
-                          .putUTXOs(_selectedUTXOs.map((e) => e.utxo).toList());
-
-                      // change label of freeze/unfreeze button
-                      setState(() {});
-                    },
+                    onPressed: _onFreezeStateButtonPressed,
                   ),
                   crossFadeState: _selectedUTXOs.isEmpty
                       ? CrossFadeState.showFirst
@@ -357,19 +359,33 @@ class _DesktopCoinControlViewState
                 const SizedBox(
                   width: 24,
                 ),
-                JDropdownButton(
-                  redrawOnScreenSizeChanged: true,
-                  label: "Sort by...",
-                  width: 200,
-                  groupValue: _sort,
-                  items: CCSortDescriptor.values.toSet(),
-                  onSelectionChanged: (CCSortDescriptor? newValue) {
-                    if (newValue != null && newValue != _sort) {
-                      setState(() {
-                        _sort = newValue;
-                      });
-                    }
-                  },
+                AnimatedCrossFade(
+                  firstChild: JDropdownButton(
+                    redrawOnScreenSizeChanged: true,
+                    label: "Sort by...",
+                    width: 200,
+                    groupValue: _sort,
+                    items: CCSortDescriptor.values.toSet(),
+                    onSelectionChanged: (CCSortDescriptor? newValue) {
+                      if (newValue != null && newValue != _sort) {
+                        setState(() {
+                          _sort = newValue;
+                        });
+                      }
+                    },
+                  ),
+                  secondChild: SecondaryButton(
+                    buttonHeight: ButtonHeight.l,
+                    width: 200,
+                    label: "Clear selection (${_selectedUTXOs.length})",
+                    onPressed: () => setState(() => _selectedUTXOs.clear()),
+                  ),
+                  crossFadeState: _selectedUTXOs.isEmpty
+                      ? CrossFadeState.showFirst
+                      : CrossFadeState.showSecond,
+                  duration: const Duration(
+                    milliseconds: 200,
+                  ),
                 ),
               ],
             ),
