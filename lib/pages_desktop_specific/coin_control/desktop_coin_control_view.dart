@@ -6,20 +6,19 @@ import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
+import 'package:stackwallet/pages_desktop_specific/coin_control/freeze_button.dart';
 import 'package:stackwallet/pages_desktop_specific/coin_control/utxo_row.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/dropdown_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
@@ -75,53 +74,9 @@ class _DesktopCoinControlViewState
   final Set<UtxoRowData> _selectedUTXOs = {};
 
   String _searchString = "";
-  String _freezeLabelCache = "Freeze";
 
   CCFilter _filter = CCFilter.all;
   CCSortDescriptor _sort = CCSortDescriptor.age;
-
-  String _freezeLabel(Set<UtxoRowData> dataSet) {
-    if (dataSet.isEmpty) return _freezeLabelCache;
-
-    bool hasUnblocked = false;
-    for (final data in dataSet) {
-      if (!data.utxo.isBlocked) {
-        hasUnblocked = true;
-        break;
-      }
-    }
-    _freezeLabelCache = hasUnblocked ? "Freeze" : "Unfreeze";
-    return _freezeLabelCache;
-  }
-
-  Future<void> _onFreezeStateButtonPressed() async {
-    switch (_freezeLabelCache) {
-      case "Freeze":
-        for (final e in _selectedUTXOs) {
-          e.utxo = e.utxo.copyWith(isBlocked: true);
-        }
-        break;
-
-      case "Unfreeze":
-        for (final e in _selectedUTXOs) {
-          e.utxo = e.utxo.copyWith(isBlocked: false);
-        }
-        break;
-
-      default:
-        Logging.instance.log(
-          "Unknown utxo method name found in $runtimeType",
-          level: LogLevel.Fatal,
-        );
-        return;
-    }
-
-    // final update utxo set in db
-    await MainDB.instance.putUTXOs(_selectedUTXOs.map((e) => e.utxo).toList());
-
-    // change label of freeze/unfreeze button
-    setState(() {});
-  }
 
   @override
   void initState() {
@@ -343,11 +298,9 @@ class _DesktopCoinControlViewState
                       }
                     },
                   ),
-                  secondChild: PrimaryButton(
-                    buttonHeight: ButtonHeight.l,
-                    width: 200,
-                    label: _freezeLabel(_selectedUTXOs),
-                    onPressed: _onFreezeStateButtonPressed,
+                  secondChild: FreezeButton(
+                    key: Key("${_selectedUTXOs.length}"),
+                    selectedUTXOs: _selectedUTXOs,
                   ),
                   crossFadeState: _selectedUTXOs.isEmpty
                       ? CrossFadeState.showFirst
@@ -405,7 +358,7 @@ class _DesktopCoinControlViewState
                       .where()
                       .idEqualTo(ids[index])
                       .findFirstSync()!;
-                  final data = UtxoRowData(utxo, false);
+                  final data = UtxoRowData(utxo.id, false);
                   data.selected = _selectedUTXOs.contains(data);
 
                   return UtxoRow(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:isar/isar.dart';
 import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/coin_control/utxo_details_view.dart';
@@ -13,23 +14,23 @@ import 'package:stackwallet/widgets/icon_widgets/utxo_status_icon.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class UtxoRowData {
-  UtxoRowData(this.utxo, this.selected);
+  UtxoRowData(this.utxoId, this.selected);
 
-  UTXO utxo;
+  Id utxoId;
   bool selected;
 
   @override
   String toString() {
-    return "selected=$selected: $utxo";
+    return "selected=$selected: $utxoId";
   }
 
   @override
   bool operator ==(Object other) {
-    return other is UtxoRowData && other.utxo == utxo;
+    return other is UtxoRowData && other.utxoId == utxoId;
   }
 
   @override
-  int get hashCode => Object.hashAll([utxo.hashCode]);
+  int get hashCode => Object.hashAll([utxoId.hashCode]);
 }
 
 class UtxoRow extends ConsumerStatefulWidget {
@@ -54,7 +55,10 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
 
   @override
   void initState() {
-    utxo = widget.data.utxo;
+    utxo = MainDB.instance.isar.utxos
+        .where()
+        .idEqualTo(widget.data.utxoId)
+        .findFirstSync()!;
 
     stream = MainDB.instance.watchUTXO(id: utxo.id);
     super.initState();
