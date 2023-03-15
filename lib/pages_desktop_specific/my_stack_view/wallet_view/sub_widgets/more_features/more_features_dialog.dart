@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -39,6 +40,12 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
       ),
     );
 
+    final coinControlPrefEnabled = ref.watch(
+      prefsChangeNotifierProvider.select(
+        (value) => value.enableCoinControl,
+      ),
+    );
+
     return DesktopDialog(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -72,7 +79,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               iconAsset: Assets.svg.whirlPool,
               onPressed: () => widget.onWhirlpoolPressed?.call(),
             ),
-          if (manager.hasCoinControlSupport)
+          if (manager.hasCoinControlSupport && coinControlPrefEnabled)
             _MoreFeaturesItem(
               label: "Coin control",
               detail: "Control, freeze, and utilize outputs at your discretion",
