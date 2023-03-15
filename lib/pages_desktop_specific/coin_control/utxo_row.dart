@@ -9,9 +9,11 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
+import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/utxo_status_icon.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 
 class UtxoRowData {
   UtxoRowData(this.utxoId, this.selected);
@@ -39,11 +41,13 @@ class UtxoRow extends ConsumerStatefulWidget {
     required this.data,
     required this.walletId,
     this.onSelectionChanged,
+    this.compact = false,
   }) : super(key: key);
 
   final String walletId;
   final UtxoRowData data;
   final void Function(UtxoRowData)? onSelectionChanged;
+  final bool compact;
 
   @override
   ConsumerState<UtxoRow> createState() => _UtxoRowState();
@@ -52,6 +56,16 @@ class UtxoRow extends ConsumerStatefulWidget {
 class _UtxoRowState extends ConsumerState<UtxoRow> {
   late Stream<UTXO?> stream;
   late UTXO utxo;
+
+  void _details() async {
+    await showDialog<String?>(
+      context: context,
+      builder: (context) => UtxoDetailsView(
+        utxoId: utxo.id,
+        walletId: widget.walletId,
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -81,7 +95,11 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
           utxo = snapshot.data!;
         }
 
-        return RoundedWhiteContainer(
+        return RoundedContainer(
+          borderColor: widget.compact
+              ? Theme.of(context).extension<StackColors>()!.textFieldDefaultBG
+              : null,
+          color: Theme.of(context).extension<StackColors>()!.popupBG,
           boxShadow: widget.data.selected
               ? [
                   Theme.of(context).extension<StackColors>()!.standardBoxShadow,
@@ -117,46 +135,70 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
               const SizedBox(
                 width: 10,
               ),
-              Text(
-                "${Format.satoshisToAmount(
-                  utxo.value,
-                  coin: coin,
-                ).toStringAsFixed(coin.decimals)} ${coin.ticker}",
-                textAlign: TextAlign.right,
-                style: STextStyles.w600_14(context),
-              ),
-              const SizedBox(
-                width: 10,
-              ),
+              if (!widget.compact)
+                Text(
+                  "${Format.satoshisToAmount(
+                    utxo.value,
+                    coin: coin,
+                  ).toStringAsFixed(coin.decimals)} ${coin.ticker}",
+                  textAlign: TextAlign.right,
+                  style: STextStyles.w600_14(context),
+                ),
+              if (!widget.compact)
+                const SizedBox(
+                  width: 10,
+                ),
               Expanded(
-                flex: 13,
-                child: Text(
-                  utxo.name.isNotEmpty ? utxo.name : utxo.address ?? utxo.txid,
-                  textAlign: TextAlign.center,
-                  style: STextStyles.w500_12(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textSubtitle1,
+                child: ConditionalParent(
+                  condition: widget.compact,
+                  builder: (child) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "${Format.satoshisToAmount(
+                            utxo.value,
+                            coin: coin,
+                          ).toStringAsFixed(coin.decimals)} ${coin.ticker}",
+                          textAlign: TextAlign.right,
+                          style: STextStyles.w600_14(context),
+                        ),
+                        const SizedBox(
+                          height: 2,
+                        ),
+                        child,
+                      ],
+                    );
+                  },
+                  child: Text(
+                    utxo.name.isNotEmpty
+                        ? utxo.name
+                        : utxo.address ?? utxo.txid,
+                    textAlign:
+                        widget.compact ? TextAlign.left : TextAlign.center,
+                    style: STextStyles.w500_12(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textSubtitle1,
+                    ),
                   ),
                 ),
               ),
               const SizedBox(
                 width: 10,
               ),
-              SecondaryButton(
-                width: 120,
-                buttonHeight: ButtonHeight.xs,
-                label: "Details",
-                onPressed: () async {
-                  await showDialog<String?>(
-                    context: context,
-                    builder: (context) => UtxoDetailsView(
-                      utxoId: utxo.id,
-                      walletId: widget.walletId,
+              widget.compact
+                  ? CustomTextButton(
+                      text: "Details",
+                      onTap: _details,
+                    )
+                  : SecondaryButton(
+                      width: 120,
+                      buttonHeight: ButtonHeight.xs,
+                      label: "Details",
+                      onPressed: _details,
                     ),
-                  );
-                },
-              ),
             ],
           ),
         );

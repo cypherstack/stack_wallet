@@ -1,6 +1,4 @@
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
@@ -12,7 +10,6 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -23,32 +20,6 @@ import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
-
-enum CCFilter {
-  all,
-  available,
-  frozen;
-
-  @override
-  String toString() {
-    if (this == all) {
-      return "Show $name outputs";
-    }
-
-    return "${name.capitalize()} outputs";
-  }
-}
-
-enum CCSortDescriptor {
-  age,
-  address,
-  value;
-
-  @override
-  String toString() {
-    return name.toString().capitalize();
-  }
-}
 
 class DesktopCoinControlView extends ConsumerStatefulWidget {
   const DesktopCoinControlView({
@@ -99,68 +70,13 @@ class _DesktopCoinControlViewState
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    var preSort = MainDB.instance.getUTXOs(widget.walletId).filter().group((q) {
-      final qq = q.group(
-        (q) => q.usedIsNull().or().usedEqualTo(false),
-      );
-      switch (_filter) {
-        case CCFilter.frozen:
-          return qq.and().isBlockedEqualTo(true);
-        case CCFilter.available:
-          return qq.and().isBlockedEqualTo(false);
-        case CCFilter.all:
-          return qq;
-      }
-    });
-
-    if (_searchString.isNotEmpty) {
-      preSort = preSort.and().group(
-        (q) {
-          var qq = q.addressContains(_searchString, caseSensitive: false);
-
-          qq = qq.or().nameContains(_searchString, caseSensitive: false);
-          qq = qq.or().group(
-                (q) => q
-                    .isBlockedEqualTo(true)
-                    .and()
-                    .blockedReasonContains(_searchString, caseSensitive: false),
-              );
-
-          qq = qq.or().txidContains(_searchString, caseSensitive: false);
-          qq = qq.or().blockHashContains(_searchString, caseSensitive: false);
-
-          final maybeDecimal = Decimal.tryParse(_searchString);
-          if (maybeDecimal != null) {
-            qq = qq.or().valueEqualTo(
-                  Format.decimalAmountToSatoshis(
-                    maybeDecimal,
-                    coin,
-                  ),
-                );
-          }
-
-          final maybeInt = int.tryParse(_searchString);
-          if (maybeInt != null) {
-            qq = qq.or().valueEqualTo(maybeInt);
-          }
-
-          return qq;
-        },
-      );
-    }
-
-    final List<Id> ids;
-    switch (_sort) {
-      case CCSortDescriptor.age:
-        ids = preSort.sortByBlockHeight().idProperty().findAllSync();
-        break;
-      case CCSortDescriptor.address:
-        ids = preSort.sortByAddress().idProperty().findAllSync();
-        break;
-      case CCSortDescriptor.value:
-        ids = preSort.sortByValueDesc().idProperty().findAllSync();
-        break;
-    }
+    final ids = MainDB.instance.queryUTXOsSync(
+      walletId: widget.walletId,
+      filter: _filter,
+      sort: _sort,
+      searchTerm: _searchString,
+      coin: coin,
+    );
 
     return DesktopScaffold(
       appBar: DesktopAppBar(

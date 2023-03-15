@@ -236,6 +236,7 @@ class _SVG {
   String get walletFa => "assets/svg/wallet-fa.svg";
   String get exchange3 => "assets/svg/exchange-3.svg";
   String get messageQuestion => "assets/svg/message-question-1.svg";
+  String get list => "assets/svg/list-ul.svg";
 
 // TODO provide proper assets
   String get bitcoinTestnet => "assets/svg/coin_icons/Bitcoin.svg";

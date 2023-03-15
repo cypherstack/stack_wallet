@@ -13,6 +13,7 @@ import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
+import 'package:stackwallet/pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/address_book_address_chooser.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_fee_dropdown.dart';
@@ -44,6 +45,7 @@ import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
@@ -679,6 +681,18 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
   }
 
+  void _showDesktopCoinControl() async {
+    if (_amountToSend == null) {
+      //
+    }
+    final result = await showDialog(
+      context: context,
+      builder: (context) =>   DesktopCoinControlUseDialog(
+        walletId: widget.walletId,
+      ),
+    );
+  }
+
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -775,6 +789,17 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         }
       });
     }
+
+    final showCoinControl = ref.watch(
+          prefsChangeNotifierProvider.select(
+            (value) => value.enableCoinControl,
+          ),
+        ) &&
+        ref.watch(
+          provider.select(
+            (value) => value.hasCoinControlSupport,
+          ),
+        );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1050,6 +1075,29 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   ),
                 ),
               ),
+            ),
+          ),
+        if (showCoinControl)
+          const SizedBox(
+            height: 10,
+          ),
+        if (showCoinControl)
+          RoundedContainer(
+            color: Colors.transparent,
+            borderColor:
+                Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Coin control",
+                  style: STextStyles.desktopTextExtraExtraSmall(context),
+                ),
+                CustomTextButton(
+                  text: "Select coins",
+                  onTap: _showDesktopCoinControl,
+                ),
+              ],
             ),
           ),
         const SizedBox(
