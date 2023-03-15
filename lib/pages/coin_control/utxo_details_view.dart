@@ -469,7 +469,7 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                       ],
                     ),
                   ),
-                  const _Div(),
+                  if (utxo!.isBlocked) const _Div(),
                   if (utxo!.isBlocked)
                     Column(
                       mainAxisSize: MainAxisSize.min,
