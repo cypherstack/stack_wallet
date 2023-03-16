@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:lottie/lottie.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -19,30 +21,32 @@ class SendingTransactionDialog extends StatefulWidget {
   State<SendingTransactionDialog> createState() => _RestoringDialogState();
 }
 
-class _RestoringDialogState extends State<SendingTransactionDialog> {
-  // with TickerProviderStateMixin {
-  // late AnimationController? _spinController;
-  // late Animation<double> _spinAnimation;
+class _RestoringDialogState extends State<SendingTransactionDialog>
+    with TickerProviderStateMixin {
+  late AnimationController? _spinController;
+  late Animation<double> _spinAnimation;
+
+  final bool chan = false;
 
   @override
   void initState() {
-    // _spinController = AnimationController(
-    //   duration: const Duration(seconds: 2),
-    //   vsync: this,
-    // )..repeat();
-    //
-    // _spinAnimation = CurvedAnimation(
-    //   parent: _spinController!,
-    //   curve: Curves.linear,
-    // );
+    _spinController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat();
+
+    _spinAnimation = CurvedAnimation(
+      parent: _spinController!,
+      curve: Curves.linear,
+    );
 
     super.initState();
   }
 
   @override
   void dispose() {
-    // _spinController?.dispose();
-    // _spinController = null;
+    _spinController?.dispose();
+    _spinController = null;
 
     super.dispose();
   }
@@ -63,20 +67,21 @@ class _RestoringDialogState extends State<SendingTransactionDialog> {
               const SizedBox(
                 height: 40,
               ),
-              Lottie.asset(
-                Assets.lottie.kiss(widget.coin),
-              ),
-              // RotationTransition(
-              //   turns: _spinAnimation,
-              //   child: SvgPicture.asset(
-              //     Assets.svg.arrowRotate,
-              //     color: Theme.of(context)
-              //         .extension<StackColors>()!
-              //         .accentColorDark,
-              //     width: 24,
-              //     height: 24,
-              //   ),
-              // ),
+              chan
+                  ? Lottie.asset(
+                      Assets.lottie.kiss(widget.coin),
+                    )
+                  : RotationTransition(
+                      turns: _spinAnimation,
+                      child: SvgPicture.asset(
+                        Assets.svg.arrowRotate,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
+                        width: 24,
+                        height: 24,
+                      ),
+                    ),
             ],
           ),
         ),
@@ -86,40 +91,40 @@ class _RestoringDialogState extends State<SendingTransactionDialog> {
         onWillPop: () async {
           return false;
         },
-        child: StackDialogBase(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Lottie.asset(
-                Assets.lottie.kiss(widget.coin),
+        child: chan
+            ? StackDialogBase(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Lottie.asset(
+                      Assets.lottie.kiss(widget.coin),
+                    ),
+                    Text(
+                      "Sending transaction",
+                      textAlign: TextAlign.center,
+                      style: STextStyles.pageTitleH2(context),
+                    ),
+                    const SizedBox(
+                      height: 32,
+                    ),
+                  ],
+                ),
+              )
+            : StackDialog(
+                title: "Sending transaction",
+                icon: RotationTransition(
+                  turns: _spinAnimation,
+                  child: SvgPicture.asset(
+                    Assets.svg.arrowRotate,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
+                    width: 24,
+                    height: 24,
+                  ),
+                ),
               ),
-              Text(
-                "Sending transaction",
-                textAlign: TextAlign.center,
-                style: STextStyles.pageTitleH2(context),
-              ),
-              const SizedBox(
-                height: 32,
-              ),
-            ],
-          ),
-        ),
-        // child: StackDialog(
-        //   title: "Sending transaction",
-        //   // // TODO get message from design team
-        //   // message: "<PLACEHOLDER>",
-        //   icon: RotationTransition(
-        //     turns: _spinAnimation,
-        //     child: SvgPicture.asset(
-        //       Assets.svg.arrowRotate,
-        //       color:
-        //           Theme.of(context).extension<StackColors>()!.accentColorDark,
-        //       width: 24,
-        //       height: 24,
-        //     ),
-        //   ),
-        // ),
       );
     }
   }
