@@ -5,6 +5,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
+import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -132,12 +133,14 @@ class JDropdownIconButton<T> extends StatefulWidget {
     this.onSelectionChanged,
     this.groupValue,
     this.redrawOnScreenSizeChanged = false,
+    this.mobileAppBar = false,
   }) : super(key: key);
 
   final String displayPrefix;
   final void Function(T?)? onSelectionChanged;
   final T? groupValue;
   final Set<T> items;
+  final bool mobileAppBar;
 
   /// setting this to true should be done carefully
   final bool redrawOnScreenSizeChanged;
@@ -211,37 +214,51 @@ class _JDropdownIconButtonState<T> extends State<JDropdownIconButton<T>> {
       });
     }
 
-    return SizedBox(
-      key: _key,
-      height: 56,
-      width: 56,
-      child: TextButton(
-        style: Theme.of(context)
-            .extension<StackColors>()!
-            .getSecondaryEnabledButtonStyle(context)
-            ?.copyWith(
-              shape: MaterialStateProperty.all(
-                RoundedRectangleBorder(
-                  side: BorderSide(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .buttonBackBorderSecondary,
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
-                  ),
-                ),
-              ),
-            ),
-        onPressed: _isOpen ? close : open,
-        child: SvgPicture.asset(
+    if (widget.mobileAppBar) {
+      return AppBarIconButton(
+        key: _key,
+        size: 36,
+        icon: SvgPicture.asset(
           Assets.svg.list,
           width: 20,
           height: 20,
+          color: Theme.of(context).extension<StackColors>()!.topNavIconPrimary,
         ),
-      ),
-    );
+        onPressed: _isOpen ? close : open,
+      );
+    } else {
+      return SizedBox(
+        key: _key,
+        height: 56,
+        width: 56,
+        child: TextButton(
+          style: Theme.of(context)
+              .extension<StackColors>()!
+              .getSecondaryEnabledButtonStyle(context)
+              ?.copyWith(
+                shape: MaterialStateProperty.all(
+                  RoundedRectangleBorder(
+                    side: BorderSide(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .buttonBackBorderSecondary,
+                      width: 1,
+                    ),
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                  ),
+                ),
+              ),
+          onPressed: _isOpen ? close : open,
+          child: SvgPicture.asset(
+            Assets.svg.list,
+            width: 20,
+            height: 20,
+          ),
+        ),
+      );
+    }
   }
 }
 

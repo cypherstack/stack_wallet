@@ -19,12 +19,17 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/app_bar_field.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/custom_buttons/dropdown_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/expandable2.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/toggle.dart';
 import 'package:tuple/tuple.dart';
+
+import '../../widgets/animated_widgets/rotate_icon.dart';
+import '../../widgets/rounded_container.dart';
 
 enum CoinControlViewType {
   manage,
@@ -59,6 +64,9 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
   bool _showBlocked = false;
 
   CCSortDescriptor _sort = CCSortDescriptor.age;
+
+  Map<String, List<Id>>? _map;
+  List<Id>? _list;
 
   final Set<UTXO> _selectedAvailable = {};
   final Set<UTXO> _selectedBlocked = {};
@@ -115,17 +123,29 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
       ),
     );
 
-    final ids = MainDB.instance.queryUTXOsSync(
-      walletId: widget.walletId,
-      filter: _isSearching
-          ? CCFilter.all
-          : _showBlocked
-              ? CCFilter.frozen
-              : CCFilter.available,
-      sort: _sort,
-      searchTerm: _isSearching ? searchController.text : "",
-      coin: coin,
-    );
+    if (_sort == CCSortDescriptor.address && !_isSearching) {
+      _list = null;
+      _map = MainDB.instance.queryUTXOsGroupedByAddressSync(
+        walletId: widget.walletId,
+        filter: CCFilter.all,
+        sort: _sort,
+        searchTerm: "",
+        coin: coin,
+      );
+    } else {
+      _map = null;
+      _list = MainDB.instance.queryUTXOsSync(
+        walletId: widget.walletId,
+        filter: _isSearching
+            ? CCFilter.all
+            : _showBlocked
+                ? CCFilter.frozen
+                : CCFilter.available,
+        sort: _sort,
+        searchTerm: _isSearching ? searchController.text : "",
+        coin: coin,
+      );
+    }
 
     return WillPopScope(
       onWillPop: () async {
@@ -223,22 +243,18 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                     ),
                     AspectRatio(
                       aspectRatio: 1,
-                      child: AppBarIconButton(
-                        size: 36,
-                        icon: SvgPicture.asset(
-                          Assets.svg.verticalEllipsis,
-                          width: 20,
-                          height: 20,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .topNavIconPrimary,
-                        ),
-                        onPressed: () {
-                          // show search
-                          setState(() {
-                            _isSearching = true;
-                          });
+                      child: JDropdownIconButton(
+                        mobileAppBar: true,
+                        groupValue: _sort,
+                        items: CCSortDescriptor.values.toSet(),
+                        onSelectionChanged: (CCSortDescriptor? newValue) {
+                          if (newValue != null && newValue != _sort) {
+                            setState(() {
+                              _sort = newValue;
+                            });
+                          }
                         },
+                        displayPrefix: "Sort by",
                       ),
                     ),
                   ],
@@ -273,7 +289,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                           const SizedBox(
                             height: 10,
                           ),
-                        if (!_isSearching)
+                        if (!(_isSearching || _map != null))
                           SizedBox(
                             height: 48,
                             child: Toggle(
@@ -307,14 +323,14 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                         if (_isSearching)
                           Expanded(
                             child: ListView.separated(
-                              itemCount: ids.length,
+                              itemCount: _list!.length,
                               separatorBuilder: (context, _) => const SizedBox(
                                 height: 10,
                               ),
                               itemBuilder: (context, index) {
                                 final utxo = MainDB.instance.isar.utxos
                                     .where()
-                                    .idEqualTo(ids[index])
+                                    .idEqualTo(_list![index])
                                     .findFirstSync()!;
 
                                 final isSelected =
@@ -365,65 +381,219 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                             ),
                           ),
                         if (!_isSearching)
-                          Expanded(
-                            child: ListView.separated(
-                              itemCount: ids.length,
-                              separatorBuilder: (context, _) => const SizedBox(
-                                height: 10,
-                              ),
-                              itemBuilder: (context, index) {
-                                final utxo = MainDB.instance.isar.utxos
-                                    .where()
-                                    .idEqualTo(ids[index])
-                                    .findFirstSync()!;
+                          _list != null
+                              ? Expanded(
+                                  child: ListView.separated(
+                                    itemCount: _list!.length,
+                                    separatorBuilder: (context, _) =>
+                                        const SizedBox(
+                                      height: 10,
+                                    ),
+                                    itemBuilder: (context, index) {
+                                      final utxo = MainDB.instance.isar.utxos
+                                          .where()
+                                          .idEqualTo(_list![index])
+                                          .findFirstSync()!;
 
-                                final isSelected = _showBlocked
-                                    ? _selectedBlocked.contains(utxo)
-                                    : _selectedAvailable.contains(utxo);
+                                      final isSelected = _showBlocked
+                                          ? _selectedBlocked.contains(utxo)
+                                          : _selectedAvailable.contains(utxo);
 
-                                return UtxoCard(
-                                  key: Key(
-                                      "${utxo.walletId}_${utxo.id}_$isSelected"),
-                                  walletId: widget.walletId,
-                                  utxo: utxo,
-                                  canSelect: widget.type ==
-                                          CoinControlViewType.manage ||
-                                      (widget.type == CoinControlViewType.use &&
-                                          !_showBlocked &&
-                                          utxo.isConfirmed(
-                                            currentChainHeight,
-                                            coin.requiredConfirmations,
-                                          )),
-                                  initialSelectedState: isSelected,
-                                  onSelectedChanged: (value) {
-                                    if (value) {
-                                      _showBlocked
-                                          ? _selectedBlocked.add(utxo)
-                                          : _selectedAvailable.add(utxo);
-                                    } else {
-                                      _showBlocked
-                                          ? _selectedBlocked.remove(utxo)
-                                          : _selectedAvailable.remove(utxo);
-                                    }
-                                    setState(() {});
-                                  },
-                                  onPressed: () async {
-                                    final result =
-                                        await Navigator.of(context).pushNamed(
-                                      UtxoDetailsView.routeName,
-                                      arguments: Tuple2(
-                                        utxo.id,
-                                        widget.walletId,
-                                      ),
-                                    );
-                                    if (mounted && result == "refresh") {
-                                      setState(() {});
-                                    }
-                                  },
-                                );
-                              },
-                            ),
-                          ),
+                                      return UtxoCard(
+                                        key: Key(
+                                            "${utxo.walletId}_${utxo.id}_$isSelected"),
+                                        walletId: widget.walletId,
+                                        utxo: utxo,
+                                        canSelect: widget.type ==
+                                                CoinControlViewType.manage ||
+                                            (widget.type ==
+                                                    CoinControlViewType.use &&
+                                                !_showBlocked &&
+                                                utxo.isConfirmed(
+                                                  currentChainHeight,
+                                                  coin.requiredConfirmations,
+                                                )),
+                                        initialSelectedState: isSelected,
+                                        onSelectedChanged: (value) {
+                                          if (value) {
+                                            _showBlocked
+                                                ? _selectedBlocked.add(utxo)
+                                                : _selectedAvailable.add(utxo);
+                                          } else {
+                                            _showBlocked
+                                                ? _selectedBlocked.remove(utxo)
+                                                : _selectedAvailable
+                                                    .remove(utxo);
+                                          }
+                                          setState(() {});
+                                        },
+                                        onPressed: () async {
+                                          final result =
+                                              await Navigator.of(context)
+                                                  .pushNamed(
+                                            UtxoDetailsView.routeName,
+                                            arguments: Tuple2(
+                                              utxo.id,
+                                              widget.walletId,
+                                            ),
+                                          );
+                                          if (mounted && result == "refresh") {
+                                            setState(() {});
+                                          }
+                                        },
+                                      );
+                                    },
+                                  ),
+                                )
+                              : Expanded(
+                                  child: ListView.separated(
+                                    itemCount: _map!.entries.length,
+                                    separatorBuilder: (context, _) =>
+                                        const SizedBox(
+                                      height: 10,
+                                    ),
+                                    itemBuilder: (context, index) {
+                                      final entry =
+                                          _map!.entries.elementAt(index);
+                                      final _controller =
+                                          RotateIconController();
+
+                                      return Expandable2(
+                                        border: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .backgroundAppBar,
+                                        background: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .popupBG,
+                                        animationDurationMultiplier:
+                                            0.2 * entry.value.length,
+                                        onExpandWillChange: (state) {
+                                          if (state ==
+                                              Expandable2State.expanded) {
+                                            _controller.forward?.call();
+                                          } else {
+                                            _controller.reverse?.call();
+                                          }
+                                        },
+                                        header: RoundedContainer(
+                                          padding: const EdgeInsets.all(14),
+                                          color: Colors.transparent,
+                                          child: Row(
+                                            children: [
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      entry.key,
+                                                      style:
+                                                          STextStyles.w600_14(
+                                                              context),
+                                                    ),
+                                                    const SizedBox(
+                                                      height: 2,
+                                                    ),
+                                                    Text(
+                                                      "${entry.value.length} "
+                                                      "output${entry.value.length > 1 ? "s" : ""}",
+                                                      style:
+                                                          STextStyles.w500_12(
+                                                                  context)
+                                                              .copyWith(
+                                                        color: Theme.of(context)
+                                                            .extension<
+                                                                StackColors>()!
+                                                            .textSubtitle1,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              RotateIcon(
+                                                animationDurationMultiplier:
+                                                    0.2 * entry.value.length,
+                                                icon: SvgPicture.asset(
+                                                  Assets.svg.chevronDown,
+                                                  width: 14,
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .textSubtitle1,
+                                                ),
+                                                curve: Curves.easeInOut,
+                                                controller: _controller,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        children: entry.value.map(
+                                          (id) {
+                                            final utxo = MainDB
+                                                .instance.isar.utxos
+                                                .where()
+                                                .idEqualTo(id)
+                                                .findFirstSync()!;
+
+                                            final isSelected = _selectedBlocked
+                                                    .contains(utxo) ||
+                                                _selectedAvailable
+                                                    .contains(utxo);
+
+                                            return UtxoCard(
+                                              key: Key(
+                                                  "${utxo.walletId}_${utxo.id}_$isSelected"),
+                                              walletId: widget.walletId,
+                                              utxo: utxo,
+                                              canSelect: widget.type ==
+                                                      CoinControlViewType
+                                                          .manage ||
+                                                  (widget.type ==
+                                                          CoinControlViewType
+                                                              .use &&
+                                                      !utxo.isBlocked &&
+                                                      utxo.isConfirmed(
+                                                        currentChainHeight,
+                                                        coin.requiredConfirmations,
+                                                      )),
+                                              initialSelectedState: isSelected,
+                                              onSelectedChanged: (value) {
+                                                if (value) {
+                                                  utxo.isBlocked
+                                                      ? _selectedBlocked
+                                                          .add(utxo)
+                                                      : _selectedAvailable
+                                                          .add(utxo);
+                                                } else {
+                                                  utxo.isBlocked
+                                                      ? _selectedBlocked
+                                                          .remove(utxo)
+                                                      : _selectedAvailable
+                                                          .remove(utxo);
+                                                }
+                                                setState(() {});
+                                              },
+                                              onPressed: () async {
+                                                final result =
+                                                    await Navigator.of(context)
+                                                        .pushNamed(
+                                                  UtxoDetailsView.routeName,
+                                                  arguments: Tuple2(
+                                                    utxo.id,
+                                                    widget.walletId,
+                                                  ),
+                                                );
+                                                if (mounted &&
+                                                    result == "refresh") {
+                                                  setState(() {});
+                                                }
+                                              },
+                                            );
+                                          },
+                                        ).toList(),
+                                      );
+                                    },
+                                  ),
+                                ),
                       ],
                     ),
                   ),
