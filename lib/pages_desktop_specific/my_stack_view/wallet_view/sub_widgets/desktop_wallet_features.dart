@@ -9,10 +9,12 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/coin_control/desktop_coin_control_view.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/more_features/more_features_dialog.dart';
+import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
 import 'package:stackwallet/providers/global/paynym_api_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
@@ -46,11 +48,16 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
   static const double buttonWidth = 120;
 
   Future<void> _onSwapPressed() async {
-    // todo
+    ref.read(currentDesktopMenuItemProvider.state).state =
+        DesktopMenuItemId.exchange;
+    ref.read(prevDesktopMenuItemProvider.state).state =
+        DesktopMenuItemId.exchange;
   }
 
   Future<void> _onBuyPressed() async {
-    // todo
+    ref.read(currentDesktopMenuItemProvider.state).state =
+        DesktopMenuItemId.buy;
+    ref.read(prevDesktopMenuItemProvider.state).state = DesktopMenuItemId.buy;
   }
 
   Future<void> _onMorePressed() async {

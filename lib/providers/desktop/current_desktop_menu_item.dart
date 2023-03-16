@@ -3,3 +3,6 @@ import 'package:stackwallet/pages_desktop_specific/desktop_menu.dart';
 
 final currentDesktopMenuItemProvider =
     StateProvider<DesktopMenuItemId>((ref) => DesktopMenuItemId.myStack);
+
+final prevDesktopMenuItemProvider =
+    StateProvider<DesktopMenuItemId>((ref) => DesktopMenuItemId.myStack);
