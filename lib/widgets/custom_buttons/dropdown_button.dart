@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
@@ -119,6 +120,124 @@ class _JDropdownButtonState<T> extends State<JDropdownButton<T>> {
       width: widget.width,
       label: widget.label ?? widget.groupValue.toString(),
       onPressed: _isOpen ? close : open,
+    );
+  }
+}
+
+class JDropdownIconButton<T> extends StatefulWidget {
+  const JDropdownIconButton({
+    Key? key,
+    required this.items,
+    this.onSelectionChanged,
+    this.groupValue,
+    this.redrawOnScreenSizeChanged = false,
+  }) : super(key: key);
+
+  final void Function(T?)? onSelectionChanged;
+  final T? groupValue;
+  final Set<T> items;
+
+  /// setting this to true should be done carefully
+  final bool redrawOnScreenSizeChanged;
+
+  @override
+  State<JDropdownIconButton<T>> createState() => _JDropdownIconButtonState();
+}
+
+class _JDropdownIconButtonState<T> extends State<JDropdownIconButton<T>> {
+  final _key = GlobalKey();
+
+  bool _isOpen = false;
+
+  OverlayEntry? _entry;
+
+  void close() {
+    if (_isOpen) {
+      _entry?.remove();
+      _isOpen = false;
+    }
+  }
+
+  void open() {
+    final size = (_key.currentContext!.findRenderObject() as RenderBox).size;
+    _entry = OverlayEntry(
+      builder: (_) {
+        final position = (_key.currentContext!.findRenderObject() as RenderBox)
+            .localToGlobal(Offset.zero);
+
+        if (widget.redrawOnScreenSizeChanged) {
+          // trigger rebuild
+          MediaQuery.of(context).size;
+        }
+
+        return GestureDetector(
+          onTap: close,
+          child: _JDropdownButtonMenu<T>(
+            size: Size(200, size.height),
+            position: Offset(position.dx - 144, position.dy),
+            items: widget.items
+                .map(
+                  (e) => _JDropdownButtonItem<T>(
+                    value: e,
+                    groupValue: widget.groupValue,
+                    onSelected: (T value) {
+                      widget.onSelectionChanged?.call(value);
+                      close();
+                    },
+                  ),
+                )
+                .toList(),
+          ),
+        );
+      },
+    );
+    Overlay.of(context, rootOverlay: true).insert(_entry!);
+    _isOpen = true;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.redrawOnScreenSizeChanged && _isOpen) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _entry?.markNeedsBuild();
+      });
+    }
+
+    return SizedBox(
+      key: _key,
+      height: 56,
+      width: 56,
+      child: TextButton(
+        style: Theme.of(context)
+            .extension<StackColors>()!
+            .getSecondaryEnabledButtonStyle(context)
+            ?.copyWith(
+              shape: MaterialStateProperty.all(
+                RoundedRectangleBorder(
+                  side: BorderSide(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonBackBorderSecondary,
+                    width: 1,
+                  ),
+                  borderRadius: BorderRadius.circular(
+                    Constants.size.circularBorderRadius,
+                  ),
+                ),
+              ),
+            ),
+        onPressed: _isOpen ? close : open,
+        child: SvgPicture.asset(
+          Assets.svg.list,
+          width: 20,
+          height: 20,
+        ),
+      ),
     );
   }
 }

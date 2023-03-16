@@ -122,93 +122,101 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           Format.decimalAmountToSatoshis(manager.balance.getSpendable(), coin);
     }
 
-    // confirm send all
-    if (amount == availableBalance) {
-      final bool? shouldSendAll = await showDialog<bool>(
-        context: context,
-        useSafeArea: false,
-        barrierDismissible: true,
-        builder: (context) {
-          return DesktopDialog(
-            maxWidth: 450,
-            maxHeight: double.infinity,
-            child: Padding(
-              padding: const EdgeInsets.only(
-                left: 32,
-                bottom: 32,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Confirm send all",
-                        style: STextStyles.desktopH3(context),
-                      ),
-                      const DesktopDialogCloseButton(),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 12,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      right: 32,
-                    ),
-                    child: Text(
-                      "You are about to send your entire balance. Would you like to continue?",
-                      textAlign: TextAlign.left,
-                      style: STextStyles.desktopTextExtraExtraSmall(context)
-                          .copyWith(
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 40,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      right: 32,
-                    ),
-                    child: Row(
+    final coinControlEnabled =
+        ref.read(prefsChangeNotifierProvider).enableCoinControl;
+
+    if (!(manager.hasCoinControlSupport && coinControlEnabled) ||
+        (manager.hasCoinControlSupport &&
+            coinControlEnabled &&
+            ref.read(desktopUseUTXOs).isEmpty)) {
+      // confirm send all
+      if (amount == availableBalance) {
+        final bool? shouldSendAll = await showDialog<bool>(
+          context: context,
+          useSafeArea: false,
+          barrierDismissible: true,
+          builder: (context) {
+            return DesktopDialog(
+              maxWidth: 450,
+              maxHeight: double.infinity,
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: 32,
+                  bottom: 32,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Expanded(
-                          child: SecondaryButton(
-                            buttonHeight: ButtonHeight.l,
-                            label: "Cancel",
-                            onPressed: () {
-                              Navigator.of(context).pop(false);
-                            },
-                          ),
+                        Text(
+                          "Confirm send all",
+                          style: STextStyles.desktopH3(context),
                         ),
-                        const SizedBox(
-                          width: 16,
-                        ),
-                        Expanded(
-                          child: PrimaryButton(
-                            buttonHeight: ButtonHeight.l,
-                            label: "Yes",
-                            onPressed: () {
-                              Navigator.of(context).pop(true);
-                            },
-                          ),
-                        ),
+                        const DesktopDialogCloseButton(),
                       ],
                     ),
-                  ),
-                ],
+                    const SizedBox(
+                      height: 12,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        right: 32,
+                      ),
+                      child: Text(
+                        "You are about to send your entire balance. Would you like to continue?",
+                        textAlign: TextAlign.left,
+                        style: STextStyles.desktopTextExtraExtraSmall(context)
+                            .copyWith(
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 40,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        right: 32,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: SecondaryButton(
+                              buttonHeight: ButtonHeight.l,
+                              label: "Cancel",
+                              onPressed: () {
+                                Navigator.of(context).pop(false);
+                              },
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 16,
+                          ),
+                          Expanded(
+                            child: PrimaryButton(
+                              buttonHeight: ButtonHeight.l,
+                              label: "Yes",
+                              onPressed: () {
+                                Navigator.of(context).pop(true);
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
-      );
+            );
+          },
+        );
 
-      if (shouldSendAll == null || shouldSendAll == false) {
-        // cancel preview
-        return;
+        if (shouldSendAll == null || shouldSendAll == false) {
+          // cancel preview
+          return;
+        }
       }
     }
 
@@ -261,7 +269,14 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         txDataFuture = wallet.preparePaymentCodeSend(
           paymentCode: paymentCode,
           satoshiAmount: amount,
-          args: {"feeRate": feeRate},
+          args: {
+            "feeRate": feeRate,
+            "UTXOs": (manager.hasCoinControlSupport &&
+                    coinControlEnabled &&
+                    ref.read(desktopUseUTXOs).isNotEmpty)
+                ? ref.read(desktopUseUTXOs)
+                : null,
+          },
         );
       } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
           ref.read(publicPrivateBalanceStateProvider.state).state !=
@@ -269,13 +284,27 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         txDataFuture = (manager.wallet as FiroWallet).prepareSendPublic(
           address: _address!,
           satoshiAmount: amount,
-          args: {"feeRate": ref.read(feeRateTypeStateProvider)},
+          args: {
+            "feeRate": ref.read(feeRateTypeStateProvider),
+            "UTXOs": (manager.hasCoinControlSupport &&
+                    coinControlEnabled &&
+                    ref.read(desktopUseUTXOs).isNotEmpty)
+                ? ref.read(desktopUseUTXOs)
+                : null,
+          },
         );
       } else {
         txDataFuture = manager.prepareSend(
           address: _address!,
           satoshiAmount: amount,
-          args: {"feeRate": ref.read(feeRateTypeStateProvider)},
+          args: {
+            "feeRate": ref.read(feeRateTypeStateProvider),
+            "UTXOs": (manager.hasCoinControlSupport &&
+                    coinControlEnabled &&
+                    ref.read(desktopUseUTXOs).isNotEmpty)
+                ? ref.read(desktopUseUTXOs)
+                : null,
+          },
         );
       }
 
@@ -682,13 +711,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   void _showDesktopCoinControl() async {
-    if (_amountToSend == null) {
-      //
-    }
-    final result = await showDialog(
+    await showDialog<void>(
       context: context,
-      builder: (context) =>   DesktopCoinControlUseDialog(
+      builder: (context) => DesktopCoinControlUseDialog(
         walletId: widget.walletId,
+        amountToSend: _amountToSend,
       ),
     );
   }
@@ -1094,7 +1121,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   style: STextStyles.desktopTextExtraExtraSmall(context),
                 ),
                 CustomTextButton(
-                  text: "Select coins",
+                  text: ref.watch(desktopUseUTXOs.state).state.isEmpty
+                      ? "Select coins"
+                      : "Selected coins (${ref.watch(desktopUseUTXOs.state).state.length})",
                   onTap: _showDesktopCoinControl,
                 ),
               ],

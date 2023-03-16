@@ -9,6 +9,7 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/sending_transaction_dialog.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
+import 'package:stackwallet/pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
@@ -124,6 +125,7 @@ class _ConfirmTransactionViewState
       ]);
 
       txid = results.first as String;
+      ref.refresh(desktopUseUTXOs);
 
       // save note
       await ref

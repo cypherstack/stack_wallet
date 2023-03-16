@@ -12,12 +12,15 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/dropdown_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/expandable2.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
@@ -43,6 +46,9 @@ class _DesktopCoinControlViewState
   final searchFieldFocusNode = FocusNode();
 
   final Set<UtxoRowData> _selectedUTXOs = {};
+
+  Map<String, List<Id>>? _map;
+  List<Id>? _list;
 
   String _searchString = "";
 
@@ -70,13 +76,25 @@ class _DesktopCoinControlViewState
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final ids = MainDB.instance.queryUTXOsSync(
-      walletId: widget.walletId,
-      filter: _filter,
-      sort: _sort,
-      searchTerm: _searchString,
-      coin: coin,
-    );
+    if (_sort == CCSortDescriptor.address) {
+      _list = null;
+      _map = MainDB.instance.queryUTXOsGroupedByAddressSync(
+        walletId: widget.walletId,
+        filter: _filter,
+        sort: _sort,
+        searchTerm: _searchString,
+        coin: coin,
+      );
+    } else {
+      _map = null;
+      _list = MainDB.instance.queryUTXOsSync(
+        walletId: widget.walletId,
+        filter: _filter,
+        sort: _sort,
+        searchTerm: _searchString,
+        coin: coin,
+      );
+    }
 
     return DesktopScaffold(
       appBar: DesktopAppBar(
@@ -264,35 +282,135 @@ class _DesktopCoinControlViewState
               padding: const EdgeInsets.symmetric(
                 horizontal: 24,
               ),
-              child: ListView.separated(
-                itemCount: ids.length,
-                separatorBuilder: (context, _) => const SizedBox(
-                  height: 10,
-                ),
-                itemBuilder: (context, index) {
-                  final utxo = MainDB.instance.isar.utxos
-                      .where()
-                      .idEqualTo(ids[index])
-                      .findFirstSync()!;
-                  final data = UtxoRowData(utxo.id, false);
-                  data.selected = _selectedUTXOs.contains(data);
+              child: _list != null
+                  ? ListView.separated(
+                      itemCount: _list!.length,
+                      separatorBuilder: (context, _) => const SizedBox(
+                        height: 10,
+                      ),
+                      itemBuilder: (context, index) {
+                        final utxo = MainDB.instance.isar.utxos
+                            .where()
+                            .idEqualTo(_list![index])
+                            .findFirstSync()!;
+                        final data = UtxoRowData(utxo.id, false);
+                        data.selected = _selectedUTXOs.contains(data);
 
-                  return UtxoRow(
-                    key: Key("${utxo.walletId}_${utxo.id}_${utxo.isBlocked}"),
-                    data: data,
-                    walletId: widget.walletId,
-                    onSelectionChanged: (value) {
-                      setState(() {
-                        if (data.selected) {
-                          _selectedUTXOs.add(value);
-                        } else {
-                          _selectedUTXOs.remove(value);
-                        }
-                      });
-                    },
-                  );
-                },
-              ),
+                        return UtxoRow(
+                          key: Key(
+                              "${utxo.walletId}_${utxo.id}_${utxo.isBlocked}"),
+                          data: data,
+                          walletId: widget.walletId,
+                          onSelectionChanged: (value) {
+                            setState(() {
+                              if (data.selected) {
+                                _selectedUTXOs.add(value);
+                              } else {
+                                _selectedUTXOs.remove(value);
+                              }
+                            });
+                          },
+                        );
+                      },
+                    )
+                  : ListView.separated(
+                      itemCount: _map!.entries.length,
+                      separatorBuilder: (context, _) => const SizedBox(
+                        height: 10,
+                      ),
+                      itemBuilder: (context, index) {
+                        final entry = _map!.entries.elementAt(index);
+                        final _controller = RotateIconController();
+
+                        return Expandable2(
+                          border: Theme.of(context)
+                              .extension<StackColors>()!
+                              .backgroundAppBar,
+                          background: Theme.of(context)
+                              .extension<StackColors>()!
+                              .popupBG,
+                          animationDurationMultiplier: 0.2 * entry.value.length,
+                          onExpandWillChange: (state) {
+                            if (state == Expandable2State.expanded) {
+                              _controller.forward?.call();
+                            } else {
+                              _controller.reverse?.call();
+                            }
+                          },
+                          header: RoundedContainer(
+                            padding: const EdgeInsets.all(20),
+                            color: Colors.transparent,
+                            child: Row(
+                              children: [
+                                SvgPicture.asset(
+                                  Assets.svg.iconFor(coin: coin),
+                                  width: 24,
+                                  height: 24,
+                                ),
+                                const SizedBox(
+                                  width: 12,
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    entry.key,
+                                    style: STextStyles.w600_14(context),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    "${entry.value.length} "
+                                    "output${entry.value.length > 1 ? "s" : ""}",
+                                    style:
+                                        STextStyles.desktopTextExtraExtraSmall(
+                                            context),
+                                  ),
+                                ),
+                                RotateIcon(
+                                  animationDurationMultiplier:
+                                      0.2 * entry.value.length,
+                                  icon: SvgPicture.asset(
+                                    Assets.svg.chevronDown,
+                                    width: 14,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textSubtitle1,
+                                  ),
+                                  curve: Curves.easeInOut,
+                                  controller: _controller,
+                                ),
+                              ],
+                            ),
+                          ),
+                          children: entry.value.map(
+                            (id) {
+                              final utxo = MainDB.instance.isar.utxos
+                                  .where()
+                                  .idEqualTo(id)
+                                  .findFirstSync()!;
+                              final data = UtxoRowData(utxo.id, false);
+                              data.selected = _selectedUTXOs.contains(data);
+
+                              return UtxoRow(
+                                key: Key(
+                                    "${utxo.walletId}_${utxo.id}_${utxo.isBlocked}"),
+                                data: data,
+                                walletId: widget.walletId,
+                                raiseOnSelected: false,
+                                onSelectionChanged: (value) {
+                                  setState(() {
+                                    if (data.selected) {
+                                      _selectedUTXOs.add(value);
+                                    } else {
+                                      _selectedUTXOs.remove(value);
+                                    }
+                                  });
+                                },
+                              );
+                            },
+                          ).toList(),
+                        );
+                      },
+                    ),
             ),
           ),
         ],

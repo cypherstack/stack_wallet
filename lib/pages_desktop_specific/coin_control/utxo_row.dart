@@ -42,12 +42,16 @@ class UtxoRow extends ConsumerStatefulWidget {
     required this.walletId,
     this.onSelectionChanged,
     this.compact = false,
+    this.compactWithBorder = true,
+    this.raiseOnSelected = true,
   }) : super(key: key);
 
   final String walletId;
   final UtxoRowData data;
   final void Function(UtxoRowData)? onSelectionChanged;
   final bool compact;
+  final bool compactWithBorder;
+  final bool raiseOnSelected;
 
   @override
   ConsumerState<UtxoRow> createState() => _UtxoRowState();
@@ -96,29 +100,31 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
         }
 
         return RoundedContainer(
-          borderColor: widget.compact
+          borderColor: widget.compact && widget.compactWithBorder
               ? Theme.of(context).extension<StackColors>()!.textFieldDefaultBG
               : null,
           color: Theme.of(context).extension<StackColors>()!.popupBG,
-          boxShadow: widget.data.selected
+          boxShadow: widget.data.selected && widget.raiseOnSelected
               ? [
                   Theme.of(context).extension<StackColors>()!.standardBoxShadow,
                 ]
               : null,
           child: Row(
             children: [
-              Checkbox(
-                value: widget.data.selected,
-                onChanged: (value) {
-                  setState(() {
-                    widget.data.selected = value!;
-                  });
-                  widget.onSelectionChanged?.call(widget.data);
-                },
-              ),
-              const SizedBox(
-                width: 10,
-              ),
+              if (!(widget.compact && utxo.isBlocked))
+                Checkbox(
+                  value: widget.data.selected,
+                  onChanged: (value) {
+                    setState(() {
+                      widget.data.selected = value!;
+                    });
+                    widget.onSelectionChanged?.call(widget.data);
+                  },
+                ),
+              if (!(widget.compact && utxo.isBlocked))
+                const SizedBox(
+                  width: 10,
+                ),
               UTXOStatusIcon(
                 blocked: utxo.isBlocked,
                 status: utxo.isConfirmed(
