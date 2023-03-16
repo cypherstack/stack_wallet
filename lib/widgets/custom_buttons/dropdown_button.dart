@@ -128,11 +128,13 @@ class JDropdownIconButton<T> extends StatefulWidget {
   const JDropdownIconButton({
     Key? key,
     required this.items,
+    required this.displayPrefix,
     this.onSelectionChanged,
     this.groupValue,
     this.redrawOnScreenSizeChanged = false,
   }) : super(key: key);
 
+  final String displayPrefix;
   final void Function(T?)? onSelectionChanged;
   final T? groupValue;
   final Set<T> items;
@@ -180,6 +182,7 @@ class _JDropdownIconButtonState<T> extends State<JDropdownIconButton<T>> {
                   (e) => _JDropdownButtonItem<T>(
                     value: e,
                     groupValue: widget.groupValue,
+                    displayPrefix: widget.displayPrefix,
                     onSelected: (T value) {
                       widget.onSelectionChanged?.call(value);
                       close();
@@ -310,12 +313,14 @@ class _JDropdownButtonItem<T> extends StatelessWidget {
     required this.groupValue,
     required this.onSelected,
     this.height = 53,
+    this.displayPrefix,
   }) : super(key: key);
 
   final T value;
   final T? groupValue;
   final double height;
   final void Function(T) onSelected;
+  final String? displayPrefix;
 
   @override
   Widget build(BuildContext context) {
@@ -337,7 +342,9 @@ class _JDropdownButtonItem<T> extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              value.toString(),
+              displayPrefix == null
+                  ? value.toString()
+                  : "$displayPrefix ${value.toString().toLowerCase()}",
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
                 color: Theme.of(context).extension<StackColors>()!.textDark,
               ),

@@ -281,6 +281,7 @@ class _DesktopCoinControlUseDialogState
                             });
                           }
                         },
+                        displayPrefix: "Sort by",
                       )
                     ],
                   ),
