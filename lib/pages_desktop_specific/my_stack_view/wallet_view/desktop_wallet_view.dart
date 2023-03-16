@@ -240,7 +240,6 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                     ),
                     DesktopWalletSummary(
                       walletId: widget.walletId,
-                      managerProvider: managerProvider,
                       initialSyncStatus: ref.watch(managerProvider
                               .select((value) => value.isRefreshing))
                           ? WalletSyncStatus.syncing

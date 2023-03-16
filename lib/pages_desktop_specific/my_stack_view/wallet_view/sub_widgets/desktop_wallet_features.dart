@@ -43,6 +43,8 @@ class DesktopWalletFeatures extends ConsumerStatefulWidget {
 }
 
 class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
+  static const double buttonWidth = 120;
+
   Future<void> _onSwapPressed() async {
     // todo
   }
@@ -311,7 +313,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         if (Constants.enableExchange)
           SecondaryButton(
             label: "Swap",
-            width: 160,
+            width: buttonWidth,
             buttonHeight: ButtonHeight.l,
             icon: SvgPicture.asset(
               Assets.svg.arrowRotate,
@@ -330,7 +332,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         if (Constants.enableExchange)
           SecondaryButton(
             label: "Buy",
-            width: 160,
+            width: buttonWidth,
             buttonHeight: ButtonHeight.l,
             icon: SvgPicture.asset(
               Assets.svg.buy(context),
@@ -348,7 +350,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
           ),
         SecondaryButton(
           label: "More",
-          width: 160,
+          width: buttonWidth,
           buttonHeight: ButtonHeight.l,
           icon: SvgPicture.asset(
             Assets.svg.bars,
