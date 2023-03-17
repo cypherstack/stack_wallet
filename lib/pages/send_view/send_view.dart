@@ -861,9 +861,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     locale: locale,
                                                     decimalPlaces: 2,
                                                   )} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                                                  style: STextStyles
-                                                          .titleBold12_400(
-                                                              context)
+                                                  style: STextStyles.subtitle(
+                                                          context)
                                                       .copyWith(
                                                     fontSize: 8,
                                                   ),
