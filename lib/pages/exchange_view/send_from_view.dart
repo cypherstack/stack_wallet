@@ -11,7 +11,6 @@ import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dia
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -261,39 +260,14 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
       Map<String, dynamic> txData;
       Future<Map<String, dynamic>> txDataFuture;
 
-      // if not firo then do normal send
-      if (shouldSendPublicFiroFunds == null) {
-        txDataFuture = manager.prepareSend(
-          address: address,
-          satoshiAmount: _amount,
-          args: {
-            "feeRate": FeeRateType.average,
-            // ref.read(feeRateTypeStateProvider)
-          },
-        );
-      } else {
-        final firoWallet = manager.wallet as FiroWallet;
-        // otherwise do firo send based on balance selected
-        if (shouldSendPublicFiroFunds) {
-          txDataFuture = firoWallet.prepareSendPublic(
-            address: address,
-            satoshiAmount: _amount,
-            args: {
-              "feeRate": FeeRateType.average,
-              // ref.read(feeRateTypeStateProvider)
-            },
-          );
-        } else {
-          txDataFuture = firoWallet.prepareSend(
-            address: address,
-            satoshiAmount: _amount,
-            args: {
-              "feeRate": FeeRateType.average,
-              // ref.read(feeRateTypeStateProvider)
-            },
-          );
-        }
-      }
+      txDataFuture = manager.prepareSend(
+        address: address,
+        satoshiAmount: _amount,
+        args: {
+          "feeRate": FeeRateType.average,
+          // ref.read(feeRateTypeStateProvider)
+        },
+      );
 
       final results = await Future.wait([
         txDataFuture,
@@ -393,7 +367,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
 
     final coin = manager.coin;
 
-    final isFiro = coin == Coin.firoTestNet || coin == Coin.firo;
+    final isFiro = false;
 
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(0),

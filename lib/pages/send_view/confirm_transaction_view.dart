@@ -14,8 +14,6 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -108,15 +106,7 @@ class _ConfirmTransactionViewState
       } else if (widget.isPaynymTransaction) {
         txidFuture = manager.confirmSend(txData: transactionInfo);
       } else {
-        final coin = manager.coin;
-        if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-            ref.read(publicPrivateBalanceStateProvider.state).state !=
-                "Private") {
-          txidFuture = (manager.wallet as FiroWallet)
-              .confirmSendPublic(txData: transactionInfo);
-        } else {
-          txidFuture = manager.confirmSend(txData: transactionInfo);
-        }
+        txidFuture = manager.confirmSend(txData: transactionInfo);
       }
 
       final results = await Future.wait([
@@ -142,20 +132,6 @@ class _ConfirmTransactionViewState
         } else {
           widget.onSuccessInsteadOfRouteOnSuccess!.call();
         }
-      }
-    } on BadEpicHttpAddressException catch (_) {
-      if (mounted) {
-        // pop building dialog
-        Navigator.of(context).pop();
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.warning,
-            message:
-                "Connection failed. Please check the address and try again.",
-            context: context,
-          ),
-        );
-        return;
       }
     } catch (e, s) {
       //todo: comeback to this

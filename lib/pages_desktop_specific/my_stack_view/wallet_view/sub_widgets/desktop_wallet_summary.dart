@@ -6,7 +6,6 @@ import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_refresh_button.
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_balance_toggle_button.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
@@ -69,33 +68,10 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
         .select((value) => value.getManager(walletId).balance));
 
     Decimal balanceToShow;
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      Balance? balanceSecondary = ref
-          .watch(
-            walletsChangeNotifierProvider.select(
-              (value) =>
-                  value.getManager(widget.walletId).wallet as FiroWallet?,
-            ),
-          )
-          ?.balancePrivate;
-      final showPrivate =
-          ref.watch(walletPrivateBalanceToggleStateProvider.state).state ==
-              WalletBalanceToggleState.available;
-
-      if (_showAvailable) {
-        balanceToShow = showPrivate
-            ? balanceSecondary!.getSpendable()
-            : balance.getSpendable();
-      } else {
-        balanceToShow =
-            showPrivate ? balanceSecondary!.getTotal() : balance.getTotal();
-      }
+    if (_showAvailable) {
+      balanceToShow = balance.getSpendable();
     } else {
-      if (_showAvailable) {
-        balanceToShow = balance.getSpendable();
-      } else {
-        balanceToShow = balance.getTotal();
-      }
+      balanceToShow = balance.getTotal();
     }
 
     return Consumer(
@@ -139,12 +115,6 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
               walletId: walletId,
               initialSyncStatus: widget.initialSyncStatus,
             ),
-            if (coin == Coin.firo || coin == Coin.firoTestNet)
-              const SizedBox(
-                width: 8,
-              ),
-            if (coin == Coin.firo || coin == Coin.firoTestNet)
-              const DesktopPrivateBalanceToggleButton(),
             const SizedBox(
               width: 8,
             ),

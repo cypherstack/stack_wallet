@@ -790,10 +790,6 @@ class _DesktopTransactionCardRowState
   late final String walletId;
 
   String whatIsIt(TransactionType type, Coin coin, int height) {
-    if (coin == Coin.epicCash && _transaction.slateId == null) {
-      return "Restored Funds";
-    }
-
     if (_transaction.subType == TransactionSubType.mint) {
       if (_transaction.isConfirmed(height, coin.requiredConfirmations)) {
         return "Anonymized";
@@ -873,18 +869,6 @@ class _DesktopTransactionCardRowState
           ),
         ),
         onPressed: () async {
-          if (coin == Coin.epicCash && _transaction.slateId == null) {
-            unawaited(
-              showFloatingFlushBar(
-                context: context,
-                message:
-                    "Restored Epic funds from your Seed have no Data.\nUse Stack Backup to keep your transaction history.",
-                type: FlushBarType.warning,
-                duration: const Duration(seconds: 5),
-              ),
-            );
-            return;
-          }
           if (Util.isDesktop) {
             await showDialog<void>(
               context: context,

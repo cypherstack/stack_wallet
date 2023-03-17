@@ -64,8 +64,7 @@ class CoinWalletsTable extends ConsumerWidget {
                             final manager = ref
                                 .read(walletsChangeNotifierProvider)
                                 .getManager(walletIds[i]);
-                            if (manager.coin == Coin.monero ||
-                                manager.coin == Coin.wownero) {
+                            if (manager.coin == Coin.monero) {
                               await manager.initializeExisting();
                             }
 

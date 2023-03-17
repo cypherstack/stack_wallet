@@ -33,11 +33,9 @@ class WalletSheetCard extends ConsumerWidget {
           ),
         ),
         onPressed: () async {
-          final manager = ref
-              .read(walletsChangeNotifierProvider)
-              .getManager(walletId);
-          if (manager.coin == Coin.monero ||
-              manager.coin == Coin.wownero) {
+          final manager =
+              ref.read(walletsChangeNotifierProvider).getManager(walletId);
+          if (manager.coin == Coin.monero) {
             await manager.initializeExisting();
           }
           if (popPrevious) Navigator.of(context).pop();

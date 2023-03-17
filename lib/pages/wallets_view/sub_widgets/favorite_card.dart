@@ -106,7 +106,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
       ),
       child: GestureDetector(
         onTap: () async {
-          if (coin == Coin.monero || coin == Coin.wownero) {
+          if (coin == Coin.monero) {
             await ref.read(managerProvider).initializeExisting();
           }
           if (mounted) {

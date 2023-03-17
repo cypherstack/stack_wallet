@@ -287,24 +287,6 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                       ),
                     ),
                   ),
-                  if (coin != Coin.epicCash)
-                    const SizedBox(
-                      height: 12,
-                    ),
-                  if (coin != Coin.epicCash)
-                    TextButton(
-                      onPressed: generateNewAddress,
-                      style: Theme.of(context)
-                          .extension<StackColors>()!
-                          .getSecondaryEnabledButtonStyle(context),
-                      child: Text(
-                        "Generate new address",
-                        style: STextStyles.button(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorDark),
-                      ),
-                    ),
                   const SizedBox(
                     height: 30,
                   ),

@@ -25,12 +25,6 @@ class SearchableCoinList extends ConsumerWidget {
           e.prettyName.toLowerCase().contains(lowercaseTerm) ||
           e.name.toLowerCase().contains(lowercaseTerm));
     }
-    if (!showTestNetCoins) {
-      _coins.removeWhere(
-          (e) => e.name.endsWith("TestNet") || e == Coin.bitcoincashTestnet);
-    }
-    // remove firo testnet regardless
-    _coins.remove(Coin.firoTestNet);
 
     // Kidgloves for Wownero on desktop
     // if(isDesktop) {

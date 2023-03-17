@@ -43,8 +43,7 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
               if (providers.length == 1) {
                 expandOverride = () async {
                   final manager = ref.read(providers.first);
-                  if (manager.coin == Coin.monero ||
-                      manager.coin == Coin.wownero) {
+                  if (manager.coin == Coin.monero) {
                     await manager.initializeExisting();
                   }
                   await Navigator.of(context).pushNamed(

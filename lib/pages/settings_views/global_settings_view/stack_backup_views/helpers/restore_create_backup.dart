@@ -404,7 +404,7 @@ abstract class SWB {
       await manager.recoverFromMnemonic(
         mnemonic: mnemonic,
         mnemonicPassphrase: mnemonicPassphrase,
-        maxUnusedAddressGap: manager.coin == Coin.firo ? 50 : 20,
+        maxUnusedAddressGap: 20,
         maxNumberOfIndexesToCheck: 1000,
         height: restoreHeight,
       );

@@ -2,10 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_libmonero/monero/monero.dart';
-import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/notifications_service.dart';
 import 'package:stackwallet/services/trade_sent_from_stack_service.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -366,24 +364,12 @@ class WalletsService extends ChangeNotifier {
     await DB.instance.delete<dynamic>(
         boxName: DB.boxNameAllWalletsData,
         key: "${walletId}_mnemonicHasBeenVerified");
-    if (coinFromPrettyName(shell['coin'] as String) == Coin.wownero) {
-      final wowService =
-          wownero.createWowneroWalletService(DB.instance.moneroWalletInfoBox);
-      await wowService.remove(walletId);
-      Logging.instance
-          .log("monero wallet: $walletId deleted", level: LogLevel.Info);
-    } else if (coinFromPrettyName(shell['coin'] as String) == Coin.monero) {
+    if (coinFromPrettyName(shell['coin'] as String) == Coin.monero) {
       final xmrService =
           monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
       await xmrService.remove(walletId);
       Logging.instance
           .log("monero wallet: $walletId deleted", level: LogLevel.Info);
-    } else if (coinFromPrettyName(shell['coin'] as String) == Coin.epicCash) {
-      final deleteResult =
-          await deleteEpicWallet(walletId: walletId, secureStore: _secureStore);
-      Logging.instance.log(
-          "epic wallet: $walletId deleted with result: $deleteResult",
-          level: LogLevel.Info);
     }
 
     // delete wallet data in main db

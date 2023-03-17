@@ -15,7 +15,6 @@ class CoinSelectSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final maxHeight = MediaQuery.of(context).size.height * 0.60;
     var coins_ = [...Coin.values];
-    coins_.remove(Coin.firoTestNet);
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).extension<StackColors>()!.popupBG,

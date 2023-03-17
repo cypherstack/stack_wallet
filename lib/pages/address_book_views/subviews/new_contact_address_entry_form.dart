@@ -81,7 +81,6 @@ class _NewContactAddressEntryFormState
     if (isDesktop) {
       coins = [...Coin.values];
 
-      coins.remove(Coin.firoTestNet);
       if (showTestNet) {
         coins = coins.sublist(0, coins.length - kTestNetCoinCount);
       }

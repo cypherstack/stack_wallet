@@ -29,7 +29,6 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
   @override
   void initState() {
     _coins = _coins.toList();
-    _coins.remove(Coin.firoTestNet);
     super.initState();
   }
 

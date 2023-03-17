@@ -13,7 +13,6 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/edit_note_view.d
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/block_explorers.dart';
@@ -80,13 +79,7 @@ class _TransactionDetailsViewState
     coin = widget.coin;
     amount = Format.satoshisToAmount(_transaction.amount, coin: coin);
     fee = Format.satoshisToAmount(_transaction.fee, coin: coin);
-
-    if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-        _transaction.subType == TransactionSubType.mint) {
-      amountPrefix = "";
-    } else {
-      amountPrefix = _transaction.type == TransactionType.outgoing ? "-" : "+";
-    }
+    amountPrefix = _transaction.type == TransactionType.outgoing ? "-" : "+";
 
     // if (coin == Coin.firo || coin == Coin.firoTestNet) {
     //   showFeePending = true;
@@ -102,16 +95,6 @@ class _TransactionDetailsViewState
   }
 
   String whatIsIt(TransactionType type, int height) {
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      if (_transaction.subType == TransactionSubType.mint) {
-        if (_transaction.isConfirmed(height, coin.requiredConfirmations)) {
-          return "Minted";
-        } else {
-          return "Minting";
-        }
-      }
-    }
-
     if (type == TransactionType.incoming) {
       // if (_transaction.isMinting) {
       //   return "Minting";
@@ -558,27 +541,21 @@ class _TransactionDetailsViewState
                                 ],
                               ),
                             ),
-                            if (!((coin == Coin.monero ||
-                                        coin == Coin.wownero) &&
+                            if (!((coin == Coin.monero) &&
                                     _transaction.type ==
                                         TransactionType.outgoing) &&
-                                !((coin == Coin.firo ||
-                                        coin == Coin.firoTestNet) &&
-                                    _transaction.subType ==
-                                        TransactionSubType.mint))
+                                !(_transaction.subType ==
+                                    TransactionSubType.mint))
                               isDesktop
                                   ? const _Divider()
                                   : const SizedBox(
                                       height: 12,
                                     ),
-                            if (!((coin == Coin.monero ||
-                                        coin == Coin.wownero) &&
+                            if (!((coin == Coin.monero) &&
                                     _transaction.type ==
                                         TransactionType.outgoing) &&
-                                !((coin == Coin.firo ||
-                                        coin == Coin.firoTestNet) &&
-                                    _transaction.subType ==
-                                        TransactionSubType.mint))
+                                !(_transaction.subType ==
+                                    TransactionSubType.mint))
                               RoundedWhiteContainer(
                                 padding: isDesktop
                                     ? const EdgeInsets.all(16)
@@ -968,17 +945,11 @@ class _TransactionDetailsViewState
                                   ? const EdgeInsets.all(16)
                                   : const EdgeInsets.all(12),
                               child: Builder(builder: (context) {
-                                final height = widget.coin != Coin.epicCash &&
-                                        _transaction.isConfirmed(
-                                          currentHeight,
-                                          coin.requiredConfirmations,
-                                        )
-                                    ? "${_transaction.height == 0 ? "Unknown" : _transaction.height}"
-                                    : _transaction.getConfirmations(
-                                                currentHeight) >
-                                            0
-                                        ? "${_transaction.height}"
-                                        : "Pending";
+                                final height = _transaction
+                                            .getConfirmations(currentHeight) >
+                                        0
+                                    ? "${_transaction.height}"
+                                    : "Pending";
 
                                 return Row(
                                   mainAxisAlignment:
@@ -1089,70 +1060,6 @@ class _TransactionDetailsViewState
                                               : STextStyles.itemSubtitle12(
                                                   context),
                                         ),
-                                        if (coin != Coin.epicCash)
-                                          const SizedBox(
-                                            height: 8,
-                                          ),
-                                        if (coin != Coin.epicCash)
-                                          CustomTextButton(
-                                            text: "Open in block explorer",
-                                            onTap: () async {
-                                              final uri =
-                                                  getBlockExplorerTransactionUrlFor(
-                                                coin: coin,
-                                                txid: _transaction.txid,
-                                              );
-
-                                              if (ref
-                                                      .read(
-                                                          prefsChangeNotifierProvider)
-                                                      .hideBlockExplorerWarning ==
-                                                  false) {
-                                                final shouldContinue =
-                                                    await showExplorerWarning(
-                                                        "${uri.scheme}://${uri.host}");
-
-                                                if (!shouldContinue) {
-                                                  return;
-                                                }
-                                              }
-
-                                              // ref
-                                              //     .read(
-                                              //         shouldShowLockscreenOnResumeStateProvider
-                                              //             .state)
-                                              //     .state = false;
-                                              try {
-                                                await launchUrl(
-                                                  uri,
-                                                  mode: LaunchMode
-                                                      .externalApplication,
-                                                );
-                                              } catch (_) {
-                                                unawaited(
-                                                  showDialog<void>(
-                                                    context: context,
-                                                    builder: (_) =>
-                                                        StackOkDialog(
-                                                      title:
-                                                          "Could not open in block explorer",
-                                                      message:
-                                                          "Failed to open \"${uri.toString()}\"",
-                                                    ),
-                                                  ),
-                                                );
-                                              } finally {
-                                                // Future<void>.delayed(
-                                                //   const Duration(seconds: 1),
-                                                //   () => ref
-                                                //       .read(
-                                                //           shouldShowLockscreenOnResumeStateProvider
-                                                //               .state)
-                                                //       .state = true,
-                                                // );
-                                              }
-                                            },
-                                          ),
                                         //   ),
                                         // ),
                                       ],
@@ -1246,68 +1153,6 @@ class _TransactionDetailsViewState
                             //       ],
                             //     ),
                             //   ),
-                            if (coin == Coin.epicCash)
-                              isDesktop
-                                  ? const _Divider()
-                                  : const SizedBox(
-                                      height: 12,
-                                    ),
-                            if (coin == Coin.epicCash)
-                              RoundedWhiteContainer(
-                                padding: isDesktop
-                                    ? const EdgeInsets.all(16)
-                                    : const EdgeInsets.all(12),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Slate ID",
-                                          style: isDesktop
-                                              ? STextStyles
-                                                  .desktopTextExtraExtraSmall(
-                                                      context)
-                                              : STextStyles.itemSubtitle(
-                                                  context),
-                                        ),
-                                        // Flexible(
-                                        //   child: FittedBox(
-                                        //     fit: BoxFit.scaleDown,
-                                        //     child:
-                                        SelectableText(
-                                          _transaction.slateId ?? "Unknown",
-                                          style: isDesktop
-                                              ? STextStyles
-                                                      .desktopTextExtraExtraSmall(
-                                                          context)
-                                                  .copyWith(
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .textDark,
-                                                )
-                                              : STextStyles.itemSubtitle12(
-                                                  context),
-                                        ),
-                                        //   ),
-                                        // ),
-                                      ],
-                                    ),
-                                    if (isDesktop)
-                                      const SizedBox(
-                                        width: 12,
-                                      ),
-                                    if (isDesktop)
-                                      IconCopyButton(
-                                        data: _transaction.slateId ?? "Unknown",
-                                      ),
-                                  ],
-                                ),
-                              ),
                             if (!isDesktop)
                               const SizedBox(
                                 height: 12,
@@ -1323,89 +1168,7 @@ class _TransactionDetailsViewState
           ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: (coin == Coin.epicCash &&
-                _transaction.isConfirmed(
-                      currentHeight,
-                      coin.requiredConfirmations,
-                    ) ==
-                    false &&
-                _transaction.isCancelled == false &&
-                _transaction.type == TransactionType.outgoing)
-            ? SizedBox(
-                width: MediaQuery.of(context).size.width - 32,
-                child: TextButton(
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(
-                      Theme.of(context).extension<StackColors>()!.textError,
-                    ),
-                  ),
-                  onPressed: () async {
-                    final Manager manager = ref
-                        .read(walletsChangeNotifierProvider)
-                        .getManager(walletId);
-
-                    if (manager.wallet is EpicCashWallet) {
-                      final String? id = _transaction.slateId;
-                      if (id == null) {
-                        unawaited(showFloatingFlushBar(
-                          type: FlushBarType.warning,
-                          message: "Could not find Epic transaction ID",
-                          context: context,
-                        ));
-                        return;
-                      }
-
-                      unawaited(showDialog<dynamic>(
-                        barrierDismissible: false,
-                        context: context,
-                        builder: (_) =>
-                            const CancellingTransactionProgressDialog(),
-                      ));
-
-                      final result = await (manager.wallet as EpicCashWallet)
-                          .cancelPendingTransactionAndPost(id);
-                      if (mounted) {
-                        // pop progress dialog
-                        Navigator.of(context).pop();
-
-                        if (result.isEmpty) {
-                          await showDialog<dynamic>(
-                            context: context,
-                            builder: (_) => StackOkDialog(
-                              title: "Transaction cancelled",
-                              onOkPressed: (_) {
-                                manager.refresh();
-                                Navigator.of(context).popUntil(
-                                    ModalRoute.withName(WalletView.routeName));
-                              },
-                            ),
-                          );
-                        } else {
-                          await showDialog<dynamic>(
-                            context: context,
-                            builder: (_) => StackOkDialog(
-                              title: "Failed to cancel transaction",
-                              message: result,
-                            ),
-                          );
-                        }
-                      }
-                    } else {
-                      unawaited(showFloatingFlushBar(
-                        type: FlushBarType.warning,
-                        message: "ERROR: Wallet type is not Epic Cash",
-                        context: context,
-                      ));
-                      return;
-                    }
-                  },
-                  child: Text(
-                    "Cancel Transaction",
-                    style: STextStyles.button(context),
-                  ),
-                ),
-              )
-            : null,
+        floatingActionButton: null,
       ),
     );
   }

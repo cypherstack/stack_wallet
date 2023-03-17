@@ -9,7 +9,6 @@ import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selectio
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -56,7 +55,7 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
           final manager =
               ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
-          if (coin == Coin.monero || coin == Coin.wownero) {
+          if (coin == Coin.monero) {
             final fee = await manager.estimateFeeFor(
                 amount, MoneroTransactionPriority.fast.raw!);
             ref.read(feeSheetSessionCacheProvider).fast[amount] =
@@ -64,14 +63,6 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
               fee,
               coin: coin,
             );
-          } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-              ref.read(publicPrivateBalanceStateProvider.state).state !=
-                  "Private") {
-            ref.read(feeSheetSessionCacheProvider).fast[amount] =
-                Format.satoshisToAmount(
-                    await (manager.wallet as FiroWallet)
-                        .estimateFeeForPublic(amount, feeRate),
-                    coin: coin);
           } else {
             ref.read(feeSheetSessionCacheProvider).fast[amount] =
                 Format.satoshisToAmount(
@@ -86,7 +77,7 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
           final manager =
               ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
-          if (coin == Coin.monero || coin == Coin.wownero) {
+          if (coin == Coin.monero) {
             final fee = await manager.estimateFeeFor(
                 amount, MoneroTransactionPriority.regular.raw!);
             ref.read(feeSheetSessionCacheProvider).average[amount] =
@@ -94,14 +85,6 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
               fee,
               coin: coin,
             );
-          } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-              ref.read(publicPrivateBalanceStateProvider.state).state !=
-                  "Private") {
-            ref.read(feeSheetSessionCacheProvider).average[amount] =
-                Format.satoshisToAmount(
-                    await (manager.wallet as FiroWallet)
-                        .estimateFeeForPublic(amount, feeRate),
-                    coin: coin);
           } else {
             ref.read(feeSheetSessionCacheProvider).average[amount] =
                 Format.satoshisToAmount(
@@ -116,7 +99,7 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
           final manager =
               ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
-          if (coin == Coin.monero || coin == Coin.wownero) {
+          if (coin == Coin.monero) {
             final fee = await manager.estimateFeeFor(
                 amount, MoneroTransactionPriority.slow.raw!);
             ref.read(feeSheetSessionCacheProvider).slow[amount] =
@@ -124,14 +107,6 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
               fee,
               coin: coin,
             );
-          } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-              ref.read(publicPrivateBalanceStateProvider.state).state !=
-                  "Private") {
-            ref.read(feeSheetSessionCacheProvider).slow[amount] =
-                Format.satoshisToAmount(
-                    await (manager.wallet as FiroWallet)
-                        .estimateFeeForPublic(amount, feeRate),
-                    coin: coin);
           } else {
             ref.read(feeSheetSessionCacheProvider).slow[amount] =
                 Format.satoshisToAmount(

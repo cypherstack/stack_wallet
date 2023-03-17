@@ -53,9 +53,7 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
   @override
   void initState() {
     _coins = _coins.toList();
-    _coins.remove(Coin.firoTestNet);
     if (isDesktop) {
-      _coins.remove(Coin.wownero);
       if (Platform.isWindows) {
         _coins.remove(Coin.monero);
       }

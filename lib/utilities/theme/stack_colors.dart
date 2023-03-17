@@ -1559,28 +1559,8 @@ class StackColors extends ThemeExtension<StackColors> {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
         return _coin.bitcoin;
-      case Coin.litecoin:
-      case Coin.litecoinTestNet:
-        return _coin.litecoin;
-      case Coin.bitcoincash:
-      case Coin.bitcoincashTestnet:
-        return _coin.bitcoincash;
-      case Coin.dogecoin:
-      case Coin.dogecoinTestNet:
-        return _coin.dogecoin;
-      case Coin.epicCash:
-        return _coin.epicCash;
-      case Coin.firo:
-      case Coin.firoTestNet:
-        return _coin.firo;
       case Coin.monero:
         return _coin.monero;
-      case Coin.namecoin:
-        return _coin.namecoin;
-      case Coin.wownero:
-        return _coin.wownero;
-      case Coin.particl:
-        return _coin.particl;
     }
   }
 

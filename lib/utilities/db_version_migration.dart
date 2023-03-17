@@ -41,81 +41,6 @@ class DbVersionMigrator with WalletDB {
         ElectrumX? client;
         int? latestSetId;
 
-        // only instantiate client if there are firo wallets
-        if (walletInfoList.values.any((element) => element.coin == Coin.firo)) {
-          await Hive.openBox<NodeModel>(DB.boxNameNodeModels);
-          await Hive.openBox<NodeModel>(DB.boxNamePrimaryNodes);
-          final node = nodeService.getPrimaryNodeFor(coin: Coin.firo) ??
-              DefaultNodes.firo;
-          List<ElectrumXNode> failovers = nodeService
-              .failoverNodesFor(coin: Coin.firo)
-              .map(
-                (e) => ElectrumXNode(
-                  address: e.host,
-                  port: e.port,
-                  name: e.name,
-                  id: e.id,
-                  useSSL: e.useSSL,
-                ),
-              )
-              .toList();
-
-          client = ElectrumX.from(
-            node: ElectrumXNode(
-                address: node.host,
-                port: node.port,
-                name: node.name,
-                id: node.id,
-                useSSL: node.useSSL),
-            prefs: prefs,
-            failovers: failovers,
-          );
-
-          try {
-            latestSetId = await client.getLatestCoinId();
-          } catch (e) {
-            // default to 2 for now
-            latestSetId = 2;
-            Logging.instance.log(
-                "Failed to fetch latest coin id during firo db migrate: $e \nUsing a default value of 2",
-                level: LogLevel.Warning);
-          }
-        }
-
-        for (final walletInfo in walletInfoList.values) {
-          // migrate each firo wallet's lelantus coins
-          if (walletInfo.coin == Coin.firo) {
-            await Hive.openBox<dynamic>(walletInfo.walletId);
-            final _lelantusCoins = DB.instance.get<dynamic>(
-                boxName: walletInfo.walletId, key: '_lelantus_coins') as List?;
-            final List<Map<dynamic, LelantusCoin>> lelantusCoins = [];
-            for (var lCoin in _lelantusCoins ?? []) {
-              lelantusCoins
-                  .add({lCoin.keys.first: lCoin.values.first as LelantusCoin});
-            }
-
-            List<Map<dynamic, LelantusCoin>> coins = [];
-            for (final element in lelantusCoins) {
-              LelantusCoin coin = element.values.first;
-              int anonSetId = coin.anonymitySetId;
-              if (coin.anonymitySetId == 1 &&
-                  (coin.publicCoin == '' ||
-                      coin.publicCoin == "jmintData.publicCoin")) {
-                anonSetId = latestSetId!;
-              }
-              coins.add({
-                element.keys.first: LelantusCoin(coin.index, coin.value,
-                    coin.publicCoin, coin.txId, anonSetId, coin.isUsed)
-              });
-            }
-            Logger.print("newcoins $coins", normalLength: false);
-            await DB.instance.put<dynamic>(
-                boxName: walletInfo.walletId,
-                key: '_lelantus_coins',
-                value: coins);
-          }
-        }
-
         // update version
         await DB.instance.put<dynamic>(
             boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 1);
@@ -161,12 +86,6 @@ class DbVersionMigrator with WalletDB {
         return await migrate(3, secureStore: secureStore);
 
       case 3:
-        // clear possible broken firo cache
-        await DB.instance.deleteBoxFromDisk(
-            boxName: DB.instance.boxNameSetCache(coin: Coin.firo));
-        await DB.instance.deleteBoxFromDisk(
-            boxName: DB.instance.boxNameUsedSerialsCache(coin: Coin.firo));
-
         // update version
         await DB.instance.put<dynamic>(
             boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 4);
@@ -209,64 +128,6 @@ class DbVersionMigrator with WalletDB {
       const receiveAddressesPrefix = "receivingAddresses";
       const changeAddressesPrefix = "changeAddresses";
 
-      // we need to manually migrate epic cash transactions as they are not
-      // stored on the epic cash blockchain
-      if (info.coin == Coin.epicCash) {
-        final txnData = walletBox.get("latest_tx_model") as TransactionData?;
-
-        // we ever only used index 0 in the past
-        const rcvIndex = 0;
-
-        final List<Tuple2<isar_models.Transaction, isar_models.Address?>>
-            transactionsData = [];
-        if (txnData != null) {
-          final txns = txnData.getAllTransactions();
-
-          for (final tx in txns.values) {
-            bool isIncoming = tx.txType == "Received";
-
-            final iTx = isar_models.Transaction(
-              walletId: walletId,
-              txid: tx.txid,
-              timestamp: tx.timestamp,
-              type: isIncoming
-                  ? isar_models.TransactionType.incoming
-                  : isar_models.TransactionType.outgoing,
-              subType: isar_models.TransactionSubType.none,
-              amount: tx.amount,
-              fee: tx.fees,
-              height: tx.height,
-              isCancelled: tx.isCancelled,
-              isLelantus: false,
-              slateId: tx.slateId,
-              otherData: tx.otherData,
-              inputs: [],
-              outputs: [],
-            );
-
-            if (tx.address.isEmpty) {
-              transactionsData.add(Tuple2(iTx, null));
-            } else {
-              final address = isar_models.Address(
-                walletId: walletId,
-                value: tx.address,
-                publicKey: [],
-                derivationIndex: isIncoming ? rcvIndex : -1,
-                derivationPath: null,
-                type: isIncoming
-                    ? isar_models.AddressType.mimbleWimble
-                    : isar_models.AddressType.unknown,
-                subType: isIncoming
-                    ? isar_models.AddressSubType.receiving
-                    : isar_models.AddressSubType.unknown,
-              );
-              transactionsData.add(Tuple2(iTx, address));
-            }
-          }
-        }
-        await MainDB.instance.addNewTransactionData(transactionsData, walletId);
-      }
-
       // delete data from hive
       await walletBox.delete(receiveAddressesPrefix);
       await walletBox.delete("${receiveAddressesPrefix}P2PKH");
@@ -284,17 +145,6 @@ class DbVersionMigrator with WalletDB {
           null) {
         await secureStore.write(
             key: '${walletId}_mnemonicPassphrase', value: "");
-      }
-
-      // doing this for epic cash will delete transaction history as it is not
-      // stored on the epic cash blockchain
-      if (info.coin != Coin.epicCash) {
-        // set flag to initiate full rescan on opening wallet
-        await DB.instance.put<dynamic>(
-          boxName: DB.boxNameDBInfo,
-          key: "rescan_on_open_$walletId",
-          value: Constants.rescanV1,
-        );
       }
     }
   }
