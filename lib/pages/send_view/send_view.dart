@@ -402,14 +402,6 @@ class _SendViewState extends ConsumerState<SendView> {
                 : null,
           },
         );
-      } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-          ref.read(publicPrivateBalanceStateProvider.state).state !=
-              "Private") {
-        txDataFuture = (manager.wallet as FiroWallet).prepareSendPublic(
-          address: _address!,
-          satoshiAmount: amount,
-          args: {"feeRate": ref.read(feeRateTypeStateProvider)},
-        );
       } else {
         txDataFuture = manager.prepareSend(
           address: _address!,
@@ -602,37 +594,6 @@ class _SendViewState extends ConsumerState<SendView> {
           ),
         );
 
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      ref.listen(publicPrivateBalanceStateProvider, (previous, next) {
-        if (_amountToSend == null) {
-          setState(() {
-            _calculateFeesFuture = calculateFees(0);
-          });
-        } else {
-          setState(() {
-            _calculateFeesFuture = calculateFees(
-                Format.decimalAmountToSatoshis(_amountToSend!, coin));
-          });
-        }
-      });
-    }
-
-    // add listener for epic cash to strip http:// and https:// prefixes if the address also ocntains an @ symbol (indicating an epicbox address)
-    if (coin == Coin.epicCash) {
-      sendToController.addListener(() {
-        _address = sendToController.text;
-
-        if (_address != null && _address!.isNotEmpty) {
-          _address = _address!.trim();
-          if (_address!.contains("\n")) {
-            _address = _address!.substring(0, _address!.indexOf("\n"));
-          }
-
-          sendToController.text = formatAddress(_address!);
-        }
-      });
-    }
-
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -709,20 +670,6 @@ class _SendViewState extends ConsumerState<SendView> {
                                       // const SizedBox(
                                       //   height: 2,
                                       // ),
-                                      if (coin == Coin.firo ||
-                                          coin == Coin.firoTestNet)
-                                        Text(
-                                          "${ref.watch(publicPrivateBalanceStateProvider.state).state} balance",
-                                          style: STextStyles.label(context)
-                                              .copyWith(fontSize: 10),
-                                        ),
-                                      if (coin != Coin.firo &&
-                                          coin != Coin.firoTestNet)
-                                        Text(
-                                          "Available balance",
-                                          style: STextStyles.label(context)
-                                              .copyWith(fontSize: 10),
-                                        ),
                                     ],
                                   ),
                                   const Spacer(),
