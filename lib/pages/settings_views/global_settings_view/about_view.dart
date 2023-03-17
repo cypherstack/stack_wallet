@@ -240,12 +240,6 @@ class AboutView extends ConsumerWidget {
                         const SizedBox(
                           height: 12,
                         ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        const SizedBox(
-                          height: 12,
-                        ),
                         FutureBuilder(
                             future: commitMoneroFuture,
                             builder:
