@@ -107,6 +107,7 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                     ),
                   ),
                   Material(
+                    color: Colors.transparent,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
                         1000,
