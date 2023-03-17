@@ -232,6 +232,8 @@ class Manager with ChangeNotifier {
 
   bool get hasCoinControlSupport => _currentWallet is CoinControlInterface;
 
+  bool get hasWhirlpoolSupport => false;
+
   int get rescanOnOpenVersion =>
       DB.instance.get<dynamic>(
         boxName: DB.boxNameDBInfo,

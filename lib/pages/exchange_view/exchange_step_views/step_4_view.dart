@@ -536,24 +536,34 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                             try {
                                               bool wasCancelled = false;
 
-                                              unawaited(showDialog<dynamic>(
-                                                context: context,
-                                                useSafeArea: false,
-                                                barrierDismissible: false,
-                                                builder: (context) {
-                                                  return BuildingTransactionDialog(
-                                                    onCancel: () {
-                                                      wasCancelled = true;
+                                              unawaited(
+                                                showDialog<dynamic>(
+                                                  context: context,
+                                                  useSafeArea: false,
+                                                  barrierDismissible: false,
+                                                  builder: (context) {
+                                                    return BuildingTransactionDialog(
+                                                      coin: manager.coin,
+                                                      onCancel: () {
+                                                        wasCancelled = true;
 
-                                                      Navigator.of(context)
-                                                          .pop();
-                                                    },
-                                                  );
-                                                },
-                                              ));
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                    );
+                                                  },
+                                                ),
+                                              );
 
-                                              final txData =
-                                                  await manager.prepareSend(
+                                              final time =
+                                                  Future<dynamic>.delayed(
+                                                const Duration(
+                                                  milliseconds: 2500,
+                                                ),
+                                              );
+
+                                              final txDataFuture =
+                                                  manager.prepareSend(
                                                 address: address,
                                                 satoshiAmount: amount,
                                                 args: {
@@ -562,6 +572,15 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                   // ref.read(feeRateTypeStateProvider)
                                                 },
                                               );
+
+                                              final results =
+                                                  await Future.wait([
+                                                txDataFuture,
+                                                time,
+                                              ]);
+
+                                              final txData = results.last
+                                                  as Map<String, dynamic>;
 
                                               if (!wasCancelled) {
                                                 // pop building dialog

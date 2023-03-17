@@ -89,10 +89,11 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
     ),
   };
 
-  DesktopMenuItemId prev = DesktopMenuItemId.myStack;
-
   void onMenuSelectionWillChange(DesktopMenuItemId newKey) {
-    if (prev == DesktopMenuItemId.myStack && prev == newKey) {
+    // handle logging out of active wallet
+    if (ref.read(prevDesktopMenuItemProvider.state).state ==
+            DesktopMenuItemId.myStack &&
+        ref.read(prevDesktopMenuItemProvider.state).state == newKey) {
       Navigator.of(myStackViewNavKey.currentContext!)
           .popUntil(ModalRoute.withName(MyStackView.routeName));
       if (ref.read(currentWalletIdProvider.state).state != null) {
@@ -111,7 +112,7 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
         ref.read(managerProvider.notifier).isActiveWallet = false;
       }
     }
-    prev = newKey;
+    ref.read(prevDesktopMenuItemProvider.state).state = newKey;
 
     // check for unread notifications and refresh provider before
     // showing notifications view

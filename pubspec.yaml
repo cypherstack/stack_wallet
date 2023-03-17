@@ -11,7 +11,7 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.6.1+143
+version: 1.6.2+144
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
@@ -141,6 +141,7 @@ dependencies:
   dropdown_button2: 1.7.2
   string_validator: ^0.3.0
   equatable: ^2.0.5
+  async: ^2.10.0
 
 dev_dependencies:
   flutter_test:
@@ -206,9 +207,9 @@ flutter:
     - google_fonts/
     - assets/svg/circle-check.svg
     - assets/svg/clipboard.svg
-    - assets/images/unclaimed.png
     - assets/images/glasses.png
     - assets/images/glasses-hidden.png
+    - assets/svg/unclaimed.svg
     - assets/svg/plus.svg
     - assets/svg/gear.svg
     - assets/svg/bell.svg
@@ -303,38 +304,6 @@ flutter:
     - assets/svg/whirlpool.svg
     - assets/svg/fingerprint.svg
     - assets/svg/faceid.svg
-    # light theme coin
-    - assets/images/light/
-
-    # dark theme coin
-    - assets/images/dark/
-
-    # oled black theme coin
-    - assets/images/oledBlack/
-
-    # ocean breeze theme coin
-    - assets/images/oceanBreeze/
-
-    # fruit sorbet theme coin
-    - assets/images/fruitSorbet/
-
-    # forest theme coin
-    - assets/images/forest/
-
-    # coin icons
-    - assets/svg/coin_icons/
-
-    # coin control icons
-    - assets/svg/coin_control/
-
-    # lottie animations
-    - assets/lottie/test.json
-    - assets/lottie/test2.json
-    # socials
-    - assets/svg/socials/discord.svg
-    - assets/svg/socials/reddit-alien-brands.svg
-    - assets/svg/socials/twitter-brands.svg
-    - assets/svg/socials/telegram-brands.svg
     - assets/svg/chevron-right.svg
     - assets/svg/minimize.svg
     - assets/svg/wallet-fa.svg
@@ -344,11 +313,20 @@ flutter:
     - assets/svg/box-auto.svg
     - assets/svg/framed-address-book.svg
     - assets/svg/framed-gear.svg
+    - assets/svg/list-ul.svg
+
+
+    # coin icons
+    - assets/svg/coin_icons/
+
+    # coin control icons
+    - assets/svg/coin_control/
+
+    # socials
+    - assets/svg/socials/
+
     # exchange icons
-    - assets/svg/exchange_icons/change_now_logo_1.svg
-    - assets/svg/exchange_icons/simpleswap-icon.svg
-    - assets/svg/exchange_icons/mb_green.svg
-    - assets/svg/exchange_icons/mb_blue.svg
+    - assets/svg/exchange_icons/
 
     # theme selectors
     - assets/svg/dark-theme.svg
@@ -357,28 +335,46 @@ flutter:
     - assets/svg/oled-black-theme.svg
     - assets/svg/fruit-sorbet-theme.svg
     - assets/svg/forest-theme.svg
+    - assets/svg/chanstheme.svg
 
     # light theme specific
-    - assets/svg/light/
+    - assets/svg/themed/light/
 
     # dark theme specific
-    - assets/svg/dark/
+    - assets/svg/themed/dark/
 
     # ocean theme specific
-    - assets/svg/oceanBreeze/
+    - assets/svg/themed/oceanBreeze/
 
     # OLED black theme specific
-    - assets/svg/oledBlack/
+    - assets/svg/themed/oledBlack/
 
     # fruit sorbet theme specific
-    - assets/svg/fruitSorbet/
+    - assets/svg/themed/fruitSorbet/
 
     # forest theme specific
-    - assets/svg/forest/
+    - assets/svg/themed/forest/
 
     # buy
-    - assets/svg/buy/Simplex-Nuvei-Logo.svg
-    - assets/svg/buy/Simplex-Nuvei-Logo-light.svg
+    - assets/svg/buy/
+
+
+    # lottie animations
+    # basic
+    - assets/lottie/test2.json
+
+    # coin gifs
+    - assets/gif/coins/bitcoin/
+    - assets/gif/coins/bitcoincash/
+    - assets/gif/coins/dogecoin/
+    - assets/gif/coins/epicCash/
+    - assets/gif/coins/ethereum/
+    - assets/gif/coins/firo/
+    - assets/gif/coins/litecoin/
+    - assets/gif/coins/monero/
+    - assets/gif/coins/namecoin/
+    - assets/gif/coins/particl/
+    - assets/gif/coins/wownero/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

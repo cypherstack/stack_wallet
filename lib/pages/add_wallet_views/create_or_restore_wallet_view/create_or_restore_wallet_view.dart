@@ -61,7 +61,10 @@ class CreateOrRestoreWalletView extends StatelessWidget {
               ),
               CoinImage(
                 coin: coin,
-                isDesktop: isDesktop,
+                width:
+                    isDesktop ? 324 : MediaQuery.of(context).size.width / 1.6,
+                height:
+                    isDesktop ? null : MediaQuery.of(context).size.width / 1.6,
               ),
               const SizedBox(
                 height: 32,
@@ -99,7 +102,12 @@ class CreateOrRestoreWalletView extends StatelessWidget {
                   children: [
                     CoinImage(
                       coin: coin,
-                      isDesktop: isDesktop,
+                      width: isDesktop
+                          ? 324
+                          : MediaQuery.of(context).size.width / 1.6,
+                      height: isDesktop
+                          ? null
+                          : MediaQuery.of(context).size.width / 1.6,
                     ),
                     const Spacer(
                       flex: 2,

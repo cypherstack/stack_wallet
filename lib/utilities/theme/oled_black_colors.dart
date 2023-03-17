@@ -4,6 +4,8 @@ import 'package:stackwallet/utilities/theme/color_theme.dart';
 class OledBlackColors extends StackColorTheme {
   @override
   ThemeType get themeType => ThemeType.oledBlack;
+  @override
+  Brightness get brightness => Brightness.dark;
 
   @override
   Color get background => const Color(0xFF000000);
