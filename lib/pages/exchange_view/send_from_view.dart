@@ -426,38 +426,6 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                               "Use private balance",
                               style: STextStyles.itemSubtitle(context),
                             ),
-                            FutureBuilder(
-                              // TODO redo this widget now that its not actually a future
-                              future: Future(() =>
-                                  (manager.wallet as FiroWallet)
-                                      .availablePrivateBalance()),
-                              builder: (builderContext,
-                                  AsyncSnapshot<Decimal> snapshot) {
-                                if (snapshot.connectionState ==
-                                        ConnectionState.done &&
-                                    snapshot.hasData) {
-                                  return Text(
-                                    "${Format.localizedStringAsFixed(
-                                      value: snapshot.data!,
-                                      locale: locale,
-                                      decimalPlaces:
-                                          Constants.decimalPlacesForCoin(coin),
-                                    )} ${coin.ticker}",
-                                    style: STextStyles.itemSubtitle(context),
-                                  );
-                                } else {
-                                  return AnimatedText(
-                                    stringsToLoopThrough: const [
-                                      "Loading balance",
-                                      "Loading balance.",
-                                      "Loading balance..",
-                                      "Loading balance..."
-                                    ],
-                                    style: STextStyles.itemSubtitle(context),
-                                  );
-                                }
-                              },
-                            ),
                           ],
                         ),
                         SvgPicture.asset(
@@ -513,38 +481,6 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                             Text(
                               "Use public balance",
                               style: STextStyles.itemSubtitle(context),
-                            ),
-                            FutureBuilder(
-                              // TODO redo this widget now that its not actually a future
-                              future: Future(() =>
-                                  (manager.wallet as FiroWallet)
-                                      .availablePublicBalance()),
-                              builder: (builderContext,
-                                  AsyncSnapshot<Decimal> snapshot) {
-                                if (snapshot.connectionState ==
-                                        ConnectionState.done &&
-                                    snapshot.hasData) {
-                                  return Text(
-                                    "${Format.localizedStringAsFixed(
-                                      value: snapshot.data!,
-                                      locale: locale,
-                                      decimalPlaces:
-                                          Constants.decimalPlacesForCoin(coin),
-                                    )} ${coin.ticker}",
-                                    style: STextStyles.itemSubtitle(context),
-                                  );
-                                } else {
-                                  return AnimatedText(
-                                    stringsToLoopThrough: const [
-                                      "Loading balance",
-                                      "Loading balance.",
-                                      "Loading balance..",
-                                      "Loading balance..."
-                                    ],
-                                    style: STextStyles.itemSubtitle(context),
-                                  );
-                                }
-                              },
                             ),
                           ],
                         ),

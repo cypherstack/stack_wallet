@@ -18,7 +18,6 @@ import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selectio
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:stackwallet/providers/ui/preview_tx_button_state_provider.dart';
-import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
@@ -35,7 +34,6 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -651,122 +649,6 @@ class _SendViewState extends ConsumerState<SendView> {
                                     ],
                                   ),
                                   const Spacer(),
-                                  FutureBuilder(
-                                    // TODO redo this widget now that its not actually a future
-                                    future: ref
-                                                .watch(
-                                                    publicPrivateBalanceStateProvider
-                                                        .state)
-                                                .state ==
-                                            "Private"
-                                        ? Future(() => (ref
-                                                .watch(provider)
-                                                .wallet as FiroWallet)
-                                            .availablePrivateBalance())
-                                        : Future(() => (ref
-                                                .watch(provider)
-                                                .wallet as FiroWallet)
-                                            .availablePublicBalance()),
-                                    builder:
-                                        (_, AsyncSnapshot<Decimal> snapshot) {
-                                      if (snapshot.connectionState ==
-                                              ConnectionState.done &&
-                                          snapshot.hasData) {
-                                        _cachedBalance = snapshot.data!;
-                                      }
-
-                                      if (_cachedBalance != null) {
-                                        return GestureDetector(
-                                          onTap: () {
-                                            cryptoAmountController.text =
-                                                _cachedBalance!.toStringAsFixed(
-                                                    Constants
-                                                        .decimalPlacesForCoin(
-                                                            coin));
-                                          },
-                                          child: Container(
-                                            color: Colors.transparent,
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.end,
-                                              children: [
-                                                Text(
-                                                  "${Format.localizedStringAsFixed(
-                                                    value: _cachedBalance!,
-                                                    locale: locale,
-                                                    decimalPlaces: 8,
-                                                  )} ${coin.ticker}",
-                                                  style:
-                                                      STextStyles.titleBold12(
-                                                              context)
-                                                          .copyWith(
-                                                    fontSize: 10,
-                                                  ),
-                                                  textAlign: TextAlign.right,
-                                                ),
-                                                Text(
-                                                  "${Format.localizedStringAsFixed(
-                                                    value: _cachedBalance! *
-                                                        ref.watch(priceAnd24hChangeNotifierProvider
-                                                            .select((value) =>
-                                                                value
-                                                                    .getPrice(
-                                                                        coin)
-                                                                    .item1)),
-                                                    locale: locale,
-                                                    decimalPlaces: 2,
-                                                  )} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                                                  style: STextStyles
-                                                          .titleBold12_400(
-                                                              context)
-                                                      .copyWith(
-                                                    fontSize: 8,
-                                                  ),
-                                                  textAlign: TextAlign.right,
-                                                )
-                                              ],
-                                            ),
-                                          ),
-                                        );
-                                      } else {
-                                        return Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.end,
-                                          children: [
-                                            AnimatedText(
-                                              stringsToLoopThrough: const [
-                                                "Loading balance   ",
-                                                "Loading balance.  ",
-                                                "Loading balance.. ",
-                                                "Loading balance...",
-                                              ],
-                                              style: STextStyles.itemSubtitle(
-                                                      context)
-                                                  .copyWith(
-                                                fontSize: 10,
-                                              ),
-                                            ),
-                                            const SizedBox(
-                                              height: 2,
-                                            ),
-                                            AnimatedText(
-                                              stringsToLoopThrough: const [
-                                                "Loading balance   ",
-                                                "Loading balance.  ",
-                                                "Loading balance.. ",
-                                                "Loading balance...",
-                                              ],
-                                              style: STextStyles.itemSubtitle(
-                                                      context)
-                                                  .copyWith(
-                                                fontSize: 8,
-                                              ),
-                                            )
-                                          ],
-                                        );
-                                      }
-                                    },
-                                  ),
                                 ],
                               ),
                             ),
