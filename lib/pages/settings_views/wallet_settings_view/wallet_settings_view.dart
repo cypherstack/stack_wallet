@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/epicbox_config_model.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
@@ -17,7 +16,6 @@ import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_set
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
@@ -347,19 +345,8 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
   final hostController = TextEditingController();
   final portController = TextEditingController();
 
-  late EpicCashWallet wallet;
-
   @override
   void initState() {
-    wallet = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet as EpicCashWallet;
-
-    wallet.getEpicBoxConfig().then((EpicBoxConfigModel epicBoxConfig) {
-      hostController.text = epicBoxConfig.host;
-      portController.text = "${epicBoxConfig.port ?? 443}";
-    });
     super.initState();
   }
 
@@ -397,26 +384,7 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
             height: 8,
           ),
           TextButton(
-            onPressed: () async {
-              try {
-                wallet.updateEpicboxConfig(
-                  hostController.text,
-                  int.parse(portController.text),
-                );
-                showFloatingFlushBar(
-                  context: context,
-                  message: "Epicbox info saved!",
-                  type: FlushBarType.success,
-                );
-                wallet.refresh();
-              } catch (e) {
-                showFloatingFlushBar(
-                  context: context,
-                  message: "Failed to save epicbox info: $e",
-                  type: FlushBarType.warning,
-                );
-              }
-            },
+            onPressed: () async {},
             child: Text(
               "Save",
               style: STextStyles.button(context).copyWith(

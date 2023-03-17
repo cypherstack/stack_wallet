@@ -257,28 +257,8 @@ class CoinThemeColor {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
         return bitcoin;
-      case Coin.litecoin:
-      case Coin.litecoinTestNet:
-        return litecoin;
-      case Coin.bitcoincash:
-      case Coin.bitcoincashTestnet:
-        return bitcoincash;
-      case Coin.dogecoin:
-      case Coin.dogecoinTestNet:
-        return dogecoin;
-      case Coin.epicCash:
-        return epicCash;
-      case Coin.firo:
-      case Coin.firoTestNet:
-        return firo;
       case Coin.monero:
         return monero;
-      case Coin.namecoin:
-        return namecoin;
-      case Coin.wownero:
-        return wownero;
-      case Coin.particl:
-        return particl;
     }
   }
 }

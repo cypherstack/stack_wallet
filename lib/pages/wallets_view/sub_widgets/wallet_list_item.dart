@@ -54,7 +54,7 @@ class WalletListItem extends ConsumerWidget {
                 .expand((e) => e)
                 .toList();
             final manager = ref.read(providersByCoin.first);
-            if (coin == Coin.monero || coin == Coin.wownero) {
+            if (coin == Coin.monero) {
               await manager.initializeExisting();
             }
             unawaited(

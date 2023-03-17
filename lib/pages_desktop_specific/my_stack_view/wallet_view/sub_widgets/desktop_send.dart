@@ -21,7 +21,6 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:stackwallet/providers/ui/preview_tx_button_state_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
@@ -107,20 +106,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
     final amount = Format.decimalAmountToSatoshis(_amountToSend!, coin);
-    int availableBalance;
-    if ((coin == Coin.firo || coin == Coin.firoTestNet)) {
-      if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-          "Private") {
-        availableBalance = Format.decimalAmountToSatoshis(
-            (manager.wallet as FiroWallet).availablePrivateBalance(), coin);
-      } else {
-        availableBalance = Format.decimalAmountToSatoshis(
-            (manager.wallet as FiroWallet).availablePublicBalance(), coin);
-      }
-    } else {
-      availableBalance =
-          Format.decimalAmountToSatoshis(manager.balance.getSpendable(), coin);
-    }
+    int availableBalance =
+        Format.decimalAmountToSatoshis(manager.balance.getSpendable(), coin);
 
     final coinControlEnabled =
         ref.read(prefsChangeNotifierProvider).enableCoinControl;
@@ -271,21 +258,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           satoshiAmount: amount,
           args: {
             "feeRate": feeRate,
-            "UTXOs": (manager.hasCoinControlSupport &&
-                    coinControlEnabled &&
-                    ref.read(desktopUseUTXOs).isNotEmpty)
-                ? ref.read(desktopUseUTXOs)
-                : null,
-          },
-        );
-      } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-          ref.read(publicPrivateBalanceStateProvider.state).state !=
-              "Private") {
-        txDataFuture = (manager.wallet as FiroWallet).prepareSendPublic(
-          address: _address!,
-          satoshiAmount: amount,
-          args: {
-            "feeRate": ref.read(feeRateTypeStateProvider),
             "UTXOs": (manager.hasCoinControlSupport &&
                     coinControlEnabled &&
                     ref.read(desktopUseUTXOs).isNotEmpty)
@@ -490,28 +462,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
   }
 
-  Future<String?> _firoBalanceFuture(
-    ChangeNotifierProvider<Manager> provider,
-    String locale,
-    bool private,
-  ) async {
-    final wallet = ref.read(provider).wallet as FiroWallet?;
-
-    if (wallet != null) {
-      Decimal? balance;
-      if (private) {
-        balance = wallet.availablePrivateBalance();
-      } else {
-        balance = wallet.availablePublicBalance();
-      }
-
-      return Format.localizedStringAsFixed(
-          value: balance, locale: locale, decimalPlaces: 8);
-    }
-
-    return null;
-  }
-
   Widget firoBalanceFutureBuilder(
     BuildContext context,
     AsyncSnapshot<String?> snapshot,
@@ -622,11 +572,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         content = content.substring(0, content.indexOf("\n"));
       }
 
-      if (coin == Coin.epicCash) {
-        // strip http:// and https:// if content contains @
-        content = formatAddress(content);
-      }
-
       sendToController.text = content;
       _address = content;
 
@@ -687,27 +632,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   Future<void> sendAllTapped() async {
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      final firoWallet = ref
-          .read(walletsChangeNotifierProvider)
-          .getManager(walletId)
-          .wallet as FiroWallet;
-      if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-          "Private") {
-        cryptoAmountController.text = (firoWallet.availablePrivateBalance())
-            .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
-      } else {
-        cryptoAmountController.text = (firoWallet.availablePublicBalance())
-            .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
-      }
-    } else {
-      cryptoAmountController.text = (ref
-              .read(walletsChangeNotifierProvider)
-              .getManager(walletId)
-              .balance
-              .getSpendable())
-          .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
-    }
+    cryptoAmountController.text = (ref
+            .read(walletsChangeNotifierProvider)
+            .getManager(walletId)
+            .balance
+            .getSpendable())
+        .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
   }
 
   void _showDesktopCoinControl() async {
@@ -801,22 +731,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final String locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
 
-    // add listener for epic cash to strip http:// and https:// prefixes if the address also ocntains an @ symbol (indicating an epicbox address)
-    if (coin == Coin.epicCash) {
-      sendToController.addListener(() {
-        _address = sendToController.text;
-
-        if (_address != null && _address!.isNotEmpty) {
-          _address = _address!.trim();
-          if (_address!.contains("\n")) {
-            _address = _address!.substring(0, _address!.indexOf("\n"));
-          }
-
-          sendToController.text = formatAddress(_address!);
-        }
-      });
-    }
-
     final showCoinControl = ref.watch(
           prefsChangeNotifierProvider.select(
             (value) => value.enableCoinControl,
@@ -834,115 +748,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         const SizedBox(
           height: 4,
         ),
-        if (coin == Coin.firo)
-          Text(
-            "Send from",
-            style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .textFieldActiveSearchIconRight,
-            ),
-            textAlign: TextAlign.left,
-          ),
-        if (coin == Coin.firo)
-          const SizedBox(
-            height: 10,
-          ),
-        if (coin == Coin.firo)
-          DropdownButtonHideUnderline(
-            child: DropdownButton2(
-              offset: const Offset(0, -10),
-              isExpanded: true,
-              dropdownElevation: 0,
-              value: ref.watch(publicPrivateBalanceStateProvider.state).state,
-              items: [
-                DropdownMenuItem(
-                  value: "Private",
-                  child: Row(
-                    children: [
-                      Text(
-                        "Private balance",
-                        style: STextStyles.itemSubtitle12(context),
-                      ),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      FutureBuilder(
-                        future: _firoBalanceFuture(provider, locale, true),
-                        builder: (context, AsyncSnapshot<String?> snapshot) =>
-                            firoBalanceFutureBuilder(
-                          context,
-                          snapshot,
-                          true,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                DropdownMenuItem(
-                  value: "Public",
-                  child: Row(
-                    children: [
-                      Text(
-                        "Public balance",
-                        style: STextStyles.itemSubtitle12(context),
-                      ),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      FutureBuilder(
-                        future: _firoBalanceFuture(provider, locale, false),
-                        builder: (context, AsyncSnapshot<String?> snapshot) =>
-                            firoBalanceFutureBuilder(
-                          context,
-                          snapshot,
-                          false,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-              onChanged: (value) {
-                if (value is String) {
-                  setState(() {
-                    ref.watch(publicPrivateBalanceStateProvider.state).state =
-                        value;
-                  });
-                }
-              },
-              icon: SvgPicture.asset(
-                Assets.svg.chevronDown,
-                width: 12,
-                height: 6,
-                color: Theme.of(context).extension<StackColors>()!.textDark3,
-              ),
-              buttonPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
-              buttonDecoration: BoxDecoration(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultBG,
-                borderRadius: BorderRadius.circular(
-                  Constants.size.circularBorderRadius,
-                ),
-              ),
-              dropdownDecoration: BoxDecoration(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultBG,
-                borderRadius: BorderRadius.circular(
-                  Constants.size.circularBorderRadius,
-                ),
-              ),
-            ),
-          ),
-        if (coin == Coin.firo)
-          const SizedBox(
-            height: 20,
-          ),
         if (isPaynymSend)
           Text(
             "Send to PayNym address",
@@ -1400,24 +1205,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (!isPaynymSend)
           const SizedBox(
             height: 20,
-          ),
-        if (coin != Coin.epicCash)
-          Text(
-            "Transaction fee (estimated)",
-            style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .textFieldActiveSearchIconRight,
-            ),
-            textAlign: TextAlign.left,
-          ),
-        if (coin != Coin.epicCash)
-          const SizedBox(
-            height: 10,
-          ),
-        if (coin != Coin.epicCash)
-          DesktopFeeDropDown(
-            walletId: walletId,
           ),
         const SizedBox(
           height: 36,

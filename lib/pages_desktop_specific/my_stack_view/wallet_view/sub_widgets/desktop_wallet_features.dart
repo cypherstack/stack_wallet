@@ -16,7 +16,6 @@ import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
 import 'package:stackwallet/providers/global/paynym_api_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -126,10 +125,6 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
                     label: "Continue",
                     onPressed: () {
                       Navigator.of(context).pop();
-
-                      unawaited(
-                        _attemptAnonymize(),
-                      );
                     },
                   )
                 ],
@@ -141,116 +136,97 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     );
   }
 
-  Future<void> _attemptAnonymize() async {
-    final managerProvider = ref
-        .read(walletsChangeNotifierProvider)
-        .getManagerProvider(widget.walletId);
-
-    bool shouldPop = false;
-    unawaited(
-      showDialog(
-        context: context,
-        builder: (context) => WillPopScope(
-          child: const CustomLoadingOverlay(
-            message: "Anonymizing balance",
-            eventBus: null,
-          ),
-          onWillPop: () async => shouldPop,
-        ),
-      ),
-    );
-    final firoWallet = ref.read(managerProvider).wallet as FiroWallet;
-
-    final publicBalance = firoWallet.availablePublicBalance();
-    if (publicBalance <= Decimal.zero) {
-      shouldPop = true;
-      if (context.mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
-        Navigator.of(context).popUntil(
-          ModalRoute.withName(DesktopWalletView.routeName),
-        );
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.info,
-            message: "No funds available to anonymize!",
-            context: context,
-          ),
-        );
-      }
-      return;
-    }
-
-    try {
-      await firoWallet.anonymizeAllPublicFunds();
-      shouldPop = true;
-      if (context.mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
-        Navigator.of(context).popUntil(
-          ModalRoute.withName(DesktopWalletView.routeName),
-        );
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.success,
-            message: "Anonymize transaction submitted",
-            context: context,
-          ),
-        );
-      }
-    } catch (e) {
-      shouldPop = true;
-      if (context.mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
-        Navigator.of(context).popUntil(
-          ModalRoute.withName(DesktopWalletView.routeName),
-        );
-        await showDialog<dynamic>(
-          context: context,
-          builder: (_) => DesktopDialog(
-            maxWidth: 400,
-            maxHeight: 300,
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Anonymize all failed",
-                    style: STextStyles.desktopH3(context),
-                  ),
-                  const Spacer(
-                    flex: 1,
-                  ),
-                  Text(
-                    "Reason: $e",
-                    style: STextStyles.desktopTextSmall(context),
-                  ),
-                  const Spacer(
-                    flex: 2,
-                  ),
-                  Row(
-                    children: [
-                      const Spacer(),
-                      const SizedBox(
-                        width: 16,
-                      ),
-                      Expanded(
-                        child: PrimaryButton(
-                          label: "Ok",
-                          buttonHeight: ButtonHeight.l,
-                          onPressed:
-                              Navigator.of(context, rootNavigator: true).pop,
-                        ),
-                      ),
-                    ],
-                  )
-                ],
-              ),
-            ),
-          ),
-        );
-      }
-    }
-  }
+  // Future<void> _attemptAnonymize() async {
+  //   final managerProvider = ref
+  //       .read(walletsChangeNotifierProvider)
+  //       .getManagerProvider(widget.walletId);
+  //
+  //   bool shouldPop = false;
+  //   unawaited(
+  //     showDialog(
+  //       context: context,
+  //       builder: (context) => WillPopScope(
+  //         child: const CustomLoadingOverlay(
+  //           message: "Anonymizing balance",
+  //           eventBus: null,
+  //         ),
+  //         onWillPop: () async => shouldPop,
+  //       ),
+  //     ),
+  //   );
+  //   final firoWallet = ref.read(managerProvider).wallet as FiroWallet;
+  //
+  //   // try {
+  //   //   await firoWallet.anonymizeAllPublicFunds();
+  //   //   shouldPop = true;
+  //   //   if (context.mounted) {
+  //   //     Navigator.of(context, rootNavigator: true).pop();
+  //   //     Navigator.of(context).popUntil(
+  //   //       ModalRoute.withName(DesktopWalletView.routeName),
+  //   //     );
+  //   //     unawaited(
+  //   //       showFloatingFlushBar(
+  //   //         type: FlushBarType.success,
+  //   //         message: "Anonymize transaction submitted",
+  //   //         context: context,
+  //   //       ),
+  //   //     );
+  //   //   }
+  //   // } catch (e) {
+  //   //   shouldPop = true;
+  //   //   if (context.mounted) {
+  //   //     Navigator.of(context, rootNavigator: true).pop();
+  //   //     Navigator.of(context).popUntil(
+  //   //       ModalRoute.withName(DesktopWalletView.routeName),
+  //   //     );
+  //   //     await showDialog<dynamic>(
+  //   //       context: context,
+  //   //       builder: (_) => DesktopDialog(
+  //   //         maxWidth: 400,
+  //   //         maxHeight: 300,
+  //   //         child: Padding(
+  //   //           padding: const EdgeInsets.all(24),
+  //   //           child: Column(
+  //   //             crossAxisAlignment: CrossAxisAlignment.start,
+  //   //             children: [
+  //   //               Text(
+  //   //                 "Anonymize all failed",
+  //   //                 style: STextStyles.desktopH3(context),
+  //   //               ),
+  //   //               const Spacer(
+  //   //                 flex: 1,
+  //   //               ),
+  //   //               Text(
+  //   //                 "Reason: $e",
+  //   //                 style: STextStyles.desktopTextSmall(context),
+  //   //               ),
+  //   //               const Spacer(
+  //   //                 flex: 2,
+  //   //               ),
+  //   //               Row(
+  //   //                 children: [
+  //   //                   const Spacer(),
+  //   //                   const SizedBox(
+  //   //                     width: 16,
+  //   //                   ),
+  //   //                   Expanded(
+  //   //                     child: PrimaryButton(
+  //   //                       label: "Ok",
+  //   //                       buttonHeight: ButtonHeight.l,
+  //   //                       onPressed:
+  //   //                           Navigator.of(context, rootNavigator: true).pop,
+  //   //                     ),
+  //   //                   ),
+  //   //                 ],
+  //   //               )
+  //   //             ],
+  //   //           ),
+  //   //         ),
+  //   //       ),
+  //   //     );
+  //   //   }
+  //   // }
+  // }
 
   Future<void> _onPaynymPressed() async {
     Navigator.of(context, rootNavigator: true).pop();
@@ -311,8 +287,6 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
     final showMore = manager.hasPaynymSupport ||
         manager.hasCoinControlSupport ||
-        manager.coin == Coin.firo ||
-        manager.coin == Coin.firoTestNet ||
         manager.hasWhirlpoolSupport;
 
     return Row(

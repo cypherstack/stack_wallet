@@ -91,22 +91,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
     bool testPassed = false;
 
     switch (widget.coin) {
-      case Coin.epicCash:
-        try {
-          testPassed = await testEpicNodeConnection(
-                NodeFormData()
-                  ..host = node.host
-                  ..useSSL = node.useSSL
-                  ..port = node.port,
-              ) !=
-              null;
-        } catch (e, s) {
-          Logging.instance.log("$e\n$s", level: LogLevel.Warning);
-        }
-        break;
-
       case Coin.monero:
-      case Coin.wownero:
         try {
           final uri = Uri.parse(node.host);
           if (uri.scheme.startsWith("http")) {
@@ -145,17 +130,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
         break;
 
       case Coin.bitcoin:
-      case Coin.litecoin:
-      case Coin.dogecoin:
-      case Coin.firo:
-      case Coin.particl:
       case Coin.bitcoinTestNet:
-      case Coin.firoTestNet:
-      case Coin.dogecoinTestNet:
-      case Coin.bitcoincash:
-      case Coin.litecoinTestNet:
-      case Coin.namecoin:
-      case Coin.bitcoincashTestnet:
         final client = ElectrumX(
           host: node.host,
           port: node.port,

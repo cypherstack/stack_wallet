@@ -2,7 +2,6 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
@@ -29,10 +28,6 @@ class WalletInfoRowBalanceFuture extends ConsumerWidget {
     );
 
     Decimal balance = manager.balance.getTotal();
-
-    if (manager.coin == Coin.firo || manager.coin == Coin.firoTestNet) {
-      balance += (manager.wallet as FiroWallet).balancePrivate.getTotal();
-    }
 
     return Text(
       "${Format.localizedStringAsFixed(

@@ -8,7 +8,6 @@ import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_balance_toggle_
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/balance_refreshed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
@@ -94,15 +93,8 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
 
     final Decimal totalBalance;
     final Decimal availableBalance;
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      final firoWallet = ref.watch(walletsChangeNotifierProvider.select(
-          (value) => value.getManager(widget.walletId).wallet)) as FiroWallet;
-      totalBalance = firoWallet.balance.getSpendable();
-      availableBalance = firoWallet.balancePrivate.getSpendable();
-    } else {
-      totalBalance = balance.getTotal();
-      availableBalance = balance.getSpendable();
-    }
+    totalBalance = balance.getTotal();
+    availableBalance = balance.getSpendable();
 
     final balanceToShow = _showAvailable ? availableBalance : totalBalance;
 
@@ -116,24 +108,6 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
                 onTap: showSheet,
                 child: Row(
                   children: [
-                    if (coin == Coin.firo || coin == Coin.firoTestNet)
-                      Text(
-                        "${_showAvailable ? "Private" : "Public"} Balance",
-                        style: STextStyles.subtitle500(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFavoriteCard,
-                        ),
-                      ),
-                    if (coin != Coin.firo && coin != Coin.firoTestNet)
-                      Text(
-                        "${_showAvailable ? "Available" : "Full"} Balance",
-                        style: STextStyles.subtitle500(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFavoriteCard,
-                        ),
-                      ),
                     const SizedBox(
                       width: 4,
                     ),

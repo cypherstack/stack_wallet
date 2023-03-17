@@ -80,31 +80,6 @@ void main() {
       });
     });
 
-    test("Transaction from Lelantus Json", () {
-      final tx = Transaction.fromLelantusJson({
-        "txid": "txid",
-        "confirmed_status": true,
-        "timestamp": 1876352482,
-        "txType": "txType",
-        "amount": 10,
-        "worthNow": "1",
-        "worthAtBlockTimestamp": "1",
-        "fees": 1,
-        "inputSize": 1,
-        "outputSize": 1,
-        "inputs": [],
-        "outputs": [],
-        "address": "address",
-        "height": 1,
-        "confirmations": 1,
-        "aliens": [],
-        "subType": "mint",
-        "isCancelled": false,
-        "slateId": "slateId",
-        "otherData": "otherData",
-      });
-    });
-
     test("TransactionChunk", () {
       final transactionchunk = TransactionChunk.fromJson({
         "timestamp": 45920,

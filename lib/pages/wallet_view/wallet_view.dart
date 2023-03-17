@@ -30,7 +30,6 @@ import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -309,72 +308,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
     }
   }
 
-  Future<void> attemptAnonymize() async {
-    bool shouldPop = false;
-    unawaited(
-      showDialog(
-        context: context,
-        builder: (context) => WillPopScope(
-          child: const CustomLoadingOverlay(
-            message: "Anonymizing balance",
-            eventBus: null,
-          ),
-          onWillPop: () async => shouldPop,
-        ),
-      ),
-    );
-    final firoWallet = ref.read(managerProvider).wallet as FiroWallet;
-
-    final publicBalance = firoWallet.availablePublicBalance();
-    if (publicBalance <= Decimal.zero) {
-      shouldPop = true;
-      if (mounted) {
-        Navigator.of(context).popUntil(
-          ModalRoute.withName(WalletView.routeName),
-        );
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.info,
-            message: "No funds available to anonymize!",
-            context: context,
-          ),
-        );
-      }
-      return;
-    }
-
-    try {
-      await firoWallet.anonymizeAllPublicFunds();
-      shouldPop = true;
-      if (mounted) {
-        Navigator.of(context).popUntil(
-          ModalRoute.withName(WalletView.routeName),
-        );
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.success,
-            message: "Anonymize transaction submitted",
-            context: context,
-          ),
-        );
-      }
-    } catch (e) {
-      shouldPop = true;
-      if (mounted) {
-        Navigator.of(context).popUntil(
-          ModalRoute.withName(WalletView.routeName),
-        );
-        await showDialog<dynamic>(
-          context: context,
-          builder: (_) => StackOkDialog(
-            title: "Anonymize all failed",
-            message: "Reason: $e",
-          ),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
@@ -600,75 +533,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             ),
                           ),
                         ),
-                        if (coin == Coin.firo)
-                          const SizedBox(
-                            height: 10,
-                          ),
-                        if (coin == Coin.firo)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: TextButton(
-                                    style: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .getSecondaryEnabledButtonStyle(
-                                            context),
-                                    onPressed: () async {
-                                      await showDialog<void>(
-                                        context: context,
-                                        builder: (context) => StackDialog(
-                                          title: "Attention!",
-                                          message:
-                                              "You're about to anonymize all of your public funds.",
-                                          leftButton: TextButton(
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                            child: Text(
-                                              "Cancel",
-                                              style: STextStyles.button(context)
-                                                  .copyWith(
-                                                color: Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .accentColorDark,
-                                              ),
-                                            ),
-                                          ),
-                                          rightButton: TextButton(
-                                            onPressed: () async {
-                                              Navigator.of(context).pop();
-
-                                              unawaited(attemptAnonymize());
-                                            },
-                                            style: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .getPrimaryEnabledButtonStyle(
-                                                    context),
-                                            child: Text(
-                                              "Continue",
-                                              style:
-                                                  STextStyles.button(context),
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    child: Text(
-                                      "Anonymize funds",
-                                      style:
-                                          STextStyles.button(context).copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .buttonTextSecondary,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
                         const SizedBox(
                           height: 20,
                         ),

@@ -85,7 +85,6 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
 
     // if (widget.coin == null) {
     List<Coin> coins = Coin.values.toList();
-    coins.remove(Coin.firoTestNet);
 
     bool showTestNet = ref.read(prefsChangeNotifierProvider).showTestNetCoins;
 

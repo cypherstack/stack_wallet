@@ -68,23 +68,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
     bool testPassed = false;
 
     switch (coin) {
-      case Coin.epicCash:
-        try {
-          final data = await testEpicNodeConnection(formData);
-
-          if (data != null) {
-            testPassed = true;
-            ref.read(nodeFormDataProvider).host = data.host;
-            ref.read(nodeFormDataProvider).port = data.port;
-            ref.read(nodeFormDataProvider).useSSL = data.useSSL;
-          }
-        } catch (e, s) {
-          Logging.instance.log("$e\n$s", level: LogLevel.Warning);
-        }
-        break;
-
       case Coin.monero:
-      case Coin.wownero:
         try {
           final uri = Uri.parse(formData.host!);
           if (uri.scheme.startsWith("http")) {
@@ -130,17 +114,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         break;
 
       case Coin.bitcoin:
-      case Coin.bitcoincash:
-      case Coin.litecoin:
-      case Coin.dogecoin:
-      case Coin.firo:
-      case Coin.namecoin:
-      case Coin.particl:
       case Coin.bitcoinTestNet:
-      case Coin.litecoinTestNet:
-      case Coin.bitcoincashTestnet:
-      case Coin.firoTestNet:
-      case Coin.dogecoinTestNet:
         final client = ElectrumX(
           host: formData.host!,
           port: formData.port!,
@@ -309,7 +283,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 
     // strip unused path
     String address = formData.host!;
-    if (coin == Coin.monero || coin == Coin.wownero) {
+    if (coin == Coin.monero) {
       if (address.startsWith("http")) {
         final uri = Uri.parse(address);
         address = "${uri.scheme}://${uri.host}";
@@ -680,22 +654,10 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     // TODO: which coin servers can have username and password?
     switch (coin) {
       case Coin.bitcoin:
-      case Coin.litecoin:
-      case Coin.dogecoin:
-      case Coin.firo:
-      case Coin.namecoin:
-      case Coin.bitcoincash:
-      case Coin.particl:
       case Coin.bitcoinTestNet:
-      case Coin.litecoinTestNet:
-      case Coin.bitcoincashTestnet:
-      case Coin.firoTestNet:
-      case Coin.dogecoinTestNet:
-      case Coin.epicCash:
         return false;
 
       case Coin.monero:
-      case Coin.wownero:
         return true;
     }
   }
@@ -772,11 +734,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       _useSSL = node.useSSL;
       _isFailover = node.isFailover;
       _trusted = node.trusted ?? false;
-      if (widget.coin == Coin.epicCash) {
-        enableSSLCheckbox = !node.host.startsWith("http");
-      } else {
-        enableSSLCheckbox = true;
-      }
+      enableSSLCheckbox = true;
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         // update provider state object so test connection works without having to modify a field in the ui first
@@ -871,9 +829,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             focusNode: _hostFocusNode,
             style: STextStyles.field(context),
             decoration: standardInputDecoration(
-              (widget.coin != Coin.monero && widget.coin != Coin.wownero)
-                  ? "IP address"
-                  : "Url",
+              (widget.coin != Coin.monero) ? "IP address" : "Url",
               _hostFocusNode,
               context,
             ).copyWith(
@@ -897,17 +853,6 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                   : null,
             ),
             onChanged: (newValue) {
-              if (widget.coin == Coin.epicCash) {
-                if (newValue.startsWith("https://")) {
-                  _useSSL = true;
-                  enableSSLCheckbox = false;
-                } else if (newValue.startsWith("http://")) {
-                  _useSSL = false;
-                  enableSSLCheckbox = false;
-                } else {
-                  enableSSLCheckbox = true;
-                }
-              }
               _updateState();
               setState(() {});
             },
@@ -1062,7 +1007,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
           const SizedBox(
             height: 8,
           ),
-        if (widget.coin != Coin.monero && widget.coin != Coin.wownero)
+        if (widget.coin != Coin.monero)
           Row(
             children: [
               GestureDetector(
@@ -1113,7 +1058,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               ),
             ],
           ),
-        if (widget.coin == Coin.monero || widget.coin == Coin.wownero)
+        if (widget.coin == Coin.monero)
           Row(
             children: [
               GestureDetector(
@@ -1164,15 +1109,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               ),
             ],
           ),
-        if (widget.coin != Coin.monero &&
-            widget.coin != Coin.wownero &&
-            widget.coin != Coin.epicCash)
+        if (widget.coin != Coin.monero)
           const SizedBox(
             height: 8,
           ),
-        if (widget.coin != Coin.monero &&
-            widget.coin != Coin.wownero &&
-            widget.coin != Coin.epicCash)
+        if (widget.coin != Coin.monero)
           Row(
             children: [
               GestureDetector(

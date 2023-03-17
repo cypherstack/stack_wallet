@@ -47,22 +47,8 @@ abstract class Constants {
   static int satsPerCoin(Coin coin) {
     switch (coin) {
       case Coin.bitcoin:
-      case Coin.litecoin:
-      case Coin.litecoinTestNet:
-      case Coin.bitcoincash:
-      case Coin.bitcoincashTestnet:
-      case Coin.dogecoin:
-      case Coin.firo:
       case Coin.bitcoinTestNet:
-      case Coin.dogecoinTestNet:
-      case Coin.firoTestNet:
-      case Coin.epicCash:
-      case Coin.namecoin:
-      case Coin.particl:
         return _satsPerCoin;
-
-      case Coin.wownero:
-        return _satsPerCoinWownero;
 
       case Coin.monero:
         return _satsPerCoinMonero;
@@ -72,22 +58,8 @@ abstract class Constants {
   static int decimalPlacesForCoin(Coin coin) {
     switch (coin) {
       case Coin.bitcoin:
-      case Coin.litecoin:
-      case Coin.litecoinTestNet:
-      case Coin.bitcoincash:
-      case Coin.bitcoincashTestnet:
-      case Coin.dogecoin:
-      case Coin.firo:
       case Coin.bitcoinTestNet:
-      case Coin.dogecoinTestNet:
-      case Coin.firoTestNet:
-      case Coin.epicCash:
-      case Coin.namecoin:
-      case Coin.particl:
         return _decimalPlaces;
-
-      case Coin.wownero:
-        return _decimalPlacesWownero;
 
       case Coin.monero:
         return _decimalPlacesMonero;
@@ -98,26 +70,12 @@ abstract class Constants {
     final List<int> values = [];
     switch (coin) {
       case Coin.bitcoin:
-      case Coin.litecoin:
-      case Coin.litecoinTestNet:
-      case Coin.bitcoincash:
-      case Coin.bitcoincashTestnet:
-      case Coin.dogecoin:
-      case Coin.firo:
       case Coin.bitcoinTestNet:
-      case Coin.dogecoinTestNet:
-      case Coin.firoTestNet:
-      case Coin.epicCash:
-      case Coin.namecoin:
-      case Coin.particl:
         values.addAll([24, 21, 18, 15, 12]);
         break;
 
       case Coin.monero:
         values.addAll([25]);
-        break;
-      case Coin.wownero:
-        values.addAll([14, 25]);
         break;
     }
     return values;
@@ -130,36 +88,8 @@ abstract class Constants {
       case Coin.bitcoinTestNet:
         return 600;
 
-      case Coin.bitcoincash:
-      case Coin.bitcoincashTestnet:
-        return 600;
-
-      case Coin.dogecoin:
-      case Coin.dogecoinTestNet:
-        return 60;
-
-      case Coin.litecoin:
-      case Coin.litecoinTestNet:
-        return 150;
-
-      case Coin.firo:
-      case Coin.firoTestNet:
-        return 150;
-
-      case Coin.epicCash:
-        return 60;
-
       case Coin.monero:
         return 120;
-
-      case Coin.wownero:
-        return 120;
-
-      case Coin.namecoin:
-        return 600;
-
-      case Coin.particl:
-        return 600;
     }
   }
 

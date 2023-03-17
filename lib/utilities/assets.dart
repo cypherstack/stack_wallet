@@ -261,33 +261,10 @@ class _SVG {
     switch (coin) {
       case Coin.bitcoin:
         return bitcoin;
-      case Coin.litecoin:
-      case Coin.litecoinTestNet:
-        return litecoin;
-      case Coin.bitcoincash:
-        return bitcoincash;
-      case Coin.dogecoin:
-        return dogecoin;
-      case Coin.epicCash:
-        return epicCash;
-      case Coin.firo:
-        return firo;
       case Coin.monero:
         return monero;
-      case Coin.wownero:
-        return wownero;
-      case Coin.namecoin:
-        return namecoin;
-      case Coin.particl:
-        return particl;
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;
-      case Coin.bitcoincashTestnet:
-        return bitcoincashTestnet;
-      case Coin.firoTestNet:
-        return firoTestnet;
-      case Coin.dogecoinTestNet:
-        return dogecoinTestnet;
     }
   }
 
@@ -317,33 +294,10 @@ class _SVG {
     switch (coin) {
       case Coin.bitcoin:
         return bitcoinImage(context);
-      case Coin.litecoin:
-      case Coin.litecoinTestNet:
-        return litecoinImage(context);
-      case Coin.bitcoincash:
-        return bitcoincashImage(context);
-      case Coin.dogecoin:
-        return dogecoinImage(context);
-      case Coin.epicCash:
-        return epicCashImage(context);
-      case Coin.firo:
-        return firoImage(context);
       case Coin.monero:
         return moneroImage(context);
-      case Coin.wownero:
-        return wowneroImage(context);
-      case Coin.namecoin:
-        return namecoinImage(context);
-      case Coin.particl:
-        return particlImage(context);
       case Coin.bitcoinTestNet:
         return bitcoinImage(context);
-      case Coin.bitcoincashTestnet:
-        return bitcoincashImage(context);
-      case Coin.firoTestNet:
-        return firoImage(context);
-      case Coin.dogecoinTestNet:
-        return dogecoinImage(context);
     }
   }
 }

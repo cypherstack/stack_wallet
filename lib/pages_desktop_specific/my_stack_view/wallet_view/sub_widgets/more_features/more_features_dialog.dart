@@ -65,13 +65,6 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               const DesktopDialogCloseButton(),
             ],
           ),
-          if (manager.coin == Coin.firo || manager.coin == Coin.firoTestNet)
-            _MoreFeaturesItem(
-              label: "Anonymize funds",
-              detail: "Anonymize funds",
-              iconAsset: Assets.svg.anonymize,
-              onPressed: () => widget.onAnonymizeAllPressed?.call(),
-            ),
           if (manager.hasWhirlpoolSupport)
             _MoreFeaturesItem(
               label: "Whirlpool",

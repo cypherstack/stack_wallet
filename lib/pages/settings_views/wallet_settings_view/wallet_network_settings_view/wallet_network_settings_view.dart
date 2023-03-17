@@ -11,9 +11,7 @@ import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_net
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/sub_widgets/rescanning_dialog.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart';
-import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/blocks_remaining_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
@@ -99,13 +97,6 @@ class _WalletNetworkSettingsViewState
     );
 
     try {
-      if (ref
-              .read(walletsChangeNotifierProvider)
-              .getManager(widget.walletId)
-              .coin ==
-          Coin.firo) {
-        maxUnusedAddressGap = 50;
-      }
       await ref
           .read(walletsChangeNotifierProvider)
           .getManager(widget.walletId)
@@ -225,7 +216,7 @@ class _WalletNetworkSettingsViewState
         .getManager(widget.walletId)
         .coin;
 
-    if (coin == Coin.monero || coin == Coin.wownero || coin == Coin.epicCash) {
+    if (coin == Coin.monero) {
       _blocksRemainingSubscription = eventBus.on<BlocksRemainingEvent>().listen(
         (event) async {
           if (event.walletId == widget.walletId) {
@@ -289,24 +280,6 @@ class _WalletNetworkSettingsViewState
               .getManager(widget.walletId)
               .wallet as MoneroWallet)
           .highestPercentCached;
-      if (_percent < highestPercent) {
-        _percent = highestPercent.clamp(0.0, 1.0);
-      }
-    } else if (coin == Coin.wownero) {
-      double highestPercent = (ref
-              .read(walletsChangeNotifierProvider)
-              .getManager(widget.walletId)
-              .wallet as WowneroWallet)
-          .highestPercentCached;
-      if (_percent < highestPercent) {
-        _percent = highestPercent.clamp(0.0, 1.0);
-      }
-    } else if (coin == Coin.epicCash) {
-      double highestPercent = (ref
-              .read(walletsChangeNotifierProvider)
-              .getManager(widget.walletId)
-              .wallet as EpicCashWallet)
-          .highestPercent;
       if (_percent < highestPercent) {
         _percent = highestPercent.clamp(0.0, 1.0);
       }
@@ -602,9 +575,7 @@ class _WalletNetworkSettingsViewState
                                         .accentColorYellow,
                                   ),
                                 ),
-                                if (coin == Coin.monero ||
-                                    coin == Coin.wownero ||
-                                    coin == Coin.epicCash)
+                                if (coin == Coin.monero)
                                   Text(
                                     " (Blocks to go: ${_blocksRemaining == -1 ? "?" : _blocksRemaining})",
                                     style: STextStyles.syncPercent(context)

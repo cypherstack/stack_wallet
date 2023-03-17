@@ -10,7 +10,6 @@ import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
@@ -91,12 +90,7 @@ class _ConfirmChangeNowSendViewState
     final String note = transactionInfo["note"] as String? ?? "";
 
     try {
-      if (widget.shouldSendPublicFiroFunds == true) {
-        txidFuture = (manager.wallet as FiroWallet)
-            .confirmSendPublic(txData: transactionInfo);
-      } else {
-        txidFuture = manager.confirmSend(txData: transactionInfo);
-      }
+      txidFuture = manager.confirmSend(txData: transactionInfo);
 
       unawaited(manager.refresh());
 

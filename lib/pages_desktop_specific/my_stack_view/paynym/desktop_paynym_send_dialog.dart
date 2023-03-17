@@ -9,7 +9,6 @@ import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/price_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
@@ -53,7 +52,7 @@ class _DesktopPaynymSendDialogState
 
     final coin = manager.coin;
 
-    final isFiro = coin == Coin.firo || coin == Coin.firoTestNet;
+    const isFiro = false;
 
     return DesktopDialog(
       maxHeight: double.infinity,
@@ -121,18 +120,7 @@ class _DesktopPaynymSendDialogState
                       children: [
                         Text(
                           "${Format.localizedStringAsFixed(
-                            value: !isFiro
-                                ? manager.balance.getSpendable()
-                                : ref
-                                            .watch(
-                                                publicPrivateBalanceStateProvider
-                                                    .state)
-                                            .state ==
-                                        "Private"
-                                    ? (manager.wallet as FiroWallet)
-                                        .availablePrivateBalance()
-                                    : (manager.wallet as FiroWallet)
-                                        .availablePublicBalance(),
+                            value: manager.balance.getSpendable(),
                             locale: locale,
                             decimalPlaces: 8,
                           )} ${coin.ticker}",
@@ -144,21 +132,7 @@ class _DesktopPaynymSendDialogState
                         ),
                         Text(
                           "${Format.localizedStringAsFixed(
-                            value: (!isFiro
-                                    ? manager.balance.getSpendable()
-                                    : ref
-                                                .watch(
-                                                    publicPrivateBalanceStateProvider
-                                                        .state)
-                                                .state ==
-                                            "Private"
-                                        ? (manager.wallet as FiroWallet)
-                                            .availablePrivateBalance()
-                                        : (manager.wallet as FiroWallet)
-                                            .availablePublicBalance()) *
-                                ref.watch(
-                                    priceAnd24hChangeNotifierProvider.select(
-                                        (value) => value.getPrice(coin).item1)),
+                            value: manager.balance.getSpendable(),
                             locale: locale,
                             decimalPlaces: 2,
                           )} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
