@@ -1,6 +1,3 @@
-[submodule "crypto_plugins/flutter_libepiccash"]
-	path = crypto_plugins/flutter_libepiccash
-	url = https://github.com/cypherstack/flutter_libepiccash.git
 [submodule "crypto_plugins/flutter_libmonero"]
 	path = crypto_plugins/flutter_libmonero
 	url = https://github.com/cypherstack/flutter_libmonero.git
