@@ -2,11 +2,6 @@ import 'dart:convert';
 
 import 'package:bitcoindart/bitcoindart.dart';
 import 'package:crypto/crypto.dart';
-import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
-import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
-import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart';
-import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
-import 'package:stackwallet/services/coins/particl/particl_wallet.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
@@ -47,30 +42,11 @@ class AddressUtils {
     switch (coin) {
       case Coin.bitcoin:
         return Address.validateAddress(address, bitcoin);
-      case Coin.litecoin:
-        return Address.validateAddress(address, litecoin);
-      case Coin.bitcoincash:
-        return Address.validateAddress(address, bitcoincash);
-      case Coin.dogecoin:
-        return Address.validateAddress(address, dogecoin);
       case Coin.monero:
         return RegExp("[a-zA-Z0-9]{95}").hasMatch(address) ||
             RegExp("[a-zA-Z0-9]{106}").hasMatch(address);
-      case Coin.wownero:
-        return RegExp("[a-zA-Z0-9]{95}").hasMatch(address) ||
-            RegExp("[a-zA-Z0-9]{106}").hasMatch(address);
-      case Coin.namecoin:
-        return Address.validateAddress(address, namecoin, namecoin.bech32!);
-      case Coin.particl:
-        return Address.validateAddress(address, particl);
       case Coin.bitcoinTestNet:
         return Address.validateAddress(address, testnet);
-      case Coin.litecoinTestNet:
-        return Address.validateAddress(address, litecointestnet);
-      case Coin.bitcoincashTestnet:
-        return Address.validateAddress(address, bitcoincashtestnet);
-      case Coin.dogecoinTestNet:
-        return Address.validateAddress(address, dogecointestnet);
     }
   }
 
