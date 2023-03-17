@@ -147,20 +147,6 @@ class _SendViewState extends ConsumerState<SendView> {
       _updatePreviewButtonState(_address, _amountToSend);
 
       _cryptoAmountChangedFeeUpdateTimer?.cancel();
-      _cryptoAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
-        if (coin != Coin.epicCash && !_baseFocus.hasFocus) {
-          setState(() {
-            _calculateFeesFuture = calculateFees(
-              _amountToSend == null
-                  ? 0
-                  : Format.decimalAmountToSatoshis(
-                      _amountToSend!,
-                      coin,
-                    ),
-            );
-          });
-        }
-      });
     }
   }
 
@@ -171,20 +157,6 @@ class _SendViewState extends ConsumerState<SendView> {
 
   void _baseAmountChanged() {
     _baseAmountChangedFeeUpdateTimer?.cancel();
-    _baseAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
-      if (coin != Coin.epicCash && !_cryptoFocus.hasFocus) {
-        setState(() {
-          _calculateFeesFuture = calculateFees(
-            _amountToSend == null
-                ? 0
-                : Format.decimalAmountToSatoshis(
-                    _amountToSend!,
-                    coin,
-                  ),
-          );
-        });
-      }
-    });
   }
 
   int _currentFee = 0;
@@ -236,18 +208,7 @@ class _SendViewState extends ConsumerState<SendView> {
       return "0";
     }
 
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-          "Private") {
-        if (cachedFiroPrivateFees[amount] != null) {
-          return cachedFiroPrivateFees[amount]!;
-        }
-      } else {
-        if (cachedFiroPublicFees[amount] != null) {
-          return cachedFiroPublicFees[amount]!;
-        }
-      }
-    } else if (cachedFees[amount] != null) {
+    if (cachedFees[amount] != null) {
       return cachedFees[amount]!;
     }
 
@@ -289,24 +250,6 @@ class _SendViewState extends ConsumerState<SendView> {
           .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
 
       return cachedFees[amount]!;
-    } else if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-          "Private") {
-        fee = await manager.estimateFeeFor(amount, feeRate);
-
-        cachedFiroPrivateFees[amount] = Format.satoshisToAmount(fee, coin: coin)
-            .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
-
-        return cachedFiroPrivateFees[amount]!;
-      } else {
-        fee = await (manager.wallet as FiroWallet)
-            .estimateFeeForPublic(amount, feeRate);
-
-        cachedFiroPublicFees[amount] = Format.satoshisToAmount(fee, coin: coin)
-            .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
-
-        return cachedFiroPublicFees[amount]!;
-      }
     } else {
       fee = await manager.estimateFeeFor(amount, feeRate);
       cachedFees[amount] = Format.satoshisToAmount(fee, coin: coin)
@@ -346,20 +289,8 @@ class _SendViewState extends ConsumerState<SendView> {
         ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
     final amount = Format.decimalAmountToSatoshis(_amountToSend!, coin);
-    int availableBalance;
-    if ((coin == Coin.firo || coin == Coin.firoTestNet)) {
-      if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-          "Private") {
-        availableBalance = Format.decimalAmountToSatoshis(
-            (manager.wallet as FiroWallet).availablePrivateBalance(), coin);
-      } else {
-        availableBalance = Format.decimalAmountToSatoshis(
-            (manager.wallet as FiroWallet).availablePublicBalance(), coin);
-      }
-    } else {
-      availableBalance =
-          Format.decimalAmountToSatoshis(manager.balance.getSpendable(), coin);
-    }
+    int availableBalance =
+        Format.decimalAmountToSatoshis(manager.balance.getSpendable(), coin);
 
     final coinControlEnabled =
         ref.read(prefsChangeNotifierProvider).enableCoinControl;

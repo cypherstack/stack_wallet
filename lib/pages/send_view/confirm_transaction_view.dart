@@ -108,15 +108,7 @@ class _ConfirmTransactionViewState
       } else if (widget.isPaynymTransaction) {
         txidFuture = manager.confirmSend(txData: transactionInfo);
       } else {
-        final coin = manager.coin;
-        if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-            ref.read(publicPrivateBalanceStateProvider.state).state !=
-                "Private") {
-          txidFuture = (manager.wallet as FiroWallet)
-              .confirmSendPublic(txData: transactionInfo);
-        } else {
-          txidFuture = manager.confirmSend(txData: transactionInfo);
-        }
+        txidFuture = manager.confirmSend(txData: transactionInfo);
       }
 
       final results = await Future.wait([

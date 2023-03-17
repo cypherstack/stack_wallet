@@ -30,7 +30,6 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
   @override
   void initState() {
     List<Coin> coins = [...Coin.values];
-    coins.remove(Coin.firoTestNet);
 
     bool showTestNet = ref.read(prefsChangeNotifierProvider).showTestNetCoins;
 

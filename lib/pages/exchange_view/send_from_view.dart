@@ -393,7 +393,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
 
     final coin = manager.coin;
 
-    final isFiro = coin == Coin.firoTestNet || coin == Coin.firo;
+    const isFiro = false;
 
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(0),

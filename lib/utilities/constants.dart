@@ -27,7 +27,6 @@ abstract class Constants {
 
   //TODO: correct for monero?
   static const int _satsPerCoinMonero = 1000000000000;
-  static const int _satsPerCoinWownero = 100000000000;
   static const int _satsPerCoin = 100000000;
   static const int _decimalPlaces = 8;
   static const int _decimalPlacesWownero = 11;

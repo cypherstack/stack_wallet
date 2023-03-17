@@ -71,7 +71,7 @@ class _TransactionFeeSelectionSheetState
           final manager =
               ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
-          if (coin == Coin.monero || coin == Coin.wownero) {
+          if (coin == Coin.monero) {
             final fee = await manager.estimateFeeFor(
                 amount, MoneroTransactionPriority.fast.raw!);
             ref.read(feeSheetSessionCacheProvider).fast[amount] =
@@ -79,14 +79,6 @@ class _TransactionFeeSelectionSheetState
               fee,
               coin: coin,
             );
-          } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-              ref.read(publicPrivateBalanceStateProvider.state).state !=
-                  "Private") {
-            ref.read(feeSheetSessionCacheProvider).fast[amount] =
-                Format.satoshisToAmount(
-                    await (manager.wallet as FiroWallet)
-                        .estimateFeeForPublic(amount, feeRate),
-                    coin: coin);
           } else {
             ref.read(feeSheetSessionCacheProvider).fast[amount] =
                 Format.satoshisToAmount(
@@ -100,7 +92,7 @@ class _TransactionFeeSelectionSheetState
         if (ref.read(feeSheetSessionCacheProvider).average[amount] == null) {
           final manager =
               ref.read(walletsChangeNotifierProvider).getManager(walletId);
-          if (coin == Coin.monero || coin == Coin.wownero) {
+          if (coin == Coin.monero) {
             final fee = await manager.estimateFeeFor(
                 amount, MoneroTransactionPriority.regular.raw!);
             ref.read(feeSheetSessionCacheProvider).average[amount] =
@@ -108,14 +100,6 @@ class _TransactionFeeSelectionSheetState
               fee,
               coin: coin,
             );
-          } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-              ref.read(publicPrivateBalanceStateProvider.state).state !=
-                  "Private") {
-            ref.read(feeSheetSessionCacheProvider).average[amount] =
-                Format.satoshisToAmount(
-                    await (manager.wallet as FiroWallet)
-                        .estimateFeeForPublic(amount, feeRate),
-                    coin: coin);
           } else {
             ref.read(feeSheetSessionCacheProvider).average[amount] =
                 Format.satoshisToAmount(
@@ -129,7 +113,7 @@ class _TransactionFeeSelectionSheetState
         if (ref.read(feeSheetSessionCacheProvider).slow[amount] == null) {
           final manager =
               ref.read(walletsChangeNotifierProvider).getManager(walletId);
-          if (coin == Coin.monero || coin == Coin.wownero) {
+          if (coin == Coin.monero) {
             final fee = await manager.estimateFeeFor(
                 amount, MoneroTransactionPriority.slow.raw!);
             ref.read(feeSheetSessionCacheProvider).slow[amount] =
@@ -137,14 +121,6 @@ class _TransactionFeeSelectionSheetState
               fee,
               coin: coin,
             );
-          } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-              ref.read(publicPrivateBalanceStateProvider.state).state !=
-                  "Private") {
-            ref.read(feeSheetSessionCacheProvider).slow[amount] =
-                Format.satoshisToAmount(
-                    await (manager.wallet as FiroWallet)
-                        .estimateFeeForPublic(amount, feeRate),
-                    coin: coin);
           } else {
             ref.read(feeSheetSessionCacheProvider).slow[amount] =
                 Format.satoshisToAmount(

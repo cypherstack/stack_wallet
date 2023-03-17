@@ -61,8 +61,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   bool hidePassword = true;
   bool _expandedAdavnced = false;
 
-  bool get supportsMnemonicPassphrase =>
-      !(coin == Coin.monero || coin == Coin.wownero || coin == Coin.epicCash);
+  bool get supportsMnemonicPassphrase => !(coin == Coin.monero);
 
   @override
   void initState() {
@@ -299,11 +298,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
               SizedBox(
                 height: isDesktop ? 40 : 24,
               ),
-              if (coin == Coin.monero ||
-                  coin == Coin.epicCash ||
-                  (coin == Coin.wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (coin == Coin.monero)
                 Text(
                   "Choose start date",
                   style: isDesktop
@@ -315,48 +310,28 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                       : STextStyles.smallMed12(context),
                   textAlign: TextAlign.left,
                 ),
-              if (coin == Coin.monero ||
-                  coin == Coin.epicCash ||
-                  (coin == Coin.wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (coin == Coin.monero)
                 SizedBox(
                   height: isDesktop ? 16 : 8,
                 ),
-              if (coin == Coin.monero ||
-                  coin == Coin.epicCash ||
-                  (coin == Coin.wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (coin == Coin.monero)
                 if (!isDesktop)
                   RestoreFromDatePicker(
                     onTap: chooseDate,
                     controller: _dateController,
                   ),
-              if (coin == Coin.monero ||
-                  coin == Coin.epicCash ||
-                  (coin == Coin.wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (coin == Coin.monero)
                 if (isDesktop)
                   // TODO desktop date picker
                   RestoreFromDatePicker(
                     onTap: chooseDesktopDate,
                     controller: _dateController,
                   ),
-              if (coin == Coin.monero ||
-                  coin == Coin.epicCash ||
-                  (coin == Coin.wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (coin == Coin.monero)
                 const SizedBox(
                   height: 8,
                 ),
-              if (coin == Coin.monero ||
-                  coin == Coin.epicCash ||
-                  (coin == Coin.wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (coin == Coin.monero)
                 RoundedWhiteContainer(
                   child: Center(
                     child: Text(
@@ -373,11 +348,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     ),
                   ),
                 ),
-              if (coin == Coin.monero ||
-                  coin == Coin.epicCash ||
-                  (coin == Coin.wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (coin == Coin.monero)
                 SizedBox(
                   height: isDesktop ? 24 : 16,
                 ),
