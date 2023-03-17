@@ -4,6 +4,7 @@ import 'package:lottie/lottie.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -25,8 +26,6 @@ class _RestoringDialogState extends State<SendingTransactionDialog>
     with TickerProviderStateMixin {
   late AnimationController? _spinController;
   late Animation<double> _spinAnimation;
-
-  final bool chan = false;
 
   @override
   void initState() {
@@ -67,7 +66,8 @@ class _RestoringDialogState extends State<SendingTransactionDialog>
               const SizedBox(
                 height: 40,
               ),
-              chan
+              Theme.of(context).extension<StackColors>()!.themeType ==
+                      ThemeType.chan
                   ? Lottie.asset(
                       Assets.lottie.kiss(widget.coin),
                     )
@@ -91,7 +91,8 @@ class _RestoringDialogState extends State<SendingTransactionDialog>
         onWillPop: () async {
           return false;
         },
-        child: chan
+        child: Theme.of(context).extension<StackColors>()!.themeType ==
+                ThemeType.chan
             ? StackDialogBase(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,

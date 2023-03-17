@@ -156,6 +156,7 @@ class _SVG {
   String get themeOcean => "assets/svg/ocean-breeze-theme.svg";
   String get themeLight => "assets/svg/light-mode.svg";
   String get themeDark => "assets/svg/dark-theme.svg";
+  String get themeChan => "assets/svg/chanstheme.svg";
 
   String get circleSliders => "assets/svg/configuration.svg";
   String get circlePlus => "assets/svg/plus-circle.svg";

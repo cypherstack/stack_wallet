@@ -4,6 +4,7 @@ import 'package:lottie/lottie.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
@@ -29,8 +30,6 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
   late Animation<double> _spinAnimation;
 
   late final VoidCallback onCancel;
-
-  final bool chan = false;
 
   @override
   void initState() {
@@ -70,11 +69,13 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
           const SizedBox(
             height: 40,
           ),
-          if (chan)
+          if (Theme.of(context).extension<StackColors>()!.themeType ==
+              ThemeType.chan)
             Lottie.asset(
               Assets.lottie.kiss(widget.coin),
             ),
-          if (!chan)
+          if (Theme.of(context).extension<StackColors>()!.themeType !=
+              ThemeType.chan)
             RotationTransition(
               turns: _spinAnimation,
               child: SvgPicture.asset(
@@ -102,7 +103,8 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
         onWillPop: () async {
           return false;
         },
-        child: chan
+        child: Theme.of(context).extension<StackColors>()!.themeType ==
+                ThemeType.chan
             ? StackDialogBase(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,

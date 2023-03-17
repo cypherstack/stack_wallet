@@ -163,7 +163,6 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
   String assetNameFor(ThemeType type) {
     switch (type) {
       case ThemeType.light:
-      case ThemeType.chan:
         return Assets.svg.themeLight;
       case ThemeType.dark:
         return Assets.svg.themeDark;
@@ -175,6 +174,8 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
         return Assets.svg.themeFruit;
       case ThemeType.forest:
         return Assets.svg.themeForest;
+      case ThemeType.chan:
+        return Assets.svg.themeChan;
     }
   }
 
