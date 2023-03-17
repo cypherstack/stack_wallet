@@ -333,9 +333,6 @@ class DesktopAboutView extends ConsumerWidget {
                                         const SizedBox(height: 35),
                                         Row(
                                           children: [
-                                            const SizedBox(
-                                              width: 105,
-                                            ),
                                             FutureBuilder(
                                                 future: commitMoneroFuture,
                                                 builder: (context,
