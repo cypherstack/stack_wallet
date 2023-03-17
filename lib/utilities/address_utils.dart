@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:bitcoindart/bitcoindart.dart';
 import 'package:crypto/crypto.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
