@@ -4,6 +4,8 @@ import 'package:stackwallet/utilities/theme/color_theme.dart';
 class ChanColors extends StackColorTheme {
   @override
   ThemeType get themeType => ThemeType.chan;
+  @override
+  Brightness get brightness => Brightness.light;
 
   @override
   Color get background => const Color(0xFFF7F7F7);

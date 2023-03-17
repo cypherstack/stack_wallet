@@ -63,6 +63,7 @@ extension ThemeTypeExt on ThemeType {
 
 abstract class StackColorTheme {
   ThemeType get themeType;
+  Brightness get brightness;
 
   Color get background;
   Color get backgroundAppBar;

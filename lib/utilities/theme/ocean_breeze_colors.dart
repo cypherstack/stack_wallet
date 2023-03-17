@@ -4,6 +4,8 @@ import 'package:stackwallet/utilities/theme/color_theme.dart';
 class OceanBreezeColors extends StackColorTheme {
   @override
   ThemeType get themeType => ThemeType.oceanBreeze;
+  @override
+  Brightness get brightness => Brightness.light;
 
   @override
   Color get background => Colors.transparent;
