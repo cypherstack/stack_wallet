@@ -354,6 +354,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         colorTheme = ForestColors();
         break;
       case "light":
+      case "chan":
       default:
         colorTheme = LightColors();
     }

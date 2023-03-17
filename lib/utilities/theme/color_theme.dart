@@ -46,7 +46,7 @@ extension ThemeTypeExt on ThemeType {
       case ThemeType.light:
         return "Light";
       case ThemeType.chan:
-        return "Chan";
+        return "Crypto Chans";
       case ThemeType.dark:
         return "Dark";
       case ThemeType.oceanBreeze:
