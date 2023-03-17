@@ -7,7 +7,17 @@ import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
 import 'package:stackwallet/utilities/theme/oled_black_colors.dart';
 
-enum ThemeType { light, dark, oceanBreeze, oledBlack, fruitSorbet, forest }
+import 'chan_colors.dart';
+
+enum ThemeType {
+  light,
+  dark,
+  oceanBreeze,
+  oledBlack,
+  fruitSorbet,
+  forest,
+  chan;
+}
 
 // adjust this file
 
@@ -16,6 +26,8 @@ extension ThemeTypeExt on ThemeType {
     switch (this) {
       case ThemeType.light:
         return LightColors();
+      case ThemeType.chan:
+        return ChanColors();
       case ThemeType.dark:
         return DarkColors();
       case ThemeType.oceanBreeze:
@@ -33,6 +45,8 @@ extension ThemeTypeExt on ThemeType {
     switch (this) {
       case ThemeType.light:
         return "Light";
+      case ThemeType.chan:
+        return "Chan";
       case ThemeType.dark:
         return "Dark";
       case ThemeType.oceanBreeze:

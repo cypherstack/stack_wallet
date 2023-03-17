@@ -135,7 +135,7 @@ class _AppearanceOptionSettings
                         ],
                       ),
                     ),
-                    Padding(
+                    const Padding(
                       padding: EdgeInsets.all(10),
                       child: ThemeToggle(),
                     ),
@@ -163,6 +163,7 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
   String assetNameFor(ThemeType type) {
     switch (type) {
       case ThemeType.light:
+      case ThemeType.chan:
         return Assets.svg.themeLight;
       case ThemeType.dark:
         return Assets.svg.themeDark;

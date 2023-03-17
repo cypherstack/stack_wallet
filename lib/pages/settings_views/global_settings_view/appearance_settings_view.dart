@@ -27,6 +27,8 @@ class AppearanceSettingsView extends ConsumerWidget {
     switch (type) {
       case ThemeType.light:
         return "Light theme";
+      case ThemeType.chan:
+        return "Chan theme";
       case ThemeType.dark:
         return "Dark theme";
       case ThemeType.oceanBreeze:
