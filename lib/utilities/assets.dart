@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
-
-const _kPath_themed = "assets/svg/themed/";
 
 abstract class Assets {
   static const svg = _SVG();
@@ -12,6 +11,29 @@ abstract class Assets {
   static const socials = _SOCIALS();
   static const exchange = _EXCHANGE();
   static const buy = _BUY();
+
+  static Future<void> precache(BuildContext context) async {
+    final assets = [
+      svg.stack(context),
+      svg.personaEasy(context),
+      svg.personaIncognito(context),
+      svg.iconFor(coin: Coin.dogecoin),
+      ...Coin.values.map(
+        (e) => svg.imageFor(context: context, coin: e),
+      ),
+    ];
+
+    final futures = assets.map(
+      (e) => precachePicture(
+          ExactAssetPicture(
+            SvgPicture.svgStringDecoderBuilder,
+            e,
+          ),
+          context),
+    );
+
+    await Future.wait(futures);
+  }
 }
 
 class _SOCIALS {
