@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
 
 abstract class Assets {
   static const svg = _SVG();
@@ -15,14 +16,18 @@ abstract class Assets {
 
   static Future<void> precache(BuildContext context) async {
     final assets = [
+      svg.iconFor(coin: Coin.dogecoin),
       svg.stack(context),
       svg.personaEasy(context),
       svg.personaIncognito(context),
-      svg.iconFor(coin: Coin.dogecoin),
       ...Coin.values.map(
         (e) => svg.imageFor(context: context, coin: e),
       ),
     ];
+
+    if (Util.isDesktop) {
+      assets.add(svg.themeChan);
+    }
 
     final futures = assets.map(
       (e) => precachePicture(
