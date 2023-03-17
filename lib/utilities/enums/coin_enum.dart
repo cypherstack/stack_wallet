@@ -3,9 +3,6 @@ import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart'
     as bch;
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart'
     as doge;
-import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart'
-    as epic;
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as firo;
 import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart'
     as ltc;
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart' as xmr;
