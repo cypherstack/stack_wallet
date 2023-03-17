@@ -363,18 +363,18 @@ flutter:
     # basic
     - assets/lottie/test2.json
 
-    # coin animations
-    - assets/lottie/coins/bitcoin/
-    - assets/lottie/coins/bitcoincash/
-    - assets/lottie/coins/dogecoin/
-    - assets/lottie/coins/epicCash/
-    - assets/lottie/coins/ethereum/
-    - assets/lottie/coins/firo/
-    - assets/lottie/coins/litecoin/
-    - assets/lottie/coins/monero/
-    - assets/lottie/coins/namecoin/
-    - assets/lottie/coins/particl/
-    - assets/lottie/coins/wownero/
+    # coin gifs
+    - assets/gif/coins/bitcoin/
+    - assets/gif/coins/bitcoincash/
+    - assets/gif/coins/dogecoin/
+    - assets/gif/coins/epicCash/
+    - assets/gif/coins/ethereum/
+    - assets/gif/coins/firo/
+    - assets/gif/coins/litecoin/
+    - assets/gif/coins/monero/
+    - assets/gif/coins/namecoin/
+    - assets/gif/coins/particl/
+    - assets/gif/coins/wownero/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

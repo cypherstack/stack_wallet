@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:lottie/lottie.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -68,8 +67,10 @@ class _RestoringDialogState extends State<SendingTransactionDialog>
               ),
               Theme.of(context).extension<StackColors>()!.themeType ==
                       ThemeType.chan
-                  ? Lottie.asset(
-                      Assets.lottie.kiss(widget.coin),
+                  ? Image(
+                      image: AssetImage(
+                        Assets.gif.kiss(widget.coin),
+                      ),
                     )
                   : RotationTransition(
                       turns: _spinAnimation,
@@ -98,8 +99,10 @@ class _RestoringDialogState extends State<SendingTransactionDialog>
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Lottie.asset(
-                      Assets.lottie.kiss(widget.coin),
+                    Image(
+                      image: AssetImage(
+                        Assets.gif.kiss(widget.coin),
+                      ),
                     ),
                     Text(
                       "Sending transaction",

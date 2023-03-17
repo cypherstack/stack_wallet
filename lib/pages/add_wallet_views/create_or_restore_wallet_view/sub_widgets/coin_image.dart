@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:lottie/lottie.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
@@ -26,8 +25,10 @@ class CoinImage extends ConsumerWidget {
       return SizedBox(
         width: width,
         height: height,
-        child: Lottie.asset(
-          Assets.lottie.plain(coin),
+        child: Image(
+          image: AssetImage(
+            Assets.gif.plain(coin),
+          ),
         ),
       );
     } else {

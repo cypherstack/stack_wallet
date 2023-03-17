@@ -169,6 +169,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
             CoinImage(
               coin: coin,
               height: 100,
+              width: 100,
             ),
           SizedBox(
             height: isDesktop ? 0 : 16,

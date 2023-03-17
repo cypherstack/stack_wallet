@@ -286,6 +286,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 CoinImage(
                   coin: coin,
                   height: 100,
+                  width: 100,
                 ),
               SizedBox(
                 height: isDesktop ? 0 : 16,

@@ -11,6 +11,7 @@ abstract class Assets {
   static const socials = _SOCIALS();
   static const exchange = _EXCHANGE();
   static const buy = _BUY();
+  static const gif = _GIF();
 
   static Future<void> precache(BuildContext context) async {
     final assets = [
@@ -383,12 +384,16 @@ class _ANIMATIONS {
   const _ANIMATIONS();
 
   String get test2 => "assets/lottie/test2.json";
+}
+
+class _GIF {
+  const _GIF();
 
   String plain(Coin coin) {
-    return "assets/lottie/coins/${coin.mainNetVersion.name}/plain.lottie.json";
+    return "assets/gif/coins/${coin.mainNetVersion.name}/plain.gif";
   }
 
   String kiss(Coin coin) {
-    return "assets/lottie/coins/${coin.mainNetVersion.name}/kiss.lottie.json";
+    return "assets/gif/coins/${coin.mainNetVersion.name}/kiss.gif";
   }
 }
