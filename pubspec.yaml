@@ -367,7 +367,7 @@ flutter:
     - assets/lottie/coins/bitcoin/
     - assets/lottie/coins/bitcoincash/
     - assets/lottie/coins/dogecoin/
-    - assets/lottie/coins/epiccash/
+    - assets/lottie/coins/epicCash/
     - assets/lottie/coins/ethereum/
     - assets/lottie/coins/firo/
     - assets/lottie/coins/litecoin/

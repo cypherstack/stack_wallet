@@ -57,6 +57,7 @@ import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
+import 'package:stackwallet/utilities/theme/chan_colors.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/dark_colors.dart';
 import 'package:stackwallet/utilities/theme/forest_colors.dart';
@@ -353,8 +354,10 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       case "forest":
         colorTheme = ForestColors();
         break;
-      case "light":
       case "chan":
+        colorTheme = ChanColors();
+        break;
+      case "light":
       default:
         colorTheme = LightColors();
     }

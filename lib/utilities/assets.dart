@@ -373,8 +373,6 @@ class _SVG {
 class _PNG {
   const _PNG();
 
-  String stack(BuildContext context) =>
-      "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/stack.png";
   String get splash => "assets/images/splash.png";
 
   String get glasses => "assets/images/glasses.png";
