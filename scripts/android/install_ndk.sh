@@ -11,9 +11,5 @@ fi
 echo $ANDROID_NDK_SHA256 $ANDROID_NDK_ZIP | sha256sum -c || exit 1
 
 mkdir ../../crypto_plugins/flutter_libmonero/scripts/android/build
-mkdir ../../crypto_plugins/flutter_liblelantus/scripts/android/build
-mkdir ../../crypto_plugins/flutter_libepiccash/scripts/android/build
 
 cp ${ANDROID_NDK_ZIP} ../../crypto_plugins/flutter_libmonero/scripts/android/build/
-cp ${ANDROID_NDK_ZIP} ../../crypto_plugins/flutter_liblelantus/scripts/android/build/
-cp ${ANDROID_NDK_ZIP} ../../crypto_plugins/flutter_libepiccash/scripts/android/build/
