@@ -241,6 +241,7 @@ class _SVG {
   String get exchange3 => "assets/svg/exchange-3.svg";
   String get messageQuestion => "assets/svg/message-question-1.svg";
   String get list => "assets/svg/list-ul.svg";
+  String get unclaimedPaynym => "assets/svg/unclaimed.png";
 
 // TODO provide proper assets
   String get bitcoinTestnet => "assets/svg/coin_icons/Bitcoin.svg";
@@ -349,7 +350,6 @@ class _SVG {
 class _PNG {
   const _PNG();
 
-  String get unclaimedPaynym => "assets/images/unclaimed.png";
   String stack(BuildContext context) =>
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/stack.png";
   String get splash => "assets/images/splash.png";

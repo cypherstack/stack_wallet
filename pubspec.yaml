@@ -207,9 +207,9 @@ flutter:
     - google_fonts/
     - assets/svg/circle-check.svg
     - assets/svg/clipboard.svg
-    - assets/images/unclaimed.png
     - assets/images/glasses.png
     - assets/images/glasses-hidden.png
+    - assets/svg/unclaimed.svg
     - assets/svg/plus.svg
     - assets/svg/gear.svg
     - assets/svg/bell.svg
