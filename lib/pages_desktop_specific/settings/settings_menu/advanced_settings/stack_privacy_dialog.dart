@@ -10,7 +10,6 @@ import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -18,8 +17,6 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-
-import '../../../../providers/ui/color_theme_provider.dart';
 
 class StackPrivacyDialog extends ConsumerStatefulWidget {
   const StackPrivacyDialog({Key? key}) : super(key: key);
@@ -215,16 +212,10 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
   late bool externalCallsEnabled;
 
   late final bool isDesktop;
-  late final bool isSorbet;
-  late final bool isOcean;
 
   @override
   void initState() {
     isDesktop = Util.isDesktop;
-    isSorbet = ref.read(colorThemeProvider.state).state.themeType ==
-        ThemeType.fruitSorbet;
-    isOcean = ref.read(colorThemeProvider.state).state.themeType ==
-        ThemeType.oceanBreeze;
     // initial toggle state
     externalCallsEnabled = widget.externalCallsEnabled;
     super.initState();
@@ -273,17 +264,11 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                         const SizedBox(
                           height: 10,
                         ),
-                      (isSorbet)
-                          ? Image.asset(
-                              Assets.png.personaEasy(context),
-                              width: 120,
-                              height: 120,
-                            )
-                          : SvgPicture.asset(
-                              Assets.svg.personaEasy(context),
-                              width: 120,
-                              height: 120,
-                            ),
+                      SvgPicture.asset(
+                        Assets.svg.personaEasy(context),
+                        width: 120,
+                        height: 120,
+                      ),
                       if (isDesktop)
                         const SizedBox(
                           height: 12,
@@ -385,17 +370,11 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                         const SizedBox(
                           height: 10,
                         ),
-                      (isSorbet)
-                          ? Image.asset(
-                              Assets.png.personaIncognito(context),
-                              width: 120,
-                              height: 120,
-                            )
-                          : SvgPicture.asset(
-                              Assets.svg.personaIncognito(context),
-                              width: 120,
-                              height: 120,
-                            ),
+                      SvgPicture.asset(
+                        Assets.svg.personaIncognito(context),
+                        width: 120,
+                        height: 120,
+                      ),
                       if (isDesktop)
                         const SizedBox(
                           height: 12,

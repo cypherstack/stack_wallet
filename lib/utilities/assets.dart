@@ -354,11 +354,6 @@ class _PNG {
       "assets/images/${Theme.of(context).extension<StackColors>()!.themeType.name}/stack.png";
   String get splash => "assets/images/splash.png";
 
-  String personaIncognito(BuildContext context) =>
-      "$_kPath_themed${Theme.of(context).extension<StackColors>()!.themeType.name}/persona-incognito-1.png";
-  String personaEasy(BuildContext context) =>
-      "$_kPath_themed${Theme.of(context).extension<StackColors>()!.themeType.name}/persona-easy-1.png";
-
   String get glasses => "assets/images/glasses.png";
   String get glassesHidden => "assets/images/glasses-hidden.png";
 }
