@@ -19,6 +19,8 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
+import '../../../providers/wallet/public_private_balance_state_provider.dart';
+
 class WalletSummaryInfo extends ConsumerStatefulWidget {
   const WalletSummaryInfo({
     Key? key,
@@ -92,19 +94,26 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
         ref.watch(walletBalanceToggleStateProvider.state).state ==
             WalletBalanceToggleState.available;
 
-    final Decimal totalBalance;
-    final Decimal availableBalance;
+    final Decimal balanceToShow;
+    String title;
+
     if (coin == Coin.firo || coin == Coin.firoTestNet) {
+      final _showPrivate =
+          ref.watch(publicPrivateBalanceStateProvider.state).state == "Private";
+
       final firoWallet = ref.watch(walletsChangeNotifierProvider.select(
           (value) => value.getManager(widget.walletId).wallet)) as FiroWallet;
-      totalBalance = firoWallet.balance.getSpendable();
-      availableBalance = firoWallet.balancePrivate.getSpendable();
-    } else {
-      totalBalance = balance.getTotal();
-      availableBalance = balance.getSpendable();
-    }
 
-    final balanceToShow = _showAvailable ? availableBalance : totalBalance;
+      final bal = _showPrivate ? firoWallet.balancePrivate : firoWallet.balance;
+
+      balanceToShow = _showAvailable ? bal.getSpendable() : bal.getTotal();
+      title = _showAvailable ? "Available" : "Full";
+      title += _showPrivate ? " private balance" : " public balance";
+    } else {
+      balanceToShow =
+          _showAvailable ? balance.getSpendable() : balance.getTotal();
+      title = _showAvailable ? "Available balance" : "Full balance";
+    }
 
     return Row(
       children: [
@@ -116,24 +125,14 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
                 onTap: showSheet,
                 child: Row(
                   children: [
-                    if (coin == Coin.firo || coin == Coin.firoTestNet)
-                      Text(
-                        "${_showAvailable ? "Private" : "Public"} Balance",
-                        style: STextStyles.subtitle500(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFavoriteCard,
-                        ),
+                    Text(
+                      title,
+                      style: STextStyles.subtitle500(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFavoriteCard,
                       ),
-                    if (coin != Coin.firo && coin != Coin.firoTestNet)
-                      Text(
-                        "${_showAvailable ? "Available" : "Full"} Balance",
-                        style: STextStyles.subtitle500(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFavoriteCard,
-                        ),
-                      ),
+                    ),
                     const SizedBox(
                       width: 4,
                     ),
