@@ -8,6 +8,7 @@ import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages_desktop_specific/password/create_password_view.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/price_provider.dart';
+import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -21,8 +22,6 @@ import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-
-import '../providers/ui/color_theme_provider.dart';
 
 class StackPrivacyCalls extends ConsumerStatefulWidget {
   const StackPrivacyCalls({
@@ -42,13 +41,11 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
   late final bool isDesktop;
   late bool isEasy;
   late bool infoToggle;
-  late final bool usePNG;
 
   @override
   void initState() {
     isDesktop = Util.isDesktop;
     isEasy = ref.read(prefsChangeNotifierProvider).externalCalls;
-    usePNG = ref.read(colorThemeProvider.state).state == "fruitSorbet";
     infoToggle = isEasy;
     super.initState();
   }

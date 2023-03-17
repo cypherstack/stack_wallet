@@ -9,6 +9,7 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/sending_transaction_dialog.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
+import 'package:stackwallet/pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
@@ -74,39 +75,57 @@ class _ConfirmTransactionViewState
   late final TextEditingController noteController;
 
   Future<void> _attemptSend(BuildContext context) async {
+    final manager =
+        ref.read(walletsChangeNotifierProvider).getManager(walletId);
     unawaited(
       showDialog<dynamic>(
         context: context,
         useSafeArea: false,
         barrierDismissible: false,
         builder: (context) {
-          return const SendingTransactionDialog();
+          return SendingTransactionDialog(
+            coin: manager.coin,
+          );
         },
       ),
     );
 
+    final time = Future<dynamic>.delayed(
+      const Duration(
+        milliseconds: 2500,
+      ),
+    );
+
+    late String txid;
+    Future<String> txidFuture;
+
     final note = noteController.text;
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
     try {
-      String txid;
       if (widget.isPaynymNotificationTransaction) {
-        txid = await (manager.wallet as PaynymWalletInterface)
+        txidFuture = (manager.wallet as PaynymWalletInterface)
             .broadcastNotificationTx(preparedTx: transactionInfo);
       } else if (widget.isPaynymTransaction) {
-        txid = await manager.confirmSend(txData: transactionInfo);
+        txidFuture = manager.confirmSend(txData: transactionInfo);
       } else {
         final coin = manager.coin;
         if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
             ref.read(publicPrivateBalanceStateProvider.state).state !=
                 "Private") {
-          txid = await (manager.wallet as FiroWallet)
+          txidFuture = (manager.wallet as FiroWallet)
               .confirmSendPublic(txData: transactionInfo);
         } else {
-          txid = await manager.confirmSend(txData: transactionInfo);
+          txidFuture = manager.confirmSend(txData: transactionInfo);
         }
       }
+
+      final results = await Future.wait([
+        txidFuture,
+        time,
+      ]);
+
+      txid = results.first as String;
+      ref.refresh(desktopUseUTXOs);
 
       // save note
       await ref

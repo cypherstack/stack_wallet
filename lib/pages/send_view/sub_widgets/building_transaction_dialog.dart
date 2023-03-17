@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:lottie/lottie.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -11,9 +13,11 @@ class BuildingTransactionDialog extends StatefulWidget {
   const BuildingTransactionDialog({
     Key? key,
     required this.onCancel,
+    required this.coin,
   }) : super(key: key);
 
   final VoidCallback onCancel;
+  final Coin coin;
 
   @override
   State<BuildingTransactionDialog> createState() => _RestoringDialogState();
@@ -25,6 +29,9 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
   late Animation<double> _spinAnimation;
 
   late final VoidCallback onCancel;
+
+  final bool chan = false;
+
   @override
   void initState() {
     onCancel = widget.onCancel;
@@ -63,16 +70,21 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
           const SizedBox(
             height: 40,
           ),
-          RotationTransition(
-            turns: _spinAnimation,
-            child: SvgPicture.asset(
-              Assets.svg.arrowRotate,
-              color:
-                  Theme.of(context).extension<StackColors>()!.accentColorDark,
-              width: 24,
-              height: 24,
+          if (chan)
+            Lottie.asset(
+              Assets.lottie.kiss(widget.coin),
             ),
-          ),
+          if (!chan)
+            RotationTransition(
+              turns: _spinAnimation,
+              child: SvgPicture.asset(
+                Assets.svg.arrowRotate,
+                color:
+                    Theme.of(context).extension<StackColors>()!.accentColorDark,
+                width: 24,
+                height: 24,
+              ),
+            ),
           const SizedBox(
             height: 40,
           ),
@@ -90,34 +102,73 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
         onWillPop: () async {
           return false;
         },
-        child: StackDialog(
-          title: "Generating transaction",
-          // // TODO get message from design team
-          // message: "<PLACEHOLDER>",
-          icon: RotationTransition(
-            turns: _spinAnimation,
-            child: SvgPicture.asset(
-              Assets.svg.arrowRotate,
-              color:
-                  Theme.of(context).extension<StackColors>()!.accentColorDark,
-              width: 24,
-              height: 24,
-            ),
-          ),
-          rightButton: TextButton(
-            style: Theme.of(context)
-                .extension<StackColors>()!
-                .getSecondaryEnabledButtonStyle(context),
-            child: Text(
-              "Cancel",
-              style: STextStyles.itemSubtitle12(context),
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-              onCancel.call();
-            },
-          ),
-        ),
+        child: chan
+            ? StackDialogBase(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Lottie.asset(
+                      Assets.lottie.kiss(widget.coin),
+                    ),
+                    Text(
+                      "Generating transaction",
+                      textAlign: TextAlign.center,
+                      style: STextStyles.pageTitleH2(context),
+                    ),
+                    const SizedBox(
+                      height: 32,
+                    ),
+                    Row(
+                      children: [
+                        const Spacer(),
+                        Expanded(
+                          child: TextButton(
+                            style: Theme.of(context)
+                                .extension<StackColors>()!
+                                .getSecondaryEnabledButtonStyle(context),
+                            child: Text(
+                              "Cancel",
+                              style: STextStyles.itemSubtitle12(context),
+                            ),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              onCancel.call();
+                            },
+                          ),
+                        )
+                      ],
+                    ),
+                  ],
+                ),
+              )
+            : StackDialog(
+                title: "Generating transaction",
+                icon: RotationTransition(
+                  turns: _spinAnimation,
+                  child: SvgPicture.asset(
+                    Assets.svg.arrowRotate,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
+                    width: 24,
+                    height: 24,
+                  ),
+                ),
+                rightButton: TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getSecondaryEnabledButtonStyle(context),
+                  child: Text(
+                    "Cancel",
+                    style: STextStyles.itemSubtitle12(context),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    onCancel.call();
+                  },
+                ),
+              ),
       );
     }
   }

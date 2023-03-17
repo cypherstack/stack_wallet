@@ -13,6 +13,7 @@ import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
+import 'package:stackwallet/pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/address_book_address_chooser.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_fee_dropdown.dart';
@@ -44,6 +45,7 @@ import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
@@ -120,128 +122,142 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           Format.decimalAmountToSatoshis(manager.balance.getSpendable(), coin);
     }
 
-    // confirm send all
-    if (amount == availableBalance) {
-      final bool? shouldSendAll = await showDialog<bool>(
-        context: context,
-        useSafeArea: false,
-        barrierDismissible: true,
-        builder: (context) {
-          return DesktopDialog(
-            maxWidth: 450,
-            maxHeight: double.infinity,
-            child: Padding(
-              padding: const EdgeInsets.only(
-                left: 32,
-                bottom: 32,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Confirm send all",
-                        style: STextStyles.desktopH3(context),
-                      ),
-                      const DesktopDialogCloseButton(),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 12,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      right: 32,
-                    ),
-                    child: Text(
-                      "You are about to send your entire balance. Would you like to continue?",
-                      textAlign: TextAlign.left,
-                      style: STextStyles.desktopTextExtraExtraSmall(context)
-                          .copyWith(
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 40,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      right: 32,
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: SecondaryButton(
-                            buttonHeight: ButtonHeight.l,
-                            label: "Cancel",
-                            onPressed: () {
-                              Navigator.of(context).pop(false);
-                            },
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 16,
-                        ),
-                        Expanded(
-                          child: PrimaryButton(
-                            buttonHeight: ButtonHeight.l,
-                            label: "Yes",
-                            onPressed: () {
-                              Navigator.of(context).pop(true);
+    final coinControlEnabled =
+        ref.read(prefsChangeNotifierProvider).enableCoinControl;
 
-                              setState(() {
-                                sendToController.text = "";
-                                cryptoAmountController.text = "";
-                                baseAmountController.text = "";
-                              });
-                            },
-                          ),
+    if (!(manager.hasCoinControlSupport && coinControlEnabled) ||
+        (manager.hasCoinControlSupport &&
+            coinControlEnabled &&
+            ref.read(desktopUseUTXOs).isEmpty)) {
+      // confirm send all
+      if (amount == availableBalance) {
+        final bool? shouldSendAll = await showDialog<bool>(
+          context: context,
+          useSafeArea: false,
+          barrierDismissible: true,
+          builder: (context) {
+            return DesktopDialog(
+              maxWidth: 450,
+              maxHeight: double.infinity,
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: 32,
+                  bottom: 32,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Confirm send all",
+                          style: STextStyles.desktopH3(context),
                         ),
+                        const DesktopDialogCloseButton(),
                       ],
                     ),
-                  ),
-                ],
+                    const SizedBox(
+                      height: 12,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        right: 32,
+                      ),
+                      child: Text(
+                        "You are about to send your entire balance. Would you like to continue?",
+                        textAlign: TextAlign.left,
+                        style: STextStyles.desktopTextExtraExtraSmall(context)
+                            .copyWith(
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 40,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        right: 32,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: SecondaryButton(
+                              buttonHeight: ButtonHeight.l,
+                              label: "Cancel",
+                              onPressed: () {
+                                Navigator.of(context).pop(false);
+                              },
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 16,
+                          ),
+                          Expanded(
+                            child: PrimaryButton(
+                              buttonHeight: ButtonHeight.l,
+                              label: "Yes",
+                              onPressed: () {
+                                Navigator.of(context).pop(true);
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
-      );
+            );
+          },
+        );
 
-      if (shouldSendAll == null || shouldSendAll == false) {
-        // cancel preview
-        return;
+        if (shouldSendAll == null || shouldSendAll == false) {
+          // cancel preview
+          return;
+        }
       }
     }
 
     try {
       bool wasCancelled = false;
 
-      unawaited(showDialog<dynamic>(
-        context: context,
-        useSafeArea: false,
-        barrierDismissible: false,
-        builder: (context) {
-          return DesktopDialog(
-            maxWidth: 400,
-            maxHeight: double.infinity,
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: BuildingTransactionDialog(
-                onCancel: () {
-                  wasCancelled = true;
+      if (mounted) {
+        unawaited(
+          showDialog<dynamic>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: false,
+            builder: (context) {
+              return DesktopDialog(
+                maxWidth: 400,
+                maxHeight: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: BuildingTransactionDialog(
+                    coin: manager.coin,
+                    onCancel: () {
+                      wasCancelled = true;
 
-                  Navigator.of(context).pop();
-                },
-              ),
-            ),
-          );
-        },
-      ));
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      }
+
+      final time = Future<dynamic>.delayed(
+        const Duration(
+          milliseconds: 2500,
+        ),
+      );
 
       Map<String, dynamic> txData;
+      Future<Map<String, dynamic>> txDataFuture;
 
       if (isPaynymSend) {
         final wallet = manager.wallet as PaynymWalletInterface;
@@ -250,26 +266,54 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           wallet.networkType,
         );
         final feeRate = ref.read(feeRateTypeStateProvider);
-        txData = await wallet.preparePaymentCodeSend(
+        txDataFuture = wallet.preparePaymentCodeSend(
           paymentCode: paymentCode,
           satoshiAmount: amount,
-          args: {"feeRate": feeRate},
+          args: {
+            "feeRate": feeRate,
+            "UTXOs": (manager.hasCoinControlSupport &&
+                    coinControlEnabled &&
+                    ref.read(desktopUseUTXOs).isNotEmpty)
+                ? ref.read(desktopUseUTXOs)
+                : null,
+          },
         );
       } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
           ref.read(publicPrivateBalanceStateProvider.state).state !=
               "Private") {
-        txData = await (manager.wallet as FiroWallet).prepareSendPublic(
+        txDataFuture = (manager.wallet as FiroWallet).prepareSendPublic(
           address: _address!,
           satoshiAmount: amount,
-          args: {"feeRate": ref.read(feeRateTypeStateProvider)},
+          args: {
+            "feeRate": ref.read(feeRateTypeStateProvider),
+            "UTXOs": (manager.hasCoinControlSupport &&
+                    coinControlEnabled &&
+                    ref.read(desktopUseUTXOs).isNotEmpty)
+                ? ref.read(desktopUseUTXOs)
+                : null,
+          },
         );
       } else {
-        txData = await manager.prepareSend(
+        txDataFuture = manager.prepareSend(
           address: _address!,
           satoshiAmount: amount,
-          args: {"feeRate": ref.read(feeRateTypeStateProvider)},
+          args: {
+            "feeRate": ref.read(feeRateTypeStateProvider),
+            "UTXOs": (manager.hasCoinControlSupport &&
+                    coinControlEnabled &&
+                    ref.read(desktopUseUTXOs).isNotEmpty)
+                ? ref.read(desktopUseUTXOs)
+                : null,
+          },
         );
       }
+
+      final results = await Future.wait([
+        txDataFuture,
+        time,
+      ]);
+
+      txData = results.first as Map<String, dynamic>;
 
       if (!wasCancelled && mounted) {
         if (isPaynymSend) {
@@ -666,6 +710,16 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
   }
 
+  void _showDesktopCoinControl() async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) => DesktopCoinControlUseDialog(
+        walletId: widget.walletId,
+        amountToSend: _amountToSend,
+      ),
+    );
+  }
+
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -762,6 +816,17 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         }
       });
     }
+
+    final showCoinControl = ref.watch(
+          prefsChangeNotifierProvider.select(
+            (value) => value.enableCoinControl,
+          ),
+        ) &&
+        ref.watch(
+          provider.select(
+            (value) => value.hasCoinControlSupport,
+          ),
+        );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1037,6 +1102,31 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   ),
                 ),
               ),
+            ),
+          ),
+        if (showCoinControl)
+          const SizedBox(
+            height: 10,
+          ),
+        if (showCoinControl)
+          RoundedContainer(
+            color: Colors.transparent,
+            borderColor:
+                Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Coin control",
+                  style: STextStyles.desktopTextExtraExtraSmall(context),
+                ),
+                CustomTextButton(
+                  text: ref.watch(desktopUseUTXOs.state).state.isEmpty
+                      ? "Select coins"
+                      : "Selected coins (${ref.watch(desktopUseUTXOs.state).state.length})",
+                  onTap: _showDesktopCoinControl,
+                ),
+              ],
             ),
           ),
         const SizedBox(

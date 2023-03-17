@@ -431,6 +431,7 @@ class _SendViewState extends ConsumerState<SendView> {
             barrierDismissible: false,
             builder: (context) {
               return BuildingTransactionDialog(
+                coin: manager.coin,
                 onCancel: () {
                   wasCancelled = true;
 
@@ -442,7 +443,14 @@ class _SendViewState extends ConsumerState<SendView> {
         );
       }
 
+      final time = Future<dynamic>.delayed(
+        const Duration(
+          milliseconds: 2500,
+        ),
+      );
+
       Map<String, dynamic> txData;
+      Future<Map<String, dynamic>> txDataFuture;
 
       if (isPaynymSend) {
         final wallet = manager.wallet as PaynymWalletInterface;
@@ -451,7 +459,7 @@ class _SendViewState extends ConsumerState<SendView> {
           wallet.networkType,
         );
         final feeRate = ref.read(feeRateTypeStateProvider);
-        txData = await wallet.preparePaymentCodeSend(
+        txDataFuture = wallet.preparePaymentCodeSend(
           paymentCode: paymentCode,
           satoshiAmount: amount,
           args: {
@@ -466,13 +474,13 @@ class _SendViewState extends ConsumerState<SendView> {
       } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
           ref.read(publicPrivateBalanceStateProvider.state).state !=
               "Private") {
-        txData = await (manager.wallet as FiroWallet).prepareSendPublic(
+        txDataFuture = (manager.wallet as FiroWallet).prepareSendPublic(
           address: _address!,
           satoshiAmount: amount,
           args: {"feeRate": ref.read(feeRateTypeStateProvider)},
         );
       } else {
-        txData = await manager.prepareSend(
+        txDataFuture = manager.prepareSend(
           address: _address!,
           satoshiAmount: amount,
           args: {
@@ -485,6 +493,13 @@ class _SendViewState extends ConsumerState<SendView> {
           },
         );
       }
+
+      final results = await Future.wait([
+        txDataFuture,
+        time,
+      ]);
+
+      txData = results.first as Map<String, dynamic>;
 
       if (!wasCancelled && mounted) {
         // pop building dialog
