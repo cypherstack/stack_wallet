@@ -23,9 +23,6 @@ dependencies:
   mutex: ^3.0.0
   websocket_universal: ^0.5.1
 
-  lelantus:
-    path: ./crypto_plugins/flutter_liblelantus
-
   flutter_libmonero:
     path: ./crypto_plugins/flutter_libmonero
 
@@ -37,9 +34,6 @@ dependencies:
 
   cw_core:
     path: ./crypto_plugins/flutter_libmonero/cw_core
-
-  flutter_libepiccash:
-    path: ./crypto_plugins/flutter_libepiccash
 
 #  firo_flutter:
 #    git:
