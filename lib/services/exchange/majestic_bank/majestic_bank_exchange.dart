@@ -24,13 +24,6 @@ class MajesticBankExchange extends Exchange {
   static const kMajesticBankCurrencyNames = {
     "BCH": "Bitcoin Cash",
     "BTC": "Bitcoin",
-    "DOGE": "Dogecoin",
-    "EPIC": "Epic Cash",
-    "FIRO": "Firo",
-    "LTC": "Litecoin",
-    "NMC": "Namecoin",
-    "PART": "Particl",
-    "WOW": "Wownero",
     "XMR": "Monero",
   };
 

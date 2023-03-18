@@ -244,32 +244,6 @@ class GlobalSettingsView extends StatelessWidget {
                                         .pushNamed(SupportView.routeName);
                                   },
                                 ),
-                                // TextButton(
-                                //   style: Theme.of(context)
-                                //       .textButtonTheme
-                                //       .style
-                                //       ?.copyWith(
-                                //         backgroundColor:
-                                //             MaterialStateProperty.all<Color>(
-                                //           Theme.of(context).extension<StackColors>()!.accentColorDark
-                                //         ),
-                                //       ),
-                                //   child: Text(
-                                //     "fire test notification",
-                                //     style: STextStyles.button(context),
-                                //   ),
-                                //   onPressed: () async {
-                                //     NotificationApi.showNotification2(
-                                //       title: "Test notification",
-                                //       body: "My doggy wallet",
-                                //       walletId:
-                                //           "3c5e2d70-fcc3-11ec-86a3-31a106a81c3b",
-                                //       iconAssetName:
-                                //           Assets.svg.iconFor(coin: Coin.dogecoin),
-                                //       date: DateTime.now(),
-                                //     );
-                                //   },
-                                // ),
                               ],
                             ),
                           ),

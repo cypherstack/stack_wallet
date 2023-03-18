@@ -240,22 +240,10 @@ class _SVG {
 
 // TODO provide proper assets
   String get bitcoinTestnet => "assets/svg/coin_icons/Bitcoin.svg";
-  String get bitcoincashTestnet => "assets/svg/coin_icons/Bitcoincash.svg";
-  String get firoTestnet => "assets/svg/coin_icons/Firo.svg";
-  String get dogecoinTestnet => "assets/svg/coin_icons/Dogecoin.svg";
-  String get particlTestnet => "assets/svg/coin_icons/Particl.svg";
 
   // small icons
   String get bitcoin => "assets/svg/coin_icons/Bitcoin.svg";
-  String get litecoin => "assets/svg/coin_icons/Litecoin.svg";
-  String get bitcoincash => "assets/svg/coin_icons/Bitcoincash.svg";
-  String get dogecoin => "assets/svg/coin_icons/Dogecoin.svg";
-  String get epicCash => "assets/svg/coin_icons/EpicCash.svg";
-  String get firo => "assets/svg/coin_icons/Firo.svg";
   String get monero => "assets/svg/coin_icons/Monero.svg";
-  String get wownero => "assets/svg/coin_icons/Wownero.svg";
-  String get namecoin => "assets/svg/coin_icons/Namecoin.svg";
-  String get particl => "assets/svg/coin_icons/Particl.svg";
 
   String iconFor({required Coin coin}) {
     switch (coin) {
@@ -271,24 +259,8 @@ class _SVG {
   // big icons
   String bitcoinImage(BuildContext context) =>
       "$_path_themed${Theme.of(context).extension<StackColors>()!.themeType.name}/bitcoin.svg";
-  String bitcoincashImage(BuildContext context) =>
-      "$_path_themed${Theme.of(context).extension<StackColors>()!.themeType.name}/bitcoincash.svg";
-  String dogecoinImage(BuildContext context) =>
-      "$_path_themed${Theme.of(context).extension<StackColors>()!.themeType.name}/doge.svg";
-  String epicCashImage(BuildContext context) =>
-      "$_path_themed${Theme.of(context).extension<StackColors>()!.themeType.name}/epic-cash.svg";
-  String firoImage(BuildContext context) =>
-      "$_path_themed${Theme.of(context).extension<StackColors>()!.themeType.name}/firo.svg";
-  String litecoinImage(BuildContext context) =>
-      "$_path_themed${Theme.of(context).extension<StackColors>()!.themeType.name}/litecoin.svg";
   String moneroImage(BuildContext context) =>
       "$_path_themed${Theme.of(context).extension<StackColors>()!.themeType.name}/monero.svg";
-  String wowneroImage(BuildContext context) =>
-      "$_path_themed${Theme.of(context).extension<StackColors>()!.themeType.name}/wownero.svg";
-  String namecoinImage(BuildContext context) =>
-      "$_path_themed${Theme.of(context).extension<StackColors>()!.themeType.name}/namecoin.svg";
-  String particlImage(BuildContext context) =>
-      "$_path_themed${Theme.of(context).extension<StackColors>()!.themeType.name}/particl.svg";
 
   String imageFor({required BuildContext context, required Coin coin}) {
     switch (coin) {
