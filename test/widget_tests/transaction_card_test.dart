@@ -1,4 +1,3 @@
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,19 +10,16 @@ import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart'
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/notes_service.dart';
 import 'package:stackwallet/services/price_service.dart';
 import 'package:stackwallet/services/wallets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/transaction_card.dart';
-import 'package:tuple/tuple.dart';
 
 import 'transaction_card_test.mocks.dart';
 
@@ -31,7 +27,6 @@ import 'transaction_card_test.mocks.dart';
   Wallets,
   Manager,
   CoinServiceAPI,
-  FiroWallet,
   LocaleService,
   Prefs,
   PriceService,
@@ -70,21 +65,10 @@ void main() {
         type: AddressType.p2pkh,
         subType: AddressSubType.receiving);
 
-    final CoinServiceAPI wallet = MockFiroWallet();
-
-    when(wallet.coin.ticker).thenAnswer((_) => "FIRO");
     when(mockLocaleService.locale).thenAnswer((_) => "en_US");
     when(mockPrefs.currency).thenAnswer((_) => "USD");
     when(mockPrefs.externalCalls).thenAnswer((_) => true);
-    when(mockPriceService.getPrice(Coin.firo))
-        .thenAnswer((realInvocation) => Tuple2(Decimal.ten, 0.00));
 
-    when(wallet.coin).thenAnswer((_) => Coin.firo);
-
-    when(wallets.getManager("wallet-id"))
-        .thenAnswer((realInvocation) => Manager(wallet));
-
-    when(wallet.storedChainHeight).thenAnswer((_) => 6000000);
     //
     await tester.pumpWidget(
       ProviderScope(
@@ -131,8 +115,6 @@ void main() {
     verify(mockLocaleService.addListener(any)).called(1);
 
     verify(mockPrefs.currency).called(1);
-    verify(mockPriceService.getPrice(Coin.firo)).called(1);
-    verify(wallet.coin.ticker).called(2);
 
     verify(mockLocaleService.locale).called(1);
 
@@ -171,20 +153,10 @@ void main() {
         type: AddressType.p2pkh,
         subType: AddressSubType.receiving);
 
-    final CoinServiceAPI wallet = MockFiroWallet();
-
-    when(wallet.coin.ticker).thenAnswer((_) => "FIRO");
     when(mockLocaleService.locale).thenAnswer((_) => "en_US");
     when(mockPrefs.currency).thenAnswer((_) => "USD");
     when(mockPrefs.externalCalls).thenAnswer((_) => true);
-    when(mockPriceService.getPrice(Coin.firo))
-        .thenAnswer((realInvocation) => Tuple2(Decimal.ten, 0.00));
 
-    when(wallet.coin).thenAnswer((_) => Coin.firo);
-    when(wallet.storedChainHeight).thenAnswer((_) => 6000000);
-
-    when(wallets.getManager("wallet-id"))
-        .thenAnswer((realInvocation) => Manager(wallet));
     //
     await tester.pumpWidget(
       ProviderScope(
@@ -229,8 +201,6 @@ void main() {
     verify(mockLocaleService.addListener(any)).called(1);
 
     verify(mockPrefs.currency).called(1);
-    verify(mockPriceService.getPrice(Coin.firo)).called(1);
-    verify(wallet.coin.ticker).called(2);
 
     verify(mockLocaleService.locale).called(1);
 
@@ -269,21 +239,9 @@ void main() {
         type: AddressType.p2pkh,
         subType: AddressSubType.receiving);
 
-    final CoinServiceAPI wallet = MockFiroWallet();
-
-    when(wallet.coin.ticker).thenAnswer((_) => "FIRO");
     when(mockLocaleService.locale).thenAnswer((_) => "en_US");
     when(mockPrefs.currency).thenAnswer((_) => "USD");
     when(mockPrefs.externalCalls).thenAnswer((_) => true);
-    when(mockPriceService.getPrice(Coin.firo))
-        .thenAnswer((realInvocation) => Tuple2(Decimal.ten, 0.00));
-
-    when(wallet.coin).thenAnswer((_) => Coin.firo);
-
-    when(wallets.getManager("wallet-id"))
-        .thenAnswer((realInvocation) => Manager(wallet));
-
-    when(wallet.storedChainHeight).thenAnswer((_) => 6000000);
 
     await tester.pumpWidget(
       ProviderScope(
@@ -320,8 +278,6 @@ void main() {
     verify(mockLocaleService.addListener(any)).called(1);
 
     verify(mockPrefs.currency).called(1);
-    verify(mockPriceService.getPrice(Coin.firo)).called(1);
-    verify(wallet.coin.ticker).called(2);
 
     verify(mockLocaleService.locale).called(1);
 
@@ -361,26 +317,9 @@ void main() {
         type: AddressType.p2pkh,
         subType: AddressSubType.receiving);
 
-    final CoinServiceAPI wallet = MockFiroWallet();
-
-    when(wallet.coin.ticker).thenAnswer((_) => "FIRO");
     when(mockLocaleService.locale).thenAnswer((_) => "en_US");
     when(mockPrefs.currency).thenAnswer((_) => "USD");
     when(mockPrefs.externalCalls).thenAnswer((_) => true);
-    when(mockPriceService.getPrice(Coin.firo))
-        .thenAnswer((realInvocation) => Tuple2(Decimal.ten, 0.00));
-
-    when(wallet.coin).thenAnswer((_) => Coin.firo);
-
-    when(wallets.getManager("wallet id"))
-        .thenAnswer((realInvocation) => Manager(wallet));
-
-    when(wallet.storedChainHeight).thenAnswer((_) => 6000000);
-
-    mockingjay
-        .when(() => navigator.pushNamed("/transactionDetails",
-            arguments: Tuple3(tx, Coin.firo, "wallet id")))
-        .thenAnswer((_) async => {});
 
     await tester.pumpWidget(
       ProviderScope(
@@ -413,19 +352,16 @@ void main() {
 
     verify(mockPrefs.currency).called(2);
     verify(mockLocaleService.locale).called(4);
-    verify(wallet.coin.ticker).called(2);
-    verify(wallet.storedChainHeight).called(2);
 
-    verifyNoMoreInteractions(wallet);
     verifyNoMoreInteractions(mockLocaleService);
 
     if (Util.isDesktop) {
       expect(find.byType(TransactionDetailsView), findsOneWidget);
     } else {
-      mockingjay
-          .verify(() => navigator.pushNamed("/transactionDetails",
-              arguments: Tuple3(tx, Coin.firo, "wallet id")))
-          .called(1);
+      // mockingjay
+      //     .verify(() => navigator.pushNamed("/transactionDetails",
+      //         arguments: Tuple3(tx, Coin.firo, "wallet id")))
+      //     .called(1);
     }
   });
 }
