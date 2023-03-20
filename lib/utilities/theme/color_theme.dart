@@ -6,6 +6,7 @@ import 'package:stackwallet/utilities/theme/fruit_sorbet_colors.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
 import 'package:stackwallet/utilities/theme/oled_black_colors.dart';
+import 'package:stackwallet/utilities/theme/oled_chans_colors.dart';
 
 import 'chan_colors.dart';
 
@@ -16,7 +17,8 @@ enum ThemeType {
   oledBlack,
   fruitSorbet,
   forest,
-  chan;
+  chan,
+  darkChans;
 }
 
 // adjust this file
@@ -38,6 +40,8 @@ extension ThemeTypeExt on ThemeType {
         return FruitSorbetColors();
       case ThemeType.forest:
         return ForestColors();
+      case ThemeType.darkChans:
+        return DarkChansColors();
     }
   }
 
@@ -57,6 +61,8 @@ extension ThemeTypeExt on ThemeType {
         return "Fruit Sorbet";
       case ThemeType.forest:
         return "Forest";
+      case ThemeType.darkChans:
+        return "Dark Chans";
     }
   }
 }

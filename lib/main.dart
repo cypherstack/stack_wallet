@@ -65,6 +65,7 @@ import 'package:stackwallet/utilities/theme/fruit_sorbet_colors.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
 import 'package:stackwallet/utilities/theme/oled_black_colors.dart';
+import 'package:stackwallet/utilities/theme/oled_chans_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:window_size/window_size.dart';
@@ -356,6 +357,9 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         break;
       case "chan":
         colorTheme = ChanColors();
+        break;
+      case "oledChans":
+        colorTheme = DarkChansColors();
         break;
       case "light":
       default:
