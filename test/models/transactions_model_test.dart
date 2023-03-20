@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/models/models.dart';
 
-import '../services/coins/firo/sample_data/transaction_data_samples.dart';
+import '../services/coins/bitcoin/bitcoin_history_sample_data.dart';
 
 void main() {
   group("TransactionData", () {

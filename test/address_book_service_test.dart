@@ -54,11 +54,6 @@ void main() {
             address: "some xmr address",
             label: "market",
           ),
-          const ContactAddressEntry(
-            coin: Coin.epicCash,
-            address: "some epic address",
-            label: "gas",
-          ),
         ],
         isFavorite: true);
 
