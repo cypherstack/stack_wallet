@@ -1842,6 +1842,7 @@ class BitcoinWallet extends CoinServiceAPI
 
           bool shouldBlock = false;
           String? blockReason;
+          String? label;
 
           if (storedTx?.subType ==
               isar_models.TransactionSubType.bip47Notification) {
@@ -1849,10 +1850,11 @@ class BitcoinWallet extends CoinServiceAPI
               shouldBlock = true;
               blockReason = "Incoming paynym notification transaction.";
             } else if (storedTx?.type == isar_models.TransactionType.outgoing) {
-              shouldBlock = true;
+              shouldBlock = false;
               blockReason = "Paynym notification change output. Incautious "
                   "handling of change outputs from notification transactions "
                   "may cause unintended loss of privacy.";
+              label = blockReason;
             }
           }
 
@@ -1875,7 +1877,7 @@ class BitcoinWallet extends CoinServiceAPI
             txid: txn["txid"] as String,
             vout: vout,
             value: jsonUTXO["value"] as int,
-            name: "",
+            name: label ?? "",
             isBlocked: shouldBlock,
             blockedReason: blockReason,
             isCoinbase: txn["is_coinbase"] as bool? ?? false,
