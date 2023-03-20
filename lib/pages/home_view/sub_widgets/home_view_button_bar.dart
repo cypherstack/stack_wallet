@@ -125,48 +125,6 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
             ),
           ),
         ),
-        const SizedBox(
-          width: 8,
-        ),
-        Expanded(
-          child: TextButton(
-            style: selectedIndex == 2
-                ? Theme.of(context)
-                    .extension<StackColors>()!
-                    .getPrimaryEnabledButtonStyle(context)!
-                    .copyWith(
-                      minimumSize:
-                          MaterialStateProperty.all<Size>(const Size(46, 36)),
-                    )
-                : Theme.of(context)
-                    .extension<StackColors>()!
-                    .getSecondaryEnabledButtonStyle(context)!
-                    .copyWith(
-                      minimumSize:
-                          MaterialStateProperty.all<Size>(const Size(46, 36)),
-                    ),
-            onPressed: () async {
-              FocusScope.of(context).unfocus();
-              if (selectedIndex != 2) {
-                ref.read(homeViewPageIndexStateProvider.state).state = 2;
-              }
-              // await BuyDataLoadingService().loadAll(ref);
-            },
-            child: Text(
-              "Buy",
-              style: STextStyles.button(context).copyWith(
-                fontSize: 14,
-                color: selectedIndex == 2
-                    ? Theme.of(context)
-                        .extension<StackColors>()!
-                        .buttonTextPrimary
-                    : Theme.of(context)
-                        .extension<StackColors>()!
-                        .buttonTextSecondary,
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }
