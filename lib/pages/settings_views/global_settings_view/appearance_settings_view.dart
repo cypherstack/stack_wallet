@@ -102,42 +102,105 @@ class AppearanceSettingsView extends ConsumerWidget {
                           height: 10,
                         ),
                         RoundedWhiteContainer(
-                          padding: const EdgeInsets.all(0),
-                          child: RawMaterialButton(
-                            // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                            padding: const EdgeInsets.all(0),
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                Constants.size.circularBorderRadius,
-                              ),
-                            ),
-                            onPressed: null,
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Row(
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                          child: Consumer(
+                            builder: (_, ref, __) {
+                              return RawMaterialButton(
+                                splashColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .highlight,
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    Constants.size.circularBorderRadius,
+                                  ),
+                                ),
+                                onPressed: null,
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        "Choose Theme",
+                                        "System brightness",
                                         style: STextStyles.titleBold12(context),
                                         textAlign: TextAlign.left,
                                       ),
-                                      const Padding(
-                                        padding: EdgeInsets.all(10),
-                                        child: ThemeOptionsView(),
-                                      ),
+                                      SizedBox(
+                                        height: 20,
+                                        width: 40,
+                                        child: DraggableSwitchButton(
+                                          isOn: ref.watch(
+                                            prefsChangeNotifierProvider.select(
+                                                (value) => value
+                                                    .enableSystemBrightness),
+                                          ),
+                                          onValueChanged: (newValue) {
+                                            ref
+                                                .read(
+                                                    prefsChangeNotifierProvider)
+                                                .enableSystemBrightness = newValue;
+                                          },
+                                        ),
+                                      )
                                     ],
                                   ),
-                                ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        if (!ref.watch(
+                          prefsChangeNotifierProvider
+                              .select((value) => value.enableSystemBrightness),
+                        ))
+                          const SizedBox(
+                            height: 10,
+                          ),
+                        if (!ref.watch(
+                          prefsChangeNotifierProvider
+                              .select((value) => value.enableSystemBrightness),
+                        ))
+                          RoundedWhiteContainer(
+                            padding: const EdgeInsets.all(0),
+                            child: RawMaterialButton(
+                              // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                              padding: const EdgeInsets.all(0),
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  Constants.size.circularBorderRadius,
+                                ),
+                              ),
+                              onPressed: null,
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Row(
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Choose Theme",
+                                          style:
+                                              STextStyles.titleBold12(context),
+                                          textAlign: TextAlign.left,
+                                        ),
+                                        const Padding(
+                                          padding: EdgeInsets.all(10),
+                                          child: ThemeOptionsView(),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
                       ],
                     ),
                   ),

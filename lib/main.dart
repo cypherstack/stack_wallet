@@ -8,6 +8,7 @@ import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_type.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_libmonero/monero/monero.dart';
 import 'package:flutter_libmonero/wownero/wownero.dart';
@@ -56,6 +57,7 @@ import 'package:stackwallet/utilities/db_version_migration.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/theme/chan_colors.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
@@ -161,6 +163,8 @@ void main() async {
       (await StackFileSystem.applicationHiveDirectory()).path);
 
   await Hive.openBox<dynamic>(DB.boxNameDBInfo);
+  await Hive.openBox<dynamic>(DB.boxNamePrefs);
+  await Prefs.instance.init();
 
   // Desktop migrate handled elsewhere (currently desktop_login_view.dart)
   if (!Util.isDesktop) {
@@ -335,8 +339,25 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   @override
   void initState() {
-    final colorScheme = DB.instance
-        .get<dynamic>(boxName: DB.boxNameTheme, key: "colorScheme") as String?;
+    final String? colorScheme;
+    if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
+      final brightness =
+          SchedulerBinding.instance.platformDispatcher.platformBrightness;
+      switch (brightness) {
+        case Brightness.dark:
+          colorScheme =
+              ref.read(prefsChangeNotifierProvider).systemBrightnessDarkTheme;
+          break;
+        case Brightness.light:
+          colorScheme =
+              ref.read(prefsChangeNotifierProvider).systemBrightnessLightTheme;
+          break;
+      }
+    } else {
+      colorScheme =
+          DB.instance.get<dynamic>(boxName: DB.boxNameTheme, key: "colorScheme")
+              as String?;
+    }
 
     StackColorTheme colorTheme;
     switch (colorScheme) {

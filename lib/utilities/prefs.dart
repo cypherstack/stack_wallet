@@ -4,6 +4,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/languages_enum.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
+import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:uuid/uuid.dart';
 
 class Prefs extends ChangeNotifier {
@@ -41,6 +42,9 @@ class Prefs extends ChangeNotifier {
       _userId = await _getUserId();
       _signupEpoch = await _getSignupEpoch();
       _enableCoinControl = await _getEnableCoinControl();
+      _enableSystemBrightness = await _getEnableSystemBrightness();
+      _systemBrightnessLightTheme = await _getSystemBrightnessLightTheme();
+      _systemBrightnessDarkTheme = await _getSystemBrightnessDarkTheme();
 
       _initialized = true;
     }
@@ -668,5 +672,76 @@ class Prefs extends ChangeNotifier {
     return await DB.instance.get<dynamic>(
             boxName: DB.boxNamePrefs, key: "enableCoinControl") as bool? ??
         false;
+  }
+
+  // follow system brightness
+
+  bool _enableSystemBrightness = false;
+
+  bool get enableSystemBrightness => _enableSystemBrightness;
+
+  set enableSystemBrightness(bool enableSystemBrightness) {
+    if (_enableSystemBrightness != enableSystemBrightness) {
+      DB.instance.put<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "enableSystemBrightness",
+          value: enableSystemBrightness);
+      _enableSystemBrightness = enableSystemBrightness;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getEnableSystemBrightness() async {
+    return await DB.instance.get<dynamic>(
+            boxName: DB.boxNamePrefs, key: "enableSystemBrightness") as bool? ??
+        false;
+  }
+
+  // system brightness light theme name
+
+  String _systemBrightnessLightTheme = ThemeType.light.name;
+
+  String get systemBrightnessLightTheme => _systemBrightnessLightTheme;
+
+  set systemBrightnessLightTheme(String systemBrightnessLightTheme) {
+    if (this.systemBrightnessLightTheme != systemBrightnessLightTheme) {
+      DB.instance.put<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "systemBrightnessLightTheme",
+          value: systemBrightnessLightTheme);
+      _systemBrightnessLightTheme = systemBrightnessLightTheme;
+      notifyListeners();
+    }
+  }
+
+  Future<String> _getSystemBrightnessLightTheme() async {
+    return await DB.instance.get<dynamic>(
+            boxName: DB.boxNamePrefs,
+            key: "systemBrightnessLightTheme") as String? ??
+        ThemeType.light.name;
+  }
+
+  // system brightness dark theme name
+
+  String _systemBrightnessDarkTheme = ThemeType.dark.name;
+
+  String get systemBrightnessDarkTheme => _systemBrightnessDarkTheme;
+
+  set systemBrightnessDarkTheme(String systemBrightnessDarkTheme) {
+    if (this.systemBrightnessDarkTheme != systemBrightnessDarkTheme) {
+      DB.instance.put<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "systemBrightnessDarkTheme",
+          value: systemBrightnessDarkTheme);
+      _systemBrightnessDarkTheme = systemBrightnessDarkTheme;
+      notifyListeners();
+    }
+  }
+
+  Future<String> _getSystemBrightnessDarkTheme() async {
+    return await DB.instance.get<dynamic>(
+            boxName: DB.boxNamePrefs,
+            key: "systemBrightnessDarkTheme") as String? ??
+        ThemeType.dark.name;
   }
 }
