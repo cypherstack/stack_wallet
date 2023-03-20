@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/buy_view/buy_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_view.dart';
 import 'package:stackwallet/pages/home_view/sub_widgets/home_view_button_bar.dart';
 import 'package:stackwallet/pages/notification_views/notifications_view.dart';
@@ -108,7 +107,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
     _children = [
       const WalletsView(),
       if (Constants.enableExchange) const ExchangeView(),
-      if (Constants.enableExchange) const BuyView(),
     ];
 
     ref.read(notificationsProvider).startCheckingWatchedNotifications();

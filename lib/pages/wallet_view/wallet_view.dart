@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
-import 'package:stackwallet/pages/buy_view/buy_in_wallet_view.dart';
 import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
@@ -277,28 +276,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
               walletId,
               currency == null ? Coin.bitcoin : coin,
             ),
-          ),
-        );
-      }
-    }
-  }
-
-  void _onBuyPressed(BuildContext context) async {
-    final coin = ref.read(managerProvider).coin;
-
-    if (coin.isTestNet) {
-      await showDialog<void>(
-        context: context,
-        builder: (_) => const StackOkDialog(
-          title: "Buy not available for test net coins",
-        ),
-      );
-    } else {
-      if (mounted) {
-        unawaited(
-          Navigator.of(context).pushNamed(
-            BuyInWalletView.routeName,
-            arguments: coin.hasBuySupport ? coin : Coin.bitcoin,
           ),
         );
       }

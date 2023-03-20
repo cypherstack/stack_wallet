@@ -6,7 +6,6 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/exceptions/exchange/unsupported_currency_exception.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
-import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
@@ -23,7 +22,6 @@ import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
@@ -358,27 +356,6 @@ class _ExchangeCurrencySelectionViewState
                         child: RoundedWhiteContainer(
                           child: Row(
                             children: [
-                              SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: isStackCoin(items[index].ticker)
-                                    ? getIconForTicker(
-                                        items[index].ticker,
-                                        size: 24,
-                                      )
-                                    : hasImageUrl
-                                        ? SvgPicture.network(
-                                            items[index].image,
-                                            width: 24,
-                                            height: 24,
-                                            placeholderBuilder: (_) =>
-                                                const LoadingIndicator(),
-                                          )
-                                        : const SizedBox(
-                                            width: 24,
-                                            height: 24,
-                                          ),
-                              ),
                               const SizedBox(
                                 width: 10,
                               ),
@@ -447,27 +424,6 @@ class _ExchangeCurrencySelectionViewState
                         child: RoundedWhiteContainer(
                           child: Row(
                             children: [
-                              SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: isStackCoin(filtered[index].ticker)
-                                    ? getIconForTicker(
-                                        filtered[index].ticker,
-                                        size: 24,
-                                      )
-                                    : hasImageUrl
-                                        ? SvgPicture.network(
-                                            filtered[index].image,
-                                            width: 24,
-                                            height: 24,
-                                            placeholderBuilder: (_) =>
-                                                const LoadingIndicator(),
-                                          )
-                                        : const SizedBox(
-                                            width: 24,
-                                            height: 24,
-                                          ),
-                              ),
                               const SizedBox(
                                 width: 10,
                               ),
