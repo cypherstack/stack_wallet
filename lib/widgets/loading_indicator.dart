@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackduo/utilities/assets.dart';
 
 class LoadingIndicator extends StatelessWidget {
   const LoadingIndicator({

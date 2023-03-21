@@ -1,10 +1,10 @@
 // import 'package:decimal/decimal.dart';
 // import 'package:flutter/foundation.dart';
-// import 'package:stackwallet/models/exchange/response_objects/currency.dart';
-// import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
-// import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
-// import 'package:stackwallet/services/exchange/exchange.dart';
-// import 'package:stackwallet/utilities/logger.dart';
+// import 'package:stackduo/models/exchange/response_objects/currency.dart';
+// import 'package:stackduo/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
+// import 'package:stackduo/services/exchange/change_now/change_now_exchange.dart';
+// import 'package:stackduo/services/exchange/exchange.dart';
+// import 'package:stackduo/utilities/logger.dart';
 //
 // class ExchangeFormState extends ChangeNotifier {
 //   ExchangeFormState(this.exchangeRateType);

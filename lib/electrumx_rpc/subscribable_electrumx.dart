@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackduo/utilities/logger.dart';
 
 class ElectrumXSubscription with ChangeNotifier {
   dynamic _response;

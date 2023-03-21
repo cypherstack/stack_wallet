@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:stackwallet/widgets/custom_pin_put/custom_pin_put_state.dart';
-import 'package:stackwallet/widgets/custom_pin_put/pin_keyboard.dart';
+import 'package:stackduo/widgets/custom_pin_put/custom_pin_put_state.dart';
+import 'package:stackduo/widgets/custom_pin_put/pin_keyboard.dart';
 
 class CustomPinPut extends StatefulWidget {
   const CustomPinPut({

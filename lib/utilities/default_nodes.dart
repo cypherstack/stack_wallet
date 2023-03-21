@@ -1,5 +1,5 @@
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackduo/models/node_model.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
 
 abstract class DefaultNodes {
   static const String defaultNodeIdPrefix = "default_";

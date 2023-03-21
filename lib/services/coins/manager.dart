@@ -2,18 +2,18 @@ import 'dart:async';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
-import 'package:stackwallet/models/models.dart';
-import 'package:stackwallet/services/coins/coin_service.dart';
-import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/services/mixins/coin_control_interface.dart';
-import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackduo/hive/db.dart';
+import 'package:stackduo/models/balance.dart';
+import 'package:stackduo/models/isar/models/isar_models.dart' as isar_models;
+import 'package:stackduo/models/models.dart';
+import 'package:stackduo/services/coins/coin_service.dart';
+import 'package:stackduo/services/event_bus/events/global/node_connection_status_changed_event.dart';
+import 'package:stackduo/services/event_bus/events/global/updated_in_background_event.dart';
+import 'package:stackduo/services/event_bus/global_event_bus.dart';
+import 'package:stackduo/services/mixins/coin_control_interface.dart';
+import 'package:stackduo/services/mixins/paynym_wallet_interface.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/logger.dart';
 
 class Manager with ChangeNotifier {
   final CoinServiceAPI _currentWallet;

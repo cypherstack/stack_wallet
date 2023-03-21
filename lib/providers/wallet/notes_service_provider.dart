@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/services/notes_service.dart';
+import 'package:stackduo/services/notes_service.dart';
 
 int _count = 0;
 

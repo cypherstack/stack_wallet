@@ -1,4 +1,4 @@
-import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
+import 'package:stackduo/exceptions/exchange/exchange_exception.dart';
 
 class ExchangeResponse<T> {
   late final T? value;

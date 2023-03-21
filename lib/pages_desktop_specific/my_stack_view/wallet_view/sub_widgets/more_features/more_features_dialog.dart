@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
+import 'package:stackduo/providers/global/prefs_provider.dart';
+import 'package:stackduo/providers/global/wallets_provider.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/widgets/desktop/desktop_dialog.dart';
+import 'package:stackduo/widgets/desktop/desktop_dialog_close_button.dart';
+import 'package:stackduo/widgets/rounded_container.dart';
 
 class MoreFeaturesDialog extends ConsumerStatefulWidget {
   const MoreFeaturesDialog({

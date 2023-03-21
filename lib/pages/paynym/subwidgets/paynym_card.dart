@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/pages/paynym/subwidgets/paynym_bot.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/custom_buttons/paynym_follow_toggle_button.dart';
+import 'package:stackduo/pages/paynym/subwidgets/paynym_bot.dart';
+import 'package:stackduo/utilities/format.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/utilities/util.dart';
+import 'package:stackduo/widgets/custom_buttons/paynym_follow_toggle_button.dart';
 
 class PaynymCard extends StatefulWidget {
   const PaynymCard({

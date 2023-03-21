@@ -3,16 +3,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:stackwallet/models/paynym/paynym_account.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/paynym/subwidgets/paynym_bot.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
+import 'package:stackduo/models/paynym/paynym_account.dart';
+import 'package:stackduo/notifications/show_flush_bar.dart';
+import 'package:stackduo/pages/paynym/subwidgets/paynym_bot.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/utilities/util.dart';
+import 'package:stackduo/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackduo/widgets/desktop/desktop_dialog.dart';
+import 'package:stackduo/widgets/desktop/desktop_dialog_close_button.dart';
 
 class PaynymQrPopup extends StatelessWidget {
   const PaynymQrPopup({

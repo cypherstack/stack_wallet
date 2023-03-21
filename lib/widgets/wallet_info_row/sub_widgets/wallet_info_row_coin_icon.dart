@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/utilities/constants.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
 
 class WalletInfoCoinIcon extends StatelessWidget {
   const WalletInfoCoinIcon({Key? key, required this.coin}) : super(key: key);

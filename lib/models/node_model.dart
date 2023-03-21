@@ -1,6 +1,6 @@
 import 'package:hive/hive.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackduo/utilities/default_nodes.dart';
+import 'package:stackduo/utilities/flutter_secure_storage_interface.dart';
 
 part 'type_adaptors/node_model.g.dart';
 

@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/coin_image.dart';
-import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/create_or_restore_wallet_subtitle.dart';
-import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/create_or_restore_wallet_title.dart';
-import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/create_wallet_button_group.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackduo/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/coin_image.dart';
+import 'package:stackduo/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/create_or_restore_wallet_subtitle.dart';
+import 'package:stackduo/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/create_or_restore_wallet_title.dart';
+import 'package:stackduo/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/create_wallet_button_group.dart';
+import 'package:stackduo/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/utilities/util.dart';
+import 'package:stackduo/widgets/background.dart';
+import 'package:stackduo/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackduo/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackduo/widgets/desktop/desktop_scaffold.dart';
 
 class CreateOrRestoreWalletView extends StatelessWidget {
   const CreateOrRestoreWalletView({

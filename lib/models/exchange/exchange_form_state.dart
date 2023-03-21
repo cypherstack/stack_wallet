@@ -1,12 +1,12 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
-import 'package:stackwallet/models/exchange/aggregate_currency.dart';
-import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
-import 'package:stackwallet/services/exchange/exchange.dart';
-import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
-import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackduo/models/exchange/aggregate_currency.dart';
+import 'package:stackduo/models/exchange/response_objects/estimate.dart';
+import 'package:stackduo/services/exchange/change_now/change_now_exchange.dart';
+import 'package:stackduo/services/exchange/exchange.dart';
+import 'package:stackduo/services/exchange/majestic_bank/majestic_bank_exchange.dart';
+import 'package:stackduo/utilities/enums/exchange_rate_type_enum.dart';
+import 'package:stackduo/utilities/logger.dart';
 
 class ExchangeFormState extends ChangeNotifier {
   Exchange? _exchange;

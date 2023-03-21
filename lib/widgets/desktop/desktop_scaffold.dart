@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/background.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/widgets/background.dart';
 
 class DesktopScaffold extends StatelessWidget {
   const DesktopScaffold({

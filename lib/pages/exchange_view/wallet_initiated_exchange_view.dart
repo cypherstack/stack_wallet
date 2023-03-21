@@ -2,18 +2,18 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/exchange_view/exchange_form.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
-import 'package:stackwallet/providers/exchange/exchange_form_state_provider.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_loading_overlay.dart';
+import 'package:stackduo/pages/exchange_view/exchange_form.dart';
+import 'package:stackduo/pages/exchange_view/sub_widgets/step_row.dart';
+import 'package:stackduo/providers/exchange/exchange_form_state_provider.dart';
+import 'package:stackduo/providers/global/prefs_provider.dart';
+import 'package:stackduo/services/exchange/exchange_data_loading_service.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/widgets/background.dart';
+import 'package:stackduo/widgets/conditional_parent.dart';
+import 'package:stackduo/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackduo/widgets/custom_loading_overlay.dart';
 
 class WalletInitiatedExchangeView extends ConsumerStatefulWidget {
   const WalletInitiatedExchangeView({

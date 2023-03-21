@@ -3,16 +3,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
+import 'package:stackduo/providers/desktop/storage_crypto_handler_provider.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/utilities/constants.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/widgets/desktop/primary_button.dart';
+import 'package:stackduo/widgets/desktop/secondary_button.dart';
+import 'package:stackduo/widgets/loading_indicator.dart';
+import 'package:stackduo/widgets/stack_text_field.dart';
 
 class DesktopAuthSend extends ConsumerStatefulWidget {
   const DesktopAuthSend({

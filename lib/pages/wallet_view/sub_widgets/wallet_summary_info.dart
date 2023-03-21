@@ -4,19 +4,19 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_balance_toggle_sheet.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:stackwallet/services/event_bus/events/global/balance_refreshed_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackduo/pages/wallet_view/sub_widgets/wallet_balance_toggle_sheet.dart';
+import 'package:stackduo/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
+import 'package:stackduo/providers/providers.dart';
+import 'package:stackduo/providers/wallet/wallet_balance_toggle_state_provider.dart';
+import 'package:stackduo/services/event_bus/events/global/balance_refreshed_event.dart';
+import 'package:stackduo/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:stackduo/services/event_bus/global_event_bus.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/enums/wallet_balance_toggle_state.dart';
+import 'package:stackduo/utilities/format.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
 
 class WalletSummaryInfo extends ConsumerStatefulWidget {
   const WalletSummaryInfo({

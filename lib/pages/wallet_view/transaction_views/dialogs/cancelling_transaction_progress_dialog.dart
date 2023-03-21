@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/widgets/stack_dialog.dart';
 
 class CancellingTransactionProgressDialog extends StatefulWidget {
   const CancellingTransactionProgressDialog({Key? key}) : super(key: key);

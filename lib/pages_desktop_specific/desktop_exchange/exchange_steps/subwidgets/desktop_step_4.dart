@@ -2,14 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_item.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:stackduo/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
+import 'package:stackduo/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_item.dart';
+import 'package:stackduo/providers/providers.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/widgets/rounded_container.dart';
+import 'package:stackduo/widgets/rounded_white_container.dart';
 
 class DesktopStep4 extends ConsumerStatefulWidget {
   const DesktopStep4({

@@ -1,12 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/wallets_view/sub_widgets/all_wallets.dart';
-import 'package:stackwallet/pages/wallets_view/sub_widgets/empty_wallets.dart';
-import 'package:stackwallet/pages/wallets_view/sub_widgets/favorite_wallets.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/providers/ui/color_theme_provider.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
+import 'package:stackduo/pages/wallets_view/sub_widgets/all_wallets.dart';
+import 'package:stackduo/pages/wallets_view/sub_widgets/empty_wallets.dart';
+import 'package:stackduo/pages/wallets_view/sub_widgets/favorite_wallets.dart';
+import 'package:stackduo/providers/providers.dart';
+import 'package:stackduo/providers/ui/color_theme_provider.dart';
+import 'package:stackduo/utilities/theme/color_theme.dart';
 
 class WalletsView extends ConsumerWidget {
   const WalletsView({Key? key}) : super(key: key);

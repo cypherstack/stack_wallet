@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
-import 'package:stackwallet/pages/paynym/dialogs/paynym_details_popup.dart';
-import 'package:stackwallet/pages/paynym/subwidgets/paynym_bot.dart';
-import 'package:stackwallet/providers/ui/selected_paynym_details_item_Provider.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
+import 'package:stackduo/models/paynym/paynym_account_lite.dart';
+import 'package:stackduo/pages/paynym/dialogs/paynym_details_popup.dart';
+import 'package:stackduo/pages/paynym/subwidgets/paynym_bot.dart';
+import 'package:stackduo/providers/ui/selected_paynym_details_item_Provider.dart';
+import 'package:stackduo/utilities/constants.dart';
+import 'package:stackduo/utilities/format.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/utilities/util.dart';
+import 'package:stackduo/widgets/rounded_container.dart';
 
 class PaynymCardButton extends ConsumerStatefulWidget {
   const PaynymCardButton({

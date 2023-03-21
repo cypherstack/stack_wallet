@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
-import 'package:stackwallet/providers/ui/color_theme_provider.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/utilities/util.dart';
+import 'package:stackduo/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
+import 'package:stackduo/providers/ui/color_theme_provider.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/color_theme.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/utilities/util.dart';
 
 class EmptyWallets extends ConsumerWidget {
   const EmptyWallets({Key? key}) : super(key: key);

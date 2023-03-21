@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
-import 'package:stackwallet/utilities/enums/languages_enum.dart';
-import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
+import 'package:stackduo/hive/db.dart';
+import 'package:stackduo/utilities/constants.dart';
+import 'package:stackduo/utilities/enums/backup_frequency_type.dart';
+import 'package:stackduo/utilities/enums/languages_enum.dart';
+import 'package:stackduo/utilities/enums/sync_type_enum.dart';
 import 'package:uuid/uuid.dart';
 
 class Prefs extends ChangeNotifier {

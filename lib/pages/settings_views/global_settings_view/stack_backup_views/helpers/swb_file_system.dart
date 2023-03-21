@@ -4,7 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:stackwallet/utilities/util.dart';
+import 'package:stackduo/utilities/util.dart';
 
 class SWBFileSystem {
   Directory? rootPath;

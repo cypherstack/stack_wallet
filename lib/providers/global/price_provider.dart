@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/services/price_service.dart';
+import 'package:stackduo/providers/global/prefs_provider.dart';
+import 'package:stackduo/services/price_service.dart';
 
 int _count = 0;
 

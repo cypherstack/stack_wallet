@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/providers/exchange/changenow_initial_load_status.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/custom_loading_overlay.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+import 'package:stackduo/providers/exchange/changenow_initial_load_status.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/widgets/custom_loading_overlay.dart';
+import 'package:stackduo/widgets/stack_dialog.dart';
 
 class ExchangeLoadingOverlayView extends ConsumerStatefulWidget {
   const ExchangeLoadingOverlayView({

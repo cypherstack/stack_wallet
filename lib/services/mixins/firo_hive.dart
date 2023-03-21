@@ -1,4 +1,4 @@
-import 'package:stackwallet/hive/db.dart';
+import 'package:stackduo/hive/db.dart';
 
 mixin FiroHive {
   late final String _walletId;

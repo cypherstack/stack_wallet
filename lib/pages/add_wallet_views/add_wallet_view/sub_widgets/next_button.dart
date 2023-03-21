@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackduo/pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
+import 'package:stackduo/providers/providers.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
 
 class AddWalletNextButton extends ConsumerWidget {
   const AddWalletNextButton({

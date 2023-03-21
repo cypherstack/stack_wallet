@@ -1,6 +1,6 @@
 import 'package:isar/isar.dart';
-// import 'package:stackwallet/models/isar/type_converters/log_level_converter.dart';
-import 'package:stackwallet/utilities/enums/log_level_enum.dart';
+// import 'package:stackduo/models/isar/type_converters/log_level_converter.dart';
+import 'package:stackduo/utilities/enums/log_level_enum.dart';
 
 part 'log.g.dart';
 

@@ -1,15 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/models/exchange/aggregate_currency.dart';
-import 'package:stackwallet/models/exchange/exchange_form_state.dart';
-import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
-import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
-import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
-import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/stack_file_system.dart';
+import 'package:stackduo/hive/db.dart';
+import 'package:stackduo/models/exchange/aggregate_currency.dart';
+import 'package:stackduo/models/exchange/exchange_form_state.dart';
+import 'package:stackduo/models/isar/exchange_cache/currency.dart';
+import 'package:stackduo/models/isar/exchange_cache/pair.dart';
+import 'package:stackduo/services/exchange/change_now/change_now_exchange.dart';
+import 'package:stackduo/services/exchange/majestic_bank/majestic_bank_exchange.dart';
+import 'package:stackduo/utilities/enums/exchange_rate_type_enum.dart';
+import 'package:stackduo/utilities/logger.dart';
+import 'package:stackduo/utilities/stack_file_system.dart';
 import 'package:tuple/tuple.dart';
 
 class ExchangeDataLoadingService {

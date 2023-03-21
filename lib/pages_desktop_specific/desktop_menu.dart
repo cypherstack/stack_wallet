@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_menu_item.dart';
-import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/desktop/living_stack_icon.dart';
+import 'package:stackduo/pages_desktop_specific/desktop_menu_item.dart';
+import 'package:stackduo/providers/desktop/current_desktop_menu_item.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/widgets/desktop/living_stack_icon.dart';
 
 enum DesktopMenuItemId {
   myStack,

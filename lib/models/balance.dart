@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/format.dart';
 
 class Balance {
   final Coin coin;

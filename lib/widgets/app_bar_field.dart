@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackduo/utilities/text_styles.dart';
 
 class AppBarSearchField extends StatefulWidget {
   const AppBarSearchField({

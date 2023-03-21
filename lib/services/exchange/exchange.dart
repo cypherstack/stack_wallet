@@ -1,13 +1,13 @@
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
-import 'package:stackwallet/models/exchange/response_objects/range.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
-import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
-import 'package:stackwallet/services/exchange/exchange_response.dart';
-import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
-import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
+import 'package:stackduo/models/exchange/response_objects/estimate.dart';
+import 'package:stackduo/models/exchange/response_objects/range.dart';
+import 'package:stackduo/models/exchange/response_objects/trade.dart';
+import 'package:stackduo/models/isar/exchange_cache/currency.dart';
+import 'package:stackduo/models/isar/exchange_cache/pair.dart';
+import 'package:stackduo/services/exchange/change_now/change_now_exchange.dart';
+import 'package:stackduo/services/exchange/exchange_response.dart';
+import 'package:stackduo/services/exchange/majestic_bank/majestic_bank_exchange.dart';
+import 'package:stackduo/services/exchange/simpleswap/simpleswap_exchange.dart';
 
 abstract class Exchange {
   static Exchange get defaultExchange => ChangeNowExchange.instance;

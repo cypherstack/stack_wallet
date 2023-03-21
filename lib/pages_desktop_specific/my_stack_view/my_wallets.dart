@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/desktop_favorite_wallets.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_summary_table.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackduo/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
+import 'package:stackduo/pages_desktop_specific/my_stack_view/desktop_favorite_wallets.dart';
+import 'package:stackduo/pages_desktop_specific/my_stack_view/wallet_summary_table.dart';
+import 'package:stackduo/providers/providers.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/widgets/custom_buttons/blue_text_button.dart';
 
 class MyWallets extends ConsumerStatefulWidget {
   const MyWallets({Key? key}) : super(key: key);

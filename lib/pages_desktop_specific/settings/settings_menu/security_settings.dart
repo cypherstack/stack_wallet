@@ -3,17 +3,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/progress_bar.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
+import 'package:stackduo/notifications/show_flush_bar.dart';
+import 'package:stackduo/providers/desktop/storage_crypto_handler_provider.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/utilities/constants.dart';
+import 'package:stackduo/utilities/enums/flush_bar_type.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/widgets/desktop/primary_button.dart';
+import 'package:stackduo/widgets/progress_bar.dart';
+import 'package:stackduo/widgets/rounded_white_container.dart';
+import 'package:stackduo/widgets/stack_text_field.dart';
 import 'package:zxcvbn/zxcvbn.dart';
 
 class SecuritySettings extends ConsumerStatefulWidget {

@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/coin_wallets_table.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/table_view/table_view.dart';
-import 'package:stackwallet/widgets/table_view/table_view_cell.dart';
-import 'package:stackwallet/widgets/table_view/table_view_row.dart';
+import 'package:stackduo/pages_desktop_specific/my_stack_view/coin_wallets_table.dart';
+import 'package:stackduo/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
+import 'package:stackduo/providers/providers.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/utilities/constants.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/format.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/widgets/table_view/table_view.dart';
+import 'package:stackduo/widgets/table_view/table_view_cell.dart';
+import 'package:stackduo/widgets/table_view/table_view_row.dart';
 
 class WalletSummaryTable extends ConsumerStatefulWidget {
   const WalletSummaryTable({Key? key}) : super(key: key);

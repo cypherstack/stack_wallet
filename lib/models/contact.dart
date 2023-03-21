@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:stackwallet/models/contact_address_entry.dart';
+import 'package:stackduo/models/contact_address_entry.dart';
 import 'package:uuid/uuid.dart';
 
 class Contact {

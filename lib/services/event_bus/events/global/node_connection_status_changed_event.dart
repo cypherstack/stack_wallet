@@ -1,5 +1,5 @@
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/logger.dart';
 
 enum NodeConnectionStatus { disconnected, connected }
 

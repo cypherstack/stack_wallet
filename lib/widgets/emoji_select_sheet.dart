@@ -2,16 +2,16 @@ import 'package:emojis/emoji.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/utilities/constants.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/utilities/util.dart';
+import 'package:stackduo/widgets/conditional_parent.dart';
+import 'package:stackduo/widgets/desktop/secondary_button.dart';
+import 'package:stackduo/widgets/icon_widgets/x_icon.dart';
+import 'package:stackduo/widgets/stack_text_field.dart';
+import 'package:stackduo/widgets/textfield_icon_button.dart';
 
 class EmojiSelectSheet extends ConsumerStatefulWidget {
   const EmojiSelectSheet({

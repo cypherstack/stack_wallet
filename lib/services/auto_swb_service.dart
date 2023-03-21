@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackduo/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
+import 'package:stackduo/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackduo/utilities/logger.dart';
+import 'package:stackduo/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 
 enum AutoSWBStatus {

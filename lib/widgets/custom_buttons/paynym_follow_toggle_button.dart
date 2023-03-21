@@ -3,20 +3,20 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
-import 'package:stackwallet/models/paynym/paynym_response.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/providers/global/paynym_api_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
-import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
+import 'package:stackduo/models/paynym/paynym_account_lite.dart';
+import 'package:stackduo/models/paynym/paynym_response.dart';
+import 'package:stackduo/notifications/show_flush_bar.dart';
+import 'package:stackduo/providers/global/paynym_api_provider.dart';
+import 'package:stackduo/providers/global/wallets_provider.dart';
+import 'package:stackduo/providers/wallet/my_paynym_account_state_provider.dart';
+import 'package:stackduo/services/mixins/paynym_wallet_interface.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/utilities/enums/derive_path_type_enum.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/utilities/util.dart';
+import 'package:stackduo/widgets/desktop/primary_button.dart';
+import 'package:stackduo/widgets/desktop/secondary_button.dart';
+import 'package:stackduo/widgets/loading_indicator.dart';
 
 enum PaynymFollowToggleButtonStyle {
   primary,

@@ -5,18 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive/hive.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/intro_view.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/stack_file_system.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackduo/hive/db.dart';
+import 'package:stackduo/notifications/show_flush_bar.dart';
+import 'package:stackduo/pages/intro_view.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/utilities/logger.dart';
+import 'package:stackduo/utilities/stack_file_system.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackduo/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackduo/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackduo/widgets/desktop/primary_button.dart';
+import 'package:stackduo/widgets/desktop/secondary_button.dart';
 
 class DeletePasswordWarningView extends ConsumerStatefulWidget {
   const DeletePasswordWarningView({

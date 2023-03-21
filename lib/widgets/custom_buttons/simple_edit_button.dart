@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/pages/generic/single_field_edit_view.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/utilities/util.dart';
+import 'package:stackduo/pages/generic/single_field_edit_view.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/utilities/util.dart';
 import 'package:tuple/tuple.dart';
 
 import '../desktop/desktop_dialog.dart';

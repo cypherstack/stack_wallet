@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/pages/wallets_view/sub_widgets/empty_wallets.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/my_wallets.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackduo/pages/wallets_view/sub_widgets/empty_wallets.dart';
+import 'package:stackduo/pages_desktop_specific/my_stack_view/my_wallets.dart';
+import 'package:stackduo/providers/global/wallets_provider.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/widgets/background.dart';
+import 'package:stackduo/widgets/desktop/desktop_app_bar.dart';
 
 class MyStackView extends ConsumerStatefulWidget {
   const MyStackView({Key? key}) : super(key: key);

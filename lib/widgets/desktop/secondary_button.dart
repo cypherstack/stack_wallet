@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/desktop/custom_text_button.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/utilities/util.dart';
+import 'package:stackduo/widgets/desktop/custom_text_button.dart';
 
-export 'package:stackwallet/widgets/desktop/custom_text_button.dart';
+export 'package:stackduo/widgets/desktop/custom_text_button.dart';
 
 class SecondaryButton extends StatelessWidget {
   const SecondaryButton({

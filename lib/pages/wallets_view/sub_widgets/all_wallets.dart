@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
-import 'package:stackwallet/pages/wallets_view/sub_widgets/wallet_list_item.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackduo/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
+import 'package:stackduo/pages/wallets_view/sub_widgets/wallet_list_item.dart';
+import 'package:stackduo/providers/providers.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/widgets/custom_buttons/blue_text_button.dart';
 
 class AllWallets extends StatelessWidget {
   const AllWallets({Key? key}) : super(key: key);

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/models/trade_wallet_lookup.dart';
+import 'package:stackduo/hive/db.dart';
+import 'package:stackduo/models/trade_wallet_lookup.dart';
 
 class TradeSentFromStackService extends ChangeNotifier {
   List<TradeWalletLookup> get all =>

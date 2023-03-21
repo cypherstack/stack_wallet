@@ -3,20 +3,20 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/wallet_keys_desktop_popup.dart';
-import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
+import 'package:stackduo/notifications/show_flush_bar.dart';
+import 'package:stackduo/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/wallet_keys_desktop_popup.dart';
+import 'package:stackduo/providers/desktop/storage_crypto_handler_provider.dart';
+import 'package:stackduo/providers/providers.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/utilities/constants.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/widgets/desktop/desktop_dialog.dart';
+import 'package:stackduo/widgets/desktop/desktop_dialog_close_button.dart';
+import 'package:stackduo/widgets/desktop/primary_button.dart';
+import 'package:stackduo/widgets/desktop/secondary_button.dart';
+import 'package:stackduo/widgets/loading_indicator.dart';
+import 'package:stackduo/widgets/stack_text_field.dart';
 
 class UnlockWalletKeysDesktop extends ConsumerStatefulWidget {
   const UnlockWalletKeysDesktop({

@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/db/main_db.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/icon_widgets/utxo_status_icon.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
+import 'package:stackduo/db/main_db.dart';
+import 'package:stackduo/models/isar/models/isar_models.dart';
+import 'package:stackduo/providers/global/wallets_provider.dart';
+import 'package:stackduo/utilities/constants.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/format.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/widgets/conditional_parent.dart';
+import 'package:stackduo/widgets/icon_widgets/utxo_status_icon.dart';
+import 'package:stackduo/widgets/rounded_container.dart';
 
 class UtxoCard extends ConsumerStatefulWidget {
   const UtxoCard({

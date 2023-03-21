@@ -1,6 +1,6 @@
-import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart' as btc;
-import 'package:stackwallet/services/coins/monero/monero_wallet.dart' as xmr;
-import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackduo/services/coins/bitcoin/bitcoin_wallet.dart' as btc;
+import 'package:stackduo/services/coins/monero/monero_wallet.dart' as xmr;
+import 'package:stackduo/utilities/constants.dart';
 
 enum Coin {
   bitcoin,

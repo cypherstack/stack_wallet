@@ -29,9 +29,6 @@ dependencies:
   cw_monero:
     path: ./crypto_plugins/flutter_libmonero/cw_monero
 
-  cw_wownero:
-    path: ./crypto_plugins/flutter_libmonero/cw_wownero
-
   cw_core:
     path: ./crypto_plugins/flutter_libmonero/cw_core
 
@@ -367,7 +364,6 @@ flutter:
     - assets/lottie/coins/monero/
     - assets/lottie/coins/namecoin/
     - assets/lottie/coins/particl/
-    - assets/lottie/coins/wownero/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

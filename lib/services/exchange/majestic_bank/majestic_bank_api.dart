@@ -2,16 +2,16 @@ import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
 import 'package:http/http.dart' as http;
-import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
-import 'package:stackwallet/exceptions/exchange/majestic_bank/mb_exception.dart';
-import 'package:stackwallet/exceptions/exchange/pair_unavailable_exception.dart';
-import 'package:stackwallet/models/exchange/majestic_bank/mb_limit.dart';
-import 'package:stackwallet/models/exchange/majestic_bank/mb_order.dart';
-import 'package:stackwallet/models/exchange/majestic_bank/mb_order_calculation.dart';
-import 'package:stackwallet/models/exchange/majestic_bank/mb_order_status.dart';
-import 'package:stackwallet/models/exchange/majestic_bank/mb_rate.dart';
-import 'package:stackwallet/services/exchange/exchange_response.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackduo/exceptions/exchange/exchange_exception.dart';
+import 'package:stackduo/exceptions/exchange/majestic_bank/mb_exception.dart';
+import 'package:stackduo/exceptions/exchange/pair_unavailable_exception.dart';
+import 'package:stackduo/models/exchange/majestic_bank/mb_limit.dart';
+import 'package:stackduo/models/exchange/majestic_bank/mb_order.dart';
+import 'package:stackduo/models/exchange/majestic_bank/mb_order_calculation.dart';
+import 'package:stackduo/models/exchange/majestic_bank/mb_order_status.dart';
+import 'package:stackduo/models/exchange/majestic_bank/mb_rate.dart';
+import 'package:stackduo/services/exchange/exchange_response.dart';
+import 'package:stackduo/utilities/logger.dart';
 
 class MajesticBankAPI {
   static const String scheme = "https";

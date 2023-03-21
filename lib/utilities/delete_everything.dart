@@ -1,5 +1,5 @@
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackduo/hive/db.dart';
+import 'package:stackduo/utilities/logger.dart';
 
 Future<bool> deleteEverything() async {
   try {

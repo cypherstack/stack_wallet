@@ -9,7 +9,7 @@ import 'package:flutter_rounded_date_picker/src/widgets/flutter_rounded_date_pic
 import 'package:flutter_rounded_date_picker/src/widgets/flutter_rounded_day_picker.dart';
 import 'package:flutter_rounded_date_picker/src/widgets/flutter_rounded_month_picker.dart';
 import 'package:flutter_rounded_date_picker/src/widgets/flutter_rounded_year_picker.dart';
-import 'package:stackwallet/utilities/util.dart';
+import 'package:stackduo/utilities/util.dart';
 
 ///
 /// This file uses code taken from https://github.com/benznest/flutter_rounded_date_picker

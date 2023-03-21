@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
 import 'package:tuple/tuple.dart';
 
 final exchangeSendFromWalletIdStateProvider =

@@ -12,7 +12,7 @@ import 'package:flutter_rounded_date_picker/src/era_mode.dart';
 import 'package:flutter_rounded_date_picker/src/material_rounded_date_picker_style.dart';
 import 'package:flutter_rounded_date_picker/src/material_rounded_year_picker_style.dart';
 import 'package:flutter_rounded_date_picker/src/widgets/flutter_rounded_day_picker.dart';
-import 'package:stackwallet/widgets/rounded_date_picker/flutter_rounded_date_picker_dialog.dart';
+import 'package:stackduo/widgets/rounded_date_picker/flutter_rounded_date_picker_dialog.dart';
 
 ///
 /// This file uses code taken from https://github.com/benznest/flutter_rounded_date_picker

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
+import 'package:stackduo/utilities/constants.dart';
+import 'package:stackduo/widgets/conditional_parent.dart';
 
 class RoundedContainer extends StatelessWidget {
   const RoundedContainer({

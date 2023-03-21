@@ -2,17 +2,17 @@ import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
-import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/animated_text.dart';
+import 'package:stackduo/models/paymint/fee_object_model.dart';
+import 'package:stackduo/providers/providers.dart';
+import 'package:stackduo/providers/ui/fee_rate_type_state_provider.dart';
+import 'package:stackduo/providers/wallet/public_private_balance_state_provider.dart';
+import 'package:stackduo/utilities/constants.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/enums/fee_rate_type_enum.dart';
+import 'package:stackduo/utilities/format.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/widgets/animated_text.dart';
 
 final feeSheetSessionCacheProvider =
     ChangeNotifierProvider<FeeSheetSessionCache>((ref) {

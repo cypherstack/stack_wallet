@@ -1,6 +1,6 @@
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackduo/models/isar/exchange_cache/pair.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
 
 part 'currency.g.dart';
 
@@ -45,10 +45,13 @@ class Currency {
   final bool isStackCoin;
 
   @ignore
-  bool get supportsFixedRate => rateType == SupportedRateType.fixed || rateType == SupportedRateType.both;
+  bool get supportsFixedRate =>
+      rateType == SupportedRateType.fixed || rateType == SupportedRateType.both;
 
   @ignore
-  bool get supportsEstimatedRate => rateType == SupportedRateType.estimated || rateType == SupportedRateType.both;
+  bool get supportsEstimatedRate =>
+      rateType == SupportedRateType.estimated ||
+      rateType == SupportedRateType.both;
 
   Currency({
     required this.exchangeName,

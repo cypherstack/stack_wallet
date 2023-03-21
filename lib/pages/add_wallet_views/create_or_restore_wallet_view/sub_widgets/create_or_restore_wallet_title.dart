@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/text_styles.dart';
 
 class CreateRestoreWalletTitle extends StatelessWidget {
   const CreateRestoreWalletTitle({

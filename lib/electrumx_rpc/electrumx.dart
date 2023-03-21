@@ -3,10 +3,10 @@ import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/electrumx_rpc/rpc.dart';
-import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackduo/electrumx_rpc/rpc.dart';
+import 'package:stackduo/exceptions/electrumx/no_such_transaction.dart';
+import 'package:stackduo/utilities/logger.dart';
+import 'package:stackduo/utilities/prefs.dart';
 import 'package:uuid/uuid.dart';
 
 class WifiOnlyException implements Exception {}

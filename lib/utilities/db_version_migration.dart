@@ -1,21 +1,21 @@
 import 'package:hive/hive.dart';
-import 'package:stackwallet/db/main_db.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
-import 'package:stackwallet/models/models.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/services/mixins/wallet_db.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/wallets_service.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackduo/db/main_db.dart';
+import 'package:stackduo/electrumx_rpc/electrumx.dart';
+import 'package:stackduo/hive/db.dart';
+import 'package:stackduo/models/exchange/change_now/exchange_transaction.dart';
+import 'package:stackduo/models/exchange/response_objects/trade.dart';
+import 'package:stackduo/models/isar/models/isar_models.dart' as isar_models;
+import 'package:stackduo/models/models.dart';
+import 'package:stackduo/models/node_model.dart';
+import 'package:stackduo/services/mixins/wallet_db.dart';
+import 'package:stackduo/services/node_service.dart';
+import 'package:stackduo/services/wallets_service.dart';
+import 'package:stackduo/utilities/constants.dart';
+import 'package:stackduo/utilities/default_nodes.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackduo/utilities/logger.dart';
+import 'package:stackduo/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 
 class DbVersionMigrator with WalletDB {

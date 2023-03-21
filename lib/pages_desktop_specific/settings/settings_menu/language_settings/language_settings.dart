@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/language_settings/language_dialog.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:stackduo/pages_desktop_specific/settings/settings_menu/language_settings/language_dialog.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/widgets/desktop/primary_button.dart';
+import 'package:stackduo/widgets/rounded_white_container.dart';
 
 class LanguageOptionSettings extends ConsumerStatefulWidget {
   const LanguageOptionSettings({Key? key}) : super(key: key);

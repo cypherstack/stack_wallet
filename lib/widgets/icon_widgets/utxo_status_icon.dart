@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/widgets/conditional_parent.dart';
+import 'package:stackduo/widgets/rounded_container.dart';
 
 import '../../utilities/theme/stack_colors.dart';
 

@@ -2,12 +2,12 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackduo/hive/db.dart';
+import 'package:stackduo/models/node_model.dart';
+import 'package:stackduo/utilities/default_nodes.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackduo/utilities/logger.dart';
 
 const kStackCommunityNodesEndpoint = "https://extras.stackwallet.com";
 

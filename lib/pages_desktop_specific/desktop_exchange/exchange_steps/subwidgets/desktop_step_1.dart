@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_item.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:stackduo/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
+import 'package:stackduo/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_item.dart';
+import 'package:stackduo/providers/providers.dart';
+import 'package:stackduo/utilities/enums/exchange_rate_type_enum.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/widgets/rounded_white_container.dart';
 
 class DesktopStep1 extends ConsumerWidget {
   const DesktopStep1({

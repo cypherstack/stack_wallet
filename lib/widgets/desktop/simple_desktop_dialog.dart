@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/widgets/desktop/desktop_dialog.dart';
+import 'package:stackduo/widgets/desktop/desktop_dialog_close_button.dart';
+import 'package:stackduo/widgets/desktop/primary_button.dart';
 
 class SimpleDesktopDialog extends StatelessWidget {
   const SimpleDesktopDialog({

@@ -18,54 +18,54 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:isar/isar.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:stackwallet/db/main_db.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/isar/models/log.dart';
-import 'package:stackwallet/models/models.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/models/notification_model.dart';
-import 'package:stackwallet/models/trade_wallet_lookup.dart';
-import 'package:stackwallet/pages/home_view/home_view.dart';
-import 'package:stackwallet/pages/intro_view.dart';
-import 'package:stackwallet/pages/loading_view.dart';
-import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
-import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_encrypted_string_view.dart';
-import 'package:stackwallet/pages_desktop_specific/password/desktop_login_view.dart';
-import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
-import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
-import 'package:stackwallet/providers/global/base_currencies_provider.dart';
-// import 'package:stackwallet/providers/global/has_authenticated_start_state_provider.dart';
-import 'package:stackwallet/providers/global/trades_service_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/providers/ui/color_theme_provider.dart';
-import 'package:stackwallet/route_generator.dart';
-// import 'package:stackwallet/services/buy/buy_data_loading_service.dart';
-import 'package:stackwallet/services/debug_service.dart';
-import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
-import 'package:stackwallet/services/locale_service.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/notifications_api.dart';
-import 'package:stackwallet/services/notifications_service.dart';
-import 'package:stackwallet/services/trade_service.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/db_version_migration.dart';
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/stack_file_system.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
-import 'package:stackwallet/utilities/theme/dark_colors.dart';
-import 'package:stackwallet/utilities/theme/forest_colors.dart';
-import 'package:stackwallet/utilities/theme/fruit_sorbet_colors.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
-import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
-import 'package:stackwallet/utilities/theme/oled_black_colors.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/utilities/util.dart';
+import 'package:stackduo/db/main_db.dart';
+import 'package:stackduo/hive/db.dart';
+import 'package:stackduo/models/exchange/change_now/exchange_transaction.dart';
+import 'package:stackduo/models/exchange/change_now/exchange_transaction_status.dart';
+import 'package:stackduo/models/exchange/response_objects/trade.dart';
+import 'package:stackduo/models/isar/models/log.dart';
+import 'package:stackduo/models/models.dart';
+import 'package:stackduo/models/node_model.dart';
+import 'package:stackduo/models/notification_model.dart';
+import 'package:stackduo/models/trade_wallet_lookup.dart';
+import 'package:stackduo/pages/home_view/home_view.dart';
+import 'package:stackduo/pages/intro_view.dart';
+import 'package:stackduo/pages/loading_view.dart';
+import 'package:stackduo/pages/pinpad_views/create_pin_view.dart';
+import 'package:stackduo/pages/pinpad_views/lock_screen_view.dart';
+import 'package:stackduo/pages/settings_views/global_settings_view/stack_backup_views/restore_from_encrypted_string_view.dart';
+import 'package:stackduo/pages_desktop_specific/password/desktop_login_view.dart';
+import 'package:stackduo/providers/desktop/storage_crypto_handler_provider.dart';
+import 'package:stackduo/providers/global/auto_swb_service_provider.dart';
+import 'package:stackduo/providers/global/base_currencies_provider.dart';
+// import 'package:stackduo/providers/global/has_authenticated_start_state_provider.dart';
+import 'package:stackduo/providers/global/trades_service_provider.dart';
+import 'package:stackduo/providers/providers.dart';
+import 'package:stackduo/providers/ui/color_theme_provider.dart';
+import 'package:stackduo/route_generator.dart';
+// import 'package:stackduo/services/buy/buy_data_loading_service.dart';
+import 'package:stackduo/services/debug_service.dart';
+import 'package:stackduo/services/exchange/exchange_data_loading_service.dart';
+import 'package:stackduo/services/locale_service.dart';
+import 'package:stackduo/services/node_service.dart';
+import 'package:stackduo/services/notifications_api.dart';
+import 'package:stackduo/services/notifications_service.dart';
+import 'package:stackduo/services/trade_service.dart';
+import 'package:stackduo/utilities/constants.dart';
+import 'package:stackduo/utilities/db_version_migration.dart';
+import 'package:stackduo/utilities/enums/backup_frequency_type.dart';
+import 'package:stackduo/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackduo/utilities/logger.dart';
+import 'package:stackduo/utilities/stack_file_system.dart';
+import 'package:stackduo/utilities/theme/color_theme.dart';
+import 'package:stackduo/utilities/theme/dark_colors.dart';
+import 'package:stackduo/utilities/theme/forest_colors.dart';
+import 'package:stackduo/utilities/theme/fruit_sorbet_colors.dart';
+import 'package:stackduo/utilities/theme/light_colors.dart';
+import 'package:stackduo/utilities/theme/ocean_breeze_colors.dart';
+import 'package:stackduo/utilities/theme/oled_black_colors.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/utilities/util.dart';
 import 'package:window_size/window_size.dart';
 
 final openedFromSWBFileStringStateProvider =
@@ -87,7 +87,7 @@ void main() async {
   }
 
   if (Util.isDesktop && !Platform.isIOS) {
-    setWindowTitle('Stack Wallet');
+    setWindowTitle('Stack Duo');
     setWindowMinSize(const Size(1220, 100));
     setWindowMaxSize(Size.infinite);
 
@@ -488,7 +488,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
             routeOnSuccessArguments: encrypted,
             biometricsCancelButtonString: "CANCEL",
             biometricsLocalizedReason:
-                "Authenticate to restore Stack Wallet backup",
+                "Authenticate to restore Stack Duo backup",
             biometricsAuthenticationTitle: "Restore Stack backup",
           ),
           settings: const RouteSettings(name: "/swbrestorelockscreen"),
@@ -520,7 +520,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     return MaterialApp(
       key: GlobalKey(),
       navigatorKey: navigatorKey,
-      title: 'Stack Wallet',
+      title: 'Stack Duo',
       onGenerateRoute: RouteGenerator.generateRoute,
       theme: ThemeData(
         extensions: [colorScheme],
@@ -662,7 +662,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
                       routeOnSuccessArguments: startupWalletId,
                       biometricsAuthenticationTitle: "Unlock Stack",
                       biometricsLocalizedReason:
-                          "Unlock your stack wallet using biometrics",
+                          "Unlock your stack duo using biometrics",
                       biometricsCancelButtonString: "Cancel",
                     );
                   } else {

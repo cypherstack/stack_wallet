@@ -1,8 +1,8 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:isar/isar.dart';
 import 'package:stack_wallet_backup/secure_storage.dart';
-import 'package:stackwallet/models/isar/models/encrypted_string_value.dart';
-import 'package:stackwallet/utilities/stack_file_system.dart';
+import 'package:stackduo/models/isar/models/encrypted_string_value.dart';
+import 'package:stackduo/utilities/stack_file_system.dart';
 
 abstract class SecureStorageInterface {
   dynamic get store;

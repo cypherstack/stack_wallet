@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
-import 'package:stackwallet/models/contact_address_entry.dart';
-import 'package:stackwallet/utilities/address_utils.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackduo/models/contact_address_entry.dart';
+import 'package:stackduo/utilities/address_utils.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
 
 class AddressEntryData extends ChangeNotifier {
   late int id;

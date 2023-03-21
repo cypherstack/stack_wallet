@@ -1,15 +1,15 @@
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
-import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
-import 'package:stackwallet/services/coins/monero/monero_wallet.dart';
-import 'package:stackwallet/services/transaction_notification_tracker.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackduo/electrumx_rpc/cached_electrumx.dart';
+import 'package:stackduo/electrumx_rpc/electrumx.dart';
+import 'package:stackduo/models/balance.dart';
+import 'package:stackduo/models/isar/models/isar_models.dart' as isar_models;
+import 'package:stackduo/models/node_model.dart';
+import 'package:stackduo/models/paymint/fee_object_model.dart';
+import 'package:stackduo/services/coins/bitcoin/bitcoin_wallet.dart';
+import 'package:stackduo/services/coins/monero/monero_wallet.dart';
+import 'package:stackduo/services/transaction_notification_tracker.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackduo/utilities/prefs.dart';
 
 abstract class CoinServiceAPI {
   CoinServiceAPI();

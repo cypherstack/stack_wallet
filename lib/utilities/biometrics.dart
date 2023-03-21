@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:local_auth/auth_strings.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackduo/utilities/logger.dart';
 
 class Biometrics {
   static const integrationTestFlag =

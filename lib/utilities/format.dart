@@ -3,9 +3,9 @@ import 'dart:typed_data';
 import 'package:decimal/decimal.dart';
 import 'package:intl/number_symbols.dart';
 import 'package:intl/number_symbols_data.dart' show numberFormatSymbols;
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/constants.dart';
+import 'package:stackduo/utilities/enums/backup_frequency_type.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
 
 abstract class Format {
   static String shorten(String value, int beginCount, int endCount) {

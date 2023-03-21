@@ -1,4 +1,4 @@
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackduo/utilities/logger.dart';
 
 class SPCurrency {
   /// currency name

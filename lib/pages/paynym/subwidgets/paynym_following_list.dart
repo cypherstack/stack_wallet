@@ -2,19 +2,19 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/paynym/subwidgets/paynym_card_button.dart';
-import 'package:stackwallet/providers/global/paynym_api_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
-import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:stackduo/pages/paynym/subwidgets/paynym_card_button.dart';
+import 'package:stackduo/providers/global/paynym_api_provider.dart';
+import 'package:stackduo/providers/global/wallets_provider.dart';
+import 'package:stackduo/providers/wallet/my_paynym_account_state_provider.dart';
+import 'package:stackduo/services/mixins/paynym_wallet_interface.dart';
+import 'package:stackduo/utilities/constants.dart';
+import 'package:stackduo/utilities/enums/derive_path_type_enum.dart';
+import 'package:stackduo/utilities/logger.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/utilities/util.dart';
+import 'package:stackduo/widgets/conditional_parent.dart';
+import 'package:stackduo/widgets/rounded_white_container.dart';
 
 class PaynymFollowingList extends ConsumerStatefulWidget {
   const PaynymFollowingList({

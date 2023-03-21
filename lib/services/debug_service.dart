@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/models/log.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackduo/models/isar/models/log.dart';
+import 'package:stackduo/utilities/logger.dart';
 
 class DebugService extends ChangeNotifier {
   DebugService._();

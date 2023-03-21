@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:bitcoindart/bitcoindart.dart';
 import 'package:crypto/crypto.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/logger.dart';
 
 class AddressUtils {
   static String condenseAddress(String address) {

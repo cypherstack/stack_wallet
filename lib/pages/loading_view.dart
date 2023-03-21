@@ -2,12 +2,12 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/utilities/theme/color_theme.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/widgets/background.dart';
+import 'package:stackduo/widgets/conditional_parent.dart';
+import 'package:stackduo/widgets/rounded_container.dart';
 
 class LoadingView extends StatelessWidget {
   const LoadingView({Key? key}) : super(key: key);

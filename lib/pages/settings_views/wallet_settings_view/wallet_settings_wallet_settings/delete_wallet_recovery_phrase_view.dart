@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
-import 'package:stackwallet/pages/home_view/home_view.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/coins/manager.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+import 'package:stackduo/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
+import 'package:stackduo/pages/home_view/home_view.dart';
+import 'package:stackduo/providers/providers.dart';
+import 'package:stackduo/services/coins/manager.dart';
+import 'package:stackduo/utilities/clipboard_interface.dart';
+import 'package:stackduo/utilities/constants.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/widgets/background.dart';
+import 'package:stackduo/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackduo/widgets/stack_dialog.dart';
 
 class DeleteWalletRecoveryPhraseView extends ConsumerStatefulWidget {
   const DeleteWalletRecoveryPhraseView({

@@ -1,8 +1,5 @@
-import 'package:dart_numerics/dart_numerics.dart';
 import 'package:decimal/decimal.dart';
 import 'package:hive/hive.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 part '../type_adaptors/transactions_model.g.dart';
 

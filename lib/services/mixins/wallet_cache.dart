@@ -1,6 +1,6 @@
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackduo/hive/db.dart';
+import 'package:stackduo/models/balance.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
 
 mixin WalletCache {
   late final String _walletId;

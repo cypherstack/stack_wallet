@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/providers/global/node_service_provider.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/widgets/node_card.dart';
+import 'package:stackduo/providers/global/node_service_provider.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/widgets/node_card.dart';
 
 class NodesList extends ConsumerWidget {
   const NodesList({

@@ -2,25 +2,25 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_4_view.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
-import 'package:stackwallet/providers/global/trades_service_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/exchange/exchange_response.dart';
-import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
-import 'package:stackwallet/services/notifications_api.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_loading_overlay.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+import 'package:stackduo/models/exchange/incomplete_exchange.dart';
+import 'package:stackduo/models/exchange/response_objects/trade.dart';
+import 'package:stackduo/pages/exchange_view/exchange_step_views/step_4_view.dart';
+import 'package:stackduo/pages/exchange_view/sub_widgets/step_row.dart';
+import 'package:stackduo/providers/global/trades_service_provider.dart';
+import 'package:stackduo/providers/providers.dart';
+import 'package:stackduo/services/exchange/exchange_response.dart';
+import 'package:stackduo/services/exchange/majestic_bank/majestic_bank_exchange.dart';
+import 'package:stackduo/services/notifications_api.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/utilities/clipboard_interface.dart';
+import 'package:stackduo/utilities/enums/exchange_rate_type_enum.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/widgets/background.dart';
+import 'package:stackduo/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackduo/widgets/custom_loading_overlay.dart';
+import 'package:stackduo/widgets/rounded_white_container.dart';
+import 'package:stackduo/widgets/stack_dialog.dart';
 
 class Step3View extends ConsumerStatefulWidget {
   const Step3View({

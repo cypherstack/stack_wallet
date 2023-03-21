@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/utilities/theme/color_theme.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/widgets/conditional_parent.dart';
 
 class Background extends StatelessWidget {
   const Background({

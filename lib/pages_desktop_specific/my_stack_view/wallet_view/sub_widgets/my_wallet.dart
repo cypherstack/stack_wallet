@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_receive.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_send.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/send_receive_tab_menu.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackduo/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_receive.dart';
+import 'package:stackduo/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_send.dart';
+import 'package:stackduo/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/send_receive_tab_menu.dart';
+import 'package:stackduo/utilities/constants.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
 
 class MyWallet extends StatefulWidget {
   const MyWallet({

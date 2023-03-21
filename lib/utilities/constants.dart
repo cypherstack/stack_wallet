@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/util.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/util.dart';
 
 class _LayoutSizing {
   const _LayoutSizing();

@@ -1,6 +1,6 @@
 import 'package:hive/hive.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
+import 'package:stackduo/models/exchange/change_now/exchange_transaction.dart';
+import 'package:stackduo/services/exchange/change_now/change_now_exchange.dart';
 
 part 'trade.g.dart';
 

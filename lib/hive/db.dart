@@ -3,14 +3,14 @@ import 'dart:isolate';
 import 'package:cw_core/wallet_info.dart' as xmr;
 import 'package:hive/hive.dart';
 import 'package:mutex/mutex.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/models/notification_model.dart';
-import 'package:stackwallet/models/trade_wallet_lookup.dart';
-import 'package:stackwallet/services/wallets_service.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackduo/models/exchange/change_now/exchange_transaction.dart';
+import 'package:stackduo/models/exchange/response_objects/trade.dart';
+import 'package:stackduo/models/node_model.dart';
+import 'package:stackduo/models/notification_model.dart';
+import 'package:stackduo/models/trade_wallet_lookup.dart';
+import 'package:stackduo/services/wallets_service.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/logger.dart';
 
 class DB {
   static const String boxNameAddressBook = "addressBook";

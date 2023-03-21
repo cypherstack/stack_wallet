@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/main_db.dart';
-import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/services/event_bus/events/global/balance_refreshed_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackduo/db/main_db.dart';
+import 'package:stackduo/models/balance.dart';
+import 'package:stackduo/services/event_bus/events/global/balance_refreshed_event.dart';
+import 'package:stackduo/services/event_bus/global_event_bus.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
 
 mixin CoinControlInterface {
   late final String _walletId;

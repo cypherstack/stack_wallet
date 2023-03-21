@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/util.dart';
+import 'package:stackduo/utilities/util.dart';
 
 enum ButtonHeight {
   xxs,

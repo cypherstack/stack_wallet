@@ -1,4 +1,4 @@
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
 
 enum DerivePathType {
   bip44,

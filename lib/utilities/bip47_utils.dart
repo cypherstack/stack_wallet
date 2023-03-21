@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:bip47/src/util.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/output.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
+import 'package:stackduo/models/isar/models/blockchain_data/output.dart';
+import 'package:stackduo/models/isar/models/blockchain_data/transaction.dart';
 
 abstract class Bip47Utils {
   /// looks at tx outputs and returns a blinded payment code if found

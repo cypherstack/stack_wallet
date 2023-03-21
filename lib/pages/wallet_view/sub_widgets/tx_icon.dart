@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackduo/models/isar/models/isar_models.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
 
 class TxIcon extends StatelessWidget {
   const TxIcon({

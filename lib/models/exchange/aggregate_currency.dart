@@ -1,5 +1,5 @@
-import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
-import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
+import 'package:stackduo/models/isar/exchange_cache/currency.dart';
+import 'package:stackduo/models/isar/exchange_cache/pair.dart';
 import 'package:tuple/tuple.dart';
 
 class AggregateCurrency {

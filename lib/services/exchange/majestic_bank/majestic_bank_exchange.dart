@@ -1,15 +1,15 @@
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
-import 'package:stackwallet/exceptions/exchange/majestic_bank/mb_exception.dart';
-import 'package:stackwallet/models/exchange/majestic_bank/mb_order.dart';
-import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
-import 'package:stackwallet/models/exchange/response_objects/range.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
-import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
-import 'package:stackwallet/services/exchange/exchange.dart';
-import 'package:stackwallet/services/exchange/exchange_response.dart';
-import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_api.dart';
+import 'package:stackduo/exceptions/exchange/exchange_exception.dart';
+import 'package:stackduo/exceptions/exchange/majestic_bank/mb_exception.dart';
+import 'package:stackduo/models/exchange/majestic_bank/mb_order.dart';
+import 'package:stackduo/models/exchange/response_objects/estimate.dart';
+import 'package:stackduo/models/exchange/response_objects/range.dart';
+import 'package:stackduo/models/exchange/response_objects/trade.dart';
+import 'package:stackduo/models/isar/exchange_cache/currency.dart';
+import 'package:stackduo/models/isar/exchange_cache/pair.dart';
+import 'package:stackduo/services/exchange/exchange.dart';
+import 'package:stackduo/services/exchange/exchange_response.dart';
+import 'package:stackduo/services/exchange/majestic_bank/majestic_bank_api.dart';
 import 'package:uuid/uuid.dart';
 
 class MajesticBankExchange extends Exchange {

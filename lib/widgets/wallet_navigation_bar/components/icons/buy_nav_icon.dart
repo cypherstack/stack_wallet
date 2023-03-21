@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackduo/utilities/assets.dart';
 
 class BuyNavIcon extends StatelessWidget {
   const BuyNavIcon({Key? key}) : super(key: key);

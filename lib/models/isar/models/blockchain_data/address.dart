@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:isar/isar.dart';
-import 'package:stackwallet/exceptions/address/address_exception.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/crypto_currency_address.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
+import 'package:stackduo/exceptions/address/address_exception.dart';
+import 'package:stackduo/models/isar/models/blockchain_data/crypto_currency_address.dart';
+import 'package:stackduo/models/isar/models/blockchain_data/transaction.dart';
 
 part 'address.g.dart';
 

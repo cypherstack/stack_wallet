@@ -1,15 +1,15 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/stack_privacy_calls.dart';
-import 'package:stackwallet/pages_desktop_specific/password/create_password_view.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackduo/pages/stack_privacy_calls.dart';
+import 'package:stackduo/pages_desktop_specific/password/create_password_view.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/utilities/prefs.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/utilities/util.dart';
+import 'package:stackduo/widgets/background.dart';
+import 'package:stackduo/widgets/desktop/secondary_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class IntroView extends StatefulWidget {

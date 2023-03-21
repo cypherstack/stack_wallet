@@ -1,6 +1,6 @@
 import 'package:decimal/decimal.dart';
 import 'package:hive/hive.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
+import 'package:stackduo/models/exchange/change_now/exchange_transaction_status.dart';
 import 'package:uuid/uuid.dart';
 
 part '../../type_adaptors/exchange_transaction.g.dart';

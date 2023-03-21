@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/input.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/output.dart';
+import 'package:stackduo/models/isar/models/blockchain_data/address.dart';
+import 'package:stackduo/models/isar/models/blockchain_data/input.dart';
+import 'package:stackduo/models/isar/models/blockchain_data/output.dart';
 import 'package:tuple/tuple.dart';
 
 part 'transaction.g.dart';

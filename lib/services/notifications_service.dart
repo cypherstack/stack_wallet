@@ -1,18 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
-import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/notification_model.dart';
-import 'package:stackwallet/services/exchange/exchange_response.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/notifications_api.dart';
-import 'package:stackwallet/services/trade_service.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackduo/electrumx_rpc/electrumx.dart';
+import 'package:stackduo/exceptions/electrumx/no_such_transaction.dart';
+import 'package:stackduo/hive/db.dart';
+import 'package:stackduo/models/exchange/response_objects/trade.dart';
+import 'package:stackduo/models/notification_model.dart';
+import 'package:stackduo/services/exchange/exchange_response.dart';
+import 'package:stackduo/services/node_service.dart';
+import 'package:stackduo/services/notifications_api.dart';
+import 'package:stackduo/services/trade_service.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/logger.dart';
+import 'package:stackduo/utilities/prefs.dart';
 
 import 'exchange/exchange.dart';
 

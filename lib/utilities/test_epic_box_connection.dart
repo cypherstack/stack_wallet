@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackduo/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
+import 'package:stackduo/utilities/logger.dart';
 
 Future<bool> _testEpicBoxNodeConnection(Uri uri) async {
   try {

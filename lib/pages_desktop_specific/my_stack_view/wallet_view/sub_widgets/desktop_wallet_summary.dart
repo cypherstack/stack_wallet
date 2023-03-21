@@ -1,17 +1,17 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_balance_toggle_button.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackduo/models/balance.dart';
+import 'package:stackduo/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
+import 'package:stackduo/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_balance_toggle_button.dart';
+import 'package:stackduo/providers/providers.dart';
+import 'package:stackduo/providers/wallet/wallet_balance_toggle_state_provider.dart';
+import 'package:stackduo/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/enums/wallet_balance_toggle_state.dart';
+import 'package:stackduo/utilities/format.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
 
 class DesktopWalletSummary extends ConsumerStatefulWidget {
   const DesktopWalletSummary({

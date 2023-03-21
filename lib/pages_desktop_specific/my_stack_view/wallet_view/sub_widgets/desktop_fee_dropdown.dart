@@ -4,19 +4,19 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/models.dart';
-import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
-import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/animated_text.dart';
+import 'package:stackduo/models/models.dart';
+import 'package:stackduo/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
+import 'package:stackduo/providers/global/wallets_provider.dart';
+import 'package:stackduo/providers/ui/fee_rate_type_state_provider.dart';
+import 'package:stackduo/providers/wallet/public_private_balance_state_provider.dart';
+import 'package:stackduo/utilities/assets.dart';
+import 'package:stackduo/utilities/constants.dart';
+import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/enums/fee_rate_type_enum.dart';
+import 'package:stackduo/utilities/format.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/utilities/theme/stack_colors.dart';
+import 'package:stackduo/widgets/animated_text.dart';
 
 class DesktopFeeDropDown extends ConsumerStatefulWidget {
   const DesktopFeeDropDown({
