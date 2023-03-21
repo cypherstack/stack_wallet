@@ -26,7 +26,7 @@ void main() {
 
     when(client.get(
         Uri.parse(
-            "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc&ids=monero,bitcoin,litecoin,epic-cash,zcoin,dogecoin,bitcoin-cash,namecoin,wownero,particl&order=market_cap_desc&per_page=10&page=1&sparkline=false"),
+            "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc&ids=monero,bitcoin&order=market_cap_desc&per_page=10&page=1&sparkline=false"),
         headers: {
           'Content-Type': 'application/json'
         })).thenAnswer((_) async => Response(
