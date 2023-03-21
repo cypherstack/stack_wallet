@@ -37,6 +37,7 @@ import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i31;
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
     as _i7;
 import 'package:stackwallet/utilities/prefs.dart' as _i23;
+import 'package:stackwallet/utilities/theme/color_theme.dart' as _i33;
 import 'package:tuple/tuple.dart' as _i15;
 
 // ignore_for_file: type=lint
@@ -2547,6 +2548,61 @@ class MockPrefs extends _i1.Mock implements _i23.Prefs {
         returnValueForMissingStub: null,
       );
   @override
+  bool get enableSystemBrightness => (super.noSuchMethod(
+        Invocation.getter(#enableSystemBrightness),
+        returnValue: false,
+      ) as bool);
+  @override
+  set enableSystemBrightness(bool? enableSystemBrightness) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #enableSystemBrightness,
+          enableSystemBrightness,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i33.ThemeType get theme => (super.noSuchMethod(
+        Invocation.getter(#theme),
+        returnValue: _i33.ThemeType.light,
+      ) as _i33.ThemeType);
+  @override
+  set theme(_i33.ThemeType? theme) => super.noSuchMethod(
+        Invocation.setter(
+          #theme,
+          theme,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i33.ThemeType get systemBrightnessLightTheme => (super.noSuchMethod(
+        Invocation.getter(#systemBrightnessLightTheme),
+        returnValue: _i33.ThemeType.light,
+      ) as _i33.ThemeType);
+  @override
+  set systemBrightnessLightTheme(_i33.ThemeType? systemBrightnessLightTheme) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #systemBrightnessLightTheme,
+          systemBrightnessLightTheme,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i33.ThemeType get systemBrightnessDarkTheme => (super.noSuchMethod(
+        Invocation.getter(#systemBrightnessDarkTheme),
+        returnValue: _i33.ThemeType.light,
+      ) as _i33.ThemeType);
+  @override
+  set systemBrightnessDarkTheme(_i33.ThemeType? systemBrightnessDarkTheme) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #systemBrightnessDarkTheme,
+          systemBrightnessDarkTheme,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
@@ -2778,6 +2834,11 @@ class MockManager extends _i1.Mock implements _i6.Manager {
   @override
   bool get hasCoinControlSupport => (super.noSuchMethod(
         Invocation.getter(#hasCoinControlSupport),
+        returnValue: false,
+      ) as bool);
+  @override
+  bool get hasWhirlpoolSupport => (super.noSuchMethod(
+        Invocation.getter(#hasWhirlpoolSupport),
         returnValue: false,
       ) as bool);
   @override

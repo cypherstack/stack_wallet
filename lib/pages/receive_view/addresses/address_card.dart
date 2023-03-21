@@ -56,6 +56,11 @@ class _AddressCardState extends State<AddressCard> {
         walletId: widget.walletId,
         addressString: address.value,
         value: "",
+        tags: address.subType == AddressSubType.receiving
+            ? ["receiving"]
+            : address.subType == AddressSubType.change
+                ? ["change"]
+                : null,
       );
       id = MainDB.instance.putAddressLabelSync(label!);
     }
