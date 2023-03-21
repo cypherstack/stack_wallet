@@ -221,11 +221,27 @@ class DbVersionMigrator with WalletDB {
 
           final List<isar_models.AddressLabel> labels = [];
           for (final address in addresses) {
-            final tags = address.subType == AddressSubType.receiving
-                ? ["receiving"]
-                : address.subType == AddressSubType.change
-                    ? ["change"]
-                    : null;
+            List<String>? tags;
+            switch (address.subType) {
+              case AddressSubType.receiving:
+                tags = ["receiving"];
+                break;
+              case AddressSubType.change:
+                tags = ["change"];
+                break;
+              case AddressSubType.paynymNotification:
+                tags = ["paynym notification"];
+                break;
+              case AddressSubType.paynymSend:
+                break;
+              case AddressSubType.paynymReceive:
+                tags = ["paynym receiving"];
+                break;
+              case AddressSubType.unknown:
+                break;
+              case AddressSubType.nonWallet:
+                break;
+            }
 
             // update/create label if tags is not empty
             if (tags != null) {
