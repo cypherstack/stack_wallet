@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/manager.dart';
-import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -22,15 +17,12 @@ class DeleteWalletRecoveryPhraseView extends ConsumerStatefulWidget {
     Key? key,
     required this.manager,
     required this.mnemonic,
-    this.clipboardInterface = const ClipboardWrapper(),
   }) : super(key: key);
 
   static const routeName = "/deleteWalletRecoveryPhrase";
 
   final Manager manager;
   final List<String> mnemonic;
-
-  final ClipboardInterface clipboardInterface;
 
   @override
   ConsumerState<DeleteWalletRecoveryPhraseView> createState() =>
@@ -47,7 +39,6 @@ class _DeleteWalletRecoveryPhraseViewState
   void initState() {
     _manager = widget.manager;
     _mnemonic = widget.mnemonic;
-    _clipboardInterface = widget.clipboardInterface;
     super.initState();
   }
 
@@ -64,37 +55,6 @@ class _DeleteWalletRecoveryPhraseViewState
               Navigator.of(context).pop();
             },
           ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: AppBarIconButton(
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                  shadows: const [],
-                  icon: SvgPicture.asset(
-                    Assets.svg.copy,
-                    width: 20,
-                    height: 20,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .topNavIconPrimary,
-                  ),
-                  onPressed: () async {
-                    final words = await _manager.mnemonic;
-                    await _clipboardInterface
-                        .setData(ClipboardData(text: words.join(" ")));
-                    showFloatingFlushBar(
-                      type: FlushBarType.info,
-                      message: "Copied to clipboard",
-                      iconAsset: Assets.svg.copy,
-                      context: context,
-                    );
-                  },
-                ),
-              ),
-            ),
-          ],
         ),
         body: Padding(
           padding: const EdgeInsets.all(16),

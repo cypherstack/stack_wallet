@@ -29,15 +29,12 @@ class NewWalletRecoveryPhraseView extends ConsumerStatefulWidget {
     Key? key,
     required this.manager,
     required this.mnemonic,
-    this.clipboardInterface = const ClipboardWrapper(),
   }) : super(key: key);
 
   static const routeName = "/newWalletRecoveryPhrase";
 
   final Manager manager;
   final List<String> mnemonic;
-
-  final ClipboardInterface clipboardInterface;
 
   @override
   ConsumerState<NewWalletRecoveryPhraseView> createState() =>
@@ -57,7 +54,6 @@ class _NewWalletRecoveryPhraseViewState
   void initState() {
     _manager = widget.manager;
     _mnemonic = widget.mnemonic;
-    _clipboardInterface = widget.clipboardInterface;
     isDesktop = Util.isDesktop;
     super.initState();
   }
@@ -134,31 +130,6 @@ class _NewWalletRecoveryPhraseViewState
                     }
                   },
                 ),
-                actions: [
-                  Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: AppBarIconButton(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .background,
-                        shadows: const [],
-                        icon: SvgPicture.asset(
-                          Assets.svg.copy,
-                          width: 24,
-                          height: 24,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .topNavIconPrimary,
-                        ),
-                        onPressed: () async {
-                          await _copy();
-                        },
-                      ),
-                    ),
-                  ),
-                ],
               ),
         body: Container(
           color: Theme.of(context).extension<StackColors>()!.background,
