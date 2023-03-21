@@ -401,6 +401,8 @@ class _ANIMATIONS {
 class _GIF {
   const _GIF();
 
+  String get stacyPlain => "assets/gif/stacy-plain.gif";
+
   String plain(Coin coin) {
     return "assets/gif/coins/${coin.mainNetVersion.name}/plain.gif";
   }

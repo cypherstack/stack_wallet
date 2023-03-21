@@ -364,6 +364,9 @@ flutter:
     # basic
     - assets/lottie/test2.json
 
+    # gifs
+    - assets/gif/
+
     # coin gifs
     - assets/gif/coins/bitcoin/
     - assets/gif/coins/bitcoincash/
