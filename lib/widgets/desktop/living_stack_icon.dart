@@ -3,7 +3,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
 
 class LivingStackIcon extends StatefulWidget {
-  const LivingStackIcon({Key? key, this.onPressed,}) : super(key: key);
+  const LivingStackIcon({
+    Key? key,
+    this.onPressed,
+  }) : super(key: key);
 
   final VoidCallback? onPressed;
 
@@ -44,7 +47,7 @@ class _LivingStackIconState extends State<LivingStackIcon> {
             duration: const Duration(milliseconds: 200),
             scale: _hovering ? 1.2 : 1,
             child: SvgPicture.asset(
-              Assets.svg.stackIcon(context),
+              Assets.svg.stackDuoIcon(context),
             ),
           ),
         ),

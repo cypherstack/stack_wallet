@@ -156,7 +156,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 SvgPicture.asset(
-                  Assets.svg.stackIcon(context),
+                  Assets.svg.stackDuoIcon(context),
                   width: 100,
                 ),
                 const SizedBox(

@@ -54,7 +54,7 @@ class DesktopMyStackTitle extends StatelessWidget {
           width: 32,
           height: 32,
           child: SvgPicture.asset(
-            Assets.svg.stackIcon(context),
+            Assets.svg.stackDuoIcon(context),
           ),
         ),
         const SizedBox(

@@ -116,7 +116,7 @@ class _IntroViewState extends State<IntroView> {
                         width: 130,
                         height: 130,
                         child: SvgPicture.asset(
-                          Assets.svg.stackIcon(context),
+                          Assets.svg.stackDuoIcon(context),
                         ),
                       ),
                       const Spacer(

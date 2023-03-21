@@ -161,7 +161,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   onTap: _hiddenOptions,
                   child: RotateIcon(
                     icon: SvgPicture.asset(
-                      Assets.svg.stackIcon(context),
+                      Assets.svg.stackDuoIcon(context),
                       width: 24,
                       height: 24,
                     ),

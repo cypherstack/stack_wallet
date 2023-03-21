@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/contact.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/add_new_contact_address_view.dart';
 import 'package:stackwallet/pages_desktop_specific/address_book_view/subwidgets/desktop_address_card.dart';
@@ -120,7 +119,7 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                           child: contact.id == "default"
                               ? Center(
                                   child: SvgPicture.asset(
-                                    Assets.svg.stackIcon(context),
+                                    Assets.svg.stackDuoIcon(context),
                                     width: 32,
                                   ),
                                 )

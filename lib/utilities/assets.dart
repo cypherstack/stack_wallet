@@ -88,8 +88,8 @@ class _SVG {
 
   String bellNew(BuildContext context) =>
       "$_path_themed${Theme.of(context).extension<StackColors>()!.themeType.name}/bell-new.svg";
-  String stackIcon(BuildContext context) =>
-      "$_path_themed${Theme.of(context).extension<StackColors>()!.themeType.name}/stack-icon1.svg";
+  String stackDuoIcon(BuildContext context) =>
+      "$_path_themed${Theme.of(context).extension<StackColors>()!.themeType.name}/stack-duo-icon.svg";
   String exchange(BuildContext context) =>
       "$_path_themed${Theme.of(context).extension<StackColors>()!.themeType.name}/exchange-2.svg";
   String buy(BuildContext context) =>

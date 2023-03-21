@@ -95,7 +95,7 @@ class _ForgotPasswordDesktopViewState
               mainAxisSize: MainAxisSize.min,
               children: [
                 SvgPicture.asset(
-                  Assets.svg.stackIcon(context),
+                  Assets.svg.stackDuoIcon(context),
                   width: 100,
                 ),
                 const SizedBox(

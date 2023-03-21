@@ -91,7 +91,7 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
             child: contact.id == "default"
                 ? Center(
                     child: SvgPicture.asset(
-                      Assets.svg.stackIcon(context),
+                      Assets.svg.stackDuoIcon(context),
                       width: 20,
                     ),
                   )
