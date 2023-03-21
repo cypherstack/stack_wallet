@@ -185,6 +185,26 @@ class DbVersionMigrator with WalletDB {
         // try to continue migrating
         return await migrate(5, secureStore: secureStore);
 
+      case 5:
+        // migrate
+        await Hive.openBox<dynamic>("theme");
+        await Hive.openBox<dynamic>(DB.boxNamePrefs);
+
+        final themeName =
+            DB.instance.get<dynamic>(boxName: "theme", key: "colorScheme")
+                    as String? ??
+                "light";
+
+        await DB.instance.put<dynamic>(
+            boxName: DB.boxNamePrefs, key: "theme", value: themeName);
+
+        // update version
+        await DB.instance.put<dynamic>(
+            boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 6);
+
+        // try to continue migrating
+        return await migrate(6, secureStore: secureStore);
+
       default:
         // finally return
         return;

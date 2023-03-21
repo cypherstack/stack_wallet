@@ -133,6 +133,7 @@ import 'package:stackwallet/services/event_bus/events/global/node_connection_sta
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:tuple/tuple.dart';
 
 class RouteGenerator {
@@ -632,6 +633,21 @@ class RouteGenerator {
             builder: (_) => EditContactAddressView(
               contactId: args.item1,
               addressEntry: args.item2,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case SystemBrightnessThemeSelectionView.routeName:
+        if (args is Tuple2<String, ThemeType>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SystemBrightnessThemeSelectionView(
+              brightness: args.item1,
+              current: args.item2,
             ),
             settings: RouteSettings(
               name: settings.name,

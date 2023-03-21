@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -232,14 +231,12 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
               cursor: SystemMouseCursors.click,
               child: GestureDetector(
                 onTap: () {
-                  if (ref.read(colorThemeProvider.state).state.themeType !=
+                  if (ref.read(colorThemeProvider.notifier).state.themeType !=
                       ThemeType.values[i]) {
-                    DB.instance.put<dynamic>(
-                      boxName: DB.boxNameTheme,
-                      key: "colorScheme",
-                      value: ThemeType.values[i].name,
-                    );
-                    ref.read(colorThemeProvider.state).state =
+                    ref.read(prefsChangeNotifierProvider.notifier).theme =
+                        ThemeType.values[i];
+
+                    ref.read(colorThemeProvider.notifier).state =
                         StackColors.fromStackColorTheme(
                             ThemeType.values[i].colorTheme);
                   }
@@ -255,7 +252,7 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
                           border: Border.all(
                             width: 2.5,
                             color: ref
-                                        .read(colorThemeProvider.state)
+                                        .read(colorThemeProvider.notifier)
                                         .state
                                         .themeType ==
                                     ThemeType.values[i]

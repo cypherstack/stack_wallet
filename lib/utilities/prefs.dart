@@ -43,6 +43,7 @@ class Prefs extends ChangeNotifier {
       _signupEpoch = await _getSignupEpoch();
       _enableCoinControl = await _getEnableCoinControl();
       _enableSystemBrightness = await _getEnableSystemBrightness();
+      _theme = await _getTheme();
       _systemBrightnessLightTheme = await _getSystemBrightnessLightTheme();
       _systemBrightnessDarkTheme = await _getSystemBrightnessDarkTheme();
 
@@ -699,49 +700,70 @@ class Prefs extends ChangeNotifier {
 
   // system brightness light theme name
 
-  String _systemBrightnessLightTheme = ThemeType.light.name;
+  ThemeType _theme = ThemeType.light;
 
-  String get systemBrightnessLightTheme => _systemBrightnessLightTheme;
+  ThemeType get theme => _theme;
 
-  set systemBrightnessLightTheme(String systemBrightnessLightTheme) {
+  set theme(ThemeType theme) {
+    if (this.theme != theme) {
+      DB.instance.put<dynamic>(
+          boxName: DB.boxNamePrefs, key: "theme", value: theme.name);
+      _theme = theme;
+      notifyListeners();
+    }
+  }
+
+  Future<ThemeType> _getTheme() async {
+    return ThemeTypeExt.fromName(await DB.instance
+            .get<dynamic>(boxName: DB.boxNamePrefs, key: "theme") as String? ??
+        ThemeType.light.name);
+  }
+
+  // system brightness light theme name
+
+  ThemeType _systemBrightnessLightTheme = ThemeType.light;
+
+  ThemeType get systemBrightnessLightTheme => _systemBrightnessLightTheme;
+
+  set systemBrightnessLightTheme(ThemeType systemBrightnessLightTheme) {
     if (this.systemBrightnessLightTheme != systemBrightnessLightTheme) {
       DB.instance.put<dynamic>(
           boxName: DB.boxNamePrefs,
           key: "systemBrightnessLightTheme",
-          value: systemBrightnessLightTheme);
+          value: systemBrightnessLightTheme.name);
       _systemBrightnessLightTheme = systemBrightnessLightTheme;
       notifyListeners();
     }
   }
 
-  Future<String> _getSystemBrightnessLightTheme() async {
-    return await DB.instance.get<dynamic>(
+  Future<ThemeType> _getSystemBrightnessLightTheme() async {
+    return ThemeTypeExt.fromName(await DB.instance.get<dynamic>(
             boxName: DB.boxNamePrefs,
             key: "systemBrightnessLightTheme") as String? ??
-        ThemeType.light.name;
+        ThemeType.light.name);
   }
 
   // system brightness dark theme name
 
-  String _systemBrightnessDarkTheme = ThemeType.dark.name;
+  ThemeType _systemBrightnessDarkTheme = ThemeType.dark;
 
-  String get systemBrightnessDarkTheme => _systemBrightnessDarkTheme;
+  ThemeType get systemBrightnessDarkTheme => _systemBrightnessDarkTheme;
 
-  set systemBrightnessDarkTheme(String systemBrightnessDarkTheme) {
+  set systemBrightnessDarkTheme(ThemeType systemBrightnessDarkTheme) {
     if (this.systemBrightnessDarkTheme != systemBrightnessDarkTheme) {
       DB.instance.put<dynamic>(
           boxName: DB.boxNamePrefs,
           key: "systemBrightnessDarkTheme",
-          value: systemBrightnessDarkTheme);
+          value: systemBrightnessDarkTheme.name);
       _systemBrightnessDarkTheme = systemBrightnessDarkTheme;
       notifyListeners();
     }
   }
 
-  Future<String> _getSystemBrightnessDarkTheme() async {
-    return await DB.instance.get<dynamic>(
+  Future<ThemeType> _getSystemBrightnessDarkTheme() async {
+    return ThemeTypeExt.fromName(await DB.instance.get<dynamic>(
             boxName: DB.boxNamePrefs,
             key: "systemBrightnessDarkTheme") as String? ??
-        ThemeType.dark.name;
+        ThemeType.dark.name);
   }
 }

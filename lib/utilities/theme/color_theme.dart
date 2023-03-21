@@ -24,6 +24,29 @@ enum ThemeType {
 // adjust this file
 
 extension ThemeTypeExt on ThemeType {
+  static ThemeType fromName(String name) {
+    switch (name) {
+      case "light":
+        return ThemeType.light;
+      case "chan":
+        return ThemeType.chan;
+      case "dark":
+        return ThemeType.dark;
+      case "oceanBreeze":
+        return ThemeType.oceanBreeze;
+      case "oledBlack":
+        return ThemeType.oledBlack;
+      case "fruitSorbet":
+        return ThemeType.fruitSorbet;
+      case "forest":
+        return ThemeType.forest;
+      case "darkChans":
+        return ThemeType.darkChans;
+      default:
+        throw ArgumentError("Invalid theme name");
+    }
+  }
+
   StackColorTheme get colorTheme {
     switch (this) {
       case ThemeType.light:
