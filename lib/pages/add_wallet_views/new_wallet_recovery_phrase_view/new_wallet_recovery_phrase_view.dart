@@ -2,10 +2,8 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:stackduo/notifications/show_flush_bar.dart';
+import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:stackduo/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 import 'package:stackduo/pages/add_wallet_views/new_wallet_recovery_phrase_warning_view/new_wallet_recovery_phrase_warning_view.dart';
 import 'package:stackduo/pages/add_wallet_views/verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
@@ -13,8 +11,6 @@ import 'package:stackduo/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackduo/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackduo/providers/providers.dart';
 import 'package:stackduo/services/coins/manager.dart';
-import 'package:stackduo/utilities/assets.dart';
-import 'package:stackduo/utilities/clipboard_interface.dart';
 import 'package:stackduo/utilities/constants.dart';
 import 'package:stackduo/utilities/text_styles.dart';
 import 'package:stackduo/utilities/theme/stack_colors.dart';
@@ -47,15 +43,22 @@ class _NewWalletRecoveryPhraseViewState
 {
   late Manager _manager;
   late List<String> _mnemonic;
-  late ClipboardInterface _clipboardInterface;
+  // late FlutterWindowManager _windowManager;
   late final bool isDesktop;
 
   @override
   void initState() {
     _manager = widget.manager;
     _mnemonic = widget.mnemonic;
+    disableScreenshot();
     isDesktop = Util.isDesktop;
     super.initState();
+  }
+
+  @override
+  void dispose() async {
+    await FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
+    super.dispose();
   }
 
   Future<bool> onWillPop() async {
@@ -70,15 +73,8 @@ class _NewWalletRecoveryPhraseViewState
     await _manager.exitCurrentWallet();
   }
 
-  Future<void> _copy() async {
-    final words = await _manager.mnemonic;
-    await _clipboardInterface.setData(ClipboardData(text: words.join(" ")));
-    unawaited(showFloatingFlushBar(
-      type: FlushBarType.info,
-      message: "Copied to clipboard",
-      iconAsset: Assets.svg.copy,
-      context: context,
-    ));
+  Future<void> disableScreenshot() async {
+    await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
   }
 
   @override
@@ -213,36 +209,6 @@ class _NewWalletRecoveryPhraseViewState
                 SizedBox(
                   height: isDesktop ? 24 : 16,
                 ),
-                if (isDesktop)
-                  SizedBox(
-                    height: 70,
-                    child: TextButton(
-                      onPressed: () async {
-                        await _copy();
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SvgPicture.asset(
-                            Assets.svg.copy,
-                            width: 20,
-                            height: 20,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .buttonTextSecondary,
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Text(
-                            "Copy to clipboard",
-                            style: STextStyles.desktopButtonSecondaryEnabled(
-                                context),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
                 if (isDesktop)
                   const SizedBox(
                     height: 16,

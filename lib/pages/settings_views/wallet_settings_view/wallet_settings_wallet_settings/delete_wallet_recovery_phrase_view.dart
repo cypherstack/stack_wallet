@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:stackduo/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 import 'package:stackduo/pages/home_view/home_view.dart';
 import 'package:stackduo/providers/providers.dart';
@@ -39,7 +40,18 @@ class _DeleteWalletRecoveryPhraseViewState
   void initState() {
     _manager = widget.manager;
     _mnemonic = widget.mnemonic;
+    disableScreenshot();
     super.initState();
+  }
+
+  @override
+  void dispose() async {
+    await FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
+    super.dispose();
+  }
+
+  Future<void> disableScreenshot() async {
+    await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
   }
 
   @override

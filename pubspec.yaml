@@ -136,6 +136,7 @@ dependencies:
   string_validator: ^0.3.0
   equatable: ^2.0.5
   async: ^2.10.0
+  flutter_windowmanager: ^0.2.0
 
 dev_dependencies:
   flutter_test:
