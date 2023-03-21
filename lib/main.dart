@@ -395,12 +395,10 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       }
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        print("=============================================================");
-        print("colorTheme: $colorTheme");
-        print("=============================================================");
-
-        ref.read(colorThemeProvider.notifier).state =
-            StackColors.fromStackColorTheme(colorTheme);
+        if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
+          ref.read(colorThemeProvider.notifier).state =
+              StackColors.fromStackColorTheme(colorTheme);
+        }
       });
     };
 
