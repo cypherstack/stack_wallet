@@ -348,10 +348,6 @@ flutter:
     # forest theme specific
     - assets/svg/themed/forest/
 
-    # buy
-    - assets/svg/buy/
-
-
     # lottie animations
     # basic
     - assets/lottie/test2.json
