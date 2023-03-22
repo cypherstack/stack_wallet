@@ -2460,7 +2460,14 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
 
           // Logging.instance.log("$value $tx $ltx");
           if (!jindexes!.contains(value.index) && tx == null) {
+            if (!value.isUsed &&
+                ltx != null &&
+                ltx.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
+              // mint tx, add value to balance
+              intLelantusBalance += value.value;
+            } /* else {
             // This coin is not confirmed and may be replaced
+            }*/
           } else if (jindexes.contains(value.index) &&
               tx == null &&
               !value.isUsed &&
@@ -2654,7 +2661,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
 
   Future<List<Map<String, dynamic>>> createMintsFromAmount(int total) async {
     var tmpTotal = total;
-    var index = 0;
+    var index = 1;
     var mints = <Map<String, dynamic>>[];
     final nextFreeMintIndex = firoGetMintIndex()!;
     while (tmpTotal > 0) {
