@@ -157,7 +157,7 @@ flutter_icons:
   android: true
   ios: true
   image_path: assets/icon/icon.png
-  image_path_android: assets/icon/app_icon_alpha.png
+  image_path_android: assets/icon/icon.png
   image_path_ios: assets/icon/icon.png
   remove_alpha_ios: true
   windows:
