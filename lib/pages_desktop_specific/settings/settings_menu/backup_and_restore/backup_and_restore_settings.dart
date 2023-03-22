@@ -380,7 +380,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                           ),
                                           TextSpan(
                                             text:
-                                                "\n\nAuto backup is a custom Stack Wallet feature that offers a convenient backup of your data."
+                                                "\n\nAuto backup is a custom Stack Duo feature that offers a convenient backup of your data."
                                                 "To ensure maximum security, we recommend using a unique password that you haven't used anywhere "
                                                 "else on the internet before. Your password is not stored.",
                                             style: STextStyles
@@ -616,7 +616,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                           ),
                                           TextSpan(
                                             text:
-                                                "\n\nUse your Stack Wallet backup file to restore your wallets, address book "
+                                                "\n\nUse your Stack Duo backup file to restore your wallets, address book "
                                                 "and wallet preferences.",
                                             style: STextStyles
                                                 .desktopTextExtraExtraSmall(

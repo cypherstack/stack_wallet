@@ -174,7 +174,7 @@ class AppNameText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      "Stack Wallet",
+      "Stack Duo",
       textAlign: TextAlign.center,
       style: !isDesktop
           ? STextStyles.pageTitleH1(context)
@@ -218,7 +218,7 @@ class PrivacyAndTOSText extends StatelessWidget {
       text: TextSpan(
         style: STextStyles.label(context).copyWith(fontSize: fontSize),
         children: [
-          const TextSpan(text: "By using Stack Wallet, you agree to the "),
+          const TextSpan(text: "By using Stack Duo, you agree to the "),
           TextSpan(
             text: "Terms of service",
             style: STextStyles.richLink(context).copyWith(fontSize: fontSize),

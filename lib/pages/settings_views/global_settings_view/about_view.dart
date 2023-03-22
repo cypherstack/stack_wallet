@@ -349,7 +349,7 @@ class AboutView extends ConsumerWidget {
                             children: [
                               const TextSpan(
                                   text:
-                                      "By using Stack Wallet, you agree to the "),
+                                      "By using Stack Duo, you agree to the "),
                               TextSpan(
                                 text: "Terms of service",
                                 style: STextStyles.richLink(context),

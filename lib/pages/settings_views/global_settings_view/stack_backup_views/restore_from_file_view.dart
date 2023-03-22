@@ -524,7 +524,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                                                     const EdgeInsets
                                                                         .all(32),
                                                                 child: Text(
-                                                                  "Restore Stack Wallet",
+                                                                  "Restore Stack Duo",
                                                                   style: STextStyles
                                                                       .desktopH3(
                                                                           context),

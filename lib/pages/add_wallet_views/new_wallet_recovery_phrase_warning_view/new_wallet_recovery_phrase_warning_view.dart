@@ -163,7 +163,7 @@ class _NewWalletRecoveryPhraseWarningViewState
               width: isDesktop ? 480 : null,
               child: isDesktop
                   ? Text(
-                      "On the next screen you will see $_numberOfPhraseWords words that make up your recovery phrase.\n\nPlease write it down. Keep it safe and never share it with anyone. Your recovery phrase is the only way you can access your funds if you forget your PIN, lose your phone, etc.\n\nStack Wallet does not keep nor is able to restore your recover phrase. Only you have access to your wallet.",
+                      "On the next screen you will see $_numberOfPhraseWords words that make up your recovery phrase.\n\nPlease write it down. Keep it safe and never share it with anyone. Your recovery phrase is the only way you can access your funds if you forget your PIN, lose your phone, etc.\n\nStack Duo does not keep nor is able to restore your recover phrase. Only you have access to your wallet.",
                       style: isDesktop
                           ? STextStyles.desktopTextMediumRegular(context)
                           : STextStyles.subtitle(context).copyWith(
@@ -395,7 +395,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                               ),
                               Flexible(
                                 child: Text(
-                                  "I understand that Stack Wallet does not keep and cannot restore my recovery phrase, and If I lose my recovery phrase, I will not be able to access my funds.",
+                                  "I understand that Stack Duo does not keep and cannot restore my recovery phrase, and If I lose my recovery phrase, I will not be able to access my funds.",
                                   style: isDesktop
                                       ? STextStyles.desktopTextMedium(context)
                                       : STextStyles.baseXS(context).copyWith(

@@ -499,7 +499,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                             if (isWalletCoin)
                               Builder(
                                 builder: (context) {
-                                  String buttonTitle = "Send from Stack Wallet";
+                                  String buttonTitle = "Send from Stack Duo";
 
                                   final tuple = ref
                                       .read(

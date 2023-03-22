@@ -78,7 +78,7 @@ class WalletBackupView extends ConsumerWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: Text(
-                    "Please write down your backup key. Keep it safe and never share it with anyone. Your backup key is the only way you can access your funds if you forget your PIN, lose your phone, etc.\n\nStack Wallet does not keep nor is able to restore your backup key. Only you have access to your wallet.",
+                    "Please write down your backup key. Keep it safe and never share it with anyone. Your backup key is the only way you can access your funds if you forget your PIN, lose your phone, etc.\n\nStack Duo does not keep nor is able to restore your backup key. Only you have access to your wallet.",
                     style: STextStyles.label(context),
                   ),
                 ),

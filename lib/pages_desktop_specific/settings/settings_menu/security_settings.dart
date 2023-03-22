@@ -177,7 +177,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                         height: 16,
                       ),
                       Text(
-                        "Protect your Stack Wallet with a strong password. Stack Wallet does not store "
+                        "Protect your Stack Duo with a strong password. Stack Duo does not store "
                         "your password, and is therefore NOT able to restore it. Keep your password safe and secure.",
                         style: STextStyles.desktopTextExtraExtraSmall(context),
                       ),

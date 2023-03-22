@@ -303,7 +303,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                       children: [
                         const TextSpan(
                             text:
-                                "Auto Backup is a custom Stack Wallet feature that offers a convenient backup of your data.\n\nTo ensure maximum security, we recommend using a unique password that you haven't used anywhere else on the internet before. Your password is not stored.\n\nFor more information, please see our website "),
+                                "Auto Backup is a custom Stack Duo feature that offers a convenient backup of your data.\n\nTo ensure maximum security, we recommend using a unique password that you haven't used anywhere else on the internet before. Your password is not stored.\n\nFor more information, please see our website "),
                         TextSpan(
                           text: "stackwallet.com.",
                           style: STextStyles.richLink(context),

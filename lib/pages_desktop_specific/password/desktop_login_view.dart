@@ -163,7 +163,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                   height: 42,
                 ),
                 Text(
-                  "Stack Wallet",
+                  "Stack Duo",
                   style: STextStyles.desktopH1(context),
                 ),
                 const SizedBox(

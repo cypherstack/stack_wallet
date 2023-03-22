@@ -305,7 +305,7 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
                     onPressed: onBack,
                   ),
                   secondChild: SecondaryButton(
-                    label: "Send from Stack Wallet",
+                    label: "Send from Stack Duo",
                     buttonHeight: ButtonHeight.l,
                     onPressed: sendFromStack,
                   ),
