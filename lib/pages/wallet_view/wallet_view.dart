@@ -19,6 +19,7 @@ import 'package:stackwallet/pages/receive_view/receive_view.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_view.dart';
+import 'package:stackwallet/pages/token_view/my_tokens_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_summary.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
@@ -824,6 +825,22 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     ),
                 ],
                 moreItems: [
+                  if (ref.watch(
+                    walletsChangeNotifierProvider.select(
+                      (value) =>
+                          value.getManager(widget.walletId).hasTokenSupport,
+                    ),
+                  ))
+                    WalletNavigationBarItemData(
+                      label: "Tokens",
+                      icon: const CoinControlNavIcon(),
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          MyTokensView.routeName,
+                          arguments: walletId,
+                        );
+                      },
+                    ),
                   if (ref.watch(
                         walletsChangeNotifierProvider.select(
                           (value) => value
