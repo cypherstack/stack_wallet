@@ -155,7 +155,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     DesktopMenuItem(
                       duration: duration,
                       icon: const DesktopExchangeIcon(),
-                      label: "Exchange",
+                      label: "Swap",
                       value: DesktopMenuItemId.exchange,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[1],

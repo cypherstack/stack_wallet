@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/models/epicbox_config_model.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
@@ -356,10 +356,9 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
         .getManager(widget.walletId)
         .wallet as EpicCashWallet;
 
-    wallet.getEpicBoxConfig().then((value) {
-      final config = jsonDecode(value);
-      hostController.text = config["domain"] as String;
-      portController.text = (config["port"] as int).toString();
+    wallet.getEpicBoxConfig().then((EpicBoxConfigModel epicBoxConfig) {
+      hostController.text = epicBoxConfig.host;
+      portController.text = "${epicBoxConfig.port ?? 443}";
     });
     super.initState();
   }

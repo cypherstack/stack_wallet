@@ -4,6 +4,7 @@ import 'package:stackwallet/utilities/theme/color_theme.dart';
 
 class StackColors extends ThemeExtension<StackColors> {
   final ThemeType themeType;
+  final Brightness brightness;
 
   final Color background;
   final Color backgroundAppBar;
@@ -191,6 +192,7 @@ class StackColors extends ThemeExtension<StackColors> {
 
   StackColors({
     required this.themeType,
+    required this.brightness,
     required this.background,
     required this.backgroundAppBar,
     required this.gradientBackground,
@@ -340,6 +342,7 @@ class StackColors extends ThemeExtension<StackColors> {
   factory StackColors.fromStackColorTheme(StackColorTheme colorTheme) {
     return StackColors(
       themeType: colorTheme.themeType,
+      brightness: colorTheme.brightness,
       background: colorTheme.background,
       backgroundAppBar: colorTheme.backgroundAppBar,
       gradientBackground: colorTheme.gradientBackground,
@@ -493,6 +496,7 @@ class StackColors extends ThemeExtension<StackColors> {
   @override
   ThemeExtension<StackColors> copyWith({
     ThemeType? themeType,
+    Brightness? brightness,
     Color? background,
     Color? backgroundAppBar,
     Gradient? gradientBackground,
@@ -640,6 +644,7 @@ class StackColors extends ThemeExtension<StackColors> {
   }) {
     return StackColors(
       themeType: themeType ?? this.themeType,
+      brightness: brightness ?? this.brightness,
       background: background ?? this.background,
       backgroundAppBar: backgroundAppBar ?? this.backgroundAppBar,
       gradientBackground: gradientBackground ?? this.gradientBackground,
@@ -845,6 +850,7 @@ class StackColors extends ThemeExtension<StackColors> {
 
     return StackColors(
       themeType: other.themeType,
+      brightness: other.brightness,
       gradientBackground: other.gradientBackground,
       homeViewButtonBarBoxShadow: other.homeViewButtonBarBoxShadow,
       standardBoxShadow: other.standardBoxShadow,
@@ -1605,6 +1611,7 @@ class StackColors extends ThemeExtension<StackColors> {
         return const Color(0xFFD3A90F);
       case "Finished":
       case "finished":
+      case "Completed":
         return accentColorGreen;
       case "Failed":
       case "failed":

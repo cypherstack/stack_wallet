@@ -38,21 +38,10 @@ class EmptyWallets extends ConsumerWidget {
               const Spacer(
                 flex: 2,
               ),
-              (isSorbet || isForest || isOcean)
-                  ? SvgPicture.asset(
-                      Assets.svg.stack(context),
-                      width: isDesktop
-                          ? 324
-                          : MediaQuery.of(context).size.width / 3,
-                    )
-                  : Image(
-                      image: AssetImage(
-                        Assets.png.stack(context),
-                      ),
-                      width: isDesktop
-                          ? 324
-                          : MediaQuery.of(context).size.width / 3,
-                    ),
+              SvgPicture.asset(
+                Assets.svg.stack(context),
+                width: isDesktop ? 324 : MediaQuery.of(context).size.width / 3,
+              ),
               SizedBox(
                 height: isDesktop ? 30 : 16,
               ),

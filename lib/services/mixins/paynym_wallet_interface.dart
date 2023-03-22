@@ -15,6 +15,7 @@ import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/exceptions/wallet/insufficient_balance_exception.dart';
 import 'package:stackwallet/exceptions/wallet/paynym_send_exception.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/models/signing_data.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/bip47_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -57,7 +58,7 @@ mixin PaynymWalletInterface {
   late final Future<int> Function({
     required String address,
   }) _getTxCount;
-  late final Future<Map<String, dynamic>> Function(
+  late final Future<List<SigningData>> Function(
     List<UTXO> utxosToUse,
   ) _fetchBuildTxData;
   late final Future<void> Function() _refresh;
@@ -100,7 +101,7 @@ mixin PaynymWalletInterface {
       required String address,
     })
         getTxCount,
-    required Future<Map<String, dynamic>> Function(
+    required Future<List<SigningData>> Function(
       List<UTXO> utxosToUse,
     )
         fetchBuildTxData,
@@ -455,7 +456,6 @@ mixin PaynymWalletInterface {
 
       final int vSizeForNoChange = (await _createNotificationTx(
         targetPaymentCodeString: targetPaymentCodeString,
-        utxosToUse: utxoObjectsToUse,
         utxoSigningData: utxoSigningData,
         change: 0,
         dustLimit:
@@ -465,7 +465,6 @@ mixin PaynymWalletInterface {
 
       final int vSizeForWithChange = (await _createNotificationTx(
         targetPaymentCodeString: targetPaymentCodeString,
-        utxosToUse: utxoObjectsToUse,
         utxoSigningData: utxoSigningData,
         change: satoshisBeingUsed - amountToSend,
       ))
@@ -503,7 +502,6 @@ mixin PaynymWalletInterface {
                 feeForWithChange) {
           var txn = await _createNotificationTx(
             targetPaymentCodeString: targetPaymentCodeString,
-            utxosToUse: utxoObjectsToUse,
             utxoSigningData: utxoSigningData,
             change: changeAmount,
           );
@@ -516,7 +514,6 @@ mixin PaynymWalletInterface {
             feeBeingPaid += 1;
             txn = await _createNotificationTx(
               targetPaymentCodeString: targetPaymentCodeString,
-              utxosToUse: utxoObjectsToUse,
               utxoSigningData: utxoSigningData,
               change: changeAmount,
             );
@@ -528,6 +525,7 @@ mixin PaynymWalletInterface {
             "amount": amountToSend,
             "fee": feeBeingPaid,
             "vSize": txn.item2,
+            "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
           };
           return transactionObject;
         } else {
@@ -535,7 +533,6 @@ mixin PaynymWalletInterface {
           // than the dust limit. Try without change
           final txn = await _createNotificationTx(
             targetPaymentCodeString: targetPaymentCodeString,
-            utxosToUse: utxoObjectsToUse,
             utxoSigningData: utxoSigningData,
             change: 0,
           );
@@ -548,6 +545,7 @@ mixin PaynymWalletInterface {
             "amount": amountToSend,
             "fee": feeBeingPaid,
             "vSize": txn.item2,
+            "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
           };
           return transactionObject;
         }
@@ -556,7 +554,6 @@ mixin PaynymWalletInterface {
         // build without change here
         final txn = await _createNotificationTx(
           targetPaymentCodeString: targetPaymentCodeString,
-          utxosToUse: utxoObjectsToUse,
           utxoSigningData: utxoSigningData,
           change: 0,
         );
@@ -569,6 +566,7 @@ mixin PaynymWalletInterface {
           "amount": amountToSend,
           "fee": feeBeingPaid,
           "vSize": txn.item2,
+          "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
         };
         return transactionObject;
       } else {
@@ -594,8 +592,7 @@ mixin PaynymWalletInterface {
   // equal to its vSize
   Future<Tuple2<String, int>> _createNotificationTx({
     required String targetPaymentCodeString,
-    required List<UTXO> utxosToUse,
-    required Map<String, dynamic> utxoSigningData,
+    required List<SigningData> utxoSigningData,
     required int change,
     int? dustLimit,
   }) async {
@@ -604,7 +601,7 @@ mixin PaynymWalletInterface {
           PaymentCode.fromPaymentCode(targetPaymentCodeString, _network);
       final myCode = await getPaymentCode(DerivePathType.bip44);
 
-      final utxo = utxosToUse.first;
+      final utxo = utxoSigningData.first.utxo;
       final txPoint = utxo.txid.fromHex.reversed.toList();
       final txPointIndex = utxo.vout;
 
@@ -613,8 +610,7 @@ mixin PaynymWalletInterface {
       final buffer = rev.buffer.asByteData();
       buffer.setUint32(txPoint.length, txPointIndex, Endian.little);
 
-      final myKeyPair =
-          utxoSigningData[utxo.txid]["keyPair"] as btc_dart.ECPair;
+      final myKeyPair = utxoSigningData.first.keyPair!;
 
       final S = SecretPoint(
         myKeyPair.privateKey!,
@@ -642,17 +638,17 @@ mixin PaynymWalletInterface {
         utxo.txid,
         txPointIndex,
         null,
-        utxoSigningData[utxo.txid]["output"] as Uint8List,
+        utxoSigningData.first.output!,
       );
 
       // add rest of possible inputs
-      for (var i = 1; i < utxosToUse.length; i++) {
-        final utxo = utxosToUse[i];
+      for (var i = 1; i < utxoSigningData.length; i++) {
+        final utxo = utxoSigningData[i].utxo;
         txb.addInput(
           utxo.txid,
           utxo.vout,
           null,
-          utxoSigningData[utxo.txid]["output"] as Uint8List,
+          utxoSigningData[i].output!,
         );
       }
 
@@ -675,18 +671,16 @@ mixin PaynymWalletInterface {
         vin: 0,
         keyPair: myKeyPair,
         witnessValue: utxo.value,
-        witnessScript: utxoSigningData[utxo.txid]["redeemScript"] as Uint8List?,
+        witnessScript: utxoSigningData.first.redeemScript,
       );
 
       // sign rest of possible inputs
-      for (var i = 1; i < utxosToUse.length; i++) {
-        final txid = utxosToUse[i].txid;
+      for (var i = 1; i < utxoSigningData.length; i++) {
         txb.sign(
           vin: i,
-          keyPair: utxoSigningData[txid]["keyPair"] as btc_dart.ECPair,
-          witnessValue: utxosToUse[i].value,
-          witnessScript:
-              utxoSigningData[utxo.txid]["redeemScript"] as Uint8List?,
+          keyPair: utxoSigningData[i].keyPair!,
+          witnessValue: utxoSigningData[i].utxo.value,
+          witnessScript: utxoSigningData[i].redeemScript,
         );
       }
 

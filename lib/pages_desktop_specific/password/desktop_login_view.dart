@@ -119,12 +119,21 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
 
       await Future<void>.delayed(const Duration(seconds: 1));
 
-      await showFloatingFlushBar(
-        type: FlushBarType.warning,
-        message: e.toString(),
-        context: context,
-      );
+      if (mounted) {
+        await showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message: e.toString(),
+          context: context,
+        );
+      }
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    unawaited(Assets.precache(context));
+
+    super.didChangeDependencies();
   }
 
   @override

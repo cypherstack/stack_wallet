@@ -18,12 +18,12 @@ abstract class Constants {
   static void exchangeForExperiencedUsers(int count) {
     enableExchange =
         Util.isDesktop || Platform.isAndroid || count > 5 || !Platform.isIOS;
-    enableBuy =
-        Util.isDesktop || Platform.isAndroid || count > 5 || !Platform.isIOS;
   }
 
   static bool enableExchange = Util.isDesktop || !Platform.isIOS;
-  static bool enableBuy = Util.isDesktop || !Platform.isIOS;
+  // just use enable exchange flag
+  // static bool enableBuy = enableExchange;
+  // // true; // true for development,
 
   static const int _satsPerCoinEthereum = 1000000000000000000;
   static const int _satsPerCoinMonero = 1000000000000;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
+import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/address_label.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -18,12 +19,12 @@ import 'package:stackwallet/widgets/textfield_icon_button.dart';
 class EditAddressLabelView extends ConsumerStatefulWidget {
   const EditAddressLabelView({
     Key? key,
-    required this.addressLabel,
+    required this.addressLabelId,
   }) : super(key: key);
 
   static const String routeName = "/editAddressLabel";
 
-  final AddressLabel addressLabel;
+  final int addressLabelId;
 
   @override
   ConsumerState<EditAddressLabelView> createState() =>
@@ -36,11 +37,17 @@ class _EditAddressLabelViewState extends ConsumerState<EditAddressLabelView> {
 
   late final bool isDesktop;
 
+  late AddressLabel addressLabel;
+
   @override
   void initState() {
     isDesktop = Util.isDesktop;
     _labelFieldController = TextEditingController();
-    _labelFieldController.text = widget.addressLabel.value;
+    addressLabel = MainDB.instance.isar.addressLabels
+        .where()
+        .idEqualTo(widget.addressLabelId)
+        .findFirstSync()!;
+    _labelFieldController.text = addressLabel.value;
     super.initState();
   }
 
@@ -195,7 +202,7 @@ class _EditAddressLabelViewState extends ConsumerState<EditAddressLabelView> {
                     label: "Save",
                     onPressed: () async {
                       await MainDB.instance.updateAddressLabel(
-                        widget.addressLabel.copyWith(
+                        addressLabel.copyWith(
                           label: _labelFieldController.text,
                         ),
                       );
@@ -209,7 +216,7 @@ class _EditAddressLabelViewState extends ConsumerState<EditAddressLabelView> {
                 TextButton(
                   onPressed: () async {
                     await MainDB.instance.updateAddressLabel(
-                      widget.addressLabel.copyWith(
+                      addressLabel.copyWith(
                         label: _labelFieldController.text,
                       ),
                     );

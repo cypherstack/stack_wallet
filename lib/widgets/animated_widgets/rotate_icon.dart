@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 class RotateIconController {
   VoidCallback? forward;
   VoidCallback? reverse;
+  VoidCallback? reset;
 }
 
 class RotateIcon extends StatefulWidget {
@@ -52,6 +53,7 @@ class _RotateIconState extends State<RotateIcon>
 
     widget.controller?.forward = animationController.forward;
     widget.controller?.reverse = animationController.reverse;
+    widget.controller?.reset = animationController.reset;
 
     super.initState();
   }
@@ -59,6 +61,8 @@ class _RotateIconState extends State<RotateIcon>
   @override
   void dispose() {
     animationController.dispose();
+    widget.controller?.forward = null;
+    widget.controller?.reverse = null;
     super.dispose();
   }
 

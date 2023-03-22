@@ -1,9 +1,14 @@
+import 'package:decimal/decimal.dart';
+import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/exceptions/main_db/main_db_exception.dart';
-import 'package:stackwallet/exceptions/sw_exception.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:tuple/tuple.dart';
+
+part 'queries/queries.dart';
 
 class MainDB {
   MainDB._();
@@ -162,6 +167,43 @@ class MainDB {
         await isar.utxos.putAll(utxos);
       });
 
+  Future<void> updateUTXOs(String walletId, List<UTXO> utxos) async {
+    await isar.writeTxn(() async {
+      final set = utxos.toSet();
+      for (final utxo in utxos) {
+        // check if utxo exists in db and update accordingly
+        final storedUtxo = await isar.utxos
+            .where()
+            .txidWalletIdVoutEqualTo(utxo.txid, utxo.walletId, utxo.vout)
+            .findFirst();
+
+        if (storedUtxo != null) {
+          // update
+          set.remove(utxo);
+          set.add(
+            storedUtxo.copyWith(
+              value: utxo.value,
+              address: utxo.address,
+              blockTime: utxo.blockTime,
+              blockHeight: utxo.blockHeight,
+              blockHash: utxo.blockHash,
+            ),
+          );
+        }
+      }
+
+      await isar.utxos.where().walletIdEqualTo(walletId).deleteAll();
+      await isar.utxos.putAll(set.toList());
+    });
+  }
+
+  Stream<UTXO?> watchUTXO({
+    required Id id,
+    bool fireImmediately = false,
+  }) {
+    return isar.utxos.watchObject(id, fireImmediately: fireImmediately);
+  }
+
   // transaction notes
   QueryBuilder<TransactionNote, TransactionNote, QAfterWhereClause>
       getTransactionNotes(String walletId) =>
@@ -237,10 +279,6 @@ class MainDB {
   Future<int> updateAddressLabel(AddressLabel addressLabel) async {
     try {
       return await isar.writeTxn(() async {
-        final deleted = await isar.addresses.delete(addressLabel.id);
-        if (!deleted) {
-          throw SWException("Failed to delete $addressLabel before updating");
-        }
         return await isar.addressLabels.put(addressLabel);
       });
     } catch (e) {

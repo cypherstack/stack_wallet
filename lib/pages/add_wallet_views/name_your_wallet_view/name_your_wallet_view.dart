@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/coin_image.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_warning_view/new_wallet_recovery_phrase_warning_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/restore_options_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
@@ -165,11 +166,10 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
               flex: 1,
             ),
           if (!isDesktop)
-            Image(
-              image: AssetImage(
-                Assets.png.imageFor(coin: coin, context: context),
-              ),
+            CoinImage(
+              coin: coin,
               height: 100,
+              width: 100,
             ),
           SizedBox(
             height: isDesktop ? 0 : 16,

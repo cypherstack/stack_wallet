@@ -240,6 +240,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                 ),
               ),
               child: BuildingTransactionDialog(
+                coin: manager.coin,
                 onCancel: () {
                   wasCancelled = true;
 
@@ -251,11 +252,18 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
         ),
       );
 
-      late Map<String, dynamic> txData;
+      final time = Future<dynamic>.delayed(
+        const Duration(
+          milliseconds: 2500,
+        ),
+      );
+
+      Map<String, dynamic> txData;
+      Future<Map<String, dynamic>> txDataFuture;
 
       // if not firo then do normal send
       if (shouldSendPublicFiroFunds == null) {
-        txData = await manager.prepareSend(
+        txDataFuture = manager.prepareSend(
           address: address,
           satoshiAmount: _amount,
           args: {
@@ -267,7 +275,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
         final firoWallet = manager.wallet as FiroWallet;
         // otherwise do firo send based on balance selected
         if (shouldSendPublicFiroFunds) {
-          txData = await firoWallet.prepareSendPublic(
+          txDataFuture = firoWallet.prepareSendPublic(
             address: address,
             satoshiAmount: _amount,
             args: {
@@ -276,7 +284,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
             },
           );
         } else {
-          txData = await firoWallet.prepareSend(
+          txDataFuture = firoWallet.prepareSend(
             address: address,
             satoshiAmount: _amount,
             args: {
@@ -286,6 +294,13 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
           );
         }
       }
+
+      final results = await Future.wait([
+        txDataFuture,
+        time,
+      ]);
+
+      txData = results.first as Map<String, dynamic>;
 
       if (!wasCancelled) {
         // pop building dialog

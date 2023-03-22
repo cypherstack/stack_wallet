@@ -16,20 +16,21 @@ import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i11;
 import 'package:stackwallet/models/balance.dart' as _i9;
 import 'package:stackwallet/models/isar/models/isar_models.dart' as _i21;
 import 'package:stackwallet/models/models.dart' as _i8;
+import 'package:stackwallet/models/signing_data.dart' as _i23;
 import 'package:stackwallet/services/coins/coin_service.dart' as _i7;
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as _i22;
 import 'package:stackwallet/services/coins/manager.dart' as _i6;
-import 'package:stackwallet/services/locale_service.dart' as _i23;
+import 'package:stackwallet/services/locale_service.dart' as _i24;
 import 'package:stackwallet/services/node_service.dart' as _i3;
-import 'package:stackwallet/services/notes_service.dart' as _i27;
-import 'package:stackwallet/services/price_service.dart' as _i26;
+import 'package:stackwallet/services/notes_service.dart' as _i28;
+import 'package:stackwallet/services/price_service.dart' as _i27;
 import 'package:stackwallet/services/transaction_notification_tracker.dart'
     as _i10;
 import 'package:stackwallet/services/wallets.dart' as _i16;
 import 'package:stackwallet/services/wallets_service.dart' as _i2;
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i25;
+import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i26;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i17;
-import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i24;
+import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i25;
 import 'package:stackwallet/utilities/prefs.dart' as _i19;
 import 'package:tuple/tuple.dart' as _i15;
 
@@ -546,6 +547,11 @@ class MockManager extends _i1.Mock implements _i6.Manager {
   @override
   bool get hasPaynymSupport => (super.noSuchMethod(
         Invocation.getter(#hasPaynymSupport),
+        returnValue: false,
+      ) as bool);
+  @override
+  bool get hasCoinControlSupport => (super.noSuchMethod(
+        Invocation.getter(#hasCoinControlSupport),
         returnValue: false,
       ) as bool);
   @override
@@ -1438,7 +1444,7 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
         },
       ));
   @override
-  _i18.Future<Map<String, dynamic>> fetchBuildTxData(
+  _i18.Future<List<_i23.SigningData>> fetchBuildTxData(
           List<_i21.UTXO>? utxosToUse) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -1446,12 +1452,11 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
           [utxosToUse],
         ),
         returnValue:
-            _i18.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
-      ) as _i18.Future<Map<String, dynamic>>);
+            _i18.Future<List<_i23.SigningData>>.value(<_i23.SigningData>[]),
+      ) as _i18.Future<List<_i23.SigningData>>);
   @override
   _i18.Future<Map<String, dynamic>> buildTransaction({
-    required List<_i21.UTXO>? utxosToUse,
-    required Map<String, dynamic>? utxoSigningData,
+    required List<_i23.SigningData>? utxoSigningData,
     required List<String>? recipients,
     required List<int>? satoshiAmounts,
   }) =>
@@ -1460,7 +1465,6 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
           #buildTransaction,
           [],
           {
-            #utxosToUse: utxosToUse,
             #utxoSigningData: utxoSigningData,
             #recipients: recipients,
             #satoshiAmounts: satoshiAmounts,
@@ -1996,7 +2000,7 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
 /// A class which mocks [LocaleService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockLocaleService extends _i1.Mock implements _i23.LocaleService {
+class MockLocaleService extends _i1.Mock implements _i24.LocaleService {
   MockLocaleService() {
     _i1.throwOnMissingStub(this);
   }
@@ -2114,12 +2118,12 @@ class MockPrefs extends _i1.Mock implements _i19.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i24.SyncingType get syncType => (super.noSuchMethod(
+  _i25.SyncingType get syncType => (super.noSuchMethod(
         Invocation.getter(#syncType),
-        returnValue: _i24.SyncingType.currentWalletOnly,
-      ) as _i24.SyncingType);
+        returnValue: _i25.SyncingType.currentWalletOnly,
+      ) as _i25.SyncingType);
   @override
-  set syncType(_i24.SyncingType? syncType) => super.noSuchMethod(
+  set syncType(_i25.SyncingType? syncType) => super.noSuchMethod(
         Invocation.setter(
           #syncType,
           syncType,
@@ -2252,12 +2256,12 @@ class MockPrefs extends _i1.Mock implements _i19.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i25.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
+  _i26.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
         Invocation.getter(#backupFrequencyType),
-        returnValue: _i25.BackupFrequencyType.everyTenMinutes,
-      ) as _i25.BackupFrequencyType);
+        returnValue: _i26.BackupFrequencyType.everyTenMinutes,
+      ) as _i26.BackupFrequencyType);
   @override
-  set backupFrequencyType(_i25.BackupFrequencyType? backupFrequencyType) =>
+  set backupFrequencyType(_i26.BackupFrequencyType? backupFrequencyType) =>
       super.noSuchMethod(
         Invocation.setter(
           #backupFrequencyType,
@@ -2318,6 +2322,19 @@ class MockPrefs extends _i1.Mock implements _i19.Prefs {
         Invocation.setter(
           #externalCalls,
           externalCalls,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  bool get enableCoinControl => (super.noSuchMethod(
+        Invocation.getter(#enableCoinControl),
+        returnValue: false,
+      ) as bool);
+  @override
+  set enableCoinControl(bool? enableCoinControl) => super.noSuchMethod(
+        Invocation.setter(
+          #enableCoinControl,
+          enableCoinControl,
         ),
         returnValueForMissingStub: null,
       );
@@ -2407,7 +2424,7 @@ class MockPrefs extends _i1.Mock implements _i19.Prefs {
 /// A class which mocks [PriceService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockPriceService extends _i1.Mock implements _i26.PriceService {
+class MockPriceService extends _i1.Mock implements _i27.PriceService {
   MockPriceService() {
     _i1.throwOnMissingStub(this);
   }
@@ -2530,7 +2547,7 @@ class MockPriceService extends _i1.Mock implements _i26.PriceService {
 /// A class which mocks [NotesService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockNotesService extends _i1.Mock implements _i27.NotesService {
+class MockNotesService extends _i1.Mock implements _i28.NotesService {
   MockNotesService() {
     _i1.throwOnMissingStub(this);
   }

@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/add_wallet_list_entity/add_wallet_list_entity.dart';
+import 'package:isar/isar.dart';
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
 import 'package:stackwallet/models/contact_address_entry.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
@@ -30,6 +31,8 @@ import 'package:stackwallet/pages/address_book_views/subviews/edit_contact_name_
 import 'package:stackwallet/pages/buy_view/buy_in_wallet_view.dart';
 import 'package:stackwallet/pages/buy_view/buy_quote_preview.dart';
 import 'package:stackwallet/pages/buy_view/buy_view.dart';
+import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
+import 'package:stackwallet/pages/coin_control/utxo_details_view.dart';
 import 'package:stackwallet/pages/exchange_view/choose_from_stack_view.dart';
 import 'package:stackwallet/pages/exchange_view/edit_trade_note_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_1_view.dart';
@@ -39,6 +42,7 @@ import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_4_view.
 import 'package:stackwallet/pages/exchange_view/send_from_view.dart';
 import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
+import 'package:stackwallet/pages/generic/single_field_edit_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/intro_view.dart';
 import 'package:stackwallet/pages/manage_favorites_view/manage_favorites_view.dart';
@@ -48,7 +52,7 @@ import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages/receive_view/addresses/edit_address_label_view.dart';
-import 'package:stackwallet/pages/receive_view/addresses/receiving_addresses_view.dart';
+import 'package:stackwallet/pages/receive_view/addresses/wallet_addresses_view.dart';
 import 'package:stackwallet/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
@@ -99,6 +103,7 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_sear
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
 import 'package:stackwallet/pages_desktop_specific/address_book_view/desktop_address_book.dart';
+import 'package:stackwallet/pages_desktop_specific/coin_control/desktop_coin_control_view.dart';
 // import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_all_buys_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_buy/desktop_buy_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_all_trades_view.dart';
@@ -223,6 +228,65 @@ class RouteGenerator {
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => AddCustomTokenView(
               walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case SingleFieldEditView.routeName:
+        if (args is Tuple2<String, String>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SingleFieldEditView(
+              initialValue: args.item1,
+              label: args.item2,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case CoinControlView.routeName:
+        if (args is Tuple2<String, CoinControlViewType>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => CoinControlView(
+              walletId: args.item1,
+              type: args.item2,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        } else if (args
+            is Tuple4<String, CoinControlViewType, int?, Set<UTXO>?>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => CoinControlView(
+              walletId: args.item1,
+              type: args.item2,
+              requestedTotal: args.item3,
+              selectedUTXOs: args.item4,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case UtxoDetailsView.routeName:
+        if (args is Tuple2<Id, String>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => UtxoDetailsView(
+              walletId: args.item2,
+              utxoId: args.item1,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -507,11 +571,11 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case EditAddressLabelView.routeName:
-        if (args is AddressLabel) {
+        if (args is int) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => EditAddressLabelView(
-              addressLabel: args,
+              addressLabelId: args,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -867,13 +931,12 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
-      case ReceivingAddressesView.routeName:
-        if (args is Tuple2<String, bool>) {
+      case WalletAddressesView.routeName:
+        if (args is String) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => ReceivingAddressesView(
-              walletId: args.item1,
-              isDesktop: args.item2,
+            builder: (_) => WalletAddressesView(
+              walletId: args,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -1249,6 +1312,20 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => DesktopWalletView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case DesktopCoinControlView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => DesktopCoinControlView(
               walletId: args,
             ),
             settings: RouteSettings(

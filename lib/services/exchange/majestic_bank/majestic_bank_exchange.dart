@@ -283,6 +283,33 @@ class MajesticBankExchange extends Exchange {
 
       return ExchangeResponse(value: updatedTrade);
     } else {
+      if (response.exception?.type == ExchangeExceptionType.orderNotFound) {
+        final updatedTrade = Trade(
+          uuid: trade.uuid,
+          tradeId: trade.tradeId,
+          rateType: trade.rateType,
+          direction: trade.direction,
+          timestamp: trade.timestamp,
+          updatedAt: DateTime.now(),
+          payInCurrency: trade.payInCurrency,
+          payInAmount: trade.payInAmount,
+          payInAddress: trade.payInAddress,
+          payInNetwork: trade.payInNetwork,
+          payInExtraId: trade.payInExtraId,
+          payInTxid: trade.payInTxid,
+          payOutCurrency: trade.payOutCurrency,
+          payOutAmount: trade.payOutAmount,
+          payOutAddress: trade.payOutAddress,
+          payOutNetwork: trade.payOutNetwork,
+          payOutExtraId: trade.payOutExtraId,
+          payOutTxid: trade.payOutTxid,
+          refundAddress: trade.refundAddress,
+          refundExtraId: trade.refundExtraId,
+          status: "Completed",
+          exchangeName: exchangeName,
+        );
+        return ExchangeResponse(value: updatedTrade);
+      }
       return ExchangeResponse(exception: response.exception);
     }
   }

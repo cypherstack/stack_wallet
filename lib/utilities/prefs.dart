@@ -40,6 +40,7 @@ class Prefs extends ChangeNotifier {
       _familiarity = await _getHasFamiliarity();
       _userId = await _getUserId();
       _signupEpoch = await _getSignupEpoch();
+      _enableCoinControl = await _getEnableCoinControl();
 
       _initialized = true;
     }
@@ -644,5 +645,28 @@ class Prefs extends ChangeNotifier {
     await DB.instance.put<dynamic>(
         boxName: DB.boxNamePrefs, key: "signupEpoch", value: _signupEpoch);
     // notifyListeners();
+  }
+
+  // show testnet coins
+
+  bool _enableCoinControl = false;
+
+  bool get enableCoinControl => _enableCoinControl;
+
+  set enableCoinControl(bool enableCoinControl) {
+    if (_enableCoinControl != enableCoinControl) {
+      DB.instance.put<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "enableCoinControl",
+          value: enableCoinControl);
+      _enableCoinControl = enableCoinControl;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getEnableCoinControl() async {
+    return await DB.instance.get<dynamic>(
+            boxName: DB.boxNamePrefs, key: "enableCoinControl") as bool? ??
+        false;
   }
 }

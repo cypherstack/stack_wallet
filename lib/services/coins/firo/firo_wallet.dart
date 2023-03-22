@@ -18,6 +18,7 @@ import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/lelantus_coin.dart';
 import 'package:stackwallet/models/lelantus_fee_data.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
+import 'package:stackwallet/models/signing_data.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
@@ -36,6 +37,7 @@ import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
@@ -1367,7 +1369,6 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           .log("Attempting to send all $coin", level: LogLevel.Info);
 
       final int vSizeForOneOutput = (await buildTransaction(
-        utxosToUse: utxoObjectsToUse,
         utxoSigningData: utxoSigningData,
         recipients: [_recipientAddress],
         satoshiAmounts: [satoshisBeingUsed - 1],
@@ -1383,7 +1384,6 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
 
       final int amount = satoshiAmountToSend - feeForOneOutput;
       dynamic txn = await buildTransaction(
-        utxosToUse: utxoObjectsToUse,
         utxoSigningData: utxoSigningData,
         recipients: recipientsArray,
         satoshiAmounts: [amount],
@@ -1399,13 +1399,11 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
     }
 
     final int vSizeForOneOutput = (await buildTransaction(
-      utxosToUse: utxoObjectsToUse,
       utxoSigningData: utxoSigningData,
       recipients: [_recipientAddress],
       satoshiAmounts: [satoshisBeingUsed - 1],
     ))["vSize"] as int;
     final int vSizeForTwoOutPuts = (await buildTransaction(
-      utxosToUse: utxoObjectsToUse,
       utxoSigningData: utxoSigningData,
       recipients: [
         _recipientAddress,
@@ -1484,7 +1482,6 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           Logging.instance
               .log('Estimated fee: $feeForTwoOutputs', level: LogLevel.Info);
           dynamic txn = await buildTransaction(
-            utxosToUse: utxoObjectsToUse,
             utxoSigningData: utxoSigningData,
             recipients: recipientsArray,
             satoshiAmounts: recipientsAmtArray,
@@ -1512,7 +1509,6 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
             Logging.instance.log('Adjusted Estimated fee: $feeForTwoOutputs',
                 level: LogLevel.Info);
             txn = await buildTransaction(
-              utxosToUse: utxoObjectsToUse,
               utxoSigningData: utxoSigningData,
               recipients: recipientsArray,
               satoshiAmounts: recipientsAmtArray,
@@ -1541,7 +1537,6 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           Logging.instance
               .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
           dynamic txn = await buildTransaction(
-            utxosToUse: utxoObjectsToUse,
             utxoSigningData: utxoSigningData,
             recipients: recipientsArray,
             satoshiAmounts: recipientsAmtArray,
@@ -1570,7 +1565,6 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
         Logging.instance
             .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
         dynamic txn = await buildTransaction(
-          utxosToUse: utxoObjectsToUse,
           utxoSigningData: utxoSigningData,
           recipients: recipientsArray,
           satoshiAmounts: recipientsAmtArray,
@@ -1599,7 +1593,6 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       Logging.instance
           .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
       dynamic txn = await buildTransaction(
-        utxosToUse: utxoObjectsToUse,
         utxoSigningData: utxoSigningData,
         recipients: recipientsArray,
         satoshiAmounts: recipientsAmtArray,
@@ -1629,119 +1622,141 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
     }
   }
 
-  Future<Map<String, dynamic>> fetchBuildTxData(
+  Future<List<SigningData>> fetchBuildTxData(
     List<isar_models.UTXO> utxosToUse,
   ) async {
     // return data
-    Map<String, dynamic> results = {};
-    Map<String, List<String>> addressTxid = {};
-
-    // addresses to check
-    List<String> addresses = [];
+    List<SigningData> signingData = [];
 
     try {
       // Populating the addresses to check
       for (var i = 0; i < utxosToUse.length; i++) {
-        final txid = utxosToUse[i].txid;
-        final tx = await _cachedElectrumXClient.getTransaction(
-          txHash: txid,
-          coin: coin,
+        if (utxosToUse[i].address == null) {
+          final txid = utxosToUse[i].txid;
+          final tx = await _cachedElectrumXClient.getTransaction(
+            txHash: txid,
+            coin: coin,
+          );
+          for (final output in tx["vout"] as List) {
+            final n = output["n"];
+            if (n != null && n == utxosToUse[i].vout) {
+              utxosToUse[i] = utxosToUse[i].copyWith(
+                address: output["scriptPubKey"]?["addresses"]?[0] as String? ??
+                    output["scriptPubKey"]["address"] as String,
+              );
+            }
+          }
+        }
+
+        signingData.add(
+          SigningData(
+            derivePathType: DerivePathType.bip44,
+            utxo: utxosToUse[i],
+          ),
+        );
+      }
+
+      Map<DerivePathType, Map<String, dynamic>> receiveDerivations = {};
+      Map<DerivePathType, Map<String, dynamic>> changeDerivations = {};
+
+      for (final sd in signingData) {
+        String? pubKey;
+        String? wif;
+
+        // fetch receiving derivations if null
+        receiveDerivations[sd.derivePathType] ??= Map<String, dynamic>.from(
+          jsonDecode((await _secureStore.read(
+                key: "${walletId}_receiveDerivations",
+              )) ??
+              "{}") as Map,
         );
 
-        for (final output in tx["vout"] as List) {
-          final n = output["n"];
-          if (n != null && n == utxosToUse[i].vout) {
-            final address = output["scriptPubKey"]["addresses"][0] as String;
-
-            if (!addressTxid.containsKey(address)) {
-              addressTxid[address] = <String>[];
-            }
-            (addressTxid[address] as List).add(txid);
-
-            addresses.add(address);
+        dynamic receiveDerivation;
+        for (int j = 0;
+            j < receiveDerivations[sd.derivePathType]!.length &&
+                receiveDerivation == null;
+            j++) {
+          if (receiveDerivations[sd.derivePathType]!["$j"]["address"] ==
+              sd.utxo.address!) {
+            receiveDerivation = receiveDerivations[sd.derivePathType]!["$j"];
           }
         }
-      }
 
-      // p2pkh / bip44
-      final addressesLength = addresses.length;
-      if (addressesLength > 0) {
-        final receiveDerivationsString =
-            await _secureStore.read(key: "${walletId}_receiveDerivations");
-        final receiveDerivations = Map<String, dynamic>.from(
-            jsonDecode(receiveDerivationsString ?? "{}") as Map);
+        if (receiveDerivation != null) {
+          pubKey = receiveDerivation["publicKey"] as String;
+          wif = receiveDerivation["wif"] as String;
+        } else {
+          // fetch change derivations if null
+          changeDerivations[sd.derivePathType] ??= Map<String, dynamic>.from(
+            jsonDecode((await _secureStore.read(
+                  key: "${walletId}_changeDerivations",
+                )) ??
+                "{}") as Map,
+          );
 
-        final changeDerivationsString =
-            await _secureStore.read(key: "${walletId}_changeDerivations");
-        final changeDerivations = Map<String, dynamic>.from(
-            jsonDecode(changeDerivationsString ?? "{}") as Map);
-
-        for (int i = 0; i < addressesLength; i++) {
-          // receives
-
-          dynamic receiveDerivation;
-
-          for (int j = 0; j < receiveDerivations.length; j++) {
-            if (receiveDerivations["$j"]["address"] == addresses[i]) {
-              receiveDerivation = receiveDerivations["$j"];
+          dynamic changeDerivation;
+          for (int j = 0;
+              j < changeDerivations[sd.derivePathType]!.length &&
+                  changeDerivation == null;
+              j++) {
+            if (changeDerivations[sd.derivePathType]!["$j"]["address"] ==
+                sd.utxo.address!) {
+              changeDerivation = changeDerivations[sd.derivePathType]!["$j"];
             }
           }
 
-          // receiveDerivation = receiveDerivations[addresses[i]];
-          // if a match exists it will not be null
-          if (receiveDerivation != null) {
-            final data = P2PKH(
-              data: PaymentData(
-                  pubkey: Format.stringToUint8List(
-                      receiveDerivation["publicKey"] as String)),
-              network: _network,
-            ).data;
+          if (changeDerivation != null) {
+            pubKey = changeDerivation["publicKey"] as String;
+            wif = changeDerivation["wif"] as String;
+          }
+        }
 
-            for (String tx in addressTxid[addresses[i]]!) {
-              results[tx] = {
-                "output": data.output,
-                "keyPair": ECPair.fromWIF(
-                  receiveDerivation["wif"] as String,
-                  network: _network,
-                ),
-              };
-            }
-          } else {
-            // if its not a receive, check change
+        if (wif == null || pubKey == null) {
+          final address = await db.getAddress(walletId, sd.utxo.address!);
+          if (address?.derivationPath != null) {
+            final node = await Bip32Utils.getBip32Node(
+              (await mnemonicString)!,
+              (await mnemonicPassphrase)!,
+              _network,
+              address!.derivationPath!.value,
+            );
 
-            dynamic changeDerivation;
+            wif = node.toWIF();
+            pubKey = Format.uint8listToString(node.publicKey);
+          }
+        }
 
-            for (int j = 0; j < changeDerivations.length; j++) {
-              if (changeDerivations["$j"]["address"] == addresses[i]) {
-                changeDerivation = changeDerivations["$j"];
-              }
-            }
+        if (wif != null && pubKey != null) {
+          final PaymentData data;
+          final Uint8List? redeemScript;
 
-            // final changeDerivation = changeDerivations[addresses[i]];
-            // if a match exists it will not be null
-            if (changeDerivation != null) {
-              final data = P2PKH(
+          switch (sd.derivePathType) {
+            case DerivePathType.bip44:
+              data = P2PKH(
                 data: PaymentData(
-                    pubkey: Format.stringToUint8List(
-                        changeDerivation["publicKey"] as String)),
+                  pubkey: Format.stringToUint8List(pubKey),
+                ),
                 network: _network,
               ).data;
+              redeemScript = null;
+              break;
 
-              for (String tx in addressTxid[addresses[i]]!) {
-                results[tx] = {
-                  "output": data.output,
-                  "keyPair": ECPair.fromWIF(
-                    changeDerivation["wif"] as String,
-                    network: _network,
-                  ),
-                };
-              }
-            }
+            default:
+              throw Exception("DerivePathType unsupported");
           }
+
+          final keyPair = ECPair.fromWIF(
+            wif,
+            network: _network,
+          );
+
+          sd.redeemScript = redeemScript;
+          sd.output = data.output;
+          sd.keyPair = keyPair;
         }
       }
 
-      return results;
+      return signingData;
     } catch (e, s) {
       Logging.instance
           .log("fetchBuildTxData() threw: $e,\n$s", level: LogLevel.Error);
@@ -1751,8 +1766,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
 
   /// Builds and signs a transaction
   Future<Map<String, dynamic>> buildTransaction({
-    required List<isar_models.UTXO> utxosToUse,
-    required Map<String, dynamic> utxoSigningData,
+    required List<SigningData> utxoSigningData,
     required List<String> recipients,
     required List<int> satoshiAmounts,
   }) async {
@@ -1763,10 +1777,14 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
     txb.setVersion(1);
 
     // Add transaction inputs
-    for (var i = 0; i < utxosToUse.length; i++) {
-      final txid = utxosToUse[i].txid;
-      txb.addInput(txid, utxosToUse[i].vout, null,
-          utxoSigningData[txid]["output"] as Uint8List);
+    for (var i = 0; i < utxoSigningData.length; i++) {
+      final txid = utxoSigningData[i].utxo.txid;
+      txb.addInput(
+        txid,
+        utxoSigningData[i].utxo.vout,
+        null,
+        utxoSigningData[i].output!,
+      );
     }
 
     // Add transaction output
@@ -1776,13 +1794,12 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
 
     try {
       // Sign the transaction accordingly
-      for (var i = 0; i < utxosToUse.length; i++) {
-        final txid = utxosToUse[i].txid;
+      for (var i = 0; i < utxoSigningData.length; i++) {
         txb.sign(
           vin: i,
-          keyPair: utxoSigningData[txid]["keyPair"] as ECPair,
-          witnessValue: utxosToUse[i].value,
-          redeemScript: utxoSigningData[txid]["redeemScript"] as Uint8List?,
+          keyPair: utxoSigningData[i].keyPair!,
+          witnessValue: utxoSigningData[i].utxo.value,
+          redeemScript: utxoSigningData[i].redeemScript,
         );
       }
     } catch (e, s) {

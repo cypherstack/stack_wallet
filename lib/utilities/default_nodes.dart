@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 // import 'package:web3dart/browser.dart';
@@ -272,18 +270,4 @@ abstract class DefaultNodes {
         return dogecoinTestnet;
     }
   }
-
-  static final String defaultEpicBoxConfig = jsonEncode({
-    "epicbox_domain": "epicbox.epic.tech",
-    "epicbox_port": 443,
-    "epicbox_protocol_unsecure": false,
-    "epicbox_address_index": 0,
-  });
-
-  static final String epicBoxConfigEUR = jsonEncode({
-    "epicbox_domain": "epicbox.fastepic.eu",
-    "epicbox_port": 443,
-    "epicbox_protocol_unsecure": false,
-    "epicbox_address_index": 0,
-  });
 }

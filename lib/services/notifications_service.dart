@@ -223,6 +223,9 @@ class NotificationsService extends ChangeNotifier {
           case "expired":
           case "Finished":
           case "finished":
+          case "Completed":
+          case "completed":
+          case "Not found":
             shouldWatchForUpdates = false;
             break;
           default:

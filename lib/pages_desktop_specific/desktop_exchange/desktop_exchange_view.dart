@@ -95,7 +95,7 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
               left: 24,
             ),
             child: Text(
-              "Exchange",
+              "Swap",
               style: STextStyles.desktopH3(context),
             ),
           ),

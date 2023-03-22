@@ -14,7 +14,6 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/biometrics.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -128,6 +127,14 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
       //   Navigator.pop(context);
       // }
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    if (widget.isInitialAppLogin) {
+      unawaited(Assets.precache(context));
+    }
+    super.didChangeDependencies();
   }
 
   @override

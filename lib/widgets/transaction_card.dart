@@ -82,6 +82,8 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
       } else {
         return "Sending";
       }
+    } else if (type == TransactionType.sentToSelf) {
+      return "Sent to self";
     } else {
       return type.name;
     }
@@ -222,8 +224,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                   final amount = _transaction.amount;
                                   return Text(
                                     "$prefix${Format.satoshiAmountToPrettyString(amount, locale, coin)} ${coin.ticker}",
-                                    style:
-                                        STextStyles.itemSubtitle12_600(context),
+                                    style: STextStyles.itemSubtitle12(context),
                                   );
                                 },
                               ),

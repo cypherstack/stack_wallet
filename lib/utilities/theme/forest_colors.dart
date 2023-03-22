@@ -4,6 +4,8 @@ import 'package:stackwallet/utilities/theme/color_theme.dart';
 class ForestColors extends StackColorTheme {
   @override
   ThemeType get themeType => ThemeType.forest;
+  @override
+  Brightness get brightness => Brightness.light;
 
   @override
   Color get background => const Color(0xFFF3FAF5);

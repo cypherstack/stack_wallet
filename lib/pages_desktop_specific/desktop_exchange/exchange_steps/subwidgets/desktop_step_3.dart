@@ -35,7 +35,7 @@ class _DesktopStep3State extends ConsumerState<DesktopStep3> {
           child: Column(
             children: [
               DesktopStepItem(
-                label: "Exchange",
+                label: "Swap",
                 value: ref.watch(exchangeFormStateProvider
                     .select((value) => value.exchange.name)),
               ),

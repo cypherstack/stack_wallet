@@ -144,7 +144,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
             },
           ),
           title: Text(
-            "Exchange",
+            "Swap",
             style: STextStyles.navBarTitle(context),
           ),
         ),

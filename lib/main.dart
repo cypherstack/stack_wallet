@@ -6,6 +6,7 @@ import 'package:cw_core/node.dart';
 import 'package:cw_core/unspent_coins_info.dart';
 import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_type.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_libmonero/monero/monero.dart';
@@ -56,6 +57,7 @@ import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
+import 'package:stackwallet/utilities/theme/chan_colors.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/dark_colors.dart';
 import 'package:stackwallet/utilities/theme/forest_colors.dart';
@@ -91,7 +93,7 @@ void main() async {
     setWindowMaxSize(Size.infinite);
 
     final screenHeight = screen?.frame.height;
-    if (screenHeight != null) {
+    if (screenHeight != null && !kDebugMode) {
       // starting to height be 3/4 screen height or 900, whichever is smaller
       final height = min<double>(screenHeight * 0.75, 900);
       setWindowFrame(
@@ -352,6 +354,9 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       case "forest":
         colorTheme = ForestColors();
         break;
+      case "chan":
+        colorTheme = ChanColors();
+        break;
       case "light":
       default:
         colorTheme = LightColors();
@@ -524,7 +529,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       theme: ThemeData(
         extensions: [colorScheme],
         highlightColor: colorScheme.highlight,
-        brightness: Brightness.light,
+        brightness: colorScheme.brightness,
         fontFamily: GoogleFonts.inter().fontFamily,
         unselectedWidgetColor: colorScheme.radioButtonBorderDisabled,
         // textTheme: GoogleFonts.interTextTheme().copyWith(
