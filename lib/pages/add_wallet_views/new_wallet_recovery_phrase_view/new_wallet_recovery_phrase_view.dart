@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -57,7 +58,9 @@ class _NewWalletRecoveryPhraseViewState
 
   @override
   void dispose() async {
-    await FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
+    if (Platform.isAndroid) {
+      await FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
+    }
     super.dispose();
   }
 
@@ -74,7 +77,9 @@ class _NewWalletRecoveryPhraseViewState
   }
 
   Future<void> disableScreenshot() async {
-    await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+    if (Platform.isAndroid) {
+      await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+    }
   }
 
   @override

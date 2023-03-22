@@ -571,6 +571,12 @@ class Prefs extends ChangeNotifier {
         boxName: DB.boxNamePrefs, key: "startupWalletId") as String?;
   }
 
+  bool get _incognitoFirstEnabledFlag =>
+      DB.instance.get<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "_incognitoFirstEnabledFlag") as bool? ??
+      false;
+
   // incognito mode off by default
   // allow external network calls such as exchange data and price info
   bool _externalCalls = true;
@@ -578,6 +584,14 @@ class Prefs extends ChangeNotifier {
   bool get externalCalls => _externalCalls;
 
   set externalCalls(bool externalCalls) {
+    if (!_incognitoFirstEnabledFlag) {
+      DB.instance
+          .put<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: "_incognitoFirstEnabledFlag",
+              value: true)
+          .then((_) => enableCoinControl = true);
+    }
     if (_externalCalls != externalCalls) {
       DB.instance
           .put<dynamic>(
