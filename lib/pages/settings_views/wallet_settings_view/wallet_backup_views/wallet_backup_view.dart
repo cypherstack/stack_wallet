@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackduo/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 import 'package:stackduo/providers/global/wallets_provider.dart';
@@ -11,7 +14,7 @@ import 'package:stackduo/widgets/background.dart';
 import 'package:stackduo/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackduo/widgets/stack_dialog.dart';
 
-class WalletBackupView extends ConsumerWidget {
+class WalletBackupView extends ConsumerStatefulWidget {
   const WalletBackupView({
     Key? key,
     required this.walletId,
@@ -24,7 +27,37 @@ class WalletBackupView extends ConsumerWidget {
   final List<String> mnemonic;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<WalletBackupView> createState() => _WalletBackupViewState();
+}
+
+class _WalletBackupViewState extends ConsumerState<WalletBackupView> {
+  late List<String> _mnemonic;
+  late String _walletId;
+
+  Future<void> disableScreenshot() async {
+    if (Platform.isAndroid) {
+      await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+    }
+  }
+
+  @override
+  void initState() {
+    _walletId = widget.walletId;
+    _mnemonic = widget.mnemonic;
+    disableScreenshot();
+    super.initState();
+  }
+
+  @override
+  void dispose() async {
+    if (Platform.isAndroid) {
+      await FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
     return Background(
       child: Scaffold(
@@ -51,7 +84,7 @@ class WalletBackupView extends ConsumerWidget {
               Text(
                 ref
                     .watch(walletsChangeNotifierProvider
-                        .select((value) => value.getManager(walletId)))
+                        .select((value) => value.getManager(_walletId)))
                     .walletName,
                 textAlign: TextAlign.center,
                 style: STextStyles.label(context).copyWith(
@@ -89,7 +122,7 @@ class WalletBackupView extends ConsumerWidget {
               Expanded(
                 child: SingleChildScrollView(
                   child: MnemonicTable(
-                    words: mnemonic,
+                    words: _mnemonic,
                     isDesktop: false,
                   ),
                 ),
@@ -102,7 +135,7 @@ class WalletBackupView extends ConsumerWidget {
                     .extension<StackColors>()!
                     .getPrimaryEnabledButtonStyle(context),
                 onPressed: () {
-                  String data = AddressUtils.encodeQRSeedData(mnemonic);
+                  String data = AddressUtils.encodeQRSeedData(_mnemonic);
 
                   showDialog<dynamic>(
                     context: context,
