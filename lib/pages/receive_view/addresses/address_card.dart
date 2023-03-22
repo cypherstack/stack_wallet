@@ -106,11 +106,11 @@ class _AddressCardState extends State<AddressCard> {
               Row(
                 children: [
                   Expanded(
-                    child: SelectableText(
+                    child: Text(
                       address.value,
                       style: STextStyles.itemSubtitle12(context),
                     ),
-                  )
+                  ),
                 ],
               ),
               const SizedBox(

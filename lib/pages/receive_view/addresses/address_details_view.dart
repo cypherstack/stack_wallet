@@ -5,7 +5,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/receive_view/addresses/address_tag.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart';
+import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -17,6 +17,7 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/simple_edit_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:stackwallet/widgets/transaction_card.dart';
 
 class AddressDetailsView extends ConsumerStatefulWidget {
   const AddressDetailsView({
@@ -74,6 +75,11 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
   Widget build(BuildContext context) {
     final coin = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManager(widget.walletId).coin));
+    final query = MainDB.instance
+        .getTransactions(widget.walletId)
+        .filter()
+        .address((q) => q.valueEqualTo(address.value));
+
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -95,31 +101,20 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
             ),
           ),
           body: SafeArea(
-            child: NestedScrollView(
-              floatHeaderSlivers: true,
-              headerSliverBuilder: (context, innerBoxIsScrolled) {
-                return [
-                  SliverOverlapAbsorber(
-                    handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
-                        context),
-                    sliver: SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          left: 16,
-                          right: 16,
-                          top: 16,
-                        ),
-                        child: child,
-                      ),
+            child: LayoutBuilder(
+              builder: (builderContext, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
                     ),
-                  )
-                ];
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: child,
+                    ),
+                  ),
+                );
               },
-              body: TransactionsList(
-                  walletId: widget.walletId,
-                  managerProvider: ref.watch(
-                      walletsChangeNotifierProvider.select((value) =>
-                          value.getManagerProvider(widget.walletId)))),
             ),
           ),
         ),
@@ -132,6 +127,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
           }
 
           return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Center(
                 child: RepaintBoundary(
@@ -193,17 +189,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                 _Item(
                   title: "Derivation path",
                   data: address.derivationPath!.value,
-                  button: SimpleEditButton(
-                    editValue: label!.value,
-                    editLabel: 'label',
-                    onValueChanged: (value) {
-                      MainDB.instance.putAddressLabel(
-                        label!.copyWith(
-                          label: value,
-                        ),
-                      );
-                    },
-                  ),
+                  button: Container(),
                 ),
               const SizedBox(
                 height: 12,
@@ -226,10 +212,27 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
               ),
               Text(
                 "Transactions",
+                textAlign: TextAlign.left,
                 style: STextStyles.itemSubtitle(context).copyWith(
                   color: Theme.of(context).extension<StackColors>()!.textDark3,
                 ),
               ),
+              const SizedBox(
+                height: 12,
+              ),
+              if (query.countSync() == 0) const NoTransActionsFound(),
+              if (query.countSync() > 0)
+                RoundedWhiteContainer(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: query
+                        .findAllSync()
+                        .map((e) => TransactionCard(
+                            transaction: e, walletId: widget.walletId))
+                        .toList(),
+                  ),
+                ),
             ],
           );
         },
@@ -259,11 +262,12 @@ class _Tags extends StatelessWidget {
                 "Tags",
                 style: STextStyles.itemSubtitle(context),
               ),
-              SimpleEditButton(
-                onPressedOverride: () {
-                  // TODO edit tags
-                },
-              ),
+              Container(),
+              // SimpleEditButton(
+              //   onPressedOverride: () {
+              //     // TODO edit tags
+              //   },
+              // ),
             ],
           ),
           const SizedBox(
