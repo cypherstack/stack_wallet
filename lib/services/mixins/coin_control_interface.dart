@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/main_db.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/services/event_bus/events/global/balance_refreshed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';

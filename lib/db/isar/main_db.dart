@@ -8,7 +8,7 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:tuple/tuple.dart';
 
-part 'queries/queries.dart';
+part '../queries/queries.dart';
 
 class MainDB {
   MainDB._();

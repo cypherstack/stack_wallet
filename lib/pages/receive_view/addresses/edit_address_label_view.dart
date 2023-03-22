@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:isar/isar.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/address_label.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';

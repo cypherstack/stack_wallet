@@ -216,6 +216,7 @@ extension CoinExt on Coin {
       case Coin.namecoin:
       case Coin.particl:
       case Coin.epicCash:
+      case Coin.ethereum:
       case Coin.monero:
       case Coin.wownero:
         return false;
@@ -239,6 +240,7 @@ extension CoinExt on Coin {
       case Coin.namecoin:
       case Coin.particl:
       case Coin.epicCash:
+      case Coin.ethereum:
       case Coin.monero:
       case Coin.wownero:
         return this;

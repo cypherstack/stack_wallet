@@ -298,20 +298,6 @@ class _SVG {
 
   String get bnbIcon => "assets/svg/coin_icons/bnb_icon.svg";
 
-  String get chevronRight => "assets/svg/chevron-right.svg";
-  String get minimize => "assets/svg/minimize.svg";
-  String get walletFa => "assets/svg/wallet-fa.svg";
-  String get exchange3 => "assets/svg/exchange-3.svg";
-  String get messageQuestion => "assets/svg/message-question-1.svg";
-
-// TODO provide proper assets
-  String get bitcoinTestnet => "assets/svg/coin_icons/Bitcoin.svg";
-  String get bitcoincashTestnet => "assets/svg/coin_icons/Bitcoincash.svg";
-  String get firoTestnet => "assets/svg/coin_icons/Firo.svg";
-  String get dogecoinTestnet => "assets/svg/coin_icons/Dogecoin.svg";
-  String get particlTestnet =>
-      "assets/svg/coin_icons/Dogecoin.svg"; //TODO - Update icon to particl
-
   String iconFor({required Coin coin}) {
     switch (coin) {
       case Coin.bitcoin:
