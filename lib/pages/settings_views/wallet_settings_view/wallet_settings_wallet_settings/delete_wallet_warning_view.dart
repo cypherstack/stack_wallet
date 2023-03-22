@@ -57,7 +57,7 @@ class DeleteWalletWarningView extends ConsumerWidget {
                     .extension<StackColors>()!
                     .warningBackground,
                 child: Text(
-                  "You are going to permanently delete your wallet.\n\nIf you delete your wallet, the only way you can have access to your funds is by using your backup key.\n\nStack Wallet does not keep nor is able to restore your backup key or your wallet.\n\nPLEASE SAVE YOUR BACKUP KEY.",
+                  "You are going to permanently delete your wallet.\n\nIf you delete your wallet, the only way you can have access to your funds is by using your backup key.\n\nStack Duo does not keep nor is able to restore your backup key or your wallet.\n\nPLEASE SAVE YOUR BACKUP KEY.",
                   style: STextStyles.baseXS(context).copyWith(
                     color: Theme.of(context)
                         .extension<StackColors>()!

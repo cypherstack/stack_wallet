@@ -119,7 +119,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
               child: SizedBox(
                 height: 28,
                 child: Text(
-                  "Stack Wallet",
+                  "Stack Duo",
                   style: STextStyles.desktopH2(context).copyWith(
                     fontSize: 18,
                     height: 23.4 / 18,

@@ -140,7 +140,7 @@ class DesktopAboutView extends ConsumerWidget {
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               Text(
-                                "Stack Wallet",
+                                "Stack Duo",
                                 style: STextStyles.desktopH3(context),
                                 textAlign: TextAlign.start,
                               ),
@@ -156,7 +156,7 @@ class DesktopAboutView extends ConsumerWidget {
                                   children: [
                                     TextSpan(
                                       text:
-                                          "By using Stack Wallet, you agree to the ",
+                                          "By using Stack Duo, you agree to the ",
                                       style: STextStyles
                                               .desktopTextExtraExtraSmall(
                                                   context)

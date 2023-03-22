@@ -118,7 +118,7 @@ class _StartupPreferencesViewState
                                                   textAlign: TextAlign.left,
                                                 ),
                                                 Text(
-                                                  "Stack Wallet home screen",
+                                                  "Stack Duo home screen",
                                                   style:
                                                       STextStyles.itemSubtitle(
                                                           context),

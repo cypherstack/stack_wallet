@@ -53,7 +53,7 @@ class _ForgotPasswordDesktopViewState extends State<ForgotPasswordDesktopView> {
                   height: 42,
                 ),
                 Text(
-                  "Stack Wallet",
+                  "Stack Duo",
                   style: STextStyles.desktopH1(context),
                 ),
                 const SizedBox(
@@ -62,7 +62,7 @@ class _ForgotPasswordDesktopViewState extends State<ForgotPasswordDesktopView> {
                 SizedBox(
                   width: 400,
                   child: Text(
-                    "Stack Wallet does not store your password. Create new wallet or use a Stack backup file to restore your wallet.",
+                    "Stack Duo does not store your password. Create new wallet or use a Stack backup file to restore your wallet.",
                     textAlign: TextAlign.center,
                     style: STextStyles.desktopTextSmall(context).copyWith(
                       color: Theme.of(context)
