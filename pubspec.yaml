@@ -29,9 +29,6 @@ dependencies:
   cw_monero:
     path: ./crypto_plugins/flutter_libmonero/cw_monero
 
-  cw_wownero:
-    path: ./crypto_plugins/flutter_libmonero/cw_wownero
-
   cw_core:
     path: ./crypto_plugins/flutter_libmonero/cw_core
 
