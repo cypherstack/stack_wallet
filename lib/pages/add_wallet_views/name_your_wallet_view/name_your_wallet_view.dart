@@ -166,9 +166,10 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
               flex: 1,
             ),
           if (!isDesktop)
-            SvgPicture.asset(
-              Assets.svg.imageFor(coin: coin, context: context),
+            CoinImage(
+              coin: coin,
               height: 100,
+              width: 100,
             ),
           SizedBox(
             height: isDesktop ? 0 : 16,

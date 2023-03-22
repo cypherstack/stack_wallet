@@ -61,7 +61,10 @@ class CreateOrRestoreWalletView extends StatelessWidget {
               ),
               CoinImage(
                 coin: coin,
-                isDesktop: isDesktop,
+                width:
+                    isDesktop ? 324 : MediaQuery.of(context).size.width / 1.6,
+                height:
+                    isDesktop ? null : MediaQuery.of(context).size.width / 1.6,
               ),
               const SizedBox(
                 height: 32,
@@ -78,6 +81,11 @@ class CreateOrRestoreWalletView extends StatelessWidget {
         ),
       );
     } else {
+      final isChans = Theme.of(context).extension<StackColors>()!.themeType ==
+              ThemeType.chan ||
+          Theme.of(context).extension<StackColors>()!.themeType ==
+              ThemeType.darkChans;
+
       return Background(
         child: Scaffold(
           backgroundColor:
@@ -92,37 +100,59 @@ class CreateOrRestoreWalletView extends StatelessWidget {
           body: SafeArea(
             child: Container(
               color: Theme.of(context).extension<StackColors>()!.background,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    CoinImage(
-                      coin: coin,
-                      isDesktop: isDesktop,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: IntrinsicHeight(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              if (!isChans)
+                                const Spacer(
+                                  flex: 2,
+                                ),
+                              CoinImage(
+                                coin: coin,
+                                width: isDesktop
+                                    ? 324
+                                    : MediaQuery.of(context).size.width / 1.6,
+                                height: isDesktop
+                                    ? null
+                                    : MediaQuery.of(context).size.width / 1.6,
+                              ),
+                              const Spacer(
+                                flex: 2,
+                              ),
+                              CreateRestoreWalletTitle(
+                                coin: coin,
+                                isDesktop: isDesktop,
+                              ),
+                              const SizedBox(
+                                height: 8,
+                              ),
+                              CreateRestoreWalletSubTitle(
+                                isDesktop: isDesktop,
+                              ),
+                              const Spacer(
+                                flex: 5,
+                              ),
+                              CreateWalletButtonGroup(
+                                coin: coin,
+                                isDesktop: isDesktop,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                    const Spacer(
-                      flex: 2,
-                    ),
-                    CreateRestoreWalletTitle(
-                      coin: coin,
-                      isDesktop: isDesktop,
-                    ),
-                    const SizedBox(
-                      height: 8,
-                    ),
-                    CreateRestoreWalletSubTitle(
-                      isDesktop: isDesktop,
-                    ),
-                    const Spacer(
-                      flex: 5,
-                    ),
-                    CreateWalletButtonGroup(
-                      coin: coin,
-                      isDesktop: isDesktop,
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
           ),

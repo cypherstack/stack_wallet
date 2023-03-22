@@ -4,6 +4,8 @@ import 'package:stackduo/utilities/theme/color_theme.dart';
 class FruitSorbetColors extends StackColorTheme {
   @override
   ThemeType get themeType => ThemeType.fruitSorbet;
+  @override
+  Brightness get brightness => Brightness.light;
 
   @override
   Color get background => Colors.transparent;

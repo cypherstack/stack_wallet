@@ -21,6 +21,31 @@ class StartupPreferencesView extends ConsumerStatefulWidget {
 
 class _StartupPreferencesViewState
     extends ConsumerState<StartupPreferencesView> {
+  bool safe = true;
+
+  @override
+  void initState() {
+    final possibleWalletId =
+        ref.read(prefsChangeNotifierProvider).startupWalletId;
+
+    // check if wallet exists (hasn't been deleted or otherwise missing)
+    if (possibleWalletId != null) {
+      try {
+        ref.read(walletsChangeNotifierProvider).getManager(possibleWalletId);
+      } catch (_) {
+        safe = false;
+        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+          ref.read(prefsChangeNotifierProvider).startupWalletId = null;
+          setState(() {
+            safe = true;
+          });
+        });
+      }
+    }
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Background(
@@ -195,13 +220,73 @@ class _StartupPreferencesViewState
                                                           context),
                                                   textAlign: TextAlign.left,
                                                 ),
-                                                Text(
-                                                  "Select a specific wallet to load into on startup",
-                                                  style:
-                                                      STextStyles.itemSubtitle(
-                                                          context),
-                                                  textAlign: TextAlign.left,
-                                                ),
+                                                (safe &&
+                                                        ref.watch(
+                                                              prefsChangeNotifierProvider
+                                                                  .select((value) =>
+                                                                      value
+                                                                          .startupWalletId),
+                                                            ) !=
+                                                            null)
+                                                    ? Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .only(top: 12),
+                                                        child: Row(
+                                                          children: [
+                                                            SvgPicture.asset(
+                                                              Assets.svg
+                                                                  .iconFor(
+                                                                coin: ref
+                                                                    .watch(
+                                                                      walletsChangeNotifierProvider
+                                                                          .select(
+                                                                        (value) =>
+                                                                            value.getManager(
+                                                                          ref.watch(
+                                                                            prefsChangeNotifierProvider.select((value) =>
+                                                                                value.startupWalletId!),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    )
+                                                                    .coin,
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                              width: 10,
+                                                            ),
+                                                            Text(
+                                                              ref
+                                                                  .watch(
+                                                                    walletsChangeNotifierProvider
+                                                                        .select(
+                                                                      (value) =>
+                                                                          value
+                                                                              .getManager(
+                                                                        ref.watch(
+                                                                          prefsChangeNotifierProvider.select((value) =>
+                                                                              value.startupWalletId!),
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  )
+                                                                  .walletName,
+                                                              style: STextStyles
+                                                                  .itemSubtitle(
+                                                                      context),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      )
+                                                    : Text(
+                                                        "Select a specific wallet to load into on startup",
+                                                        style: STextStyles
+                                                            .itemSubtitle(
+                                                                context),
+                                                        textAlign:
+                                                            TextAlign.left,
+                                                      ),
                                               ],
                                             ),
                                           ),

@@ -7,15 +7,50 @@ import 'package:stackduo/utilities/theme/light_colors.dart';
 import 'package:stackduo/utilities/theme/ocean_breeze_colors.dart';
 import 'package:stackduo/utilities/theme/oled_black_colors.dart';
 
-enum ThemeType { light, dark, oceanBreeze, oledBlack, fruitSorbet, forest }
+
+enum ThemeType {
+  light,
+  dark,
+  oceanBreeze,
+  oledBlack,
+  fruitSorbet,
+  forest,
+  chan,
+  darkChans;
+}
 
 // adjust this file
 
 extension ThemeTypeExt on ThemeType {
+  static ThemeType fromName(String name) {
+    switch (name) {
+      case "light":
+        return ThemeType.light;
+      case "chan":
+        return ThemeType.chan;
+      case "dark":
+        return ThemeType.dark;
+      case "oceanBreeze":
+        return ThemeType.oceanBreeze;
+      case "oledBlack":
+        return ThemeType.oledBlack;
+      case "fruitSorbet":
+        return ThemeType.fruitSorbet;
+      case "forest":
+        return ThemeType.forest;
+      case "darkChans":
+        return ThemeType.darkChans;
+      default:
+        throw ArgumentError("Invalid theme name");
+    }
+  }
+
   StackColorTheme get colorTheme {
     switch (this) {
       case ThemeType.light:
         return LightColors();
+      case ThemeType.chan:
+        return ChanColors();
       case ThemeType.dark:
         return DarkColors();
       case ThemeType.oceanBreeze:
@@ -26,6 +61,8 @@ extension ThemeTypeExt on ThemeType {
         return FruitSorbetColors();
       case ThemeType.forest:
         return ForestColors();
+      case ThemeType.darkChans:
+        return DarkChansColors();
     }
   }
 
@@ -33,6 +70,8 @@ extension ThemeTypeExt on ThemeType {
     switch (this) {
       case ThemeType.light:
         return "Light";
+      case ThemeType.chan:
+        return "Crypto Chans";
       case ThemeType.dark:
         return "Dark";
       case ThemeType.oceanBreeze:
@@ -43,12 +82,15 @@ extension ThemeTypeExt on ThemeType {
         return "Fruit Sorbet";
       case ThemeType.forest:
         return "Forest";
+      case ThemeType.darkChans:
+        return "Dark Chans";
     }
   }
 }
 
 abstract class StackColorTheme {
   ThemeType get themeType;
+  Brightness get brightness;
 
   Color get background;
   Color get backgroundAppBar;

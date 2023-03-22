@@ -26,8 +26,6 @@ class _RestoringDialogState extends State<SendingTransactionDialog>
   late AnimationController? _spinController;
   late Animation<double> _spinAnimation;
 
-  final bool chan = false;
-
   @override
   void initState() {
     _spinController = AnimationController(
@@ -53,6 +51,11 @@ class _RestoringDialogState extends State<SendingTransactionDialog>
 
   @override
   Widget build(BuildContext context) {
+    final isChans = Theme.of(context).extension<StackColors>()!.themeType ==
+            ThemeType.chan ||
+        Theme.of(context).extension<StackColors>()!.themeType ==
+            ThemeType.darkChans;
+
     if (Util.isDesktop) {
       return DesktopDialog(
         child: Padding(
@@ -67,9 +70,11 @@ class _RestoringDialogState extends State<SendingTransactionDialog>
               const SizedBox(
                 height: 40,
               ),
-              chan
-                  ? Lottie.asset(
-                      Assets.lottie.kiss(widget.coin),
+              isChans
+                  ? Image(
+                      image: AssetImage(
+                        Assets.gif.kiss(widget.coin),
+                      ),
                     )
                   : RotationTransition(
                       turns: _spinAnimation,
@@ -91,14 +96,16 @@ class _RestoringDialogState extends State<SendingTransactionDialog>
         onWillPop: () async {
           return false;
         },
-        child: chan
+        child: isChans
             ? StackDialogBase(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Lottie.asset(
-                      Assets.lottie.kiss(widget.coin),
+                    Image(
+                      image: AssetImage(
+                        Assets.gif.kiss(widget.coin),
+                      ),
                     ),
                     Text(
                       "Sending transaction",

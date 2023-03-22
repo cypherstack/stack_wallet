@@ -111,6 +111,10 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                 Navigator.of(context).pop(_popWithRefresh ? "refresh" : null);
               },
             ),
+            title: Text(
+              "Output details",
+              style: STextStyles.navBarTitle(context),
+            ),
           ),
           body: SafeArea(
             child: LayoutBuilder(

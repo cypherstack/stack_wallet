@@ -635,6 +635,21 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case SystemBrightnessThemeSelectionView.routeName:
+        if (args is Tuple2<String, ThemeType>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SystemBrightnessThemeSelectionView(
+              brightness: args.item1,
+              current: args.item2,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       case WalletNetworkSettingsView.routeName:
         if (args is Tuple3<String, WalletSyncStatus, NodeConnectionStatus>) {
           return getRoute(
@@ -899,6 +914,21 @@ class RouteGenerator {
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => WalletAddressesView(
               walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case AddressDetailsView.routeName:
+        if (args is Tuple2<Id, String>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => AddressDetailsView(
+              walletId: args.item2,
+              addressId: args.item1,
             ),
             settings: RouteSettings(
               name: settings.name,

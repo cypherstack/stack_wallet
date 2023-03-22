@@ -59,6 +59,11 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
 
   @override
   Widget build(BuildContext context) {
+    final isChans = Theme.of(context).extension<StackColors>()!.themeType ==
+            ThemeType.chan ||
+        Theme.of(context).extension<StackColors>()!.themeType ==
+            ThemeType.darkChans;
+
     if (Util.isDesktop) {
       return Column(
         mainAxisSize: MainAxisSize.min,
@@ -70,11 +75,13 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
           const SizedBox(
             height: 40,
           ),
-          if (chan)
-            Lottie.asset(
-              Assets.lottie.kiss(widget.coin),
+          if (isChans)
+            Image(
+              image: AssetImage(
+                Assets.gif.kiss(widget.coin),
+              ),
             ),
-          if (!chan)
+          if (!isChans)
             RotationTransition(
               turns: _spinAnimation,
               child: SvgPicture.asset(
@@ -102,14 +109,16 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
         onWillPop: () async {
           return false;
         },
-        child: chan
+        child: isChans
             ? StackDialogBase(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Lottie.asset(
-                      Assets.lottie.kiss(widget.coin),
+                    Image(
+                      image: AssetImage(
+                        Assets.gif.kiss(widget.coin),
+                      ),
                     ),
                     Text(
                       "Generating transaction",

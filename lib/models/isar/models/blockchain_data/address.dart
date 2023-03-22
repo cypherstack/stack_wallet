@@ -122,7 +122,26 @@ enum AddressType {
   cryptonote,
   mimbleWimble,
   unknown,
-  nonWallet,
+  nonWallet;
+
+  String get readableName {
+    switch (this) {
+      case AddressType.p2pkh:
+        return "Legacy";
+      case AddressType.p2sh:
+        return "Wrapped segwit";
+      case AddressType.p2wpkh:
+        return "Segwit";
+      case AddressType.cryptonote:
+        return "Cryptonote";
+      case AddressType.mimbleWimble:
+        return "Mimble Wimble";
+      case AddressType.unknown:
+        return "Unknown";
+      case AddressType.nonWallet:
+        return "Non wallet/unknown";
+    }
+  }
 }
 
 // do not modify
@@ -133,7 +152,26 @@ enum AddressSubType {
   paynymSend,
   paynymReceive,
   unknown,
-  nonWallet,
+  nonWallet;
+
+  String get prettyName {
+    switch (this) {
+      case AddressSubType.receiving:
+        return "Receiving";
+      case AddressSubType.change:
+        return "Change";
+      case AddressSubType.paynymNotification:
+        return "PayNym Notification";
+      case AddressSubType.paynymSend:
+        return "PayNym Send";
+      case AddressSubType.paynymReceive:
+        return "PayNym Receiving";
+      case AddressSubType.unknown:
+        return "Unknown";
+      case AddressSubType.nonWallet:
+        return "Non wallet/unknown";
+    }
+  }
 }
 
 @Embedded(inheritance: false)

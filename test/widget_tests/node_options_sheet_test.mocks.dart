@@ -9,7 +9,7 @@ import 'dart:ui' as _i13;
 import 'package:flutter/foundation.dart' as _i4;
 import 'package:flutter_riverpod/flutter_riverpod.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/models/node_model.dart' as _i16;
+import 'package:stackwallet/models/node_model.dart' as _i17;
 import 'package:stackwallet/services/coins/manager.dart' as _i6;
 import 'package:stackwallet/services/node_service.dart' as _i3;
 import 'package:stackwallet/services/wallets.dart' as _i8;
@@ -20,6 +20,7 @@ import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i14;
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
     as _i7;
 import 'package:stackwallet/utilities/prefs.dart' as _i12;
+import 'package:stackwallet/utilities/theme/color_theme.dart' as _i16;
 import 'package:tuple/tuple.dart' as _i10;
 
 // ignore_for_file: type=lint
@@ -574,6 +575,61 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
         returnValueForMissingStub: null,
       );
   @override
+  bool get enableSystemBrightness => (super.noSuchMethod(
+        Invocation.getter(#enableSystemBrightness),
+        returnValue: false,
+      ) as bool);
+  @override
+  set enableSystemBrightness(bool? enableSystemBrightness) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #enableSystemBrightness,
+          enableSystemBrightness,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i16.ThemeType get theme => (super.noSuchMethod(
+        Invocation.getter(#theme),
+        returnValue: _i16.ThemeType.light,
+      ) as _i16.ThemeType);
+  @override
+  set theme(_i16.ThemeType? theme) => super.noSuchMethod(
+        Invocation.setter(
+          #theme,
+          theme,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i16.ThemeType get systemBrightnessLightTheme => (super.noSuchMethod(
+        Invocation.getter(#systemBrightnessLightTheme),
+        returnValue: _i16.ThemeType.light,
+      ) as _i16.ThemeType);
+  @override
+  set systemBrightnessLightTheme(_i16.ThemeType? systemBrightnessLightTheme) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #systemBrightnessLightTheme,
+          systemBrightnessLightTheme,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i16.ThemeType get systemBrightnessDarkTheme => (super.noSuchMethod(
+        Invocation.getter(#systemBrightnessDarkTheme),
+        returnValue: _i16.ThemeType.light,
+      ) as _i16.ThemeType);
+  @override
+  set systemBrightnessDarkTheme(_i16.ThemeType? systemBrightnessDarkTheme) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #systemBrightnessDarkTheme,
+          systemBrightnessDarkTheme,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
@@ -673,15 +729,15 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
         ),
       ) as _i7.SecureStorageInterface);
   @override
-  List<_i16.NodeModel> get primaryNodes => (super.noSuchMethod(
+  List<_i17.NodeModel> get primaryNodes => (super.noSuchMethod(
         Invocation.getter(#primaryNodes),
-        returnValue: <_i16.NodeModel>[],
-      ) as List<_i16.NodeModel>);
+        returnValue: <_i17.NodeModel>[],
+      ) as List<_i17.NodeModel>);
   @override
-  List<_i16.NodeModel> get nodes => (super.noSuchMethod(
+  List<_i17.NodeModel> get nodes => (super.noSuchMethod(
         Invocation.getter(#nodes),
-        returnValue: <_i16.NodeModel>[],
-      ) as List<_i16.NodeModel>);
+        returnValue: <_i17.NodeModel>[],
+      ) as List<_i17.NodeModel>);
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
@@ -699,7 +755,7 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
   @override
   _i11.Future<void> setPrimaryNodeFor({
     required _i9.Coin? coin,
-    required _i16.NodeModel? node,
+    required _i17.NodeModel? node,
     bool? shouldNotifyListeners = false,
   }) =>
       (super.noSuchMethod(
@@ -716,40 +772,40 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
         returnValueForMissingStub: _i11.Future<void>.value(),
       ) as _i11.Future<void>);
   @override
-  _i16.NodeModel? getPrimaryNodeFor({required _i9.Coin? coin}) =>
+  _i17.NodeModel? getPrimaryNodeFor({required _i9.Coin? coin}) =>
       (super.noSuchMethod(Invocation.method(
         #getPrimaryNodeFor,
         [],
         {#coin: coin},
-      )) as _i16.NodeModel?);
+      )) as _i17.NodeModel?);
   @override
-  List<_i16.NodeModel> getNodesFor(_i9.Coin? coin) => (super.noSuchMethod(
+  List<_i17.NodeModel> getNodesFor(_i9.Coin? coin) => (super.noSuchMethod(
         Invocation.method(
           #getNodesFor,
           [coin],
         ),
-        returnValue: <_i16.NodeModel>[],
-      ) as List<_i16.NodeModel>);
+        returnValue: <_i17.NodeModel>[],
+      ) as List<_i17.NodeModel>);
   @override
-  _i16.NodeModel? getNodeById({required String? id}) =>
+  _i17.NodeModel? getNodeById({required String? id}) =>
       (super.noSuchMethod(Invocation.method(
         #getNodeById,
         [],
         {#id: id},
-      )) as _i16.NodeModel?);
+      )) as _i17.NodeModel?);
   @override
-  List<_i16.NodeModel> failoverNodesFor({required _i9.Coin? coin}) =>
+  List<_i17.NodeModel> failoverNodesFor({required _i9.Coin? coin}) =>
       (super.noSuchMethod(
         Invocation.method(
           #failoverNodesFor,
           [],
           {#coin: coin},
         ),
-        returnValue: <_i16.NodeModel>[],
-      ) as List<_i16.NodeModel>);
+        returnValue: <_i17.NodeModel>[],
+      ) as List<_i17.NodeModel>);
   @override
   _i11.Future<void> add(
-    _i16.NodeModel? node,
+    _i17.NodeModel? node,
     String? password,
     bool? shouldNotifyListeners,
   ) =>
@@ -801,7 +857,7 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
       ) as _i11.Future<void>);
   @override
   _i11.Future<void> edit(
-    _i16.NodeModel? editedNode,
+    _i17.NodeModel? editedNode,
     String? password,
     bool? shouldNotifyListeners,
   ) =>

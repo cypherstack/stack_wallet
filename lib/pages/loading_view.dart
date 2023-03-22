@@ -16,6 +16,12 @@ class LoadingView extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final width = min(size.width, size.height) * 0.5;
+
+    final isChan = Theme.of(context).extension<StackColors>()!.themeType ==
+            ThemeType.chan ||
+        Theme.of(context).extension<StackColors>()!.themeType ==
+            ThemeType.darkChans;
+
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -35,11 +41,17 @@ class LoadingView extends StatelessWidget {
               ),
               child: SizedBox(
                 width: width,
-                child: Lottie.asset(
-                  Assets.lottie.test2,
-                  animate: true,
-                  repeat: true,
-                ),
+                child: isChan
+                    ? Image(
+                        image: AssetImage(
+                          Assets.gif.stacyPlain,
+                        ),
+                      )
+                    : Lottie.asset(
+                        Assets.lottie.test2,
+                        animate: true,
+                        repeat: true,
+                      ),
               ),
             ),
             // child: Image(

@@ -131,6 +131,14 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
   }
 
   @override
+  void didChangeDependencies() {
+    if (widget.isInitialAppLogin) {
+      unawaited(Assets.precache(context));
+    }
+    super.didChangeDependencies();
+  }
+
+  @override
   void initState() {
     _shakeController = ShakeController();
 

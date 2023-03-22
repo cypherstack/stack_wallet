@@ -17,15 +17,17 @@ import 'package:stackwallet/services/coins/coin_service.dart' as _i7;
 import 'package:stackwallet/services/coins/manager.dart' as _i6;
 import 'package:stackwallet/services/locale_service.dart' as _i17;
 import 'package:stackwallet/services/node_service.dart' as _i3;
-import 'package:stackwallet/services/notes_service.dart' as _i22;
-import 'package:stackwallet/services/price_service.dart' as _i20;
-import 'package:stackwallet/services/wallets.dart' as _i11;
+import 'package:stackwallet/services/notes_service.dart' as _i28;
+import 'package:stackwallet/services/price_service.dart' as _i27;
+import 'package:stackwallet/services/transaction_notification_tracker.dart'
+    as _i10;
+import 'package:stackwallet/services/wallets.dart' as _i16;
 import 'package:stackwallet/services/wallets_service.dart' as _i2;
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i19;
-import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i12;
-import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i18;
-import 'package:stackwallet/utilities/prefs.dart' as _i14;
-import 'package:tuple/tuple.dart' as _i10;
+import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i26;
+import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i17;
+import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i25;
+import 'package:stackwallet/utilities/prefs.dart' as _i19;
+import 'package:tuple/tuple.dart' as _i15;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -493,6 +495,11 @@ class MockManager extends _i1.Mock implements _i6.Manager {
   @override
   bool get hasCoinControlSupport => (super.noSuchMethod(
         Invocation.getter(#hasCoinControlSupport),
+        returnValue: false,
+      ) as bool);
+  @override
+  bool get hasWhirlpoolSupport => (super.noSuchMethod(
+        Invocation.getter(#hasWhirlpoolSupport),
         returnValue: false,
       ) as bool);
   @override
@@ -1349,6 +1356,61 @@ class MockPrefs extends _i1.Mock implements _i14.Prefs {
         returnValueForMissingStub: null,
       );
   @override
+  bool get enableSystemBrightness => (super.noSuchMethod(
+        Invocation.getter(#enableSystemBrightness),
+        returnValue: false,
+      ) as bool);
+  @override
+  set enableSystemBrightness(bool? enableSystemBrightness) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #enableSystemBrightness,
+          enableSystemBrightness,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i27.ThemeType get theme => (super.noSuchMethod(
+        Invocation.getter(#theme),
+        returnValue: _i27.ThemeType.light,
+      ) as _i27.ThemeType);
+  @override
+  set theme(_i27.ThemeType? theme) => super.noSuchMethod(
+        Invocation.setter(
+          #theme,
+          theme,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i27.ThemeType get systemBrightnessLightTheme => (super.noSuchMethod(
+        Invocation.getter(#systemBrightnessLightTheme),
+        returnValue: _i27.ThemeType.light,
+      ) as _i27.ThemeType);
+  @override
+  set systemBrightnessLightTheme(_i27.ThemeType? systemBrightnessLightTheme) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #systemBrightnessLightTheme,
+          systemBrightnessLightTheme,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i27.ThemeType get systemBrightnessDarkTheme => (super.noSuchMethod(
+        Invocation.getter(#systemBrightnessDarkTheme),
+        returnValue: _i27.ThemeType.light,
+      ) as _i27.ThemeType);
+  @override
+  set systemBrightnessDarkTheme(_i27.ThemeType? systemBrightnessDarkTheme) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #systemBrightnessDarkTheme,
+          systemBrightnessDarkTheme,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
@@ -1434,7 +1496,7 @@ class MockPrefs extends _i1.Mock implements _i14.Prefs {
 /// A class which mocks [PriceService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockPriceService extends _i1.Mock implements _i20.PriceService {
+class MockPriceService extends _i1.Mock implements _i27.PriceService {
   MockPriceService() {
     _i1.throwOnMissingStub(this);
   }
@@ -1542,7 +1604,7 @@ class MockPriceService extends _i1.Mock implements _i20.PriceService {
 /// A class which mocks [NotesService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockNotesService extends _i1.Mock implements _i22.NotesService {
+class MockNotesService extends _i1.Mock implements _i28.NotesService {
   MockNotesService() {
     _i1.throwOnMissingStub(this);
   }

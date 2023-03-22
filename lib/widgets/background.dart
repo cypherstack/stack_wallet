@@ -20,20 +20,15 @@ class Background extends StatelessWidget {
     bool shouldPad = false;
 
     switch (Theme.of(context).extension<StackColors>()!.themeType) {
-      case ThemeType.light:
-      case ThemeType.dark:
-      case ThemeType.oledBlack:
-        color = Theme.of(context).extension<StackColors>()!.background;
-        break;
-      case ThemeType.forest:
-        color = Theme.of(context).extension<StackColors>()!.background;
-        break;
       case ThemeType.oceanBreeze:
         shouldPad = true;
         color = null;
         break;
       case ThemeType.fruitSorbet:
         color = null;
+        break;
+      default:
+        color = Theme.of(context).extension<StackColors>()!.background;
         break;
     }
 

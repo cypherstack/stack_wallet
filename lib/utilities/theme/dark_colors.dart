@@ -4,6 +4,8 @@ import 'package:stackduo/utilities/theme/color_theme.dart';
 class DarkColors extends StackColorTheme {
   @override
   ThemeType get themeType => ThemeType.dark;
+  @override
+  Brightness get brightness => Brightness.dark;
 
   @override
   Color get background => const Color(0xFF2A2D34);

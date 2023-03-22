@@ -40,7 +40,7 @@ abstract class Constants {
   // Enable Logger.print statements
   static const bool disableLogger = false;
 
-  static const int currentHiveDbVersion = 5;
+  static const int currentHiveDbVersion = 7;
 
   static const int rescanV1 = 1;
 

@@ -158,6 +158,8 @@ void main() async {
       (await StackFileSystem.applicationHiveDirectory()).path);
 
   await Hive.openBox<dynamic>(DB.boxNameDBInfo);
+  await Hive.openBox<dynamic>(DB.boxNamePrefs);
+  await Prefs.instance.init();
 
   // Desktop migrate handled elsewhere (currently desktop_login_view.dart)
   if (!Util.isDesktop) {
@@ -181,8 +183,6 @@ void main() async {
   }
 
   monero.onStartup();
-
-  await Hive.openBox<dynamic>(DB.boxNameTheme);
 
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
   //     overlays: [SystemUiOverlay.bottom]);
@@ -331,30 +331,27 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   @override
   void initState() {
-    final colorScheme = DB.instance
-        .get<dynamic>(boxName: DB.boxNameTheme, key: "colorScheme") as String?;
-
     StackColorTheme colorTheme;
-    switch (colorScheme) {
-      case "dark":
-        colorTheme = DarkColors();
-        break;
-      case "oledBlack":
-        colorTheme = OledBlackColors();
-        break;
-      case "oceanBreeze":
-        colorTheme = OceanBreezeColors();
-        break;
-      case "fruitSorbet":
-        colorTheme = FruitSorbetColors();
-        break;
-      case "forest":
-        colorTheme = ForestColors();
-        break;
-      case "light":
-      default:
-        colorTheme = LightColors();
+    if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
+      final brightness = WidgetsBinding.instance.window.platformBrightness;
+      switch (brightness) {
+        case Brightness.dark:
+          colorTheme = ref
+              .read(prefsChangeNotifierProvider)
+              .systemBrightnessDarkTheme
+              .colorTheme;
+          break;
+        case Brightness.light:
+          colorTheme = ref
+              .read(prefsChangeNotifierProvider)
+              .systemBrightnessLightTheme
+              .colorTheme;
+          break;
+      }
+    } else {
+      colorTheme = ref.read(prefsChangeNotifierProvider).theme.colorTheme;
     }
+
     loadingCompleter = Completer();
     WidgetsBinding.instance.addObserver(this);
     // load locale and prefs
@@ -382,6 +379,31 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         // ref.read(shouldShowLockscreenOnResumeStateProvider.state).state = false;
       }
     });
+
+    WidgetsBinding.instance.window.onPlatformBrightnessChanged = () {
+      StackColorTheme colorTheme;
+      switch (WidgetsBinding.instance.window.platformBrightness) {
+        case Brightness.dark:
+          colorTheme = ref
+              .read(prefsChangeNotifierProvider)
+              .systemBrightnessDarkTheme
+              .colorTheme;
+          break;
+        case Brightness.light:
+          colorTheme = ref
+              .read(prefsChangeNotifierProvider)
+              .systemBrightnessLightTheme
+              .colorTheme;
+          break;
+      }
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
+          ref.read(colorThemeProvider.notifier).state =
+              StackColors.fromStackColorTheme(colorTheme);
+        }
+      });
+    };
 
     super.initState();
   }
@@ -523,7 +545,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       theme: ThemeData(
         extensions: [colorScheme],
         highlightColor: colorScheme.highlight,
-        brightness: Brightness.light,
+        brightness: colorScheme.brightness,
         fontFamily: GoogleFonts.inter().fontFamily,
         unselectedWidgetColor: colorScheme.radioButtonBorderDisabled,
         // textTheme: GoogleFonts.interTextTheme().copyWith(

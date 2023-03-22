@@ -143,6 +143,20 @@ class _SendViewState extends ConsumerState<SendView> {
       _updatePreviewButtonState(_address, _amountToSend);
 
       _cryptoAmountChangedFeeUpdateTimer?.cancel();
+      _cryptoAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
+        if (!_baseFocus.hasFocus) {
+          setState(() {
+            _calculateFeesFuture = calculateFees(
+              _amountToSend == null
+                  ? 0
+                  : Format.decimalAmountToSatoshis(
+                      _amountToSend!,
+                      coin,
+                    ),
+            );
+          });
+        }
+      });
     }
   }
 
@@ -153,6 +167,20 @@ class _SendViewState extends ConsumerState<SendView> {
 
   void _baseAmountChanged() {
     _baseAmountChangedFeeUpdateTimer?.cancel();
+    _baseAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
+      if (!_cryptoFocus.hasFocus) {
+        setState(() {
+          _calculateFeesFuture = calculateFees(
+            _amountToSend == null
+                ? 0
+                : Format.decimalAmountToSatoshis(
+                    _amountToSend!,
+                    coin,
+                  ),
+          );
+        });
+      }
+    });
   }
 
   int _currentFee = 0;
@@ -487,7 +515,7 @@ class _SendViewState extends ConsumerState<SendView> {
         cryptoAmountController.text = _data!.amount!.toString();
       }
       sendToController.text = _data!.contactLabel;
-      _address = _data!.address;
+      _address = _data!.address.trim();
       _addressToggleFlag = true;
     }
 
@@ -646,9 +674,130 @@ class _SendViewState extends ConsumerState<SendView> {
                                       // const SizedBox(
                                       //   height: 2,
                                       // ),
+                                        Text(
+                                          "Available balance",
+                                          style: STextStyles.label(context)
+                                              .copyWith(fontSize: 10),
+                                        ),
                                     ],
                                   ),
                                   const Spacer(),
+                                  FutureBuilder(
+                                    // TODO redo this widget now that its not actually a future
+                                    future: (coin != Coin.firo &&
+                                            coin != Coin.firoTestNet)
+                                        ? Future(() => ref.watch(
+                                            provider.select((value) =>
+                                                value.balance.getSpendable())))
+                                        : ref.watch(publicPrivateBalanceStateProvider.state).state ==
+                                                "Private"
+                                            ? Future(() => (ref
+                                                    .watch(provider)
+                                                    .wallet as FiroWallet)
+                                                .availablePrivateBalance())
+                                            : Future(() => (ref
+                                                    .watch(provider)
+                                                    .wallet as FiroWallet)
+                                                .availablePublicBalance()),
+                                    builder:
+                                        (_, AsyncSnapshot<Decimal> snapshot) {
+                                      if (snapshot.connectionState ==
+                                              ConnectionState.done &&
+                                          snapshot.hasData) {
+                                        _cachedBalance = snapshot.data!;
+                                      }
+
+                                      if (_cachedBalance != null) {
+                                        return GestureDetector(
+                                          onTap: () {
+                                            cryptoAmountController.text =
+                                                _cachedBalance!.toStringAsFixed(
+                                                    Constants
+                                                        .decimalPlacesForCoin(
+                                                            coin));
+                                          },
+                                          child: Container(
+                                            color: Colors.transparent,
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.end,
+                                              children: [
+                                                Text(
+                                                  "${Format.localizedStringAsFixed(
+                                                    value: _cachedBalance!,
+                                                    locale: locale,
+                                                    decimalPlaces: 8,
+                                                  )} ${coin.ticker}",
+                                                  style:
+                                                      STextStyles.titleBold12(
+                                                              context)
+                                                          .copyWith(
+                                                    fontSize: 10,
+                                                  ),
+                                                  textAlign: TextAlign.right,
+                                                ),
+                                                Text(
+                                                  "${Format.localizedStringAsFixed(
+                                                    value: _cachedBalance! *
+                                                        ref.watch(priceAnd24hChangeNotifierProvider
+                                                            .select((value) =>
+                                                                value
+                                                                    .getPrice(
+                                                                        coin)
+                                                                    .item1)),
+                                                    locale: locale,
+                                                    decimalPlaces: 2,
+                                                  )} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                                                  style: STextStyles.subtitle(
+                                                          context)
+                                                      .copyWith(
+                                                    fontSize: 8,
+                                                  ),
+                                                  textAlign: TextAlign.right,
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      } else {
+                                        return Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            AnimatedText(
+                                              stringsToLoopThrough: const [
+                                                "Loading balance   ",
+                                                "Loading balance.  ",
+                                                "Loading balance.. ",
+                                                "Loading balance...",
+                                              ],
+                                              style: STextStyles.itemSubtitle(
+                                                      context)
+                                                  .copyWith(
+                                                fontSize: 10,
+                                              ),
+                                            ),
+                                            const SizedBox(
+                                              height: 2,
+                                            ),
+                                            AnimatedText(
+                                              stringsToLoopThrough: const [
+                                                "Loading balance   ",
+                                                "Loading balance.  ",
+                                                "Loading balance.. ",
+                                                "Loading balance...",
+                                              ],
+                                              style: STextStyles.itemSubtitle(
+                                                      context)
+                                                  .copyWith(
+                                                fontSize: 8,
+                                              ),
+                                            )
+                                          ],
+                                        );
+                                      }
+                                    },
+                                  ),
                                 ],
                               ),
                             ),
@@ -694,7 +843,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                   selectAll: false,
                                 ),
                                 onChanged: (newValue) {
-                                  _address = newValue;
+                                  _address = newValue.trim();
                                   _updatePreviewButtonState(
                                       _address, _amountToSend);
 
@@ -763,8 +912,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                                     "\n"));
                                                       }
                                                       sendToController.text =
-                                                          content;
-                                                      _address = content;
+                                                          content.trim();
+                                                      _address = content.trim();
 
                                                       _updatePreviewButtonState(
                                                           _address,
@@ -843,8 +992,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                                           coin.uriScheme) {
                                                     // auto fill address
                                                     _address =
-                                                        results["address"] ??
-                                                            "";
+                                                        (results["address"] ??
+                                                                "")
+                                                            .trim();
                                                     sendToController.text =
                                                         _address!;
 
@@ -899,8 +1049,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                                       .getManager(walletId)
                                                       .validateAddress(qrResult
                                                           .rawContent)) {
-                                                    _address =
-                                                        qrResult.rawContent;
+                                                    _address = qrResult
+                                                        .rawContent
+                                                        .trim();
                                                     sendToController.text =
                                                         _address ?? "";
 
@@ -1302,6 +1453,193 @@ class _SendViewState extends ConsumerState<SendView> {
                           const SizedBox(
                             height: 12,
                           ),
+                            Text(
+                              "Transaction fee (estimated)",
+                              style: STextStyles.smallMed12(context),
+                              textAlign: TextAlign.left,
+                            ),
+                            const SizedBox(
+                              height: 8,
+                            ),
+                            Stack(
+                              children: [
+                                TextField(
+                                  autocorrect: Util.isDesktop ? false : true,
+                                  enableSuggestions:
+                                      Util.isDesktop ? false : true,
+                                  controller: feeController,
+                                  readOnly: true,
+                                  textInputAction: TextInputAction.none,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  child: RawMaterialButton(
+                                    splashColor: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .highlight,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                        Constants.size.circularBorderRadius,
+                                      ),
+                                    ),
+                                    onPressed: (coin == Coin.firo ||
+                                                coin == Coin.firoTestNet) &&
+                                            ref
+                                                    .watch(
+                                                        publicPrivateBalanceStateProvider
+                                                            .state)
+                                                    .state ==
+                                                "Private"
+                                        ? null
+                                        : () {
+                                            showModalBottomSheet<dynamic>(
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              context: context,
+                                              shape:
+                                                  const RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.vertical(
+                                                  top: Radius.circular(20),
+                                                ),
+                                              ),
+                                              builder: (_) =>
+                                                  TransactionFeeSelectionSheet(
+                                                walletId: walletId,
+                                                amount: Decimal.tryParse(
+                                                        cryptoAmountController
+                                                            .text) ??
+                                                    Decimal.zero,
+                                                updateChosen: (String fee) {
+                                                  _setCurrentFee(
+                                                    fee,
+                                                    true,
+                                                  );
+                                                  setState(() {
+                                                    _calculateFeesFuture =
+                                                        Future(() => fee);
+                                                  });
+                                                },
+                                              ),
+                                            );
+                                          },
+                                    child: ((coin == Coin.firo ||
+                                                coin == Coin.firoTestNet) &&
+                                            ref
+                                                    .watch(
+                                                        publicPrivateBalanceStateProvider
+                                                            .state)
+                                                    .state ==
+                                                "Private")
+                                        ? Row(
+                                            children: [
+                                              FutureBuilder(
+                                                future: _calculateFeesFuture,
+                                                builder: (context, snapshot) {
+                                                  if (snapshot.connectionState ==
+                                                          ConnectionState
+                                                              .done &&
+                                                      snapshot.hasData) {
+                                                    _setCurrentFee(
+                                                      snapshot.data! as String,
+                                                      false,
+                                                    );
+                                                    return Text(
+                                                      "~${snapshot.data! as String} ${coin.ticker}",
+                                                      style: STextStyles
+                                                          .itemSubtitle(
+                                                              context),
+                                                    );
+                                                  } else {
+                                                    return AnimatedText(
+                                                      stringsToLoopThrough: const [
+                                                        "Calculating",
+                                                        "Calculating.",
+                                                        "Calculating..",
+                                                        "Calculating...",
+                                                      ],
+                                                      style: STextStyles
+                                                          .itemSubtitle(
+                                                              context),
+                                                    );
+                                                  }
+                                                },
+                                              ),
+                                            ],
+                                          )
+                                        : Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    ref
+                                                        .watch(
+                                                            feeRateTypeStateProvider
+                                                                .state)
+                                                        .state
+                                                        .prettyName,
+                                                    style: STextStyles
+                                                        .itemSubtitle12(
+                                                            context),
+                                                  ),
+                                                  const SizedBox(
+                                                    width: 10,
+                                                  ),
+                                                  FutureBuilder(
+                                                    future:
+                                                        _calculateFeesFuture,
+                                                    builder:
+                                                        (context, snapshot) {
+                                                      if (snapshot.connectionState ==
+                                                              ConnectionState
+                                                                  .done &&
+                                                          snapshot.hasData) {
+                                                        _setCurrentFee(
+                                                          snapshot.data!
+                                                              as String,
+                                                          false,
+                                                        );
+                                                        return Text(
+                                                          "~${snapshot.data! as String} ${coin.ticker}",
+                                                          style: STextStyles
+                                                              .itemSubtitle(
+                                                                  context),
+                                                        );
+                                                      } else {
+                                                        return AnimatedText(
+                                                          stringsToLoopThrough: const [
+                                                            "Calculating",
+                                                            "Calculating.",
+                                                            "Calculating..",
+                                                            "Calculating...",
+                                                          ],
+                                                          style: STextStyles
+                                                              .itemSubtitle(
+                                                                  context),
+                                                        );
+                                                      }
+                                                    },
+                                                  ),
+                                                ],
+                                              ),
+                                              SvgPicture.asset(
+                                                Assets.svg.chevronDown,
+                                                width: 8,
+                                                height: 4,
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textSubtitle2,
+                                              ),
+                                            ],
+                                          ),
+                                  ),
+                                )
+                              ],
+                            ),
                           const Spacer(),
                           const SizedBox(
                             height: 12,

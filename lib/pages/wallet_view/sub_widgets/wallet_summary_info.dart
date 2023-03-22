@@ -91,12 +91,26 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
         ref.watch(walletBalanceToggleStateProvider.state).state ==
             WalletBalanceToggleState.available;
 
-    final Decimal totalBalance;
-    final Decimal availableBalance;
-    totalBalance = balance.getTotal();
-    availableBalance = balance.getSpendable();
+    final Decimal balanceToShow;
+    String title;
 
-    final balanceToShow = _showAvailable ? availableBalance : totalBalance;
+    if (coin == Coin.firo || coin == Coin.firoTestNet) {
+      final _showPrivate =
+          ref.watch(publicPrivateBalanceStateProvider.state).state == "Private";
+
+      final firoWallet = ref.watch(walletsChangeNotifierProvider.select(
+          (value) => value.getManager(widget.walletId).wallet)) as FiroWallet;
+
+      final bal = _showPrivate ? firoWallet.balancePrivate : firoWallet.balance;
+
+      balanceToShow = _showAvailable ? bal.getSpendable() : bal.getTotal();
+      title = _showAvailable ? "Available" : "Full";
+      title += _showPrivate ? " private balance" : " public balance";
+    } else {
+      balanceToShow =
+          _showAvailable ? balance.getSpendable() : balance.getTotal();
+      title = _showAvailable ? "Available balance" : "Full balance";
+    }
 
     return Row(
       children: [
@@ -108,6 +122,14 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
                 onTap: showSheet,
                 child: Row(
                   children: [
+                    Text(
+                      title,
+                      style: STextStyles.subtitle500(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFavoriteCard,
+                      ),
+                    ),
                     const SizedBox(
                       width: 4,
                     ),
