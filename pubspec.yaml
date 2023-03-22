@@ -324,6 +324,7 @@ flutter:
     - assets/svg/framed-address-book.svg
     - assets/svg/framed-gear.svg
     - assets/svg/list-ul.svg
+    - assets/svg/cc.svg
 
 
     # coin icons
