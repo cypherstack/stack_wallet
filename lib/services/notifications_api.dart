@@ -22,8 +22,8 @@ class NotificationApi {
   static Future<void> init({bool initScheduled = false}) async {
     const android = AndroidInitializationSettings('app_icon_alpha');
     const iOS = IOSInitializationSettings();
-    const linux = LinuxInitializationSettings(
-        defaultActionName: "temporary_stack_wallet");
+    const linux =
+        LinuxInitializationSettings(defaultActionName: "temporary_stack_duo");
     const settings =
         InitializationSettings(android: android, iOS: iOS, linux: linux);
     await _notifications.initialize(

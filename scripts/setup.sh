@@ -18,9 +18,9 @@ echo 'export PATH="$PATH:'${FLUTTER_DIR}'"' >> ~/.bashrc
 source ~/.bashrc
 flutter doctor
 
-# setup stack_wallet github
+# setup stack_duo github
 cd $PROJECTS
-git clone https://github.com/cypherstack/stack_wallet.git
+git clone https://github.com/cypherstack/stack_duo.git
 cd stack_wallet
 export STACK_WALLET=$(pwd)
 git submodule update --init --recursive

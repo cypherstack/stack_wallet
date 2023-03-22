@@ -1,7 +1,7 @@
 [![codecov](https://codecov.io/gh/cypherstack/stack_wallet/branch/main/graph/badge.svg?token=PM1N56UTEW)](https://codecov.io/gh/cypherstack/stack_wallet)
 
-# Stack Wallet
-Stack Wallet is a fully open source cryptocurrency wallet. With an easy to use user interface and quick and speedy transactions, this wallet is ideal for anyone no matter how much they know about the cryptocurrency space. The app is actively maintained to provide new user friendly features.
+# Stack Duo
+Stack Duo is a fully open source cryptocurrency wallet. With an easy to use user interface and quick and speedy transactions, this wallet is ideal for anyone no matter how much they know about the cryptocurrency space. The app is actively maintained to provide new user friendly features.
 
 [![Playstore](https://bluewallet.io/img/play-store-badge.svg)](https://play.google.com/store/apps/details?id=com.cypherstack.stackwallet)
 
@@ -29,7 +29,7 @@ The following prerequisites can be installed with the setup script `scripts/setu
 - Android setup ([Android Studio](https://developer.android.com/studio) and subsequent dependencies)
 
 ### Scripted setup
-[`scripts/setup.sh`](https://github.com/cypherstack/stack_wallet/blob/main/scripts/setup.sh) is provided as a tool to set up a stock Ubuntu 20.04 installation for building: download the script and run it anywhere.  This script should skip the entire [Manual setup](#manual-setup) section below and prepare you for [running](#running).  It will set up the stack_wallet repository in `~/projects/stack_wallet` and build it there. 
+[`scripts/setup.sh`](https://github.com/cypherstack/stack_wallet/blob/main/scripts/setup.sh) is provided as a tool to set up a stock Ubuntu 20.04 installation for building: download the script and run it anywhere.  This script should skip the entire [Manual setup](#manual-setup) section below and prepare you for [running](#running).  It will set up the stack_duo repository in `~/projects/stack_wallet` and build it there. 
 
 ### Manual setup
 After installing the prerequisites listed above, download the code and init the submodules
