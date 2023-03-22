@@ -336,6 +336,7 @@ flutter:
     - assets/svg/fruit-sorbet-theme.svg
     - assets/svg/forest-theme.svg
     - assets/svg/chanstheme.svg
+    - assets/svg/darkChansTheme.svg
 
     # light theme specific
     - assets/svg/themed/light/
@@ -362,6 +363,9 @@ flutter:
     # lottie animations
     # basic
     - assets/lottie/test2.json
+
+    # gifs
+    - assets/gif/
 
     # coin gifs
     - assets/gif/coins/bitcoin/

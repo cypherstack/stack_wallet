@@ -22,13 +22,18 @@ const AddressLabelSchema = CollectionSchema(
       name: r'addressString',
       type: IsarType.string,
     ),
-    r'value': PropertySchema(
+    r'tags': PropertySchema(
       id: 1,
+      name: r'tags',
+      type: IsarType.stringList,
+    ),
+    r'value': PropertySchema(
+      id: 2,
       name: r'value',
       type: IsarType.string,
     ),
     r'walletId': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'walletId',
       type: IsarType.string,
     )
@@ -86,6 +91,18 @@ int _addressLabelEstimateSize(
 ) {
   var bytesCount = offsets.last;
   bytesCount += 3 + object.addressString.length * 3;
+  {
+    final list = object.tags;
+    if (list != null) {
+      bytesCount += 3 + list.length * 3;
+      {
+        for (var i = 0; i < list.length; i++) {
+          final value = list[i];
+          bytesCount += value.length * 3;
+        }
+      }
+    }
+  }
   bytesCount += 3 + object.value.length * 3;
   bytesCount += 3 + object.walletId.length * 3;
   return bytesCount;
@@ -98,8 +115,9 @@ void _addressLabelSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.addressString);
-  writer.writeString(offsets[1], object.value);
-  writer.writeString(offsets[2], object.walletId);
+  writer.writeStringList(offsets[1], object.tags);
+  writer.writeString(offsets[2], object.value);
+  writer.writeString(offsets[3], object.walletId);
 }
 
 AddressLabel _addressLabelDeserialize(
@@ -110,8 +128,9 @@ AddressLabel _addressLabelDeserialize(
 ) {
   final object = AddressLabel(
     addressString: reader.readString(offsets[0]),
-    value: reader.readString(offsets[1]),
-    walletId: reader.readString(offsets[2]),
+    tags: reader.readStringList(offsets[1]),
+    value: reader.readString(offsets[2]),
+    walletId: reader.readString(offsets[3]),
   );
   object.id = id;
   return object;
@@ -127,8 +146,10 @@ P _addressLabelDeserializeProp<P>(
     case 0:
       return (reader.readString(offset)) as P;
     case 1:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringList(offset)) as P;
     case 2:
+      return (reader.readString(offset)) as P;
+    case 3:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -649,6 +670,248 @@ extension AddressLabelQueryFilter
     });
   }
 
+  QueryBuilder<AddressLabel, AddressLabel, QAfterFilterCondition> tagsIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'tags',
+      ));
+    });
+  }
+
+  QueryBuilder<AddressLabel, AddressLabel, QAfterFilterCondition>
+      tagsIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'tags',
+      ));
+    });
+  }
+
+  QueryBuilder<AddressLabel, AddressLabel, QAfterFilterCondition>
+      tagsElementEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'tags',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AddressLabel, AddressLabel, QAfterFilterCondition>
+      tagsElementGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'tags',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AddressLabel, AddressLabel, QAfterFilterCondition>
+      tagsElementLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'tags',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AddressLabel, AddressLabel, QAfterFilterCondition>
+      tagsElementBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'tags',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AddressLabel, AddressLabel, QAfterFilterCondition>
+      tagsElementStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'tags',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AddressLabel, AddressLabel, QAfterFilterCondition>
+      tagsElementEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'tags',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AddressLabel, AddressLabel, QAfterFilterCondition>
+      tagsElementContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'tags',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AddressLabel, AddressLabel, QAfterFilterCondition>
+      tagsElementMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'tags',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AddressLabel, AddressLabel, QAfterFilterCondition>
+      tagsElementIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'tags',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<AddressLabel, AddressLabel, QAfterFilterCondition>
+      tagsElementIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'tags',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<AddressLabel, AddressLabel, QAfterFilterCondition>
+      tagsLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'tags',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<AddressLabel, AddressLabel, QAfterFilterCondition>
+      tagsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'tags',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<AddressLabel, AddressLabel, QAfterFilterCondition>
+      tagsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'tags',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<AddressLabel, AddressLabel, QAfterFilterCondition>
+      tagsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'tags',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<AddressLabel, AddressLabel, QAfterFilterCondition>
+      tagsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'tags',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<AddressLabel, AddressLabel, QAfterFilterCondition>
+      tagsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'tags',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
   QueryBuilder<AddressLabel, AddressLabel, QAfterFilterCondition> valueEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1028,6 +1291,12 @@ extension AddressLabelQueryWhereDistinct
     });
   }
 
+  QueryBuilder<AddressLabel, AddressLabel, QDistinct> distinctByTags() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'tags');
+    });
+  }
+
   QueryBuilder<AddressLabel, AddressLabel, QDistinct> distinctByValue(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1054,6 +1323,12 @@ extension AddressLabelQueryProperty
   QueryBuilder<AddressLabel, String, QQueryOperations> addressStringProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'addressString');
+    });
+  }
+
+  QueryBuilder<AddressLabel, List<String>?, QQueryOperations> tagsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'tags');
     });
   }
 

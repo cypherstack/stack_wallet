@@ -13,14 +13,23 @@ import '../icon_widgets/pencil_icon.dart';
 class SimpleEditButton extends StatelessWidget {
   const SimpleEditButton({
     Key? key,
-    required this.editValue,
-    required this.editLabel,
-    required this.onValueChanged,
-  }) : super(key: key);
+    this.editValue,
+    this.editLabel,
+    this.onValueChanged,
+    this.onPressedOverride,
+  })  : assert(
+          (editLabel != null && editValue != null && onValueChanged != null) ||
+              (editLabel == null &&
+                  editValue == null &&
+                  onValueChanged == null &&
+                  onPressedOverride != null),
+        ),
+        super(key: key);
 
-  final String editValue;
-  final String editLabel;
-  final void Function(String) onValueChanged;
+  final String? editValue;
+  final String? editLabel;
+  final void Function(String)? onValueChanged;
+  final VoidCallback? onPressedOverride;
 
   @override
   Widget build(BuildContext context) {
@@ -36,24 +45,25 @@ class SimpleEditButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(6),
           ),
-          onPressed: () async {
-            final result = await showDialog<String?>(
-              context: context,
-              builder: (context) {
-                return DesktopDialog(
-                  maxWidth: 580,
-                  maxHeight: 360,
-                  child: SingleFieldEditView(
-                    initialValue: editValue,
-                    label: editLabel,
-                  ),
+          onPressed: onPressedOverride ??
+              () async {
+                final result = await showDialog<String?>(
+                  context: context,
+                  builder: (context) {
+                    return DesktopDialog(
+                      maxWidth: 580,
+                      maxHeight: 360,
+                      child: SingleFieldEditView(
+                        initialValue: editValue!,
+                        label: editLabel!,
+                      ),
+                    );
+                  },
                 );
+                if (result is String && result != editValue!) {
+                  onValueChanged?.call(result);
+                }
               },
-            );
-            if (result is String && result != editValue) {
-              onValueChanged(result);
-            }
-          },
           child: Padding(
             padding: const EdgeInsets.all(5),
             child: PencilIcon(
@@ -66,18 +76,19 @@ class SimpleEditButton extends StatelessWidget {
       );
     } else {
       return GestureDetector(
-        onTap: () async {
-          final result = await Navigator.of(context).pushNamed(
-            SingleFieldEditView.routeName,
-            arguments: Tuple2(
-              editValue,
-              editLabel,
-            ),
-          );
-          if (result is String && result != editValue) {
-            onValueChanged(result);
-          }
-        },
+        onTap: onPressedOverride ??
+            () async {
+              final result = await Navigator.of(context).pushNamed(
+                SingleFieldEditView.routeName,
+                arguments: Tuple2(
+                  editValue!,
+                  editLabel!,
+                ),
+              );
+              if (result is String && result != editValue!) {
+                onValueChanged?.call(result);
+              }
+            },
         child: Row(
           children: [
             SvgPicture.asset(

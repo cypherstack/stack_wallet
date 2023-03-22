@@ -196,7 +196,11 @@ class _SingleFieldEditViewState extends State<SingleFieldEditView> {
                 }
               },
             ),
-          )
+          ),
+          if (!isDesktop)
+            const SizedBox(
+              height: 16,
+            ),
         ],
       ),
     );

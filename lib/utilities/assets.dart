@@ -27,6 +27,7 @@ abstract class Assets {
 
     if (Util.isDesktop) {
       assets.add(svg.themeChan);
+      assets.add(svg.themeDarkChan);
     }
 
     final futures = assets.map(
@@ -71,6 +72,7 @@ class _BUY {
     switch (Theme.of(context).extension<StackColors>()!.themeType) {
       case ThemeType.dark:
       case ThemeType.oledBlack:
+      case ThemeType.darkChans:
         return "assets/svg/buy/Simplex-Nuvei-Logo-light.svg";
 
       case ThemeType.fruitSorbet:
@@ -102,6 +104,9 @@ class _SVG {
       // chan theme uses all the same assets as the light theme
       case ThemeType.chan:
         return "assets/svg/themed/${ThemeType.light.name}";
+      case ThemeType.darkChans:
+        return "assets/svg/themed/${ThemeType.dark.name}";
+
       default:
         return "assets/svg/themed/${Theme.of(context).extension<StackColors>()!.themeType.name}";
     }
@@ -115,6 +120,7 @@ class _SVG {
       case ThemeType.chan:
       case ThemeType.dark:
       case ThemeType.oledBlack:
+      case ThemeType.darkChans:
         return null;
 
       case ThemeType.oceanBreeze:
@@ -163,6 +169,7 @@ class _SVG {
   String get themeLight => "assets/svg/light-mode.svg";
   String get themeDark => "assets/svg/dark-theme.svg";
   String get themeChan => "assets/svg/chanstheme.svg";
+  String get themeDarkChan => "assets/svg/darkChansTheme.svg";
 
   String get circleSliders => "assets/svg/configuration.svg";
   String get circlePlus => "assets/svg/plus-circle.svg";
@@ -393,6 +400,8 @@ class _ANIMATIONS {
 
 class _GIF {
   const _GIF();
+
+  String get stacyPlain => "assets/gif/stacy-plain.gif";
 
   String plain(Coin coin) {
     return "assets/gif/coins/${coin.mainNetVersion.name}/plain.gif";

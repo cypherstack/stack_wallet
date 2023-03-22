@@ -48,6 +48,7 @@ import 'package:stackwallet/pages/paynym/add_new_paynym_follow_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
+import 'package:stackwallet/pages/receive_view/addresses/address_details_view.dart';
 import 'package:stackwallet/pages/receive_view/addresses/edit_address_label_view.dart';
 import 'package:stackwallet/pages/receive_view/addresses/wallet_addresses_view.dart';
 import 'package:stackwallet/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
@@ -133,6 +134,7 @@ import 'package:stackwallet/services/event_bus/events/global/node_connection_sta
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:tuple/tuple.dart';
 
 class RouteGenerator {
@@ -640,6 +642,21 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case SystemBrightnessThemeSelectionView.routeName:
+        if (args is Tuple2<String, ThemeType>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SystemBrightnessThemeSelectionView(
+              brightness: args.item1,
+              current: args.item2,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       case WalletNetworkSettingsView.routeName:
         if (args is Tuple3<String, WalletSyncStatus, NodeConnectionStatus>) {
           return getRoute(
@@ -904,6 +921,21 @@ class RouteGenerator {
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => WalletAddressesView(
               walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case AddressDetailsView.routeName:
+        if (args is Tuple2<Id, String>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => AddressDetailsView(
+              walletId: args.item2,
+              addressId: args.item1,
             ),
             settings: RouteSettings(
               name: settings.name,

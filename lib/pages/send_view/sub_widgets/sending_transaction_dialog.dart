@@ -51,6 +51,11 @@ class _RestoringDialogState extends State<SendingTransactionDialog>
 
   @override
   Widget build(BuildContext context) {
+    final isChans = Theme.of(context).extension<StackColors>()!.themeType ==
+            ThemeType.chan ||
+        Theme.of(context).extension<StackColors>()!.themeType ==
+            ThemeType.darkChans;
+
     if (Util.isDesktop) {
       return DesktopDialog(
         child: Padding(
@@ -65,8 +70,7 @@ class _RestoringDialogState extends State<SendingTransactionDialog>
               const SizedBox(
                 height: 40,
               ),
-              Theme.of(context).extension<StackColors>()!.themeType ==
-                      ThemeType.chan
+              isChans
                   ? Image(
                       image: AssetImage(
                         Assets.gif.kiss(widget.coin),
@@ -92,8 +96,7 @@ class _RestoringDialogState extends State<SendingTransactionDialog>
         onWillPop: () async {
           return false;
         },
-        child: Theme.of(context).extension<StackColors>()!.themeType ==
-                ThemeType.chan
+        child: isChans
             ? StackDialogBase(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,

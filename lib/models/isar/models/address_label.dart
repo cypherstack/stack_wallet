@@ -8,6 +8,7 @@ class AddressLabel {
     required this.walletId,
     required this.addressString,
     required this.value,
+    required this.tags,
   });
 
   Id id = Isar.autoIncrement;
@@ -20,11 +21,14 @@ class AddressLabel {
 
   late final String value;
 
-  AddressLabel copyWith({String? label, Id? id}) {
+  late final List<String>? tags;
+
+  AddressLabel copyWith({String? label, Id? id, List<String>? tags}) {
     final addressLabel = AddressLabel(
       walletId: walletId,
       addressString: addressString,
       value: label ?? value,
+      tags: tags ?? this.tags,
     );
     addressLabel.id = id ?? this.id;
     return addressLabel;
