@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -91,26 +90,9 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
         ref.watch(walletBalanceToggleStateProvider.state).state ==
             WalletBalanceToggleState.available;
 
-    final Decimal balanceToShow;
-    String title;
-
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      final _showPrivate =
-          ref.watch(publicPrivateBalanceStateProvider.state).state == "Private";
-
-      final firoWallet = ref.watch(walletsChangeNotifierProvider.select(
-          (value) => value.getManager(widget.walletId).wallet)) as FiroWallet;
-
-      final bal = _showPrivate ? firoWallet.balancePrivate : firoWallet.balance;
-
-      balanceToShow = _showAvailable ? bal.getSpendable() : bal.getTotal();
-      title = _showAvailable ? "Available" : "Full";
-      title += _showPrivate ? " private balance" : " public balance";
-    } else {
-      balanceToShow =
-          _showAvailable ? balance.getSpendable() : balance.getTotal();
-      title = _showAvailable ? "Available balance" : "Full balance";
-    }
+    final balanceToShow =
+        _showAvailable ? balance.getSpendable() : balance.getTotal();
+    final title = _showAvailable ? "Available balance" : "Full balance";
 
     return Row(
       children: [

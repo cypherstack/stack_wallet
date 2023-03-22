@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackduo/utilities/enums/coin_enum.dart';
 import 'package:stackduo/utilities/theme/color_theme.dart';
 import 'package:stackduo/utilities/theme/stack_colors.dart';
-
-const _kPath_themed = "assets/svg/themed/";
+import 'package:stackduo/utilities/util.dart';
 
 abstract class Assets {
   static const svg = _SVG();
@@ -15,7 +15,6 @@ abstract class Assets {
 
   static Future<void> precache(BuildContext context) async {
     final assets = [
-      svg.iconFor(coin: Coin.dogecoin),
       svg.stack(context),
       svg.personaEasy(context),
       svg.personaIncognito(context),
@@ -112,15 +111,8 @@ class _SVG {
   String bellNew(BuildContext context) => "${_path(context)}/bell-new.svg";
   String stackIcon(BuildContext context) => "${_path(context)}/stack-icon1.svg";
   String exchange(BuildContext context) => "${_path(context)}/exchange-2.svg";
-  String buy(BuildContext context) => "${_path(context)}/buy-coins-icon.svg";
-  String bellNew(BuildContext context) =>
-      "$_path_themed${Theme.of(context).extension<StackColors>()!.themeType.name}/bell-new.svg";
   String stackDuoIcon(BuildContext context) =>
-      "$_path_themed${Theme.of(context).extension<StackColors>()!.themeType.name}/stack-duo-icon.svg";
-  String exchange(BuildContext context) =>
-      "$_path_themed${Theme.of(context).extension<StackColors>()!.themeType.name}/exchange-2.svg";
-  String buy(BuildContext context) =>
-      "$_path_themed${Theme.of(context).extension<StackColors>()!.themeType.name}/buy-coins-icon.svg";
+      "${_path(context)}/stack-duo-icon.svg";
 
   String receive(BuildContext context) =>
       "${_path(context)}/tx-icon-receive.svg";
@@ -264,7 +256,7 @@ class _SVG {
   String get exchange3 => "assets/svg/exchange-3.svg";
   String get messageQuestion => "assets/svg/message-question-1.svg";
   String get list => "assets/svg/list-ul.svg";
-  String get unclaimedPaynym => "assets/svg/unclaimed.png";
+  String get unclaimedPaynym => "assets/svg/unclaimed.svg";
 
 // TODO provide proper assets
   String get bitcoinTestnet => "assets/svg/coin_icons/Bitcoin.svg";
@@ -286,23 +278,7 @@ class _SVG {
 
   // big icons
   String bitcoinImage(BuildContext context) => "${_path(context)}/bitcoin.svg";
-  String bitcoincashImage(BuildContext context) =>
-      "${_path(context)}/bitcoincash.svg";
-  String dogecoinImage(BuildContext context) => "${_path(context)}/doge.svg";
-  String epicCashImage(BuildContext context) =>
-      "${_path(context)}/epic-cash.svg";
-  String firoImage(BuildContext context) => "${_path(context)}/firo.svg";
-  String litecoinImage(BuildContext context) =>
-      "${_path(context)}/litecoin.svg";
   String moneroImage(BuildContext context) => "${_path(context)}/monero.svg";
-  String wowneroImage(BuildContext context) => "${_path(context)}/wownero.svg";
-  String namecoinImage(BuildContext context) =>
-      "${_path(context)}/namecoin.svg";
-  String particlImage(BuildContext context) => "${_path(context)}/particl.svg";
-  String bitcoinImage(BuildContext context) =>
-      "$_path_themed${Theme.of(context).extension<StackColors>()!.themeType.name}/bitcoin.svg";
-  String moneroImage(BuildContext context) =>
-      "$_path_themed${Theme.of(context).extension<StackColors>()!.themeType.name}/monero.svg";
 
   String imageFor({required BuildContext context, required Coin coin}) {
     switch (coin) {

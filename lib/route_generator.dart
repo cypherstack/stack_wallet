@@ -44,6 +44,7 @@ import 'package:stackduo/pages/paynym/add_new_paynym_follow_view.dart';
 import 'package:stackduo/pages/paynym/paynym_claim_view.dart';
 import 'package:stackduo/pages/paynym/paynym_home_view.dart';
 import 'package:stackduo/pages/pinpad_views/create_pin_view.dart';
+import 'package:stackduo/pages/receive_view/addresses/address_details_view.dart';
 import 'package:stackduo/pages/receive_view/addresses/edit_address_label_view.dart';
 import 'package:stackduo/pages/receive_view/addresses/wallet_addresses_view.dart';
 import 'package:stackduo/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
@@ -128,6 +129,7 @@ import 'package:stackduo/services/event_bus/events/global/node_connection_status
 import 'package:stackduo/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackduo/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/theme/color_theme.dart';
 import 'package:tuple/tuple.dart';
 
 class RouteGenerator {

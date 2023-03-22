@@ -5,7 +5,9 @@ import 'package:isar/isar.dart';
 import 'package:stackduo/db/main_db.dart';
 import 'package:stackduo/models/isar/models/isar_models.dart';
 import 'package:stackduo/pages/receive_view/addresses/address_card.dart';
+import 'package:stackduo/pages/receive_view/addresses/address_details_view.dart';
 import 'package:stackduo/providers/global/wallets_provider.dart';
+import 'package:stackduo/utilities/assets.dart';
 import 'package:stackduo/utilities/constants.dart';
 import 'package:stackduo/utilities/text_styles.dart';
 import 'package:stackduo/utilities/theme/stack_colors.dart';
@@ -13,8 +15,11 @@ import 'package:stackduo/utilities/util.dart';
 import 'package:stackduo/widgets/background.dart';
 import 'package:stackduo/widgets/conditional_parent.dart';
 import 'package:stackduo/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackduo/widgets/icon_widgets/x_icon.dart';
 import 'package:stackduo/widgets/loading_indicator.dart';
-import 'package:stackduo/widgets/toggle.dart';
+import 'package:stackduo/widgets/stack_text_field.dart';
+import 'package:stackduo/widgets/textfield_icon_button.dart';
+import 'package:tuple/tuple.dart';
 
 class WalletAddressesView extends ConsumerStatefulWidget {
   const WalletAddressesView({

@@ -5,6 +5,7 @@ import 'package:stackduo/pages/add_wallet_views/create_or_restore_wallet_view/su
 import 'package:stackduo/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/create_wallet_button_group.dart';
 import 'package:stackduo/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/theme/color_theme.dart';
 import 'package:stackduo/utilities/theme/stack_colors.dart';
 import 'package:stackduo/utilities/util.dart';
 import 'package:stackduo/widgets/background.dart';

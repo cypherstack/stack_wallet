@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
+import 'package:stackduo/utilities/theme/color_theme.dart';
 
 class ChanColors extends StackColorTheme {
   @override

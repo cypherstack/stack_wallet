@@ -115,10 +115,8 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
               const Spacer(
                 flex: 1,
               ),
-              Image(
-                image: AssetImage(
-                  Assets.svg.unclaimedPaynym,
-                ),
+              SvgPicture.asset(
+                Assets.svg.unclaimedPaynym,
                 width: MediaQuery.of(context).size.width / 2,
               ),
               const SizedBox(

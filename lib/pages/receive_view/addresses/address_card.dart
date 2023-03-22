@@ -1,21 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:isar/isar.dart';
 import 'package:stackduo/db/main_db.dart';
 import 'package:stackduo/models/isar/models/isar_models.dart';
-import 'package:stackduo/notifications/show_flush_bar.dart';
-import 'package:stackduo/pages/receive_view/addresses/address_qr_popup.dart';
-import 'package:stackduo/pages/receive_view/addresses/edit_address_label_view.dart';
+import 'package:stackduo/pages/receive_view/addresses/address_tag.dart';
 import 'package:stackduo/utilities/clipboard_interface.dart';
 import 'package:stackduo/utilities/enums/coin_enum.dart';
 import 'package:stackduo/utilities/text_styles.dart';
-import 'package:stackduo/utilities/theme/stack_colors.dart';
-import 'package:stackduo/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackduo/widgets/desktop/secondary_button.dart';
-import 'package:stackduo/widgets/icon_widgets/copy_icon.dart';
-import 'package:stackduo/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackduo/widgets/rounded_white_container.dart';
 
 class AddressCard extends StatefulWidget {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/cli_commands.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
+import 'package:stackduo/utilities/text_styles.dart';
+import 'package:stackduo/widgets/rounded_container.dart';
 
 class AddressTag extends StatelessWidget {
   const AddressTag({Key? key, required this.tag}) : super(key: key);

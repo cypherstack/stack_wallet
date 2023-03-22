@@ -40,24 +40,6 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
             ? _BalanceType.available
             : _BalanceType.full;
 
-    Balance? balanceSecondary;
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      balanceSecondary = ref
-          .watch(
-            walletsChangeNotifierProvider.select(
-              (value) => value.getManager(walletId).wallet as FiroWallet?,
-            ),
-          )
-          ?.balancePrivate;
-
-      if (ref.watch(publicPrivateBalanceStateProvider.state).state ==
-          "Private") {
-        _bal = _bal == _BalanceType.available
-            ? _BalanceType.privateAvailable
-            : _BalanceType.privateFull;
-      }
-    }
-
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).extension<StackColors>()!.popupBG,
@@ -113,46 +95,18 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 onPressed: () {
                   ref.read(walletBalanceToggleStateProvider.state).state =
                       WalletBalanceToggleState.available;
-                  ref.read(publicPrivateBalanceStateProvider.state).state =
-                      "Public";
+
                   Navigator.of(context).pop();
                 },
                 onChanged: (_) {
                   ref.read(walletBalanceToggleStateProvider.state).state =
                       WalletBalanceToggleState.available;
-                  ref.read(publicPrivateBalanceStateProvider.state).state =
-                      "Public";
+
                   Navigator.of(context).pop();
                 },
                 value: _BalanceType.available,
                 groupValue: _bal,
               ),
-              if (balanceSecondary != null)
-                const SizedBox(
-                  height: 12,
-                ),
-              if (balanceSecondary != null)
-                BalanceSelector(
-                  title: "Available private balance",
-                  coin: coin,
-                  balance: balanceSecondary.getSpendable(),
-                  onPressed: () {
-                    ref.read(walletBalanceToggleStateProvider.state).state =
-                        WalletBalanceToggleState.available;
-                    ref.read(publicPrivateBalanceStateProvider.state).state =
-                        "Private";
-                    Navigator.of(context).pop();
-                  },
-                  onChanged: (_) {
-                    ref.read(walletBalanceToggleStateProvider.state).state =
-                        WalletBalanceToggleState.available;
-                    ref.read(publicPrivateBalanceStateProvider.state).state =
-                        "Private";
-                    Navigator.of(context).pop();
-                  },
-                  value: _BalanceType.privateAvailable,
-                  groupValue: _bal,
-                ),
               const SizedBox(
                 height: 12,
               ),
@@ -163,46 +117,18 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 onPressed: () {
                   ref.read(walletBalanceToggleStateProvider.state).state =
                       WalletBalanceToggleState.full;
-                  ref.read(publicPrivateBalanceStateProvider.state).state =
-                      "Public";
+
                   Navigator.of(context).pop();
                 },
                 onChanged: (_) {
                   ref.read(walletBalanceToggleStateProvider.state).state =
                       WalletBalanceToggleState.full;
-                  ref.read(publicPrivateBalanceStateProvider.state).state =
-                      "Public";
+
                   Navigator.of(context).pop();
                 },
                 value: _BalanceType.full,
                 groupValue: _bal,
               ),
-              if (balanceSecondary != null)
-                const SizedBox(
-                  height: 12,
-                ),
-              if (balanceSecondary != null)
-                BalanceSelector(
-                  title: "Full private balance",
-                  coin: coin,
-                  balance: balanceSecondary.getTotal(),
-                  onPressed: () {
-                    ref.read(walletBalanceToggleStateProvider.state).state =
-                        WalletBalanceToggleState.full;
-                    ref.read(publicPrivateBalanceStateProvider.state).state =
-                        "Private";
-                    Navigator.of(context).pop();
-                  },
-                  onChanged: (_) {
-                    ref.read(walletBalanceToggleStateProvider.state).state =
-                        WalletBalanceToggleState.full;
-                    ref.read(publicPrivateBalanceStateProvider.state).state =
-                        "Private";
-                    Navigator.of(context).pop();
-                  },
-                  value: _BalanceType.privateFull,
-                  groupValue: _bal,
-                ),
               const SizedBox(
                 height: 40,
               ),

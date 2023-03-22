@@ -14,7 +14,6 @@ import 'package:stackduo/providers/global/wallets_provider.dart';
 import 'package:stackduo/utilities/assets.dart';
 import 'package:stackduo/utilities/biometrics.dart';
 import 'package:stackduo/utilities/constants.dart';
-import 'package:stackduo/utilities/enums/flush_bar_type.dart';
 import 'package:stackduo/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackduo/utilities/text_styles.dart';
 import 'package:stackduo/utilities/theme/stack_colors.dart';

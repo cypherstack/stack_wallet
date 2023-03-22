@@ -55,26 +55,6 @@ class DesktopExchangeIcon extends ConsumerWidget {
   }
 }
 
-class DesktopBuyIcon extends ConsumerWidget {
-  const DesktopBuyIcon({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return SvgPicture.asset(
-      Assets.svg.buy(context),
-      width: 20,
-      height: 20,
-      color: DesktopMenuItemId.buy ==
-              ref.watch(currentDesktopMenuItemProvider.state).state
-          ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(context)
-              .extension<StackColors>()!
-              .accentColorDark
-              .withOpacity(0.8),
-    );
-  }
-}
-
 class DesktopNotificationsIcon extends ConsumerWidget {
   const DesktopNotificationsIcon({Key? key}) : super(key: key);
 

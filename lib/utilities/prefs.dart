@@ -4,6 +4,7 @@ import 'package:stackduo/utilities/constants.dart';
 import 'package:stackduo/utilities/enums/backup_frequency_type.dart';
 import 'package:stackduo/utilities/enums/languages_enum.dart';
 import 'package:stackduo/utilities/enums/sync_type_enum.dart';
+import 'package:stackduo/utilities/theme/color_theme.dart';
 import 'package:uuid/uuid.dart';
 
 class Prefs extends ChangeNotifier {

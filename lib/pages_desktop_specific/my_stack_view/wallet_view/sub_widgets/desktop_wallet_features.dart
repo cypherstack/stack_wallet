@@ -1,16 +1,13 @@
 import 'dart:async';
 
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackduo/notifications/show_flush_bar.dart';
 import 'package:stackduo/pages/paynym/paynym_claim_view.dart';
 import 'package:stackduo/pages/paynym/paynym_home_view.dart';
 import 'package:stackduo/pages_desktop_specific/coin_control/desktop_coin_control_view.dart';
 import 'package:stackduo/pages_desktop_specific/desktop_menu.dart';
-import 'package:stackduo/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'package:stackduo/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/more_features/more_features_dialog.dart';
 import 'package:stackduo/providers/desktop/current_desktop_menu_item.dart';
 import 'package:stackduo/providers/global/paynym_api_provider.dart';
@@ -19,12 +16,10 @@ import 'package:stackduo/providers/wallet/my_paynym_account_state_provider.dart'
 import 'package:stackduo/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackduo/utilities/assets.dart';
 import 'package:stackduo/utilities/constants.dart';
-import 'package:stackduo/utilities/enums/coin_enum.dart';
 import 'package:stackduo/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackduo/utilities/logger.dart';
 import 'package:stackduo/utilities/text_styles.dart';
 import 'package:stackduo/utilities/theme/stack_colors.dart';
-import 'package:stackduo/widgets/custom_loading_overlay.dart';
 import 'package:stackduo/widgets/desktop/desktop_dialog.dart';
 import 'package:stackduo/widgets/desktop/primary_button.dart';
 import 'package:stackduo/widgets/desktop/secondary_button.dart';
@@ -305,25 +300,6 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
                   .buttonTextSecondary,
             ),
             onPressed: () => _onSwapPressed(),
-          ),
-        if (Constants.enableExchange)
-          const SizedBox(
-            width: 16,
-          ),
-        if (Constants.enableExchange)
-          SecondaryButton(
-            label: "Buy",
-            width: buttonWidth,
-            buttonHeight: ButtonHeight.l,
-            icon: SvgPicture.asset(
-              Assets.svg.buy(context),
-              height: 20,
-              width: 20,
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .buttonTextSecondary,
-            ),
-            onPressed: () => _onBuyPressed(),
           ),
         if (showMore)
           const SizedBox(

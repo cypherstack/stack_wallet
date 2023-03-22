@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackduo/hive/db.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:stackduo/providers/providers.dart';
 import 'package:stackduo/providers/ui/color_theme_provider.dart';
+import 'package:stackduo/utilities/assets.dart';
 import 'package:stackduo/utilities/constants.dart';
 import 'package:stackduo/utilities/text_styles.dart';
 import 'package:stackduo/utilities/theme/color_theme.dart';
-import 'package:stackduo/utilities/theme/dark_colors.dart';
-import 'package:stackduo/utilities/theme/forest_colors.dart';
-import 'package:stackduo/utilities/theme/fruit_sorbet_colors.dart';
-import 'package:stackduo/utilities/theme/light_colors.dart';
-import 'package:stackduo/utilities/theme/ocean_breeze_colors.dart';
-import 'package:stackduo/utilities/theme/oled_black_colors.dart';
 import 'package:stackduo/utilities/theme/stack_colors.dart';
 import 'package:stackduo/widgets/background.dart';
 import 'package:stackduo/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackduo/widgets/custom_buttons/draggable_switch_button.dart';
+import 'package:stackduo/widgets/expandable.dart';
+import 'package:stackduo/widgets/rounded_container.dart';
 import 'package:stackduo/widgets/rounded_white_container.dart';
+import 'package:tuple/tuple.dart';
 
 class AppearanceSettingsView extends ConsumerWidget {
   const AppearanceSettingsView({Key? key}) : super(key: key);

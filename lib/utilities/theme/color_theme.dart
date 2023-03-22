@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:stackduo/utilities/enums/coin_enum.dart';
+import 'package:stackduo/utilities/theme/chan_colors.dart';
 import 'package:stackduo/utilities/theme/dark_colors.dart';
 import 'package:stackduo/utilities/theme/forest_colors.dart';
 import 'package:stackduo/utilities/theme/fruit_sorbet_colors.dart';
 import 'package:stackduo/utilities/theme/light_colors.dart';
 import 'package:stackduo/utilities/theme/ocean_breeze_colors.dart';
 import 'package:stackduo/utilities/theme/oled_black_colors.dart';
-
+import 'package:stackduo/utilities/theme/oled_chans_colors.dart';
 
 enum ThemeType {
   light,
