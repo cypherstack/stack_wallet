@@ -62,10 +62,10 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Timer? timer;
   Timer? _networkAliveTimer;
 
-  Future<void> addTokenContracts(List<String> contractAddresses) async {
-    final set = getWalletTokenContractAddresses().toSet();
-    set.addAll(contractAddresses);
-    await updateWalletTokenContractAddresses(set.toList());
+  Future<void> updateTokenContracts(List<String> contractAddresses) async {
+    // final set = getWalletTokenContractAddresses().toSet();
+    // set.addAll(contractAddresses);
+    await updateWalletTokenContractAddresses(contractAddresses);
 
     GlobalEventBus.instance.fire(
       UpdatedInBackgroundEvent(
@@ -75,18 +75,18 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
     );
   }
 
-  Future<void> removeTokenContract(String contractAddress) async {
-    final set = getWalletTokenContractAddresses().toSet();
-    set.removeWhere((e) => e == contractAddress);
-    await updateWalletTokenContractAddresses(set.toList());
-
-    GlobalEventBus.instance.fire(
-      UpdatedInBackgroundEvent(
-        "$contractAddress removed for: $walletId $walletName",
-        walletId,
-      ),
-    );
-  }
+  // Future<void> removeTokenContract(String contractAddress) async {
+  //   final set = getWalletTokenContractAddresses().toSet();
+  //   set.removeWhere((e) => e == contractAddress);
+  //   await updateWalletTokenContractAddresses(set.toList());
+  //
+  //   GlobalEventBus.instance.fire(
+  //     UpdatedInBackgroundEvent(
+  //       "$contractAddress removed for: $walletId $walletName",
+  //       walletId,
+  //     ),
+  //   );
+  // }
 
   @override
   String get walletId => _walletId;

@@ -27,7 +27,7 @@ class AddTokenText extends StatelessWidget {
           height: 4,
         ),
         Text(
-          "Add Tokens",
+          "Edit Tokens",
           textAlign: TextAlign.center,
           style: isDesktop
               ? STextStyles.desktopH2(context)

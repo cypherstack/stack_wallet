@@ -80,7 +80,7 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
         .getManager(widget.walletId)
         .wallet as EthereumWallet;
 
-    await ethWallet.addTokenContracts(selectedTokens);
+    await ethWallet.updateTokenContracts(selectedTokens);
     if (mounted) {
       Navigator.of(context).pop(42);
     }
@@ -120,6 +120,16 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
     }
 
     tokenEntities.addAll(contracts.map((e) => AddTokenListElementData(e)));
+
+    final walletContracts = (ref
+            .read(walletsChangeNotifierProvider)
+            .getManager(widget.walletId)
+            .wallet as EthereumWallet)
+        .getWalletTokenContractAddresses();
+
+    for (var e in tokenEntities) {
+      e.selected = walletContracts.contains(e.token.address);
+    }
 
     super.initState();
   }
