@@ -95,6 +95,7 @@ import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_set
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
 import 'package:stackwallet/pages/stack_privacy_calls.dart';
 import 'package:stackwallet/pages/token_view/my_tokens_view.dart';
+import 'package:stackwallet/pages/token_view/token_contract_details_view.dart';
 import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/edit_note_view.dart';
@@ -230,6 +231,21 @@ class RouteGenerator {
             name: settings.name,
           ),
         );
+
+      case TokenContractDetailsView.routeName:
+        if (args is Tuple2<String, String>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => TokenContractDetailsView(
+              contractAddress: args.item1,
+              walletId: args.item2,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case SingleFieldEditView.routeName:
         if (args is Tuple2<String, String>) {

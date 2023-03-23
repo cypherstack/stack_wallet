@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/token_summary.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/token_transaction_list_widget.dart';
+import 'package:stackwallet/pages/token_view/token_contract_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
 import 'package:stackwallet/services/ethereum/ethereum_token_service.dart';
@@ -15,6 +16,7 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:tuple/tuple.dart';
 
 final tokenServiceStateProvider = StateProvider<EthTokenWallet?>((ref) => null);
 final tokenServiceProvider = ChangeNotifierProvider<EthTokenWallet?>(
@@ -118,7 +120,15 @@ class _TokenViewState extends ConsumerState<TokenView> {
                   Assets.svg.verticalEllipsis,
                 ),
                 onPressed: () {
-                  // todo: contract details
+                  // todo: context menu
+                  Navigator.of(context).pushNamed(
+                    TokenContractDetailsView.routeName,
+                    arguments: Tuple2(
+                      ref.watch(tokenServiceProvider
+                          .select((value) => value!.tokenContract.address)),
+                      widget.walletId,
+                    ),
+                  );
                 },
               ),
             ],
