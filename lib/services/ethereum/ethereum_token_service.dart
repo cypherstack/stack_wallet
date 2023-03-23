@@ -6,6 +6,8 @@ import 'package:flutter/widgets.dart';
 import 'package:http/http.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
+import 'package:stackwallet/dto/ethereum/eth_token_tx_dto.dart';
+import 'package:stackwallet/dto/ethereum/eth_token_tx_extra_dto.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
@@ -282,23 +284,44 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
       .findAll();
 
   Future<void> _refreshTransactions() async {
-    String addressString = await currentReceivingAddress;
+    String addressString =
+        checksumEthereumAddress(await currentReceivingAddress);
 
     final response = await EthereumAPI.getTokenTransactions(
       address: addressString,
-      contractAddress: tokenContract.address,
+      tokenContractAddress: tokenContract.address,
     );
 
     if (response.value == null) {
       throw response.exception ??
+          Exception("Failed to fetch token transaction data");
+    }
+    final response2 = await EthereumAPI.getEthTokenTransactionsByTxids(
+      response.value!.map((e) => e.transactionHash).toList(),
+    );
+
+    if (response2.value == null) {
+      throw response2.exception ??
           Exception("Failed to fetch token transactions");
+    }
+    final List<Tuple2<EthTokenTxDto, EthTokenTxExtraDTO>> data = [];
+    for (final tokenDto in response.value!) {
+      data.add(
+        Tuple2(
+          tokenDto,
+          response2.value!.firstWhere(
+            (e) => e.hash == tokenDto.transactionHash,
+          ),
+        ),
+      );
     }
 
     final List<Tuple2<Transaction, Address?>> txnsData = [];
 
-    for (final tx in response.value!) {
+    for (final tuple in data) {
       bool isIncoming;
-      if (checksumEthereumAddress(tx.from) == addressString) {
+      if (checksumEthereumAddress(tuple.item1.articulatedLog.inputs.from) ==
+          addressString) {
         isIncoming = false;
       } else {
         isIncoming = true;
@@ -306,17 +329,17 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
 
       final txn = Transaction(
         walletId: ethWallet.walletId,
-        txid: tx.hash,
-        timestamp: tx.timeStamp,
+        txid: tuple.item1.transactionHash,
+        timestamp: tuple.item2.timestamp,
         type: isIncoming ? TransactionType.incoming : TransactionType.outgoing,
         subType: TransactionSubType.ethToken,
-        amount: tx.value.toInt(),
-        fee: tx.gasUsed * tx.gasPrice.toInt(),
-        height: tx.blockNumber,
+        amount: int.parse(tuple.item1.articulatedLog.inputs.amount),
+        fee: tuple.item2.gasUsed * tuple.item2.gasPrice.toInt(),
+        height: tuple.item1.blockNumber,
         isCancelled: false,
         isLelantus: false,
         slateId: null,
-        otherData: tx.contractAddress,
+        otherData: tuple.item1.address,
         inputs: [],
         outputs: [],
       );

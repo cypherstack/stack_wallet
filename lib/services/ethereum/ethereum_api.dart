@@ -4,12 +4,12 @@ import 'dart:math';
 import 'package:decimal/decimal.dart';
 import 'package:http/http.dart';
 import 'package:stackwallet/dto/ethereum/eth_token_tx_dto.dart';
+import 'package:stackwallet/dto/ethereum/eth_token_tx_extra_dto.dart';
 import 'package:stackwallet/dto/ethereum/eth_tx_dto.dart';
 import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/eth_commons.dart';
-import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 class EthApiException with Exception {
@@ -36,9 +36,8 @@ abstract class EthereumAPI {
 
   static String stackURI = "$stackBaseServer/eth/mainnet/api";
 
-  // static const blockScout = "https://blockscout.com/eth/mainnet/api";
-  static const etherscanApi =
-      "https://api.etherscan.io/api"; //TODO - Once our server has abi functionality update
+  // static const etherscanApi =
+  //     "https://api.etherscan.io/api"; //TODO - Once our server has abi functionality update
 
   static const gasTrackerUrl =
       "https://blockscout.com/eth/mainnet/api/v1/gas-price-oracle";
@@ -48,17 +47,10 @@ abstract class EthereumAPI {
     try {
       final response = await get(
         Uri.parse(
-          // "$blockScout?module=account&action=txlist&address=$address"));
-          // "stackURI?module=account&action=txlist&address=$address"));
           "$stackBaseServer/export?addrs=$address",
         ),
       );
 
-      // "$etherscanApi?module=account&action=txlist&address=$address&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
-
-      final BigInt myReceivingAddressInt = address.toBigIntFromHex;
-
-      // print(response.body);
       if (response.statusCode == 200) {
         if (response.body.isNotEmpty) {
           final json = jsonDecode(response.body) as Map;
@@ -67,23 +59,6 @@ abstract class EthereumAPI {
           final List<EthTxDTO> txns = [];
           for (final map in list!) {
             final txn = EthTxDTO.fromMap(Map<String, dynamic>.from(map as Map));
-
-            final logs = map["receipt"]["logs"] as List;
-
-            for (final log in logs) {
-              final map = log as Map;
-
-              final contractAddress = map["address"] as String;
-              final topics = List<String>.from(map["topics"] as List);
-
-              for (int i = 0; i < topics.length; i++) {
-                if (topics[i].toBigIntFromHex == myReceivingAddressInt) {
-                  print("================================================");
-                  print("Contract: $contractAddress");
-                  Logger.print((log).toString(), normalLength: false);
-                }
-              }
-            }
 
             if (txn.hasToken == 0) {
               txns.add(txn);
@@ -112,7 +87,7 @@ abstract class EthereumAPI {
       );
     } catch (e, s) {
       Logging.instance.log(
-        "getEthTransactions(): $e\n$s",
+        "getEthTransactions($address): $e\n$s",
         level: LogLevel.Error,
       );
       return EthereumResponse(
@@ -122,44 +97,41 @@ abstract class EthereumAPI {
     }
   }
 
-  static Future<EthereumResponse<List<EthTokenTxDTO>>> getTokenTransactions({
-    required String address,
-    String? contractAddress,
-    int? startBlock,
-    int? endBlock,
-    // todo add more params?
-  }) async {
+  static Future<EthereumResponse<List<EthTokenTxExtraDTO>>>
+      getEthTokenTransactionsByTxids(List<String> txids) async {
     try {
-      String uriString =
-          // "$blockScout?module=account&action=tokentx&address=$address";
-          // "stackURI?module=account&action=tokentx&address=$address";
-          "$etherscanApi?module=account&action=tokentx&address=$address&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP";
-      if (contractAddress != null) {
-        uriString += "&contractAddress=$contractAddress";
-      }
-      final uri = Uri.parse(uriString);
-      final response = await get(uri);
+      final response = await get(
+        Uri.parse(
+          "$stackBaseServer/transactions?transactions=${txids.join(" ")}",
+        ),
+      );
 
       if (response.statusCode == 200) {
-        final json = jsonDecode(response.body);
-        if (json["message"] == "OK") {
-          final result =
-              List<Map<String, dynamic>>.from(json["result"] as List);
-          final List<EthTokenTxDTO> tokenTxns = [];
-          for (final map in result) {
-            tokenTxns.add(EthTokenTxDTO.fromMap(map: map));
-          }
+        if (response.body.isNotEmpty) {
+          final json = jsonDecode(response.body) as Map;
+          final list = json["data"] as List?;
 
+          final List<EthTokenTxExtraDTO> txns = [];
+          for (final map in list!) {
+            final txn = EthTokenTxExtraDTO.fromMap(
+              Map<String, dynamic>.from(map as Map),
+            );
+
+            txns.add(txn);
+          }
           return EthereumResponse(
-            tokenTxns,
+            txns,
             null,
           );
         } else {
-          throw EthApiException(json["message"] as String);
+          throw EthApiException(
+            "getEthTransaction($txids) response is empty but status code is "
+            "${response.statusCode}",
+          );
         }
       } else {
         throw EthApiException(
-          "getTokenTransactions($address) failed with status code: "
+          "getEthTransaction($txids) failed with status code: "
           "${response.statusCode}",
         );
       }
@@ -170,7 +142,63 @@ abstract class EthereumAPI {
       );
     } catch (e, s) {
       Logging.instance.log(
-        "getTokenTransactions(): $e\n$s",
+        "getEthTransaction($txids): $e\n$s",
+        level: LogLevel.Error,
+      );
+      return EthereumResponse(
+        null,
+        EthApiException(e.toString()),
+      );
+    }
+  }
+
+  static Future<EthereumResponse<List<EthTokenTxDto>>> getTokenTransactions({
+    required String address,
+    required String tokenContractAddress,
+  }) async {
+    try {
+      final response = await get(
+        Uri.parse(
+          "$stackBaseServer/export?addrs=$address&emitter=$tokenContractAddress&logs=true",
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        if (response.body.isNotEmpty) {
+          final json = jsonDecode(response.body) as Map;
+          final list = json["data"] as List?;
+
+          final List<EthTokenTxDto> txns = [];
+          for (final map in list!) {
+            final txn =
+                EthTokenTxDto.fromMap(Map<String, dynamic>.from(map as Map));
+
+            txns.add(txn);
+          }
+          return EthereumResponse(
+            txns,
+            null,
+          );
+        } else {
+          throw EthApiException(
+            "getTokenTransactions($address, $tokenContractAddress) response is empty but status code is "
+            "${response.statusCode}",
+          );
+        }
+      } else {
+        throw EthApiException(
+          "getTokenTransactions($address, $tokenContractAddress) failed with status code: "
+          "${response.statusCode}",
+        );
+      }
+    } on EthApiException catch (e) {
+      return EthereumResponse(
+        null,
+        e,
+      );
+    } catch (e, s) {
+      Logging.instance.log(
+        "getTokenTransactions($address, $tokenContractAddress): $e\n$s",
         level: LogLevel.Error,
       );
       return EthereumResponse(
