@@ -1640,6 +1640,25 @@ class MockBitcoinWallet extends _i1.Mock implements _i26.BitcoinWallet {
         returnValueForMissingStub: _i22.Future<void>.value(),
       ) as _i22.Future<void>);
   @override
+  List<String> getWalletTokenContractAddresses() => (super.noSuchMethod(
+        Invocation.method(
+          #getWalletTokenContractAddresses,
+          [],
+        ),
+        returnValue: <String>[],
+      ) as List<String>);
+  @override
+  _i22.Future<void> updateWalletTokenContractAddresses(
+          List<String>? contractAddresses) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateWalletTokenContractAddresses,
+          [contractAddresses],
+        ),
+        returnValue: _i22.Future<void>.value(),
+        returnValueForMissingStub: _i22.Future<void>.value(),
+      ) as _i22.Future<void>);
+  @override
   void initWalletDB({_i13.MainDB? mockableOverride}) => super.noSuchMethod(
         Invocation.method(
           #initWalletDB,
@@ -2778,6 +2797,16 @@ class MockManager extends _i1.Mock implements _i6.Manager {
   @override
   bool get hasCoinControlSupport => (super.noSuchMethod(
         Invocation.getter(#hasCoinControlSupport),
+        returnValue: false,
+      ) as bool);
+  @override
+  bool get hasTokenSupport => (super.noSuchMethod(
+        Invocation.getter(#hasTokenSupport),
+        returnValue: false,
+      ) as bool);
+  @override
+  bool get hasWhirlpoolSupport => (super.noSuchMethod(
+        Invocation.getter(#hasWhirlpoolSupport),
         returnValue: false,
       ) as bool);
   @override

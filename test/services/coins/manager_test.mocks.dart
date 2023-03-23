@@ -992,6 +992,25 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
         returnValueForMissingStub: _i10.Future<void>.value(),
       ) as _i10.Future<void>);
   @override
+  List<String> getWalletTokenContractAddresses() => (super.noSuchMethod(
+        Invocation.method(
+          #getWalletTokenContractAddresses,
+          [],
+        ),
+        returnValue: <String>[],
+      ) as List<String>);
+  @override
+  _i10.Future<void> updateWalletTokenContractAddresses(
+          List<String>? contractAddresses) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateWalletTokenContractAddresses,
+          [contractAddresses],
+        ),
+        returnValue: _i10.Future<void>.value(),
+        returnValueForMissingStub: _i10.Future<void>.value(),
+      ) as _i10.Future<void>);
+  @override
   void initWalletDB({_i7.MainDB? mockableOverride}) => super.noSuchMethod(
         Invocation.method(
           #initWalletDB,

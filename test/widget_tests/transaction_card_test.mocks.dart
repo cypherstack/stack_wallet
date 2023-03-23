@@ -555,6 +555,16 @@ class MockManager extends _i1.Mock implements _i6.Manager {
         returnValue: false,
       ) as bool);
   @override
+  bool get hasTokenSupport => (super.noSuchMethod(
+        Invocation.getter(#hasTokenSupport),
+        returnValue: false,
+      ) as bool);
+  @override
+  bool get hasWhirlpoolSupport => (super.noSuchMethod(
+        Invocation.getter(#hasWhirlpoolSupport),
+        returnValue: false,
+      ) as bool);
+  @override
   int get rescanOnOpenVersion => (super.noSuchMethod(
         Invocation.getter(#rescanOnOpenVersion),
         returnValue: 0,
@@ -1945,6 +1955,25 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
         Invocation.method(
           #updateCachedBalanceSecondary,
           [balance],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+  @override
+  List<String> getWalletTokenContractAddresses() => (super.noSuchMethod(
+        Invocation.method(
+          #getWalletTokenContractAddresses,
+          [],
+        ),
+        returnValue: <String>[],
+      ) as List<String>);
+  @override
+  _i18.Future<void> updateWalletTokenContractAddresses(
+          List<String>? contractAddresses) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateWalletTokenContractAddresses,
+          [contractAddresses],
         ),
         returnValue: _i18.Future<void>.value(),
         returnValueForMissingStub: _i18.Future<void>.value(),
