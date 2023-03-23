@@ -8,7 +8,6 @@ abstract class DefaultTokens {
       symbol: "USDC",
       decimals: 6,
       type: EthContractType.erc20,
-      walletIds: [],
     ),
     EthContract(
       address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
@@ -16,7 +15,6 @@ abstract class DefaultTokens {
       symbol: "USDT",
       decimals: 6,
       type: EthContractType.erc20,
-      walletIds: [],
     ),
     EthContract(
       address: "0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce",
@@ -24,7 +22,6 @@ abstract class DefaultTokens {
       symbol: "SHIB",
       decimals: 18,
       type: EthContractType.erc20,
-      walletIds: [],
     ),
     EthContract(
       address: "0xB8c77482e45F1F44dE1745F52C74426C631bDD52",
@@ -32,7 +29,6 @@ abstract class DefaultTokens {
       symbol: "BNB",
       decimals: 18,
       type: EthContractType.erc20,
-      walletIds: [],
     ),
     EthContract(
       address: "0x4Fabb145d64652a948d72533023f6E7A623C7C53",
@@ -40,7 +36,6 @@ abstract class DefaultTokens {
       symbol: "BUSD",
       decimals: 18,
       type: EthContractType.erc20,
-      walletIds: [],
     ),
     EthContract(
       address: "0x514910771af9ca656af840dff83e8264ecf986ca",
@@ -48,7 +43,6 @@ abstract class DefaultTokens {
       symbol: "LINK",
       decimals: 18,
       type: EthContractType.erc20,
-      walletIds: [],
     ),
   ];
 }
