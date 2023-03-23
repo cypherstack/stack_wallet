@@ -1,6 +1,6 @@
 FROM ubuntu:20.04 as base
-COPY . /stack_wallet
-WORKDIR /stack_wallet/scripts/linux
+COPY . /stack_duo
+WORKDIR /stack_duo/scripts/linux
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y git=1:2.25.1-1ubuntu3.6 make=4.2.1-1.2 curl=7.68.0-1ubuntu2.14 cargo=0.62.0ubuntu0libgit2-0ubuntu0.20.04.1 \
     file=1:5.38-4 ca-certificates=20211016ubuntu0.20.04.1 cmake=3.16.3-1ubuntu1.20.04.1 cmake-data=3.16.3-1ubuntu1.20.04.1 g++=4:9.3.0-1ubuntu2 libgmp-dev=2:6.2.0+dfsg-4ubuntu0.1 libssl-dev=1.1.1f-1ubuntu2.16 \
     libclang-dev=1:10.0-50~exp1 unzip=6.0-25ubuntu1.1 python3=3.8.2-0ubuntu2 pkg-config=0.29.1-0ubuntu4 libglib2.0-dev=2.64.6-1~ubuntu20.04.4 libgcrypt20-dev=1.8.5-5ubuntu1.1 gettext-base=0.19.8.1-10build1 \
@@ -12,6 +12,6 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
 WORKDIR /
 RUN git clone https://github.com/flutter/flutter.git -b 3.3.4
 ENV PATH "$PATH:/flutter/bin"
-WORKDIR /stack_wallet
+WORKDIR /stack_duo
 RUN flutter pub get Linux && flutter build linux
 ENTRYPOINT ["/bin/bash"]
