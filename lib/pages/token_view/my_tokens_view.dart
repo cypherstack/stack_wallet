@@ -3,12 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:isar/isar.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_token_view.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/my_tokens_list.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -32,46 +30,18 @@ class MyTokensView extends ConsumerStatefulWidget {
   final String walletId;
 
   @override
-  ConsumerState<MyTokensView> createState() => _TokenDetailsViewState();
+  ConsumerState<MyTokensView> createState() => _MyTokensViewState();
 }
 
-class _TokenDetailsViewState extends ConsumerState<MyTokensView> {
+class _MyTokensViewState extends ConsumerState<MyTokensView> {
   late final String walletAddress;
   late final TextEditingController _searchController;
   final searchFieldFocusNode = FocusNode();
   String _searchString = "";
 
-  List<EthContract> _filter(String searchTerm) {
-    if (searchTerm.isNotEmpty) {
-      final term = searchTerm.toLowerCase();
-      return MainDB.instance
-          .getEthContracts()
-          .filter()
-          .walletIdsElementEqualTo(widget.walletId)
-          .and()
-          .group(
-            (q) => q
-                .nameContains(term, caseSensitive: false)
-                .or()
-                .symbolContains(term, caseSensitive: false)
-                .or()
-                .addressContains(term, caseSensitive: false),
-          )
-          .findAllSync();
-      // return tokens.toList();
-    }
-    //implement search/filter
-    return MainDB.instance
-        .getEthContracts()
-        .filter()
-        .walletIdsElementEqualTo(widget.walletId)
-        .findAllSync();
-  }
-
   @override
   void initState() {
     _searchController = TextEditingController();
-
     super.initState();
   }
 
@@ -84,6 +54,8 @@ class _TokenDetailsViewState extends ConsumerState<MyTokensView> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint("BUILD: $runtimeType");
+
     final isDesktop = Util.isDesktop;
 
     return MasterScaffold(
@@ -290,7 +262,12 @@ class _TokenDetailsViewState extends ConsumerState<MyTokensView> {
             Expanded(
               child: MyTokensList(
                 walletId: widget.walletId,
-                tokens: _filter(_searchString),
+                searchTerm: _searchString,
+                tokenContracts: ref
+                    .watch(walletsChangeNotifierProvider.select((value) => value
+                        .getManager(widget.walletId)
+                        .wallet as EthereumWallet))
+                    .getWalletTokenContractAddresses(),
               ),
             ),
           ],
