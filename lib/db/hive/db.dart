@@ -253,4 +253,5 @@ abstract class DBKeys {
   static const String isFavorite = "isFavorite";
   static const String id = "id";
   static const String storedChainHeight = "storedChainHeight";
+  static const String ethTokenContracts = "ethTokenContracts";
 }

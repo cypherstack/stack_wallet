@@ -112,4 +112,22 @@ mixin WalletCache {
       value: balance.toJsonIgnoreCoin(),
     );
   }
+
+  // Ethereum specific
+  List<String> getWalletTokenContractAddresses() {
+    return DB.instance.get<dynamic>(
+          boxName: _walletId,
+          key: DBKeys.ethTokenContracts,
+        ) as List<String>? ??
+        [];
+  }
+
+  Future<void> updateWalletTokenContractAddresses(
+      List<String> contractAddresses) async {
+    await DB.instance.put<dynamic>(
+      boxName: _walletId,
+      key: DBKeys.ethTokenContracts,
+      value: contractAddresses,
+    );
+  }
 }
