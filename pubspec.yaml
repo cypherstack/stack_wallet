@@ -11,7 +11,7 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.5.17+89
+version: 1.6.4+146
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
@@ -21,6 +21,7 @@ dependencies:
     sdk: flutter
   ffi: ^2.0.1
   mutex: ^3.0.0
+  websocket_universal: ^0.5.1
 
   lelantus:
     path: ./crypto_plugins/flutter_liblelantus
@@ -49,12 +50,17 @@ dependencies:
   bitcoindart:
     git:
       url: https://github.com/cypherstack/bitcoindart.git
-      ref: 65eb920719c8f7895c5402a07497647e7fc4b346
+      ref: 004d6f82dff7389b561e5078b4649adcd2d9c10f
 
   stack_wallet_backup:
     git:
       url: https://github.com/cypherstack/stack_wallet_backup.git
-      ref: 011dc9ce3d29f5fdeeaf711d58b5122f055c146d
+      ref: e4b08d2b8965a5ae49bd57f598fa9011dd0c25e9
+
+  bip47:
+    git:
+      url: https://github.com/cypherstack/bip47.git
+      ref: 48dd65f88822fba8543826274f6d51c17f735f93
 
   # Utility plugins
 #  provider: ^6.0.1
@@ -121,7 +127,7 @@ dependencies:
   tuple: ^2.0.0
   flutter_riverpod: ^1.0.3
   qr_flutter: ^4.0.0
-  share_plus: ^4.0.10
+  share_plus: ^6.3.0
   emojis: ^0.9.9
   pointycastle: ^3.6.0
   package_info_plus: ^1.4.2
@@ -130,10 +136,12 @@ dependencies:
   file_picker: ^5.0.1
   connectivity_plus: 2.3.6+1
 #  document_file_save_plus: ^1.0.5
-  isar: 3.0.0-dev.10
-  isar_flutter_libs: 3.0.0-dev.10 # contains the binaries
+  isar: 3.0.5
+  isar_flutter_libs: 3.0.5 # contains the binaries
   dropdown_button2: 1.7.2
   string_validator: ^0.3.0
+  equatable: ^2.0.5
+  async: ^2.10.0
 
 dev_dependencies:
   flutter_test:
@@ -141,7 +149,7 @@ dev_dependencies:
   integration_test:
       sdk: flutter
   build_runner: ^2.1.7
-  flutter_launcher_icons: ^0.9.3
+  flutter_launcher_icons: ^0.11.0
   hive_generator: ^1.1.2
   dependency_validator: ^3.1.2
   hive_test: ^1.0.1
@@ -151,7 +159,7 @@ dev_dependencies:
   analyzer: ^4.6.0
   import_sorter: ^4.6.0
   flutter_lints: ^2.0.1
-  isar_generator: 3.0.0-dev.10
+  isar_generator: 3.0.5
 
 flutter_icons:
   android: true
@@ -160,6 +168,13 @@ flutter_icons:
   image_path_android: assets/icon/app_icon_alpha.png
   image_path_ios: assets/icon/icon.png
   remove_alpha_ios: true
+  windows:
+    generate: true
+    image_path: assets/icon/icon.png
+    icon_size: 48 # min:48, max:256, default: 48
+  macos:
+    generate: true
+    image_path: assets/icon/icon.png
 
 flutter_native_splash:
   image: assets/images/splash.png
@@ -192,22 +207,12 @@ flutter:
     - google_fonts/
     - assets/svg/circle-check.svg
     - assets/svg/clipboard.svg
-    - assets/images/stack.png
-    - assets/images/monero.png
-    - assets/images/wownero.png
-    - assets/images/firo.png
-    - assets/images/litecoin.png
-    - assets/images/doge.png
-    - assets/images/bitcoin.png
-    - assets/images/epic-cash.png
-    - assets/images/bitcoincash.png
-    - assets/images/namecoin.png
+    - assets/images/glasses.png
+    - assets/images/glasses-hidden.png
+    - assets/svg/unclaimed.svg
     - assets/svg/plus.svg
     - assets/svg/gear.svg
     - assets/svg/bell.svg
-    - assets/svg/light/bell-new.svg
-    - assets/svg/dark/bell-new.svg
-    - assets/svg/stack-icon1.svg
     - assets/svg/arrow-left-fa.svg
     - assets/svg/copy-fa.svg
     - assets/svg/star.svg
@@ -220,10 +225,7 @@ flutter:
     - assets/svg/bars.svg
     - assets/svg/filter.svg
     - assets/svg/pending.svg
-    - assets/svg/dark/exchange-2.svg
-    - assets/svg/light/exchange-2.svg
     - assets/svg/signal-stream.svg
-    - assets/svg/buy-coins-icon.svg
     - assets/svg/Ellipse-43.svg
     - assets/svg/Ellipse-42.svg
     - assets/svg/arrow-rotate.svg
@@ -234,6 +236,7 @@ flutter:
     - assets/svg/chevron-down.svg
     - assets/svg/chevron-up.svg
     - assets/svg/lock-keyhole.svg
+    - assets/svg/lock-open.svg
     - assets/svg/rotate-exclamation.svg
     - assets/svg/folder-down.svg
     - assets/svg/network-wired.svg
@@ -250,6 +253,8 @@ flutter:
     - assets/svg/x.svg
     - assets/svg/x-fat.svg
     - assets/svg/user.svg
+    - assets/svg/user-plus.svg
+    - assets/svg/user-minus.svg
     - assets/svg/trash.svg
     - assets/svg/eye.svg
     - assets/svg/eye-slash.svg
@@ -265,25 +270,7 @@ flutter:
     - assets/svg/ellipsis-vertical1.svg
     - assets/svg/dice-alt.svg
     - assets/svg/circle-arrow-up-right2.svg
-    - assets/svg/dark/tx-exchange-icon.svg
-    - assets/svg/light/tx-exchange-icon.svg
-    - assets/svg/dark/tx-exchange-icon-pending.svg
-    - assets/svg/light/tx-exchange-icon-pending.svg
-    - assets/svg/dark/tx-exchange-icon-failed.svg
-    - assets/svg/light/tx-exchange-icon-failed.svg
     - assets/svg/loader.svg
-    - assets/svg/dark/tx-icon-send.svg
-    - assets/svg/light/tx-icon-send.svg
-    - assets/svg/dark/tx-icon-send-pending.svg
-    - assets/svg/light/tx-icon-send-pending.svg
-    - assets/svg/dark/tx-icon-send-failed.svg
-    - assets/svg/light/tx-icon-send-failed.svg
-    - assets/svg/dark/tx-icon-receive.svg
-    - assets/svg/light/tx-icon-receive.svg
-    - assets/svg/dark/tx-icon-receive-pending.svg
-    - assets/svg/light/tx-icon-receive-pending.svg
-    - assets/svg/dark/tx-icon-receive-failed.svg
-    - assets/svg/light/tx-icon-receive-failed.svg
     - assets/svg/add-backup.svg
     - assets/svg/auto-backup.svg
     - assets/svg/restore-backup.svg
@@ -295,8 +282,6 @@ flutter:
     - assets/svg/tx-icon-anonymize-pending.svg
     - assets/svg/tx-icon-anonymize-failed.svg
     - assets/svg/Polygon.svg
-    - assets/svg/persona-easy-1.svg
-    - assets/svg/persona-incognito-1.svg
     - assets/svg/Button.svg
     - assets/svg/enabled-button.svg
     - assets/svg/lock-circle.svg
@@ -305,8 +290,6 @@ flutter:
     - assets/svg/rotate-circle.svg
     - assets/svg/sun-circle.svg
     - assets/svg/node-circle.svg
-    - assets/svg/dark/dark-theme.svg
-    - assets/svg/light/light-mode.svg
     - assets/svg/address-book-desktop.svg
     - assets/svg/about-desktop.svg
     - assets/svg/exchange-desktop.svg
@@ -315,25 +298,12 @@ flutter:
     - assets/svg/keys.svg
     - assets/svg/arrow-down.svg
     - assets/svg/plus-circle.svg
+    - assets/svg/circle-plus-filled.svg
     - assets/svg/configuration.svg
-    # coin icons
-    - assets/svg/coin_icons/Bitcoin.svg
-    - assets/svg/coin_icons/Litecoin.svg
-    - assets/svg/coin_icons/Bitcoincash.svg
-    - assets/svg/coin_icons/Dogecoin.svg
-    - assets/svg/coin_icons/EpicCash.svg
-    - assets/svg/coin_icons/Firo.svg
-    - assets/svg/coin_icons/Monero.svg
-    - assets/svg/coin_icons/Wownero.svg
-    - assets/svg/coin_icons/Namecoin.svg
-    # lottie animations
-    - assets/lottie/test.json
-    - assets/lottie/test2.json
-    # socials
-    - assets/svg/socials/discord.svg
-    - assets/svg/socials/reddit-alien-brands.svg
-    - assets/svg/socials/twitter-brands.svg
-    - assets/svg/socials/telegram-brands.svg
+    - assets/svg/robot-head.svg
+    - assets/svg/whirlpool.svg
+    - assets/svg/fingerprint.svg
+    - assets/svg/faceid.svg
     - assets/svg/chevron-right.svg
     - assets/svg/minimize.svg
     - assets/svg/wallet-fa.svg
@@ -343,9 +313,72 @@ flutter:
     - assets/svg/box-auto.svg
     - assets/svg/framed-address-book.svg
     - assets/svg/framed-gear.svg
+    - assets/svg/list-ul.svg
+
+
+    # coin icons
+    - assets/svg/coin_icons/
+
+    # coin control icons
+    - assets/svg/coin_control/
+
+    # socials
+    - assets/svg/socials/
+
     # exchange icons
-    - assets/svg/exchange_icons/change_now_logo_1.svg
-    - assets/svg/exchange_icons/simpleswap-icon.svg
+    - assets/svg/exchange_icons/
+
+    # theme selectors
+    - assets/svg/dark-theme.svg
+    - assets/svg/light-mode.svg
+    - assets/svg/ocean-breeze-theme.svg
+    - assets/svg/oled-black-theme.svg
+    - assets/svg/fruit-sorbet-theme.svg
+    - assets/svg/forest-theme.svg
+    - assets/svg/chanstheme.svg
+    - assets/svg/darkChansTheme.svg
+
+    # light theme specific
+    - assets/svg/themed/light/
+
+    # dark theme specific
+    - assets/svg/themed/dark/
+
+    # ocean theme specific
+    - assets/svg/themed/oceanBreeze/
+
+    # OLED black theme specific
+    - assets/svg/themed/oledBlack/
+
+    # fruit sorbet theme specific
+    - assets/svg/themed/fruitSorbet/
+
+    # forest theme specific
+    - assets/svg/themed/forest/
+
+    # buy
+    - assets/svg/buy/
+
+
+    # lottie animations
+    # basic
+    - assets/lottie/test2.json
+
+    # gifs
+    - assets/gif/
+
+    # coin gifs
+    - assets/gif/coins/bitcoin/
+    - assets/gif/coins/bitcoincash/
+    - assets/gif/coins/dogecoin/
+    - assets/gif/coins/epicCash/
+    - assets/gif/coins/ethereum/
+    - assets/gif/coins/firo/
+    - assets/gif/coins/litecoin/
+    - assets/gif/coins/monero/
+    - assets/gif/coins/namecoin/
+    - assets/gif/coins/particl/
+    - assets/gif/coins/wownero/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

@@ -21,14 +21,17 @@ abstract class Constants {
   }
 
   static bool enableExchange = Util.isDesktop || !Platform.isIOS;
+  // just use enable exchange flag
+  // static bool enableBuy = enableExchange;
+  // // true; // true for development,
 
   //TODO: correct for monero?
-  static const int satsPerCoinMonero = 1000000000000;
-  static const int satsPerCoinWownero = 100000000000;
-  static const int satsPerCoin = 100000000;
-  static const int decimalPlaces = 8;
-  static const int decimalPlacesWownero = 11;
-  static const int decimalPlacesMonero = 12;
+  static const int _satsPerCoinMonero = 1000000000000;
+  static const int _satsPerCoinWownero = 100000000000;
+  static const int _satsPerCoin = 100000000;
+  static const int _decimalPlaces = 8;
+  static const int _decimalPlacesWownero = 11;
+  static const int _decimalPlacesMonero = 12;
 
   static const int notificationsMax = 0xFFFFFFFF;
   static const Duration networkAliveTimerDuration = Duration(seconds: 10);
@@ -38,7 +41,59 @@ abstract class Constants {
   // Enable Logger.print statements
   static const bool disableLogger = false;
 
-  static const int currentHiveDbVersion = 3;
+  static const int currentHiveDbVersion = 7;
+
+  static const int rescanV1 = 1;
+
+  static int satsPerCoin(Coin coin) {
+    switch (coin) {
+      case Coin.bitcoin:
+      case Coin.litecoin:
+      case Coin.litecoinTestNet:
+      case Coin.bitcoincash:
+      case Coin.bitcoincashTestnet:
+      case Coin.dogecoin:
+      case Coin.firo:
+      case Coin.bitcoinTestNet:
+      case Coin.dogecoinTestNet:
+      case Coin.firoTestNet:
+      case Coin.epicCash:
+      case Coin.namecoin:
+      case Coin.particl:
+        return _satsPerCoin;
+
+      case Coin.wownero:
+        return _satsPerCoinWownero;
+
+      case Coin.monero:
+        return _satsPerCoinMonero;
+    }
+  }
+
+  static int decimalPlacesForCoin(Coin coin) {
+    switch (coin) {
+      case Coin.bitcoin:
+      case Coin.litecoin:
+      case Coin.litecoinTestNet:
+      case Coin.bitcoincash:
+      case Coin.bitcoincashTestnet:
+      case Coin.dogecoin:
+      case Coin.firo:
+      case Coin.bitcoinTestNet:
+      case Coin.dogecoinTestNet:
+      case Coin.firoTestNet:
+      case Coin.epicCash:
+      case Coin.namecoin:
+      case Coin.particl:
+        return _decimalPlaces;
+
+      case Coin.wownero:
+        return _decimalPlacesWownero;
+
+      case Coin.monero:
+        return _decimalPlacesMonero;
+    }
+  }
 
   static List<int> possibleLengthsForCoin(Coin coin) {
     final List<int> values = [];
@@ -55,6 +110,7 @@ abstract class Constants {
       case Coin.firoTestNet:
       case Coin.epicCash:
       case Coin.namecoin:
+      case Coin.particl:
         values.addAll([24, 21, 18, 15, 12]);
         break;
 
@@ -101,6 +157,9 @@ abstract class Constants {
         return 120;
 
       case Coin.namecoin:
+        return 600;
+
+      case Coin.particl:
         return 600;
     }
   }

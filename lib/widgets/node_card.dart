@@ -6,13 +6,13 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
@@ -46,7 +46,7 @@ class NodeCard extends ConsumerStatefulWidget {
 class _NodeCardState extends ConsumerState<NodeCard> {
   String _status = "Disconnected";
   late final String nodeId;
-  bool _advancedIsExpanded = true;
+  bool _advancedIsExpanded = false;
 
   Future<void> _notifyWalletsOfUpdatedNode(WidgetRef ref) async {
     final managers = ref
@@ -93,9 +93,13 @@ class _NodeCardState extends ConsumerState<NodeCard> {
     switch (widget.coin) {
       case Coin.epicCash:
         try {
-          final String uriString = "${node.host}:${node.port}/v1/version";
-
-          testPassed = await testEpicBoxNodeConnection(Uri.parse(uriString));
+          testPassed = await testEpicNodeConnection(
+                NodeFormData()
+                  ..host = node.host
+                  ..useSSL = node.useSSL
+                  ..port = node.port,
+              ) !=
+              null;
         } catch (e, s) {
           Logging.instance.log("$e\n$s", level: LogLevel.Warning);
         }
@@ -144,6 +148,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
       case Coin.litecoin:
       case Coin.dogecoin:
       case Coin.firo:
+      case Coin.particl:
       case Coin.bitcoinTestNet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
@@ -256,7 +261,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                     const SizedBox(
                       width: 66,
                     ),
-                    BlueTextButton(
+                    CustomTextButton(
                       text: "Connect",
                       enabled: _status == "Disconnected",
                       onTap: () async {
@@ -280,7 +285,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                     const SizedBox(
                       width: 48,
                     ),
-                    BlueTextButton(
+                    CustomTextButton(
                       text: "Details",
                       onTap: () {
                         Navigator.of(context).pushNamed(
@@ -306,7 +311,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                   width: isDesktop ? 40 : 24,
                   height: isDesktop ? 40 : 24,
                   decoration: BoxDecoration(
-                    color: _node.name == DefaultNodes.defaultName
+                    color: _node.id.startsWith(DefaultNodes.defaultNodeIdPrefix)
                         ? Theme.of(context)
                             .extension<StackColors>()!
                             .buttonBackSecondary
@@ -321,13 +326,14 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                       Assets.svg.node,
                       height: isDesktop ? 18 : 11,
                       width: isDesktop ? 20 : 14,
-                      color: _node.name == DefaultNodes.defaultName
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .accentColorDark
-                          : Theme.of(context)
-                              .extension<StackColors>()!
-                              .infoItemIcons,
+                      color:
+                          _node.id.startsWith(DefaultNodes.defaultNodeIdPrefix)
+                              ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorDark
+                              : Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .infoItemIcons,
                     ),
                   ),
                 ),
@@ -367,8 +373,8 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                 if (isDesktop)
                   SvgPicture.asset(
                     _advancedIsExpanded
-                        ? Assets.svg.chevronDown
-                        : Assets.svg.chevronUp,
+                        ? Assets.svg.chevronUp
+                        : Assets.svg.chevronDown,
                     width: 12,
                     height: 6,
                     color: Theme.of(context)

@@ -8,46 +8,32 @@ import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 abstract class Format {
-  static Decimal satoshisToAmount(int sats, {Coin? coin}) {
-    late final int satsPerCoin;
+  static String shorten(String value, int beginCount, int endCount) {
+    return "${value.substring(0, beginCount)}...${value.substring(value.length - endCount)}";
+  }
 
-    switch (coin) {
-      case Coin.wownero:
-        satsPerCoin = Constants.satsPerCoinWownero;
-        break;
-      case Coin.monero:
-        satsPerCoin = Constants.satsPerCoinMonero;
-        break;
-      case Coin.bitcoin:
-      case Coin.bitcoincash:
-      case Coin.dogecoin:
-      case Coin.epicCash:
-      case Coin.firo:
-      case Coin.litecoin:
-      case Coin.namecoin:
-      case Coin.bitcoinTestNet:
-      case Coin.litecoinTestNet:
-      case Coin.bitcoincashTestnet:
-      case Coin.dogecoinTestNet:
-      case Coin.firoTestNet:
-      default:
-        satsPerCoin = Constants.satsPerCoin;
-    }
-
-    return (Decimal.fromInt(sats) / Decimal.fromInt(satsPerCoin))
-        .toDecimal(scaleOnInfinitePrecision: Constants.decimalPlaces);
+  static Decimal satoshisToAmount(int sats, {required Coin coin}) {
+    return (Decimal.fromInt(sats) /
+            Decimal.fromInt(Constants.satsPerCoin(coin)))
+        .toDecimal(
+            scaleOnInfinitePrecision: Constants.decimalPlacesForCoin(coin));
   }
 
   ///
-  static String satoshiAmountToPrettyString(int sats, String locale) {
-    final amount = satoshisToAmount(sats);
+  static String satoshiAmountToPrettyString(
+      int sats, String locale, Coin coin) {
+    final amount = satoshisToAmount(sats, coin: coin);
     return localizedStringAsFixed(
-        value: amount, locale: locale, decimalPlaces: Constants.decimalPlaces);
+      value: amount,
+      locale: locale,
+      decimalPlaces: Constants.decimalPlacesForCoin(coin),
+    );
   }
 
-  static int decimalAmountToSatoshis(Decimal amount) {
-    final value =
-        (Decimal.fromInt(Constants.satsPerCoin) * amount).floor().toBigInt();
+  static int decimalAmountToSatoshis(Decimal amount, Coin coin) {
+    final value = (Decimal.fromInt(Constants.satsPerCoin(coin)) * amount)
+        .floor()
+        .toBigInt();
     return value.toInt();
   }
 

@@ -1,3 +1,4 @@
+import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -70,16 +71,27 @@ class _TransactionFeeSelectionSheetState
           final manager =
               ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
-          if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+          if (coin == Coin.monero || coin == Coin.wownero) {
+            final fee = await manager.estimateFeeFor(
+                amount, MoneroTransactionPriority.fast.raw!);
+            ref.read(feeSheetSessionCacheProvider).fast[amount] =
+                Format.satoshisToAmount(
+              fee,
+              coin: coin,
+            );
+          } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
               ref.read(publicPrivateBalanceStateProvider.state).state !=
                   "Private") {
             ref.read(feeSheetSessionCacheProvider).fast[amount] =
-                Format.satoshisToAmount(await (manager.wallet as FiroWallet)
-                    .estimateFeeForPublic(amount, feeRate));
+                Format.satoshisToAmount(
+                    await (manager.wallet as FiroWallet)
+                        .estimateFeeForPublic(amount, feeRate),
+                    coin: coin);
           } else {
             ref.read(feeSheetSessionCacheProvider).fast[amount] =
                 Format.satoshisToAmount(
-                    await manager.estimateFeeFor(amount, feeRate));
+                    await manager.estimateFeeFor(amount, feeRate),
+                    coin: coin);
           }
         }
         return ref.read(feeSheetSessionCacheProvider).fast[amount]!;
@@ -88,17 +100,27 @@ class _TransactionFeeSelectionSheetState
         if (ref.read(feeSheetSessionCacheProvider).average[amount] == null) {
           final manager =
               ref.read(walletsChangeNotifierProvider).getManager(walletId);
-
-          if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+          if (coin == Coin.monero || coin == Coin.wownero) {
+            final fee = await manager.estimateFeeFor(
+                amount, MoneroTransactionPriority.regular.raw!);
+            ref.read(feeSheetSessionCacheProvider).average[amount] =
+                Format.satoshisToAmount(
+              fee,
+              coin: coin,
+            );
+          } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
               ref.read(publicPrivateBalanceStateProvider.state).state !=
                   "Private") {
             ref.read(feeSheetSessionCacheProvider).average[amount] =
-                Format.satoshisToAmount(await (manager.wallet as FiroWallet)
-                    .estimateFeeForPublic(amount, feeRate));
+                Format.satoshisToAmount(
+                    await (manager.wallet as FiroWallet)
+                        .estimateFeeForPublic(amount, feeRate),
+                    coin: coin);
           } else {
             ref.read(feeSheetSessionCacheProvider).average[amount] =
                 Format.satoshisToAmount(
-                    await manager.estimateFeeFor(amount, feeRate));
+                    await manager.estimateFeeFor(amount, feeRate),
+                    coin: coin);
           }
         }
         return ref.read(feeSheetSessionCacheProvider).average[amount]!;
@@ -107,17 +129,27 @@ class _TransactionFeeSelectionSheetState
         if (ref.read(feeSheetSessionCacheProvider).slow[amount] == null) {
           final manager =
               ref.read(walletsChangeNotifierProvider).getManager(walletId);
-
-          if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+          if (coin == Coin.monero || coin == Coin.wownero) {
+            final fee = await manager.estimateFeeFor(
+                amount, MoneroTransactionPriority.slow.raw!);
+            ref.read(feeSheetSessionCacheProvider).slow[amount] =
+                Format.satoshisToAmount(
+              fee,
+              coin: coin,
+            );
+          } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
               ref.read(publicPrivateBalanceStateProvider.state).state !=
                   "Private") {
             ref.read(feeSheetSessionCacheProvider).slow[amount] =
-                Format.satoshisToAmount(await (manager.wallet as FiroWallet)
-                    .estimateFeeForPublic(amount, feeRate));
+                Format.satoshisToAmount(
+                    await (manager.wallet as FiroWallet)
+                        .estimateFeeForPublic(amount, feeRate),
+                    coin: coin);
           } else {
             ref.read(feeSheetSessionCacheProvider).slow[amount] =
                 Format.satoshisToAmount(
-                    await manager.estimateFeeFor(amount, feeRate));
+                    await manager.estimateFeeFor(amount, feeRate),
+                    coin: coin);
           }
         }
         return ref.read(feeSheetSessionCacheProvider).slow[amount]!;
@@ -225,7 +257,7 @@ class _TransactionFeeSelectionSheetState
                           ref.read(feeRateTypeStateProvider.state).state =
                               FeeRateType.fast;
                         }
-                        String? fee = getAmount(FeeRateType.fast);
+                        String? fee = getAmount(FeeRateType.fast, manager.coin);
                         if (fee != null) {
                           widget.updateChosen(fee);
                         }
@@ -293,7 +325,7 @@ class _TransactionFeeSelectionSheetState
                                               feeRate: feeObject!.fast,
                                               amount: Format
                                                   .decimalAmountToSatoshis(
-                                                      amount)),
+                                                      amount, manager.coin)),
                                           // future: manager.estimateFeeFor(
                                           //     Format.decimalAmountToSatoshis(
                                           //         amount),
@@ -358,7 +390,8 @@ class _TransactionFeeSelectionSheetState
                           ref.read(feeRateTypeStateProvider.state).state =
                               FeeRateType.average;
                         }
-                        String? fee = getAmount(FeeRateType.average);
+                        String? fee =
+                            getAmount(FeeRateType.average, manager.coin);
                         if (fee != null) {
                           widget.updateChosen(fee);
                         }
@@ -424,7 +457,7 @@ class _TransactionFeeSelectionSheetState
                                               feeRate: feeObject!.medium,
                                               amount: Format
                                                   .decimalAmountToSatoshis(
-                                                      amount)),
+                                                      amount, manager.coin)),
                                           // future: manager.estimateFeeFor(
                                           //     Format.decimalAmountToSatoshis(
                                           //         amount),
@@ -489,7 +522,7 @@ class _TransactionFeeSelectionSheetState
                           ref.read(feeRateTypeStateProvider.state).state =
                               FeeRateType.slow;
                         }
-                        String? fee = getAmount(FeeRateType.slow);
+                        String? fee = getAmount(FeeRateType.slow, manager.coin);
                         print("fee $fee");
                         if (fee != null) {
                           widget.updateChosen(fee);
@@ -515,7 +548,8 @@ class _TransactionFeeSelectionSheetState
                                         .watch(feeRateTypeStateProvider.state)
                                         .state,
                                     onChanged: (x) {
-                                      debugPrint(x.toString());
+                                      //todo: check if print needed
+                                      // debugPrint(x.toString());
                                       ref
                                           .read(feeRateTypeStateProvider.state)
                                           .state = FeeRateType.slow;
@@ -557,7 +591,7 @@ class _TransactionFeeSelectionSheetState
                                               feeRate: feeObject!.slow,
                                               amount: Format
                                                   .decimalAmountToSatoshis(
-                                                      amount)),
+                                                      amount, manager.coin)),
                                           // future: manager.estimateFeeFor(
                                           //     Format.decimalAmountToSatoshis(
                                           //         amount),
@@ -624,10 +658,10 @@ class _TransactionFeeSelectionSheetState
     );
   }
 
-  String? getAmount(FeeRateType feeRateType) {
+  String? getAmount(FeeRateType feeRateType, Coin coin) {
     try {
       print(feeRateType);
-      var amount = Format.decimalAmountToSatoshis(this.amount);
+      var amount = Format.decimalAmountToSatoshis(this.amount, coin);
       print(amount);
       print(ref.read(feeSheetSessionCacheProvider).fast);
       print(ref.read(feeSheetSessionCacheProvider).average);

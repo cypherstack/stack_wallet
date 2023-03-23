@@ -15,6 +15,7 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
@@ -79,7 +80,7 @@ class _TransactionSearchViewState
       String amount = "";
       if (filterState.amount != null) {
         amount = Format.satoshiAmountToPrettyString(filterState.amount!,
-            ref.read(localeServiceChangeNotifierProvider).locale);
+            ref.read(localeServiceChangeNotifierProvider).locale, widget.coin);
       }
       _amountTextEditingController.text = amount;
     }
@@ -428,42 +429,46 @@ class _TransactionSearchViewState
         ),
       );
     } else {
-      return Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
+      return Background(
+        child: Scaffold(
           backgroundColor:
               Theme.of(context).extension<StackColors>()!.background,
-          leading: AppBarBackButton(
-            onPressed: () async {
-              if (FocusScope.of(context).hasFocus) {
-                FocusScope.of(context).unfocus();
-                await Future<void>.delayed(const Duration(milliseconds: 75));
-              }
-              if (mounted) {
-                Navigator.of(context).pop();
-              }
-            },
+          appBar: AppBar(
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.background,
+            leading: AppBarBackButton(
+              onPressed: () async {
+                if (FocusScope.of(context).hasFocus) {
+                  FocusScope.of(context).unfocus();
+                  await Future<void>.delayed(const Duration(milliseconds: 75));
+                }
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            title: Text(
+              "Transactions filter",
+              style: STextStyles.navBarTitle(context),
+            ),
           ),
-          title: Text(
-            "Transactions filter",
-            style: STextStyles.navBarTitle(context),
-          ),
-        ),
-        body: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: Constants.size.standardPadding,
-          ),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: IntrinsicHeight(
-                    child: _buildContent(context),
+          body: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: Constants.size.standardPadding,
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints:
+                        BoxConstraints(minHeight: constraints.maxHeight),
+                    child: IntrinsicHeight(
+                      child: _buildContent(context),
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       );
@@ -734,10 +739,12 @@ class _TransactionSearchViewState
               controller: _amountTextEditingController,
               focusNode: amountTextFieldFocusNode,
               onChanged: (_) => setState(() {}),
-              keyboardType: const TextInputType.numberWithOptions(
-                signed: false,
-                decimal: true,
-              ),
+              keyboardType: Util.isDesktop
+                  ? null
+                  : const TextInputType.numberWithOptions(
+                      signed: false,
+                      decimal: true,
+                    ),
               inputFormatters: [
                 // regex to validate a crypto amount with 8 decimal places
                 TextInputFormatter.withFunction((oldValue, newValue) =>
@@ -869,7 +876,7 @@ class _TransactionSearchViewState
             Expanded(
               child: SecondaryButton(
                 label: "Cancel",
-                desktopMed: isDesktop,
+                buttonHeight: isDesktop ? ButtonHeight.l : null,
                 onPressed: () async {
                   if (!isDesktop) {
                     if (FocusScope.of(context).hasFocus) {
@@ -919,7 +926,7 @@ class _TransactionSearchViewState
             ),
             Expanded(
               child: PrimaryButton(
-                desktopMed: isDesktop,
+                buttonHeight: isDesktop ? ButtonHeight.l : null,
                 onPressed: () async {
                   await _onApplyPressed();
                 },
@@ -967,22 +974,7 @@ class _TransactionSearchViewState
     }
     int? amount;
     if (amountDecimal != null) {
-      if (widget.coin == Coin.monero) {
-        amount = (amountDecimal * Decimal.fromInt(Constants.satsPerCoinMonero))
-            .floor()
-            .toBigInt()
-            .toInt();
-      } else if (widget.coin == Coin.wownero) {
-        amount = (amountDecimal * Decimal.fromInt(Constants.satsPerCoinWownero))
-            .floor()
-            .toBigInt()
-            .toInt();
-      } else {
-        amount = (amountDecimal * Decimal.fromInt(Constants.satsPerCoin))
-            .floor()
-            .toBigInt()
-            .toInt();
-      }
+      amount = Format.decimalAmountToSatoshis(amountDecimal, widget.coin);
     }
 
     final TransactionFilter filter = TransactionFilter(

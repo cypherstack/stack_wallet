@@ -9,14 +9,13 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_warning_view/new_wallet_recovery_phrase_warning_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/desktop_home_view.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -299,7 +298,7 @@ class _NewWalletRecoveryPhraseViewState
                     },
                     style: Theme.of(context)
                         .extension<StackColors>()!
-                        .getPrimaryEnabledButtonColor(context),
+                        .getPrimaryEnabledButtonStyle(context),
                     child: Text(
                       "I saved my recovery phrase",
                       style: isDesktop

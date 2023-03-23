@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
-import 'package:stackwallet/pages_desktop_specific/create_password/create_password_view.dart';
+import 'package:stackwallet/pages_desktop_specific/password/create_password_view.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/price_provider.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
@@ -141,7 +141,8 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                           textAlign: TextAlign.left,
                           text: TextSpan(
                             style: isDesktop
-                                ? STextStyles.desktopTextExtraExtraSmall(context)
+                                ? STextStyles.desktopTextExtraExtraSmall(
+                                    context)
                                 : STextStyles.label(context).copyWith(
                                     fontSize: 12.0,
                                   ),
@@ -214,8 +215,9 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                       children: [
                         Expanded(
                           child: PrimaryButton(
-                            label:
-                                !widget.isSettings ? "Continue" : "Save changes",
+                            label: !widget.isSettings
+                                ? "Continue"
+                                : "Save changes",
                             onPressed: () {
                               ref
                                   .read(prefsChangeNotifierProvider)
@@ -229,7 +231,14 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                                   .then((_) {
                                 if (isEasy) {
                                   unawaited(
-                                      ExchangeDataLoadingService().loadAll(ref));
+                                    ExchangeDataLoadingService.instance
+                                        .init()
+                                        .then((_) => ExchangeDataLoadingService
+                                            .instance
+                                            .loadAll()),
+                                  );
+                                  // unawaited(
+                                  //     BuyDataLoadingService().loadAll(ref));
                                   ref
                                       .read(priceAnd24hChangeNotifierProvider)
                                       .start(true);
@@ -268,7 +277,7 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
   }
 }
 
-class PrivacyToggle extends StatefulWidget {
+class PrivacyToggle extends ConsumerStatefulWidget {
   const PrivacyToggle({
     Key? key,
     required this.externalCallsEnabled,
@@ -279,10 +288,10 @@ class PrivacyToggle extends StatefulWidget {
   final void Function(bool)? onChanged;
 
   @override
-  State<PrivacyToggle> createState() => _PrivacyToggleState();
+  ConsumerState<PrivacyToggle> createState() => _PrivacyToggleState();
 }
 
-class _PrivacyToggleState extends State<PrivacyToggle> {
+class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
   late bool externalCallsEnabled;
 
   late final bool isDesktop;
@@ -333,19 +342,19 @@ class _PrivacyToggleState extends State<PrivacyToggle> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (isDesktop)
-                        const SizedBox(
-                          height: 10,
-                        ),
+                      // if (isDesktop)
+                      //   const SizedBox(
+                      //     height: 10,
+                      //   ),
                       SvgPicture.asset(
-                        Assets.svg.personaEasy,
-                        width: isDesktop ? 120 : 140,
-                        height: isDesktop ? 120 : 140,
+                        Assets.svg.personaEasy(context),
+                        width: 140,
+                        height: 140,
                       ),
-                      if (isDesktop)
-                        const SizedBox(
-                          height: 12,
-                        ),
+                      // if (isDesktop)
+                      //   const SizedBox(
+                      //     height: 12,
+                      //   ),
                       Center(
                         child: Text(
                           "Easy Crypto",
@@ -443,9 +452,9 @@ class _PrivacyToggleState extends State<PrivacyToggle> {
                           height: 10,
                         ),
                       SvgPicture.asset(
-                        Assets.svg.personaIncognito,
-                        width: isDesktop ? 120 : 140,
-                        height: isDesktop ? 120 : 140,
+                        Assets.svg.personaIncognito(context),
+                        width: 140,
+                        height: 140,
                       ),
                       if (isDesktop)
                         const SizedBox(

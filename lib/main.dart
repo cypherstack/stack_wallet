@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:cw_core/node.dart';
 import 'package:cw_core/unspent_coins_info.dart';
 import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_type.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_libmonero/monero/monero.dart';
@@ -16,6 +18,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:isar/isar.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
@@ -31,7 +34,7 @@ import 'package:stackwallet/pages/loading_view.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_encrypted_string_view.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_login_view.dart';
+import 'package:stackwallet/pages_desktop_specific/password/desktop_login_view.dart';
 import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/global/base_currencies_provider.dart';
@@ -40,8 +43,8 @@ import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/route_generator.dart';
+// import 'package:stackwallet/services/buy/buy_data_loading_service.dart';
 import 'package:stackwallet/services/debug_service.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/node_service.dart';
@@ -53,10 +56,9 @@ import 'package:stackwallet/utilities/db_version_migration.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
-import 'package:stackwallet/utilities/theme/dark_colors.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:window_size/window_size.dart';
@@ -73,11 +75,25 @@ void main() async {
   if (Platform.isIOS) {
     Util.libraryPath = await getLibraryDirectory();
   }
+  Screen? screen;
+  if (Platform.isLinux || (Util.isDesktop && !Platform.isIOS)) {
+    screen = await getCurrentScreen();
+    Util.screenWidth = screen?.frame.width;
+  }
 
-  if (Util.isDesktop) {
+  if (Util.isDesktop && !Platform.isIOS) {
     setWindowTitle('Stack Wallet');
-    setWindowMinSize(const Size(1200, 1100));
+    setWindowMinSize(const Size(1220, 100));
     setWindowMaxSize(Size.infinite);
+
+    final screenHeight = screen?.frame.height;
+    if (screenHeight != null && !kDebugMode) {
+      // starting to height be 3/4 screen height or 900, whichever is smaller
+      final height = min<double>(screenHeight * 0.75, 900);
+      setWindowFrame(
+        Rect.fromLTWH(0, 0, 1220, height),
+      );
+    }
   }
 
   // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
@@ -86,12 +102,13 @@ void main() async {
       [LogSchema],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       inspector: false,
+      maxSizeMiB: 512,
     );
     await Logging.instance.init(isar);
     await DebugService.instance.init(isar);
 
     // clear out all info logs on startup. No need to await and block
-    unawaited(DebugService.instance.purgeInfoLogs());
+    unawaited(DebugService.instance.deleteLogsOlderThan());
   }
 
   // Registering Transaction Model Adapters
@@ -137,8 +154,10 @@ void main() async {
       (await StackFileSystem.applicationHiveDirectory()).path);
 
   await Hive.openBox<dynamic>(DB.boxNameDBInfo);
+  await Hive.openBox<dynamic>(DB.boxNamePrefs);
+  await Prefs.instance.init();
 
-  // todo: db migrate stuff for desktop needs to be handled eventually
+  // Desktop migrate handled elsewhere (currently desktop_login_view.dart)
   if (!Util.isDesktop) {
     int dbVersion = DB.instance.get<dynamic>(
             boxName: DB.boxNameDBInfo, key: "hive_data_version") as int? ??
@@ -153,7 +172,7 @@ void main() async {
           ),
         );
       } catch (e, s) {
-        Logging.instance.log("Cannot migrate database\n$e $s",
+        Logging.instance.log("Cannot migrate mobile database\n$e $s",
             level: LogLevel.Error, printFullLength: true);
       }
     }
@@ -161,8 +180,6 @@ void main() async {
 
   monero.onStartup();
   wownero.onStartup();
-
-  await Hive.openBox<dynamic>(DB.boxNameTheme);
 
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
   //     overlays: [SystemUiOverlay.bottom]);
@@ -224,10 +241,16 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     await DB.instance.init();
     await ref.read(prefsChangeNotifierProvider).init();
 
+    final familiarity = ref.read(prefsChangeNotifierProvider).familiarity + 1;
+    ref.read(prefsChangeNotifierProvider).familiarity = familiarity;
+
+    Constants.exchangeForExperiencedUsers(familiarity);
+
     if (Util.isDesktop) {
       _desktopHasPassword =
           await ref.read(storageCryptoHandlerProvider).hasPassword();
     }
+    await MainDB.instance.initMainDB();
   }
 
   Future<void> load() async {
@@ -265,10 +288,18 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       //  unawaited(_nodeService.updateCommunityNodes());
 
       // run without awaiting
-      if (Constants.enableExchange &&
-          ref.read(prefsChangeNotifierProvider).externalCalls &&
+      if (ref.read(prefsChangeNotifierProvider).externalCalls &&
           await ref.read(prefsChangeNotifierProvider).isExternalCallsSet()) {
-        unawaited(ExchangeDataLoadingService().loadAll(ref));
+        if (Constants.enableExchange) {
+          await ExchangeDataLoadingService.instance.init();
+          await ExchangeDataLoadingService.instance.setCurrenciesIfEmpty(
+            ref.read(exchangeFormStateProvider),
+          );
+          unawaited(ExchangeDataLoadingService.instance.loadAll());
+        }
+        // if (Constants.enableBuy) {
+        //   unawaited(BuyDataLoadingService().loadAll(ref));
+        // }
       }
 
       if (ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled) {
@@ -285,6 +316,11 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
             break;
         }
       }
+
+      // ref
+      //     .read(prefsChangeNotifierProvider)
+      //     .userID; // Just reading the ref should set it if it's not already set
+      // We shouldn't need to do this, instead only generating an ID when (or if) the userID is looked up when creating a quote
     } catch (e, s) {
       Logger.print("$e $s", normalLength: false);
     }
@@ -292,19 +328,27 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   @override
   void initState() {
-    ref.read(exchangeFormStateProvider).exchange = ChangeNowExchange();
-    final colorScheme = DB.instance
-        .get<dynamic>(boxName: DB.boxNameTheme, key: "colorScheme") as String?;
-
-    ThemeType themeType;
-    switch (colorScheme) {
-      case "dark":
-        themeType = ThemeType.dark;
-        break;
-      case "light":
-      default:
-        themeType = ThemeType.light;
+    StackColorTheme colorTheme;
+    if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
+      final brightness = WidgetsBinding.instance.window.platformBrightness;
+      switch (brightness) {
+        case Brightness.dark:
+          colorTheme = ref
+              .read(prefsChangeNotifierProvider)
+              .systemBrightnessDarkTheme
+              .colorTheme;
+          break;
+        case Brightness.light:
+          colorTheme = ref
+              .read(prefsChangeNotifierProvider)
+              .systemBrightnessLightTheme
+              .colorTheme;
+          break;
+      }
+    } else {
+      colorTheme = ref.read(prefsChangeNotifierProvider).theme.colorTheme;
     }
+
     loadingCompleter = Completer();
     WidgetsBinding.instance.addObserver(this);
     // load locale and prefs
@@ -314,8 +358,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       ref.read(colorThemeProvider.state).state =
-          StackColors.fromStackColorTheme(
-              themeType == ThemeType.dark ? DarkColors() : LightColors());
+          StackColors.fromStackColorTheme(colorTheme);
 
       if (Platform.isAndroid) {
         // fetch open file if it exists
@@ -333,6 +376,31 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         // ref.read(shouldShowLockscreenOnResumeStateProvider.state).state = false;
       }
     });
+
+    WidgetsBinding.instance.window.onPlatformBrightnessChanged = () {
+      StackColorTheme colorTheme;
+      switch (WidgetsBinding.instance.window.platformBrightness) {
+        case Brightness.dark:
+          colorTheme = ref
+              .read(prefsChangeNotifierProvider)
+              .systemBrightnessDarkTheme
+              .colorTheme;
+          break;
+        case Brightness.light:
+          colorTheme = ref
+              .read(prefsChangeNotifierProvider)
+              .systemBrightnessLightTheme
+              .colorTheme;
+          break;
+      }
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
+          ref.read(colorThemeProvider.notifier).state =
+              StackColors.fromStackColorTheme(colorTheme);
+        }
+      });
+    };
 
     super.initState();
   }
@@ -474,7 +542,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       theme: ThemeData(
         extensions: [colorScheme],
         highlightColor: colorScheme.highlight,
-        brightness: Brightness.light,
+        brightness: colorScheme.brightness,
         fontFamily: GoogleFonts.inter().fontFamily,
         unselectedWidgetColor: colorScheme.radioButtonBorderDisabled,
         // textTheme: GoogleFonts.interTextTheme().copyWith(

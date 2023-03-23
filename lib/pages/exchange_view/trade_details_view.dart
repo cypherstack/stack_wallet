@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/exchange_view/edit_trade_note_view.dart';
 import 'package:stackwallet/pages/exchange_view/send_from_view.dart';
@@ -18,16 +18,17 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
+import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -115,7 +116,17 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
       }
       status = changeNowTransactionStatusFromStringIgnoreCase(statusString);
     } on ArgumentError catch (_) {
-      status = ChangeNowTransactionStatus.Failed;
+      switch (statusString.toLowerCase()) {
+        case "funds confirming":
+        case "processing payment":
+          return Assets.svg.txExchangePending(context);
+
+        case "completed":
+          return Assets.svg.txExchange(context);
+
+        default:
+          status = ChangeNowTransactionStatus.Failed;
+      }
     }
 
     switch (status) {
@@ -156,9 +167,12 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
             trade.status == "Failed" ||
             trade.status == "failed");
 
-    debugPrint("sentFromStack: $sentFromStack");
-    debugPrint("hasTx: $hasTx");
-    debugPrint("trade: ${trade.toString()}");
+    //todo: check if print needed
+    // debugPrint("walletId: $walletId");
+    // debugPrint("transactionIfSentFromStack: $transactionIfSentFromStack");
+    // debugPrint("sentFromStack: $sentFromStack");
+    // debugPrint("hasTx: $hasTx");
+    // debugPrint("trade: ${trade.toString()}");
 
     final sendAmount =
         Decimal.tryParse(trade.payInAmount) ?? Decimal.parse("-1");
@@ -167,27 +181,30 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
+      builder: (child) => Background(
+        child: Scaffold(
           backgroundColor:
               Theme.of(context).extension<StackColors>()!.background,
-          leading: AppBarBackButton(
-            onPressed: () async {
-              Navigator.of(context).pop();
-            },
+          appBar: AppBar(
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.background,
+            leading: AppBarBackButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+              },
+            ),
+            title: Text(
+              "Trade details",
+              style: STextStyles.navBarTitle(context),
+            ),
           ),
-          title: Text(
-            "Trade details",
-            style: STextStyles.navBarTitle(context),
-          ),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(12),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(4),
-              child: child,
+          body: Padding(
+            padding: const EdgeInsets.all(12),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: child,
+              ),
             ),
           ),
         ),
@@ -206,16 +223,60 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
               padding: const EdgeInsets.only(
                 right: 12,
               ),
-              child: RoundedWhiteContainer(
-                borderColor: isDesktop
-                    ? Theme.of(context).extension<StackColors>()!.background
-                    : null,
-                padding: const EdgeInsets.all(0),
-                child: ListView(
-                  primary: false,
-                  shrinkWrap: true,
-                  children: children,
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  RoundedWhiteContainer(
+                    borderColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .backgroundAppBar,
+                    padding: const EdgeInsets.all(0),
+                    child: ListView(
+                      primary: false,
+                      shrinkWrap: true,
+                      children: children,
+                    ),
+                  ),
+                  if (!hasTx &&
+                      isStackCoin(trade.payInCurrency) &&
+                      (trade.status == "New" ||
+                          trade.status == "new" ||
+                          trade.status == "waiting" ||
+                          trade.status == "Waiting"))
+                    const SizedBox(
+                      height: 32,
+                    ),
+                  if (!hasTx &&
+                      isStackCoin(trade.payInCurrency) &&
+                      (trade.status == "New" ||
+                          trade.status == "new" ||
+                          trade.status == "waiting" ||
+                          trade.status == "Waiting"))
+                    SecondaryButton(
+                      label: "Send from Stack",
+                      buttonHeight: ButtonHeight.l,
+                      onPressed: () {
+                        final amount = sendAmount;
+                        final address = trade.payInAddress;
+
+                        final coin =
+                            coinFromTickerCaseInsensitive(trade.payInCurrency);
+
+                        Navigator.of(context).pushNamed(
+                          SendFromView.routeName,
+                          arguments: Tuple4(
+                            coin,
+                            amount,
+                            address,
+                            trade,
+                          ),
+                        );
+                      },
+                    ),
+                  const SizedBox(
+                    height: 32,
+                  ),
+                ],
               ),
             ),
           ),
@@ -234,7 +295,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     ? BoxDecoration(
                         color: Theme.of(context)
                             .extension<StackColors>()!
-                            .background,
+                            .backgroundAppBar,
                         borderRadius: BorderRadius.vertical(
                           top: Radius.circular(
                             Constants.size.circularBorderRadius,
@@ -261,7 +322,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                               width: 16,
                             ),
                             SelectableText(
-                              "Exchange",
+                              "Swap service",
                               style: STextStyles.desktopTextMedium(context),
                             ),
                           ],
@@ -316,12 +377,46 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
               padding: isDesktop
                   ? const EdgeInsets.all(16)
                   : const EdgeInsets.all(12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "Status",
-                    style: STextStyles.itemSubtitle(context),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Status",
+                        style: STextStyles.itemSubtitle(context),
+                      ),
+                      if (trade.exchangeName ==
+                              MajesticBankExchange.exchangeName &&
+                          trade.status == "Completed")
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                showDialog<void>(
+                                  context: context,
+                                  builder: (context) => const StackOkDialog(
+                                    title: "Trade Info",
+                                    message:
+                                        "Majestic Bank does not store order data indefinitely",
+                                  ),
+                                );
+                              },
+                              child: SvgPicture.asset(
+                                Assets.svg.circleInfo,
+                                height: 20,
+                                width: 20,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .infoItemIcons,
+                              ),
+                            ),
+                          ],
+                        )
+                    ],
                   ),
                   const SizedBox(
                     height: 4,
@@ -334,8 +429,6 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           .colorForStatus(trade.status),
                     ),
                   ),
-                  //   ),
-                  // ),
                 ],
               ),
             ),
@@ -350,33 +443,94 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                 padding: isDesktop
                     ? const EdgeInsets.all(16)
                     : const EdgeInsets.all(12),
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .warningBackground,
-                child: RichText(
-                  text: TextSpan(
-                      text:
-                          "You must send at least ${sendAmount.toStringAsFixed(
-                        trade.payInCurrency.toLowerCase() == "xmr" ? 12 : 8,
-                      )} ${trade.payInCurrency.toUpperCase()}. ",
-                      style: STextStyles.label700(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .warningForeground,
-                      ),
-                      children: [
-                        TextSpan(
-                          text:
-                              "If you send less than ${sendAmount.toStringAsFixed(
-                            trade.payInCurrency.toLowerCase() == "xmr" ? 12 : 8,
-                          )} ${trade.payInCurrency.toUpperCase()}, your transaction may not be converted and it may not be refunded.",
-                          style: STextStyles.label(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .warningForeground,
+                color: isDesktop
+                    ? Theme.of(context).extension<StackColors>()!.popupBG
+                    : Theme.of(context)
+                        .extension<StackColors>()!
+                        .warningBackground,
+                child: ConditionalParent(
+                  condition: isDesktop,
+                  builder: (child) => Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Amount",
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                    context),
+                              ),
+                              const SizedBox(
+                                height: 2,
+                              ),
+                              Text(
+                                "${trade.payInAmount} ${trade.payInCurrency.toUpperCase()}",
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                        context)
+                                    .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ]),
+                          IconCopyButton(
+                            data: trade.payInAmount,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 6,
+                      ),
+                      child,
+                    ],
+                  ),
+                  child: RichText(
+                    text: TextSpan(
+                        text:
+                            "You must send at least ${sendAmount.toStringAsFixed(
+                          trade.payInCurrency.toLowerCase() == "xmr" ? 12 : 8,
+                        )} ${trade.payInCurrency.toUpperCase()}. ",
+                        style: isDesktop
+                            ? STextStyles.desktopTextExtraExtraSmall(context)
+                                .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorRed)
+                            : STextStyles.label(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .warningForeground,
+                              ),
+                        children: [
+                          TextSpan(
+                            text:
+                                "If you send less than ${sendAmount.toStringAsFixed(
+                              trade.payInCurrency.toLowerCase() == "xmr"
+                                  ? 12
+                                  : 8,
+                            )} ${trade.payInCurrency.toUpperCase()}, your transaction may not be converted and it may not be refunded.",
+                            style: isDesktop
+                                ? STextStyles.desktopTextExtraExtraSmall(
+                                        context)
+                                    .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorRed)
+                                : STextStyles.label(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .warningForeground,
+                                  ),
+                          ),
+                        ]),
+                  ),
                 ),
               ),
             if (sentFromStack)
@@ -407,7 +561,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     const SizedBox(
                       height: 10,
                     ),
-                    BlueTextButton(
+                    CustomTextButton(
                       text: "View transaction",
                       onTap: () {
                         final Coin coin =
@@ -514,11 +668,15 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                       text: address,
                                     ),
                                   );
-                                  unawaited(showFloatingFlushBar(
-                                    type: FlushBarType.info,
-                                    message: "Copied to clipboard",
-                                    context: context,
-                                  ));
+                                  if (mounted) {
+                                    unawaited(
+                                      showFloatingFlushBar(
+                                        type: FlushBarType.info,
+                                        message: "Copied to clipboard",
+                                        context: context,
+                                      ),
+                                    );
+                                  }
                                 },
                                 child: Row(
                                   children: [
@@ -604,7 +762,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                         },
                                         style: Theme.of(context)
                                             .extension<StackColors>()!
-                                            .getSecondaryEnabledButtonColor(
+                                            .getSecondaryEnabledButtonStyle(
                                                 context),
                                         child: Text(
                                           "Cancel",
@@ -894,7 +1052,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Exchange",
+                        "Swap service",
                         style: STextStyles.itemSubtitle(context),
                       ),
                       if (isDesktop)
@@ -969,11 +1127,15 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           onTap: () async {
                             final data = ClipboardData(text: trade.tradeId);
                             await clipboard.setData(data);
-                            unawaited(showFloatingFlushBar(
-                              type: FlushBarType.info,
-                              message: "Copied to clipboard",
-                              context: context,
-                            ));
+                            if (mounted) {
+                              unawaited(
+                                showFloatingFlushBar(
+                                  type: FlushBarType.info,
+                                  message: "Copied to clipboard",
+                                  context: context,
+                                ),
+                              );
+                            }
                           },
                           child: SvgPicture.asset(
                             Assets.svg.copy,
@@ -1007,40 +1169,54 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                   const SizedBox(
                     height: 4,
                   ),
-                  Builder(builder: (context) {
-                    late final String url;
-                    switch (trade.exchangeName) {
-                      case ChangeNowExchange.exchangeName:
-                        url =
-                            "https://changenow.io/exchange/txs/${trade.tradeId}";
-                        break;
-                      case SimpleSwapExchange.exchangeName:
-                        url =
-                            "https://simpleswap.io/exchange?id=${trade.tradeId}";
-                        break;
-                    }
-                    return GestureDetector(
-                      onTap: () {
-                        launchUrl(
-                          Uri.parse(url),
-                          mode: LaunchMode.externalApplication,
-                        );
-                      },
-                      child: Text(
-                        url,
-                        style: STextStyles.link2(context),
-                      ),
-                    );
-                  }),
+                  Builder(
+                    builder: (context) {
+                      late final String url;
+                      switch (trade.exchangeName) {
+                        case ChangeNowExchange.exchangeName:
+                          url =
+                              "https://changenow.io/exchange/txs/${trade.tradeId}";
+                          break;
+                        case SimpleSwapExchange.exchangeName:
+                          url =
+                              "https://simpleswap.io/exchange?id=${trade.tradeId}";
+                          break;
+                        case MajesticBankExchange.exchangeName:
+                          url =
+                              "https://majesticbank.sc/track?trx=${trade.tradeId}";
+                          break;
+                      }
+                      return ConditionalParent(
+                        condition: isDesktop,
+                        builder: (child) => MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: child,
+                        ),
+                        child: GestureDetector(
+                          onTap: () {
+                            launchUrl(
+                              Uri.parse(url),
+                              mode: LaunchMode.externalApplication,
+                            );
+                          },
+                          child: Text(
+                            url,
+                            style: STextStyles.link2(context),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
-            isDesktop
-                ? const _Divider()
-                : const SizedBox(
-                    height: 12,
-                  ),
-            if (isStackCoin(trade.payInCurrency) &&
+            if (!isDesktop)
+              const SizedBox(
+                height: 12,
+              ),
+            if (!isDesktop &&
+                !hasTx &&
+                isStackCoin(trade.payInCurrency) &&
                 (trade.status == "New" ||
                     trade.status == "new" ||
                     trade.status == "waiting" ||
@@ -1079,7 +1255,7 @@ class _Divider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 1,
-      color: Theme.of(context).extension<StackColors>()!.background,
+      color: Theme.of(context).extension<StackColors>()!.backgroundAppBar,
     );
   }
 }

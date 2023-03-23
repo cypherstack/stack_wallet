@@ -1,5 +1,6 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 
 class RoundedContainer extends StatelessWidget {
   const RoundedContainer({
@@ -11,6 +12,8 @@ class RoundedContainer extends StatelessWidget {
     this.width,
     this.height,
     this.borderColor,
+    this.boxShadow,
+    this.onPressed,
   }) : super(key: key);
 
   final Widget? child;
@@ -20,22 +23,39 @@ class RoundedContainer extends StatelessWidget {
   final double? width;
   final double? height;
   final Color? borderColor;
+  final List<BoxShadow>? boxShadow;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(
-          Constants.size.circularBorderRadius * radiusMultiplier,
+    return ConditionalParent(
+      condition: onPressed != null,
+      builder: (child) => RawMaterialButton(
+        padding: const EdgeInsets.all(0),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius * radiusMultiplier,
+          ),
         ),
-        border: borderColor == null ? null : Border.all(color: borderColor!),
-      ),
-      child: Padding(
-        padding: padding,
+        onPressed: onPressed,
         child: child,
+      ),
+      child: Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius * radiusMultiplier,
+          ),
+          border: borderColor == null ? null : Border.all(color: borderColor!),
+          boxShadow: boxShadow,
+        ),
+        child: Padding(
+          padding: padding,
+          child: child,
+        ),
       ),
     );
   }

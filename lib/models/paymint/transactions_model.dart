@@ -2,6 +2,7 @@ import 'package:dart_numerics/dart_numerics.dart';
 import 'package:decimal/decimal.dart';
 import 'package:hive/hive.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 part '../type_adaptors/transactions_model.g.dart';
 
@@ -220,14 +221,16 @@ class Transaction {
           (DateTime.now().millisecondsSinceEpoch ~/ 1000),
       txType: json['txType'] as String,
       amount: (Decimal.parse(json["amount"].toString()) *
-              Decimal.fromInt(Constants.satsPerCoin))
+              Decimal.fromInt(Constants.satsPerCoin(Coin
+                  .firo))) // dirty hack but we need 8 decimal places here to keep consistent data structure
           .toBigInt()
           .toInt(),
       aliens: [],
       worthNow: json['worthNow'] as String,
       worthAtBlockTimestamp: json['worthAtBlockTimestamp'] as String? ?? "0",
       fees: (Decimal.parse(json["fees"].toString()) *
-              Decimal.fromInt(Constants.satsPerCoin))
+              Decimal.fromInt(Constants.satsPerCoin(Coin
+                  .firo))) // dirty hack but we need 8 decimal places here to keep consistent data structure
           .toBigInt()
           .toInt(),
       inputSize: json['inputSize'] as int? ?? 0,
@@ -359,12 +362,16 @@ class Input {
 class Output {
   // @HiveField(0)
   final String? scriptpubkey;
+
   // @HiveField(1)
   final String? scriptpubkeyAsm;
+
   // @HiveField(2)
   final String? scriptpubkeyType;
+
   // @HiveField(3)
   final String scriptpubkeyAddress;
+
   // @HiveField(4)
   final int value;
 
@@ -377,18 +384,34 @@ class Output {
 
   factory Output.fromJson(Map<String, dynamic> json) {
     // TODO determine if any of this code is needed.
-    final address = json["scriptPubKey"]["addresses"] == null
-        ? json['scriptPubKey']['type'] as String
-        : json["scriptPubKey"]["addresses"][0] as String;
-    return Output(
-      scriptpubkey: json['scriptPubKey']['hex'] as String?,
-      scriptpubkeyAsm: json['scriptPubKey']['asm'] as String?,
-      scriptpubkeyType: json['scriptPubKey']['type'] as String?,
-      scriptpubkeyAddress: address,
-      value: (Decimal.parse(json["value"].toString()) *
-              Decimal.fromInt(Constants.satsPerCoin))
-          .toBigInt()
-          .toInt(),
-    );
+    try {
+      final address = json["scriptPubKey"]["addresses"] == null
+          ? json['scriptPubKey']['type'] as String
+          : json["scriptPubKey"]["addresses"][0] as String;
+      return Output(
+        scriptpubkey: json['scriptPubKey']['hex'] as String?,
+        scriptpubkeyAsm: json['scriptPubKey']['asm'] as String?,
+        scriptpubkeyType: json['scriptPubKey']['type'] as String?,
+        scriptpubkeyAddress: address,
+        value: (Decimal.parse(
+                    (json["value"] ?? 0).toString()) *
+                Decimal.fromInt(Constants.satsPerCoin(Coin
+                    .firo))) // dirty hack but we need 8 decimal places here to keep consistent data structure
+            .toBigInt()
+            .toInt(),
+      );
+    } catch (s, e) {
+      return Output(
+          // Return output object with null values; allows wallet history to be built
+          scriptpubkey: "",
+          scriptpubkeyAsm: "",
+          scriptpubkeyType: "",
+          scriptpubkeyAddress: "",
+          value: (Decimal.parse(0.toString()) *
+                  Decimal.fromInt(Constants.satsPerCoin(Coin
+                      .firo))) // dirty hack but we need 8 decimal places here to keep consistent data structure
+              .toBigInt()
+              .toInt());
+    }
   }
 }

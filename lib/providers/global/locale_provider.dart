@@ -7,8 +7,6 @@ final localeServiceChangeNotifierProvider =
     ChangeNotifierProvider<LocaleService>((_) {
   if (kDebugMode) {
     _count++;
-    debugPrint(
-        "localeServiceChangeNotifierProvider instantiation count: $_count");
   }
 
   return LocaleService();

@@ -33,6 +33,19 @@ class AddressEntryData extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool get isEmpty {
+    if (address != null && address!.isNotEmpty) {
+      return false;
+    }
+    if (addressLabel != null && addressLabel!.isNotEmpty) {
+      return false;
+    }
+    if (coin != null) {
+      return false;
+    }
+    return true;
+  }
+
   bool get isValid {
     if (_address == null || coin == null || _addressLabel == null) {
       return false;

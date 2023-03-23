@@ -1,6 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/util.dart';
 
+enum ButtonHeight {
+  xxs,
+  xs,
+  s,
+  m,
+  l,
+  xl,
+  xxl,
+}
+
 class CustomTextButtonBase extends StatelessWidget {
   const CustomTextButtonBase({
     Key? key,

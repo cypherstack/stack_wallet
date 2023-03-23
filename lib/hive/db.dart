@@ -9,7 +9,6 @@ import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/notification_model.dart';
 import 'package:stackwallet/models/trade_wallet_lookup.dart';
 import 'package:stackwallet/services/wallets_service.dart';
-import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
@@ -32,16 +31,15 @@ class DB {
   static const String boxNameWalletsToDeleteOnStart = "walletsToDeleteOnStart";
   static const String boxNamePriceCache = "priceAPIPrice24hCache";
   static const String boxNameDBInfo = "dbInfo";
-  static const String boxNameTheme = "theme";
+  // static const String boxNameTheme = "theme";
   static const String boxNameDesktopData = "desktopData";
+  static const String boxNameBuys = "buysBox";
 
   String boxNameTxCache({required Coin coin}) => "${coin.name}_txCache";
   String boxNameSetCache({required Coin coin}) =>
       "${coin.name}_anonymitySetCache";
   String boxNameUsedSerialsCache({required Coin coin}) =>
       "${coin.name}_usedSerialsCache";
-
-  static bool _initialized = false;
 
   Box<dynamic>? _boxAddressBook;
   Box<String>? _boxDebugInfo;
@@ -89,80 +87,65 @@ class DB {
 
   // open hive boxes
   Future<void> init() async {
-    if (!_initialized) {
-      if (Hive.isBoxOpen(boxNameDBInfo)) {
-        _boxDBInfo = Hive.box<dynamic>(boxNameDBInfo);
-      } else {
-        _boxDBInfo = await Hive.openBox<dynamic>(boxNameDBInfo);
-      }
-      await Hive.openBox<String>(boxNameWalletsToDeleteOnStart);
-
-      if (Hive.isBoxOpen(boxNamePrefs)) {
-        _boxPrefs = Hive.box<dynamic>(boxNamePrefs);
-      } else {
-        _boxPrefs = await Hive.openBox<dynamic>(boxNamePrefs);
-      }
-
-      _boxAddressBook = await Hive.openBox<dynamic>(boxNameAddressBook);
-      _boxDebugInfo = await Hive.openBox<String>(boxNameDebugInfo);
-
-      if (Hive.isBoxOpen(boxNameNodeModels)) {
-        _boxNodeModels = Hive.box<NodeModel>(boxNameNodeModels);
-      } else {
-        _boxNodeModels = await Hive.openBox<NodeModel>(boxNameNodeModels);
-      }
-
-      if (Hive.isBoxOpen(boxNamePrimaryNodes)) {
-        _boxPrimaryNodes = Hive.box<NodeModel>(boxNamePrimaryNodes);
-      } else {
-        _boxPrimaryNodes = await Hive.openBox<NodeModel>(boxNamePrimaryNodes);
-      }
-
-      if (Hive.isBoxOpen(boxNameAllWalletsData)) {
-        _boxAllWalletsData = Hive.box<dynamic>(boxNameAllWalletsData);
-      } else {
-        _boxAllWalletsData = await Hive.openBox<dynamic>(boxNameAllWalletsData);
-      }
-
-      if (Hive.isBoxOpen(boxNameDesktopData)) {
-        _boxDesktopData = Hive.box<String>(boxNameDesktopData);
-      } else {
-        _boxDesktopData = await Hive.openBox<String>(boxNameDesktopData);
-      }
-
-      _boxNotifications =
-          await Hive.openBox<NotificationModel>(boxNameNotifications);
-      _boxWatchedTransactions =
-          await Hive.openBox<NotificationModel>(boxNameWatchedTransactions);
-      _boxWatchedTrades =
-          await Hive.openBox<NotificationModel>(boxNameWatchedTrades);
-      _boxTrades = await Hive.openBox<ExchangeTransaction>(boxNameTrades);
-      _boxTradesV2 = await Hive.openBox<Trade>(boxNameTradesV2);
-      _boxTradeNotes = await Hive.openBox<String>(boxNameTradeNotes);
-      _boxTradeLookup =
-          await Hive.openBox<TradeWalletLookup>(boxNameTradeLookup);
-      _walletInfoSource =
-          await Hive.openBox<xmr.WalletInfo>(xmr.WalletInfo.boxName);
-      _boxFavoriteWallets = await Hive.openBox<String>(boxNameFavoriteWallets);
-
-      await Future.wait([
-        Hive.openBox<dynamic>(boxNamePriceCache),
-        _loadWalletBoxes(),
-        _loadSharedCoinCacheBoxes(),
-      ]);
-      _initialized = true;
-
-      try {
-        if (_boxPrefs!.get("familiarity") == null) {
-          await _boxPrefs!.put("familiarity", 0);
-        }
-        int count = _boxPrefs!.get("familiarity") as int;
-        await _boxPrefs!.put("familiarity", count + 1);
-        Constants.exchangeForExperiencedUsers(count + 1);
-      } catch (e, s) {
-        print("$e $s");
-      }
+    if (Hive.isBoxOpen(boxNameDBInfo)) {
+      _boxDBInfo = Hive.box<dynamic>(boxNameDBInfo);
+    } else {
+      _boxDBInfo = await Hive.openBox<dynamic>(boxNameDBInfo);
     }
+    await Hive.openBox<String>(boxNameWalletsToDeleteOnStart);
+
+    if (Hive.isBoxOpen(boxNamePrefs)) {
+      _boxPrefs = Hive.box<dynamic>(boxNamePrefs);
+    } else {
+      _boxPrefs = await Hive.openBox<dynamic>(boxNamePrefs);
+    }
+
+    _boxAddressBook = await Hive.openBox<dynamic>(boxNameAddressBook);
+    _boxDebugInfo = await Hive.openBox<String>(boxNameDebugInfo);
+
+    if (Hive.isBoxOpen(boxNameNodeModels)) {
+      _boxNodeModels = Hive.box<NodeModel>(boxNameNodeModels);
+    } else {
+      _boxNodeModels = await Hive.openBox<NodeModel>(boxNameNodeModels);
+    }
+
+    if (Hive.isBoxOpen(boxNamePrimaryNodes)) {
+      _boxPrimaryNodes = Hive.box<NodeModel>(boxNamePrimaryNodes);
+    } else {
+      _boxPrimaryNodes = await Hive.openBox<NodeModel>(boxNamePrimaryNodes);
+    }
+
+    if (Hive.isBoxOpen(boxNameAllWalletsData)) {
+      _boxAllWalletsData = Hive.box<dynamic>(boxNameAllWalletsData);
+    } else {
+      _boxAllWalletsData = await Hive.openBox<dynamic>(boxNameAllWalletsData);
+    }
+
+    if (Hive.isBoxOpen(boxNameDesktopData)) {
+      _boxDesktopData = Hive.box<String>(boxNameDesktopData);
+    } else {
+      _boxDesktopData = await Hive.openBox<String>(boxNameDesktopData);
+    }
+
+    _boxNotifications =
+        await Hive.openBox<NotificationModel>(boxNameNotifications);
+    _boxWatchedTransactions =
+        await Hive.openBox<NotificationModel>(boxNameWatchedTransactions);
+    _boxWatchedTrades =
+        await Hive.openBox<NotificationModel>(boxNameWatchedTrades);
+    _boxTrades = await Hive.openBox<ExchangeTransaction>(boxNameTrades);
+    _boxTradesV2 = await Hive.openBox<Trade>(boxNameTradesV2);
+    _boxTradeNotes = await Hive.openBox<String>(boxNameTradeNotes);
+    _boxTradeLookup = await Hive.openBox<TradeWalletLookup>(boxNameTradeLookup);
+    _walletInfoSource =
+        await Hive.openBox<xmr.WalletInfo>(xmr.WalletInfo.boxName);
+    _boxFavoriteWallets = await Hive.openBox<String>(boxNameFavoriteWallets);
+
+    await Future.wait([
+      Hive.openBox<dynamic>(boxNamePriceCache),
+      _loadWalletBoxes(),
+      _loadSharedCoinCacheBoxes(),
+    ]);
   }
 
   Future<void> _loadWalletBoxes() async {
@@ -262,4 +245,12 @@ class DB {
 
   Future<void> deleteBoxFromDisk({required String boxName}) async =>
       await mutex.protect(() async => await Hive.deleteBoxFromDisk(boxName));
+}
+
+abstract class DBKeys {
+  static const String cachedBalance = "cachedBalance";
+  static const String cachedBalanceSecondary = "cachedBalanceSecondary";
+  static const String isFavorite = "isFavorite";
+  static const String id = "id";
+  static const String storedChainHeight = "storedChainHeight";
 }

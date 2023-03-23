@@ -1,22 +1,23 @@
-import 'package:decimal/decimal.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
-import 'package:stackwallet/models/models.dart';
+import 'package:stackwallet/models/balance.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/node_model.dart';
+import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
 import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
+import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart';
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart';
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
+import 'package:stackwallet/services/coins/particl/particl_wallet.dart';
 import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/prefs.dart';
-
-import 'litecoin/litecoin_wallet.dart';
 
 abstract class CoinServiceAPI {
   CoinServiceAPI();
@@ -177,16 +178,26 @@ abstract class CoinServiceAPI {
           walletId: walletId,
           walletName: walletName,
           coin: coin,
-          secureStore: secureStorageInterface,
+          secureStorage: secureStorageInterface,
           // tracker: tracker,
         );
+
+      case Coin.particl:
+        return ParticlWallet(
+            walletId: walletId,
+            walletName: walletName,
+            coin: coin,
+            secureStore: secureStorageInterface,
+            client: client,
+            cachedClient: cachedClient,
+            tracker: tracker);
 
       case Coin.wownero:
         return WowneroWallet(
           walletId: walletId,
           walletName: walletName,
           coin: coin,
-          secureStore: secureStorageInterface,
+          secureStorage: secureStorageInterface,
           // tracker: tracker,
         );
 
@@ -229,30 +240,15 @@ abstract class CoinServiceAPI {
 
   Future<String> confirmSend({required Map<String, dynamic> txData});
 
-  /// create and submit tx to network
-  ///
-  /// Returns the txid of the sent tx
-  /// will throw exceptions on failure
-  Future<String> send(
-      {required String toAddress,
-      required int amount,
-      Map<String, String> args});
-
   Future<FeeObject> get fees;
   Future<int> get maxFee;
 
   Future<String> get currentReceivingAddress;
-  // Future<String> get currentLegacyReceivingAddress;
 
-  Future<Decimal> get availableBalance;
-  Future<Decimal> get pendingBalance;
-  Future<Decimal> get totalBalance;
-  Future<Decimal> get balanceMinusMaxFee;
+  Balance get balance;
 
-  Future<List<String>> get allOwnAddresses;
-
-  Future<TransactionData> get transactionData;
-  Future<List<UtxoObject>> get unspentOutputs;
+  Future<List<isar_models.Transaction>> get transactions;
+  Future<List<isar_models.UTXO>> get utxos;
 
   Future<void> refresh();
 
@@ -267,11 +263,14 @@ abstract class CoinServiceAPI {
   bool validateAddress(String address);
 
   Future<List<String>> get mnemonic;
+  Future<String?> get mnemonicString;
+  Future<String?> get mnemonicPassphrase;
 
   Future<bool> testNetworkConnection();
 
   Future<void> recoverFromMnemonic({
     required String mnemonic,
+    String? mnemonicPassphrase,
     required int maxUnusedAddressGap,
     required int maxNumberOfIndexesToCheck,
     required int height,
@@ -296,4 +295,48 @@ abstract class CoinServiceAPI {
 
   // used for electrumx coins
   Future<void> updateSentCachedTxData(Map<String, dynamic> txData);
+
+  int get storedChainHeight;
+
+  // Certain outputs return address as an array/list of strings like List<String> ["addresses"][0], some return it as a string like String ["address"]
+  String? getAddress(dynamic output) {
+    // Julian's code from https://github.com/cypherstack/stack_wallet/blob/35a8172d35f1b5cdbd22f0d56c4db02f795fd032/lib/services/coins/coin_paynym_extension.dart#L170 wins codegolf for this, I'd love to commit it now but need to retest this section ... should make unit tests for this case
+    // final String? address = output["scriptPubKey"]?["addresses"]?[0] as String? ?? output["scriptPubKey"]?["address"] as String?;
+    String? address;
+    if (output.containsKey('scriptPubKey') as bool) {
+      // Make sure the key exists before using it
+      if (output["scriptPubKey"].containsKey('address') as bool) {
+        address = output["scriptPubKey"]["address"] as String?;
+      } else if (output["scriptPubKey"].containsKey('addresses') as bool) {
+        address = output["scriptPubKey"]["addresses"][0] as String?;
+        // TODO determine cases in which there are multiple addresses in the array
+      }
+    } /*else {
+      // TODO detect cases in which no scriptPubKey exists
+      Logging.instance.log("output type not detected; output: ${output}",
+          level: LogLevel.Info);
+    }*/
+
+    return address;
+  }
+
+  // Firo wants an array/list of address strings like List<String>
+  List? getAddresses(dynamic output) {
+    // Inspired by Julian's code as referenced above, need to test before committing
+    // final List? addresses = output["scriptPubKey"]?["addresses"] as List? ?? [output["scriptPubKey"]?["address"]] as List?;
+    List? addresses;
+    if (output.containsKey('scriptPubKey') as bool) {
+      if (output["scriptPubKey"].containsKey('addresses') as bool) {
+        addresses = output["scriptPubKey"]["addresses"] as List?;
+      } else if (output["scriptPubKey"].containsKey('address') as bool) {
+        addresses = [output["scriptPubKey"]["address"]];
+      }
+    } /*else {
+      // TODO detect cases in which no scriptPubKey exists
+      Logging.instance.log("output type not detected; output: ${output}",
+          level: LogLevel.Info);
+    }*/
+
+    return addresses;
+  }
 }

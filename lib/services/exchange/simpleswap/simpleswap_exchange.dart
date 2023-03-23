@@ -1,14 +1,20 @@
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/models/exchange/response_objects/currency.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
-import 'package:stackwallet/models/exchange/response_objects/pair.dart';
 import 'package:stackwallet/models/exchange/response_objects/range.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
+import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
+import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/exchange/simpleswap/simpleswap_api.dart';
 
 class SimpleSwapExchange extends Exchange {
+  SimpleSwapExchange._();
+
+  static SimpleSwapExchange? _instance;
+  static SimpleSwapExchange get instance =>
+      _instance ??= SimpleSwapExchange._();
+
   static const exchangeName = "SimpleSwap";
 
   @override
@@ -47,18 +53,22 @@ class SimpleSwapExchange extends Exchange {
         await SimpleSwapAPI.instance.getAllCurrencies(fixedRate: fixedRate);
     if (response.value != null) {
       final List<Currency> currencies = response.value!
-          .map((e) => Currency(
-                ticker: e.symbol,
-                name: e.name,
-                network: e.network,
-                image: e.image,
-                hasExternalId: e.hasExtraId,
-                externalId: e.extraId,
-                isFiat: false,
-                featured: false,
-                isStable: false,
-                supportsFixedRate: fixedRate,
-              ))
+          .map(
+            (e) => Currency(
+              exchangeName: exchangeName,
+              ticker: e.symbol,
+              name: e.name,
+              network: e.network,
+              image: e.image,
+              externalId: e.extraId,
+              isFiat: false,
+              rateType: fixedRate
+                  ? SupportedRateType.both
+                  : SupportedRateType.estimated,
+              isAvailable: true,
+              isStackCoin: Currency.checkIsStackCoin(e.symbol),
+            ),
+          )
           .toList();
       return ExchangeResponse<List<Currency>>(
         value: currencies,
@@ -144,6 +154,13 @@ class SimpleSwapExchange extends Exchange {
   @override
   Future<ExchangeResponse<List<Trade>>> getTrades() async {
     // TODO: implement getTrades
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ExchangeResponse<List<Currency>>> getPairedCurrencies(
+      String forCurrency, bool fixedRate) {
+    // TODO: implement getPairedCurrencies
     throw UnimplementedError();
   }
 }

@@ -6,13 +6,13 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
@@ -76,9 +76,13 @@ class NodeOptionsSheet extends ConsumerWidget {
     switch (coin) {
       case Coin.epicCash:
         try {
-          final String uriString = "${node.host}:${node.port}/v1/version";
-
-          testPassed = await testEpicBoxNodeConnection(Uri.parse(uriString));
+          testPassed = await testEpicNodeConnection(
+                NodeFormData()
+                  ..host = node.host
+                  ..useSSL = node.useSSL
+                  ..port = node.port,
+              ) !=
+              null;
         } catch (e, s) {
           Logging.instance.log("$e\n$s", level: LogLevel.Warning);
         }
@@ -127,6 +131,7 @@ class NodeOptionsSheet extends ConsumerWidget {
       case Coin.litecoin:
       case Coin.dogecoin:
       case Coin.firo:
+      case Coin.particl:
       case Coin.bitcoinTestNet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
@@ -234,7 +239,8 @@ class NodeOptionsSheet extends ConsumerWidget {
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
-                          color: node.name == DefaultNodes.defaultName
+                          color: node.id
+                                  .startsWith(DefaultNodes.defaultNodeIdPrefix)
                               ? Theme.of(context)
                                   .extension<StackColors>()!
                                   .textSubtitle4
@@ -249,7 +255,8 @@ class NodeOptionsSheet extends ConsumerWidget {
                             Assets.svg.node,
                             height: 15,
                             width: 19,
-                            color: node.name == DefaultNodes.defaultName
+                            color: node.id.startsWith(
+                                    DefaultNodes.defaultNodeIdPrefix)
                                 ? Theme.of(context)
                                     .extension<StackColors>()!
                                     .accentColorDark
@@ -300,7 +307,7 @@ class NodeOptionsSheet extends ConsumerWidget {
                       child: TextButton(
                         style: Theme.of(context)
                             .extension<StackColors>()!
-                            .getSecondaryEnabledButtonColor(context),
+                            .getSecondaryEnabledButtonStyle(context),
                         onPressed: () {
                           Navigator.pop(context);
                           Navigator.of(context).pushNamed(
@@ -330,10 +337,10 @@ class NodeOptionsSheet extends ConsumerWidget {
                         style: status == "Connected"
                             ? Theme.of(context)
                                 .extension<StackColors>()!
-                                .getPrimaryDisabledButtonColor(context)
+                                .getPrimaryDisabledButtonStyle(context)
                             : Theme.of(context)
                                 .extension<StackColors>()!
-                                .getPrimaryEnabledButtonColor(context),
+                                .getPrimaryEnabledButtonStyle(context),
                         onPressed: status == "Connected"
                             ? null
                             : () async {

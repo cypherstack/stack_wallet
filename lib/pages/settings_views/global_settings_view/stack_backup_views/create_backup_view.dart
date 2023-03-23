@@ -16,6 +16,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -103,41 +104,44 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) {
-        return Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: () async {
-                if (FocusScope.of(context).hasFocus) {
-                  FocusScope.of(context).unfocus();
-                  await Future<void>.delayed(const Duration(milliseconds: 75));
-                }
-                if (mounted) {
-                  Navigator.of(context).pop();
-                }
-              },
+        return Background(
+          child: Scaffold(
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.background,
+            appBar: AppBar(
+              leading: AppBarBackButton(
+                onPressed: () async {
+                  if (FocusScope.of(context).hasFocus) {
+                    FocusScope.of(context).unfocus();
+                    await Future<void>.delayed(
+                        const Duration(milliseconds: 75));
+                  }
+                  if (mounted) {
+                    Navigator.of(context).pop();
+                  }
+                },
+              ),
+              title: Text(
+                "Create backup",
+                style: STextStyles.navBarTitle(context),
+              ),
             ),
-            title: Text(
-              "Create backup",
-              style: STextStyles.navBarTitle(context),
-            ),
-          ),
-          body: Padding(
-            padding: const EdgeInsets.all(16),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
+            body: Padding(
+              padding: const EdgeInsets.all(16),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: IntrinsicHeight(
+                        child: child,
+                      ),
                     ),
-                    child: IntrinsicHeight(
-                      child: child,
-                    ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         );
@@ -450,10 +454,10 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                       style: shouldEnableCreate
                           ? Theme.of(context)
                               .extension<StackColors>()!
-                              .getPrimaryEnabledButtonColor(context)
+                              .getPrimaryEnabledButtonStyle(context)
                           : Theme.of(context)
                               .extension<StackColors>()!
-                              .getPrimaryDisabledButtonColor(context),
+                              .getPrimaryDisabledButtonStyle(context),
                       onPressed: !shouldEnableCreate
                           ? null
                           : () async {
@@ -562,7 +566,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                       Consumer(builder: (context, ref, __) {
                         return PrimaryButton(
                           width: 183,
-                          desktopMed: true,
+                          buttonHeight: ButtonHeight.m,
                           label: "Create backup",
                           enabled: shouldEnableCreate,
                           onPressed: !shouldEnableCreate
@@ -735,7 +739,9 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                                                             child:
                                                                 PrimaryButton(
                                                               label: "Ok",
-                                                              desktopMed: true,
+                                                              buttonHeight:
+                                                                  ButtonHeight
+                                                                      .l,
                                                               onPressed: () {
                                                                 int count = 0;
                                                                 Navigator.of(
@@ -778,7 +784,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                       ),
                       SecondaryButton(
                         width: 183,
-                        desktopMed: true,
+                        buttonHeight: ButtonHeight.m,
                         label: "Cancel",
                         onPressed: () {},
                       ),

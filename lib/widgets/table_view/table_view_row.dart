@@ -3,13 +3,14 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/expandable.dart';
 import 'package:stackwallet/widgets/table_view/table_view_cell.dart';
 
-class TableViewRow extends StatelessWidget {
+class TableViewRow extends StatefulWidget {
   const TableViewRow({
     Key? key,
     required this.cells,
     required this.expandingChild,
     this.decoration,
     this.onExpandChanged,
+    this.expandOverride,
     this.padding = const EdgeInsets.all(0),
     this.spacing = 0.0,
     this.crossAxisAlignment = CrossAxisAlignment.center,
@@ -17,52 +18,93 @@ class TableViewRow extends StatelessWidget {
 
   final List<TableViewCell> cells;
   final Widget? expandingChild;
-  final Decoration? decoration;
+  final BoxDecoration? decoration;
   final void Function(ExpandableState)? onExpandChanged;
+  final VoidCallback? expandOverride;
   final EdgeInsetsGeometry padding;
   final double spacing;
   final CrossAxisAlignment crossAxisAlignment;
 
   @override
+  State<TableViewRow> createState() => _TableViewRowState();
+}
+
+class _TableViewRowState extends State<TableViewRow> {
+  bool _hovering = false;
+
+  @override
   Widget build(BuildContext context) {
+    debugPrint("BUILD: $runtimeType");
     return Container(
-      decoration: decoration,
-      child: expandingChild == null
-          ? Padding(
-              padding: padding,
-              child: Row(
-                crossAxisAlignment: crossAxisAlignment,
-                children: [
-                  for (int i = 0; i < cells.length; i++) ...[
-                    if (i != 0 && i != cells.length)
-                      SizedBox(
-                        width: spacing,
-                      ),
-                    Expanded(
-                      flex: cells[i].flex,
-                      child: cells[i],
-                    ),
-                  ],
-                ],
-              ),
-            )
-          : Expandable(
-              onExpandChanged: onExpandChanged,
-              header: Padding(
-                padding: padding,
+      decoration: !_hovering
+          ? widget.decoration
+          : widget.decoration?.copyWith(
+              boxShadow: [
+                Theme.of(context).extension<StackColors>()!.standardBoxShadow,
+                Theme.of(context).extension<StackColors>()!.standardBoxShadow,
+              ],
+            ),
+      child: widget.expandingChild == null
+          ? MouseRegion(
+              onEnter: (_) {
+                setState(() {
+                  _hovering = true;
+                });
+              },
+              onExit: (_) {
+                setState(() {
+                  _hovering = false;
+                });
+              },
+              child: Padding(
+                padding: widget.padding,
                 child: Row(
+                  crossAxisAlignment: widget.crossAxisAlignment,
                   children: [
-                    for (int i = 0; i < cells.length; i++) ...[
-                      if (i != 0 && i != cells.length)
+                    for (int i = 0; i < widget.cells.length; i++) ...[
+                      if (i != 0 && i != widget.cells.length)
                         SizedBox(
-                          width: spacing,
+                          width: widget.spacing,
                         ),
                       Expanded(
-                        flex: cells[i].flex,
-                        child: cells[i],
+                        flex: widget.cells[i].flex,
+                        child: widget.cells[i],
                       ),
                     ],
                   ],
+                ),
+              ),
+            )
+          : Expandable(
+              expandOverride: widget.expandOverride,
+              onExpandChanged: widget.onExpandChanged,
+              header: MouseRegion(
+                onEnter: (_) {
+                  setState(() {
+                    _hovering = true;
+                  });
+                },
+                onExit: (_) {
+                  setState(() {
+                    _hovering = false;
+                  });
+                },
+                child: Padding(
+                  padding: widget.padding,
+                  child: Row(
+                    children: [
+                      for (int i = 0; i < widget.cells.length; i++) ...[
+                        if (i != 0 && i != widget.cells.length)
+                          SizedBox(
+                            width: widget.spacing,
+                          ),
+                        Expanded(
+                          flex: widget.cells[i].flex,
+                          child: widget.cells[i],
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
               body: Column(
@@ -74,7 +116,7 @@ class TableViewRow extends StatelessWidget {
                     width: double.infinity,
                     height: 1,
                   ),
-                  expandingChild!,
+                  widget.expandingChild!,
                 ],
               ),
             ),

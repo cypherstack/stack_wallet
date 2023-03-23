@@ -11,7 +11,7 @@ class DesktopDialog extends StatelessWidget {
 
   final Widget? child;
   final double maxWidth;
-  final double maxHeight;
+  final double? maxHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +22,7 @@ class DesktopDialog extends StatelessWidget {
         ConstrainedBox(
           constraints: BoxConstraints(
             maxWidth: maxWidth,
-            maxHeight: maxHeight,
+            maxHeight: maxHeight ?? MediaQuery.of(context).size.height - 64,
           ),
           child: Material(
             color: Colors.transparent,

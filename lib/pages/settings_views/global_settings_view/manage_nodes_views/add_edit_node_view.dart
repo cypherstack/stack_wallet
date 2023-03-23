@@ -12,7 +12,6 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
@@ -20,6 +19,7 @@ import 'package:stackwallet/utilities/test_monero_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -70,20 +70,13 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
     switch (coin) {
       case Coin.epicCash:
         try {
-          final uri = Uri.parse(formData.host!);
-          if (uri.scheme.startsWith("http")) {
-            final String path = uri.path.isEmpty ? "/v1/version" : uri.path;
+          final data = await testEpicNodeConnection(formData);
 
-            String uriString =
-                "${uri.scheme}://${uri.host}:${formData.port ?? 0}$path";
-
-            if (uri.host == "https") {
-              ref.read(nodeFormDataProvider).useSSL = true;
-            } else {
-              ref.read(nodeFormDataProvider).useSSL = false;
-            }
-
-            testPassed = await testEpicBoxNodeConnection(Uri.parse(uriString));
+          if (data != null) {
+            testPassed = true;
+            ref.read(nodeFormDataProvider).host = data.host;
+            ref.read(nodeFormDataProvider).port = data.port;
+            ref.read(nodeFormDataProvider).useSSL = data.useSSL;
           }
         } catch (e, s) {
           Logging.instance.log("$e\n$s", level: LogLevel.Warning);
@@ -142,6 +135,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
       case Coin.dogecoin:
       case Coin.firo:
       case Coin.namecoin:
+      case Coin.particl:
       case Coin.bitcoinTestNet:
       case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
@@ -238,7 +232,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                 Expanded(
                                   child: SecondaryButton(
                                     label: "Cancel",
-                                    desktopMed: true,
+                                    buttonHeight:
+                                        isDesktop ? ButtonHeight.l : null,
                                     onPressed: () => Navigator.of(
                                       context,
                                       rootNavigator: true,
@@ -251,7 +246,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                 Expanded(
                                   child: PrimaryButton(
                                     label: "Save",
-                                    desktopMed: true,
+                                    buttonHeight:
+                                        isDesktop ? ButtonHeight.l : null,
                                     onPressed: () => Navigator.of(
                                       context,
                                       rootNavigator: true,
@@ -288,7 +284,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                   },
                   style: Theme.of(context)
                       .extension<StackColors>()!
-                      .getPrimaryEnabledButtonColor(context),
+                      .getPrimaryEnabledButtonStyle(context),
                   child: Text(
                     "Save",
                     style: STextStyles.button(context),
@@ -313,7 +309,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 
     // strip unused path
     String address = formData.host!;
-    if (coin == Coin.monero || coin == Coin.wownero || coin == Coin.epicCash) {
+    if (coin == Coin.monero || coin == Coin.wownero) {
       if (address.startsWith("http")) {
         final uri = Uri.parse(address);
         address = "${uri.scheme}://${uri.host}";
@@ -332,6 +328,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           enabled: true,
           coinName: coin.name,
           isFailover: formData.isFailover!,
+          trusted: formData.trusted!,
           isDown: false,
         );
 
@@ -356,6 +353,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           enabled: true,
           coinName: coin.name,
           isFailover: formData.isFailover!,
+          trusted: formData.trusted!,
           isDown: false,
         );
 
@@ -409,84 +407,95 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () async {
-              if (FocusScope.of(context).hasFocus) {
-                FocusScope.of(context).unfocus();
-                await Future<void>.delayed(const Duration(milliseconds: 75));
-              }
-              if (mounted) {
-                Navigator.of(context).pop();
-              }
-            },
-          ),
-          title: Text(
-            viewType == AddEditNodeViewType.edit ? "Edit node" : "Add node",
-            style: STextStyles.navBarTitle(context),
-          ),
-          actions: [
-            if (viewType == AddEditNodeViewType.edit)
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 10,
-                ),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    key: const Key("deleteNodeAppBarButtonKey"),
-                    size: 36,
-                    shadows: const [],
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    icon: SvgPicture.asset(
-                      Assets.svg.trash,
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () async {
+                if (FocusScope.of(context).hasFocus) {
+                  FocusScope.of(context).unfocus();
+                  await Future<void>.delayed(const Duration(milliseconds: 75));
+                }
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            title: Text(
+              viewType == AddEditNodeViewType.edit ? "Edit node" : "Add node",
+              style: STextStyles.navBarTitle(context),
+            ),
+            actions: [
+              if (viewType == AddEditNodeViewType.edit &&
+                  ref
+                          .watch(nodeServiceChangeNotifierProvider
+                              .select((value) => value.getNodesFor(coin)))
+                          .length >
+                      1)
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                    right: 10,
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: AppBarIconButton(
+                      key: const Key("deleteNodeAppBarButtonKey"),
+                      size: 36,
+                      shadows: const [],
                       color: Theme.of(context)
                           .extension<StackColors>()!
-                          .accentColorDark,
-                      width: 20,
-                      height: 20,
-                    ),
-                    onPressed: () async {
-                      Navigator.popUntil(context,
-                          ModalRoute.withName(widget.routeOnSuccessOrDelete));
+                          .background,
+                      icon: SvgPicture.asset(
+                        Assets.svg.trash,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
+                        width: 20,
+                        height: 20,
+                      ),
+                      onPressed: () async {
+                        Navigator.popUntil(context,
+                            ModalRoute.withName(widget.routeOnSuccessOrDelete));
 
-                      await ref.read(nodeServiceChangeNotifierProvider).delete(
-                            nodeId!,
-                            true,
-                          );
-                    },
-                  ),
-                ),
-              ),
-          ],
-        ),
-        body: Padding(
-          padding: const EdgeInsets.only(
-            top: 12,
-            left: 12,
-            right: 12,
-            bottom: 12,
-          ),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: ConstrainedBox(
-                    constraints:
-                        BoxConstraints(minHeight: constraints.maxHeight - 8),
-                    child: IntrinsicHeight(
-                      child: child,
+                        await ref
+                            .read(nodeServiceChangeNotifierProvider)
+                            .delete(
+                              nodeId!,
+                              true,
+                            );
+                      },
                     ),
                   ),
                 ),
-              );
-            },
+            ],
+          ),
+          body: Padding(
+            padding: const EdgeInsets.only(
+              top: 12,
+              left: 12,
+              right: 12,
+              bottom: 12,
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: ConstrainedBox(
+                      constraints:
+                          BoxConstraints(minHeight: constraints.maxHeight - 8),
+                      child: IntrinsicHeight(
+                        child: child,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -494,6 +503,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         condition: isDesktop,
         builder: (child) => DesktopDialog(
           maxWidth: 580,
+          maxHeight: 500,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -561,7 +571,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                   child: SecondaryButton(
                     label: "Test connection",
                     enabled: testConnectionEnabled,
-                    desktopMed: true,
+                    buttonHeight: isDesktop ? ButtonHeight.l : null,
                     onPressed: testConnectionEnabled
                         ? () async {
                             await _testConnection();
@@ -578,7 +588,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                     child: PrimaryButton(
                       label: "Save",
                       enabled: saveEnabled,
-                      desktopMed: true,
+                      buttonHeight: ButtonHeight.l,
                       onPressed: saveEnabled ? attemptSave : null,
                     ),
                   ),
@@ -593,10 +603,10 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                 style: saveEnabled
                     ? Theme.of(context)
                         .extension<StackColors>()!
-                        .getPrimaryEnabledButtonColor(context)
+                        .getPrimaryEnabledButtonStyle(context)
                     : Theme.of(context)
                         .extension<StackColors>()!
-                        .getPrimaryDisabledButtonColor(context),
+                        .getPrimaryDisabledButtonStyle(context),
                 onPressed: saveEnabled ? attemptSave : null,
                 child: Text(
                   "Save",
@@ -613,11 +623,11 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 class NodeFormData {
   String? name, host, login, password;
   int? port;
-  bool? useSSL, isFailover;
+  bool? useSSL, isFailover, trusted;
 
   @override
   String toString() {
-    return "{ name: $name, host: $host, port: $port, useSSL: $useSSL }";
+    return "{ name: $name, host: $host, port: $port, useSSL: $useSSL, trusted: $trusted }";
   }
 }
 
@@ -658,7 +668,9 @@ class _NodeFormState extends ConsumerState<NodeForm> {
 
   bool _useSSL = false;
   bool _isFailover = false;
+  bool _trusted = false;
   int? port;
+  late bool enableSSLCheckbox;
 
   late final bool enableAuthFields;
 
@@ -673,14 +685,15 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       case Coin.firo:
       case Coin.namecoin:
       case Coin.bitcoincash:
+      case Coin.particl:
       case Coin.bitcoinTestNet:
       case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
+      case Coin.epicCash:
         return false;
 
-      case Coin.epicCash:
       case Coin.monero:
       case Coin.wownero:
         return true;
@@ -708,6 +721,9 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     return enable;
   }
 
+  bool get shouldBeReadOnly =>
+      widget.readOnly || widget.node?.isDefault == true;
+
   void _updateState() {
     port = int.tryParse(_portController.text);
     onChanged?.call(canSave, canTestConnection);
@@ -723,6 +739,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     ref.read(nodeFormDataProvider).port = port;
     ref.read(nodeFormDataProvider).useSSL = _useSSL;
     ref.read(nodeFormDataProvider).isFailover = _isFailover;
+    ref.read(nodeFormDataProvider).trusted = _trusted;
   }
 
   @override
@@ -754,11 +771,21 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       _usernameController.text = node.loginName ?? "";
       _useSSL = node.useSSL;
       _isFailover = node.isFailover;
+      _trusted = node.trusted ?? false;
+      if (widget.coin == Coin.epicCash) {
+        enableSSLCheckbox = !node.host.startsWith("http");
+      } else {
+        enableSSLCheckbox = true;
+      }
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         // update provider state object so test connection works without having to modify a field in the ui first
         _updateState();
       });
+    } else {
+      enableSSLCheckbox = true;
+      // default to port 3413
+      // _portController.text = "3413";
     }
 
     super.initState();
@@ -792,7 +819,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             autocorrect: Util.isDesktop ? false : true,
             enableSuggestions: Util.isDesktop ? false : true,
             key: const Key("addCustomNodeNodeNameFieldKey"),
-            readOnly: widget.readOnly,
+            readOnly: shouldBeReadOnly,
             enabled: enableField(_nameController),
             controller: _nameController,
             focusNode: _nameFocusNode,
@@ -802,7 +829,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               _nameFocusNode,
               context,
             ).copyWith(
-              suffixIcon: !widget.readOnly && _nameController.text.isNotEmpty
+              suffixIcon: !shouldBeReadOnly && _nameController.text.isNotEmpty
                   ? Padding(
                       padding: const EdgeInsets.only(right: 0),
                       child: UnconstrainedBox(
@@ -830,110 +857,109 @@ class _NodeFormState extends ConsumerState<NodeForm> {
         const SizedBox(
           height: 8,
         ),
-        Row(
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(
-                  Constants.size.circularBorderRadius,
-                ),
-                child: TextField(
-                  autocorrect: Util.isDesktop ? false : true,
-                  enableSuggestions: Util.isDesktop ? false : true,
-                  key: const Key("addCustomNodeNodeAddressFieldKey"),
-                  readOnly: widget.readOnly,
-                  enabled: enableField(_hostController),
-                  controller: _hostController,
-                  focusNode: _hostFocusNode,
-                  style: STextStyles.field(context),
-                  decoration: standardInputDecoration(
-                    (widget.coin != Coin.monero &&
-                            widget.coin != Coin.wownero &&
-                            widget.coin != Coin.epicCash)
-                        ? "IP address"
-                        : "Url",
-                    _hostFocusNode,
-                    context,
-                  ).copyWith(
-                    suffixIcon:
-                        !widget.readOnly && _hostController.text.isNotEmpty
-                            ? Padding(
-                                padding: const EdgeInsets.only(right: 0),
-                                child: UnconstrainedBox(
-                                  child: Row(
-                                    children: [
-                                      TextFieldIconButton(
-                                        child: const XIcon(),
-                                        onTap: () async {
-                                          _hostController.text = "";
-                                          _updateState();
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            : null,
-                  ),
-                  onChanged: (newValue) {
-                    _updateState();
-                    setState(() {});
-                  },
-                ),
-              ),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
+          ),
+          child: TextField(
+            autocorrect: Util.isDesktop ? false : true,
+            enableSuggestions: Util.isDesktop ? false : true,
+            key: const Key("addCustomNodeNodeAddressFieldKey"),
+            readOnly: shouldBeReadOnly,
+            enabled: enableField(_hostController),
+            controller: _hostController,
+            focusNode: _hostFocusNode,
+            style: STextStyles.field(context),
+            decoration: standardInputDecoration(
+              (widget.coin != Coin.monero && widget.coin != Coin.wownero)
+                  ? "IP address"
+                  : "Url",
+              _hostFocusNode,
+              context,
+            ).copyWith(
+              suffixIcon: !shouldBeReadOnly && _hostController.text.isNotEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.only(right: 0),
+                      child: UnconstrainedBox(
+                        child: Row(
+                          children: [
+                            TextFieldIconButton(
+                              child: const XIcon(),
+                              onTap: () async {
+                                _hostController.text = "";
+                                _updateState();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : null,
             ),
-            const SizedBox(
-              width: 12,
+            onChanged: (newValue) {
+              if (widget.coin == Coin.epicCash) {
+                if (newValue.startsWith("https://")) {
+                  _useSSL = true;
+                  enableSSLCheckbox = false;
+                } else if (newValue.startsWith("http://")) {
+                  _useSSL = false;
+                  enableSSLCheckbox = false;
+                } else {
+                  enableSSLCheckbox = true;
+                }
+              }
+              _updateState();
+              setState(() {});
+            },
+          ),
+        ),
+        const SizedBox(
+          height: 8,
+        ),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
+          ),
+          child: TextField(
+            autocorrect: Util.isDesktop ? false : true,
+            enableSuggestions: Util.isDesktop ? false : true,
+            key: const Key("addCustomNodeNodePortFieldKey"),
+            readOnly: shouldBeReadOnly,
+            enabled: enableField(_portController),
+            controller: _portController,
+            focusNode: _portFocusNode,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            keyboardType: TextInputType.number,
+            style: STextStyles.field(context),
+            decoration: standardInputDecoration(
+              "Port",
+              _portFocusNode,
+              context,
+            ).copyWith(
+              suffixIcon: !shouldBeReadOnly && _portController.text.isNotEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.only(right: 0),
+                      child: UnconstrainedBox(
+                        child: Row(
+                          children: [
+                            TextFieldIconButton(
+                              child: const XIcon(),
+                              onTap: () async {
+                                _portController.text = "";
+                                _updateState();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : null,
             ),
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(
-                  Constants.size.circularBorderRadius,
-                ),
-                child: TextField(
-                  autocorrect: Util.isDesktop ? false : true,
-                  enableSuggestions: Util.isDesktop ? false : true,
-                  key: const Key("addCustomNodeNodePortFieldKey"),
-                  readOnly: widget.readOnly,
-                  enabled: enableField(_portController),
-                  controller: _portController,
-                  focusNode: _portFocusNode,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  keyboardType: TextInputType.number,
-                  style: STextStyles.field(context),
-                  decoration: standardInputDecoration(
-                    "Port",
-                    _portFocusNode,
-                    context,
-                  ).copyWith(
-                    suffixIcon:
-                        !widget.readOnly && _portController.text.isNotEmpty
-                            ? Padding(
-                                padding: const EdgeInsets.only(right: 0),
-                                child: UnconstrainedBox(
-                                  child: Row(
-                                    children: [
-                                      TextFieldIconButton(
-                                        child: const XIcon(),
-                                        onTap: () async {
-                                          _portController.text = "";
-                                          _updateState();
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            : null,
-                  ),
-                  onChanged: (newValue) {
-                    _updateState();
-                    setState(() {});
-                  },
-                ),
-              ),
-            ),
-          ],
+            onChanged: (newValue) {
+              _updateState();
+              setState(() {});
+            },
+          ),
         ),
         const SizedBox(
           height: 8,
@@ -947,7 +973,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               autocorrect: Util.isDesktop ? false : true,
               enableSuggestions: Util.isDesktop ? false : true,
               controller: _usernameController,
-              readOnly: widget.readOnly,
+              readOnly: shouldBeReadOnly,
               enabled: enableField(_usernameController),
               keyboardType: TextInputType.number,
               focusNode: _usernameFocusNode,
@@ -958,7 +984,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                 context,
               ).copyWith(
                 suffixIcon:
-                    !widget.readOnly && _usernameController.text.isNotEmpty
+                    !shouldBeReadOnly && _usernameController.text.isNotEmpty
                         ? Padding(
                             padding: const EdgeInsets.only(right: 0),
                             child: UnconstrainedBox(
@@ -996,7 +1022,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               autocorrect: Util.isDesktop ? false : true,
               enableSuggestions: Util.isDesktop ? false : true,
               controller: _passwordController,
-              readOnly: widget.readOnly,
+              readOnly: shouldBeReadOnly,
               enabled: enableField(_passwordController),
               keyboardType: TextInputType.number,
               focusNode: _passwordFocusNode,
@@ -1007,7 +1033,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                 context,
               ).copyWith(
                 suffixIcon:
-                    !widget.readOnly && _passwordController.text.isNotEmpty
+                    !shouldBeReadOnly && _passwordController.text.isNotEmpty
                         ? Padding(
                             padding: const EdgeInsets.only(right: 0),
                             child: UnconstrainedBox(
@@ -1036,20 +1062,18 @@ class _NodeFormState extends ConsumerState<NodeForm> {
           const SizedBox(
             height: 8,
           ),
-        if (widget.coin != Coin.monero &&
-            widget.coin != Coin.wownero &&
-            widget.coin != Coin.epicCash)
+        if (widget.coin != Coin.monero && widget.coin != Coin.wownero)
           Row(
             children: [
               GestureDetector(
-                onTap: widget.readOnly
-                    ? null
-                    : () {
+                onTap: !shouldBeReadOnly && enableSSLCheckbox
+                    ? () {
                         setState(() {
                           _useSSL = !_useSSL;
                         });
                         _updateState();
-                      },
+                      }
+                    : null,
                 child: Container(
                   color: Colors.transparent,
                   child: Row(
@@ -1058,22 +1082,22 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                         width: 20,
                         height: 20,
                         child: Checkbox(
-                          fillColor: widget.readOnly
-                              ? MaterialStateProperty.all(Theme.of(context)
+                          fillColor: !shouldBeReadOnly && enableSSLCheckbox
+                              ? null
+                              : MaterialStateProperty.all(Theme.of(context)
                                   .extension<StackColors>()!
-                                  .checkboxBGDisabled)
-                              : null,
+                                  .checkboxBGDisabled),
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,
                           value: _useSSL,
-                          onChanged: widget.readOnly
-                              ? null
-                              : (newValue) {
+                          onChanged: !shouldBeReadOnly && enableSSLCheckbox
+                              ? (newValue) {
                                   setState(() {
                                     _useSSL = newValue!;
                                   });
                                   _updateState();
-                                },
+                                }
+                              : null,
                         ),
                       ),
                       const SizedBox(
@@ -1081,6 +1105,57 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                       ),
                       Text(
                         "Use SSL",
+                        style: STextStyles.itemSubtitle12(context),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        if (widget.coin == Coin.monero || widget.coin == Coin.wownero)
+          Row(
+            children: [
+              GestureDetector(
+                onTap: !widget.readOnly /*&& trustedCheckbox*/
+                    ? () {
+                        setState(() {
+                          _trusted = !_trusted;
+                        });
+                        _updateState();
+                      }
+                    : null,
+                child: Container(
+                  color: Colors.transparent,
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: Checkbox(
+                          fillColor: !widget.readOnly
+                              ? null
+                              : MaterialStateProperty.all(Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .checkboxBGDisabled),
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          value: _trusted,
+                          onChanged: !widget.readOnly
+                              ? (newValue) {
+                                  setState(() {
+                                    _trusted = newValue!;
+                                  });
+                                  _updateState();
+                                }
+                              : null,
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 12,
+                      ),
+                      Text(
+                        "Trusted",
                         style: STextStyles.itemSubtitle12(context),
                       )
                     ],

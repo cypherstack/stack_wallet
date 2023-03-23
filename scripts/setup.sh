@@ -12,7 +12,7 @@ sudo apt install -y unzip pkg-config clang cmake ninja-build libgtk-3-dev
 cd $DEVELOPMENT
 git clone https://github.com/flutter/flutter.git
 cd flutter 
-git checkout 3.0.3
+git checkout 3.7.6
 export FLUTTER_DIR=$(pwd)/bin
 echo 'export PATH="$PATH:'${FLUTTER_DIR}'"' >> ~/.bashrc
 source ~/.bashrc

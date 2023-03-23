@@ -8,6 +8,7 @@ import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart';
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
+import 'package:stackwallet/services/coins/particl/particl_wallet.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
@@ -19,9 +20,14 @@ class AddressUtils {
   /// attempts to convert a string to a valid scripthash
   ///
   /// Returns the scripthash or throws an exception on invalid firo address
-  static String convertToScriptHash(String address, NetworkType network) {
+  static String convertToScriptHash(
+    String address,
+    NetworkType network, [
+    String overridePrefix = "",
+  ]) {
     try {
-      final output = Address.addressToOutputScript(address, network);
+      final output =
+          Address.addressToOutputScript(address, network, overridePrefix);
       final hash = sha256.convert(output.toList(growable: false)).toString();
 
       final chars = hash.split("");
@@ -61,6 +67,8 @@ class AddressUtils {
             RegExp("[a-zA-Z0-9]{106}").hasMatch(address);
       case Coin.namecoin:
         return Address.validateAddress(address, namecoin, namecoin.bech32!);
+      case Coin.particl:
+        return Address.validateAddress(address, particl);
       case Coin.bitcoinTestNet:
         return Address.validateAddress(address, testnet);
       case Coin.litecoinTestNet:

@@ -34,14 +34,16 @@ class Biometrics {
     final canCheckBiometrics = await localAuth.canCheckBiometrics;
     final isDeviceSupported = await localAuth.isDeviceSupported();
 
-    debugPrint("canCheckBiometrics: $canCheckBiometrics");
-    debugPrint("isDeviceSupported: $isDeviceSupported");
+    //todo: check if print needed
+    // debugPrint("canCheckBiometrics: $canCheckBiometrics");
+    // debugPrint("isDeviceSupported: $isDeviceSupported");
 
     if (canCheckBiometrics && isDeviceSupported) {
       List<BiometricType> availableSystems =
           await localAuth.getAvailableBiometrics();
 
-      debugPrint("availableSystems: $availableSystems");
+      //todo: check if print needed
+      // debugPrint("availableSystems: $availableSystems");
 
       //TODO properly handle caught exceptions
       if (Platform.isIOS) {

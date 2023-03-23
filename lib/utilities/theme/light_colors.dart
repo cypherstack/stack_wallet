@@ -4,14 +4,21 @@ import 'package:stackwallet/utilities/theme/color_theme.dart';
 class LightColors extends StackColorTheme {
   @override
   ThemeType get themeType => ThemeType.light;
+  @override
+  Brightness get brightness => Brightness.light;
 
   @override
   Color get background => const Color(0xFFF7F7F7);
   @override
+  Color get backgroundAppBar => background;
+  @override
+  Gradient? get gradientBackground => null;
+
+  @override
   Color get overlay => const Color(0xFF111215);
 
   @override
-  Color get accentColorBlue => const Color(0xFF4C86E9);
+  Color get accentColorBlue => const Color(0xFF0052DF);
   @override
   Color get accentColorGreen => const Color(0xFF4CC0A0);
   @override
@@ -50,6 +57,8 @@ class LightColors extends StackColorTheme {
   Color get textFavoriteCard => const Color(0xFF232323);
   @override
   Color get textError => const Color(0xFF930006);
+  @override
+  Color get textRestore => overlay;
 
   // button background
   @override
@@ -64,6 +73,10 @@ class LightColors extends StackColorTheme {
   Color get buttonBackBorder => const Color(0xFF232323);
   @override
   Color get buttonBackBorderDisabled => const Color(0xFFB6B6B6);
+  @override
+  Color get buttonBackBorderSecondary => buttonBackSecondary;
+  @override
+  Color get buttonBackBorderSecondaryDisabled => buttonBackSecondaryDisabled;
 
   @override
   Color get numberBackDefault => const Color(0xFFFFFFFF);
@@ -95,6 +108,10 @@ class LightColors extends StackColorTheme {
   Color get numpadTextDefault => const Color(0xFFFFFFFF);
   @override
   Color get bottomNavText => const Color(0xFF232323);
+  @override
+  Color get customTextButtonEnabledText => buttonTextBorderless;
+  @override
+  Color get customTextButtonDisabledText => textSubtitle1;
 
   // switch
   @override
@@ -189,6 +206,10 @@ class LightColors extends StackColorTheme {
   Color get textFieldErrorBG => const Color(0xFFFFDAD4);
   @override
   Color get textFieldSuccessBG => const Color(0xFFB9E9D4);
+  @override
+  Color get textFieldErrorBorder => textFieldErrorBG;
+  @override
+  Color get textFieldSuccessBorder => textFieldSuccessBG;
 
   @override
   Color get textFieldActiveSearchIconLeft => const Color(0xFFA9ACAC);
@@ -303,4 +324,28 @@ class LightColors extends StackColorTheme {
   Color get textConfirmTotalAmount => const Color(0xFF232323);
   @override
   Color get textSelectedWordTableItem => const Color(0xFF232323);
+
+  //rate type toggle
+  @override
+  Color get rateTypeToggleColorOn => textFieldDefaultBG;
+  @override
+  Color get rateTypeToggleColorOff => popupBG;
+  @override
+  Color get rateTypeToggleDesktopColorOn => textFieldDefaultBG;
+  @override
+  Color get rateTypeToggleDesktopColorOff => buttonBackSecondary;
+
+  @override
+  BoxShadow get standardBoxShadow => BoxShadow(
+        color: shadow,
+        spreadRadius: 3,
+        blurRadius: 4,
+      );
+
+  @override
+  BoxShadow? get homeViewButtonBarBoxShadow => BoxShadow(
+        color: shadow,
+        spreadRadius: 3,
+        blurRadius: 4,
+      );
 }

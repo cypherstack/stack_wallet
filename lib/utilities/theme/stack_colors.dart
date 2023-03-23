@@ -4,8 +4,12 @@ import 'package:stackwallet/utilities/theme/color_theme.dart';
 
 class StackColors extends ThemeExtension<StackColors> {
   final ThemeType themeType;
+  final Brightness brightness;
 
   final Color background;
+  final Color backgroundAppBar;
+  final Gradient? gradientBackground;
+
   final Color overlay;
 
   final Color accentColorBlue;
@@ -29,6 +33,7 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color textWhite;
   final Color textFavoriteCard;
   final Color textError;
+  final Color textRestore;
 
 // button background
   final Color buttonBackPrimary;
@@ -37,6 +42,8 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color buttonBackSecondaryDisabled;
   final Color buttonBackBorder;
   final Color buttonBackBorderDisabled;
+  final Color buttonBackBorderSecondary;
+  final Color buttonBackBorderSecondaryDisabled;
   final Color numberBackDefault;
   final Color numpadBackDefault;
   final Color bottomNavBack;
@@ -53,6 +60,8 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color numberTextDefault;
   final Color numpadTextDefault;
   final Color bottomNavText;
+  final Color customTextButtonEnabledText;
+  final Color customTextButtonDisabledText;
 
 // switch background
   final Color switchBGOn;
@@ -107,6 +116,8 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color textFieldDefaultBG;
   final Color textFieldErrorBG;
   final Color textFieldSuccessBG;
+  final Color textFieldErrorBorder;
+  final Color textFieldSuccessBorder;
   final Color textFieldActiveSearchIconLeft;
   final Color textFieldDefaultSearchIconLeft;
   final Color textFieldErrorSearchIconLeft;
@@ -170,9 +181,21 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color textConfirmTotalAmount;
   final Color textSelectedWordTableItem;
 
+// rate type toggle
+  final Color rateTypeToggleColorOn;
+  final Color rateTypeToggleColorOff;
+  final Color rateTypeToggleDesktopColorOn;
+  final Color rateTypeToggleDesktopColorOff;
+
+  final BoxShadow standardBoxShadow;
+  final BoxShadow? homeViewButtonBarBoxShadow;
+
   StackColors({
     required this.themeType,
+    required this.brightness,
     required this.background,
+    required this.backgroundAppBar,
+    required this.gradientBackground,
     required this.overlay,
     required this.accentColorBlue,
     required this.accentColorGreen,
@@ -193,12 +216,15 @@ class StackColors extends ThemeExtension<StackColors> {
     required this.textWhite,
     required this.textFavoriteCard,
     required this.textError,
+    required this.textRestore,
     required this.buttonBackPrimary,
     required this.buttonBackSecondary,
     required this.buttonBackPrimaryDisabled,
     required this.buttonBackSecondaryDisabled,
     required this.buttonBackBorder,
     required this.buttonBackBorderDisabled,
+    required this.buttonBackBorderSecondary,
+    required this.buttonBackBorderSecondaryDisabled,
     required this.numberBackDefault,
     required this.numpadBackDefault,
     required this.bottomNavBack,
@@ -213,6 +239,8 @@ class StackColors extends ThemeExtension<StackColors> {
     required this.numberTextDefault,
     required this.numpadTextDefault,
     required this.bottomNavText,
+    required this.customTextButtonEnabledText,
+    required this.customTextButtonDisabledText,
     required this.switchBGOn,
     required this.switchBGOff,
     required this.switchBGDisabled,
@@ -253,6 +281,8 @@ class StackColors extends ThemeExtension<StackColors> {
     required this.textFieldDefaultBG,
     required this.textFieldErrorBG,
     required this.textFieldSuccessBG,
+    required this.textFieldErrorBorder,
+    required this.textFieldSuccessBorder,
     required this.textFieldActiveSearchIconLeft,
     required this.textFieldDefaultSearchIconLeft,
     required this.textFieldErrorSearchIconLeft,
@@ -301,12 +331,21 @@ class StackColors extends ThemeExtension<StackColors> {
     required this.myStackContactIconBG,
     required this.textConfirmTotalAmount,
     required this.textSelectedWordTableItem,
+    required this.rateTypeToggleColorOn,
+    required this.rateTypeToggleColorOff,
+    required this.rateTypeToggleDesktopColorOn,
+    required this.rateTypeToggleDesktopColorOff,
+    required this.standardBoxShadow,
+    required this.homeViewButtonBarBoxShadow,
   });
 
   factory StackColors.fromStackColorTheme(StackColorTheme colorTheme) {
     return StackColors(
       themeType: colorTheme.themeType,
+      brightness: colorTheme.brightness,
       background: colorTheme.background,
+      backgroundAppBar: colorTheme.backgroundAppBar,
+      gradientBackground: colorTheme.gradientBackground,
       overlay: colorTheme.overlay,
       accentColorBlue: colorTheme.accentColorBlue,
       accentColorGreen: colorTheme.accentColorGreen,
@@ -327,12 +366,16 @@ class StackColors extends ThemeExtension<StackColors> {
       textWhite: colorTheme.textWhite,
       textFavoriteCard: colorTheme.textFavoriteCard,
       textError: colorTheme.textError,
+      textRestore: colorTheme.textRestore,
       buttonBackPrimary: colorTheme.buttonBackPrimary,
       buttonBackSecondary: colorTheme.buttonBackSecondary,
       buttonBackPrimaryDisabled: colorTheme.buttonBackPrimaryDisabled,
       buttonBackSecondaryDisabled: colorTheme.buttonBackSecondaryDisabled,
       buttonBackBorder: colorTheme.buttonBackBorder,
       buttonBackBorderDisabled: colorTheme.buttonBackBorderDisabled,
+      buttonBackBorderSecondary: colorTheme.buttonBackBorderSecondary,
+      buttonBackBorderSecondaryDisabled:
+          colorTheme.buttonBackBorderSecondaryDisabled,
       numberBackDefault: colorTheme.numberBackDefault,
       numpadBackDefault: colorTheme.numpadBackDefault,
       bottomNavBack: colorTheme.bottomNavBack,
@@ -347,6 +390,8 @@ class StackColors extends ThemeExtension<StackColors> {
       numberTextDefault: colorTheme.numberTextDefault,
       numpadTextDefault: colorTheme.numpadTextDefault,
       bottomNavText: colorTheme.bottomNavText,
+      customTextButtonEnabledText: colorTheme.customTextButtonEnabledText,
+      customTextButtonDisabledText: colorTheme.customTextButtonDisabledText,
       switchBGOn: colorTheme.switchBGOn,
       switchBGOff: colorTheme.switchBGOff,
       switchBGDisabled: colorTheme.switchBGDisabled,
@@ -387,6 +432,8 @@ class StackColors extends ThemeExtension<StackColors> {
       textFieldDefaultBG: colorTheme.textFieldDefaultBG,
       textFieldErrorBG: colorTheme.textFieldErrorBG,
       textFieldSuccessBG: colorTheme.textFieldSuccessBG,
+      textFieldErrorBorder: colorTheme.textFieldErrorBorder,
+      textFieldSuccessBorder: colorTheme.textFieldSuccessBorder,
       textFieldActiveSearchIconLeft: colorTheme.textFieldActiveSearchIconLeft,
       textFieldDefaultSearchIconLeft: colorTheme.textFieldDefaultSearchIconLeft,
       textFieldErrorSearchIconLeft: colorTheme.textFieldErrorSearchIconLeft,
@@ -437,13 +484,22 @@ class StackColors extends ThemeExtension<StackColors> {
       myStackContactIconBG: colorTheme.myStackContactIconBG,
       textConfirmTotalAmount: colorTheme.textConfirmTotalAmount,
       textSelectedWordTableItem: colorTheme.textSelectedWordTableItem,
+      rateTypeToggleColorOn: colorTheme.rateTypeToggleColorOn,
+      rateTypeToggleColorOff: colorTheme.rateTypeToggleColorOff,
+      rateTypeToggleDesktopColorOn: colorTheme.rateTypeToggleDesktopColorOn,
+      rateTypeToggleDesktopColorOff: colorTheme.rateTypeToggleDesktopColorOff,
+      homeViewButtonBarBoxShadow: colorTheme.homeViewButtonBarBoxShadow,
+      standardBoxShadow: colorTheme.standardBoxShadow,
     );
   }
 
   @override
   ThemeExtension<StackColors> copyWith({
     ThemeType? themeType,
+    Brightness? brightness,
     Color? background,
+    Color? backgroundAppBar,
+    Gradient? gradientBackground,
     Color? overlay,
     Color? accentColorBlue,
     Color? accentColorGreen,
@@ -464,12 +520,15 @@ class StackColors extends ThemeExtension<StackColors> {
     Color? textWhite,
     Color? textFavoriteCard,
     Color? textError,
+    Color? textRestore,
     Color? buttonBackPrimary,
     Color? buttonBackSecondary,
     Color? buttonBackPrimaryDisabled,
     Color? buttonBackSecondaryDisabled,
     Color? buttonBackBorder,
     Color? buttonBackBorderDisabled,
+    Color? buttonBackBorderSecondary,
+    Color? buttonBackBorderSecondaryDisabled,
     Color? numberBackDefault,
     Color? numpadBackDefault,
     Color? bottomNavBack,
@@ -484,6 +543,8 @@ class StackColors extends ThemeExtension<StackColors> {
     Color? numberTextDefault,
     Color? numpadTextDefault,
     Color? bottomNavText,
+    Color? customTextButtonEnabledText,
+    Color? customTextButtonDisabledText,
     Color? switchBGOn,
     Color? switchBGOff,
     Color? switchBGDisabled,
@@ -524,6 +585,8 @@ class StackColors extends ThemeExtension<StackColors> {
     Color? textFieldDefaultBG,
     Color? textFieldErrorBG,
     Color? textFieldSuccessBG,
+    Color? textFieldErrorBorder,
+    Color? textFieldSuccessBorder,
     Color? textFieldActiveSearchIconLeft,
     Color? textFieldDefaultSearchIconLeft,
     Color? textFieldErrorSearchIconLeft,
@@ -572,10 +635,19 @@ class StackColors extends ThemeExtension<StackColors> {
     Color? myStackContactIconBG,
     Color? textConfirmTotalAmount,
     Color? textSelectedWordTableItem,
+    Color? rateTypeToggleColorOn,
+    Color? rateTypeToggleColorOff,
+    Color? rateTypeToggleDesktopColorOn,
+    Color? rateTypeToggleDesktopColorOff,
+    BoxShadow? homeViewButtonBarBoxShadow,
+    BoxShadow? standardBoxShadow,
   }) {
     return StackColors(
       themeType: themeType ?? this.themeType,
+      brightness: brightness ?? this.brightness,
       background: background ?? this.background,
+      backgroundAppBar: backgroundAppBar ?? this.backgroundAppBar,
+      gradientBackground: gradientBackground ?? this.gradientBackground,
       overlay: overlay ?? this.overlay,
       accentColorBlue: accentColorBlue ?? this.accentColorBlue,
       accentColorGreen: accentColorGreen ?? this.accentColorGreen,
@@ -596,6 +668,7 @@ class StackColors extends ThemeExtension<StackColors> {
       textWhite: textWhite ?? this.textWhite,
       textFavoriteCard: textFavoriteCard ?? this.textFavoriteCard,
       textError: textError ?? this.textError,
+      textRestore: textRestore ?? this.textRestore,
       buttonBackPrimary: buttonBackPrimary ?? this.buttonBackPrimary,
       buttonBackSecondary: buttonBackSecondary ?? this.buttonBackSecondary,
       buttonBackPrimaryDisabled:
@@ -605,6 +678,10 @@ class StackColors extends ThemeExtension<StackColors> {
       buttonBackBorder: buttonBackBorder ?? this.buttonBackBorder,
       buttonBackBorderDisabled:
           buttonBackBorderDisabled ?? this.buttonBackBorderDisabled,
+      buttonBackBorderSecondary:
+          buttonBackBorderSecondary ?? this.buttonBackBorderSecondary,
+      buttonBackBorderSecondaryDisabled: buttonBackBorderSecondaryDisabled ??
+          this.buttonBackBorderSecondaryDisabled,
       numberBackDefault: numberBackDefault ?? this.numberBackDefault,
       numpadBackDefault: numpadBackDefault ?? this.numpadBackDefault,
       bottomNavBack: bottomNavBack ?? this.bottomNavBack,
@@ -622,6 +699,10 @@ class StackColors extends ThemeExtension<StackColors> {
       numberTextDefault: numberTextDefault ?? this.numberTextDefault,
       numpadTextDefault: numpadTextDefault ?? this.numpadTextDefault,
       bottomNavText: bottomNavText ?? this.bottomNavText,
+      customTextButtonEnabledText:
+          customTextButtonEnabledText ?? this.customTextButtonEnabledText,
+      customTextButtonDisabledText:
+          customTextButtonDisabledText ?? this.customTextButtonDisabledText,
       switchBGOn: switchBGOn ?? this.switchBGOn,
       switchBGOff: switchBGOff ?? this.switchBGOff,
       switchBGDisabled: switchBGDisabled ?? this.switchBGDisabled,
@@ -668,6 +749,9 @@ class StackColors extends ThemeExtension<StackColors> {
       textFieldDefaultBG: textFieldDefaultBG ?? this.textFieldDefaultBG,
       textFieldErrorBG: textFieldErrorBG ?? this.textFieldErrorBG,
       textFieldSuccessBG: textFieldSuccessBG ?? this.textFieldSuccessBG,
+      textFieldErrorBorder: textFieldErrorBorder ?? this.textFieldErrorBorder,
+      textFieldSuccessBorder:
+          textFieldSuccessBorder ?? this.textFieldSuccessBorder,
       textFieldActiveSearchIconLeft:
           textFieldActiveSearchIconLeft ?? this.textFieldActiveSearchIconLeft,
       textFieldDefaultSearchIconLeft:
@@ -741,6 +825,17 @@ class StackColors extends ThemeExtension<StackColors> {
           textConfirmTotalAmount ?? this.textConfirmTotalAmount,
       textSelectedWordTableItem:
           textSelectedWordTableItem ?? this.textSelectedWordTableItem,
+      rateTypeToggleColorOn:
+          rateTypeToggleColorOn ?? this.rateTypeToggleColorOn,
+      rateTypeToggleColorOff:
+          rateTypeToggleColorOff ?? this.rateTypeToggleColorOff,
+      rateTypeToggleDesktopColorOn:
+          rateTypeToggleDesktopColorOn ?? this.rateTypeToggleDesktopColorOn,
+      rateTypeToggleDesktopColorOff:
+          rateTypeToggleDesktopColorOff ?? this.rateTypeToggleDesktopColorOff,
+      homeViewButtonBarBoxShadow:
+          homeViewButtonBarBoxShadow ?? this.homeViewButtonBarBoxShadow,
+      standardBoxShadow: standardBoxShadow ?? this.standardBoxShadow,
     );
   }
 
@@ -755,9 +850,18 @@ class StackColors extends ThemeExtension<StackColors> {
 
     return StackColors(
       themeType: other.themeType,
+      brightness: other.brightness,
+      gradientBackground: other.gradientBackground,
+      homeViewButtonBarBoxShadow: other.homeViewButtonBarBoxShadow,
+      standardBoxShadow: other.standardBoxShadow,
       background: Color.lerp(
         background,
         other.background,
+        t,
+      )!,
+      backgroundAppBar: Color.lerp(
+        backgroundAppBar,
+        other.backgroundAppBar,
         t,
       )!,
       overlay: Color.lerp(
@@ -860,6 +964,11 @@ class StackColors extends ThemeExtension<StackColors> {
         other.textError,
         t,
       )!,
+      textRestore: Color.lerp(
+        textRestore,
+        other.textRestore,
+        t,
+      )!,
       buttonBackPrimary: Color.lerp(
         buttonBackPrimary,
         other.buttonBackPrimary,
@@ -888,6 +997,16 @@ class StackColors extends ThemeExtension<StackColors> {
       buttonBackBorderDisabled: Color.lerp(
         buttonBackBorderDisabled,
         other.buttonBackBorderDisabled,
+        t,
+      )!,
+      buttonBackBorderSecondary: Color.lerp(
+        buttonBackBorderSecondary,
+        other.buttonBackBorderSecondary,
+        t,
+      )!,
+      buttonBackBorderSecondaryDisabled: Color.lerp(
+        buttonBackBorderSecondaryDisabled,
+        other.buttonBackBorderSecondaryDisabled,
         t,
       )!,
       numberBackDefault: Color.lerp(
@@ -958,6 +1077,16 @@ class StackColors extends ThemeExtension<StackColors> {
       bottomNavText: Color.lerp(
         bottomNavText,
         other.bottomNavText,
+        t,
+      )!,
+      customTextButtonEnabledText: Color.lerp(
+        customTextButtonEnabledText,
+        other.customTextButtonEnabledText,
+        t,
+      )!,
+      customTextButtonDisabledText: Color.lerp(
+        customTextButtonDisabledText,
+        other.customTextButtonDisabledText,
         t,
       )!,
       switchBGOn: Color.lerp(
@@ -1158,6 +1287,16 @@ class StackColors extends ThemeExtension<StackColors> {
       textFieldSuccessBG: Color.lerp(
         textFieldSuccessBG,
         other.textFieldSuccessBG,
+        t,
+      )!,
+      textFieldErrorBorder: Color.lerp(
+        textFieldErrorBorder,
+        other.textFieldErrorBorder,
+        t,
+      )!,
+      textFieldSuccessBorder: Color.lerp(
+        textFieldSuccessBorder,
+        other.textFieldSuccessBorder,
         t,
       )!,
       textFieldActiveSearchIconLeft: Color.lerp(
@@ -1398,6 +1537,26 @@ class StackColors extends ThemeExtension<StackColors> {
         other.textSelectedWordTableItem,
         t,
       )!,
+      rateTypeToggleColorOn: Color.lerp(
+        rateTypeToggleColorOn,
+        other.rateTypeToggleColorOn,
+        t,
+      )!,
+      rateTypeToggleColorOff: Color.lerp(
+        rateTypeToggleColorOff,
+        other.rateTypeToggleColorOff,
+        t,
+      )!,
+      rateTypeToggleDesktopColorOn: Color.lerp(
+        rateTypeToggleDesktopColorOn,
+        other.rateTypeToggleDesktopColorOn,
+        t,
+      )!,
+      rateTypeToggleDesktopColorOff: Color.lerp(
+        rateTypeToggleDesktopColorOff,
+        other.rateTypeToggleDesktopColorOff,
+        t,
+      )!,
     );
   }
 
@@ -1426,16 +1585,12 @@ class StackColors extends ThemeExtension<StackColors> {
         return _coin.namecoin;
       case Coin.wownero:
         return _coin.wownero;
+      case Coin.particl:
+        return _coin.particl;
     }
   }
 
   static const _coin = CoinThemeColor();
-
-  BoxShadow get standardBoxShadow => BoxShadow(
-        color: shadow,
-        spreadRadius: 3,
-        blurRadius: 4,
-      );
 
   Color colorForStatus(String status) {
     switch (status) {
@@ -1454,6 +1609,7 @@ class StackColors extends ThemeExtension<StackColors> {
         return const Color(0xFFD3A90F);
       case "Finished":
       case "finished":
+      case "Completed":
         return accentColorGreen;
       case "Failed":
       case "failed":
@@ -1468,70 +1624,97 @@ class StackColors extends ThemeExtension<StackColors> {
     }
   }
 
-  ButtonStyle? getDeleteEnabledButtonColor(BuildContext context) =>
+  ButtonStyle? getDeleteEnabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               textFieldErrorBG,
             ),
           );
 
-  ButtonStyle? getDeleteDisabledButtonColor(BuildContext context) =>
+  ButtonStyle? getDeleteDisabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               buttonBackSecondaryDisabled,
             ),
           );
 
-  ButtonStyle? getPrimaryEnabledButtonColor(BuildContext context) =>
+  ButtonStyle? getPrimaryEnabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               buttonBackPrimary,
             ),
           );
 
-  ButtonStyle? getPrimaryDisabledButtonColor(BuildContext context) =>
+  ButtonStyle? getPrimaryDisabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               buttonBackPrimaryDisabled,
             ),
           );
 
-  ButtonStyle? getSecondaryEnabledButtonColor(BuildContext context) =>
+  ButtonStyle? getSecondaryEnabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               buttonBackSecondary,
             ),
+            shape: MaterialStateProperty.all(
+              RoundedRectangleBorder(
+                side: BorderSide(
+                  color: buttonBackBorderSecondary,
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(10000),
+              ),
+            ),
           );
 
-  ButtonStyle? getSecondaryDisabledButtonColor(BuildContext context) =>
+  ButtonStyle? getSecondaryDisabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               buttonBackSecondaryDisabled,
             ),
+            shape: MaterialStateProperty.all(
+              RoundedRectangleBorder(
+                side: BorderSide(
+                  color: buttonBackBorderSecondaryDisabled,
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(10000),
+              ),
+            ),
           );
 
-  ButtonStyle? getSmallSecondaryEnabledButtonColor(BuildContext context) =>
+  ButtonStyle? getSmallSecondaryEnabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               textFieldDefaultBG,
             ),
+            shape: MaterialStateProperty.all(
+              RoundedRectangleBorder(
+                side: BorderSide(
+                  color: buttonBackBorderSecondary,
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(10000),
+              ),
+            ),
           );
 
-  ButtonStyle? getDesktopMenuButtonColor(BuildContext context) =>
+  ButtonStyle? getDesktopMenuButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               popupBG,
             ),
           );
 
-  ButtonStyle? getDesktopMenuButtonColorSelected(BuildContext context) =>
+  ButtonStyle? getDesktopMenuButtonStyleSelected(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               textFieldDefaultBG,
             ),
           );
 
-  ButtonStyle? getDesktopSettingsButtonColor(BuildContext context) =>
+  ButtonStyle? getDesktopSettingsButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(
               background,

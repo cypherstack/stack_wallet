@@ -154,14 +154,16 @@ class _FiroBalanceSelectionSheetState
                                 width: 2,
                               ),
                               FutureBuilder(
-                                future: firoWallet.availablePrivateBalance(),
+                                // TODO redo this widget now that its not actually a future
+                                future: Future(
+                                    () => firoWallet.availablePrivateBalance()),
                                 builder:
                                     (context, AsyncSnapshot<Decimal> snapshot) {
                                   if (snapshot.connectionState ==
                                           ConnectionState.done &&
                                       snapshot.hasData) {
                                     return Text(
-                                      "${snapshot.data!} ${manager.coin.ticker}",
+                                      "${snapshot.data!.toStringAsFixed(8)} ${manager.coin.ticker}",
                                       style: STextStyles.itemSubtitle(context),
                                       textAlign: TextAlign.left,
                                     );
@@ -244,14 +246,16 @@ class _FiroBalanceSelectionSheetState
                                 width: 2,
                               ),
                               FutureBuilder(
-                                future: firoWallet.availablePublicBalance(),
+                                // TODO redo this widget now that its not actually a future
+                                future: Future(
+                                    () => firoWallet.availablePublicBalance()),
                                 builder:
                                     (context, AsyncSnapshot<Decimal> snapshot) {
                                   if (snapshot.connectionState ==
                                           ConnectionState.done &&
                                       snapshot.hasData) {
                                     return Text(
-                                      "${snapshot.data!} ${manager.coin.ticker}",
+                                      "${snapshot.data!.toStringAsFixed(8)} ${manager.coin.ticker}",
                                       style: STextStyles.itemSubtitle(context),
                                       textAlign: TextAlign.left,
                                     );

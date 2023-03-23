@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class TableView extends StatefulWidget {
+class TableView extends StatelessWidget {
   const TableView({
     Key? key,
     required this.rows,
@@ -11,25 +11,26 @@ class TableView extends StatefulWidget {
   final List<Widget> rows;
   final double rowSpacing;
   final bool shrinkWrap;
-
-  @override
-  State<TableView> createState() => _TableViewState();
-}
-
-class _TableViewState extends State<TableView> {
+//
+//   @override
+//   State<TableView> createState() => _TableViewState();
+// }
+//
+// class _TableViewState extends State<TableView> {
   @override
   Widget build(BuildContext context) {
+    debugPrint("BUILD: $runtimeType");
     return ListView(
-      shrinkWrap: widget.shrinkWrap,
+      shrinkWrap: shrinkWrap,
       children: [
-        for (int i = 0; i < widget.rows.length; i++)
+        for (int i = 0; i < rows.length; i++)
           Column(
             children: [
               if (i != 0)
                 SizedBox(
-                  height: widget.rowSpacing,
+                  height: rowSpacing,
                 ),
-              widget.rows[i],
+              rows[i],
             ],
           )
       ],

@@ -11,6 +11,7 @@ class WalletRestoreState extends ChangeNotifier {
   Manager? manager;
   String? address;
   String? mnemonic;
+  String? mnemonicPassphrase;
   int? height;
 
   StackRestoringStatus get restoringState => _restoringStatus;
@@ -27,6 +28,7 @@ class WalletRestoreState extends ChangeNotifier {
     this.manager,
     this.address,
     this.mnemonic,
+    this.mnemonicPassphrase,
     this.height,
   }) {
     _restoringStatus = restoringStatus;
@@ -45,6 +47,7 @@ class WalletRestoreState extends ChangeNotifier {
       manager: manager,
       address: this.address,
       mnemonic: mnemonic,
+      mnemonicPassphrase: mnemonicPassphrase,
       height: this.height,
     );
   }

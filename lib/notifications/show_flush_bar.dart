@@ -6,6 +6,8 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
+export 'package:stackwallet/utilities/enums/flush_bar_type.dart';
+
 Future<dynamic> showFloatingFlushBar({
   required FlushBarType type,
   required String message,

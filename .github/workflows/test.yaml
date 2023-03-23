@@ -23,6 +23,7 @@ jobs:
         run: |
           cargo install cargo-ndk
           rustup target add x86_64-unknown-linux-gnu
+          sudo apt clean
           sudo apt update
           sudo apt install -y unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm
           sudo apt install -y debhelper libclang-dev cargo rustc opencl-headers libssl-dev ocl-icd-opencl-dev
@@ -83,6 +84,12 @@ jobs:
           $secretFileNamecoinHash = Get-FileHash $secretFileNamecoin;
           Write-Output "Secret file $secretFileNamecoin has hash $($secretFileNamecoinHash.Hash)";
           
+          $secretFileParticl = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/particl/particl_wallet_test_parameters.dart";
+          $encodedBytes = [System.Convert]::FromBase64String($env:PARTICL_TEST);
+          Set-Content $secretFileParticl -Value $encodedBytes -AsByteStream;
+          $secretFileParticlHash = Get-FileHash $secretFileParticl;
+          Write-Output "Secret file $secretFileParticl has hash $($secretFileParticlHash.Hash)";
+          
         shell: pwsh
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
@@ -91,6 +98,7 @@ jobs:
           FIRO_TEST: ${{ secrets.FIRO_TEST }}
           BITCOINCASH_TEST: ${{ secrets.BITCOINCASH_TEST }}
           NAMECOIN_TEST: ${{ secrets.NAMECOIN_TEST }}
+          PARTICL_TEST: ${{ secrets.PARTICL_TEST }}
 #      - name: Analyze
 #        run: flutter analyze
       - name: Test
@@ -109,6 +117,7 @@ jobs:
           $secretFileFiro = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/firo/firo_wallet_test_parameters.dart";
           $secretFileBitcoinCash = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/bitcoincash/bitcoincash_wallet_test_parameters.dart";
           $secretFileNamecoin = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/namecoin/namecoin_wallet_test_parameters.dart";
+          $secretFileParticl = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "test/services/coins/particl/particl_wallet_test_parameters.dart";
 
           Remove-Item -Path $secretFileExchange;
           Remove-Item -Path $secretFileBitcoin;
@@ -116,5 +125,6 @@ jobs:
           Remove-Item -Path $secretFileFiro;
           Remove-Item -Path $secretFileBitcoinCash;
           Remove-Item -Path $secretFileNamecoin;
+          Remove-Item -Path $secretFileParticl;
         shell: pwsh
         if: always()

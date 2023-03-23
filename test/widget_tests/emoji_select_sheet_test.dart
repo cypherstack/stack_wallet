@@ -1,8 +1,8 @@
 import 'package:emojis/emoji.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mockingjay/mockingjay.dart' as mockingjay;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockingjay/mockingjay.dart' as mockingjay;
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/emoji_select_sheet.dart';
@@ -43,15 +43,21 @@ void main() {
             ],
           ),
           home: mockingjay.MockNavigatorProvider(
-              navigator: navigator, child: emojiSelectSheet),
+            navigator: navigator,
+            child: Column(
+              children: const [
+                Expanded(child: emojiSelectSheet),
+              ],
+            ),
+          ),
         ),
       ),
     );
 
-    final gestureDetector = find.byType(GestureDetector).first;
+    final gestureDetector = find.byType(GestureDetector).at(5);
     expect(gestureDetector, findsOneWidget);
 
-    final emoji = Emoji.all()[0];
+    final emoji = Emoji.byChar("😅");
 
     await tester.tap(gestureDetector);
     await tester.pumpAndSettle();

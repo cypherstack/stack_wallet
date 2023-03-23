@@ -24,17 +24,24 @@ class NodeService extends ChangeNotifier {
       final savedNode = DB.instance
           .get<NodeModel>(boxName: DB.boxNameNodeModels, key: defaultNode.id);
       if (savedNode == null) {
-        // save the default node to hive
-        await DB.instance.put<NodeModel>(
+        // save the default node to hive only if no other nodes for the specific coin exist
+        if (getNodesFor(coinFromPrettyName(defaultNode.coinName)).isEmpty) {
+          await DB.instance.put<NodeModel>(
             boxName: DB.boxNameNodeModels,
             key: defaultNode.id,
-            value: defaultNode);
+            value: defaultNode,
+          );
+        }
       } else {
-        // update all fields but copy over previously set enabled state
+        // update all fields but copy over previously set enabled and trusted states
         await DB.instance.put<NodeModel>(
             boxName: DB.boxNameNodeModels,
             key: savedNode.id,
-            value: defaultNode.copyWith(enabled: savedNode.enabled));
+            value: defaultNode.copyWith(
+              enabled: savedNode.enabled,
+              isFailover: savedNode.isFailover,
+              trusted: savedNode.trusted,
+            ));
       }
 
       // check if a default node is the primary node for the crypto currency
@@ -46,6 +53,8 @@ class NodeService extends ChangeNotifier {
           coin: coin,
           node: defaultNode.copyWith(
             enabled: primaryNode.enabled,
+            isFailover: primaryNode.isFailover,
+            trusted: primaryNode.trusted,
           ),
         );
       }
@@ -81,14 +90,16 @@ class NodeService extends ChangeNotifier {
     final list = DB.instance
         .values<NodeModel>(boxName: DB.boxNameNodeModels)
         .where((e) =>
-            e.coinName == coin.name && e.name != DefaultNodes.defaultName)
+            e.coinName == coin.name &&
+            !e.id.startsWith(DefaultNodes.defaultNodeIdPrefix))
         .toList();
 
     // add default to end of list
     list.addAll(DB.instance
         .values<NodeModel>(boxName: DB.boxNameNodeModels)
         .where((e) =>
-            e.coinName == coin.name && e.name == DefaultNodes.defaultName)
+            e.coinName == coin.name &&
+            e.id.startsWith(DefaultNodes.defaultNodeIdPrefix))
         .toList());
 
     // return reversed list so default node appears at beginning
@@ -156,6 +167,17 @@ class NodeService extends ChangeNotifier {
     String? password,
     bool shouldNotifyListeners,
   ) async {
+    // check if the node being edited is the primary one; if it is, setPrimaryNodeFor coin
+    final coin = coinFromPrettyName(editedNode.coinName);
+    var primaryNode = getPrimaryNodeFor(coin: coin);
+    if (primaryNode?.id == editedNode.id) {
+      await setPrimaryNodeFor(
+        coin: coin,
+        node: editedNode,
+        shouldNotifyListeners: true,
+      );
+    }
+
     return add(editedNode, password, shouldNotifyListeners);
   }
 

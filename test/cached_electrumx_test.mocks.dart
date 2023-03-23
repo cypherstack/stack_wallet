@@ -9,11 +9,10 @@ import 'dart:ui' as _i9;
 import 'package:decimal/decimal.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i3;
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart'
-    as _i7;
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i8;
+import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i7;
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i6;
 import 'package:stackwallet/utilities/prefs.dart' as _i5;
+import 'package:stackwallet/utilities/theme/color_theme.dart' as _i8;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -511,20 +510,6 @@ class MockPrefs extends _i1.Mock implements _i5.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i7.ExchangeRateType get exchangeRateType => (super.noSuchMethod(
-        Invocation.getter(#exchangeRateType),
-        returnValue: _i7.ExchangeRateType.estimated,
-      ) as _i7.ExchangeRateType);
-  @override
-  set exchangeRateType(_i7.ExchangeRateType? exchangeRateType) =>
-      super.noSuchMethod(
-        Invocation.setter(
-          #exchangeRateType,
-          exchangeRateType,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
   bool get useBiometrics => (super.noSuchMethod(
         Invocation.getter(#useBiometrics),
         returnValue: false,
@@ -547,6 +532,19 @@ class MockPrefs extends _i1.Mock implements _i5.Prefs {
         Invocation.setter(
           #hasPin,
           hasPin,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  int get familiarity => (super.noSuchMethod(
+        Invocation.getter(#familiarity),
+        returnValue: 0,
+      ) as int);
+  @override
+  set familiarity(int? familiarity) => super.noSuchMethod(
+        Invocation.setter(
+          #familiarity,
+          familiarity,
         ),
         returnValueForMissingStub: null,
       );
@@ -585,12 +583,12 @@ class MockPrefs extends _i1.Mock implements _i5.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i8.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
+  _i7.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
         Invocation.getter(#backupFrequencyType),
-        returnValue: _i8.BackupFrequencyType.everyTenMinutes,
-      ) as _i8.BackupFrequencyType);
+        returnValue: _i7.BackupFrequencyType.everyTenMinutes,
+      ) as _i7.BackupFrequencyType);
   @override
-  set backupFrequencyType(_i8.BackupFrequencyType? backupFrequencyType) =>
+  set backupFrequencyType(_i7.BackupFrequencyType? backupFrequencyType) =>
       super.noSuchMethod(
         Invocation.setter(
           #backupFrequencyType,
@@ -655,6 +653,74 @@ class MockPrefs extends _i1.Mock implements _i5.Prefs {
         returnValueForMissingStub: null,
       );
   @override
+  bool get enableCoinControl => (super.noSuchMethod(
+        Invocation.getter(#enableCoinControl),
+        returnValue: false,
+      ) as bool);
+  @override
+  set enableCoinControl(bool? enableCoinControl) => super.noSuchMethod(
+        Invocation.setter(
+          #enableCoinControl,
+          enableCoinControl,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  bool get enableSystemBrightness => (super.noSuchMethod(
+        Invocation.getter(#enableSystemBrightness),
+        returnValue: false,
+      ) as bool);
+  @override
+  set enableSystemBrightness(bool? enableSystemBrightness) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #enableSystemBrightness,
+          enableSystemBrightness,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i8.ThemeType get theme => (super.noSuchMethod(
+        Invocation.getter(#theme),
+        returnValue: _i8.ThemeType.light,
+      ) as _i8.ThemeType);
+  @override
+  set theme(_i8.ThemeType? theme) => super.noSuchMethod(
+        Invocation.setter(
+          #theme,
+          theme,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i8.ThemeType get systemBrightnessLightTheme => (super.noSuchMethod(
+        Invocation.getter(#systemBrightnessLightTheme),
+        returnValue: _i8.ThemeType.light,
+      ) as _i8.ThemeType);
+  @override
+  set systemBrightnessLightTheme(_i8.ThemeType? systemBrightnessLightTheme) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #systemBrightnessLightTheme,
+          systemBrightnessLightTheme,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i8.ThemeType get systemBrightnessDarkTheme => (super.noSuchMethod(
+        Invocation.getter(#systemBrightnessDarkTheme),
+        returnValue: _i8.ThemeType.light,
+      ) as _i8.ThemeType);
+  @override
+  set systemBrightnessDarkTheme(_i8.ThemeType? systemBrightnessDarkTheme) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #systemBrightnessDarkTheme,
+          systemBrightnessDarkTheme,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
@@ -685,6 +751,24 @@ class MockPrefs extends _i1.Mock implements _i5.Prefs {
         ),
         returnValue: _i4.Future<bool>.value(false),
       ) as _i4.Future<bool>);
+  @override
+  _i4.Future<void> saveUserID(String? userId) => (super.noSuchMethod(
+        Invocation.method(
+          #saveUserID,
+          [userId],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> saveSignupEpoch(int? signupEpoch) => (super.noSuchMethod(
+        Invocation.method(
+          #saveSignupEpoch,
+          [signupEpoch],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
   @override
   void addListener(_i9.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(

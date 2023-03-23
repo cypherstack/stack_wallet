@@ -6,7 +6,6 @@ int _count = 0;
 final prefsChangeNotifierProvider = ChangeNotifierProvider<Prefs>((_) {
   if (kDebugMode) {
     _count++;
-    debugPrint("prefsChangeNotifierProvider instantiation count: $_count");
   }
 
   return Prefs.instance;

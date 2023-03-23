@@ -1,16 +1,19 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/add_wallet_text.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/mobile_coin_list.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/next_button.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/searchable_coin_list.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
@@ -36,11 +39,19 @@ class _AddWalletViewState extends State<AddWalletView> {
 
   final List<Coin> coins = [...Coin.values];
 
+  final bool isDesktop = Util.isDesktop;
+
   @override
   void initState() {
     _searchFieldController = TextEditingController();
     _searchFocusNode = FocusNode();
     coins.remove(Coin.firoTestNet);
+    if (isDesktop) {
+      coins.remove(Coin.wownero);
+      if (Platform.isWindows) {
+        coins.remove(Coin.monero);
+      }
+    }
     super.initState();
   }
 
@@ -55,7 +66,7 @@ class _AddWalletViewState extends State<AddWalletView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    if (Util.isDesktop) {
+    if (isDesktop) {
       return DesktopScaffold(
         appBar: const DesktopAppBar(
           isCompactHeight: false,
@@ -182,39 +193,43 @@ class _AddWalletViewState extends State<AddWalletView> {
         ),
       );
     } else {
-      return Scaffold(
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+      return Background(
+        child: Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
           ),
-        ),
-        body: Container(
-          color: Theme.of(context).extension<StackColors>()!.background,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const AddWalletText(
-                  isDesktop: false,
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                Expanded(
-                  child: MobileCoinList(
-                    coins: coins,
+          body: Container(
+            color: Theme.of(context).extension<StackColors>()!.background,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const AddWalletText(
+                    isDesktop: false,
                   ),
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                const AddWalletNextButton(
-                  isDesktop: false,
-                ),
-              ],
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  Expanded(
+                    child: MobileCoinList(
+                      coins: coins,
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  const AddWalletNextButton(
+                    isDesktop: false,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

@@ -2,14 +2,15 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/stack_privacy_calls.dart';
+import 'package:stackwallet/pages_desktop_specific/password/create_password_view.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:tuple/tuple.dart';
+import 'package:stackwallet/widgets/background.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import 'package:stackwallet/utilities/prefs.dart';
 
 class IntroView extends StatefulWidget {
   const IntroView({Key? key}) : super(key: key);
@@ -32,118 +33,134 @@ class _IntroViewState extends State<IntroView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType ");
-    return Scaffold(
-      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-      body: Center(
-        child: !isDesktop
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Spacer(
-                    flex: 2,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                    ),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(
-                        maxWidth: 300,
-                      ),
-                      child: Image(
-                        image: AssetImage(
-                          Assets.png.stack,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const Spacer(
-                    flex: 1,
-                  ),
-                  AppNameText(
-                    isDesktop: isDesktop,
-                  ),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 48,
-                    ),
-                    child: IntroAboutText(
-                      isDesktop: isDesktop,
-                    ),
-                  ),
-                  const Spacer(
-                    flex: 4,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                    ),
-                    child: PrivacyAndTOSText(
-                      isDesktop: isDesktop,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: GetStartedButton(
-                            isDesktop: isDesktop,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              )
-            : SizedBox(
-                width: 350,
-                height: 540,
-                child: Column(
+    return Background(
+      child: Scaffold(
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
+        body: Center(
+          child: !isDesktop
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const Spacer(
                       flex: 2,
                     ),
-                    SizedBox(
-                      width: 130,
-                      height: 130,
-                      child: SvgPicture.asset(
-                        Assets.svg.stackIcon(context),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                      ),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: 300,
+                        ),
+                        child: SvgPicture.asset(
+                          Assets.svg.stack(context),
+                          width: isDesktop ? 324 : 266,
+                          height: isDesktop ? 324 : 266,
+                        ),
                       ),
                     ),
                     const Spacer(
-                      flex: 42,
+                      flex: 1,
                     ),
                     AppNameText(
                       isDesktop: isDesktop,
                     ),
+                    const SizedBox(
+                      height: 8,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 48,
+                      ),
+                      child: IntroAboutText(
+                        isDesktop: isDesktop,
+                      ),
+                    ),
                     const Spacer(
-                      flex: 24,
+                      flex: 4,
                     ),
-                    IntroAboutText(
-                      isDesktop: isDesktop,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                      ),
+                      child: PrivacyAndTOSText(
+                        isDesktop: isDesktop,
+                      ),
                     ),
-                    const Spacer(
-                      flex: 42,
-                    ),
-                    GetStartedButton(
-                      isDesktop: isDesktop,
-                    ),
-                    const Spacer(
-                      flex: 65,
-                    ),
-                    PrivacyAndTOSText(
-                      isDesktop: isDesktop,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: GetStartedButton(
+                              isDesktop: isDesktop,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
+                )
+              : SizedBox(
+                  width: 350,
+                  height: 540,
+                  child: Column(
+                    children: [
+                      const Spacer(
+                        flex: 2,
+                      ),
+                      SizedBox(
+                        width: 130,
+                        height: 130,
+                        child: SvgPicture.asset(
+                          Assets.svg.stackIcon(context),
+                        ),
+                      ),
+                      const Spacer(
+                        flex: 42,
+                      ),
+                      AppNameText(
+                        isDesktop: isDesktop,
+                      ),
+                      const Spacer(
+                        flex: 24,
+                      ),
+                      IntroAboutText(
+                        isDesktop: isDesktop,
+                      ),
+                      const Spacer(
+                        flex: 42,
+                      ),
+                      GetStartedButton(
+                        isDesktop: isDesktop,
+                      ),
+                      if (isDesktop)
+                        const SizedBox(
+                          height: 20,
+                        ),
+                      if (isDesktop)
+                        SecondaryButton(
+                          label: "Restore from Stack backup",
+                          onPressed: () {
+                            Navigator.of(context).pushNamed(
+                              CreatePasswordView.routeName,
+                              arguments: true,
+                            );
+                          },
+                        ),
+                      const Spacer(
+                        flex: 65,
+                      ),
+                      PrivacyAndTOSText(
+                        isDesktop: isDesktop,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+        ),
       ),
     );
   }
@@ -242,7 +259,7 @@ class GetStartedButton extends StatelessWidget {
         ? TextButton(
             style: Theme.of(context)
                 .extension<StackColors>()!
-                .getPrimaryEnabledButtonColor(context),
+                .getPrimaryEnabledButtonStyle(context),
             onPressed: () {
               Prefs.instance.externalCalls = true;
               Navigator.of(context).pushNamed(
@@ -256,12 +273,12 @@ class GetStartedButton extends StatelessWidget {
             ),
           )
         : SizedBox(
-            width: 328,
+            width: double.infinity,
             height: 70,
             child: TextButton(
               style: Theme.of(context)
                   .extension<StackColors>()!
-                  .getPrimaryEnabledButtonColor(context),
+                  .getPrimaryEnabledButtonStyle(context),
               onPressed: () {
                 Navigator.of(context).pushNamed(
                   StackPrivacyCalls.routeName,
@@ -269,7 +286,7 @@ class GetStartedButton extends StatelessWidget {
                 );
               },
               child: Text(
-                "Get started",
+                "Create new Stack",
                 style: STextStyles.button(context).copyWith(fontSize: 20),
               ),
             ),

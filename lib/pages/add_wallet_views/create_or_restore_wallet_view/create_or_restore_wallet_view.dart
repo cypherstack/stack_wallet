@@ -3,10 +3,12 @@ import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/create_or_restore_wallet_subtitle.dart';
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/create_or_restore_wallet_title.dart';
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/create_wallet_button_group.dart';
-import 'package:stackwallet/pages_desktop_specific/home/my_stack_view/exit_to_my_stack_button.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
@@ -60,7 +62,10 @@ class CreateOrRestoreWalletView extends StatelessWidget {
               ),
               CoinImage(
                 coin: coin,
-                isDesktop: isDesktop,
+                width:
+                    isDesktop ? 324 : MediaQuery.of(context).size.width / 1.6,
+                height:
+                    isDesktop ? null : MediaQuery.of(context).size.width / 1.6,
               ),
               const SizedBox(
                 height: 32,
@@ -77,49 +82,79 @@ class CreateOrRestoreWalletView extends StatelessWidget {
         ),
       );
     } else {
-      return Scaffold(
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+      final isChans = Theme.of(context).extension<StackColors>()!.themeType ==
+              ThemeType.chan ||
+          Theme.of(context).extension<StackColors>()!.themeType ==
+              ThemeType.darkChans;
+
+      return Background(
+        child: Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
           ),
-        ),
-        body: Container(
-          color: Theme.of(context).extension<StackColors>()!.background,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(31),
-                  child: CoinImage(
-                    coin: coin,
-                    isDesktop: isDesktop,
-                  ),
-                ),
-                const Spacer(
-                  flex: 2,
-                ),
-                CreateRestoreWalletTitle(
-                  coin: coin,
-                  isDesktop: isDesktop,
-                ),
-                const SizedBox(
-                  height: 8,
-                ),
-                CreateRestoreWalletSubTitle(
-                  isDesktop: isDesktop,
-                ),
-                const Spacer(
-                  flex: 5,
-                ),
-                CreateWalletButtonGroup(
-                  coin: coin,
-                  isDesktop: isDesktop,
-                ),
-              ],
+          body: SafeArea(
+            child: Container(
+              color: Theme.of(context).extension<StackColors>()!.background,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: IntrinsicHeight(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              if (!isChans)
+                                const Spacer(
+                                  flex: 2,
+                                ),
+                              CoinImage(
+                                coin: coin,
+                                width: isDesktop
+                                    ? 324
+                                    : MediaQuery.of(context).size.width / 1.6,
+                                height: isDesktop
+                                    ? null
+                                    : MediaQuery.of(context).size.width / 1.6,
+                              ),
+                              const Spacer(
+                                flex: 2,
+                              ),
+                              CreateRestoreWalletTitle(
+                                coin: coin,
+                                isDesktop: isDesktop,
+                              ),
+                              const SizedBox(
+                                height: 8,
+                              ),
+                              CreateRestoreWalletSubTitle(
+                                isDesktop: isDesktop,
+                              ),
+                              const Spacer(
+                                flex: 5,
+                              ),
+                              CreateWalletButtonGroup(
+                                coin: coin,
+                                isDesktop: isDesktop,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ),

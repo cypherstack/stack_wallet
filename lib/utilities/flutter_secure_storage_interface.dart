@@ -37,6 +37,17 @@ abstract class SecureStorageInterface {
     MacOsOptions? mOptions,
     WindowsOptions? wOptions,
   });
+
+  Future<void> deleteAll({
+    IOSOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    MacOsOptions? mOptions,
+    WindowsOptions? wOptions,
+  });
+
+  Future<List<String>> get keys;
 }
 
 class DesktopSecureStore {
@@ -51,7 +62,12 @@ class DesktopSecureStore {
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       inspector: false,
       name: "desktopStore",
+      maxSizeMiB: 512,
     );
+  }
+
+  Future<void> close() async {
+    await isar.close();
   }
 
   Future<String?> read({
@@ -96,6 +112,10 @@ class DesktopSecureStore {
     await isar.writeTxn(() async {
       await isar.encryptedStringValues.deleteByKey(key);
     });
+  }
+
+  Future<List<String>> get keys async {
+    return await isar.encryptedStringValues.where().keyProperty().findAll();
   }
 }
 
@@ -192,6 +212,39 @@ class SecureStorageWrapper implements SecureStorageInterface {
       );
     }
   }
+
+  @override
+  Future<void> deleteAll({
+    IOSOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    MacOsOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    if (_isDesktop) {
+      // return (_store as DesktopSecureStore).deleteAll();
+      throw UnimplementedError();
+    } else {
+      return await (_store as FlutterSecureStorage).deleteAll(
+        iOptions: iOptions,
+        aOptions: aOptions,
+        lOptions: lOptions,
+        webOptions: webOptions,
+        mOptions: mOptions,
+        wOptions: wOptions,
+      );
+    }
+  }
+
+  @override
+  Future<List<String>> get keys async {
+    if (_isDesktop) {
+      return (_store as DesktopSecureStore).keys;
+    } else {
+      return (await (_store as FlutterSecureStorage).readAll()).keys.toList();
+    }
+  }
 }
 
 // Mock class for testing purposes
@@ -253,5 +306,22 @@ class FakeSecureStorage implements SecureStorageInterface {
   }
 
   @override
+  Future<void> deleteAll({
+    IOSOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    MacOsOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    _interactions++;
+    _deletes++;
+    _store.clear();
+  }
+
+  @override
   dynamic get store => throw UnimplementedError();
+
+  @override
+  Future<List<String>> get keys => Future(() => _store.keys.toList());
 }

@@ -30,7 +30,7 @@ class CreateWalletButtonGroup extends StatelessWidget {
           child: TextButton(
             style: Theme.of(context)
                 .extension<StackColors>()!
-                .getPrimaryEnabledButtonColor(context),
+                .getPrimaryEnabledButtonStyle(context),
             onPressed: () {
               Navigator.of(context).pushNamed(
                 NameYourWalletView.routeName,
@@ -59,7 +59,7 @@ class CreateWalletButtonGroup extends StatelessWidget {
           child: TextButton(
             style: Theme.of(context)
                 .extension<StackColors>()!
-                .getSecondaryEnabledButtonColor(context),
+                .getSecondaryEnabledButtonStyle(context),
             onPressed: () {
               Navigator.of(context).pushNamed(
                 NameYourWalletView.routeName,

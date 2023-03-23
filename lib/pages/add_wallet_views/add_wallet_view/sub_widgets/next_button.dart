@@ -27,7 +27,7 @@ class AddWalletNextButton extends ConsumerWidget {
           : () {
               final selectedCoin =
                   ref.read(addWalletSelectedCoinStateProvider.state).state;
-              debugPrint("Next pressed with ${selectedCoin!.name} selected!");
+
               Navigator.of(context).pushNamed(
                 CreateOrRestoreWalletView.routeName,
                 arguments: selectedCoin,
@@ -36,10 +36,10 @@ class AddWalletNextButton extends ConsumerWidget {
       style: enabled
           ? Theme.of(context)
               .extension<StackColors>()!
-              .getPrimaryEnabledButtonColor(context)
+              .getPrimaryEnabledButtonStyle(context)
           : Theme.of(context)
               .extension<StackColors>()!
-              .getPrimaryDisabledButtonColor(context),
+              .getPrimaryDisabledButtonStyle(context),
       child: Text(
         "Next",
         style: isDesktop
