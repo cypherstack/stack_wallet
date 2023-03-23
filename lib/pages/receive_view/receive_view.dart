@@ -288,6 +288,22 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                     ),
                   ),
                   const SizedBox(
+                    height: 12,
+                  ),
+                  TextButton(
+                    onPressed: generateNewAddress,
+                    style: Theme.of(context)
+                        .extension<StackColors>()!
+                        .getSecondaryEnabledButtonStyle(context),
+                    child: Text(
+                      "Generate new address",
+                      style: STextStyles.button(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorDark),
+                    ),
+                  ),
+                  const SizedBox(
                     height: 30,
                   ),
                   RoundedWhiteContainer(
