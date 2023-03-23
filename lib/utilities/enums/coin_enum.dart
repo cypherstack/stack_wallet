@@ -42,6 +42,7 @@ enum Coin {
 }
 
 final int kTestNetCoinCount = 4; // Util.isDesktop ? 5 : 4;
+// remove firotestnet for now
 
 extension CoinExt on Coin {
   String get prettyName {
