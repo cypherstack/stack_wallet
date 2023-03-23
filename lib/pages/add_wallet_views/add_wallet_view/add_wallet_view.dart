@@ -82,7 +82,6 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
   Future<void> _addToken() async {
     final token = await Navigator.of(context).pushNamed(
       AddCustomTokenView.routeName,
-      arguments: null, // no walletId as no wallet has been selected/created yet
     );
     if (token is EthContract) {
       await MainDB.instance.putEthContract(token);

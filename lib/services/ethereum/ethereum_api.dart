@@ -362,35 +362,35 @@ abstract class EthereumAPI {
         slow: feesSlow.toInt());
   }
 
-  static Future<EthereumResponse<EthContract>> getTokenByContractAddress(
+  static Future<EthereumResponse<EthContract>> getTokenContractInfoByAddress(
       String contractAddress) async {
     try {
-      final response = await get(Uri.parse(
-          "$etherscanApi?module=token&action=getToken&contractaddress=$contractAddress&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
-      // "stackURI?module=token&action=getToken&contractaddress=$contractAddress"));
-      // "$blockScout?module=token&action=getToken&contractaddress=$contractAddress"));
+      final response = await get(
+        Uri.parse(
+          "$stackBaseServer/tokens?addrs=$contractAddress&parts=all",
+        ),
+      );
+
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
         if (json["message"] == "OK") {
           final map = Map<String, dynamic>.from(json["result"] as Map);
           EthContract? token;
-          if (map["type"] == "ERC-20") {
+          if (map["isErc20"] == true) {
             token = EthContract(
-              address: map["contractAddress"] as String,
-              decimals: int.parse(map["decimals"] as String),
+              address: map["address"] as String,
+              decimals: map["decimals"] as int,
               name: map["name"] as String,
               symbol: map["symbol"] as String,
               type: EthContractType.erc20,
-              walletIds: [],
             );
-          } else if (map["type"] == "ERC-721") {
+          } else if (map["isErc721"] == true) {
             token = EthContract(
-              address: map["contractAddress"] as String,
-              decimals: int.parse(map["decimals"] as String),
+              address: map["address"] as String,
+              decimals: map["decimals"] as int,
               name: map["name"] as String,
               symbol: map["symbol"] as String,
               type: EthContractType.erc721,
-              walletIds: [],
             );
           } else {
             throw EthApiException(

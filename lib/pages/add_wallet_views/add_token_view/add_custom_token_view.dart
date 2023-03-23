@@ -17,10 +17,7 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 class AddCustomTokenView extends ConsumerStatefulWidget {
   const AddCustomTokenView({
     Key? key,
-    required this.walletId,
   }) : super(key: key);
-
-  final String? walletId;
 
   static const routeName = "/addCustomToken";
 
@@ -86,7 +83,7 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
                 label: "Search",
                 onPressed: () async {
                   final response = await showLoading(
-                    whileFuture: EthereumAPI.getTokenByContractAddress(
+                    whileFuture: EthereumAPI.getTokenContractInfoByAddress(
                         contractController.text),
                     context: context,
                     message: "Looking up contract",
@@ -96,10 +93,6 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
                     nameController.text = currentToken!.name;
                     symbolController.text = currentToken!.symbol;
                     decimalsController.text = currentToken!.decimals.toString();
-                    if (widget.walletId != null) {
-                      // TODO: this needs to be changed?
-                      currentToken!.walletIds.add(widget.walletId!);
-                    }
                   } else {
                     nameController.text = "";
                     symbolController.text = "";

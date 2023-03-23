@@ -223,18 +223,13 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case AddCustomTokenView.routeName:
-        if (args is String?) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => AddCustomTokenView(
-              walletId: args,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const AddCustomTokenView(),
+          settings: RouteSettings(
+            name: settings.name,
+          ),
+        );
 
       case SingleFieldEditView.routeName:
         if (args is Tuple2<String, String>) {
