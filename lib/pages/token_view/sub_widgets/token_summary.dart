@@ -5,6 +5,7 @@ import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
@@ -57,10 +58,31 @@ class TokenSummary extends ConsumerWidget {
           const SizedBox(
             height: 6,
           ),
-          Text(
-            "${balance.getTotal()}"
-            " ${token.symbol}",
-            style: STextStyles.pageTitleH1(context),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "${balance.getTotal()}"
+                " ${token.symbol}",
+                style: STextStyles.pageTitleH1(context),
+              ),
+              const SizedBox(
+                width: 10,
+              ),
+              RoundedContainer(
+                padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+                radiusMultiplier: 0.25,
+                color: const Color(
+                    0xFF4D5798), // TODO: color theme for multi themes
+                child: Text(
+                  ref.watch(walletsChangeNotifierProvider.select(
+                      (value) => value.getManager(walletId).coin.ticker)),
+                  style: STextStyles.w600_12(context).copyWith(
+                    color: Colors.white, // TODO: design is wrong?
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(
             height: 6,
