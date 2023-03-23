@@ -70,8 +70,10 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
   }
 
   Future<void> onNextPressed() async {
-    final selectedTokens =
-        tokenEntities.where((e) => e.selected).map((e) => e.token).toList();
+    final selectedTokens = tokenEntities
+        .where((e) => e.selected)
+        .map((e) => e.token.address)
+        .toList();
 
     final ethWallet = ref
         .read(walletsChangeNotifierProvider)

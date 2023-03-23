@@ -62,39 +62,23 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Timer? timer;
   Timer? _networkAliveTimer;
 
-  Future<void> addTokenContracts(List<EthContract> contracts) async {
-    List<EthContract> updatedContracts = [];
-    for (final contract in contracts) {
-      final updatedWalletIds = contract.walletIds.toList();
-      if (!updatedWalletIds.contains(walletId)) {
-        updatedWalletIds.add(walletId);
-        updatedContracts.add(contract.copyWith(walletIds: updatedWalletIds));
-      } else {
-        updatedContracts.add(contract);
-      }
-    }
-    await db.putEthContracts(updatedContracts);
+  Future<void> addTokenContracts(List<String> contractAddresses) async {
+    final set = getWalletTokenContractAddresses().toSet();
+    set.addAll(contractAddresses);
+    await updateWalletTokenContractAddresses(set.toList());
 
     GlobalEventBus.instance.fire(
       UpdatedInBackgroundEvent(
-        "$contracts updated/added for: $walletId $walletName",
+        "$contractAddresses updated/added for: $walletId $walletName",
         walletId,
       ),
     );
   }
 
   Future<void> removeTokenContract(String contractAddress) async {
-    final contract =
-        await db.getEthContracts().addressEqualTo(contractAddress).findFirst();
-
-    if (contract == null) {
-      return; // todo some error?
-    }
-
-    final updatedWalletIds = contract.walletIds.toList();
-    updatedWalletIds.removeWhere((e) => e == contractAddress);
-
-    await db.putEthContract(contract.copyWith(walletIds: updatedWalletIds));
+    final set = getWalletTokenContractAddresses().toSet();
+    set.removeWhere((e) => e == contractAddress);
+    await updateWalletTokenContractAddresses(set.toList());
 
     GlobalEventBus.instance.fire(
       UpdatedInBackgroundEvent(
