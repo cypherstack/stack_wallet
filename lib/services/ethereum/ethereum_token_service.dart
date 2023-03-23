@@ -296,6 +296,12 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
       throw response.exception ??
           Exception("Failed to fetch token transaction data");
     }
+
+    // no need to continue if no transactions found
+    if (response.value!.isEmpty) {
+      return;
+    }
+
     final response2 = await EthereumAPI.getEthTokenTransactionsByTxids(
       response.value!.map((e) => e.transactionHash).toList(),
     );
