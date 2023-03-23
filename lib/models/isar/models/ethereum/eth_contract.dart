@@ -11,9 +11,7 @@ class EthContract extends Contract {
     required this.symbol,
     required this.decimals,
     required this.type,
-    required this.walletIds,
     this.abi,
-    this.otherData,
   });
 
   Id id = Isar.autoIncrement;
@@ -29,12 +27,8 @@ class EthContract extends Contract {
 
   late final String? abi;
 
-  late final List<String> walletIds;
-
   @enumerated
   late final EthContractType type;
-
-  late final String? otherData;
 
   EthContract copyWith({
     Id? id,
@@ -53,15 +47,14 @@ class EthContract extends Contract {
         symbol: symbol ?? this.symbol,
         decimals: decimals ?? this.decimals,
         type: type ?? this.type,
-        walletIds: walletIds ?? this.walletIds,
         abi: abi ?? this.abi,
-        otherData: otherData ?? this.otherData,
       )..id = id ?? this.id;
 }
 
 // Used in Isar db and stored there as int indexes so adding/removing values
 // in this definition should be done extremely carefully in production
 enum EthContractType {
+  unknown,
   erc20,
   erc721;
 }

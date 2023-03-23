@@ -37,26 +37,16 @@ const EthContractSchema = CollectionSchema(
       name: r'name',
       type: IsarType.string,
     ),
-    r'otherData': PropertySchema(
-      id: 4,
-      name: r'otherData',
-      type: IsarType.string,
-    ),
     r'symbol': PropertySchema(
-      id: 5,
+      id: 4,
       name: r'symbol',
       type: IsarType.string,
     ),
     r'type': PropertySchema(
-      id: 6,
+      id: 5,
       name: r'type',
       type: IsarType.byte,
       enumMap: _EthContracttypeEnumValueMap,
-    ),
-    r'walletIds': PropertySchema(
-      id: 7,
-      name: r'walletIds',
-      type: IsarType.stringList,
     )
   },
   estimateSize: _ethContractEstimateSize,
@@ -101,20 +91,7 @@ int _ethContractEstimateSize(
   }
   bytesCount += 3 + object.address.length * 3;
   bytesCount += 3 + object.name.length * 3;
-  {
-    final value = object.otherData;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
   bytesCount += 3 + object.symbol.length * 3;
-  bytesCount += 3 + object.walletIds.length * 3;
-  {
-    for (var i = 0; i < object.walletIds.length; i++) {
-      final value = object.walletIds[i];
-      bytesCount += value.length * 3;
-    }
-  }
   return bytesCount;
 }
 
@@ -128,10 +105,8 @@ void _ethContractSerialize(
   writer.writeString(offsets[1], object.address);
   writer.writeLong(offsets[2], object.decimals);
   writer.writeString(offsets[3], object.name);
-  writer.writeString(offsets[4], object.otherData);
-  writer.writeString(offsets[5], object.symbol);
-  writer.writeByte(offsets[6], object.type.index);
-  writer.writeStringList(offsets[7], object.walletIds);
+  writer.writeString(offsets[4], object.symbol);
+  writer.writeByte(offsets[5], object.type.index);
 }
 
 EthContract _ethContractDeserialize(
@@ -145,11 +120,9 @@ EthContract _ethContractDeserialize(
     address: reader.readString(offsets[1]),
     decimals: reader.readLong(offsets[2]),
     name: reader.readString(offsets[3]),
-    otherData: reader.readStringOrNull(offsets[4]),
-    symbol: reader.readString(offsets[5]),
-    type: _EthContracttypeValueEnumMap[reader.readByteOrNull(offsets[6])] ??
-        EthContractType.erc20,
-    walletIds: reader.readStringList(offsets[7]) ?? [],
+    symbol: reader.readString(offsets[4]),
+    type: _EthContracttypeValueEnumMap[reader.readByteOrNull(offsets[5])] ??
+        EthContractType.unknown,
   );
   object.id = id;
   return object;
@@ -171,26 +144,24 @@ P _ethContractDeserializeProp<P>(
     case 3:
       return (reader.readString(offset)) as P;
     case 4:
-      return (reader.readStringOrNull(offset)) as P;
-    case 5:
       return (reader.readString(offset)) as P;
-    case 6:
+    case 5:
       return (_EthContracttypeValueEnumMap[reader.readByteOrNull(offset)] ??
-          EthContractType.erc20) as P;
-    case 7:
-      return (reader.readStringList(offset) ?? []) as P;
+          EthContractType.unknown) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
 
 const _EthContracttypeEnumValueMap = {
-  'erc20': 0,
-  'erc721': 1,
+  'unknown': 0,
+  'erc20': 1,
+  'erc721': 2,
 };
 const _EthContracttypeValueEnumMap = {
-  0: EthContractType.erc20,
-  1: EthContractType.erc721,
+  0: EthContractType.unknown,
+  1: EthContractType.erc20,
+  2: EthContractType.erc721,
 };
 
 Id _ethContractGetId(EthContract object) {
@@ -906,160 +877,6 @@ extension EthContractQueryFilter
     });
   }
 
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      otherDataIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'otherData',
-      ));
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      otherDataIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'otherData',
-      ));
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      otherDataEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'otherData',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      otherDataGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'otherData',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      otherDataLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'otherData',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      otherDataBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'otherData',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      otherDataStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'otherData',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      otherDataEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'otherData',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      otherDataContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'otherData',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      otherDataMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'otherData',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      otherDataIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'otherData',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      otherDataIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'otherData',
-        value: '',
-      ));
-    });
-  }
-
   QueryBuilder<EthContract, EthContract, QAfterFilterCondition> symbolEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1246,231 +1063,6 @@ extension EthContractQueryFilter
       ));
     });
   }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      walletIdsElementEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'walletIds',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      walletIdsElementGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'walletIds',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      walletIdsElementLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'walletIds',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      walletIdsElementBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'walletIds',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      walletIdsElementStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'walletIds',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      walletIdsElementEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'walletIds',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      walletIdsElementContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'walletIds',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      walletIdsElementMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'walletIds',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      walletIdsElementIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'walletIds',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      walletIdsElementIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'walletIds',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      walletIdsLengthEqualTo(int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'walletIds',
-        length,
-        true,
-        length,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      walletIdsIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'walletIds',
-        0,
-        true,
-        0,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      walletIdsIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'walletIds',
-        0,
-        false,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      walletIdsLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'walletIds',
-        0,
-        true,
-        length,
-        include,
-      );
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      walletIdsLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'walletIds',
-        length,
-        include,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterFilterCondition>
-      walletIdsLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'walletIds',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
-    });
-  }
 }
 
 extension EthContractQueryObject
@@ -1526,18 +1118,6 @@ extension EthContractQuerySortBy
   QueryBuilder<EthContract, EthContract, QAfterSortBy> sortByNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.desc);
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterSortBy> sortByOtherData() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'otherData', Sort.asc);
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterSortBy> sortByOtherDataDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'otherData', Sort.desc);
     });
   }
 
@@ -1628,18 +1208,6 @@ extension EthContractQuerySortThenBy
     });
   }
 
-  QueryBuilder<EthContract, EthContract, QAfterSortBy> thenByOtherData() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'otherData', Sort.asc);
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QAfterSortBy> thenByOtherDataDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'otherData', Sort.desc);
-    });
-  }
-
   QueryBuilder<EthContract, EthContract, QAfterSortBy> thenBySymbol() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'symbol', Sort.asc);
@@ -1694,13 +1262,6 @@ extension EthContractQueryWhereDistinct
     });
   }
 
-  QueryBuilder<EthContract, EthContract, QDistinct> distinctByOtherData(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'otherData', caseSensitive: caseSensitive);
-    });
-  }
-
   QueryBuilder<EthContract, EthContract, QDistinct> distinctBySymbol(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1711,12 +1272,6 @@ extension EthContractQueryWhereDistinct
   QueryBuilder<EthContract, EthContract, QDistinct> distinctByType() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'type');
-    });
-  }
-
-  QueryBuilder<EthContract, EthContract, QDistinct> distinctByWalletIds() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'walletIds');
     });
   }
 }
@@ -1753,12 +1308,6 @@ extension EthContractQueryProperty
     });
   }
 
-  QueryBuilder<EthContract, String?, QQueryOperations> otherDataProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'otherData');
-    });
-  }
-
   QueryBuilder<EthContract, String, QQueryOperations> symbolProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'symbol');
@@ -1768,13 +1317,6 @@ extension EthContractQueryProperty
   QueryBuilder<EthContract, EthContractType, QQueryOperations> typeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'type');
-    });
-  }
-
-  QueryBuilder<EthContract, List<String>, QQueryOperations>
-      walletIdsProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'walletIds');
     });
   }
 }
