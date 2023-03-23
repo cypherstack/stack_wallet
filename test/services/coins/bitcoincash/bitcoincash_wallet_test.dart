@@ -25,7 +25,7 @@ import 'bitcoincash_wallet_test_parameters.dart';
 void main() async {
   group("bitcoincash constants", () {
     test("bitcoincash minimum confirmations", () async {
-      expect(MINIMUM_CONFIRMATIONS, 1);
+      expect(MINIMUM_CONFIRMATIONS, 0);
     });
     test("bitcoincash dust limit", () async {
       expect(DUST_LIMIT, 546);
