@@ -21,12 +21,12 @@ flutter doctor
 # setup stack_duo github
 cd $PROJECTS
 git clone https://github.com/cypherstack/stack_duo.git
-cd stack_wallet
-export STACK_WALLET=$(pwd)
+cd stack_duo
+export STACK_DUO=$(pwd)
 git submodule update --init --recursive
 
 # Create template lib/external_api_keys.dart file if it doesn't already exist
-KEYS="$HOME/projects/stack_wallet/lib/external_api_keys.dart"
+KEYS="$HOME/projects/stack_duo/lib/external_api_keys.dart"
 if ! test -f "$KEYS"; then
     echo 'prebuild.sh: creating template lib/external_api_keys.dart file'
     printf 'const kChangeNowApiKey = "";\nconst kSimpleSwapApiKey = "";' > $KEYS
@@ -46,6 +46,6 @@ cargo install cargo-ndk
 rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
 
 # build stack wallet plugins
-cd $STACK_WALLET
+cd $STACK_DUO
 cd scripts/android
 ./build_all.sh
