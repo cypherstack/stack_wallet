@@ -34,8 +34,6 @@ class EthereumResponse<T> {
 abstract class EthereumAPI {
   static String get stackBaseServer => DefaultNodes.ethereum.host;
 
-  static String stackURI = "$stackBaseServer/eth/mainnet/api";
-
   // static const etherscanApi =
   //     "https://api.etherscan.io/api"; //TODO - Once our server has abi functionality update
 
