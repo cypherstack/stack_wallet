@@ -8,6 +8,7 @@ import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/utilities/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 import 'manager_test.mocks.dart';
@@ -103,6 +104,10 @@ void main() {
       type: TransactionType.incoming,
       subType: TransactionSubType.mint,
       amount: 123,
+      amountString: Amount(
+        rawValue: BigInt.from(123),
+        fractionDigits: wallet.coin.decimals,
+      ).toJsonString(),
       fee: 3,
       height: 123,
       isCancelled: false,
