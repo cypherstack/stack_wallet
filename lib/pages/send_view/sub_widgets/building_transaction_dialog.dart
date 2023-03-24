@@ -57,6 +57,11 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
 
   @override
   Widget build(BuildContext context) {
+    final isChans = Theme.of(context).extension<StackColors>()!.themeType ==
+            ThemeType.chan ||
+        Theme.of(context).extension<StackColors>()!.themeType ==
+            ThemeType.darkChans;
+
     if (Util.isDesktop) {
       return Column(
         mainAxisSize: MainAxisSize.min,
@@ -68,15 +73,13 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
           const SizedBox(
             height: 40,
           ),
-          if (Theme.of(context).extension<StackColors>()!.themeType ==
-              ThemeType.chan)
+          if (isChans)
             Image(
               image: AssetImage(
                 Assets.gif.kiss(widget.coin),
               ),
             ),
-          if (Theme.of(context).extension<StackColors>()!.themeType !=
-              ThemeType.chan)
+          if (!isChans)
             RotationTransition(
               turns: _spinAnimation,
               child: SvgPicture.asset(
@@ -104,8 +107,7 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
         onWillPop: () async {
           return false;
         },
-        child: Theme.of(context).extension<StackColors>()!.themeType ==
-                ThemeType.chan
+        child: isChans
             ? StackDialogBase(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,

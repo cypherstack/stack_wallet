@@ -588,7 +588,7 @@ class _SendViewState extends ConsumerState<SendView> {
         cryptoAmountController.text = _data!.amount!.toString();
       }
       sendToController.text = _data!.contactLabel;
-      _address = _data!.address;
+      _address = _data!.address.trim();
       _addressToggleFlag = true;
     }
 
@@ -689,7 +689,7 @@ class _SendViewState extends ConsumerState<SendView> {
     // add listener for epic cash to strip http:// and https:// prefixes if the address also ocntains an @ symbol (indicating an epicbox address)
     if (coin == Coin.epicCash) {
       sendToController.addListener(() {
-        _address = sendToController.text;
+        _address = sendToController.text.trim();
 
         if (_address != null && _address!.isNotEmpty) {
           _address = _address!.trim();
@@ -956,7 +956,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                   selectAll: false,
                                 ),
                                 onChanged: (newValue) {
-                                  _address = newValue;
+                                  _address = newValue.trim();
                                   _updatePreviewButtonState(
                                       _address, _amountToSend);
 
@@ -1032,8 +1032,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                             content);
                                                       }
                                                       sendToController.text =
-                                                          content;
-                                                      _address = content;
+                                                          content.trim();
+                                                      _address = content.trim();
 
                                                       _updatePreviewButtonState(
                                                           _address,
@@ -1112,8 +1112,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                                           coin.uriScheme) {
                                                     // auto fill address
                                                     _address =
-                                                        results["address"] ??
-                                                            "";
+                                                        (results["address"] ??
+                                                                "")
+                                                            .trim();
                                                     sendToController.text =
                                                         _address!;
 
@@ -1168,8 +1169,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                                       .getManager(walletId)
                                                       .validateAddress(qrResult
                                                           .rawContent)) {
-                                                    _address =
-                                                        qrResult.rawContent;
+                                                    _address = qrResult
+                                                        .rawContent
+                                                        .trim();
                                                     sendToController.text =
                                                         _address ?? "";
 

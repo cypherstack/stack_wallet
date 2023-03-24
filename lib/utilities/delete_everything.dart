@@ -21,7 +21,7 @@ Future<bool> deleteEverything() async {
         .deleteBoxFromDisk(boxName: DB.boxNameWalletsToDeleteOnStart);
     await DB.instance.deleteBoxFromDisk(boxName: DB.boxNamePriceCache);
     await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameDBInfo);
-    await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameTheme);
+    await DB.instance.deleteBoxFromDisk(boxName: "theme");
     return true;
   } catch (e, s) {
     Logging.instance.log("$e $s", level: LogLevel.Error);

@@ -4,6 +4,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/languages_enum.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
+import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:uuid/uuid.dart';
 
 class Prefs extends ChangeNotifier {
@@ -41,6 +42,10 @@ class Prefs extends ChangeNotifier {
       _userId = await _getUserId();
       _signupEpoch = await _getSignupEpoch();
       _enableCoinControl = await _getEnableCoinControl();
+      _enableSystemBrightness = await _getEnableSystemBrightness();
+      _theme = await _getTheme();
+      _systemBrightnessLightTheme = await _getSystemBrightnessLightTheme();
+      _systemBrightnessDarkTheme = await _getSystemBrightnessDarkTheme();
 
       _initialized = true;
     }
@@ -668,5 +673,97 @@ class Prefs extends ChangeNotifier {
     return await DB.instance.get<dynamic>(
             boxName: DB.boxNamePrefs, key: "enableCoinControl") as bool? ??
         false;
+  }
+
+  // follow system brightness
+
+  bool _enableSystemBrightness = false;
+
+  bool get enableSystemBrightness => _enableSystemBrightness;
+
+  set enableSystemBrightness(bool enableSystemBrightness) {
+    if (_enableSystemBrightness != enableSystemBrightness) {
+      DB.instance.put<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "enableSystemBrightness",
+          value: enableSystemBrightness);
+      _enableSystemBrightness = enableSystemBrightness;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getEnableSystemBrightness() async {
+    return await DB.instance.get<dynamic>(
+            boxName: DB.boxNamePrefs, key: "enableSystemBrightness") as bool? ??
+        false;
+  }
+
+  // system brightness light theme name
+
+  ThemeType _theme = ThemeType.light;
+
+  ThemeType get theme => _theme;
+
+  set theme(ThemeType theme) {
+    if (this.theme != theme) {
+      DB.instance.put<dynamic>(
+          boxName: DB.boxNamePrefs, key: "theme", value: theme.name);
+      _theme = theme;
+      notifyListeners();
+    }
+  }
+
+  Future<ThemeType> _getTheme() async {
+    return ThemeTypeExt.fromName(await DB.instance
+            .get<dynamic>(boxName: DB.boxNamePrefs, key: "theme") as String? ??
+        ThemeType.light.name);
+  }
+
+  // system brightness light theme name
+
+  ThemeType _systemBrightnessLightTheme = ThemeType.light;
+
+  ThemeType get systemBrightnessLightTheme => _systemBrightnessLightTheme;
+
+  set systemBrightnessLightTheme(ThemeType systemBrightnessLightTheme) {
+    if (this.systemBrightnessLightTheme != systemBrightnessLightTheme) {
+      DB.instance.put<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "systemBrightnessLightTheme",
+          value: systemBrightnessLightTheme.name);
+      _systemBrightnessLightTheme = systemBrightnessLightTheme;
+      notifyListeners();
+    }
+  }
+
+  Future<ThemeType> _getSystemBrightnessLightTheme() async {
+    return ThemeTypeExt.fromName(await DB.instance.get<dynamic>(
+            boxName: DB.boxNamePrefs,
+            key: "systemBrightnessLightTheme") as String? ??
+        ThemeType.light.name);
+  }
+
+  // system brightness dark theme name
+
+  ThemeType _systemBrightnessDarkTheme = ThemeType.dark;
+
+  ThemeType get systemBrightnessDarkTheme => _systemBrightnessDarkTheme;
+
+  set systemBrightnessDarkTheme(ThemeType systemBrightnessDarkTheme) {
+    if (this.systemBrightnessDarkTheme != systemBrightnessDarkTheme) {
+      DB.instance.put<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "systemBrightnessDarkTheme",
+          value: systemBrightnessDarkTheme.name);
+      _systemBrightnessDarkTheme = systemBrightnessDarkTheme;
+      notifyListeners();
+    }
+  }
+
+  Future<ThemeType> _getSystemBrightnessDarkTheme() async {
+    return ThemeTypeExt.fromName(await DB.instance.get<dynamic>(
+            boxName: DB.boxNamePrefs,
+            key: "systemBrightnessDarkTheme") as String? ??
+        ThemeType.dark.name);
   }
 }

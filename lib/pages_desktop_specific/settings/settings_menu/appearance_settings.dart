@@ -112,6 +112,44 @@ class _AppearanceOptionSettings
                         ],
                       ),
                     ),
+                    // const Padding(
+                    //   padding: EdgeInsets.all(10.0),
+                    //   child: Divider(
+                    //     thickness: 0.5,
+                    //   ),
+                    // ),
+                    // Padding(
+                    //   padding: const EdgeInsets.all(10.0),
+                    //   child: Row(
+                    //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //     children: [
+                    //       Text(
+                    //         "System brightness",
+                    //         style: STextStyles.desktopTextExtraSmall(context)
+                    //             .copyWith(
+                    //                 color: Theme.of(context)
+                    //                     .extension<StackColors>()!
+                    //                     .textDark),
+                    //         textAlign: TextAlign.left,
+                    //       ),
+                    //       SizedBox(
+                    //         height: 20,
+                    //         width: 40,
+                    //         child: DraggableSwitchButton(
+                    //           isOn: ref.watch(
+                    //             prefsChangeNotifierProvider.select(
+                    //                 (value) => value.enableSystemBrightness),
+                    //           ),
+                    //           onValueChanged: (newValue) {
+                    //             ref
+                    //                 .read(prefsChangeNotifierProvider)
+                    //                 .enableSystemBrightness = newValue;
+                    //           },
+                    //         ),
+                    //       )
+                    //     ],
+                    //   ),
+                    // ),
                     const Padding(
                       padding: EdgeInsets.all(10.0),
                       child: Divider(
@@ -166,6 +204,8 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
         return Assets.svg.themeLight;
       case ThemeType.dark:
         return Assets.svg.themeDark;
+      case ThemeType.darkChans:
+        return Assets.svg.themeDarkChan;
       case ThemeType.oceanBreeze:
         return Assets.svg.themeOcean;
       case ThemeType.oledBlack:
@@ -192,14 +232,12 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
               cursor: SystemMouseCursors.click,
               child: GestureDetector(
                 onTap: () {
-                  if (ref.read(colorThemeProvider.state).state.themeType !=
+                  if (ref.read(colorThemeProvider.notifier).state.themeType !=
                       ThemeType.values[i]) {
-                    DB.instance.put<dynamic>(
-                      boxName: DB.boxNameTheme,
-                      key: "colorScheme",
-                      value: ThemeType.values[i].name,
-                    );
-                    ref.read(colorThemeProvider.state).state =
+                    ref.read(prefsChangeNotifierProvider.notifier).theme =
+                        ThemeType.values[i];
+
+                    ref.read(colorThemeProvider.notifier).state =
                         StackColors.fromStackColorTheme(
                             ThemeType.values[i].colorTheme);
                   }
@@ -215,7 +253,7 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
                           border: Border.all(
                             width: 2.5,
                             color: ref
-                                        .read(colorThemeProvider.state)
+                                        .read(colorThemeProvider.notifier)
                                         .state
                                         .themeType ==
                                     ThemeType.values[i]

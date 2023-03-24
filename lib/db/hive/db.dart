@@ -31,7 +31,7 @@ class DB {
   static const String boxNameWalletsToDeleteOnStart = "walletsToDeleteOnStart";
   static const String boxNamePriceCache = "priceAPIPrice24hCache";
   static const String boxNameDBInfo = "dbInfo";
-  static const String boxNameTheme = "theme";
+  // static const String boxNameTheme = "theme";
   static const String boxNameDesktopData = "desktopData";
   static const String boxNameBuys = "buysBox";
 

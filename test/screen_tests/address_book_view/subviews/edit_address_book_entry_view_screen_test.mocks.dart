@@ -337,11 +337,6 @@ class MockManager extends _i1.Mock implements _i9.Manager {
         returnValue: false,
       ) as bool);
   @override
-  bool get hasTokenSupport => (super.noSuchMethod(
-        Invocation.getter(#hasTokenSupport),
-        returnValue: false,
-      ) as bool);
-  @override
   bool get hasWhirlpoolSupport => (super.noSuchMethod(
         Invocation.getter(#hasWhirlpoolSupport),
         returnValue: false,

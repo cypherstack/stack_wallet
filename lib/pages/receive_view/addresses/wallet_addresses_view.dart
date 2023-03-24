@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/receive_view/addresses/address_card.dart';
+import 'package:stackwallet/pages/receive_view/addresses/address_details_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -13,7 +15,12 @@ import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:stackwallet/widgets/toggle.dart';
+import 'package:stackwallet/widgets/stack_text_field.dart';
+import 'package:tuple/tuple.dart';
+
+import '../../../utilities/assets.dart';
+import '../../../widgets/icon_widgets/x_icon.dart';
+import '../../../widgets/textfield_icon_button.dart';
 
 class WalletAddressesView extends ConsumerStatefulWidget {
   const WalletAddressesView({
@@ -33,7 +40,88 @@ class WalletAddressesView extends ConsumerStatefulWidget {
 class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
   final bool isDesktop = Util.isDesktop;
 
-  bool _showChange = false;
+  String _searchString = "";
+
+  late final TextEditingController _searchController;
+  final searchFieldFocusNode = FocusNode();
+
+  Future<List<int>> _search(String term) async {
+    if (term.isEmpty) {
+      return MainDB.instance
+          .getAddresses(widget.walletId)
+          .filter()
+          .group((q) => q
+              .subTypeEqualTo(AddressSubType.change)
+              .or()
+              .subTypeEqualTo(AddressSubType.receiving)
+              .or()
+              .subTypeEqualTo(AddressSubType.paynymReceive)
+              .or()
+              .subTypeEqualTo(AddressSubType.paynymNotification))
+          .and()
+          .not()
+          .typeEqualTo(AddressType.nonWallet)
+          .sortByDerivationIndex()
+          .idProperty()
+          .findAll();
+    }
+
+    final labels = await MainDB.instance
+        .getAddressLabels(widget.walletId)
+        .filter()
+        .group(
+          (q) => q
+              .valueContains(term, caseSensitive: false)
+              .or()
+              .addressStringContains(term, caseSensitive: false)
+              .or()
+              .group(
+                (q) => q
+                    .tagsIsNotNull()
+                    .and()
+                    .tagsElementContains(term, caseSensitive: false),
+              ),
+        )
+        .findAll();
+
+    if (labels.isEmpty) {
+      return [];
+    }
+
+    return MainDB.instance
+        .getAddresses(widget.walletId)
+        .filter()
+        .anyOf<AddressLabel, Address>(
+            labels, (q, e) => q.valueEqualTo(e.addressString))
+        .group((q) => q
+            .subTypeEqualTo(AddressSubType.change)
+            .or()
+            .subTypeEqualTo(AddressSubType.receiving)
+            .or()
+            .subTypeEqualTo(AddressSubType.paynymReceive)
+            .or()
+            .subTypeEqualTo(AddressSubType.paynymNotification))
+        .and()
+        .not()
+        .typeEqualTo(AddressType.nonWallet)
+        .sortByDerivationIndex()
+        .idProperty()
+        .findAll();
+  }
+
+  @override
+  void initState() {
+    _searchController = TextEditingController();
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    searchFieldFocusNode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,26 +156,66 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
       child: Column(
         children: [
           SizedBox(
-            height: isDesktop ? 56 : 48,
             width: isDesktop ? 490 : null,
-            child: Toggle(
-              key: UniqueKey(),
-              onColor: Theme.of(context).extension<StackColors>()!.popupBG,
-              onText: "Receiving",
-              offColor: Theme.of(context)
-                  .extension<StackColors>()!
-                  .textFieldDefaultBG,
-              offText: "Change",
-              isOn: _showChange,
-              onValueChanged: (value) {
-                setState(() {
-                  _showChange = value;
-                });
-              },
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(
-                  Constants.size.circularBorderRadius,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(
+                Constants.size.circularBorderRadius,
+              ),
+              child: TextField(
+                autocorrect: !isDesktop,
+                enableSuggestions: !isDesktop,
+                controller: _searchController,
+                focusNode: searchFieldFocusNode,
+                onChanged: (value) {
+                  setState(() {
+                    _searchString = value;
+                  });
+                },
+                style: isDesktop
+                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldActiveText,
+                        height: 1.8,
+                      )
+                    : STextStyles.field(context),
+                decoration: standardInputDecoration(
+                  "Search...",
+                  searchFieldFocusNode,
+                  context,
+                  desktopMed: isDesktop,
+                ).copyWith(
+                  prefixIcon: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isDesktop ? 12 : 10,
+                      vertical: isDesktop ? 18 : 16,
+                    ),
+                    child: SvgPicture.asset(
+                      Assets.svg.search,
+                      width: isDesktop ? 20 : 16,
+                      height: isDesktop ? 20 : 16,
+                    ),
+                  ),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.only(right: 0),
+                          child: UnconstrainedBox(
+                            child: Row(
+                              children: [
+                                TextFieldIconButton(
+                                  child: const XIcon(),
+                                  onTap: () async {
+                                    setState(() {
+                                      _searchController.text = "";
+                                      _searchString = "";
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : null,
                 ),
               ),
             ),
@@ -97,23 +225,7 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
           ),
           Expanded(
             child: FutureBuilder(
-              future: MainDB.instance
-                  .getAddresses(widget.walletId)
-                  .filter()
-                  .group(
-                    (q) => _showChange
-                        ? q.subTypeEqualTo(AddressSubType.change)
-                        : q
-                            .subTypeEqualTo(AddressSubType.receiving)
-                            .or()
-                            .subTypeEqualTo(AddressSubType.paynymReceive),
-                  )
-                  .and()
-                  .not()
-                  .typeEqualTo(AddressType.nonWallet)
-                  .sortByDerivationIndex()
-                  .idProperty()
-                  .findAll(),
+              future: _search(_searchString),
               builder: (context, AsyncSnapshot<List<int>> snapshot) {
                 if (snapshot.connectionState == ConnectionState.done &&
                     snapshot.data != null) {
@@ -127,6 +239,15 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
                       walletId: widget.walletId,
                       addressId: snapshot.data![index],
                       coin: coin,
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          AddressDetailsView.routeName,
+                          arguments: Tuple2(
+                            snapshot.data![index],
+                            widget.walletId,
+                          ),
+                        );
+                      },
                     ),
                   );
                 } else {

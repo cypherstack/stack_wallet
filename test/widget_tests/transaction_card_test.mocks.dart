@@ -10,7 +10,7 @@ import 'package:decimal/decimal.dart' as _i14;
 import 'package:flutter/foundation.dart' as _i4;
 import 'package:flutter_riverpod/flutter_riverpod.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/db/isar/main_db.dart' as _i13;
+import 'package:stackwallet/db/main_db.dart' as _i13;
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i12;
 import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i11;
 import 'package:stackwallet/models/balance.dart' as _i9;
@@ -22,8 +22,8 @@ import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as _i22;
 import 'package:stackwallet/services/coins/manager.dart' as _i6;
 import 'package:stackwallet/services/locale_service.dart' as _i24;
 import 'package:stackwallet/services/node_service.dart' as _i3;
-import 'package:stackwallet/services/notes_service.dart' as _i28;
-import 'package:stackwallet/services/price_service.dart' as _i27;
+import 'package:stackwallet/services/notes_service.dart' as _i29;
+import 'package:stackwallet/services/price_service.dart' as _i28;
 import 'package:stackwallet/services/transaction_notification_tracker.dart'
     as _i10;
 import 'package:stackwallet/services/wallets.dart' as _i16;
@@ -32,6 +32,7 @@ import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i26;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i17;
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i25;
 import 'package:stackwallet/utilities/prefs.dart' as _i19;
+import 'package:stackwallet/utilities/theme/color_theme.dart' as _i27;
 import 'package:tuple/tuple.dart' as _i15;
 
 // ignore_for_file: type=lint
@@ -552,11 +553,6 @@ class MockManager extends _i1.Mock implements _i6.Manager {
   @override
   bool get hasCoinControlSupport => (super.noSuchMethod(
         Invocation.getter(#hasCoinControlSupport),
-        returnValue: false,
-      ) as bool);
-  @override
-  bool get hasTokenSupport => (super.noSuchMethod(
-        Invocation.getter(#hasTokenSupport),
         returnValue: false,
       ) as bool);
   @override
@@ -1960,25 +1956,6 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
         returnValueForMissingStub: _i18.Future<void>.value(),
       ) as _i18.Future<void>);
   @override
-  List<String> getWalletTokenContractAddresses() => (super.noSuchMethod(
-        Invocation.method(
-          #getWalletTokenContractAddresses,
-          [],
-        ),
-        returnValue: <String>[],
-      ) as List<String>);
-  @override
-  _i18.Future<void> updateWalletTokenContractAddresses(
-          List<String>? contractAddresses) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #updateWalletTokenContractAddresses,
-          [contractAddresses],
-        ),
-        returnValue: _i18.Future<void>.value(),
-        returnValueForMissingStub: _i18.Future<void>.value(),
-      ) as _i18.Future<void>);
-  @override
   void initWalletDB({_i13.MainDB? mockableOverride}) => super.noSuchMethod(
         Invocation.method(
           #initWalletDB,
@@ -2368,6 +2345,61 @@ class MockPrefs extends _i1.Mock implements _i19.Prefs {
         returnValueForMissingStub: null,
       );
   @override
+  bool get enableSystemBrightness => (super.noSuchMethod(
+        Invocation.getter(#enableSystemBrightness),
+        returnValue: false,
+      ) as bool);
+  @override
+  set enableSystemBrightness(bool? enableSystemBrightness) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #enableSystemBrightness,
+          enableSystemBrightness,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i27.ThemeType get theme => (super.noSuchMethod(
+        Invocation.getter(#theme),
+        returnValue: _i27.ThemeType.light,
+      ) as _i27.ThemeType);
+  @override
+  set theme(_i27.ThemeType? theme) => super.noSuchMethod(
+        Invocation.setter(
+          #theme,
+          theme,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i27.ThemeType get systemBrightnessLightTheme => (super.noSuchMethod(
+        Invocation.getter(#systemBrightnessLightTheme),
+        returnValue: _i27.ThemeType.light,
+      ) as _i27.ThemeType);
+  @override
+  set systemBrightnessLightTheme(_i27.ThemeType? systemBrightnessLightTheme) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #systemBrightnessLightTheme,
+          systemBrightnessLightTheme,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i27.ThemeType get systemBrightnessDarkTheme => (super.noSuchMethod(
+        Invocation.getter(#systemBrightnessDarkTheme),
+        returnValue: _i27.ThemeType.light,
+      ) as _i27.ThemeType);
+  @override
+  set systemBrightnessDarkTheme(_i27.ThemeType? systemBrightnessDarkTheme) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #systemBrightnessDarkTheme,
+          systemBrightnessDarkTheme,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
@@ -2453,7 +2485,7 @@ class MockPrefs extends _i1.Mock implements _i19.Prefs {
 /// A class which mocks [PriceService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockPriceService extends _i1.Mock implements _i27.PriceService {
+class MockPriceService extends _i1.Mock implements _i28.PriceService {
   MockPriceService() {
     _i1.throwOnMissingStub(this);
   }
@@ -2496,21 +2528,6 @@ class MockPriceService extends _i1.Mock implements _i27.PriceService {
           Invocation.method(
             #getPrice,
             [coin],
-          ),
-        ),
-      ) as _i15.Tuple2<_i14.Decimal, double>);
-  @override
-  _i15.Tuple2<_i14.Decimal, double> getTokenPrice(String? contractAddress) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getTokenPrice,
-          [contractAddress],
-        ),
-        returnValue: _FakeTuple2_13<_i14.Decimal, double>(
-          this,
-          Invocation.method(
-            #getTokenPrice,
-            [contractAddress],
           ),
         ),
       ) as _i15.Tuple2<_i14.Decimal, double>);
@@ -2576,7 +2593,7 @@ class MockPriceService extends _i1.Mock implements _i27.PriceService {
 /// A class which mocks [NotesService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockNotesService extends _i1.Mock implements _i28.NotesService {
+class MockNotesService extends _i1.Mock implements _i29.NotesService {
   MockNotesService() {
     _i1.throwOnMissingStub(this);
   }

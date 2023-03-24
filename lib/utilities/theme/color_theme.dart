@@ -6,6 +6,7 @@ import 'package:stackwallet/utilities/theme/fruit_sorbet_colors.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
 import 'package:stackwallet/utilities/theme/oled_black_colors.dart';
+import 'package:stackwallet/utilities/theme/oled_chans_colors.dart';
 
 import 'chan_colors.dart';
 
@@ -16,12 +17,36 @@ enum ThemeType {
   oledBlack,
   fruitSorbet,
   forest,
-  chan;
+  chan,
+  darkChans;
 }
 
 // adjust this file
 
 extension ThemeTypeExt on ThemeType {
+  static ThemeType fromName(String name) {
+    switch (name) {
+      case "light":
+        return ThemeType.light;
+      case "chan":
+        return ThemeType.chan;
+      case "dark":
+        return ThemeType.dark;
+      case "oceanBreeze":
+        return ThemeType.oceanBreeze;
+      case "oledBlack":
+        return ThemeType.oledBlack;
+      case "fruitSorbet":
+        return ThemeType.fruitSorbet;
+      case "forest":
+        return ThemeType.forest;
+      case "darkChans":
+        return ThemeType.darkChans;
+      default:
+        throw ArgumentError("Invalid theme name");
+    }
+  }
+
   StackColorTheme get colorTheme {
     switch (this) {
       case ThemeType.light:
@@ -38,6 +63,8 @@ extension ThemeTypeExt on ThemeType {
         return FruitSorbetColors();
       case ThemeType.forest:
         return ForestColors();
+      case ThemeType.darkChans:
+        return DarkChansColors();
     }
   }
 
@@ -57,6 +84,8 @@ extension ThemeTypeExt on ThemeType {
         return "Fruit Sorbet";
       case ThemeType.forest:
         return "Forest";
+      case ThemeType.darkChans:
+        return "Dark Chans";
     }
   }
 }

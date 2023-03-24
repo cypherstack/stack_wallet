@@ -326,7 +326,7 @@ class OledBlackColors extends StackColorTheme {
   Color get textConfirmTotalAmount =>
       textFieldSuccessLabel; //const Color(0xFF144D35);
   @override
-  Color get textSelectedWordTableItem => const Color(0xFF143D8E);
+  Color get textSelectedWordTableItem => const Color(0xFFF26822);
 
   //rate type toggle
   @override
