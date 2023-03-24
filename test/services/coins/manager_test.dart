@@ -75,6 +75,7 @@ void main() {
   group("get balances", () {
     test("balance", () async {
       final CoinServiceAPI wallet = MockFiroWallet();
+      when(wallet.coin).thenAnswer((_) => Coin.firo);
       when(wallet.balance).thenAnswer(
         (_) => Balance(
           coin: Coin.firo,
