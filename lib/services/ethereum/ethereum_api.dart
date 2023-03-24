@@ -468,46 +468,89 @@ abstract class EthereumAPI {
     }
   }
 
-  /// Fetch the underlying contract address that a proxy contract points to
-  static Future<EthereumResponse<String>> getProxyTokenImplementation(
-      String contractAddress) async {
-    try {
-      final response = await get(Uri.parse(
-          // "$stackURI?module=contract&action=getsourcecode&address=$contractAddress"));
-          "$etherscanApi?module=contract&action=getsourcecode&address=$contractAddress&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
-      if (response.statusCode == 200) {
-        final json = jsonDecode(response.body);
-        if (json["message"] == "OK") {
-          final list = json["result"] as List;
-          final map = Map<String, dynamic>.from(list.first as Map);
+  // static Future<EthereumResponse<String>> getTokenAbi22(
+  //     String contractAddress) async {
+  //   try {
+  //     final response = await get(
+  //       Uri.parse(
+  //         "https://api.etherscan.io/api?module=contract&action=getabi&address=$contractAddress&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP",
+  //       ),
+  //     );
+  //
+  //     if (response.statusCode == 200) {
+  //       final json = jsonDecode(response.body) as Map;
+  //       print("==========================  222222222222222 ================");
+  //       dev.log((jsonDecode(json["result"] as String)).toString());
+  //       print(
+  //           "============================   2222222222222222222 ==============");
+  //
+  //       return EthereumResponse(
+  //         json["result"] as String,
+  //         null,
+  //       );
+  //     } else {
+  //       throw EthApiException(
+  //         "getTokenAbi($contractAddress) failed with status code: "
+  //         "${response.statusCode}",
+  //       );
+  //     }
+  //   } on EthApiException catch (e) {
+  //     return EthereumResponse(
+  //       null,
+  //       e,
+  //     );
+  //   } catch (e, s) {
+  //     Logging.instance.log(
+  //       "getTokenAbi(): $e\n$s",
+  //       level: LogLevel.Error,
+  //     );
+  //     return EthereumResponse(
+  //       null,
+  //       EthApiException(e.toString()),
+  //     );
+  //   }
+  // }
 
-          return EthereumResponse(
-            map["Implementation"] as String,
-            null,
-          );
-        } else {
-          throw EthApiException(json["message"] as String);
-        }
-      } else {
-        throw EthApiException(
-          "fetchProxyTokenImplementation($contractAddress) failed with status code: "
-          "${response.statusCode}",
-        );
-      }
-    } on EthApiException catch (e) {
-      return EthereumResponse(
-        null,
-        e,
-      );
-    } catch (e, s) {
-      Logging.instance.log(
-        "fetchProxyTokenImplementation(): $e\n$s",
-        level: LogLevel.Error,
-      );
-      return EthereumResponse(
-        null,
-        EthApiException(e.toString()),
-      );
-    }
-  }
+  // /// Fetch the underlying contract address that a proxy contract points to
+  // static Future<EthereumResponse<String>> getProxyTokenImplementation(
+  //     String contractAddress) async {
+  //   try {
+  //     final response = await get(Uri.parse(
+  //         "$stackURI?module=contract&action=getsourcecode&address=$contractAddress"));
+  //     // "$etherscanApi?module=contract&action=getsourcecode&address=$contractAddress&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP"));
+  //     if (response.statusCode == 200) {
+  //       final json = jsonDecode(response.body);
+  //       if (json["message"] == "OK") {
+  //         final list = json["result"] as List;
+  //         final map = Map<String, dynamic>.from(list.first as Map);
+  //
+  //         return EthereumResponse(
+  //           map["Implementation"] as String,
+  //           null,
+  //         );
+  //       } else {
+  //         throw EthApiException(json["message"] as String);
+  //       }
+  //     } else {
+  //       throw EthApiException(
+  //         "fetchProxyTokenImplementation($contractAddress) failed with status code: "
+  //         "${response.statusCode}",
+  //       );
+  //     }
+  //   } on EthApiException catch (e) {
+  //     return EthereumResponse(
+  //       null,
+  //       e,
+  //     );
+  //   } catch (e, s) {
+  //     Logging.instance.log(
+  //       "fetchProxyTokenImplementation(): $e\n$s",
+  //       level: LogLevel.Error,
+  //     );
+  //     return EthereumResponse(
+  //       null,
+  //       EthApiException(e.toString()),
+  //     );
+  //   }
+  // }
 }
