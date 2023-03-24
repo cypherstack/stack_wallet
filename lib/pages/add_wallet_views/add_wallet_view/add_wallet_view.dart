@@ -48,7 +48,8 @@ class _AddWalletViewState extends State<AddWalletView> {
     coins.remove(Coin.firoTestNet);
     if (Platform.isWindows) {
       coins.remove(Coin.monero);
-      coins.remove(Coin.wonero);
+      coins.remove(Coin.wownero);
+    }
     super.initState();
   }
 
