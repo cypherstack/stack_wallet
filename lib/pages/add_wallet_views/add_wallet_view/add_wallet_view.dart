@@ -46,11 +46,9 @@ class _AddWalletViewState extends State<AddWalletView> {
     _searchFieldController = TextEditingController();
     _searchFocusNode = FocusNode();
     coins.remove(Coin.firoTestNet);
-    if (isDesktop) {
+    if (Platform.isWindows) {
+      coins.remove(Coin.monero);
       coins.remove(Coin.wownero);
-      if (Platform.isWindows) {
-        coins.remove(Coin.monero);
-      }
     }
     super.initState();
   }
