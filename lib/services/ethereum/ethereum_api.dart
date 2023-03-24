@@ -370,9 +370,9 @@ abstract class EthereumAPI {
       );
 
       if (response.statusCode == 200) {
-        final json = jsonDecode(response.body);
-        if (json["message"] == "OK") {
-          final map = Map<String, dynamic>.from(json["result"] as Map);
+        final json = jsonDecode(response.body) as Map;
+        if (json["data"] is List) {
+          final map = Map<String, dynamic>.from(json["data"].first as Map);
           EthContract? token;
           if (map["isErc20"] == true) {
             token = EthContract(
@@ -400,7 +400,7 @@ abstract class EthereumAPI {
             null,
           );
         } else {
-          throw EthApiException(json["message"] as String);
+          throw EthApiException(response.body);
         }
       } else {
         throw EthApiException(
