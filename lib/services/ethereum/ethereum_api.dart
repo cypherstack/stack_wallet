@@ -427,26 +427,19 @@ abstract class EthereumAPI {
     }
   }
 
-  static Future<EthereumResponse<String>> getTokenAbi(
-      String contractAddress) async {
+  static Future<EthereumResponse<String>> getTokenAbi({
+    required String name,
+    required String contractAddress,
+  }) async {
     try {
       final response = await get(
         Uri.parse(
-          "$stackBaseServer/abis?addrs=$contractAddress",
+          "$stackBaseServer/abis?addrs=$contractAddress&verbose=true",
         ),
       );
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body)["data"] as List;
-
-        // trueblocks api does not contain the `anonymous` value
-        // web3dart expects it so hack it in
-        // TODO: fix this if we ever actually need to use contract ABI events
-        for (final map in json) {
-          if (map["type"] == "event") {
-            map["anonymous"] = false;
-          }
-        }
 
         return EthereumResponse(
           jsonEncode(json),
@@ -454,7 +447,7 @@ abstract class EthereumAPI {
         );
       } else {
         throw EthApiException(
-          "getTokenAbi($contractAddress) failed with status code: "
+          "getTokenAbi($name, $contractAddress) failed with status code: "
           "${response.statusCode}",
         );
       }
@@ -465,7 +458,7 @@ abstract class EthereumAPI {
       );
     } catch (e, s) {
       Logging.instance.log(
-        "getTokenAbi(): $e\n$s",
+        "getTokenAbi($name, $contractAddress): $e\n$s",
         level: LogLevel.Error,
       );
       return EthereumResponse(
