@@ -2114,8 +2114,10 @@ class BitcoinCashWallet extends CoinServiceAPI
           .txidEqualTo(txHash["tx_hash"] as String)
           .findFirst();
 
-      if (storedTx == null ||
-          !storedTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)) {
+      if (storedTx == null || storedTx.address.value == null
+          // zero conf messes this up
+          // !storedTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)
+          ) {
         final tx = await cachedElectrumXClient.getTransaction(
           txHash: txHash["tx_hash"] as String,
           verbose: true,
