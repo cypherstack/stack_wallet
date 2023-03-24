@@ -141,6 +141,8 @@ enum AddressType {
         return "Unknown";
       case AddressType.nonWallet:
         return "Non wallet/unknown";
+      case AddressType.ethereum:
+        return "Ethereum";
     }
   }
 }

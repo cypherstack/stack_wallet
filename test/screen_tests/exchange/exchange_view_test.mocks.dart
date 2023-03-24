@@ -732,6 +732,23 @@ class MockChangeNowAPI extends _i1.Mock implements _i12.ChangeNowAPI {
         )),
       ) as _i7.Future<_i2.ExchangeResponse<List<_i14.Currency>>>);
   @override
+  _i7.Future<_i2.ExchangeResponse<List<_i14.Currency>>> getCurrenciesV2() =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getCurrenciesV2,
+          [],
+        ),
+        returnValue:
+            _i7.Future<_i2.ExchangeResponse<List<_i14.Currency>>>.value(
+                _FakeExchangeResponse_0<List<_i14.Currency>>(
+          this,
+          Invocation.method(
+            #getCurrenciesV2,
+            [],
+          ),
+        )),
+      ) as _i7.Future<_i2.ExchangeResponse<List<_i14.Currency>>>);
+  @override
   _i7.Future<_i2.ExchangeResponse<List<_i14.Currency>>> getPairedCurrencies({
     required String? ticker,
     bool? fixedRate,
