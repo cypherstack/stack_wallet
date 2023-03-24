@@ -44,6 +44,8 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../utilities/amount.dart';
+
 const int MINIMUM_CONFIRMATIONS = 1;
 const int DUST_LIMIT = 294;
 
@@ -1160,6 +1162,10 @@ class ParticlWallet extends CoinServiceAPI
       type: isar_models.TransactionType.outgoing,
       subType: isar_models.TransactionSubType.none,
       amount: txData["recipientAmt"] as int,
+      amountString: Amount(
+        rawValue: BigInt.from(txData["recipientAmt"] as int),
+        fractionDigits: coin.decimals,
+      ).toJsonString(),
       fee: txData["fee"] as int,
       height: null,
       isCancelled: false,
@@ -2351,6 +2357,10 @@ class ParticlWallet extends CoinServiceAPI
         type: type,
         subType: isar_models.TransactionSubType.none,
         amount: amount,
+        amountString: Amount(
+          rawValue: BigInt.from(amount),
+          fractionDigits: coin.decimals,
+        ).toJsonString(),
         fee: fee,
         height: txObject["height"] as int,
         inputs: inputs,

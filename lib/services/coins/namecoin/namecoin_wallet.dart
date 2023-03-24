@@ -31,6 +31,7 @@ import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
+import 'package:stackwallet/utilities/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -1232,6 +1233,10 @@ class NamecoinWallet extends CoinServiceAPI
       type: isar_models.TransactionType.outgoing,
       subType: isar_models.TransactionSubType.none,
       amount: txData["recipientAmt"] as int,
+      amountString: Amount(
+        rawValue: BigInt.from(txData["recipientAmt"] as int),
+        fractionDigits: coin.decimals,
+      ).toJsonString(),
       fee: txData["fee"] as int,
       height: null,
       isCancelled: false,

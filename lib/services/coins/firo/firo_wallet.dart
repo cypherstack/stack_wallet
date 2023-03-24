@@ -32,6 +32,7 @@ import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
+import 'package:stackwallet/utilities/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -472,6 +473,10 @@ Future<Map<dynamic, dynamic>> staticProcessRestore(
           type: element.type,
           subType: isar_models.TransactionSubType.mint,
           amount: element.amount,
+          amountString: Amount(
+            rawValue: BigInt.from(element.amount),
+            fractionDigits: Coin.firo.decimals,
+          ).toJsonString(),
           fee: sharedFee,
           height: element.height,
           isCancelled: false,
@@ -899,6 +904,10 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       type: isar_models.TransactionType.outgoing,
       subType: isar_models.TransactionSubType.none,
       amount: txData["recipientAmt"] as int,
+      amountString: Amount(
+        rawValue: BigInt.from(txData["recipientAmt"] as int),
+        fractionDigits: Coin.firo.decimals,
+      ).toJsonString(),
       fee: txData["fee"] as int,
       height: null,
       isCancelled: false,
@@ -3072,6 +3081,11 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
         }
         await firoUpdateLelantusCoins(coins);
 
+        final amount = Format.decimalAmountToSatoshis(
+          Decimal.parse(transactionInfo["amount"].toString()),
+          coin,
+        );
+
         // add the send transaction
         final transaction = isar_models.Transaction(
           walletId: walletId,
@@ -3086,10 +3100,11 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
               : transactionInfo["subType"] == "join"
                   ? isar_models.TransactionSubType.join
                   : isar_models.TransactionSubType.none,
-          amount: Format.decimalAmountToSatoshis(
-            Decimal.parse(transactionInfo["amount"].toString()),
-            coin,
-          ),
+          amount: amount,
+          amountString: Amount(
+            rawValue: BigInt.from(amount),
+            fractionDigits: Coin.firo.decimals,
+          ).toJsonString(),
           fee: Format.decimalAmountToSatoshis(
             Decimal.parse(transactionInfo["fees"].toString()),
             coin,
@@ -3649,6 +3664,10 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
         type: type,
         subType: subType,
         amount: amount,
+        amountString: Amount(
+          rawValue: BigInt.from(amount),
+          fractionDigits: Coin.firo.decimals,
+        ).toJsonString(),
         fee: fees,
         height: txObject["height"] as int? ?? 0,
         isCancelled: false,
@@ -4969,6 +4988,11 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           tx["address"] = tx["vout"][sendIndex]["scriptPubKey"]["addresses"][0];
           tx["fees"] = tx["vin"][0]["nFees"];
 
+          final amount = Format.decimalAmountToSatoshis(
+            Decimal.parse(tx["amount"].toString()),
+            coin,
+          );
+
           final txn = isar_models.Transaction(
             walletId: walletId,
             txid: tx["txid"] as String,
@@ -4976,10 +5000,11 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
                 (DateTime.now().millisecondsSinceEpoch ~/ 1000),
             type: isar_models.TransactionType.outgoing,
             subType: isar_models.TransactionSubType.join,
-            amount: Format.decimalAmountToSatoshis(
-              Decimal.parse(tx["amount"].toString()),
-              coin,
-            ),
+            amount: amount,
+            amountString: Amount(
+              rawValue: BigInt.from(amount),
+              fractionDigits: Coin.firo.decimals,
+            ).toJsonString(),
             fee: Format.decimalAmountToSatoshis(
               Decimal.parse(tx["fees"].toString()),
               coin,

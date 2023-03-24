@@ -27,6 +27,7 @@ import 'package:stackwallet/services/mixins/epic_cash_hive.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/utilities/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_epicboxes.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
@@ -1688,6 +1689,10 @@ class EpicCashWallet extends CoinServiceAPI
             : isar_models.TransactionType.outgoing,
         subType: isar_models.TransactionSubType.none,
         amount: amt,
+        amountString: Amount(
+          rawValue: BigInt.from(amt),
+          fractionDigits: coin.decimals,
+        ).toJsonString(),
         fee: (tx["fee"] == null) ? 0 : int.parse(tx["fee"] as String),
         height: height,
         isCancelled: tx["tx_type"] == "TxSentCancelled" ||

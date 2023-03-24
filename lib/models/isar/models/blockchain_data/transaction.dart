@@ -5,6 +5,7 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/input.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/output.dart';
+import 'package:stackwallet/utilities/amount.dart';
 import 'package:tuple/tuple.dart';
 
 part 'transaction.g.dart';
@@ -18,6 +19,7 @@ class Transaction {
     required this.type,
     required this.subType,
     required this.amount,
+    required this.amountString,
     required this.fee,
     required this.height,
     required this.isCancelled,
@@ -35,6 +37,7 @@ class Transaction {
     TransactionType? type,
     TransactionSubType? subType,
     int? amount,
+    String? amountString,
     int? fee,
     int? height,
     bool? isCancelled,
@@ -54,6 +57,7 @@ class Transaction {
           type: type ?? this.type,
           subType: subType ?? this.subType,
           amount: amount ?? this.amount,
+          amountString: amountString ?? this.amountString,
           fee: fee ?? this.fee,
           height: height ?? this.height,
           isCancelled: isCancelled ?? this.isCancelled,
@@ -86,6 +90,8 @@ class Transaction {
 
   late final int amount;
 
+  late String? amountString;
+
   late final int fee;
 
   late final int? height;
@@ -104,6 +110,13 @@ class Transaction {
 
   @Backlink(to: "transactions")
   final address = IsarLink<Address>();
+
+  @ignore
+  Amount? _cachedAmount;
+
+  @ignore
+  Amount get realAmount =>
+      _cachedAmount ??= Amount.fromSerializedJsonString(amountString!);
 
   int getConfirmations(int currentChainHeight) {
     if (height == null || height! <= 0) return 0;
@@ -124,6 +137,7 @@ class Transaction {
       "type: ${type.name}, "
       "subType: ${subType.name}, "
       "amount: $amount, "
+      "amountString: $amountString, "
       "fee: $fee, "
       "height: $height, "
       "isCancelled: $isCancelled, "
@@ -143,6 +157,7 @@ class Transaction {
       "type": type.name,
       "subType": subType.name,
       "amount": amount,
+      "amountString": amountString,
       "fee": fee,
       "height": height,
       "isCancelled": isCancelled,
@@ -168,6 +183,7 @@ class Transaction {
       type: TransactionType.values.byName(json["type"] as String),
       subType: TransactionSubType.values.byName(json["subType"] as String),
       amount: json["amount"] as int,
+      amountString: json["amountString"] as String,
       fee: json["fee"] as int,
       height: json["height"] as int?,
       isCancelled: json["isCancelled"] as bool,

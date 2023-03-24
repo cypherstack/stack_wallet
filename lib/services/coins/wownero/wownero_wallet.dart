@@ -40,6 +40,7 @@ import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/utilities/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -204,8 +205,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         try {
           aprox = (await prepareSend(
               // This address is only used for getting an approximate fee, never for sending
-              address:
-                  "WW3iVcnoAY6K9zNdU4qmdvZELefx6xZz4PMpTwUifRkvMQckyadhSPYMVPJhBdYE8P9c27fg9RPmVaWNFx1cDaj61HnetqBiy",
+              address: "WW3iVcnoAY6K9zNdU4qmdvZELefx6xZz4PMpTwUifRkvMQckyadhSPYMVPJhBdYE8P9c27fg9RPmVaWNFx1cDaj61HnetqBiy",
               satoshiAmount: satoshiAmount,
               args: {"feeRate": feeRateType}))['fee'];
           await Future.delayed(const Duration(milliseconds: 500));
@@ -1006,6 +1006,10 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
           type: type,
           subType: isar_models.TransactionSubType.none,
           amount: tx.value.amount ?? 0,
+          amountString: Amount(
+            rawValue: BigInt.from(tx.value.amount ?? 0),
+            fractionDigits: coin.decimals,
+          ).toJsonString(),
           fee: tx.value.fee ?? 0,
           height: tx.value.height,
           isCancelled: false,

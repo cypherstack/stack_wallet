@@ -12,6 +12,7 @@ import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets_service.dart';
+import 'package:stackwallet/utilities/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -327,6 +328,10 @@ class DbVersionMigrator with WalletDB {
                   : isar_models.TransactionType.outgoing,
               subType: isar_models.TransactionSubType.none,
               amount: tx.amount,
+              amountString: Amount(
+                rawValue: BigInt.from(tx.amount),
+                fractionDigits: info.coin.decimals,
+              ).toJsonString(),
               fee: tx.fees,
               height: tx.height,
               isCancelled: tx.isCancelled,

@@ -4,6 +4,7 @@ import 'package:bip47/src/util.dart';
 import 'package:decimal/decimal.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
+import 'package:stackwallet/utilities/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:tuple/tuple.dart';
@@ -220,6 +221,10 @@ mixin ElectrumXParsing {
       type: type,
       subType: txSubType,
       amount: amount,
+      amountString: Amount(
+        rawValue: BigInt.from(amount),
+        fractionDigits: coin.decimals,
+      ).toJsonString(),
       fee: fee,
       height: txData["height"] as int?,
       isCancelled: false,

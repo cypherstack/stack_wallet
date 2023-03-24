@@ -21,6 +21,7 @@ import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/eth_token_cache.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
+import 'package:stackwallet/utilities/amount.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
@@ -436,6 +437,10 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
         type: isIncoming ? TransactionType.incoming : TransactionType.outgoing,
         subType: TransactionSubType.ethToken,
         amount: amount,
+        amountString: Amount(
+          rawValue: BigInt.from(amount),
+          fractionDigits: tokenContract.decimals,
+        ).toJsonString(),
         fee: tuple.item2.gasUsed * tuple.item2.gasPrice.toInt(),
         height: tuple.item1.blockNumber,
         isCancelled: false,
