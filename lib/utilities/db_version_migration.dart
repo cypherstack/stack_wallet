@@ -279,6 +279,17 @@ class DbVersionMigrator with WalletDB {
         // try to continue migrating
         return await migrate(7, secureStore: secureStore);
 
+      case 7:
+        // migrate
+        await _v7(secureStore);
+
+        // update version
+        await DB.instance.put<dynamic>(
+            boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 7);
+
+        // try to continue migrating
+        return await migrate(8, secureStore: secureStore);
+
       default:
         // finally return
         return;
@@ -393,6 +404,45 @@ class DbVersionMigrator with WalletDB {
           key: "rescan_on_open_$walletId",
           value: Constants.rescanV1,
         );
+      }
+    }
+  }
+
+  Future<void> _v7(SecureStorageInterface secureStore) async {
+    await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
+    final walletsService = WalletsService(secureStorageInterface: secureStore);
+    final walletInfoList = await walletsService.walletNames;
+    await MainDB.instance.initMainDB();
+
+    for (final walletId in walletInfoList.keys) {
+      final info = walletInfoList[walletId]!;
+      assert(info.walletId == walletId);
+
+      final count = await MainDB.instance.getTransactions(walletId).count();
+
+      for (var i = 0; i < count; i += 50) {
+        final txns = await MainDB.instance
+            .getTransactions(walletId)
+            .offset(i)
+            .limit(50)
+            .findAll();
+
+        // migrate amount to serialized amount string
+        final txnsData = txns
+            .map(
+              (tx) => Tuple2(
+                tx
+                  ..amountString = Amount(
+                    rawValue: BigInt.from(tx.amount),
+                    fractionDigits: info.coin.decimals,
+                  ).toJsonString(),
+                tx.address.value,
+              ),
+            )
+            .toList();
+
+        // update db records
+        await MainDB.instance.addNewTransactionData(txnsData, walletId);
       }
     }
   }
