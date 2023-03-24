@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:decimal/decimal.dart';
+import 'package:equatable/equatable.dart';
 
 final _ten = BigInt.from(10);
 
-class Amount {
+class Amount implements Equatable {
   Amount({
     required BigInt rawValue,
     required this.fractionDigits,
@@ -40,4 +43,38 @@ class Amount {
   /// convenience getter
   @Deprecated("provided for convenience only. Use fractionDigits instead.")
   int get decimals => fractionDigits;
+
+  Map<String, dynamic> toMap() {
+    // ===========================================================================
+    // ======= Serialization =====================================================
+
+    return {"raw": raw.toString(), "fractionDigits": fractionDigits};
+  }
+
+  String toJsonString() {
+    return jsonEncode(toMap());
+  }
+
+  // ===========================================================================
+  // ======= Deserialization ===================================================
+
+  static Amount fromSerializedJsonString(String json) {
+    final map = jsonDecode(json) as Map;
+    return Amount(
+      rawValue: BigInt.parse(map["raw"] as String),
+      fractionDigits: map["fractionDigits"] as int,
+    );
+  }
+
+  // ===========================================================================
+  // ======= Overrides =========================================================
+
+  @override
+  String toString() => "Amount($raw, $fractionDigits)";
+
+  @override
+  List<Object?> get props => [fractionDigits, _value];
+
+  @override
+  bool? get stringify => false;
 }
