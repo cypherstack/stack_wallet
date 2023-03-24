@@ -22,72 +22,77 @@ const TransactionSchema = CollectionSchema(
       name: r'amount',
       type: IsarType.long,
     ),
-    r'fee': PropertySchema(
+    r'amountString': PropertySchema(
       id: 1,
+      name: r'amountString',
+      type: IsarType.string,
+    ),
+    r'fee': PropertySchema(
+      id: 2,
       name: r'fee',
       type: IsarType.long,
     ),
     r'height': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'height',
       type: IsarType.long,
     ),
     r'inputs': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'inputs',
       type: IsarType.objectList,
       target: r'Input',
     ),
     r'isCancelled': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'isCancelled',
       type: IsarType.bool,
     ),
     r'isLelantus': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'isLelantus',
       type: IsarType.bool,
     ),
     r'otherData': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'otherData',
       type: IsarType.string,
     ),
     r'outputs': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'outputs',
       type: IsarType.objectList,
       target: r'Output',
     ),
     r'slateId': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'slateId',
       type: IsarType.string,
     ),
     r'subType': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'subType',
       type: IsarType.byte,
       enumMap: _TransactionsubTypeEnumValueMap,
     ),
     r'timestamp': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'timestamp',
       type: IsarType.long,
     ),
     r'txid': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'txid',
       type: IsarType.string,
     ),
     r'type': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'type',
       type: IsarType.byte,
       enumMap: _TransactiontypeEnumValueMap,
     ),
     r'walletId': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'walletId',
       type: IsarType.string,
     )
@@ -165,6 +170,12 @@ int _transactionEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.amountString;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.inputs.length * 3;
   {
     final offsets = allOffsets[Input]!;
@@ -205,29 +216,30 @@ void _transactionSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeLong(offsets[0], object.amount);
-  writer.writeLong(offsets[1], object.fee);
-  writer.writeLong(offsets[2], object.height);
+  writer.writeString(offsets[1], object.amountString);
+  writer.writeLong(offsets[2], object.fee);
+  writer.writeLong(offsets[3], object.height);
   writer.writeObjectList<Input>(
-    offsets[3],
+    offsets[4],
     allOffsets,
     InputSchema.serialize,
     object.inputs,
   );
-  writer.writeBool(offsets[4], object.isCancelled);
-  writer.writeBool(offsets[5], object.isLelantus);
-  writer.writeString(offsets[6], object.otherData);
+  writer.writeBool(offsets[5], object.isCancelled);
+  writer.writeBool(offsets[6], object.isLelantus);
+  writer.writeString(offsets[7], object.otherData);
   writer.writeObjectList<Output>(
-    offsets[7],
+    offsets[8],
     allOffsets,
     OutputSchema.serialize,
     object.outputs,
   );
-  writer.writeString(offsets[8], object.slateId);
-  writer.writeByte(offsets[9], object.subType.index);
-  writer.writeLong(offsets[10], object.timestamp);
-  writer.writeString(offsets[11], object.txid);
-  writer.writeByte(offsets[12], object.type.index);
-  writer.writeString(offsets[13], object.walletId);
+  writer.writeString(offsets[9], object.slateId);
+  writer.writeByte(offsets[10], object.subType.index);
+  writer.writeLong(offsets[11], object.timestamp);
+  writer.writeString(offsets[12], object.txid);
+  writer.writeByte(offsets[13], object.type.index);
+  writer.writeString(offsets[14], object.walletId);
 }
 
 Transaction _transactionDeserialize(
@@ -238,34 +250,35 @@ Transaction _transactionDeserialize(
 ) {
   final object = Transaction(
     amount: reader.readLong(offsets[0]),
-    fee: reader.readLong(offsets[1]),
-    height: reader.readLongOrNull(offsets[2]),
+    amountString: reader.readStringOrNull(offsets[1]),
+    fee: reader.readLong(offsets[2]),
+    height: reader.readLongOrNull(offsets[3]),
     inputs: reader.readObjectList<Input>(
-          offsets[3],
+          offsets[4],
           InputSchema.deserialize,
           allOffsets,
           Input(),
         ) ??
         [],
-    isCancelled: reader.readBool(offsets[4]),
-    isLelantus: reader.readBoolOrNull(offsets[5]),
-    otherData: reader.readStringOrNull(offsets[6]),
+    isCancelled: reader.readBool(offsets[5]),
+    isLelantus: reader.readBoolOrNull(offsets[6]),
+    otherData: reader.readStringOrNull(offsets[7]),
     outputs: reader.readObjectList<Output>(
-          offsets[7],
+          offsets[8],
           OutputSchema.deserialize,
           allOffsets,
           Output(),
         ) ??
         [],
-    slateId: reader.readStringOrNull(offsets[8]),
+    slateId: reader.readStringOrNull(offsets[9]),
     subType:
-        _TransactionsubTypeValueEnumMap[reader.readByteOrNull(offsets[9])] ??
+        _TransactionsubTypeValueEnumMap[reader.readByteOrNull(offsets[10])] ??
             TransactionSubType.none,
-    timestamp: reader.readLong(offsets[10]),
-    txid: reader.readString(offsets[11]),
-    type: _TransactiontypeValueEnumMap[reader.readByteOrNull(offsets[12])] ??
+    timestamp: reader.readLong(offsets[11]),
+    txid: reader.readString(offsets[12]),
+    type: _TransactiontypeValueEnumMap[reader.readByteOrNull(offsets[13])] ??
         TransactionType.outgoing,
-    walletId: reader.readString(offsets[13]),
+    walletId: reader.readString(offsets[14]),
   );
   object.id = id;
   return object;
@@ -281,10 +294,12 @@ P _transactionDeserializeProp<P>(
     case 0:
       return (reader.readLong(offset)) as P;
     case 1:
-      return (reader.readLong(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 2:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 3:
+      return (reader.readLongOrNull(offset)) as P;
+    case 4:
       return (reader.readObjectList<Input>(
             offset,
             InputSchema.deserialize,
@@ -292,13 +307,13 @@ P _transactionDeserializeProp<P>(
             Input(),
           ) ??
           []) as P;
-    case 4:
-      return (reader.readBool(offset)) as P;
     case 5:
-      return (reader.readBoolOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 6:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset)) as P;
     case 7:
+      return (reader.readStringOrNull(offset)) as P;
+    case 8:
       return (reader.readObjectList<Output>(
             offset,
             OutputSchema.deserialize,
@@ -306,19 +321,19 @@ P _transactionDeserializeProp<P>(
             Output(),
           ) ??
           []) as P;
-    case 8:
-      return (reader.readStringOrNull(offset)) as P;
     case 9:
+      return (reader.readStringOrNull(offset)) as P;
+    case 10:
       return (_TransactionsubTypeValueEnumMap[reader.readByteOrNull(offset)] ??
           TransactionSubType.none) as P;
-    case 10:
-      return (reader.readLong(offset)) as P;
     case 11:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 12:
+      return (reader.readString(offset)) as P;
+    case 13:
       return (_TransactiontypeValueEnumMap[reader.readByteOrNull(offset)] ??
           TransactionType.outgoing) as P;
-    case 13:
+    case 14:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -817,6 +832,160 @@ extension TransactionQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      amountStringIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'amountString',
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      amountStringIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'amountString',
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      amountStringEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'amountString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      amountStringGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'amountString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      amountStringLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'amountString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      amountStringBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'amountString',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      amountStringStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'amountString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      amountStringEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'amountString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      amountStringContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'amountString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      amountStringMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'amountString',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      amountStringIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'amountString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      amountStringIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'amountString',
+        value: '',
       ));
     });
   }
@@ -1998,6 +2167,19 @@ extension TransactionQuerySortBy
     });
   }
 
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByAmountString() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'amountString', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterSortBy>
+      sortByAmountStringDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'amountString', Sort.desc);
+    });
+  }
+
   QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByFee() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fee', Sort.asc);
@@ -2142,6 +2324,19 @@ extension TransactionQuerySortThenBy
   QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByAmountDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'amount', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByAmountString() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'amountString', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterSortBy>
+      thenByAmountStringDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'amountString', Sort.desc);
     });
   }
 
@@ -2298,6 +2493,13 @@ extension TransactionQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Transaction, Transaction, QDistinct> distinctByAmountString(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'amountString', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Transaction, Transaction, QDistinct> distinctByFee() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'fee');
@@ -2380,6 +2582,12 @@ extension TransactionQueryProperty
   QueryBuilder<Transaction, int, QQueryOperations> amountProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'amount');
+    });
+  }
+
+  QueryBuilder<Transaction, String?, QQueryOperations> amountStringProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'amountString');
     });
   }
 
