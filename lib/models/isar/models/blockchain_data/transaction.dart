@@ -88,6 +88,7 @@ class Transaction {
   @enumerated
   late final TransactionSubType subType;
 
+  @Deprecated("May be inaccurate for large amounts (eth for example)")
   late final int amount;
 
   late String? amountString;

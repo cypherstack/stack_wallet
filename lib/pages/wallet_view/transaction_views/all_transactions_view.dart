@@ -111,7 +111,8 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
         return false;
       }
 
-      if (filter.amount != null && filter.amount != tx.amount) {
+      if (filter.amount != null &&
+          BigInt.from(filter.amount!) != tx.realAmount.raw) {
         return false;
       }
 
@@ -953,9 +954,13 @@ class _DesktopTransactionCardRowState
                 flex: 6,
                 child: Builder(
                   builder: (_) {
-                    final amount = _transaction.amount;
+                    final amount = _transaction.realAmount;
                     return Text(
-                      "$prefix${Format.satoshiAmountToPrettyString(amount, locale, coin)} ${coin.ticker}",
+                      "$prefix${Format.localizedStringAsFixed(
+                        value: amount.decimal,
+                        locale: locale,
+                        decimalPlaces: coin.decimals,
+                      )} ${coin.ticker}",
                       style: STextStyles.desktopTextExtraExtraSmall(context)
                           .copyWith(
                         color: Theme.of(context)
@@ -972,12 +977,11 @@ class _DesktopTransactionCardRowState
                   flex: 4,
                   child: Builder(
                     builder: (_) {
-                      int value = _transaction.amount;
+                      final amount = _transaction.realAmount;
 
                       return Text(
                         "$prefix${Format.localizedStringAsFixed(
-                          value: Format.satoshisToAmount(value, coin: coin) *
-                              price,
+                          value: amount.decimal * price,
                           locale: locale,
                           decimalPlaces: 2,
                         )} $baseCurrency",

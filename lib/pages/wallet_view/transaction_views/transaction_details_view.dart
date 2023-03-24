@@ -78,7 +78,8 @@ class _TransactionDetailsViewState
     walletId = widget.walletId;
 
     coin = widget.coin;
-    amount = Format.satoshisToAmount(_transaction.amount, coin: coin);
+    amount = _transaction.realAmount
+        .decimal; //Format.satoshisToAmount(_transaction.amount, coin: coin);
     fee = Format.satoshisToAmount(_transaction.fee, coin: coin);
 
     if ((coin == Coin.firo || coin == Coin.firoTestNet) &&

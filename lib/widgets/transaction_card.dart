@@ -221,9 +221,14 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                               fit: BoxFit.scaleDown,
                               child: Builder(
                                 builder: (_) {
-                                  final amount = _transaction.amount;
+                                  final amount = _transaction.realAmount;
+
                                   return Text(
-                                    "$prefix${Format.satoshiAmountToPrettyString(amount, locale, coin)} ${coin.ticker}",
+                                    "$prefix${Format.localizedStringAsFixed(
+                                      value: amount.decimal,
+                                      locale: locale,
+                                      decimalPlaces: coin.decimals,
+                                    )} ${coin.ticker}",
                                     style: STextStyles.itemSubtitle12(context),
                                   );
                                 },
@@ -260,13 +265,11 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                 fit: BoxFit.scaleDown,
                                 child: Builder(
                                   builder: (_) {
-                                    int value = _transaction.amount;
+                                    final amount = _transaction.realAmount;
 
                                     return Text(
                                       "$prefix${Format.localizedStringAsFixed(
-                                        value: Format.satoshisToAmount(value,
-                                                coin: coin) *
-                                            price,
+                                        value: amount.decimal * price,
                                         locale: locale,
                                         decimalPlaces: 2,
                                       )} $baseCurrency",
