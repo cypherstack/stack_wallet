@@ -21,26 +21,33 @@ class EthTokenTxDto {
     required this.transactionIndex,
   });
 
-  EthTokenTxDto.fromMap(Map json)
-      : address = json['address'] as String,
-        blockNumber = json['blockNumber'] as int,
-        logIndex = json['logIndex'] as int,
-        topics = List<String>.from(json['topics'] as List),
-        data = json['data'] as String,
-        articulatedLog = ArticulatedLog.fromJson(json['articulatedLog']),
-        compressedLog = json['compressedLog'] as String,
-        transactionHash = json['transactionHash'] as String,
-        transactionIndex = json['transactionIndex'] as int;
+  EthTokenTxDto.fromMap(Map<String, dynamic> map)
+      : address = map['address'] as String,
+        blockNumber = map['blockNumber'] as int,
+        logIndex = map['logIndex'] as int,
+        topics = List<String>.from(map['topics'] as List),
+        data = map['data'] as String,
+        articulatedLog = map['articulatedLog'] == null
+            ? null
+            : ArticulatedLog.fromMap(
+                Map<String, dynamic>.from(
+                  map['articulatedLog'] as Map,
+                ),
+              ),
+        compressedLog = map['compressedLog'] as String,
+        transactionHash = map['transactionHash'] as String,
+        transactionIndex = map['transactionIndex'] as int;
 
   final String address;
   final int blockNumber;
   final int logIndex;
   final List<String> topics;
   final String data;
-  final ArticulatedLog articulatedLog;
+  final ArticulatedLog? articulatedLog;
   final String compressedLog;
   final String transactionHash;
   final int transactionIndex;
+
   EthTokenTxDto copyWith({
     String? address,
     int? blockNumber,
@@ -63,18 +70,24 @@ class EthTokenTxDto {
         transactionHash: transactionHash ?? this.transactionHash,
         transactionIndex: transactionIndex ?? this.transactionIndex,
       );
-  Map<String, dynamic> toJson() {
+
+  Map<String, dynamic> toMap() {
     final map = <String, dynamic>{};
     map['address'] = address;
     map['blockNumber'] = blockNumber;
     map['logIndex'] = logIndex;
     map['topics'] = topics;
     map['data'] = data;
-    map['articulatedLog'] = articulatedLog.toJson();
+    map['articulatedLog'] = articulatedLog?.toMap();
     map['compressedLog'] = compressedLog;
     map['transactionHash'] = transactionHash;
     map['transactionIndex'] = transactionIndex;
     return map;
+  }
+
+  @override
+  String toString() {
+    return toMap().toString();
   }
 }
 
@@ -87,9 +100,13 @@ class ArticulatedLog {
     required this.inputs,
   });
 
-  ArticulatedLog.fromJson(dynamic json)
-      : name = json['name'] as String,
-        inputs = Inputs.fromJson(json['inputs']);
+  ArticulatedLog.fromMap(Map<String, dynamic> map)
+      : name = map['name'] as String,
+        inputs = Inputs.fromMap(
+          Map<String, dynamic>.from(
+            map['inputs'] as Map,
+          ),
+        );
 
   final String name;
   final Inputs inputs;
@@ -103,10 +120,10 @@ class ArticulatedLog {
         inputs: inputs ?? this.inputs,
       );
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toMap() {
     final map = <String, dynamic>{};
     map['name'] = name;
-    map['inputs'] = inputs.toJson();
+    map['inputs'] = inputs.toMap();
     return map;
   }
 }
@@ -122,10 +139,10 @@ class Inputs {
     required this.to,
   });
 
-  Inputs.fromJson(dynamic json)
-      : amount = json['_amount'] as String,
-        from = json['_from'] as String,
-        to = json['_to'] as String;
+  Inputs.fromMap(Map<String, dynamic> map)
+      : amount = map['_amount'] as String,
+        from = map['_from'] as String,
+        to = map['_to'] as String;
 
   final String amount;
   final String from;
@@ -142,7 +159,7 @@ class Inputs {
         to: to ?? this.to,
       );
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toMap() {
     final map = <String, dynamic>{};
     map['_amount'] = amount;
     map['_from'] = from;

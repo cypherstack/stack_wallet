@@ -25,6 +25,7 @@ import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/eth_commons.dart';
+import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/extensions/impl/contract_abi.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
@@ -340,6 +341,9 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
       .sortByTimestampDesc()
       .findAll();
 
+  String _addressFromTopic(String topic) =>
+      checksumEthereumAddress("0x${topic.substring(topic.length - 40)}");
+
   Future<void> _refreshTransactions() async {
     String addressString =
         checksumEthereumAddress(await currentReceivingAddress);
@@ -382,12 +386,47 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
     final List<Tuple2<Transaction, Address?>> txnsData = [];
 
     for (final tuple in data) {
-      bool isIncoming;
-      if (checksumEthereumAddress(tuple.item1.articulatedLog.inputs.from) ==
-          addressString) {
-        isIncoming = false;
+      int amount;
+      String fromAddress, toAddress;
+      if (tuple.item1.articulatedLog == null) {
+        if (tuple.item1.topics.length != 3) {
+          throw Exception("Topics length != 3 for "
+              "${ethWallet.walletName} ${ethWallet.walletId}: "
+              "${tuple.item1.toString()}");
+        }
+        amount = tuple.item1.data.toBigIntFromHex.toInt();
+
+        fromAddress = _addressFromTopic(
+          tuple.item1.topics[1],
+        );
+        toAddress = _addressFromTopic(
+          tuple.item1.topics[2],
+        );
       } else {
+        amount = int.parse(
+          tuple.item1.articulatedLog!.inputs.amount,
+        );
+        fromAddress = checksumEthereumAddress(
+          tuple.item1.articulatedLog!.inputs.from,
+        );
+        toAddress = checksumEthereumAddress(
+          tuple.item1.articulatedLog!.inputs.to,
+        );
+      }
+
+      bool isIncoming;
+      bool isSentToSelf = false;
+      if (fromAddress == addressString) {
+        isIncoming = false;
+        if (toAddress == addressString) {
+          isSentToSelf = true;
+        }
+      } else if (toAddress == addressString) {
         isIncoming = true;
+      } else {
+        throw Exception("Unknown token transaction found for "
+            "${ethWallet.walletName} ${ethWallet.walletId}: "
+            "${tuple.item1.toString()}");
       }
 
       final txn = Transaction(
@@ -396,7 +435,7 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
         timestamp: tuple.item2.timestamp,
         type: isIncoming ? TransactionType.incoming : TransactionType.outgoing,
         subType: TransactionSubType.ethToken,
-        amount: int.parse(tuple.item1.articulatedLog.inputs.amount),
+        amount: amount,
         fee: tuple.item2.gasUsed * tuple.item2.gasPrice.toInt(),
         height: tuple.item1.blockNumber,
         isCancelled: false,
@@ -410,39 +449,21 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
       Address? transactionAddress = await ethWallet.db
           .getAddresses(ethWallet.walletId)
           .filter()
-          .valueEqualTo(addressString)
+          .valueEqualTo(toAddress)
           .findFirst();
 
-      if (transactionAddress == null) {
-        if (isIncoming) {
-          transactionAddress = Address(
-            walletId: ethWallet.walletId,
-            value: addressString,
-            publicKey: [],
-            derivationIndex: 0,
-            derivationPath: DerivationPath()..value = "$hdPathEthereum/0",
-            type: AddressType.ethereum,
-            subType: AddressSubType.receiving,
-          );
-        } else {
-          final myRcvAddr = await currentReceivingAddress;
-          final isSentToSelf = myRcvAddr == addressString;
-
-          transactionAddress = Address(
-            walletId: ethWallet.walletId,
-            value: addressString,
-            publicKey: [],
-            derivationIndex: isSentToSelf ? 0 : -1,
-            derivationPath: isSentToSelf
-                ? (DerivationPath()..value = "$hdPathEthereum/0")
-                : null,
-            type: AddressType.ethereum,
-            subType: isSentToSelf
-                ? AddressSubType.receiving
-                : AddressSubType.nonWallet,
-          );
-        }
-      }
+      transactionAddress ??= Address(
+        walletId: ethWallet.walletId,
+        value: toAddress,
+        publicKey: [],
+        derivationIndex: isSentToSelf ? 0 : -1,
+        derivationPath: isSentToSelf
+            ? (DerivationPath()..value = "$hdPathEthereum/0")
+            : null,
+        type: AddressType.ethereum,
+        subType:
+            isSentToSelf ? AddressSubType.receiving : AddressSubType.nonWallet,
+      );
 
       txnsData.add(Tuple2(txn, transactionAddress));
     }
