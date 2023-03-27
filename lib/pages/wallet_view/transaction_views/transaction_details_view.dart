@@ -968,17 +968,25 @@ class _TransactionDetailsViewState
                                   ? const EdgeInsets.all(16)
                                   : const EdgeInsets.all(12),
                               child: Builder(builder: (context) {
-                                final height = widget.coin != Coin.epicCash &&
-                                        _transaction.isConfirmed(
-                                          currentHeight,
-                                          coin.requiredConfirmations,
-                                        )
-                                    ? "${_transaction.height == 0 ? "Unknown" : _transaction.height}"
-                                    : _transaction.getConfirmations(
-                                                currentHeight) >
-                                            0
-                                        ? "${_transaction.height}"
-                                        : "Pending";
+                                final String height;
+
+                                if (widget.coin == Coin.bitcoincash ||
+                                    widget.coin == Coin.bitcoincashTestnet) {
+                                  height =
+                                      "${_transaction.height != null && _transaction.height! > 0 ? _transaction.height! : "Pending"}";
+                                } else {
+                                  height = widget.coin != Coin.epicCash &&
+                                          _transaction.isConfirmed(
+                                            currentHeight,
+                                            coin.requiredConfirmations,
+                                          )
+                                      ? "${_transaction.height == 0 ? "Unknown" : _transaction.height}"
+                                      : _transaction.getConfirmations(
+                                                  currentHeight) >
+                                              0
+                                          ? "${_transaction.height}"
+                                          : "Pending";
+                                }
 
                                 return Row(
                                   mainAxisAlignment:
