@@ -148,15 +148,16 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                                   ),
                             children: infoToggle
                                 ? [
+                                    if (Constants.enableExchange)
+                                      const TextSpan(
+                                          text:
+                                              "Exchange data preloaded for a seamless experience.\n\n"),
                                     const TextSpan(
                                         text:
-                                            "Exchange data preloaded for a seamless experience."),
-                                    const TextSpan(
-                                        text:
-                                            "\n\nCoinGecko enabled: (24 hour price change shown in-app, total wallet value shown in USD or other currency)."),
+                                            "CoinGecko enabled: (24 hour price change shown in-app, total wallet value shown in USD or other currency).\n\n"),
                                     TextSpan(
                                       text:
-                                          "\n\nRecommended for most crypto users.",
+                                          "Recommended for most crypto users.",
                                       style: isDesktop
                                           ? STextStyles
                                               .desktopTextExtraExtraSmall600(
@@ -170,15 +171,16 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                                     ),
                                   ]
                                 : [
+                                    if (Constants.enableExchange)
+                                      const TextSpan(
+                                          text:
+                                              "Exchange data not preloaded (slower experience).\n\n"),
                                     const TextSpan(
                                         text:
-                                            "Exchange data not preloaded (slower experience)."),
-                                    const TextSpan(
-                                        text:
-                                            "\n\nCoinGecko disabled (price changes not shown, no wallet value shown in other currencies)."),
+                                            "CoinGecko disabled (price changes not shown, no wallet value shown in other currencies).\n\n"),
                                     TextSpan(
                                       text:
-                                          "\n\nRecommended for the privacy conscious.",
+                                          "Recommended for the privacy conscious.",
                                       style: isDesktop
                                           ? STextStyles
                                               .desktopTextExtraExtraSmall600(
