@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dart_bs58/dart_bs58.dart';
@@ -6,6 +7,8 @@ import 'package:hex/hex.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
 
 extension StringExtensions on String {
+  Uint8List get toUint8ListFromUtf8 => Uint8List.fromList(utf8.encode(this));
+
   Uint8List get toUint8ListFromHex =>
       Uint8List.fromList(HEX.decode(startsWith("0x") ? substring(2) : this));
 

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dart_bs58/dart_bs58.dart';
@@ -5,6 +6,8 @@ import 'package:dart_bs58check/dart_bs58check.dart';
 import 'package:hex/hex.dart';
 
 extension Uint8ListExtensions on Uint8List {
+  String get toUtf8String => utf8.decode(this);
+
   String get toHex {
     return HEX.encode(this);
   }
