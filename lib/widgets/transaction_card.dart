@@ -242,7 +242,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                     "$prefix${Format.localizedStringAsFixed(
                                       value: amount.decimal,
                                       locale: locale,
-                                      decimalPlaces: coin.decimals,
+                                      decimalPlaces: amount.fractionDigits,
                                     )} $unit",
                                     style: STextStyles.itemSubtitle12(context),
                                   );
