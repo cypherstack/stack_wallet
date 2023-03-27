@@ -56,6 +56,10 @@ class GasTracker {
 
 const hdPathEthereum = "m/44'/60'/0'/0";
 
+// equal to "0x${keccak256("Transfer(address,address,uint256)".toUint8ListFromUtf8).toHex}";
+const kTransferEventSignature =
+    "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+
 String getPrivateKey(String mnemonic, String mnemonicPassphrase) {
   final isValidMnemonic = bip39.validateMnemonic(mnemonic);
   if (!isValidMnemonic) {
