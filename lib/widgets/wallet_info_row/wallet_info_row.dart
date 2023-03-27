@@ -13,12 +13,12 @@ class WalletInfoRow extends ConsumerWidget {
   const WalletInfoRow({
     Key? key,
     required this.walletId,
-    this.onPressed,
+    this.onPressedDesktop,
     this.padding = const EdgeInsets.all(0),
   }) : super(key: key);
 
   final String walletId;
-  final VoidCallback? onPressed;
+  final VoidCallback? onPressedDesktop;
   final EdgeInsets padding;
 
   @override
@@ -31,7 +31,7 @@ class WalletInfoRow extends ConsumerWidget {
       return MouseRegion(
         cursor: SystemMouseCursors.click,
         child: GestureDetector(
-          onTap: onPressed,
+          onTap: onPressedDesktop,
           child: Padding(
             padding: padding,
             child: Container(

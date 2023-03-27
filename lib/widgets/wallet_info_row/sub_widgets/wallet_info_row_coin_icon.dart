@@ -17,13 +17,13 @@ class WalletInfoCoinIcon extends StatelessWidget {
         color: Theme.of(context)
             .extension<StackColors>()!
             .colorForCoin(coin)
-            .withOpacity(0.5),
+            .withOpacity(0.4),
         borderRadius: BorderRadius.circular(
           Constants.size.circularBorderRadius,
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(4),
+        padding: const EdgeInsets.all(6),
         child: SvgPicture.asset(
           Assets.svg.iconFor(coin: coin),
           width: 20,
