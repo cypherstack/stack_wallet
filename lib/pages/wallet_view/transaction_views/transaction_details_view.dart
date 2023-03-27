@@ -11,10 +11,12 @@ import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/dialogs/cancelling_transaction_progress_dialog.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/edit_note_view.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/utilities/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/block_explorers.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -65,9 +67,11 @@ class _TransactionDetailsViewState
   late final String walletId;
 
   late final Coin coin;
-  late final Decimal amount;
+  late final Amount amount;
   late final Decimal fee;
   late final String amountPrefix;
+  late final String unit;
+  late final bool isTokenTx;
 
   bool showFeePending = false;
 
@@ -75,11 +79,12 @@ class _TransactionDetailsViewState
   void initState() {
     isDesktop = Util.isDesktop;
     _transaction = widget.transaction;
+    isTokenTx = _transaction.subType == TransactionSubType.ethToken;
     walletId = widget.walletId;
 
     coin = widget.coin;
-    amount = _transaction.realAmount
-        .decimal; //Format.satoshisToAmount(_transaction.amount, coin: coin);
+    amount = _transaction
+        .realAmount; //Format.satoshisToAmount(_transaction.amount, coin: coin);
     fee = Format.satoshisToAmount(_transaction.fee, coin: coin);
 
     if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
@@ -88,6 +93,13 @@ class _TransactionDetailsViewState
     } else {
       amountPrefix = _transaction.type == TransactionType.outgoing ? "-" : "+";
     }
+
+    unit = isTokenTx
+        ? ref
+            .read(mainDBProvider)
+            .getEthContractSync(_transaction.otherData!)!
+            .symbol
+        : coin.ticker;
 
     // if (coin == Coin.firo || coin == Coin.firoTestNet) {
     //   showFeePending = true;
@@ -434,15 +446,15 @@ class _TransactionDetailsViewState
                                         children: [
                                           SelectableText(
                                             "$amountPrefix${Format.localizedStringAsFixed(
-                                              value: amount,
+                                              value: amount.decimal,
                                               locale: ref.watch(
                                                 localeServiceChangeNotifierProvider
                                                     .select((value) =>
                                                         value.locale),
                                               ),
-                                              decimalPlaces: Constants
-                                                  .decimalPlacesForCoin(coin),
-                                            )} ${coin.ticker}",
+                                              decimalPlaces:
+                                                  amount.fractionDigits,
+                                            )} $unit",
                                             style: isDesktop
                                                 ? STextStyles
                                                         .desktopTextExtraExtraSmall(
@@ -465,11 +477,16 @@ class _TransactionDetailsViewState
                                                       value.externalCalls)))
                                             SelectableText(
                                               "$amountPrefix${Format.localizedStringAsFixed(
-                                                value: amount *
+                                                value: amount.decimal *
                                                     ref.watch(
                                                       priceAnd24hChangeNotifierProvider
-                                                          .select((value) =>
-                                                              value
+                                                          .select((value) => isTokenTx
+                                                              ? value
+                                                                  .getTokenPrice(
+                                                                      _transaction
+                                                                          .otherData!)
+                                                                  .item1
+                                                              : value
                                                                   .getPrice(
                                                                       coin)
                                                                   .item1),
@@ -874,7 +891,7 @@ class _TransactionDetailsViewState
                                   ? const EdgeInsets.all(16)
                                   : const EdgeInsets.all(12),
                               child: Builder(builder: (context) {
-                                final feeString = showFeePending
+                                String feeString = showFeePending
                                     ? _transaction.isConfirmed(
                                         currentHeight,
                                         coin.requiredConfirmations,
@@ -897,6 +914,9 @@ class _TransactionDetailsViewState
                                                     (value) => value.locale)),
                                         decimalPlaces:
                                             Constants.decimalPlacesForCoin(coin));
+                                if (isTokenTx) {
+                                  feeString += " ${coin.ticker}";
+                                }
 
                                 return Row(
                                   mainAxisAlignment:
@@ -1138,18 +1158,20 @@ class _TransactionDetailsViewState
                                                       .externalApplication,
                                                 );
                                               } catch (_) {
-                                                unawaited(
-                                                  showDialog<void>(
-                                                    context: context,
-                                                    builder: (_) =>
-                                                        StackOkDialog(
-                                                      title:
-                                                          "Could not open in block explorer",
-                                                      message:
-                                                          "Failed to open \"${uri.toString()}\"",
+                                                if (mounted) {
+                                                  unawaited(
+                                                    showDialog<void>(
+                                                      context: context,
+                                                      builder: (_) =>
+                                                          StackOkDialog(
+                                                        title:
+                                                            "Could not open in block explorer",
+                                                        message:
+                                                            "Failed to open \"${uri.toString()}\"",
+                                                      ),
                                                     ),
-                                                  ),
-                                                );
+                                                  );
+                                                }
                                               } finally {
                                                 // Future<void>.delayed(
                                                 //   const Duration(seconds: 1),
