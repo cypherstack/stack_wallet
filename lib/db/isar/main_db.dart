@@ -404,6 +404,12 @@ class MainDB {
   QueryBuilder<EthContract, EthContract, QWhere> getEthContracts() =>
       isar.ethContracts.where();
 
+  Future<EthContract?> getEthContract(String contractAddress) =>
+      isar.ethContracts.where().addressEqualTo(contractAddress).findFirst();
+
+  EthContract? getEthContractSync(String contractAddress) =>
+      isar.ethContracts.where().addressEqualTo(contractAddress).findFirstSync();
+
   Future<int> putEthContract(EthContract contract) => isar.writeTxn(() async {
         return await isar.ethContracts.put(contract);
       });
