@@ -975,7 +975,6 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               controller: _usernameController,
               readOnly: shouldBeReadOnly,
               enabled: enableField(_usernameController),
-              keyboardType: TextInputType.number,
               focusNode: _usernameFocusNode,
               style: STextStyles.field(context),
               decoration: standardInputDecoration(
@@ -1024,7 +1023,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               controller: _passwordController,
               readOnly: shouldBeReadOnly,
               enabled: enableField(_passwordController),
-              keyboardType: TextInputType.number,
+              obscureText: true,
               focusNode: _passwordFocusNode,
               style: STextStyles.field(context),
               decoration: standardInputDecoration(
