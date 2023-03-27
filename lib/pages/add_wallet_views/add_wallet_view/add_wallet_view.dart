@@ -103,11 +103,9 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
     _searchFieldController = TextEditingController();
     _searchFocusNode = FocusNode();
     _coinsTestnet.remove(Coin.firoTestNet);
-    if (isDesktop) {
+    if (Platform.isWindows) {
+      _coins.remove(Coin.monero);
       _coins.remove(Coin.wownero);
-      if (Platform.isWindows) {
-        _coins.remove(Coin.monero);
-      }
     }
 
     coinEntities.addAll(_coins.map((e) => CoinEntity(e)));

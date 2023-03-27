@@ -17,6 +17,7 @@ import 'package:stackwallet/services/coins/particl/particl_wallet.dart'
     as particl;
 import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart' as wow;
 import 'package:stackwallet/utilities/constants.dart';
+import 'dart:io' show Platform;
 
 enum Coin {
   bitcoin,
@@ -44,6 +45,7 @@ enum Coin {
 }
 
 final int kTestNetCoinCount = 4; // Util.isDesktop ? 5 : 4;
+// remove firotestnet for now
 
 extension CoinExt on Coin {
   String get prettyName {
