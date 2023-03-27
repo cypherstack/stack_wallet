@@ -140,6 +140,29 @@ class WalletsService extends ChangeNotifier {
         name, WalletInfo.fromJson(Map<String, dynamic>.from(dyn as Map))));
   }
 
+  Map<String, WalletInfo> fetchWalletsData() {
+    final names = DB.instance.get<dynamic>(
+            boxName: DB.boxNameAllWalletsData, key: 'names') as Map? ??
+        {};
+
+    Logging.instance.log("Fetched wallet names: $names", level: LogLevel.Info);
+    final mapped = Map<String, dynamic>.from(names);
+    mapped.removeWhere((name, dyn) {
+      final jsonObject = Map<String, dynamic>.from(dyn as Map);
+      try {
+        Coin.values.byName(jsonObject["coin"] as String);
+        return false;
+      } catch (e, s) {
+        Logging.instance.log("Error, ${jsonObject["coin"]} does not exist",
+            level: LogLevel.Error);
+        return true;
+      }
+    });
+
+    return mapped.map((name, dyn) => MapEntry(
+        name, WalletInfo.fromJson(Map<String, dynamic>.from(dyn as Map))));
+  }
+
   Future<void> addExistingStackWallet({
     required String name,
     required String walletId,
