@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_token_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
+import 'package:stackwallet/pages/add_wallet_views/select_wallet_for_token_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/verify_recovery_phrase_view/sub_widgets/word_table.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
@@ -23,6 +24,8 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:tuple/tuple.dart';
+
+final createSpecialEthWalletRoutingFlag = StateProvider((ref) => false);
 
 class VerifyRecoveryPhraseView extends ConsumerStatefulWidget {
   const VerifyRecoveryPhraseView({
@@ -95,6 +98,12 @@ class _VerifyRecoveryPhraseViewState
           .read(walletsChangeNotifierProvider.notifier)
           .addWallet(walletId: _manager.walletId, manager: _manager);
 
+      final isCreateSpecialEthWallet =
+          ref.read(createSpecialEthWalletRoutingFlag);
+      if (isCreateSpecialEthWallet) {
+        ref.read(createSpecialEthWalletRoutingFlag.notifier).state = false;
+      }
+
       if (mounted) {
         if (isDesktop) {
           Navigator.of(context).popUntil(
@@ -103,19 +112,27 @@ class _VerifyRecoveryPhraseViewState
             ),
           );
         } else {
-          unawaited(
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              HomeView.routeName,
-              (route) => false,
-            ),
-          );
-          if (widget.manager.coin == Coin.ethereum) {
-            unawaited(
-              Navigator.of(context).pushNamed(
-                AddTokenView.routeName,
-                arguments: widget.manager.walletId,
+          if (isCreateSpecialEthWallet) {
+            Navigator.of(context).popUntil(
+              ModalRoute.withName(
+                SelectWalletForTokenView.routeName,
               ),
             );
+          } else {
+            unawaited(
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                HomeView.routeName,
+                (route) => false,
+              ),
+            );
+            if (widget.manager.coin == Coin.ethereum) {
+              unawaited(
+                Navigator.of(context).pushNamed(
+                  AddTokenView.routeName,
+                  arguments: widget.manager.walletId,
+                ),
+              );
+            }
           }
         }
       }
