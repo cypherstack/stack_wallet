@@ -6,6 +6,7 @@ import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -33,6 +34,10 @@ class TransactionCard extends ConsumerStatefulWidget {
 class _TransactionCardState extends ConsumerState<TransactionCard> {
   late final Transaction _transaction;
   late final String walletId;
+  late final bool isTokenTx;
+  late final String prefix;
+  late final String unit;
+  late final Coin coin;
 
   String whatIsIt(
     TransactionType type,
@@ -93,6 +98,29 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
   void initState() {
     walletId = widget.walletId;
     _transaction = widget.transaction;
+    isTokenTx = _transaction.subType == TransactionSubType.ethToken;
+    if (Util.isDesktop) {
+      if (_transaction.type == TransactionType.outgoing) {
+        prefix = "-";
+      } else if (_transaction.type == TransactionType.incoming) {
+        prefix = "+";
+      } else {
+        prefix = "";
+      }
+    } else {
+      prefix = "";
+    }
+    coin = ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(widget.walletId)
+        .coin;
+
+    unit = isTokenTx
+        ? ref
+            .read(mainDBProvider)
+            .getEthContractSync(_transaction.otherData!)!
+            .symbol
+        : coin.ticker;
     super.initState();
   }
 
@@ -100,27 +128,15 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
   Widget build(BuildContext context) {
     final locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId)));
 
     final baseCurrency = ref
         .watch(prefsChangeNotifierProvider.select((value) => value.currency));
 
-    final coin = manager.coin;
-
     final price = ref
-        .watch(priceAnd24hChangeNotifierProvider
-            .select((value) => value.getPrice(coin)))
+        .watch(priceAnd24hChangeNotifierProvider.select((value) => isTokenTx
+            ? value.getTokenPrice(_transaction.otherData!)
+            : value.getPrice(coin)))
         .item1;
-
-    String prefix = "";
-    if (Util.isDesktop) {
-      if (_transaction.type == TransactionType.outgoing) {
-        prefix = "-";
-      } else if (_transaction.type == TransactionType.incoming) {
-        prefix = "+";
-      }
-    }
 
     final currentHeight = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManager(walletId).currentHeight));
@@ -183,8 +199,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
               children: [
                 TxIcon(
                   transaction: _transaction,
-                  coin: ref.watch(walletsChangeNotifierProvider.select(
-                      (value) => value.getManager(widget.walletId).coin)),
+                  coin: coin,
                   currentHeight: currentHeight,
                 ),
                 const SizedBox(
@@ -228,7 +243,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                       value: amount.decimal,
                                       locale: locale,
                                       decimalPlaces: coin.decimals,
-                                    )} ${coin.ticker}",
+                                    )} $unit",
                                     style: STextStyles.itemSubtitle12(context),
                                   );
                                 },
