@@ -1,5 +1,8 @@
 import 'dart:convert';
 
+import 'package:stackwallet/utilities/amount.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
+
 class EthTxDTO {
   EthTxDTO({
     required this.hash,
@@ -29,22 +32,16 @@ class EthTxDTO {
         timestamp: map['timestamp'] as int,
         from: map['from'] as String,
         to: map['to'] as String,
-        value: map['value'] as int,
-        gas: map['gas'] as int,
-        gasPrice: map['gasPrice'] as int,
-        maxFeePerGas: map['maxFeePerGas'] as int,
-        maxPriorityFeePerGas: map['maxPriorityFeePerGas'] as int,
+        value: _amountFromJsonNum(map['value']),
+        gas: _amountFromJsonNum(map['gas']),
+        gasPrice: _amountFromJsonNum(map['gasPrice']),
+        maxFeePerGas: _amountFromJsonNum(map['maxFeePerGas']),
+        maxPriorityFeePerGas: _amountFromJsonNum(map['maxPriorityFeePerGas']),
         isError: map['isError'] as int,
         hasToken: map['hasToken'] as int,
         compressedTx: map['compressedTx'] as String,
-        gasCost: map['gasCost'] as int,
-        gasUsed: map['gasUsed'] as int,
-      );
-
-  factory EthTxDTO.fromJsonString(String jsonString) => EthTxDTO.fromMap(
-        Map<String, dynamic>.from(
-          jsonDecode(jsonString) as Map,
-        ),
+        gasCost: _amountFromJsonNum(map['gasCost']),
+        gasUsed: _amountFromJsonNum(map['gasUsed']),
       );
 
   final String hash;
@@ -54,16 +51,23 @@ class EthTxDTO {
   final int timestamp;
   final String from;
   final String to;
-  final int value;
-  final int gas;
-  final int gasPrice;
-  final int maxFeePerGas;
-  final int maxPriorityFeePerGas;
+  final Amount value;
+  final Amount gas;
+  final Amount gasPrice;
+  final Amount maxFeePerGas;
+  final Amount maxPriorityFeePerGas;
   final int isError;
   final int hasToken;
   final String compressedTx;
-  final int gasCost;
-  final int gasUsed;
+  final Amount gasCost;
+  final Amount gasUsed;
+
+  static Amount _amountFromJsonNum(dynamic json) {
+    return Amount(
+      rawValue: BigInt.from(json as num),
+      fractionDigits: Coin.ethereum.decimals,
+    );
+  }
 
   EthTxDTO copyWith({
     String? hash,
@@ -73,16 +77,16 @@ class EthTxDTO {
     int? timestamp,
     String? from,
     String? to,
-    int? value,
-    int? gas,
-    int? gasPrice,
-    int? maxFeePerGas,
-    int? maxPriorityFeePerGas,
+    Amount? value,
+    Amount? gas,
+    Amount? gasPrice,
+    Amount? maxFeePerGas,
+    Amount? maxPriorityFeePerGas,
     int? isError,
     int? hasToken,
     String? compressedTx,
-    int? gasCost,
-    int? gasUsed,
+    Amount? gasCost,
+    Amount? gasUsed,
   }) =>
       EthTxDTO(
         hash: hash ?? this.hash,

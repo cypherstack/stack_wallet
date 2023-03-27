@@ -1,5 +1,8 @@
 import 'dart:convert';
 
+import 'package:stackwallet/utilities/amount.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
+
 class EthTokenTxExtraDTO {
   EthTokenTxExtraDTO({
     required this.blockHash,
@@ -27,20 +30,16 @@ class EthTokenTxExtraDTO {
         timestamp: map['timestamp'] as int,
         from: map['from'] as String,
         to: map['to'] as String,
-        value: int.parse(map['value'] as String),
-        gas: map['gas'] as int,
-        gasPrice: map['gasPrice'] as int,
+        value: Amount(
+          rawValue: BigInt.parse(map['value'] as String),
+          fractionDigits: Coin.ethereum.decimals,
+        ),
+        gas: _amountFromJsonNum(map['gas']),
+        gasPrice: _amountFromJsonNum(map['gasPrice']),
         nonce: map['nonce'] as int,
         input: map['input'] as String,
-        gasCost: map['gasCost'] as int,
-        gasUsed: map['gasUsed'] as int,
-      );
-
-  factory EthTokenTxExtraDTO.fromJsonString(String jsonString) =>
-      EthTokenTxExtraDTO.fromMap(
-        Map<String, dynamic>.from(
-          jsonDecode(jsonString) as Map,
-        ),
+        gasCost: _amountFromJsonNum(map['gasCost']),
+        gasUsed: _amountFromJsonNum(map['gasUsed']),
       );
 
   final String hash;
@@ -50,13 +49,20 @@ class EthTokenTxExtraDTO {
   final int timestamp;
   final String from;
   final String to;
-  final int value;
-  final int gas;
-  final int gasPrice;
+  final Amount value;
+  final Amount gas;
+  final Amount gasPrice;
   final String input;
   final int nonce;
-  final int gasCost;
-  final int gasUsed;
+  final Amount gasCost;
+  final Amount gasUsed;
+
+  static Amount _amountFromJsonNum(dynamic json) {
+    return Amount(
+      rawValue: BigInt.from(json as num),
+      fractionDigits: Coin.ethereum.decimals,
+    );
+  }
 
   EthTokenTxExtraDTO copyWith({
     String? hash,
@@ -66,13 +72,13 @@ class EthTokenTxExtraDTO {
     int? timestamp,
     String? from,
     String? to,
-    int? value,
-    int? gas,
-    int? gasPrice,
+    Amount? value,
+    Amount? gas,
+    Amount? gasPrice,
     int? nonce,
     String? input,
-    int? gasCost,
-    int? gasUsed,
+    Amount? gasCost,
+    Amount? gasUsed,
   }) =>
       EthTokenTxExtraDTO(
         hash: hash ?? this.hash,

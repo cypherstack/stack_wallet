@@ -854,7 +854,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
       final allTxs = txsResponse.value!;
       final List<Tuple2<Transaction, Address?>> txnsData = [];
       for (final element in allTxs) {
-        int transactionAmount = element.value;
+        Amount transactionAmount = element.value;
 
         bool isIncoming;
         bool txFailed = false;
@@ -869,7 +869,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
         //Calculate fees (GasLimit * gasPrice)
         // int txFee = element.gasPrice * element.gasUsed;
-        int txFee = element.gasCost;
+        Amount txFee = element.gasCost;
 
         final String addressString = checksumEthereumAddress(element.to);
         final int height = element.blockNumber;
@@ -881,12 +881,9 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
           type:
               isIncoming ? TransactionType.incoming : TransactionType.outgoing,
           subType: TransactionSubType.none,
-          amount: transactionAmount,
-          amountString: Amount(
-            rawValue: BigInt.from(transactionAmount),
-            fractionDigits: coin.decimals,
-          ).toJsonString(),
-          fee: txFee,
+          amount: transactionAmount.raw.toInt(),
+          amountString: transactionAmount.toJsonString(),
+          fee: txFee.raw.toInt(),
           height: height,
           isCancelled: txFailed,
           isLelantus: false,
