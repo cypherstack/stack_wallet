@@ -1088,6 +1088,26 @@ class RouteGenerator {
             ),
           );
         }
+        if (args is Tuple3<String, Coin, EthContract?>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => Stack(
+              children: [
+                WalletInitiatedExchangeView(
+                  walletId: args.item1,
+                  coin: args.item2,
+                  contract: args.item3,
+                ),
+                // ExchangeLoadingOverlayView(
+                //   unawaitedLoad: args.item3,
+                // ),
+              ],
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case NotificationsView.routeName:
@@ -1345,6 +1365,18 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => BuyInWalletView(coin: args),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        if (args is Tuple2<Coin, EthContract?>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => BuyInWalletView(
+              coin: args.item1,
+              contract: args.item2,
+            ),
             settings: RouteSettings(
               name: settings.name,
             ),

@@ -1,6 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
+import 'package:stackwallet/pages/buy_view/buy_in_wallet_view.dart';
+import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
+import 'package:stackwallet/pages/receive_view/receive_view.dart';
 import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -9,6 +15,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
+import 'package:tuple/tuple.dart';
 
 class TokenSummary extends ConsumerWidget {
   const TokenSummary({
@@ -84,7 +91,10 @@ class TokenSummary extends ConsumerWidget {
           const SizedBox(
             height: 20,
           ),
-          const TokenWalletOptions(),
+          TokenWalletOptions(
+            walletId: walletId,
+            tokenContract: token,
+          ),
         ],
       ),
     );
@@ -92,7 +102,39 @@ class TokenSummary extends ConsumerWidget {
 }
 
 class TokenWalletOptions extends StatelessWidget {
-  const TokenWalletOptions({Key? key}) : super(key: key);
+  const TokenWalletOptions({
+    Key? key,
+    required this.walletId,
+    required this.tokenContract,
+  }) : super(key: key);
+
+  final String walletId;
+  final EthContract tokenContract;
+
+  void _onExchangePressed(BuildContext context) async {
+    unawaited(
+      Navigator.of(context).pushNamed(
+        WalletInitiatedExchangeView.routeName,
+        arguments: Tuple3(
+          walletId,
+          Coin.ethereum,
+          tokenContract,
+        ),
+      ),
+    );
+  }
+
+  void _onBuyPressed(BuildContext context) {
+    unawaited(
+      Navigator.of(context).pushNamed(
+        BuyInWalletView.routeName,
+        arguments: Tuple2(
+          Coin.ethereum,
+          tokenContract,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +142,15 @@ class TokenWalletOptions extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         TokenOptionsButton(
-          onPressed: () {},
+          onPressed: () {
+            Navigator.of(context).pushNamed(
+              ReceiveView.routeName,
+              arguments: Tuple2(
+                walletId,
+                Coin.ethereum,
+              ),
+            );
+          },
           subLabel: "Receive",
           iconAssetSVG: Assets.svg.receive(context),
         ),
@@ -116,15 +166,15 @@ class TokenWalletOptions extends StatelessWidget {
           width: 16,
         ),
         TokenOptionsButton(
-          onPressed: () {},
-          subLabel: "Exchange",
+          onPressed: () => _onExchangePressed(context),
+          subLabel: "Swap",
           iconAssetSVG: Assets.svg.exchange(context),
         ),
         const SizedBox(
           width: 16,
         ),
         TokenOptionsButton(
-          onPressed: () {},
+          onPressed: () => _onBuyPressed(context),
           subLabel: "Buy",
           iconAssetSVG: Assets.svg.creditCard,
         ),
