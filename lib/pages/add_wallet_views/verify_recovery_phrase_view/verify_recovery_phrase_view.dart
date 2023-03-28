@@ -141,14 +141,16 @@ class _VerifyRecoveryPhraseViewState
             }
           }
         }
-      }
 
-      unawaited(showFloatingFlushBar(
-        type: FlushBarType.success,
-        message: "Correct! Your wallet is set up.",
-        iconAsset: Assets.svg.check,
-        context: context,
-      ));
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.success,
+            message: "Correct! Your wallet is set up.",
+            iconAsset: Assets.svg.check,
+            context: context,
+          ),
+        );
+      }
     } else {
       unawaited(showFloatingFlushBar(
         type: FlushBarType.warning,

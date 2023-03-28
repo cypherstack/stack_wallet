@@ -16,6 +16,8 @@ import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/confirm_r
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/restore_failed_dialog.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/restore_succeeded_dialog.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/restoring_dialog.dart';
+import 'package:stackwallet/pages/add_wallet_views/select_wallet_for_token_view.dart';
+import 'package:stackwallet/pages/add_wallet_views/verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
@@ -310,24 +312,54 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                 .read(walletsChangeNotifierProvider.notifier)
                 .addWallet(walletId: manager.walletId, manager: manager);
 
-            if (mounted) {
-              if (isDesktop) {
-                Navigator.of(context)
-                    .popUntil(ModalRoute.withName(DesktopHomeView.routeName));
-              } else {
-                unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
-                    HomeView.routeName, (route) => false));
-              }
+            final isCreateSpecialEthWallet =
+                ref.read(createSpecialEthWalletRoutingFlag);
+            if (isCreateSpecialEthWallet) {
+              ref.read(createSpecialEthWalletRoutingFlag.notifier).state =
+                  false;
+              ref
+                      .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted.state)
+                      .state =
+                  !ref
+                      .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted
+                          .state)
+                      .state;
             }
 
-            await showDialog<dynamic>(
-              context: context,
-              useSafeArea: false,
-              barrierDismissible: true,
-              builder: (context) {
-                return const RestoreSucceededDialog();
-              },
-            );
+            if (mounted) {
+              if (isDesktop) {
+                Navigator.of(context).popUntil(
+                  ModalRoute.withName(
+                    DesktopHomeView.routeName,
+                  ),
+                );
+              } else {
+                if (isCreateSpecialEthWallet) {
+                  Navigator.of(context).popUntil(
+                    ModalRoute.withName(
+                      SelectWalletForTokenView.routeName,
+                    ),
+                  );
+                } else {
+                  unawaited(
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      HomeView.routeName,
+                      (route) => false,
+                    ),
+                  );
+                }
+              }
+
+              await showDialog<dynamic>(
+                context: context,
+                useSafeArea: false,
+                barrierDismissible: true,
+                builder: (context) {
+                  return const RestoreSucceededDialog();
+                },
+              );
+            }
+
             if (!Platform.isLinux && !isDesktop) {
               await Wakelock.disable();
             }
