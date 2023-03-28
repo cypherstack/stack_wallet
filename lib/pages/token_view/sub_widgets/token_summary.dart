@@ -109,7 +109,7 @@ class TokenWalletOptions extends StatelessWidget {
         ),
         TokenOptionsButton(
           onPressed: () {},
-          subLabel: "Receive",
+          subLabel: "Send",
           iconAssetSVG: Assets.svg.send(context),
         ),
         const SizedBox(
