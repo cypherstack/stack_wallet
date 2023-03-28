@@ -5,7 +5,11 @@ import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/coin_entit
 import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
+import 'package:stackwallet/pages/home_view/home_view.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/global/wallets_service_provider.dart';
+import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
+import 'package:stackwallet/services/wallets_service.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -16,6 +20,9 @@ import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/wallet_info_row/wallet_info_row.dart';
+
+final newEthWalletTriggerTempUntilHiveCompletelyDeleted =
+    StateProvider((ref) => false);
 
 class SelectWalletForTokenView extends ConsumerStatefulWidget {
   const SelectWalletForTokenView({
@@ -40,7 +47,16 @@ class _SelectWalletForTokenViewState
   String? _selectedWalletId;
 
   void _onContinue() {
-    //
+    final wallet = ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(_selectedWalletId!)
+        .wallet as EthereumWallet;
+
+    final tokenSet = wallet.getWalletTokenContractAddresses().toSet();
+    tokenSet.add(widget.entity.token.address);
+    wallet.updateWalletTokenContractAddresses(tokenSet.toList());
+
+    Navigator.of(context).pushNamed(HomeView.routeName);
   }
 
   void _onAddNewEthWallet() {
@@ -51,12 +67,13 @@ class _SelectWalletForTokenViewState
     );
   }
 
-  @override
-  void initState() {
-    final walletsData =
-        ref.read(walletsServiceChangeNotifierProvider).fetchWalletsData();
+  late int _cachedWalletCount;
+
+  void _updateWalletsList(Map<String, WalletInfo> walletsData) {
+    _cachedWalletCount = walletsData.length;
+
     walletsData.removeWhere((key, value) => value.coin != widget.entity.coin);
-    ethWalletIds = [];
+    ethWalletIds.clear();
 
     // TODO: proper wallet data class instead of this Hive silliness
     for (final walletId in walletsData.values.map((e) => e.walletId).toList()) {
@@ -69,12 +86,29 @@ class _SelectWalletForTokenViewState
         ethWalletIds.add(walletId);
       }
     }
+  }
+
+  @override
+  void initState() {
+    ethWalletIds = [];
+
+    final walletsData =
+        ref.read(walletsServiceChangeNotifierProvider).fetchWalletsData();
+    _updateWalletsList(walletsData);
 
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    // dumb hack
+    ref.watch(newEthWalletTriggerTempUntilHiveCompletelyDeleted);
+    final walletsData =
+        ref.read(walletsServiceChangeNotifierProvider).fetchWalletsData();
+    if (walletsData.length != _cachedWalletCount) {
+      _updateWalletsList(walletsData);
+    }
+
     return WillPopScope(
       onWillPop: () async {
         ref.read(createSpecialEthWalletRoutingFlag.notifier).state = false;

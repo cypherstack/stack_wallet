@@ -102,6 +102,12 @@ class _VerifyRecoveryPhraseViewState
           ref.read(createSpecialEthWalletRoutingFlag);
       if (isCreateSpecialEthWallet) {
         ref.read(createSpecialEthWalletRoutingFlag.notifier).state = false;
+        ref
+                .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted.state)
+                .state =
+            !ref
+                .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted.state)
+                .state;
       }
 
       if (mounted) {

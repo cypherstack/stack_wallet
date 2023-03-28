@@ -15,7 +15,7 @@ import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/a
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/expanding_sub_list_item.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/next_button.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_eth_tokens.dart';
@@ -123,6 +123,10 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
     }
 
     tokenEntities.addAll(contracts.map((e) => EthTokenEntity(e)));
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.refresh(addWalletSelectedEntityStateProvider);
+    });
 
     super.initState();
   }
