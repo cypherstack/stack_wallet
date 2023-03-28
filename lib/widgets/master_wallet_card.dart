@@ -125,7 +125,7 @@ class _MasterWalletCardState extends ConsumerState<MasterWalletCard> {
                 child: WalletSheetCard(
                   walletId: widget.walletId,
                   contractAddress: e,
-                  // popPrevious: true,
+                  popPrevious: true,
                 ),
               ),
             ),

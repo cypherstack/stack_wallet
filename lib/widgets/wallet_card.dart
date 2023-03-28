@@ -12,11 +12,10 @@ import 'package:stackwallet/services/ethereum/ethereum_token_service.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/wallet_info_row/wallet_info_row.dart';
 import 'package:tuple/tuple.dart';
-
-import '../utilities/show_loading.dart';
 
 class WalletSheetCard extends ConsumerWidget {
   const WalletSheetCard({
@@ -45,15 +44,17 @@ class WalletSheetCard extends ConsumerWidget {
           ),
         ),
         onPressed: () async {
+          final nav = Navigator.of(context);
+
           final manager =
               ref.read(walletsChangeNotifierProvider).getManager(walletId);
           if (manager.coin == Coin.monero || manager.coin == Coin.wownero) {
             await manager.initializeExisting();
           }
           if (context.mounted) {
-            if (popPrevious) Navigator.of(context).pop();
+            if (popPrevious) nav.pop();
             unawaited(
-              Navigator.of(context).pushNamed(
+              nav.pushNamed(
                 WalletView.routeName,
                 arguments: Tuple2(
                     walletId,
@@ -83,12 +84,15 @@ class WalletSheetCard extends ConsumerWidget {
                 message: "Loading ${contract.name}",
               );
 
-              if (context.mounted) {
-                await Navigator.of(context).pushNamed(
-                  TokenView.routeName,
-                  arguments: walletId,
-                );
-              }
+              // pop loading
+              nav.pop();
+
+              // if (context.mounted) {
+              await nav.pushNamed(
+                TokenView.routeName,
+                arguments: walletId,
+              );
+              // }
             }
           }
         },
