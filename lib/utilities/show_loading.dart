@@ -10,6 +10,7 @@ Future<T> showLoading<T>({
   required String message,
   String? subMessage,
   bool isDesktop = false,
+  bool opaqueBG = false,
 }) async {
   unawaited(
     showDialog<void>(
@@ -21,7 +22,7 @@ Future<T> showLoading<T>({
           color: Theme.of(context)
               .extension<StackColors>()!
               .overlay
-              .withOpacity(0.6),
+              .withOpacity(opaqueBG ? 1.0 : 0.6),
           child: CustomLoadingOverlay(
             message: message,
             subMessage: subMessage,
