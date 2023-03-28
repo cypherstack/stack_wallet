@@ -7,6 +7,7 @@ import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/notification_model.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
+import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/trade_service.dart';
@@ -197,57 +198,59 @@ class NotificationsService extends ChangeNotifier {
       final oldTrade = trades.first;
       late final ExchangeResponse<Trade> response;
 
-      try {
-        final exchange = Exchange.fromName(oldTrade.exchangeName);
-        response = await exchange.updateTrade(oldTrade);
-      } catch (_) {
-        return;
-      }
-
-      if (response.value == null) {
-        return;
-      }
-
-      final trade = response.value!;
-
-      // only update if status has changed
-      if (trade.status != notification.title) {
-        bool shouldWatchForUpdates = true;
-        // TODO: make sure we set shouldWatchForUpdates to correct value here
-        switch (trade.status) {
-          case "Refunded":
-          case "refunded":
-          case "Failed":
-          case "failed":
-          case "closed":
-          case "expired":
-          case "Finished":
-          case "finished":
-          case "Completed":
-          case "completed":
-          case "Not found":
-            shouldWatchForUpdates = false;
-            break;
-          default:
-            shouldWatchForUpdates = true;
+      if (oldTrade.exchangeName != MajesticBankExchange.exchangeName) {
+        try {
+          final exchange = Exchange.fromName(oldTrade.exchangeName);
+          response = await exchange.updateTrade(oldTrade);
+        } catch (_) {
+          return;
         }
 
-        final updatedNotification = notification.copyWith(
-          title: trade.status,
-          shouldWatchForUpdates: shouldWatchForUpdates,
-        );
-
-        // remove from watch list if shouldWatchForUpdates was changed
-        if (!shouldWatchForUpdates) {
-          await _deleteWatchedTradeNotification(notification);
+        if (response.value == null) {
+          return;
         }
 
-        // replaces the current notification with the updated one
-        unawaited(add(updatedNotification, true));
+        final trade = response.value!;
 
-        // update the trade in db
-        // over write trade stored in db with updated version
-        await tradesService.edit(trade: trade, shouldNotifyListeners: true);
+        // only update if status has changed
+        if (trade.status != notification.title) {
+          bool shouldWatchForUpdates = true;
+          // TODO: make sure we set shouldWatchForUpdates to correct value here
+          switch (trade.status) {
+            case "Refunded":
+            case "refunded":
+            case "Failed":
+            case "failed":
+            case "closed":
+            case "expired":
+            case "Finished":
+            case "finished":
+            case "Completed":
+            case "completed":
+            case "Not found":
+              shouldWatchForUpdates = false;
+              break;
+            default:
+              shouldWatchForUpdates = true;
+          }
+
+          final updatedNotification = notification.copyWith(
+            title: trade.status,
+            shouldWatchForUpdates: shouldWatchForUpdates,
+          );
+
+          // remove from watch list if shouldWatchForUpdates was changed
+          if (!shouldWatchForUpdates) {
+            await _deleteWatchedTradeNotification(notification);
+          }
+
+          // replaces the current notification with the updated one
+          unawaited(add(updatedNotification, true));
+
+          // update the trade in db
+          // over write trade stored in db with updated version
+          await tradesService.edit(trade: trade, shouldNotifyListeners: true);
+        }
       }
     }
   }

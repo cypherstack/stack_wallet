@@ -273,25 +273,25 @@ class ExchangeDataLoadingService {
   // }
 
   Future<void> loadMajesticBankCurrencies() async {
-    final exchange = MajesticBankExchange.instance;
-    final responseCurrencies = await exchange.getAllCurrencies(false);
-
-    if (responseCurrencies.value != null) {
-      await isar.writeTxn(() async {
-        final idsToDelete = await isar.currencies
-            .where()
-            .exchangeNameEqualTo(MajesticBankExchange.exchangeName)
-            .idProperty()
-            .findAll();
-        await isar.currencies.deleteAll(idsToDelete);
-        await isar.currencies.putAll(responseCurrencies.value!);
-      });
-    } else {
-      Logging.instance.log(
-        "loadMajesticBankCurrencies: $responseCurrencies",
-        level: LogLevel.Warning,
-      );
-    }
+    // final exchange = MajesticBankExchange.instance;
+    // final responseCurrencies = await exchange.getAllCurrencies(false);
+    //
+    // if (responseCurrencies.value != null) {
+    await isar.writeTxn(() async {
+      final idsToDelete = await isar.currencies
+          .where()
+          .exchangeNameEqualTo(MajesticBankExchange.exchangeName)
+          .idProperty()
+          .findAll();
+      await isar.currencies.deleteAll(idsToDelete);
+      // await isar.currencies.putAll(responseCurrencies.value!);
+    });
+    // } else {
+    //   Logging.instance.log(
+    //     "loadMajesticBankCurrencies: $responseCurrencies",
+    //     level: LogLevel.Warning,
+    //   );
+    // }
   }
 
   // Future<void> loadMajesticBankPairs() async {

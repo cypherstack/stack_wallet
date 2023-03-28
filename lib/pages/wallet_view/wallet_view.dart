@@ -45,6 +45,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -261,11 +262,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
   void _onExchangePressed(BuildContext context) async {
     final coin = ref.read(managerProvider).coin;
 
-    final currency = ExchangeDataLoadingService.instance.isar.currencies
-        .where()
-        .tickerEqualToAnyExchangeNameName(coin.ticker)
-        .findFirstSync();
-
     if (coin.isTestNet) {
       await showDialog<void>(
         context: context,
@@ -274,6 +270,15 @@ class _WalletViewState extends ConsumerState<WalletView> {
         ),
       );
     } else {
+      final currency = await showLoading(
+        whileFuture: ExchangeDataLoadingService.instance.isar.currencies
+            .where()
+            .tickerEqualToAnyExchangeNameName(coin.ticker)
+            .findFirst(),
+        context: context,
+        message: "Loading...",
+      );
+
       if (mounted) {
         unawaited(
           Navigator.of(context).pushNamed(
