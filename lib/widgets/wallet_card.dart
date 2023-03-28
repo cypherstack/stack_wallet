@@ -33,22 +33,24 @@ class WalletSheetCard extends ConsumerWidget {
           ),
         ),
         onPressed: () async {
-          final manager = ref
-              .read(walletsChangeNotifierProvider)
-              .getManager(walletId);
-          if (manager.coin == Coin.monero ||
-              manager.coin == Coin.wownero) {
+          final manager =
+              ref.read(walletsChangeNotifierProvider).getManager(walletId);
+          if (manager.coin == Coin.monero || manager.coin == Coin.wownero) {
             await manager.initializeExisting();
           }
-          if (popPrevious) Navigator.of(context).pop();
-          Navigator.of(context).pushNamed(
-            WalletView.routeName,
-            arguments: Tuple2(
+          if (context.mounted) {
+            if (popPrevious && context.mounted) Navigator.of(context).pop();
+
+            await Navigator.of(context).pushNamed(
+              WalletView.routeName,
+              arguments: Tuple2(
                 walletId,
                 ref
                     .read(walletsChangeNotifierProvider)
-                    .getManagerProvider(walletId)),
-          );
+                    .getManagerProvider(walletId),
+              ),
+            );
+          }
         },
         child: WalletInfoRow(
           walletId: walletId,
