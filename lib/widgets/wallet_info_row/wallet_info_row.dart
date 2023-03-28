@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
+import 'package:stackwallet/pages/token_view/sub_widgets/token_summary.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -14,10 +17,12 @@ class WalletInfoRow extends ConsumerWidget {
     Key? key,
     required this.walletId,
     this.onPressedDesktop,
+    this.contractAddress,
     this.padding = const EdgeInsets.all(0),
   }) : super(key: key);
 
   final String walletId;
+  final String? contractAddress;
   final VoidCallback? onPressedDesktop;
   final EdgeInsets padding;
 
@@ -26,6 +31,12 @@ class WalletInfoRow extends ConsumerWidget {
     final manager = ref.watch(ref
         .watch(walletsChangeNotifierProvider.notifier)
         .getManagerProvider(walletId));
+
+    EthContract? contract;
+    if (contractAddress != null) {
+      contract = ref.watch(mainDBProvider
+          .select((value) => value.getEthContractSync(contractAddress!)));
+    }
 
     if (Util.isDesktop) {
       return MouseRegion(
@@ -42,7 +53,10 @@ class WalletInfoRow extends ConsumerWidget {
                     flex: 4,
                     child: Row(
                       children: [
-                        WalletInfoCoinIcon(coin: manager.coin),
+                        WalletInfoCoinIcon(
+                          coin: manager.coin,
+                          contractAddress: contractAddress,
+                        ),
                         const SizedBox(
                           width: 12,
                         ),
@@ -60,7 +74,7 @@ class WalletInfoRow extends ConsumerWidget {
                   ),
                   Expanded(
                     flex: 4,
-                    child: WalletInfoRowBalanceFuture(
+                    child: WalletInfoRowBalance(
                       walletId: walletId,
                     ),
                   ),
@@ -89,7 +103,10 @@ class WalletInfoRow extends ConsumerWidget {
     } else {
       return Row(
         children: [
-          WalletInfoCoinIcon(coin: manager.coin),
+          WalletInfoCoinIcon(
+            coin: manager.coin,
+            contractAddress: contractAddress,
+          ),
           const SizedBox(
             width: 12,
           ),
@@ -98,14 +115,32 @@ class WalletInfoRow extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  manager.walletName,
-                  style: STextStyles.titleBold12(context),
-                ),
+                contract != null
+                    ? Row(
+                        children: [
+                          Text(
+                            contract.name,
+                            style: STextStyles.titleBold12(context),
+                          ),
+                          const SizedBox(
+                            width: 4,
+                          ),
+                          CoinTickerTag(
+                            walletId: walletId,
+                          ),
+                        ],
+                      )
+                    : Text(
+                        manager.walletName,
+                        style: STextStyles.titleBold12(context),
+                      ),
                 const SizedBox(
                   height: 2,
                 ),
-                WalletInfoRowBalanceFuture(walletId: walletId),
+                WalletInfoRowBalance(
+                  walletId: walletId,
+                  contractAddress: contractAddress,
+                ),
               ],
             ),
           ),

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages/wallets_sheet/wallets_sheet.dart';
+import 'package:stackwallet/pages/wallets_view/eth_wallets_overview.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -45,7 +46,13 @@ class WalletListItem extends ConsumerWidget {
               BorderRadius.circular(Constants.size.circularBorderRadius),
         ),
         onPressed: () async {
-          if (walletCount == 1) {
+          if (coin == Coin.ethereum) {
+            unawaited(
+              Navigator.of(context).pushNamed(
+                EthWalletsOverview.routeName,
+              ),
+            );
+          } else if (walletCount == 1) {
             final providersByCoin = ref
                 .watch(walletsChangeNotifierProvider
                     .select((value) => value.getManagerProvidersByCoin()))
@@ -57,15 +64,17 @@ class WalletListItem extends ConsumerWidget {
             if (coin == Coin.monero || coin == Coin.wownero) {
               await manager.initializeExisting();
             }
-            unawaited(
-              Navigator.of(context).pushNamed(
-                WalletView.routeName,
-                arguments: Tuple2(
-                  manager.walletId,
-                  providersByCoin.first,
+            if (context.mounted) {
+              unawaited(
+                Navigator.of(context).pushNamed(
+                  WalletView.routeName,
+                  arguments: Tuple2(
+                    manager.walletId,
+                    providersByCoin.first,
+                  ),
                 ),
-              ),
-            );
+              );
+            }
           } else {
             unawaited(
               showModalBottomSheet<dynamic>(

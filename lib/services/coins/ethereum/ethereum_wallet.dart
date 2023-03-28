@@ -5,11 +5,13 @@ import 'package:decimal/decimal.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:http/http.dart';
 import 'package:isar/isar.dart';
+import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
+import 'package:stackwallet/models/token_balance.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/ethereum/ethereum_api.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
@@ -17,6 +19,7 @@ import 'package:stackwallet/services/event_bus/events/global/refresh_percent_cha
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/mixins/eth_token_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
@@ -73,6 +76,26 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
         "$contractAddresses updated/added for: $walletId $walletName",
         walletId,
       ),
+    );
+  }
+
+  TokenBalance getCachedTokenBalance(EthContract contract) {
+    final jsonString = DB.instance.get<dynamic>(
+      boxName: _walletId,
+      key: TokenCacheKeys.tokenBalance(contract.address),
+    ) as String?;
+    if (jsonString == null) {
+      return TokenBalance(
+        contractAddress: contract.address,
+        decimalPlaces: contract.decimals,
+        total: 0,
+        spendable: 0,
+        blockedTotal: 0,
+        pendingSpendable: 0,
+      );
+    }
+    return TokenBalance.fromJson(
+      jsonString,
     );
   }
 

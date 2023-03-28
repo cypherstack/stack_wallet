@@ -69,18 +69,8 @@ class TokenSummary extends ConsumerWidget {
               const SizedBox(
                 width: 10,
               ),
-              RoundedContainer(
-                padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
-                radiusMultiplier: 0.25,
-                color: const Color(
-                    0xFF4D5798), // TODO: color theme for multi themes
-                child: Text(
-                  ref.watch(walletsChangeNotifierProvider.select(
-                      (value) => value.getManager(walletId).coin.ticker)),
-                  style: STextStyles.w600_12(context).copyWith(
-                    color: Colors.white, // TODO: design is wrong?
-                  ),
-                ),
+              CoinTickerTag(
+                walletId: walletId,
               ),
             ],
           ),
@@ -192,6 +182,31 @@ class TokenOptionsButton extends StatelessWidget {
           style: STextStyles.w500_12(context),
         )
       ],
+    );
+  }
+}
+
+class CoinTickerTag extends ConsumerWidget {
+  const CoinTickerTag({
+    Key? key,
+    required this.walletId,
+  }) : super(key: key);
+
+  final String walletId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return RoundedContainer(
+      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+      radiusMultiplier: 0.25,
+      color: const Color(0xFF4D5798), // TODO: color theme for multi themes
+      child: Text(
+        ref.watch(walletsChangeNotifierProvider
+            .select((value) => value.getManager(walletId).coin.ticker)),
+        style: STextStyles.w600_12(context).copyWith(
+          color: Colors.white, // TODO: design is wrong?
+        ),
+      ),
     );
   }
 }
