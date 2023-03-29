@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/coin_entity.dart';
 import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
@@ -58,6 +59,12 @@ class _SelectWalletForTokenViewState
     wallet.updateWalletTokenContractAddresses(tokenSet.toList());
 
     Navigator.of(context).pushNamed(HomeView.routeName);
+    showFloatingFlushBar(
+      type: FlushBarType.success,
+      message:
+          "${widget.entity.name} (${widget.entity.ticker}) added to ${wallet.walletName}",
+      context: context,
+    );
   }
 
   void _onAddNewEthWallet() {
