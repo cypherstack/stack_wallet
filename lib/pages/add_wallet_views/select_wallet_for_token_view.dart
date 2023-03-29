@@ -43,6 +43,7 @@ class _SelectWalletForTokenViewState
     extends ConsumerState<SelectWalletForTokenView> {
   final isDesktop = Util.isDesktop;
   late final List<String> ethWalletIds;
+  bool _hasEthWallets = false;
 
   String? _selectedWalletId;
 
@@ -74,6 +75,8 @@ class _SelectWalletForTokenViewState
 
     walletsData.removeWhere((key, value) => value.coin != widget.entity.coin);
     ethWalletIds.clear();
+
+    _hasEthWallets = walletsData.isNotEmpty;
 
     // TODO: proper wallet data class instead of this Hive silliness
     for (final walletId in walletsData.values.map((e) => e.walletId).toList()) {
@@ -179,7 +182,9 @@ class _SelectWalletForTokenViewState
             ethWalletIds.isEmpty
                 ? RoundedWhiteContainer(
                     child: Text(
-                      "You do not have any Ethereum wallets",
+                      _hasEthWallets
+                          ? "All current Ethereum wallets already have ${widget.entity.name}"
+                          : "You do not have any Ethereum wallets",
                       style: STextStyles.label(context),
                     ),
                   )
