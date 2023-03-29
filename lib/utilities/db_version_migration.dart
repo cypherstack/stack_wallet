@@ -285,7 +285,7 @@ class DbVersionMigrator with WalletDB {
 
         // update version
         await DB.instance.put<dynamic>(
-            boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 7);
+            boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 8);
 
         // try to continue migrating
         return await migrate(8, secureStore: secureStore);
