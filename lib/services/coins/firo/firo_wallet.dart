@@ -2499,60 +2499,17 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
         });
       }
 
-      // final int utxosIntValue = utxos.satoshiBalance;
-      // final Decimal utxosValue =
-      //     Format.satoshisToAmount(utxosIntValue, coin: coin);
-
-      // List<Decimal> balances = List.empty(growable: true);
-      //
-      // Decimal lelantusBalance =
-      //     Format.satoshisToAmount(intLelantusBalance, coin: coin);
-
-      // balances.add(lelantusBalance);   0
-      //
-      // balances.add(lelantusBalance * price);  1
-
-      // Decimal _unconfirmedLelantusBalance =
-      //     Format.satoshisToAmount(unconfirmedLelantusBalance, coin: coin);
-
-      // balances.add(lelantusBalance + utxosValue + _unconfirmedLelantusBalance);  2
-      //
-      // balances.add(
-      //     (lelantusBalance + utxosValue + _unconfirmedLelantusBalance) * price);  3
-
-      // int availableSats =
-      //     utxos.satoshiBalance - utxos.satoshiBalanceUnconfirmed;
-      // if (availableSats < 0) {
-      //   availableSats = 0;
-      // }
-      // balances.add(Format.satoshisToAmount(availableSats, coin: coin));  4
+      _balancePrivate = Balance(
+        coin: coin,
+        total: intLelantusBalance + unconfirmedLelantusBalance,
+        spendable: intLelantusBalance,
+        blockedTotal: 0,
+        pendingSpendable: unconfirmedLelantusBalance,
+      );
+      await updateCachedBalanceSecondary(_balancePrivate!);
 
       // wait for updated uxtos to get updated public balance
       await utxosUpdateFuture;
-
-      // todo: shared total between private and public balances?
-      _balancePrivate = Balance(
-        coin: coin,
-        total: intLelantusBalance + unconfirmedLelantusBalance + balance.total,
-        spendable: intLelantusBalance,
-        blockedTotal: 0,
-        pendingSpendable: unconfirmedLelantusBalance + balance.total,
-      );
-      await updateCachedBalanceSecondary(_balancePrivate!);
-      // _balance = Balance(
-      //   coin: coin,
-      //   total: utxos.satoshiBalance,
-      //   spendable: availableSats,
-      //   blockedTotal: 0,
-      //   pendingSpendable: utxos.satoshiBalanceUnconfirmed,
-      // );
-
-      // Logging.instance.log("balances $balances", level: LogLevel.Info);
-      // await DB.instance.put<dynamic>(
-      //     boxName: walletId,
-      //     key: 'totalBalance',
-      //     value: balances[2].toString());
-      // return balances;
     } catch (e, s) {
       Logging.instance.log("Exception rethrown in getFullBalance(): $e\n$s",
           level: LogLevel.Error);

@@ -282,6 +282,7 @@ abstract class SWB {
         backupWallet['id'] = manager.walletId;
         backupWallet['isFavorite'] = manager.isFavorite;
         backupWallet['mnemonic'] = await manager.mnemonic;
+        backupWallet['mnemonicPassphrase'] = await manager.mnemonicPassphrase;
         backupWallet['coinName'] = manager.coin.name;
         backupWallet['storedChainHeight'] = DB.instance
             .get<dynamic>(boxName: manager.walletId, key: 'storedChainHeight');
@@ -363,6 +364,7 @@ abstract class SWB {
       walletId: manager.walletId,
       restoringStatus: StackRestoringStatus.restoring,
       mnemonic: mnemonic,
+      mnemonicPassphrase: mnemonicPassphrase,
     );
 
     if (_shouldCancelRestore) {
@@ -432,6 +434,7 @@ abstract class SWB {
         address: currentAddress,
         height: restoreHeight,
         mnemonic: mnemonic,
+        mnemonicPassphrase: mnemonicPassphrase,
       );
     } catch (e, s) {
       Logging.instance.log("$e $s", level: LogLevel.Warning);
@@ -440,6 +443,7 @@ abstract class SWB {
         restoringStatus: StackRestoringStatus.failed,
         manager: manager,
         mnemonic: mnemonic,
+        mnemonicPassphrase: mnemonicPassphrase,
       );
       return false;
     }
