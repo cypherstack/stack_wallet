@@ -105,11 +105,11 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   static Decimal minFiat = Decimal.fromInt(50);
   static Decimal maxFiat = Decimal.fromInt(20000);
 
-  // We can't get crypto min and max without asking for a quote
-  static Decimal minCrypto = Decimal.parse((0.00000001)
-      .toString()); // lol how to go from double->Decimal more easily?
-  static Decimal maxCrypto = Decimal.parse((10000.00000000).toString());
-  static String boundedCryptoTicker = '';
+  // // We can't get crypto min and max without asking for a quote
+  // static Decimal minCrypto = Decimal.parse((0.00000001)
+  //     .toString()); // lol how to go from double->Decimal more easily?
+  // static Decimal maxCrypto = Decimal.parse((10000.00000000).toString());
+  // static String boundedCryptoTicker = '';
 
   String _amountOutOfRangeErrorString = "";
   void validateAmount() {
@@ -168,13 +168,13 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       coins: ref.read(simplexProvider).supportedCryptos,
       onSelected: (crypto) {
         setState(() {
-          if (selectedCrypto?.ticker != _BuyFormState.boundedCryptoTicker) {
-            // Reset crypto mins and maxes ... we don't know these bounds until we request a quote
-            _BuyFormState.minCrypto = Decimal.parse((0.00000001)
-                .toString()); // lol how to go from double->Decimal more easily?
-            _BuyFormState.maxCrypto =
-                Decimal.parse((10000.00000000).toString());
-          }
+          // if (selectedCrypto?.ticker != _BuyFormState.boundedCryptoTicker) {
+          //   // Reset crypto mins and maxes ... we don't know these bounds until we request a quote
+          //   _BuyFormState.minCrypto = Decimal.parse((0.00000001)
+          //       .toString()); // lol how to go from double->Decimal more easily?
+          //   _BuyFormState.maxCrypto =
+          //       Decimal.parse((10000.00000000).toString());
+          // }
           selectedCrypto = crypto;
         });
       },
