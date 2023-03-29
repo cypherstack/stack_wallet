@@ -8,7 +8,9 @@ import 'package:stackwallet/pages/buy_view/buy_in_wallet_view.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
 import 'package:stackwallet/pages/token_view/token_view.dart';
+import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -21,9 +23,11 @@ class TokenSummary extends ConsumerWidget {
   const TokenSummary({
     Key? key,
     required this.walletId,
+    required this.initialSyncStatus,
   }) : super(key: key);
 
   final String walletId;
+  final WalletSyncStatus initialSyncStatus;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -32,71 +36,85 @@ class TokenSummary extends ConsumerWidget {
     final balance =
         ref.watch(tokenServiceProvider.select((value) => value!.balance));
 
-    return RoundedContainer(
-      color: const Color(0xFFE9EAFF), // todo: fix color
-      // color: Theme.of(context).extension<StackColors>()!.,
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+    return Stack(
+      children: [
+        RoundedContainer(
+          color: const Color(0xFFE9EAFF), // todo: fix color
+          // color: Theme.of(context).extension<StackColors>()!.,
+          padding: const EdgeInsets.all(24),
+          child: Column(
             children: [
-              SvgPicture.asset(
-                Assets.svg.walletDesktop,
-                color: const Color(0xFF8488AB), // todo: fix color
-                width: 12,
-                height: 12,
-              ),
-              const SizedBox(
-                width: 6,
-              ),
-              Text(
-                ref.watch(
-                  walletsChangeNotifierProvider.select(
-                    (value) => value.getManager(walletId).walletName,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(
+                    Assets.svg.walletDesktop,
+                    color: const Color(0xFF8488AB), // todo: fix color
+                    width: 12,
+                    height: 12,
                   ),
-                ),
-                style: STextStyles.w500_12(context).copyWith(
-                  color: const Color(0xFF8488AB), // todo: fix color
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(
-            height: 6,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                "${balance.getTotal()}"
-                " ${token.symbol}",
-                style: STextStyles.pageTitleH1(context),
+                  const SizedBox(
+                    width: 6,
+                  ),
+                  Text(
+                    ref.watch(
+                      walletsChangeNotifierProvider.select(
+                        (value) => value.getManager(walletId).walletName,
+                      ),
+                    ),
+                    style: STextStyles.w500_12(context).copyWith(
+                      color: const Color(0xFF8488AB), // todo: fix color
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(
-                width: 10,
+                height: 6,
               ),
-              CoinTickerTag(
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "${balance.getTotal()}"
+                    " ${token.symbol}",
+                    style: STextStyles.pageTitleH1(context),
+                  ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  CoinTickerTag(
+                    walletId: walletId,
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 6,
+              ),
+              Text(
+                "FIXME: price",
+                style: STextStyles.subtitle500(context),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              TokenWalletOptions(
                 walletId: walletId,
+                tokenContract: token,
               ),
             ],
           ),
-          const SizedBox(
-            height: 6,
-          ),
-          Text(
-            "FIXME: price",
-            style: STextStyles.subtitle500(context),
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          TokenWalletOptions(
+        ),
+        Positioned(
+          top: 10,
+          right: 10,
+          child: WalletRefreshButton(
             walletId: walletId,
-            tokenContract: token,
+            initialSyncStatus: initialSyncStatus,
+            tokenContractAddress: ref.watch(tokenServiceProvider
+                .select((value) => value!.tokenContract.address)),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

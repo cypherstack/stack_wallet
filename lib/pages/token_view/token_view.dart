@@ -5,7 +5,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/token_summary.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/token_transaction_list_widget.dart';
 import 'package:stackwallet/pages/token_view/token_contract_details_view.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
 import 'package:stackwallet/services/ethereum/ethereum_token_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -68,14 +67,11 @@ class _TokenViewState extends ConsumerState<TokenView> {
               Navigator.of(context).pop();
             },
           ),
-          // centerTitle: true
+          centerTitle: true,
           title: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(
-                width: 5,
-              ),
               Expanded(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -103,36 +99,32 @@ class _TokenViewState extends ConsumerState<TokenView> {
                   ],
                 ),
               ),
-              const SizedBox(
-                width: 28,
-              ),
-              WalletRefreshButton(
-                walletId: widget.walletId,
-                initialSyncStatus: initialSyncStatus,
-                tokenContractAddress: ref.watch(tokenServiceProvider
-                    .select((value) => value!.tokenContract.address)),
-              ),
-              const SizedBox(
-                width: 6,
-              ),
-              AppBarIconButton(
-                icon: SvgPicture.asset(
-                  Assets.svg.verticalEllipsis,
-                ),
-                onPressed: () {
-                  // todo: context menu
-                  Navigator.of(context).pushNamed(
-                    TokenContractDetailsView.routeName,
-                    arguments: Tuple2(
-                      ref.watch(tokenServiceProvider
-                          .select((value) => value!.tokenContract.address)),
-                      widget.walletId,
-                    ),
-                  );
-                },
-              ),
             ],
           ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 2),
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: AppBarIconButton(
+                  icon: SvgPicture.asset(
+                    Assets.svg.verticalEllipsis,
+                  ),
+                  onPressed: () {
+                    // todo: context menu
+                    Navigator.of(context).pushNamed(
+                      TokenContractDetailsView.routeName,
+                      arguments: Tuple2(
+                        ref.watch(tokenServiceProvider
+                            .select((value) => value!.tokenContract.address)),
+                        widget.walletId,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
         ),
         body: Container(
           color: Theme.of(context).extension<StackColors>()!.background,
@@ -145,6 +137,7 @@ class _TokenViewState extends ConsumerState<TokenView> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: TokenSummary(
                   walletId: widget.walletId,
+                  initialSyncStatus: initialSyncStatus,
                 ),
               ),
               const SizedBox(
