@@ -46,8 +46,7 @@ class _BuyInWalletViewState extends State<BuyInWalletView> {
         ),
         body: BuyView(
           coin: widget.coin,
-          tokenContract,
-          widget.contract,
+          tokenContract: widget.contract,
         ),
       ),
     );

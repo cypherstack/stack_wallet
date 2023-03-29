@@ -10,6 +10,7 @@ import 'package:stackwallet/models/buy/response_objects/crypto.dart';
 import 'package:stackwallet/models/buy/response_objects/fiat.dart';
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
 import 'package:stackwallet/models/contact_address_entry.dart';
+import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
 import 'package:stackwallet/pages/buy_view/buy_quote_preview.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dart';
@@ -49,6 +50,7 @@ class BuyForm extends ConsumerStatefulWidget {
   const BuyForm({
     Key? key,
     this.coin,
+    this.tokenContract,
     this.clipboard = const ClipboardWrapper(),
     this.scanner = const BarcodeScannerWrapper(),
   }) : super(key: key);
@@ -57,6 +59,7 @@ class BuyForm extends ConsumerStatefulWidget {
 
   final ClipboardInterface clipboard;
   final BarcodeScannerInterface scanner;
+  final EthContract? tokenContract;
 
   @override
   ConsumerState<BuyForm> createState() => _BuyFormState();
@@ -461,7 +464,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
             // TODO launch URL
           },
         );
-      } else {
+      } else if (mounted) {
         await showDialog<dynamic>(
           context: context,
           barrierDismissible: true,
@@ -529,7 +532,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
           },
         );
       }
-    } else {
+    } else if (mounted) {
       // Error; probably amount out of bounds
       // String errorMessage = "${quoteResponse.exception?.errorMessage}";
       // if (errorMessage.contains('must be between')) {
@@ -743,6 +746,18 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       'ticker': widget.coin?.ticker ?? 'BTC',
       'name': widget.coin?.prettyName ?? 'Bitcoin'
     });
+
+    // THIS IS BAD. No way to be certain the simplex ticker points to the same
+    // contract as the ticker symbol of this contract
+    // if (widget.tokenContract != null &&
+    //     DefaultTokens.list
+    //         .where((e) => e.address == widget.tokenContract!.address)
+    //         .isNotEmpty) {
+    //   selectedCrypto = Crypto.fromJson({
+    //     'ticker': widget.tokenContract!.symbol,
+    //     'name': widget.tokenContract!.name,
+    //   });
+    // }
 
     // TODO set initial crypto to open wallet if a wallet is open
 
