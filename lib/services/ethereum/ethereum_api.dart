@@ -34,12 +34,6 @@ class EthereumResponse<T> {
 abstract class EthereumAPI {
   static String get stackBaseServer => DefaultNodes.ethereum.host;
 
-  // static const etherscanApi =
-  //     "https://api.etherscan.io/api"; //TODO - Once our server has abi functionality update
-
-  static const gasTrackerUrl =
-      "https://blockscout.com/eth/mainnet/api/v1/gas-price-oracle";
-
   static Future<EthereumResponse<List<EthTxDTO>>> getEthTransactions(
       String address) async {
     try {
@@ -336,10 +330,15 @@ abstract class EthereumAPI {
   }
 
   static Future<GasTracker> getGasOracle() async {
-    final response = await get(Uri.parse(gasTrackerUrl));
+    final response = await get(
+      Uri.parse(
+        "https://api.etherscan.io/api?module=gastracker&action=gasoracle&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP",
+      ),
+    );
     if (response.statusCode == 200) {
-      return GasTracker.fromJson(
-          json.decode(response.body) as Map<String, dynamic>);
+      final json = jsonDecode(response.body) as Map;
+
+      return GasTracker.fromJson(json["result"] as Map<String, dynamic>);
     } else {
       throw Exception('Failed to load gas oracle');
     }

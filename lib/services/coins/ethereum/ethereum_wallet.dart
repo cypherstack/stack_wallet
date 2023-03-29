@@ -245,7 +245,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
-    final fee = estimateFee(feeRate, _gasLimit, 18);
+    final fee = estimateFee(feeRate, _gasLimit, coin.decimals);
     return Format.decimalAmountToSatoshis(Decimal.parse(fee.toString()), coin);
   }
 
@@ -258,10 +258,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   @override
-  Future<FeeObject> get fees => _feeObject ??= _getFees();
-  Future<FeeObject>? _feeObject;
-
-  Future<FeeObject> _getFees() => EthereumAPI.getFees();
+  Future<FeeObject> get fees => EthereumAPI.getFees();
 
   //Full rescan is not needed for ETH since we have a balance
   @override
@@ -758,13 +755,13 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.50, walletId));
 
-        final feeObj = _getFees();
+        // final feeObj = _getFees();
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.60, walletId));
 
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.70, walletId));
-        _feeObject = Future(() => feeObj);
+        // _feeObject = Future(() => feeObj);
         GlobalEventBus.instance
             .fire(RefreshPercentChangedEvent(0.80, walletId));
 
@@ -772,7 +769,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
         await Future.wait([
           updateBalance(),
           newTxDataFuture,
-          feeObj,
+          // feeObj,
           allTxsToWatch,
         ]);
         GlobalEventBus.instance

@@ -105,16 +105,11 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
       .findFirst();
 
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
-    final fee = estimateFee(feeRate, _gasLimit, tokenContract.decimals);
+    final fee = estimateFee(feeRate, _gasLimit, coin.decimals);
     return Format.decimalAmountToSatoshis(Decimal.parse(fee.toString()), coin);
   }
 
-  Future<FeeObject> get fees => _feeObject ??= _getFees();
-  Future<FeeObject>? _feeObject;
-
-  Future<FeeObject> _getFees() async {
-    return await EthereumAPI.getFees();
-  }
+  Future<FeeObject> get fees => EthereumAPI.getFees();
 
   Future<EthContract> _updateTokenABI({
     required EthContract forContract,

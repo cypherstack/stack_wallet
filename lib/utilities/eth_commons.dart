@@ -4,40 +4,11 @@ import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
 import "package:hex/hex.dart";
 
-class AddressTransaction {
-  final String message;
-  final List<dynamic> result;
-  final String status;
-
-  const AddressTransaction({
-    required this.message,
-    required this.result,
-    required this.status,
-  });
-
-  factory AddressTransaction.fromJson(List<dynamic> json) {
-    return AddressTransaction(
-      message: "",
-      result: json,
-      status: "",
-    );
-  }
-
-  @override
-  String toString() {
-    return "AddressTransaction: {"
-        "\n\t message: $message,"
-        "\n\t status: $status,"
-        "\n\t result: $result,"
-        "\n}";
-  }
-}
-
 class GasTracker {
-  final double average;
-  final double fast;
-  final double slow;
-  // final Map<String, dynamic> data;
+  // gwei
+  final int average;
+  final int fast;
+  final int slow;
 
   const GasTracker({
     required this.average,
@@ -47,9 +18,9 @@ class GasTracker {
 
   factory GasTracker.fromJson(Map<String, dynamic> json) {
     return GasTracker(
-      average: json['average'] as double,
-      fast: json['fast'] as double,
-      slow: json['slow'] as double,
+      average: int.parse(json['ProposeGasPrice'] as String),
+      fast: int.parse(json['FastGasPrice'] as String),
+      slow: int.parse(json['SafeGasPrice'] as String),
     );
   }
 }
