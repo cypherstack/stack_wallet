@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
@@ -163,65 +162,66 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
       _sendFunction = _deployedContract.function('transfer');
     } catch (_) {
       //====================================================================
-      final list = List<Map<String, dynamic>>.from(
-          jsonDecode(tokenContract.abi!) as List);
-      final functionNames = list.map((e) => e["name"] as String);
-
-      if (!functionNames.contains("balanceOf")) {
-        list.add(
-          {
-            "encoding": "0x70a08231",
-            "inputs": [
-              {"name": "account", "type": "address"}
-            ],
-            "name": "balanceOf",
-            "outputs": [
-              {"name": "val_0", "type": "uint256"}
-            ],
-            "signature": "balanceOf(address)",
-            "type": "function"
-          },
-        );
-      }
-
-      if (!functionNames.contains("transfer")) {
-        list.add(
-          {
-            "encoding": "0xa9059cbb",
-            "inputs": [
-              {"name": "dst", "type": "address"},
-              {"name": "rawAmount", "type": "uint256"}
-            ],
-            "name": "transfer",
-            "outputs": [
-              {"name": "val_0", "type": "bool"}
-            ],
-            "signature": "transfer(address,uint256)",
-            "type": "function"
-          },
-        );
-      }
+      // final list = List<Map<String, dynamic>>.from(
+      //     jsonDecode(tokenContract.abi!) as List);
+      // final functionNames = list.map((e) => e["name"] as String);
+      //
+      // if (!functionNames.contains("balanceOf")) {
+      //   list.add(
+      //     {
+      //       "encoding": "0x70a08231",
+      //       "inputs": [
+      //         {"name": "account", "type": "address"}
+      //       ],
+      //       "name": "balanceOf",
+      //       "outputs": [
+      //         {"name": "val_0", "type": "uint256"}
+      //       ],
+      //       "signature": "balanceOf(address)",
+      //       "type": "function"
+      //     },
+      //   );
+      // }
+      //
+      // if (!functionNames.contains("transfer")) {
+      //   list.add(
+      //     {
+      //       "encoding": "0xa9059cbb",
+      //       "inputs": [
+      //         {"name": "dst", "type": "address"},
+      //         {"name": "rawAmount", "type": "uint256"}
+      //       ],
+      //       "name": "transfer",
+      //       "outputs": [
+      //         {"name": "val_0", "type": "bool"}
+      //       ],
+      //       "signature": "transfer(address,uint256)",
+      //       "type": "function"
+      //     },
+      //   );
+      // }
       //--------------------------------------------------------------------
       //====================================================================
 
       // function not found so likely a proxy so we need to fetch the impl
       //====================================================================
-      final updatedToken = tokenContract.copyWith(abi: jsonEncode(list));
-      // Store updated contract
-      final id = await MainDB.instance.putEthContract(updatedToken);
-      _tokenContract = updatedToken..id = id;
+      // final updatedToken = tokenContract.copyWith(abi: jsonEncode(list));
+      // // Store updated contract
+      // final id = await MainDB.instance.putEthContract(updatedToken);
+      // _tokenContract = updatedToken..id = id;
       //--------------------------------------------------------------------
-      // final contractAddressResponse =
-      //     await EthereumAPI.getProxyTokenImplementation(contractAddress.hex);
-      //
-      // if (contractAddressResponse.value != null) {
-      //   _tokenContract = await _updateTokenABI(
-      //     forContract: tokenContract,
-      //     usingContractAddress: contractAddressResponse.value!,
-      //   );
-      // } else {
-      //   throw contractAddressResponse.exception!;
-      // }
+      final contractAddressResponse =
+          await EthereumAPI.getProxyTokenImplementationAddress(
+              contractAddress.hex);
+
+      if (contractAddressResponse.value != null) {
+        _tokenContract = await _updateTokenABI(
+          forContract: tokenContract,
+          usingContractAddress: contractAddressResponse.value!,
+        );
+      } else {
+        throw contractAddressResponse.exception!;
+      }
       //====================================================================
     }
 
