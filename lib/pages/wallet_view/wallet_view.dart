@@ -270,11 +270,26 @@ class _WalletViewState extends ConsumerState<WalletView> {
         ),
       );
     } else {
-      final currency = await showLoading(
-        whileFuture: ExchangeDataLoadingService.instance.isar.currencies
+      Future<Currency?> _future;
+      try {
+        _future = ExchangeDataLoadingService.instance.isar.currencies
             .where()
             .tickerEqualToAnyExchangeNameName(coin.ticker)
-            .findFirst(),
+            .findFirst();
+      } catch (_) {
+        _future = ExchangeDataLoadingService.instance
+            .init()
+            .then(
+              (_) => ExchangeDataLoadingService.instance.loadAll(),
+            )
+            .then((_) => ExchangeDataLoadingService.instance.isar.currencies
+                .where()
+                .tickerEqualToAnyExchangeNameName(coin.ticker)
+                .findFirst());
+      }
+
+      final currency = await showLoading(
+        whileFuture: _future,
         context: context,
         message: "Loading...",
       );
