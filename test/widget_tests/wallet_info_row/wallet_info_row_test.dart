@@ -74,6 +74,6 @@ void main() {
     await widgetTester.pumpAndSettle();
 
     expect(find.text("some wallet"), findsOneWidget);
-    expect(find.byType(WalletInfoRowBalanceFuture), findsOneWidget);
+    expect(find.byType(WalletInfoRowBalance), findsOneWidget);
   });
 }
