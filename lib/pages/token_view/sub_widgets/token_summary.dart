@@ -7,6 +7,7 @@ import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/pages/buy_view/buy_in_wallet_view.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
+import 'package:stackwallet/pages/send_view/token_send_view.dart';
 import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
@@ -176,7 +177,16 @@ class TokenWalletOptions extends StatelessWidget {
           width: 16,
         ),
         TokenOptionsButton(
-          onPressed: () {},
+          onPressed: () {
+            Navigator.of(context).pushNamed(
+              TokenSendView.routeName,
+              arguments: Tuple3(
+                walletId,
+                Coin.ethereum,
+                tokenContract,
+              ),
+            );
+          },
           subLabel: "Send",
           iconAssetSVG: Assets.svg.send(context),
         ),
