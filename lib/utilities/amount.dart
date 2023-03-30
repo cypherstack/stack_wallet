@@ -50,10 +50,10 @@ class Amount implements Equatable {
   @Deprecated("provided for convenience only. Use fractionDigits instead.")
   int get decimals => fractionDigits;
 
-  Map<String, dynamic> toMap() {
-    // ===========================================================================
-    // ======= Serialization =====================================================
+  // ===========================================================================
+  // ======= Serialization =====================================================
 
+  Map<String, dynamic> toMap() {
     return {"raw": raw.toString(), "fractionDigits": fractionDigits};
   }
 
