@@ -1136,6 +1136,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                       builder: (_) =>
                                           TransactionFeeSelectionSheet(
                                         walletId: walletId,
+                                        isToken: true,
                                         amount: Decimal.tryParse(
                                                 cryptoAmountController.text) ??
                                             Decimal.zero,
