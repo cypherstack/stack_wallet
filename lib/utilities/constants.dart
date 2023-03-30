@@ -159,7 +159,7 @@ abstract class Constants {
         return 60;
 
       case Coin.ethereum:
-        return 60;
+        return 15;
 
       case Coin.monero:
         return 120;

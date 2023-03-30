@@ -17,7 +17,6 @@ import 'package:stackwallet/services/coins/particl/particl_wallet.dart'
     as particl;
 import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart' as wow;
 import 'package:stackwallet/utilities/constants.dart';
-import 'dart:io' show Platform;
 
 enum Coin {
   bitcoin,

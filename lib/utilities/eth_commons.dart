@@ -2,25 +2,42 @@ import 'dart:math';
 
 import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
+import 'package:decimal/decimal.dart';
 import "package:hex/hex.dart";
+import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 class GasTracker {
-  // gwei
-  final int average;
-  final int fast;
-  final int slow;
+  final Decimal average;
+  final Decimal fast;
+  final Decimal slow;
+
+  final int numberOfBlocksFast;
+  final int numberOfBlocksAverage;
+  final int numberOfBlocksSlow;
+
+  final int timestamp;
 
   const GasTracker({
     required this.average,
     required this.fast,
     required this.slow,
+    required this.numberOfBlocksFast,
+    required this.numberOfBlocksAverage,
+    required this.numberOfBlocksSlow,
+    required this.timestamp,
   });
 
   factory GasTracker.fromJson(Map<String, dynamic> json) {
+    final targetTime = Constants.targetBlockTimeInSeconds(Coin.ethereum);
     return GasTracker(
-      average: int.parse(json['ProposeGasPrice'] as String),
-      fast: int.parse(json['FastGasPrice'] as String),
-      slow: int.parse(json['SafeGasPrice'] as String),
+      average: Decimal.parse(json["average"]["price"].toString()),
+      fast: Decimal.parse(json["fast"]["price"].toString()),
+      slow: Decimal.parse(json["slow"]["price"].toString()),
+      numberOfBlocksAverage: (json["average"]["time"] as int) ~/ targetTime,
+      numberOfBlocksFast: (json["fast"]["time"] as int) ~/ targetTime,
+      numberOfBlocksSlow: (json["slow"]["time"] as int) ~/ targetTime,
+      timestamp: json["timestamp"] as int,
     );
   }
 }

@@ -329,31 +329,62 @@ abstract class EthereumAPI {
     }
   }
 
-  static Future<GasTracker> getGasOracle() async {
-    final response = await get(
-      Uri.parse(
-        "https://api.etherscan.io/api?module=gastracker&action=gasoracle&apikey=EG6J7RJIQVSTP2BS59D3TY2G55YHS5F2HP",
-      ),
-    );
-    if (response.statusCode == 200) {
-      final json = jsonDecode(response.body) as Map;
+  static Future<EthereumResponse<GasTracker>> getGasOracle() async {
+    try {
+      final response = await get(
+        Uri.parse(
+          "$stackBaseServer/gas-prices",
+        ),
+      );
 
-      return GasTracker.fromJson(json["result"] as Map<String, dynamic>);
-    } else {
-      throw Exception('Failed to load gas oracle');
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map;
+        if (json["success"] == true) {
+          return EthereumResponse(
+            GasTracker.fromJson(
+              Map<String, dynamic>.from(json["result"] as Map),
+            ),
+            null,
+          );
+        } else {
+          throw EthApiException(
+            "getGasOracle() failed with response: "
+            "${response.body}",
+          );
+        }
+      } else {
+        throw EthApiException(
+          "getGasOracle() failed with status code: "
+          "${response.statusCode}",
+        );
+      }
+    } on EthApiException catch (e) {
+      return EthereumResponse(
+        null,
+        e,
+      );
+    } catch (e, s) {
+      Logging.instance.log(
+        "getGasOracle(): $e\n$s",
+        level: LogLevel.Error,
+      );
+      return EthereumResponse(
+        null,
+        EthApiException(e.toString()),
+      );
     }
   }
 
   static Future<FeeObject> getFees() async {
-    GasTracker fees = await getGasOracle();
-    final feesFast = fees.fast * (pow(10, 9));
-    final feesStandard = fees.average * (pow(10, 9));
-    final feesSlow = fees.slow * (pow(10, 9));
+    final fees = (await getGasOracle()).value!;
+    final feesFast = fees.fast.shift(9).toBigInt();
+    final feesStandard = fees.average.shift(9).toBigInt();
+    final feesSlow = fees.slow.shift(9).toBigInt();
 
     return FeeObject(
-        numberOfBlocksFast: 1,
-        numberOfBlocksAverage: 3,
-        numberOfBlocksSlow: 3,
+        numberOfBlocksFast: fees.numberOfBlocksFast,
+        numberOfBlocksAverage: fees.numberOfBlocksAverage,
+        numberOfBlocksSlow: fees.numberOfBlocksSlow,
         fast: feesFast.toInt(),
         medium: feesStandard.toInt(),
         slow: feesSlow.toInt());
