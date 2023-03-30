@@ -78,4 +78,41 @@ void main() {
     }
     expect(didThrow, true);
   });
+
+  group("operators", () {
+    final one = Amount(rawValue: BigInt.one, fractionDigits: 0);
+    final two = Amount(rawValue: BigInt.two, fractionDigits: 0);
+
+    test(">", () {
+      expect(one > two, false);
+      expect(one > one, false);
+
+      expect(two > two, false);
+      expect(two > one, true);
+    });
+
+    test("<", () {
+      expect(one < two, true);
+      expect(one < one, false);
+
+      expect(two < two, false);
+      expect(two < one, false);
+    });
+
+    test(">=", () {
+      expect(one >= two, false);
+      expect(one >= one, true);
+
+      expect(two >= two, true);
+      expect(two >= one, true);
+    });
+
+    test("<=", () {
+      expect(one <= two, true);
+      expect(one <= one, true);
+
+      expect(two <= two, true);
+      expect(two <= one, false);
+    });
+  });
 }

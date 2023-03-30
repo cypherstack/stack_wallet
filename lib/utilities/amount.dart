@@ -12,6 +12,12 @@ class Amount implements Equatable {
   })  : assert(fractionDigits >= 0),
         _value = rawValue;
 
+  /// special zero case with [fractionDigits] set to 0
+  static Amount get zero => Amount(
+        rawValue: BigInt.zero,
+        fractionDigits: 0,
+      );
+
   /// truncate double value to [fractionDigits] places
   Amount.fromDouble(double amount, {required this.fractionDigits})
       : assert(fractionDigits >= 0),
@@ -65,6 +71,17 @@ class Amount implements Equatable {
       fractionDigits: map["fractionDigits"] as int,
     );
   }
+
+  // ===========================================================================
+  // ======= operators =========================================================
+
+  bool operator >(Amount other) => raw > other.raw;
+
+  bool operator <(Amount other) => raw < other.raw;
+
+  bool operator >=(Amount other) => raw >= other.raw;
+
+  bool operator <=(Amount other) => raw <= other.raw;
 
   // ===========================================================================
   // ======= Overrides =========================================================
