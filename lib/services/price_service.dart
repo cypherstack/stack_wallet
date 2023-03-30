@@ -9,7 +9,7 @@ import 'package:tuple/tuple.dart';
 
 class PriceService extends ChangeNotifier {
   late final String baseTicker;
-  static Set<String> tokenContractAddressesToCheck = {};
+  final Set<String> tokenContractAddressesToCheck = {};
   final Duration updateInterval = const Duration(seconds: 60);
 
   Timer? _timer;
