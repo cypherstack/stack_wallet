@@ -1069,6 +1069,46 @@ class _TransactionDetailsViewState
                                 );
                               }),
                             ),
+                            if (coin == Coin.ethereum)
+                              isDesktop
+                                  ? const _Divider()
+                                  : const SizedBox(
+                                      height: 12,
+                                    ),
+                            if (coin == Coin.ethereum)
+                              RoundedWhiteContainer(
+                                padding: isDesktop
+                                    ? const EdgeInsets.all(16)
+                                    : const EdgeInsets.all(12),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Nonce",
+                                      style: isDesktop
+                                          ? STextStyles
+                                              .desktopTextExtraExtraSmall(
+                                                  context)
+                                          : STextStyles.itemSubtitle(context),
+                                    ),
+                                    SelectableText(
+                                      _transaction.nonce.toString(),
+                                      style: isDesktop
+                                          ? STextStyles
+                                                  .desktopTextExtraExtraSmall(
+                                                      context)
+                                              .copyWith(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textDark,
+                                            )
+                                          : STextStyles.itemSubtitle12(context),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             isDesktop
                                 ? const _Divider()
                                 : const SizedBox(
