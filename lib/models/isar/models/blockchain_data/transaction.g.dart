@@ -53,46 +53,51 @@ const TransactionSchema = CollectionSchema(
       name: r'isLelantus',
       type: IsarType.bool,
     ),
-    r'otherData': PropertySchema(
+    r'nonce': PropertySchema(
       id: 7,
+      name: r'nonce',
+      type: IsarType.long,
+    ),
+    r'otherData': PropertySchema(
+      id: 8,
       name: r'otherData',
       type: IsarType.string,
     ),
     r'outputs': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'outputs',
       type: IsarType.objectList,
       target: r'Output',
     ),
     r'slateId': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'slateId',
       type: IsarType.string,
     ),
     r'subType': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'subType',
       type: IsarType.byte,
       enumMap: _TransactionsubTypeEnumValueMap,
     ),
     r'timestamp': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'timestamp',
       type: IsarType.long,
     ),
     r'txid': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'txid',
       type: IsarType.string,
     ),
     r'type': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'type',
       type: IsarType.byte,
       enumMap: _TransactiontypeEnumValueMap,
     ),
     r'walletId': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'walletId',
       type: IsarType.string,
     )
@@ -227,19 +232,20 @@ void _transactionSerialize(
   );
   writer.writeBool(offsets[5], object.isCancelled);
   writer.writeBool(offsets[6], object.isLelantus);
-  writer.writeString(offsets[7], object.otherData);
+  writer.writeLong(offsets[7], object.nonce);
+  writer.writeString(offsets[8], object.otherData);
   writer.writeObjectList<Output>(
-    offsets[8],
+    offsets[9],
     allOffsets,
     OutputSchema.serialize,
     object.outputs,
   );
-  writer.writeString(offsets[9], object.slateId);
-  writer.writeByte(offsets[10], object.subType.index);
-  writer.writeLong(offsets[11], object.timestamp);
-  writer.writeString(offsets[12], object.txid);
-  writer.writeByte(offsets[13], object.type.index);
-  writer.writeString(offsets[14], object.walletId);
+  writer.writeString(offsets[10], object.slateId);
+  writer.writeByte(offsets[11], object.subType.index);
+  writer.writeLong(offsets[12], object.timestamp);
+  writer.writeString(offsets[13], object.txid);
+  writer.writeByte(offsets[14], object.type.index);
+  writer.writeString(offsets[15], object.walletId);
 }
 
 Transaction _transactionDeserialize(
@@ -262,25 +268,26 @@ Transaction _transactionDeserialize(
         [],
     isCancelled: reader.readBool(offsets[5]),
     isLelantus: reader.readBoolOrNull(offsets[6]),
-    otherData: reader.readStringOrNull(offsets[7]),
+    otherData: reader.readStringOrNull(offsets[8]),
     outputs: reader.readObjectList<Output>(
-          offsets[8],
+          offsets[9],
           OutputSchema.deserialize,
           allOffsets,
           Output(),
         ) ??
         [],
-    slateId: reader.readStringOrNull(offsets[9]),
+    slateId: reader.readStringOrNull(offsets[10]),
     subType:
-        _TransactionsubTypeValueEnumMap[reader.readByteOrNull(offsets[10])] ??
+        _TransactionsubTypeValueEnumMap[reader.readByteOrNull(offsets[11])] ??
             TransactionSubType.none,
-    timestamp: reader.readLong(offsets[11]),
-    txid: reader.readString(offsets[12]),
-    type: _TransactiontypeValueEnumMap[reader.readByteOrNull(offsets[13])] ??
+    timestamp: reader.readLong(offsets[12]),
+    txid: reader.readString(offsets[13]),
+    type: _TransactiontypeValueEnumMap[reader.readByteOrNull(offsets[14])] ??
         TransactionType.outgoing,
-    walletId: reader.readString(offsets[14]),
+    walletId: reader.readString(offsets[15]),
   );
   object.id = id;
+  object.nonce = reader.readLongOrNull(offsets[7]);
   return object;
 }
 
@@ -312,8 +319,10 @@ P _transactionDeserializeProp<P>(
     case 6:
       return (reader.readBoolOrNull(offset)) as P;
     case 7:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 8:
+      return (reader.readStringOrNull(offset)) as P;
+    case 9:
       return (reader.readObjectList<Output>(
             offset,
             OutputSchema.deserialize,
@@ -321,19 +330,19 @@ P _transactionDeserializeProp<P>(
             Output(),
           ) ??
           []) as P;
-    case 9:
-      return (reader.readStringOrNull(offset)) as P;
     case 10:
+      return (reader.readStringOrNull(offset)) as P;
+    case 11:
       return (_TransactionsubTypeValueEnumMap[reader.readByteOrNull(offset)] ??
           TransactionSubType.none) as P;
-    case 11:
-      return (reader.readLong(offset)) as P;
     case 12:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 13:
+      return (reader.readString(offset)) as P;
+    case 14:
       return (_TransactiontypeValueEnumMap[reader.readByteOrNull(offset)] ??
           TransactionType.outgoing) as P;
-    case 14:
+    case 15:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1294,6 +1303,77 @@ extension TransactionQueryFilter
     });
   }
 
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> nonceIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'nonce',
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      nonceIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'nonce',
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> nonceEqualTo(
+      int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'nonce',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      nonceGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'nonce',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> nonceLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'nonce',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> nonceBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'nonce',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
       otherDataIsNull() {
     return QueryBuilder.apply(this, (query) {
@@ -2228,6 +2308,18 @@ extension TransactionQuerySortBy
     });
   }
 
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByNonce() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'nonce', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByNonceDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'nonce', Sort.desc);
+    });
+  }
+
   QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByOtherData() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'otherData', Sort.asc);
@@ -2400,6 +2492,18 @@ extension TransactionQuerySortThenBy
     });
   }
 
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByNonce() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'nonce', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByNonceDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'nonce', Sort.desc);
+    });
+  }
+
   QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByOtherData() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'otherData', Sort.asc);
@@ -2524,6 +2628,12 @@ extension TransactionQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Transaction, Transaction, QDistinct> distinctByNonce() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'nonce');
+    });
+  }
+
   QueryBuilder<Transaction, Transaction, QDistinct> distinctByOtherData(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2618,6 +2728,12 @@ extension TransactionQueryProperty
   QueryBuilder<Transaction, bool?, QQueryOperations> isLelantusProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isLelantus');
+    });
+  }
+
+  QueryBuilder<Transaction, int?, QQueryOperations> nonceProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'nonce');
     });
   }
 

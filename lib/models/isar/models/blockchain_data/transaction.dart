@@ -105,6 +105,8 @@ class Transaction {
 
   late final String? otherData;
 
+  late final int? nonce;
+
   late final List<Input> inputs;
 
   late final List<Output> outputs;
