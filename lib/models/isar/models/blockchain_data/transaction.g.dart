@@ -268,6 +268,7 @@ Transaction _transactionDeserialize(
         [],
     isCancelled: reader.readBool(offsets[5]),
     isLelantus: reader.readBoolOrNull(offsets[6]),
+    nonce: reader.readLongOrNull(offsets[7]),
     otherData: reader.readStringOrNull(offsets[8]),
     outputs: reader.readObjectList<Output>(
           offsets[9],
@@ -287,7 +288,6 @@ Transaction _transactionDeserialize(
     walletId: reader.readString(offsets[15]),
   );
   object.id = id;
-  object.nonce = reader.readLongOrNull(offsets[7]);
   return object;
 }
 

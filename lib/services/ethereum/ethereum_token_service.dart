@@ -447,6 +447,7 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
           isCancelled: false,
           isLelantus: false,
           slateId: null,
+          nonce: tuple.item2.nonce,
           otherData: tuple.item1.address,
           inputs: [],
           outputs: [],

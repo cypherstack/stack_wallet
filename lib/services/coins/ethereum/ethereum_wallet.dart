@@ -868,12 +868,26 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<void> _refreshTransactions() async {
     String thisAddress = await currentReceivingAddress;
 
-    final txsResponse = await EthereumAPI.getEthTransactions(thisAddress);
+    final response = await EthereumAPI.getEthTransactions(thisAddress);
+
+    if (response.value == null) {
+      Logging.instance.log(
+        "Failed to refresh transactions for ${coin.prettyName} $walletName "
+        "$walletId: ${response.exception}",
+        level: LogLevel.Warning,
+      );
+      return;
+    }
+
+    final txsResponse =
+        await EthereumAPI.getEthTransactionNonces(response.value!);
 
     if (txsResponse.value != null) {
       final allTxs = txsResponse.value!;
       final List<Tuple2<Transaction, Address?>> txnsData = [];
-      for (final element in allTxs) {
+      for (final tuple in allTxs) {
+        final element = tuple.item1;
+
         Amount transactionAmount = element.value;
 
         bool isIncoming;
@@ -909,6 +923,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
           isLelantus: false,
           slateId: null,
           otherData: null,
+          nonce: tuple.item2,
           inputs: [],
           outputs: [],
         );
@@ -966,7 +981,8 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
       }
     } else {
       Logging.instance.log(
-        "Failed to refresh transactions for ${coin.prettyName} $walletName $walletId",
+        "Failed to refresh transactions with nonces for ${coin.prettyName} "
+        "$walletName $walletId: ${txsResponse.exception}",
         level: LogLevel.Warning,
       );
     }

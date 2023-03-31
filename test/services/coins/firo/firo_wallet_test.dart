@@ -108,6 +108,7 @@ void main() {
               isLelantus: null,
               slateId: t.slateId,
               otherData: t.otherData,
+              nonce: null,
               inputs: [],
               outputs: [],
             ),

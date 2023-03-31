@@ -28,6 +28,7 @@ class Transaction {
     required this.otherData,
     required this.inputs,
     required this.outputs,
+    required this.nonce,
   });
 
   Tuple2<Transaction, Address?> copyWith({
@@ -46,6 +47,7 @@ class Transaction {
     String? otherData,
     List<Input>? inputs,
     List<Output>? outputs,
+    int? nonce,
     Id? id,
     Address? address,
   }) {
@@ -64,6 +66,7 @@ class Transaction {
           isLelantus: isLelantus ?? this.isLelantus,
           slateId: slateId ?? this.slateId,
           otherData: otherData ?? this.otherData,
+          nonce: nonce ?? this.nonce,
           inputs: inputs ?? this.inputs,
           outputs: outputs ?? this.outputs)
         ..id = id ?? this.id,
@@ -147,6 +150,7 @@ class Transaction {
       "isLelantus: $isLelantus, "
       "slateId: $slateId, "
       "otherData: $otherData, "
+      "nonce: $nonce, "
       "address: ${address.value}, "
       "inputsLength: ${inputs.length}, "
       "outputsLength: ${outputs.length}, "
@@ -167,6 +171,7 @@ class Transaction {
       "isLelantus": isLelantus,
       "slateId": slateId,
       "otherData": otherData,
+      "nonce": nonce,
       "address": address.value?.toJsonString(),
       "inputs": inputs.map((e) => e.toJsonString()).toList(),
       "outputs": outputs.map((e) => e.toJsonString()).toList(),
@@ -193,6 +198,7 @@ class Transaction {
       isLelantus: json["isLelantus"] as bool?,
       slateId: json["slateId"] as String?,
       otherData: json["otherData"] as String?,
+      nonce: json["nonce"] as int?,
       inputs: List<String>.from(json["inputs"] as List)
           .map((e) => Input.fromJsonString(e))
           .toList(),

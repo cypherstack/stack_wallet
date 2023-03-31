@@ -11,6 +11,7 @@ import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/eth_commons.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:tuple/tuple.dart';
 
 class EthApiException with Exception {
   EthApiException(this.message);
@@ -80,6 +81,64 @@ abstract class EthereumAPI {
     } catch (e, s) {
       Logging.instance.log(
         "getEthTransactions($address): $e\n$s",
+        level: LogLevel.Error,
+      );
+      return EthereumResponse(
+        null,
+        EthApiException(e.toString()),
+      );
+    }
+  }
+
+  static Future<EthereumResponse<List<Tuple2<EthTxDTO, int?>>>>
+      getEthTransactionNonces(
+    List<EthTxDTO> txns,
+  ) async {
+    try {
+      final response = await get(
+        Uri.parse(
+          "$stackBaseServer/transactions?transactions=${txns.map((e) => e.hash).join(" ")}",
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        if (response.body.isNotEmpty) {
+          final json = jsonDecode(response.body) as Map;
+          final list = List<Map<String, dynamic>>.from(json["data"] as List);
+
+          final List<Tuple2<EthTxDTO, int?>> result = [];
+
+          for (final dto in txns) {
+            final data =
+                list.firstWhere((e) => e["hash"] == dto.hash, orElse: () => {});
+
+            final nonce = data["nonce"] as int?;
+            result.add(Tuple2(dto, nonce));
+          }
+          return EthereumResponse(
+            result,
+            null,
+          );
+        } else {
+          throw EthApiException(
+            "getEthTransactionNonces($txns) response is empty but status code is "
+            "${response.statusCode}",
+          );
+        }
+      } else {
+        throw EthApiException(
+          "getEthTransactionNonces($txns) failed with status code: "
+          "${response.statusCode}",
+        );
+      }
+    } on EthApiException catch (e) {
+      return EthereumResponse(
+        null,
+        e,
+      );
+    } catch (e, s) {
+      Logging.instance.log(
+        "getEthTransactionNonces($txns): $e\n$s",
         level: LogLevel.Error,
       );
       return EthereumResponse(

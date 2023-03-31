@@ -1016,6 +1016,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
           isLelantus: false,
           slateId: null,
           otherData: null,
+          nonce: null,
           inputs: [],
           outputs: [],
         );

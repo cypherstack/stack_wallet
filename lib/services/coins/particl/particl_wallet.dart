@@ -1172,6 +1172,7 @@ class ParticlWallet extends CoinServiceAPI
       isLelantus: false,
       otherData: null,
       slateId: null,
+      nonce: null,
       inputs: [],
       outputs: [],
     );
@@ -2367,6 +2368,7 @@ class ParticlWallet extends CoinServiceAPI
         outputs: outputs,
         isCancelled: false,
         isLelantus: false,
+        nonce: null,
         slateId: null,
         otherData: null,
       );

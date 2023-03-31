@@ -1261,6 +1261,7 @@ class BitcoinCashWallet extends CoinServiceAPI
       isLelantus: false,
       otherData: null,
       slateId: null,
+      nonce: null,
       inputs: [],
       outputs: [],
     );
@@ -2326,6 +2327,7 @@ class BitcoinCashWallet extends CoinServiceAPI
         isLelantus: false,
         slateId: null,
         otherData: null,
+        nonce: null,
         inputs: inputs,
         outputs: outputs,
       );

@@ -349,6 +349,7 @@ class DbVersionMigrator with WalletDB {
               isLelantus: false,
               slateId: tx.slateId,
               otherData: tx.otherData,
+              nonce: null,
               inputs: [],
               outputs: [],
             );

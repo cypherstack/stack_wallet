@@ -231,6 +231,7 @@ mixin ElectrumXParsing {
       isLelantus: false,
       slateId: null,
       otherData: null,
+      nonce: null,
       inputs: ins,
       outputs: outs,
     );

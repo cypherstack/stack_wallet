@@ -1699,6 +1699,7 @@ class EpicCashWallet extends CoinServiceAPI
             tx["tx_type"] == "TxReceivedCancelled",
         isLelantus: false,
         slateId: slateId,
+        nonce: null,
         otherData: tx["id"].toString(),
         inputs: [],
         outputs: [],

@@ -64,6 +64,7 @@ void main() {
       isLelantus: null,
       slateId: '',
       otherData: '',
+      nonce: null,
       inputs: [],
       outputs: [],
     )..address.value = Address(
@@ -169,6 +170,7 @@ void main() {
       isLelantus: null,
       slateId: '',
       otherData: '',
+      nonce: null,
       inputs: [],
       outputs: [],
     )..address.value = Address(
@@ -271,6 +273,7 @@ void main() {
       isLelantus: null,
       slateId: '',
       otherData: '',
+      nonce: null,
       inputs: [],
       outputs: [],
     )..address.value = Address(
@@ -367,6 +370,7 @@ void main() {
       isLelantus: null,
       slateId: '',
       otherData: '',
+      nonce: null,
       inputs: [],
       outputs: [],
     )..address.value = Address(

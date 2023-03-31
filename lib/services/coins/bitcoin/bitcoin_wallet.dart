@@ -1346,6 +1346,7 @@ class BitcoinWallet extends CoinServiceAPI
       isLelantus: false,
       otherData: null,
       slateId: null,
+      nonce: null,
       inputs: [],
       outputs: [],
     );

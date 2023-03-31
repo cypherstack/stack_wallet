@@ -115,6 +115,7 @@ void main() {
       isLelantus: true,
       slateId: null,
       otherData: null,
+      nonce: null,
       inputs: [],
       outputs: [],
     );

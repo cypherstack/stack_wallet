@@ -483,6 +483,7 @@ Future<Map<dynamic, dynamic>> staticProcessRestore(
           isLelantus: true,
           slateId: null,
           otherData: txid,
+          nonce: null,
           inputs: element.inputs,
           outputs: element.outputs,
         )..address.value = element.address.value;
@@ -914,6 +915,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
       isLelantus: false,
       otherData: null,
       slateId: null,
+      nonce: null,
       inputs: [],
       outputs: [],
     );
@@ -3070,6 +3072,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
           isCancelled: false,
           isLelantus: true,
           slateId: null,
+          nonce: null,
           otherData: transactionInfo["otherData"] as String?,
           inputs: [],
           outputs: [],
@@ -3631,6 +3634,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
         isLelantus: false,
         slateId: null,
         otherData: null,
+        nonce: null,
         inputs: ins,
         outputs: outs,
       );
@@ -4971,6 +4975,7 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
             isLelantus: true,
             slateId: null,
             otherData: null,
+            nonce: null,
             inputs: [],
             outputs: [],
           );
