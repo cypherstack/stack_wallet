@@ -402,56 +402,56 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       fractionDigits: tokenContract.decimals,
     );
 
-    // confirm send all
-    if (amount == availableBalance) {
-      bool? shouldSendAll;
-      if (mounted) {
-        shouldSendAll = await showDialog<bool>(
-          context: context,
-          useSafeArea: false,
-          barrierDismissible: true,
-          builder: (context) {
-            return StackDialog(
-              title: "Confirm send all",
-              message:
-                  "You are about to send your entire balance. Would you like to continue?",
-              leftButton: TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getSecondaryEnabledButtonStyle(context),
-                child: Text(
-                  "Cancel",
-                  style: STextStyles.button(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark),
-                ),
-                onPressed: () {
-                  Navigator.of(context).pop(false);
-                },
-              ),
-              rightButton: TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getPrimaryEnabledButtonStyle(context),
-                child: Text(
-                  "Yes",
-                  style: STextStyles.button(context),
-                ),
-                onPressed: () {
-                  Navigator.of(context).pop(true);
-                },
-              ),
-            );
-          },
-        );
-      }
-
-      if (shouldSendAll == null || shouldSendAll == false) {
-        // cancel preview
-        return;
-      }
-    }
+    // // confirm send all
+    // if (amount == availableBalance) {
+    //   bool? shouldSendAll;
+    //   if (mounted) {
+    //     shouldSendAll = await showDialog<bool>(
+    //       context: context,
+    //       useSafeArea: false,
+    //       barrierDismissible: true,
+    //       builder: (context) {
+    //         return StackDialog(
+    //           title: "Confirm send all",
+    //           message:
+    //               "You are about to send your entire balance. Would you like to continue?",
+    //           leftButton: TextButton(
+    //             style: Theme.of(context)
+    //                 .extension<StackColors>()!
+    //                 .getSecondaryEnabledButtonStyle(context),
+    //             child: Text(
+    //               "Cancel",
+    //               style: STextStyles.button(context).copyWith(
+    //                   color: Theme.of(context)
+    //                       .extension<StackColors>()!
+    //                       .accentColorDark),
+    //             ),
+    //             onPressed: () {
+    //               Navigator.of(context).pop(false);
+    //             },
+    //           ),
+    //           rightButton: TextButton(
+    //             style: Theme.of(context)
+    //                 .extension<StackColors>()!
+    //                 .getPrimaryEnabledButtonStyle(context),
+    //             child: Text(
+    //               "Yes",
+    //               style: STextStyles.button(context),
+    //             ),
+    //             onPressed: () {
+    //               Navigator.of(context).pop(true);
+    //             },
+    //           ),
+    //         );
+    //       },
+    //     );
+    //   }
+    //
+    //   if (shouldSendAll == null || shouldSendAll == false) {
+    //     // cancel preview
+    //     return;
+    //   }
+    // }
 
     try {
       bool wasCancelled = false;
@@ -908,18 +908,18 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                 style: STextStyles.smallMed12(context),
                                 textAlign: TextAlign.left,
                               ),
-                              CustomTextButton(
-                                text: "Send all ${tokenContract.symbol}",
-                                onTap: () async {
-                                  cryptoAmountController.text = ref
-                                      .read(tokenServiceProvider)!
-                                      .balance
-                                      .getSpendable()
-                                      .toStringAsFixed(tokenContract.decimals);
-
-                                  _cryptoAmountChanged();
-                                },
-                              ),
+                              // CustomTextButton(
+                              //   text: "Send all ${tokenContract.symbol}",
+                              //   onTap: () async {
+                              //     cryptoAmountController.text = ref
+                              //         .read(tokenServiceProvider)!
+                              //         .balance
+                              //         .getSpendable()
+                              //         .toStringAsFixed(tokenContract.decimals);
+                              //
+                              //     _cryptoAmountChanged();
+                              //   },
+                              // ),
                             ],
                           ),
                           const SizedBox(

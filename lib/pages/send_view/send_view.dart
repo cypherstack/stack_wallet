@@ -364,7 +364,8 @@ class _SendViewState extends ConsumerState<SendView> {
     final coinControlEnabled =
         ref.read(prefsChangeNotifierProvider).enableCoinControl;
 
-    if (!(manager.hasCoinControlSupport && coinControlEnabled) ||
+    if (coin != Coin.ethereum &&
+            !(manager.hasCoinControlSupport && coinControlEnabled) ||
         (manager.hasCoinControlSupport &&
             coinControlEnabled &&
             selectedUTXOs.isEmpty)) {
@@ -1395,43 +1396,45 @@ class _SendViewState extends ConsumerState<SendView> {
                                 style: STextStyles.smallMed12(context),
                                 textAlign: TextAlign.left,
                               ),
-                              CustomTextButton(
-                                text: "Send all ${coin.ticker}",
-                                onTap: () async {
-                                  if (coin == Coin.firo ||
-                                      coin == Coin.firoTestNet) {
-                                    final firoWallet =
-                                        ref.read(provider).wallet as FiroWallet;
-                                    if (ref
-                                            .read(
-                                                publicPrivateBalanceStateProvider
-                                                    .state)
-                                            .state ==
-                                        "Private") {
-                                      cryptoAmountController.text = firoWallet
-                                          .availablePrivateBalance()
-                                          .toStringAsFixed(
-                                              Constants.decimalPlacesForCoin(
-                                                  coin));
+                              if (coin != Coin.ethereum)
+                                CustomTextButton(
+                                  text: "Send all ${coin.ticker}",
+                                  onTap: () async {
+                                    if (coin == Coin.firo ||
+                                        coin == Coin.firoTestNet) {
+                                      final firoWallet = ref
+                                          .read(provider)
+                                          .wallet as FiroWallet;
+                                      if (ref
+                                              .read(
+                                                  publicPrivateBalanceStateProvider
+                                                      .state)
+                                              .state ==
+                                          "Private") {
+                                        cryptoAmountController.text = firoWallet
+                                            .availablePrivateBalance()
+                                            .toStringAsFixed(
+                                                Constants.decimalPlacesForCoin(
+                                                    coin));
+                                      } else {
+                                        cryptoAmountController.text = firoWallet
+                                            .availablePublicBalance()
+                                            .toStringAsFixed(
+                                                Constants.decimalPlacesForCoin(
+                                                    coin));
+                                      }
                                     } else {
-                                      cryptoAmountController.text = firoWallet
-                                          .availablePublicBalance()
+                                      cryptoAmountController.text = (ref
+                                              .read(provider)
+                                              .balance
+                                              .getSpendable())
                                           .toStringAsFixed(
                                               Constants.decimalPlacesForCoin(
                                                   coin));
                                     }
-                                  } else {
-                                    cryptoAmountController.text = (ref
-                                            .read(provider)
-                                            .balance
-                                            .getSpendable())
-                                        .toStringAsFixed(
-                                            Constants.decimalPlacesForCoin(
-                                                coin));
-                                  }
-                                  _cryptoAmountChanged();
-                                },
-                              ),
+                                    _cryptoAmountChanged();
+                                  },
+                                ),
                             ],
                           ),
                           const SizedBox(
