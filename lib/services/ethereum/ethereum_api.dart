@@ -451,6 +451,52 @@ abstract class EthereumAPI {
     }
   }
 
+  static Future<EthereumResponse<int>> getAddressNonce({
+    required String address,
+  }) async {
+    try {
+      final uri = Uri.parse(
+        "$stackBaseServer/state?addrs=$address&parts=nonce",
+      );
+      final response = await get(uri);
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        if (json["data"] is List) {
+          final map = json["data"].first as Map;
+
+          final nonce = map["nonce"] as int;
+
+          return EthereumResponse(
+            nonce,
+            null,
+          );
+        } else {
+          throw EthApiException(json["message"] as String);
+        }
+      } else {
+        throw EthApiException(
+          "getWalletTokenBalance($address) failed with status code: "
+          "${response.statusCode}",
+        );
+      }
+    } on EthApiException catch (e) {
+      return EthereumResponse(
+        null,
+        e,
+      );
+    } catch (e, s) {
+      Logging.instance.log(
+        "getWalletTokenBalance(): $e\n$s",
+        level: LogLevel.Error,
+      );
+      return EthereumResponse(
+        null,
+        EthApiException(e.toString()),
+      );
+    }
+  }
+
   static Future<EthereumResponse<GasTracker>> getGasOracle() async {
     try {
       final response = await get(
