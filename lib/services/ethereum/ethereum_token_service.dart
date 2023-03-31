@@ -95,8 +95,11 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
 
     final client = await getEthClient();
 
+    final myAddress = await currentReceivingAddress;
+    final myWeb3Address = web3dart.EthereumAddress.fromHex(myAddress);
+
     final est = await client.estimateGas(
-      sender: web3dart.EthereumAddress.fromHex(await currentReceivingAddress),
+      sender: myWeb3Address,
       to: web3dart.EthereumAddress.fromHex(address),
       data: _sendFunction.encodeCall(
           [web3dart.EthereumAddress.fromHex(address), bigIntAmount]),
@@ -108,9 +111,16 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
       value: web3dart.EtherAmount.inWei(BigInt.one),
     );
 
+    final nonce = args?["nonce"] as int? ??
+        await client.getTransactionCount(myWeb3Address,
+            atBlock: const web3dart.BlockNum.pending());
+
+    final nResponse = await EthereumAPI.getAddressNonce(address: myAddress);
     print("==============================================================");
-    print("client.estimateGas:  $est");
-    print("estimateFeeFor    :  $feeEstimate");
+    print("TOKEN client.estimateGas:  $est");
+    print("TOKEN estimateFeeFor    :  $feeEstimate");
+    print("TOKEN nonce custom response:  $nResponse");
+    print("TOKEN actual nonce         :  $nonce");
     print("==============================================================");
 
     final tx = web3dart.Transaction.callContract(
@@ -122,7 +132,7 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
         web3dart.EtherUnit.wei,
         fee,
       ),
-      nonce: args?["nonce"] as int?,
+      nonce: nonce,
     );
 
     Map<String, dynamic> txData = {
@@ -131,18 +141,88 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
       "address": address,
       "recipientAmt": satoshiAmount,
       "ethTx": tx,
+      "chainId": (await client.getChainId()).toInt(),
+      "nonce": tx.nonce,
     };
 
     return txData;
   }
 
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
-    final txid = await _client.sendTransaction(
-      _credentials,
-      txData["ethTx"] as web3dart.Transaction,
+    try {
+      final txid = await _client.sendTransaction(
+        _credentials,
+        txData["ethTx"] as web3dart.Transaction,
+        chainId: txData["chainId"] as int,
+      );
+
+      try {
+        txData["txid"] = txid;
+        await updateSentCachedTxData(txData);
+      } catch (e, s) {
+        // do not rethrow as that would get handled as a send failure further up
+        // also this is not critical code and transaction should show up on \
+        // refresh regardless
+        Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+      }
+
+      notifyListeners();
+      return txid;
+    } catch (e) {
+      // rethrow to pass error in alert
+      rethrow;
+    }
+  }
+
+  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
+    final txid = txData["txid"] as String;
+    final addressString = txData["address"] as String;
+    final response = await EthereumAPI.getEthTransactionByHash(txid);
+
+    final transaction = Transaction(
+      walletId: ethWallet.walletId,
+      txid: txid,
+      timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      type: TransactionType.outgoing,
+      subType: TransactionSubType.ethToken,
+      amount: txData["recipientAmt"] as int,
+      amountString: Amount(
+        rawValue: BigInt.from(txData["recipientAmt"] as int),
+        fractionDigits: tokenContract.decimals,
+      ).toJsonString(),
+      fee: txData["fee"] as int,
+      height: null,
+      isCancelled: false,
+      isLelantus: false,
+      otherData: tokenContract.address,
+      slateId: null,
+      nonce: (txData["nonce"] as int?) ??
+          response.value?.nonce.toBigIntFromHex.toInt(),
+      inputs: [],
+      outputs: [],
     );
 
-    return txid;
+    Address? address = await ethWallet.db.getAddress(
+      ethWallet.walletId,
+      addressString,
+    );
+
+    address ??= Address(
+      walletId: ethWallet.walletId,
+      value: addressString,
+      publicKey: [],
+      derivationIndex: -1,
+      derivationPath: null,
+      type: AddressType.ethereum,
+      subType: AddressSubType.nonWallet,
+    );
+
+    await ethWallet.db.addNewTransactionData(
+      [
+        Tuple2(transaction, address),
+      ],
+      ethWallet.walletId,
+    );
   }
 
   Future<String> get currentReceivingAddress async {
@@ -499,14 +579,14 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
     return isValidEthereumAddress(address);
   }
 
-  Future<NodeModel> getCurrentNode() async {
+  NodeModel getCurrentNode() {
     return NodeService(secureStorageInterface: _secureStore)
             .getPrimaryNodeFor(coin: coin) ??
         DefaultNodes.getNodeFor(coin);
   }
 
   Future<web3dart.Web3Client> getEthClient() async {
-    final node = await getCurrentNode();
+    final node = getCurrentNode();
     return web3dart.Web3Client(node.host, Client());
   }
 }

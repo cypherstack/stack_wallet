@@ -32,6 +32,7 @@ import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/eth_commons.dart';
+import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -183,7 +184,8 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<List<Transaction>> get transactions => db
       .getTransactions(walletId)
       .filter()
-      .otherDataEqualTo(null)
+      .otherDataEqualTo(
+          null) // eth txns with other data where other data is the token contract address
       .sortByTimestampDesc()
       .findAll();
 
@@ -440,22 +442,70 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
     final feeEstimate = await estimateFeeFor(satoshiAmount, fee);
 
-    bool isSendAll = false;
-    final availableBalance = balance.spendable;
-    if (satoshiAmount == availableBalance) {
-      isSendAll = true;
-    }
+    // bool isSendAll = false;
+    // final availableBalance = balance.spendable;
+    // if (satoshiAmount == availableBalance) {
+    //   isSendAll = true;
+    // }
+    //
+    // if (isSendAll) {
+    //   //Subtract fee amount from send amount
+    //   satoshiAmount -= feeEstimate;
+    // }
 
-    if (isSendAll) {
-      //Subtract fee amount from send amount
-      satoshiAmount -= feeEstimate;
-    }
+    final decimalAmount = Format.satoshisToAmount(satoshiAmount, coin: coin);
+    final bigIntAmount = amountToBigInt(
+      decimalAmount.toDouble(),
+      Constants.decimalPlacesForCoin(coin),
+    );
+
+    final client = getEthClient();
+
+    final myAddress = await currentReceivingAddress;
+    final myWeb3Address = web3.EthereumAddress.fromHex(myAddress);
+
+    final est = await client.estimateGas(
+      sender: myWeb3Address,
+      to: web3.EthereumAddress.fromHex(address),
+      gasPrice: web3.EtherAmount.fromUnitAndValue(
+        web3.EtherUnit.wei,
+        fee,
+      ),
+      amountOfGas: BigInt.from(_gasLimit),
+      value: web3.EtherAmount.inWei(bigIntAmount),
+    );
+
+    final nonce = args?["nonce"] as int? ??
+        await client.getTransactionCount(myWeb3Address,
+            atBlock: const web3.BlockNum.pending());
+
+    final nResponse = await EthereumAPI.getAddressNonce(address: myAddress);
+    print("==============================================================");
+    print("ETH client.estimateGas:  $est");
+    print("ETH estimateFeeFor    :  $feeEstimate");
+    print("ETH nonce custom response:  $nResponse");
+    print("ETH actual nonce         :  $nonce");
+    print("==============================================================");
+
+    final tx = web3.Transaction(
+      to: web3.EthereumAddress.fromHex(address),
+      gasPrice: web3.EtherAmount.fromUnitAndValue(
+        web3.EtherUnit.wei,
+        fee,
+      ),
+      maxGas: _gasLimit,
+      value: web3.EtherAmount.inWei(bigIntAmount),
+      nonce: nonce,
+    );
 
     Map<String, dynamic> txData = {
       "fee": feeEstimate,
       "feeInWei": fee,
       "address": address,
       "recipientAmt": satoshiAmount,
+      "ethTx": tx,
+      "chainId": (await client.getChainId()).toInt(),
+      "nonce": tx.nonce,
     };
 
     return txData;
@@ -464,22 +514,12 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
     web3.Web3Client client = getEthClient();
-    final chainId = await client.getChainId();
-    final amount = txData['recipientAmt'] as int;
-    final decimalAmount = Format.satoshisToAmount(amount, coin: coin);
-    final bigIntAmount = amountToBigInt(
-      decimalAmount.toDouble(),
-      Constants.decimalPlacesForCoin(coin),
-    );
 
-    final tx = web3.Transaction(
-        to: web3.EthereumAddress.fromHex(txData['address'] as String),
-        gasPrice: web3.EtherAmount.fromUnitAndValue(
-            web3.EtherUnit.wei, txData['feeInWei']),
-        maxGas: _gasLimit,
-        value: web3.EtherAmount.inWei(bigIntAmount));
-    final txid = await client.sendTransaction(_credentials, tx,
-        chainId: chainId.toInt());
+    final txid = await client.sendTransaction(
+      _credentials,
+      txData["ethTx"] as web3.Transaction,
+      chainId: txData["chainId"] as int,
+    );
 
     return txid;
   }
@@ -558,7 +598,6 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
       .findAll();
 
   Future<bool> refreshIfThereIsNewData() async {
-    web3.Web3Client client = getEthClient();
     if (longMutex) return false;
     if (_hasCalledExit) return false;
     final currentChainHeight = await chainHeight;
@@ -574,14 +613,16 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
       }
 
       for (String txid in txnsToCheck) {
-        final txn = await client.getTransactionByHash(txid);
-        final int txBlockNumber = txn.blockNumber.blockNum;
+        final response = await EthereumAPI.getEthTransactionByHash(txid);
+        final txBlockNumber = response.value?.blockNumber;
 
-        final int txConfirmations = currentChainHeight - txBlockNumber;
-        bool isUnconfirmed = txConfirmations < MINIMUM_CONFIRMATIONS;
-        if (!isUnconfirmed) {
-          needsRefresh = true;
-          break;
+        if (txBlockNumber != null) {
+          final int txConfirmations = currentChainHeight - txBlockNumber;
+          bool isUnconfirmed = txConfirmations < MINIMUM_CONFIRMATIONS;
+          if (!isUnconfirmed) {
+            needsRefresh = true;
+            break;
+          }
         }
       }
       if (!needsRefresh) {
@@ -857,7 +898,54 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
-    //Only used for Electrumx coins
+    final txid = txData["txid"] as String;
+    final addressString = txData["address"] as String;
+    final response = await EthereumAPI.getEthTransactionByHash(txid);
+
+    final transaction = Transaction(
+      walletId: walletId,
+      txid: txid,
+      timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      type: TransactionType.outgoing,
+      subType: TransactionSubType.none,
+      amount: txData["recipientAmt"] as int,
+      amountString: Amount(
+        rawValue: BigInt.from(txData["recipientAmt"] as int),
+        fractionDigits: coin.decimals,
+      ).toJsonString(),
+      fee: txData["fee"] as int,
+      height: null,
+      isCancelled: false,
+      isLelantus: false,
+      otherData: null,
+      slateId: null,
+      nonce: (txData["nonce"] as int?) ??
+          response.value?.nonce.toBigIntFromHex.toInt(),
+      inputs: [],
+      outputs: [],
+    );
+
+    Address? address = await db.getAddress(
+      walletId,
+      addressString,
+    );
+
+    address ??= Address(
+      walletId: walletId,
+      value: addressString,
+      publicKey: [],
+      derivationIndex: -1,
+      derivationPath: null,
+      type: AddressType.ethereum,
+      subType: AddressSubType.nonWallet,
+    );
+
+    await db.addNewTransactionData(
+      [
+        Tuple2(transaction, address),
+      ],
+      walletId,
+    );
   }
 
   @override
