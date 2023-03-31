@@ -108,6 +108,11 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
       value: web3dart.EtherAmount.inWei(BigInt.one),
     );
 
+    print("==============================================================");
+    print("client.estimateGas:  $est");
+    print("estimateFeeFor    :  $feeEstimate");
+    print("==============================================================");
+
     final tx = web3dart.Transaction.callContract(
       contract: _deployedContract,
       function: _sendFunction,
