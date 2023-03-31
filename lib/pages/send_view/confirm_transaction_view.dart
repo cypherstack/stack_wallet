@@ -8,6 +8,7 @@ import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/sending_transaction_dialog.dart';
+import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
@@ -46,6 +47,7 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
     this.isTradeTransaction = false,
     this.isPaynymTransaction = false,
     this.isPaynymNotificationTransaction = false,
+    this.isTokenTx = false,
     this.onSuccessInsteadOfRouteOnSuccess,
   }) : super(key: key);
 
@@ -57,6 +59,7 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
   final bool isTradeTransaction;
   final bool isPaynymTransaction;
   final bool isPaynymNotificationTransaction;
+  final bool isTokenTx;
   final VoidCallback? onSuccessInsteadOfRouteOnSuccess;
 
   @override
@@ -102,7 +105,11 @@ class _ConfirmTransactionViewState
     final note = noteController.text;
 
     try {
-      if (widget.isPaynymNotificationTransaction) {
+      if (widget.isTokenTx) {
+        txidFuture = ref
+            .read(tokenServiceProvider)!
+            .confirmSend(txData: transactionInfo);
+      } else if (widget.isPaynymNotificationTransaction) {
         txidFuture = (manager.wallet as PaynymWalletInterface)
             .broadcastNotificationTx(preparedTx: transactionInfo);
       } else if (widget.isPaynymTransaction) {
@@ -132,7 +139,11 @@ class _ConfirmTransactionViewState
           .read(notesServiceChangeNotifierProvider(walletId))
           .editOrAddNote(txid: txid, note: note);
 
-      unawaited(manager.refresh());
+      if (widget.isTokenTx) {
+        unawaited(ref.read(tokenServiceProvider)!.refresh());
+      } else {
+        unawaited(manager.refresh());
+      }
 
       // pop back to wallet
       if (mounted) {
@@ -258,6 +269,15 @@ class _ConfirmTransactionViewState
     final managerProvider = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManagerProvider(walletId)));
 
+    final String unit;
+    if (widget.isTokenTx) {
+      unit = ref.watch(
+          tokenServiceProvider.select((value) => value!.tokenContract.symbol));
+    } else {
+      unit = ref.watch(walletsChangeNotifierProvider
+          .select((value) => value.getManager(walletId).coin.ticker));
+    }
+
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -324,7 +344,7 @@ class _ConfirmTransactionViewState
                   ).pop(),
                 ),
                 Text(
-                  "Confirm ${ref.watch(managerProvider.select((value) => value.coin.ticker.toUpperCase()))} transaction",
+                  "Confirm $unit transaction",
                   style: STextStyles.desktopH3(context),
                 ),
               ],
@@ -341,7 +361,7 @@ class _ConfirmTransactionViewState
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    "Send ${ref.watch(managerProvider.select((value) => value.coin)).ticker}",
+                    "Send $unit",
                     style: STextStyles.pageTitleH1(context),
                   ),
                   const SizedBox(
@@ -388,9 +408,7 @@ class _ConfirmTransactionViewState
                                     .select((value) => value.locale),
                               ), ref.watch(
                                 managerProvider.select((value) => value.coin),
-                              ))} ${ref.watch(
-                                managerProvider.select((value) => value.coin),
-                              ).ticker}",
+                              ))} $unit",
                           style: STextStyles.itemSubtitle12(context),
                           textAlign: TextAlign.right,
                         ),
@@ -492,10 +510,7 @@ class _ConfirmTransactionViewState
                                 width: 16,
                               ),
                               Text(
-                                "Send ${ref.watch(
-                                      managerProvider
-                                          .select((value) => value.coin),
-                                    ).ticker}",
+                                "Send $unit",
                                 style: STextStyles.desktopTextMedium(context),
                               ),
                             ],
@@ -559,7 +574,7 @@ class _ConfirmTransactionViewState
                                               .select((value) => value.locale),
                                         ),
                                         coin,
-                                      )} ${coin.ticker}",
+                                      )} $unit",
                                       style: STextStyles
                                               .desktopTextExtraExtraSmall(
                                                   context)

@@ -513,6 +513,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
             builder: (_) => ConfirmTransactionView(
               transactionInfo: txData,
               walletId: walletId,
+              isTokenTx: true,
             ),
             settings: const RouteSettings(
               name: ConfirmTransactionView.routeName,
