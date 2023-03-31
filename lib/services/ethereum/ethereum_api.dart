@@ -6,6 +6,7 @@ import 'package:http/http.dart';
 import 'package:stackwallet/dto/ethereum/eth_token_tx_dto.dart';
 import 'package:stackwallet/dto/ethereum/eth_token_tx_extra_dto.dart';
 import 'package:stackwallet/dto/ethereum/eth_tx_dto.dart';
+import 'package:stackwallet/dto/ethereum/pending_eth_tx_dto.dart';
 import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
@@ -81,6 +82,68 @@ abstract class EthereumAPI {
     } catch (e, s) {
       Logging.instance.log(
         "getEthTransactions($address): $e\n$s",
+        level: LogLevel.Error,
+      );
+      return EthereumResponse(
+        null,
+        EthApiException(e.toString()),
+      );
+    }
+  }
+
+  static Future<EthereumResponse<PendingEthTxDto>> getEthTransactionByHash(
+      String txid) async {
+    try {
+      final response = await post(
+        Uri.parse(
+          "$stackBaseServer/v1/mainnet",
+        ),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          "jsonrpc": "2.0",
+          "method": "eth_getTransactionByHash",
+          "params": [
+            txid,
+          ],
+          "id": DateTime.now().millisecondsSinceEpoch,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        if (response.body.isNotEmpty) {
+          try {
+            final json = jsonDecode(response.body) as Map;
+            final result = json["result"] as Map;
+            return EthereumResponse(
+              PendingEthTxDto.fromMap(Map<String, dynamic>.from(result)),
+              null,
+            );
+          } catch (_) {
+            throw EthApiException(
+              "getEthTransactionByHash($txid) failed with response: "
+              "${response.body}",
+            );
+          }
+        } else {
+          throw EthApiException(
+            "getEthTransactionByHash($txid) response is empty but status code is "
+            "${response.statusCode}",
+          );
+        }
+      } else {
+        throw EthApiException(
+          "getEthTransactionByHash($txid) failed with status code: "
+          "${response.statusCode}",
+        );
+      }
+    } on EthApiException catch (e) {
+      return EthereumResponse(
+        null,
+        e,
+      );
+    } catch (e, s) {
+      Logging.instance.log(
+        "getEthTransactionByHash($txid): $e\n$s",
         level: LogLevel.Error,
       );
       return EthereumResponse(
