@@ -255,7 +255,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                               ExpandingSubListItem(
                                 title: "Tokens",
                                 entities: filter(_searchTerm, tokenEntities),
-                                initialState: ExpandableState.collapsed,
+                                initialState: ExpandableState.expanded,
                                 trailing: AddCustomTokenSelector(
                                   addFunction: _addToken,
                                 ),
