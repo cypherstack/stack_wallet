@@ -13,11 +13,13 @@ class WalletInfoCoinIcon extends StatelessWidget {
   const WalletInfoCoinIcon({
     Key? key,
     required this.coin,
+    this.size = 32,
     this.contractAddress,
   }) : super(key: key);
 
   final Coin coin;
   final String? contractAddress;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +39,8 @@ class WalletInfoCoinIcon extends StatelessWidget {
     }
 
     return Container(
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         color: Theme.of(context)
             .extension<StackColors>()!
@@ -47,7 +51,7 @@ class WalletInfoCoinIcon extends StatelessWidget {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(6),
+        padding: EdgeInsets.all(size / 5),
         child: currency != null && currency.image.isNotEmpty
             ? SvgPicture.network(
                 currency.image,
