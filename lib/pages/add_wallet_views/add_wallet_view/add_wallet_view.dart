@@ -26,6 +26,7 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/expandable.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
@@ -80,17 +81,30 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
   }
 
   Future<void> _addToken() async {
-    final token = await Navigator.of(context).pushNamed(
-      AddCustomTokenView.routeName,
-    );
-    if (token is EthContract) {
-      await MainDB.instance.putEthContract(token);
+    EthContract? contract;
+    if (isDesktop) {
+      contract = await showDialog(
+        context: context,
+        builder: (context) => const DesktopDialog(
+          maxWidth: 580,
+          maxHeight: 500,
+          child: AddCustomTokenView(),
+        ),
+      );
+    } else {
+      contract = await Navigator.of(context).pushNamed(
+        AddCustomTokenView.routeName,
+      );
+    }
+
+    if (contract != null) {
+      await MainDB.instance.putEthContract(contract);
       if (mounted) {
         setState(() {
           if (tokenEntities
-              .where((e) => e.token.address == token.address)
+              .where((e) => e.token.address == contract!.address)
               .isEmpty) {
-            tokenEntities.add(EthTokenEntity(token));
+            tokenEntities.add(EthTokenEntity(contract!));
             tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
           }
         });
