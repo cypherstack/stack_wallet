@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 
 class AddressTag extends StatelessWidget {
@@ -16,10 +17,12 @@ class AddressTag extends StatelessWidget {
         vertical: 5,
         horizontal: 7,
       ),
-      color: Colors.black,
+      color: Theme.of(context).extension<StackColors>()!.buttonBackPrimary,
       child: Text(
         tag.capitalize(),
-        style: STextStyles.w500_14(context),
+        style: STextStyles.w500_14(context).copyWith(
+          color: Theme.of(context).extension<StackColors>()!.buttonTextPrimary,
+        ),
       ),
     );
   }

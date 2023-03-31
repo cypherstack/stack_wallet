@@ -96,9 +96,10 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
                           ),
                     children: infoToggle
                         ? [
-                            const TextSpan(
-                                text:
-                                    "Exchange data preloaded for a seamless experience."),
+                            if (Constants.enableExchange)
+                              const TextSpan(
+                                  text:
+                                      "Exchange data preloaded for a seamless experience."),
                             const TextSpan(
                                 text:
                                     "\n\nCoinGecko enabled: (24 hour price change shown in-app, total wallet value shown in USD or other currency)."),
