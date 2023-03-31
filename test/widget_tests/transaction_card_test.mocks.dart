@@ -2528,6 +2528,11 @@ class MockPriceService extends _i1.Mock implements _i28.PriceService {
         returnValueForMissingStub: null,
       );
   @override
+  Set<String> get tokenContractAddressesToCheck => (super.noSuchMethod(
+        Invocation.getter(#tokenContractAddressesToCheck),
+        returnValue: <String>{},
+      ) as Set<String>);
+  @override
   Duration get updateInterval => (super.noSuchMethod(
         Invocation.getter(#updateInterval),
         returnValue: _FakeDuration_12(

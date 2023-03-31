@@ -107,6 +107,14 @@ class MockWalletsService extends _i1.Mock implements _i6.WalletsService {
         returnValue: _i7.Future<bool>.value(false),
       ) as _i7.Future<bool>);
   @override
+  Map<String, _i6.WalletInfo> fetchWalletsData() => (super.noSuchMethod(
+        Invocation.method(
+          #fetchWalletsData,
+          [],
+        ),
+        returnValue: <String, _i6.WalletInfo>{},
+      ) as Map<String, _i6.WalletInfo>);
+  @override
   _i7.Future<void> addExistingStackWallet({
     required String? name,
     required String? walletId,
