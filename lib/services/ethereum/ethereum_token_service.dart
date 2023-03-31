@@ -66,27 +66,78 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
 
   Coin get coin => Coin.ethereum;
 
-  Future<String> confirmSend({required Map<String, dynamic> txData}) async {
-    final amount = txData['recipientAmt'];
+  Future<Map<String, dynamic>> prepareSend({
+    required String address,
+    required int satoshiAmount,
+    Map<String, dynamic>? args,
+  }) async {
+    final feeRateType = args?["feeRate"];
+    int fee = 0;
+    final feeObject = await fees;
+    switch (feeRateType) {
+      case FeeRateType.fast:
+        fee = feeObject.fast;
+        break;
+      case FeeRateType.average:
+        fee = feeObject.medium;
+        break;
+      case FeeRateType.slow:
+        fee = feeObject.slow;
+        break;
+    }
+
+    final feeEstimate = await estimateFeeFor(satoshiAmount, fee);
+
     final decimalAmount =
-        Format.satoshisToAmount(amount as int, coin: Coin.ethereum);
+        Format.satoshisToAmount(satoshiAmount, coin: Coin.ethereum);
     final bigIntAmount =
         amountToBigInt(decimalAmount.toDouble(), tokenContract.decimals);
 
-    final sentTx = await _client.sendTransaction(
-        _credentials,
-        web3dart.Transaction.callContract(
-            contract: _deployedContract,
-            function: _sendFunction,
-            parameters: [
-              web3dart.EthereumAddress.fromHex(txData['address'] as String),
-              bigIntAmount
-            ],
-            maxGas: _gasLimit,
-            gasPrice: web3dart.EtherAmount.fromUnitAndValue(
-                web3dart.EtherUnit.wei, txData['feeInWei'])));
+    final client = await getEthClient();
 
-    return sentTx;
+    final est = await client.estimateGas(
+      sender: web3dart.EthereumAddress.fromHex(await currentReceivingAddress),
+      to: web3dart.EthereumAddress.fromHex(address),
+      data: _sendFunction.encodeCall(
+          [web3dart.EthereumAddress.fromHex(address), bigIntAmount]),
+      gasPrice: web3dart.EtherAmount.fromUnitAndValue(
+        web3dart.EtherUnit.wei,
+        fee,
+      ),
+      amountOfGas: BigInt.from(_gasLimit),
+      value: web3dart.EtherAmount.inWei(BigInt.one),
+    );
+
+    final tx = web3dart.Transaction.callContract(
+      contract: _deployedContract,
+      function: _sendFunction,
+      parameters: [web3dart.EthereumAddress.fromHex(address), bigIntAmount],
+      maxGas: _gasLimit,
+      gasPrice: web3dart.EtherAmount.fromUnitAndValue(
+        web3dart.EtherUnit.wei,
+        fee,
+      ),
+      nonce: args?["nonce"] as int?,
+    );
+
+    Map<String, dynamic> txData = {
+      "fee": feeEstimate,
+      "feeInWei": fee,
+      "address": address,
+      "recipientAmt": satoshiAmount,
+      "ethTx": tx,
+    };
+
+    return txData;
+  }
+
+  Future<String> confirmSend({required Map<String, dynamic> txData}) async {
+    final txid = await _client.sendTransaction(
+      _credentials,
+      txData["ethTx"] as web3dart.Transaction,
+    );
+
+    return txid;
   }
 
   Future<String> get currentReceivingAddress async {
@@ -242,37 +293,6 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
   }
 
   bool get isRefreshing => _refreshLock;
-
-  Future<Map<String, dynamic>> prepareSend(
-      {required String address,
-      required int satoshiAmount,
-      Map<String, dynamic>? args}) async {
-    final feeRateType = args?["feeRate"];
-    int fee = 0;
-    final feeObject = await fees;
-    switch (feeRateType) {
-      case FeeRateType.fast:
-        fee = feeObject.fast;
-        break;
-      case FeeRateType.average:
-        fee = feeObject.medium;
-        break;
-      case FeeRateType.slow:
-        fee = feeObject.slow;
-        break;
-    }
-
-    final feeEstimate = await estimateFeeFor(satoshiAmount, fee);
-
-    Map<String, dynamic> txData = {
-      "fee": feeEstimate,
-      "feeInWei": fee,
-      "address": address,
-      "recipientAmt": satoshiAmount,
-    };
-
-    return txData;
-  }
 
   bool _refreshLock = false;
 
