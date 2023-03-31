@@ -221,29 +221,6 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   @override
-  Future<String> confirmSend({required Map<String, dynamic> txData}) async {
-    web3.Web3Client client = getEthClient();
-    final chainId = await client.getChainId();
-    final amount = txData['recipientAmt'] as int;
-    final decimalAmount = Format.satoshisToAmount(amount, coin: coin);
-    final bigIntAmount = amountToBigInt(
-      decimalAmount.toDouble(),
-      Constants.decimalPlacesForCoin(coin),
-    );
-
-    final tx = web3.Transaction(
-        to: web3.EthereumAddress.fromHex(txData['address'] as String),
-        gasPrice: web3.EtherAmount.fromUnitAndValue(
-            web3.EtherUnit.wei, txData['feeInWei']),
-        maxGas: _gasLimit,
-        value: web3.EtherAmount.inWei(bigIntAmount));
-    final transaction = await client.sendTransaction(_credentials, tx,
-        chainId: chainId.toInt());
-
-    return transaction;
-  }
-
-  @override
   Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
     final fee = estimateFee(feeRate, _gasLimit, coin.decimals);
     return Format.decimalAmountToSatoshis(Decimal.parse(fee.toString()), coin);
@@ -482,6 +459,29 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
     };
 
     return txData;
+  }
+
+  @override
+  Future<String> confirmSend({required Map<String, dynamic> txData}) async {
+    web3.Web3Client client = getEthClient();
+    final chainId = await client.getChainId();
+    final amount = txData['recipientAmt'] as int;
+    final decimalAmount = Format.satoshisToAmount(amount, coin: coin);
+    final bigIntAmount = amountToBigInt(
+      decimalAmount.toDouble(),
+      Constants.decimalPlacesForCoin(coin),
+    );
+
+    final tx = web3.Transaction(
+        to: web3.EthereumAddress.fromHex(txData['address'] as String),
+        gasPrice: web3.EtherAmount.fromUnitAndValue(
+            web3.EtherUnit.wei, txData['feeInWei']),
+        maxGas: _gasLimit,
+        value: web3.EtherAmount.inWei(bigIntAmount));
+    final txid = await client.sendTransaction(_credentials, tx,
+        chainId: chainId.toInt());
+
+    return txid;
   }
 
   @override
