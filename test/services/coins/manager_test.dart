@@ -98,6 +98,9 @@ void main() {
 
   test("transactions", () async {
     final CoinServiceAPI wallet = MockFiroWallet();
+
+    when(wallet.coin).thenAnswer((realInvocation) => Coin.firo);
+
     final tx = Transaction(
       walletId: "walletId",
       txid: "txid",

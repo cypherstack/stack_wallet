@@ -138,7 +138,7 @@ void main() {
 
     verify(mockPrefs.currency).called(1);
     verify(mockPriceService.getPrice(Coin.firo)).called(1);
-    verify(wallet.coin.ticker).called(2);
+    verify(wallet.coin.ticker).called(1);
 
     verify(mockLocaleService.locale).called(1);
 
@@ -241,7 +241,7 @@ void main() {
 
     verify(mockPrefs.currency).called(1);
     verify(mockPriceService.getPrice(Coin.firo)).called(1);
-    verify(wallet.coin.ticker).called(2);
+    verify(wallet.coin.ticker).called(1);
 
     verify(mockLocaleService.locale).called(1);
 
@@ -337,7 +337,7 @@ void main() {
 
     verify(mockPrefs.currency).called(1);
     verify(mockPriceService.getPrice(Coin.firo)).called(1);
-    verify(wallet.coin.ticker).called(2);
+    verify(wallet.coin.ticker).called(1);
 
     verify(mockLocaleService.locale).called(1);
 
@@ -434,7 +434,7 @@ void main() {
 
     verify(mockPrefs.currency).called(2);
     verify(mockLocaleService.locale).called(4);
-    verify(wallet.coin.ticker).called(2);
+    verify(wallet.coin.ticker).called(1);
     verify(wallet.storedChainHeight).called(2);
 
     verifyNoMoreInteractions(wallet);

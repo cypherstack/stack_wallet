@@ -29,6 +29,8 @@ import 'table_view_row_test.mocks.dart';
 ])
 void main() {
   testWidgets('Test table view row', (widgetTester) async {
+    widgetTester.binding.window.physicalSizeTestValue = const Size(2500, 1800);
+
     final mockWallet = MockWallets();
     final CoinServiceAPI wallet = MockBitcoinWallet();
     when(wallet.coin).thenAnswer((_) => Coin.bitcoin);
@@ -56,8 +58,6 @@ void main() {
     when(mockWallet.getManagerProvider("wallet id 2")).thenAnswer(
         (realInvocation) => ChangeNotifierProvider((ref) => manager));
 
-    final walletIds = mockWallet.getWalletIdsFor(coin: Coin.bitcoin);
-
     await widgetTester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -73,13 +73,14 @@ void main() {
           ),
           home: Material(
             child: TableViewRow(
-                cells: [
-                  for (int j = 1; j <= 5; j++)
-                    TableViewCell(flex: 16, child: Text("Some Text ${j}"))
-                ],
-                expandingChild: const CoinWalletsTable(
-                  coin: Coin.bitcoin,
-                )),
+              cells: [
+                for (int j = 1; j <= 5; j++)
+                  TableViewCell(flex: 16, child: Text("Some ${j}"))
+              ],
+              expandingChild: const CoinWalletsTable(
+                coin: Coin.bitcoin,
+              ),
+            ),
           ),
         ),
       ),
@@ -87,7 +88,7 @@ void main() {
 
     await widgetTester.pumpAndSettle();
 
-    expect(find.text("Some Text 1"), findsOneWidget);
+    expect(find.text("Some 1"), findsOneWidget);
     expect(find.byType(TableViewRow), findsWidgets);
     expect(find.byType(TableViewCell), findsWidgets);
     expect(find.byType(CoinWalletsTable), findsWidgets);
