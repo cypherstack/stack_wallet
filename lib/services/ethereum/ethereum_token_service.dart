@@ -108,7 +108,6 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
         fee,
       ),
       amountOfGas: BigInt.from(_gasLimit),
-      value: web3dart.EtherAmount.inWei(BigInt.one),
     );
 
     final nonce = args?["nonce"] as int? ??
