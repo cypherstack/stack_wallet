@@ -93,8 +93,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
             .trades
             .firstWhere((e) => e.tradeId == tradeId);
 
-        if (mounted &&
-            trade.exchangeName != MajesticBankExchange.exchangeName) {
+        if (mounted) {
           final exchange = Exchange.fromName(trade.exchangeName);
           final response = await exchange.updateTrade(trade);
 
