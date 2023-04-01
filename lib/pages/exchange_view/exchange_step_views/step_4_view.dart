@@ -579,7 +579,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                 time,
                                               ]);
 
-                                              final txData = results.last
+                                              final txData = results.first
                                                   as Map<String, dynamic>;
 
                                               if (!wasCancelled) {

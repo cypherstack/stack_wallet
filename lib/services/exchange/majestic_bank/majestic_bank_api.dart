@@ -14,10 +14,11 @@ import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 class MajesticBankAPI {
-  static const String scheme = "https";
-  static const String authority = "majesticbank.sc";
-  static const String version = "v1";
-  static const kMajesticBankRefCode = "rjWugM";
+  // ensure no api calls go out to mb
+  static const String scheme = ""; //"""https";
+  static const String authority = ""; //"""majesticbank.sc";
+  static const String version = ""; //"""v1";
+  static const kMajesticBankRefCode = ""; //"""rjWugM";
 
   MajesticBankAPI._();
 
@@ -33,6 +34,8 @@ class MajesticBankAPI {
   }
 
   Future<dynamic> _makeGetRequest(Uri uri) async {
+    return null;
+
     final client = this.client ?? http.Client();
     int code = -1;
     try {
