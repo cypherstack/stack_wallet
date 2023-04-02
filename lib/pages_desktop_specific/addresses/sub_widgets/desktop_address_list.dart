@@ -13,6 +13,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
+import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
@@ -196,20 +197,32 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
           height: isDesktop ? 20 : 16,
         ),
         Expanded(
-          child: ListView.separated(
-            shrinkWrap: true,
-            itemCount: ids.length,
-            separatorBuilder: (_, __) => Container(
-              height: 10,
-            ),
-            itemBuilder: (_, index) => AddressCard(
-              key: Key("addressCardDesktop_key_${ids[index]}"),
-              walletId: widget.walletId,
-              addressId: ids[index],
-              coin: coin,
-              onPressed: () {
-                ref.read(desktopSelectedAddressId.state).state = ids[index];
-              },
+          child: SingleChildScrollView(
+            child: RoundedWhiteContainer(
+              padding: EdgeInsets.zero,
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: ids.length,
+                separatorBuilder: (_, __) => Container(
+                  height: 1,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .backgroundAppBar,
+                ),
+                itemBuilder: (_, index) => Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: AddressCard(
+                    key: Key("addressCardDesktop_key_${ids[index]}"),
+                    walletId: widget.walletId,
+                    addressId: ids[index],
+                    coin: coin,
+                    onPressed: () {
+                      ref.read(desktopSelectedAddressId.state).state =
+                          ids[index];
+                    },
+                  ),
+                ),
+              ),
             ),
           ),
         ),
