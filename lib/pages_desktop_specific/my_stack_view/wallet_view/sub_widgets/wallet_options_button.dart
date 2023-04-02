@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages_desktop_specific/addresses/desktop_wallet_addresses_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_delete_wallet_dialog.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -74,8 +77,12 @@ class _WalletOptionsButtonState extends ConsumerState<WalletOptionsButton> {
         if (mounted && func != null) {
           switch (func) {
             case _WalletOptions.addressList:
-              print("Address list pressed");
-              // TODO: Handle this case.
+              unawaited(
+                Navigator.of(context).pushNamed(
+                  DesktopWalletAddressesView.routeName,
+                  arguments: walletId,
+                ),
+              );
               break;
             case _WalletOptions.deleteWallet:
               final result = await showDialog<bool?>(
