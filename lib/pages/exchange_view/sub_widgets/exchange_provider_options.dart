@@ -71,12 +71,11 @@ class _ExchangeProviderOptionsState
       sendCurrency: sendCurrency,
       receiveCurrency: receivingCurrency,
     );
-    final showMajesticBank = false;
-    // exchangeSupported(
-    //   exchangeName: MajesticBankExchange.exchangeName,
-    //   sendCurrency: sendCurrency,
-    //   receiveCurrency: receivingCurrency,
-    // );
+    final showMajesticBank = exchangeSupported(
+      exchangeName: MajesticBankExchange.exchangeName,
+      sendCurrency: sendCurrency,
+      receiveCurrency: receivingCurrency,
+    );
 
     return RoundedWhiteContainer(
       padding: isDesktop ? const EdgeInsets.all(0) : const EdgeInsets.all(12),

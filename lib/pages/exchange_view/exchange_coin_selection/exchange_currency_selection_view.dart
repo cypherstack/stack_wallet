@@ -9,6 +9,7 @@ import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
+import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -94,12 +95,11 @@ class _ExchangeCurrencySelectionViewState
     if (widget.pairedTicker == null) {
       return await _getCurrencies();
     }
-    List<Currency> currencies = [];
-    // await ExchangeDataLoadingService
-    //     .instance.isar.currencies
-    //     .where()
-    //     .exchangeNameEqualTo(MajesticBankExchange.exchangeName)
-    //     .findAll();
+    List<Currency> currencies = await ExchangeDataLoadingService
+        .instance.isar.currencies
+        .where()
+        .exchangeNameEqualTo(MajesticBankExchange.exchangeName)
+        .findAll();
 
     final cn = await ChangeNowExchange.instance.getPairedCurrencies(
       widget.pairedTicker!,

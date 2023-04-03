@@ -368,6 +368,9 @@ flutter:
     # forest theme specific
     - assets/svg/themed/forest/
 
+    # orange theme specific
+    - assets/svg/themed/orange/
+
     # buy
     - assets/svg/buy/
 
