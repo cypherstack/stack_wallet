@@ -344,13 +344,6 @@ class _SVG {
     }
   }
 
-  String iconForToken({required String contractAddress}) {
-    switch (contractAddress) {
-      default:
-        return ethereum;
-    }
-  }
-
   // big icons
   String bitcoinImage(BuildContext context) => "${_path(context)}/bitcoin.svg";
   String bitcoincashImage(BuildContext context) =>

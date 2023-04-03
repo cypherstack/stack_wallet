@@ -10,9 +10,11 @@ class EthTokenIcon extends StatefulWidget {
   const EthTokenIcon({
     Key? key,
     required this.contractAddress,
+    this.size = 22,
   }) : super(key: key);
 
   final String contractAddress;
+  final double size;
 
   @override
   State<EthTokenIcon> createState() => _EthTokenIconState();
@@ -37,14 +39,14 @@ class _EthTokenIconState extends State<EthTokenIcon> {
     if (imageUrl == null || imageUrl!.isEmpty) {
       return SvgPicture.asset(
         Assets.svg.iconFor(coin: Coin.ethereum),
-        width: 22,
-        height: 22,
+        width: widget.size,
+        height: widget.size,
       );
     } else {
       return SvgPicture.network(
         imageUrl!,
-        width: 22,
-        height: 22,
+        width: widget.size,
+        height: widget.size,
       );
     }
   }

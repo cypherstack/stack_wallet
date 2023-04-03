@@ -15,6 +15,7 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/icon_widgets/eth_token_icon.dart';
 import 'package:tuple/tuple.dart';
 
 final tokenServiceStateProvider = StateProvider<EthTokenWallet?>((ref) => null);
@@ -76,13 +77,13 @@ class _TokenViewState extends ConsumerState<TokenView> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    SvgPicture.asset(
-                      Assets.svg.iconForToken(
-                          contractAddress: ref.watch(
-                              tokenServiceProvider.select(
-                                  (value) => value!.tokenContract.address))),
-                      width: 24,
-                      height: 24,
+                    EthTokenIcon(
+                      contractAddress: ref.watch(
+                        tokenServiceProvider.select(
+                          (value) => value!.tokenContract.address,
+                        ),
+                      ),
+                      size: 24,
                     ),
                     const SizedBox(
                       width: 10,
