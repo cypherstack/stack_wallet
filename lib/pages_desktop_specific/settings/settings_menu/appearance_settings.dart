@@ -272,6 +272,7 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
                         child: SvgPicture.asset(
                           assetNameFor(ThemeType.values[i]),
                           height: 160,
+                          width: 200,
                         ),
                       ),
                       const SizedBox(

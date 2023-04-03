@@ -99,6 +99,7 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_sear
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
 import 'package:stackwallet/pages_desktop_specific/address_book_view/desktop_address_book.dart';
+import 'package:stackwallet/pages_desktop_specific/addresses/desktop_wallet_addresses_view.dart';
 import 'package:stackwallet/pages_desktop_specific/coin_control/desktop_coin_control_view.dart';
 // import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_all_buys_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_buy/desktop_buy_view.dart';
@@ -1311,6 +1312,20 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => DesktopWalletView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case DesktopWalletAddressesView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => DesktopWalletAddressesView(
               walletId: args,
             ),
             settings: RouteSettings(
