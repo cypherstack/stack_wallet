@@ -11,6 +11,7 @@ import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/eth_commons.dart';
+import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:tuple/tuple.dart';
 
@@ -160,7 +161,7 @@ abstract class EthereumAPI {
     try {
       final response = await get(
         Uri.parse(
-          "$stackBaseServer/transactions?transactions=${txns.map((e) => e.hash).join(" ")}",
+          "$stackBaseServer/transactions?transactions=${txns.map((e) => e.hash).join(" ")}&raw=true",
         ),
       );
 
@@ -175,7 +176,7 @@ abstract class EthereumAPI {
             final data =
                 list.firstWhere((e) => e["hash"] == dto.hash, orElse: () => {});
 
-            final nonce = data["nonce"] as int?;
+            final nonce = (data["nonce"] as String?)?.toBigIntFromHex.toInt();
             result.add(Tuple2(dto, nonce));
           }
           return EthereumResponse(
