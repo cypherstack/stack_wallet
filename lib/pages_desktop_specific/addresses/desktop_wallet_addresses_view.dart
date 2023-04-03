@@ -128,13 +128,15 @@ class _DesktopWalletAddressesViewState
                         if (ref.watch(desktopSelectedAddressId.state).state !=
                             null)
                           Expanded(
-                            child: AddressDetailsView(
-                              key: Key(
-                                  "currentDesktopAddressDetails_key_${ref.watch(desktopSelectedAddressId.state).state}"),
-                              walletId: widget.walletId,
-                              addressId: ref
-                                  .watch(desktopSelectedAddressId.state)
-                                  .state!,
+                            child: SingleChildScrollView(
+                              child: AddressDetailsView(
+                                key: Key(
+                                    "currentDesktopAddressDetails_key_${ref.watch(desktopSelectedAddressId.state).state}"),
+                                walletId: widget.walletId,
+                                addressId: ref
+                                    .watch(desktopSelectedAddressId.state)
+                                    .state!,
+                              ),
                             ),
                           ),
                       ],

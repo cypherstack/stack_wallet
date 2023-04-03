@@ -193,8 +193,8 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
             ),
           ),
         ),
-        SizedBox(
-          height: isDesktop ? 20 : 16,
+        const SizedBox(
+          height: 20,
         ),
         Expanded(
           child: SingleChildScrollView(
