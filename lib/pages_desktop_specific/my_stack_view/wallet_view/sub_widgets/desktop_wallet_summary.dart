@@ -2,6 +2,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/balance.dart';
+import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_balance_toggle_button.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -19,10 +20,12 @@ class DesktopWalletSummary extends ConsumerStatefulWidget {
     Key? key,
     required this.walletId,
     required this.initialSyncStatus,
+    this.isToken = false,
   }) : super(key: key);
 
   final String walletId;
   final WalletSyncStatus initialSyncStatus;
+  final bool isToken;
 
   @override
   ConsumerState<DesktopWalletSummary> createState() =>
@@ -58,15 +61,30 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
     final baseCurrency = ref
         .watch(prefsChangeNotifierProvider.select((value) => value.currency));
 
-    final priceTuple = ref.watch(priceAnd24hChangeNotifierProvider
-        .select((value) => value.getPrice(coin)));
+    final priceTuple = widget.isToken
+        ? ref.watch(priceAnd24hChangeNotifierProvider.select((value) =>
+            value.getTokenPrice(ref.watch(tokenServiceProvider
+                .select((value) => value!.tokenContract.address)))))
+        : ref.watch(priceAnd24hChangeNotifierProvider
+            .select((value) => value.getPrice(coin)));
 
     final _showAvailable =
         ref.watch(walletBalanceToggleStateProvider.state).state ==
             WalletBalanceToggleState.available;
 
-    Balance balance = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId).balance));
+    final unit = widget.isToken
+        ? ref.watch(
+            tokenServiceProvider.select((value) => value!.tokenContract.symbol))
+        : coin.ticker;
+    final decimalPlaces = widget.isToken
+        ? ref.watch(tokenServiceProvider
+            .select((value) => value!.tokenContract.decimals))
+        : coin.decimals;
+
+    Balance balance = widget.isToken
+        ? ref.watch(tokenServiceProvider.select((value) => value!.balance))
+        : ref.watch(walletsChangeNotifierProvider
+            .select((value) => value.getManager(walletId).balance));
 
     Decimal balanceToShow;
     if (coin == Coin.firo || coin == Coin.firoTestNet) {
@@ -112,8 +130,8 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
                     "${Format.localizedStringAsFixed(
                       value: balanceToShow,
                       locale: locale,
-                      decimalPlaces: 8,
-                    )} ${coin.ticker}",
+                      decimalPlaces: decimalPlaces,
+                    )} $unit",
                     style: STextStyles.desktopH3(context),
                   ),
                 ),
