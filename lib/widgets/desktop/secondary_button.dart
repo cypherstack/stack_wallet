@@ -18,6 +18,7 @@ class SecondaryButton extends StatelessWidget {
     this.enabled = true,
     this.buttonHeight,
     this.iconSpacing = 10,
+    this.padding = EdgeInsets.zero,
   }) : super(key: key);
 
   final double? width;
@@ -29,6 +30,7 @@ class SecondaryButton extends StatelessWidget {
   final Widget? trailingIcon;
   final ButtonHeight? buttonHeight;
   final double iconSpacing;
+  final EdgeInsets padding;
 
   TextStyle getStyle(bool isDesktop, BuildContext context) {
     if (isDesktop) {
@@ -155,37 +157,40 @@ class SecondaryButton extends StatelessWidget {
             : Theme.of(context)
                 .extension<StackColors>()!
                 .getSecondaryDisabledButtonStyle(context),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            if (icon != null) icon!,
-            if (icon != null && label != null)
-              SizedBox(
-                width: iconSpacing,
-              ),
-            if (label != null)
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    label!,
-                    style: getStyle(isDesktop, context),
-                  ),
-                  if (buttonHeight != null && buttonHeight == ButtonHeight.s)
-                    const SizedBox(
-                      height: 2,
+        child: Padding(
+          padding: padding,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (icon != null) icon!,
+              if (icon != null && label != null)
+                SizedBox(
+                  width: iconSpacing,
+                ),
+              if (label != null)
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      label!,
+                      style: getStyle(isDesktop, context),
                     ),
-                ],
-              ),
-            if (trailingIcon != null)
-              SizedBox(
-                width: iconSpacing,
-              ),
-            if (trailingIcon != null) trailingIcon!,
-          ],
+                    if (buttonHeight != null && buttonHeight == ButtonHeight.s)
+                      const SizedBox(
+                        height: 2,
+                      ),
+                  ],
+                ),
+              if (trailingIcon != null)
+                SizedBox(
+                  width: iconSpacing,
+                ),
+              if (trailingIcon != null) trailingIcon!,
+            ],
+          ),
         ),
       ),
     );
