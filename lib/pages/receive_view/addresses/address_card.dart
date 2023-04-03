@@ -1,13 +1,17 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/receive_view/addresses/address_tag.dart';
+import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class AddressCard extends StatefulWidget {
@@ -31,6 +35,8 @@ class AddressCard extends StatefulWidget {
 }
 
 class _AddressCardState extends State<AddressCard> {
+  final isDesktop = Util.isDesktop;
+
   late Stream<AddressLabel?> stream;
   late final Address address;
 
@@ -74,115 +80,64 @@ class _AddressCardState extends State<AddressCard> {
             label = snapshot.data!;
           }
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (label!.value.isNotEmpty)
-                Text(
-                  label!.value,
-                  style: STextStyles.itemSubtitle(context),
-                  textAlign: TextAlign.left,
+          return ConditionalParent(
+            condition: isDesktop,
+            builder: (child) => Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SvgPicture.asset(
+                  Assets.svg.iconFor(coin: widget.coin),
+                  width: 32,
+                  height: 32,
                 ),
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //   children: [
-              //
-              //     CustomTextButton(
-              //       text: "Edit label",
-              //       textSize: 14,
-              //       onTap: () {
-              //         Navigator.of(context).pushNamed(
-              //           EditAddressLabelView.routeName,
-              //           arguments: label!.id,
-              //         );
-              //       },
-              //     ),
-              //   ],
-              // ),
-              if (label!.value.isNotEmpty)
                 const SizedBox(
-                  height: 8,
+                  width: 12,
                 ),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      address.value,
-                      style: STextStyles.itemSubtitle12(context),
-                    ),
+                Expanded(
+                  child: child,
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (label!.value.isNotEmpty)
+                  Text(
+                    label!.value,
+                    style: STextStyles.itemSubtitle(context),
+                    textAlign: TextAlign.left,
                   ),
-                ],
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-
-              if (label!.tags != null && label!.tags!.isNotEmpty)
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: label!.tags!
-                      .map(
-                        (e) => AddressTag(
-                          tag: e,
-                        ),
-                      )
-                      .toList(),
+                if (label!.value.isNotEmpty)
+                  SizedBox(
+                    height: isDesktop ? 2 : 8,
+                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        address.value,
+                        style: STextStyles.itemSubtitle12(context),
+                      ),
+                    ),
+                  ],
                 ),
-              // Row(
-              //   children: [
-              //     Expanded(
-              //       child: SecondaryButton(
-              //         label: "Copy address",
-              //         icon: CopyIcon(
-              //           color: Theme.of(context)
-              //               .extension<StackColors>()!
-              //               .buttonTextSecondary,
-              //         ),
-              //         onPressed: () async {
-              //           await widget.clipboard.setData(
-              //             ClipboardData(
-              //               text: address.value,
-              //             ),
-              //           );
-              //           if (mounted) {
-              //             unawaited(
-              //               showFloatingFlushBar(
-              //                 type: FlushBarType.info,
-              //                 message: "Copied to clipboard",
-              //                 context: context,
-              //               ),
-              //             );
-              //           }
-              //         },
-              //       ),
-              //     ),
-              //     const SizedBox(
-              //       width: 12,
-              //     ),
-              //     Expanded(
-              //       child: SecondaryButton(
-              //         label: "Show QR Code",
-              //         icon: QrCodeIcon(
-              //           color: Theme.of(context)
-              //               .extension<StackColors>()!
-              //               .buttonTextSecondary,
-              //         ),
-              //         onPressed: () {
-              //           showDialog<void>(
-              //             context: context,
-              //             builder: (context) => AddressQrPopup(
-              //               addressString: address.value,
-              //               coin: widget.coin,
-              //               clipboard: widget.clipboard,
-              //             ),
-              //           );
-              //         },
-              //       ),
-              //     ),
-              //   ],
-              // )
-            ],
+                const SizedBox(
+                  height: 10,
+                ),
+                if (label!.tags != null && label!.tags!.isNotEmpty)
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: label!.tags!
+                        .map(
+                          (e) => AddressTag(
+                            tag: e,
+                          ),
+                        )
+                        .toList(),
+                  ),
+              ],
+            ),
           );
         },
       ),

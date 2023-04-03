@@ -349,6 +349,7 @@ flutter:
     - assets/svg/forest-theme.svg
     - assets/svg/chanstheme.svg
     - assets/svg/darkChansTheme.svg
+    - assets/svg/orange-theme.svg
 
     # light theme specific
     - assets/svg/themed/light/

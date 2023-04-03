@@ -6,6 +6,7 @@ import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/receive_view/addresses/address_tag.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -14,8 +15,11 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/simple_edit_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/transaction_card.dart';
 
@@ -43,6 +47,64 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
   late final Address address;
 
   AddressLabel? label;
+
+  void _showDesktopAddressQrCode() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => DesktopDialog(
+        maxWidth: 480,
+        maxHeight: 400,
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 32),
+                  child: Text(
+                    "Address QR code",
+                    style: STextStyles.desktopH3(context),
+                  ),
+                ),
+                const DesktopDialogCloseButton(),
+              ],
+            ),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Center(
+                    child: RepaintBoundary(
+                      key: _qrKey,
+                      child: QrImage(
+                        data: AddressUtils.buildUriString(
+                          ref.watch(walletsChangeNotifierProvider.select(
+                              (value) =>
+                                  value.getManager(widget.walletId).coin)),
+                          address.value,
+                          {},
+                        ),
+                        size: 220,
+                        backgroundColor:
+                            Theme.of(context).extension<StackColors>()!.popupBG,
+                        foregroundColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(
+              height: 32,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -73,13 +135,6 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
 
   @override
   Widget build(BuildContext context) {
-    final coin = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId).coin));
-    final query = MainDB.instance
-        .getTransactions(widget.walletId)
-        .filter()
-        .address((q) => q.valueEqualTo(address.value));
-
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -96,7 +151,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
             ),
             titleSpacing: 0,
             title: Text(
-              "Wallet addresses",
+              "Address details",
               style: STextStyles.navBarTitle(context),
             ),
           ),
@@ -126,118 +181,281 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
             label = snapshot.data!;
           }
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: RepaintBoundary(
-                  key: _qrKey,
-                  child: QrImage(
-                    data: AddressUtils.buildUriString(
-                      coin,
-                      address.value,
-                      {},
-                    ),
-                    size: 220,
-                    backgroundColor:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    foregroundColor: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorDark,
+          return ConditionalParent(
+            condition: isDesktop,
+            builder: (child) {
+              return Column(
+                children: [
+                  const SizedBox(
+                    height: 20,
                   ),
-                ),
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              _Item(
-                title: "Address",
-                data: address.value,
-                button: SimpleCopyButton(
-                  data: address.value,
-                ),
-              ),
-              const SizedBox(
-                height: 12,
-              ),
-              _Item(
-                title: "Label",
-                data: label!.value,
-                button: SimpleEditButton(
-                  editValue: label!.value,
-                  editLabel: 'label',
-                  onValueChanged: (value) {
-                    MainDB.instance.putAddressLabel(
-                      label!.copyWith(
-                        label: value,
+                  RoundedWhiteContainer(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Address details",
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                      context)
+                                  .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textSubtitle1,
+                              ),
+                            ),
+                            CustomTextButton(
+                              text: "View QR code",
+                              onTap: _showDesktopAddressQrCode,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 4,
+                        ),
+                        RoundedWhiteContainer(
+                          padding: EdgeInsets.zero,
+                          borderColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .backgroundAppBar,
+                          child: child,
+                        ),
+                        const SizedBox(
+                          height: 16,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Transaction history",
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                      context)
+                                  .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textSubtitle1,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 8,
+                        ),
+                        RoundedWhiteContainer(
+                          padding: EdgeInsets.zero,
+                          borderColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .backgroundAppBar,
+                          child: _AddressDetailsTxList(
+                            walletId: widget.walletId,
+                            address: address,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (!isDesktop)
+                  Center(
+                    child: RepaintBoundary(
+                      key: _qrKey,
+                      child: QrImage(
+                        data: AddressUtils.buildUriString(
+                          ref.watch(walletsChangeNotifierProvider.select(
+                              (value) =>
+                                  value.getManager(widget.walletId).coin)),
+                          address.value,
+                          {},
+                        ),
+                        size: 220,
+                        backgroundColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .background,
+                        foregroundColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
                       ),
-                    );
-                  },
+                    ),
+                  ),
+                if (!isDesktop)
+                  const SizedBox(
+                    height: 16,
+                  ),
+                _Item(
+                  title: "Address",
+                  data: address.value,
+                  button: isDesktop
+                      ? IconCopyButton(
+                          data: address.value,
+                        )
+                      : SimpleCopyButton(
+                          data: address.value,
+                        ),
                 ),
-              ),
-              const SizedBox(
-                height: 12,
-              ),
-              _Tags(
-                tags: label!.tags,
-              ),
-              if (address.derivationPath != null)
-                const SizedBox(
+                const _Div(
                   height: 12,
                 ),
-              if (address.derivationPath != null)
                 _Item(
-                  title: "Derivation path",
-                  data: address.derivationPath!.value,
-                  button: Container(),
-                ),
-              const SizedBox(
-                height: 12,
-              ),
-              _Item(
-                title: "Type",
-                data: address.type.readableName,
-                button: Container(),
-              ),
-              const SizedBox(
-                height: 12,
-              ),
-              _Item(
-                title: "Sub type",
-                data: address.subType.prettyName,
-                button: Container(),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              Text(
-                "Transactions",
-                textAlign: TextAlign.left,
-                style: STextStyles.itemSubtitle(context).copyWith(
-                  color: Theme.of(context).extension<StackColors>()!.textDark3,
-                ),
-              ),
-              const SizedBox(
-                height: 12,
-              ),
-              if (query.countSync() == 0) const NoTransActionsFound(),
-              if (query.countSync() > 0)
-                RoundedWhiteContainer(
-                  padding: EdgeInsets.zero,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: query
-                        .findAllSync()
-                        .map((e) => TransactionCard(
-                            transaction: e, walletId: widget.walletId))
-                        .toList(),
+                  title: "Label",
+                  data: label!.value,
+                  button: SimpleEditButton(
+                    editValue: label!.value,
+                    editLabel: 'label',
+                    onValueChanged: (value) {
+                      MainDB.instance.putAddressLabel(
+                        label!.copyWith(
+                          label: value,
+                        ),
+                      );
+                    },
                   ),
                 ),
-            ],
+                const _Div(
+                  height: 12,
+                ),
+                _Tags(
+                  tags: label!.tags,
+                ),
+                if (address.derivationPath != null)
+                  const _Div(
+                    height: 12,
+                  ),
+                if (address.derivationPath != null)
+                  _Item(
+                    title: "Derivation path",
+                    data: address.derivationPath!.value,
+                    button: Container(),
+                  ),
+                const _Div(
+                  height: 12,
+                ),
+                _Item(
+                  title: "Type",
+                  data: address.type.readableName,
+                  button: Container(),
+                ),
+                const _Div(
+                  height: 12,
+                ),
+                _Item(
+                  title: "Sub type",
+                  data: address.subType.prettyName,
+                  button: Container(),
+                ),
+                if (!isDesktop)
+                  const SizedBox(
+                    height: 20,
+                  ),
+                if (!isDesktop)
+                  Text(
+                    "Transactions",
+                    textAlign: TextAlign.left,
+                    style: STextStyles.itemSubtitle(context).copyWith(
+                      color:
+                          Theme.of(context).extension<StackColors>()!.textDark3,
+                    ),
+                  ),
+                if (!isDesktop)
+                  const SizedBox(
+                    height: 12,
+                  ),
+                if (!isDesktop)
+                  _AddressDetailsTxList(
+                    walletId: widget.walletId,
+                    address: address,
+                  ),
+              ],
+            ),
           );
         },
       ),
     );
+  }
+}
+
+class _AddressDetailsTxList extends StatelessWidget {
+  const _AddressDetailsTxList({
+    Key? key,
+    required this.walletId,
+    required this.address,
+  }) : super(key: key);
+
+  final String walletId;
+  final Address address;
+
+  @override
+  Widget build(BuildContext context) {
+    final query = MainDB.instance
+        .getTransactions(walletId)
+        .filter()
+        .address((q) => q.valueEqualTo(address.value));
+
+    final count = query.countSync();
+
+    if (count > 0) {
+      if (Util.isDesktop) {
+        final txns = query.findAllSync();
+        return ListView.separated(
+          shrinkWrap: true,
+          primary: false,
+          itemBuilder: (_, index) => TransactionCard(
+            transaction: txns[index],
+            walletId: walletId,
+          ),
+          separatorBuilder: (_, __) => const _Div(height: 1),
+          itemCount: count,
+        );
+      } else {
+        return RoundedWhiteContainer(
+          padding: EdgeInsets.zero,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: query
+                .findAllSync()
+                .map(
+                  (e) => TransactionCard(
+                    transaction: e,
+                    walletId: walletId,
+                  ),
+                )
+                .toList(),
+          ),
+        );
+      }
+    } else {
+      return const NoTransActionsFound();
+    }
+  }
+}
+
+class _Div extends StatelessWidget {
+  const _Div({
+    Key? key,
+    required this.height,
+  }) : super(key: key);
+
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    if (Util.isDesktop) {
+      return Container(
+        color: Theme.of(context).extension<StackColors>()!.backgroundAppBar,
+        height: 1,
+        width: double.infinity,
+      );
+    } else {
+      return SizedBox(
+        height: height,
+      );
+    }
   }
 }
 
@@ -313,37 +531,48 @@ class _Item extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RoundedWhiteContainer(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: STextStyles.itemSubtitle(context),
-              ),
-              button,
-            ],
-          ),
-          const SizedBox(
-            height: 5,
-          ),
-          data.isNotEmpty
-              ? SelectableText(
-                  data,
-                  style: STextStyles.w500_14(context),
-                )
-              : Text(
-                  "$title will appear here",
-                  style: STextStyles.w500_14(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textSubtitle3,
-                  ),
+    return ConditionalParent(
+      condition: !Util.isDesktop,
+      builder: (child) => RoundedWhiteContainer(
+        child: child,
+      ),
+      child: ConditionalParent(
+        condition: Util.isDesktop,
+        builder: (child) => Padding(
+          padding: const EdgeInsets.all(16),
+          child: child,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: STextStyles.itemSubtitle(context),
                 ),
-        ],
+                button,
+              ],
+            ),
+            const SizedBox(
+              height: 5,
+            ),
+            data.isNotEmpty
+                ? SelectableText(
+                    data,
+                    style: STextStyles.w500_14(context),
+                  )
+                : Text(
+                    "$title will appear here",
+                    style: STextStyles.w500_14(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textSubtitle3,
+                    ),
+                  ),
+          ],
+        ),
       ),
     );
   }
