@@ -8,6 +8,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -34,47 +35,104 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
         final providers = providersByCoin[index].item2;
         final coin = providersByCoin[index].item1;
 
-        return RoundedWhiteContainer(
-          padding: const EdgeInsets.all(20),
-          onPressed: () {
-            showDialog<void>(
-              context: context,
-              builder: (_) => DesktopDialog(
-                maxHeight: 600,
-                maxWidth: 700,
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 32),
-                          child: Text(
-                            "${coin.prettyName} (${coin.ticker}) wallets",
-                            style: STextStyles.desktopH3(context),
-                          ),
-                        ),
-                        const DesktopDialogCloseButton(),
-                      ],
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          left: 32,
-                          right: 32,
-                          bottom: 32,
-                        ),
-                        child: DesktopCoinWalletsDialog(
-                          coin: coin,
-                          navigatorState: Navigator.of(context),
-                        ),
-                      ),
-                    ),
-                  ],
+        return ConditionalParent(
+          condition: index + 1 == providersByCoin.length,
+          builder: (child) => const Padding(
+            padding: EdgeInsets.only(
+              bottom: 16,
+            ),
+          ),
+          child: DesktopWalletSummaryRow(
+            key: Key("DesktopWalletSummaryRow_key_${coin.name}"),
+            coin: coin,
+            walletCount: providers.length,
+          ),
+        );
+      },
+      separatorBuilder: (_, __) => const SizedBox(
+        height: 10,
+      ),
+      itemCount: providersByCoin.length,
+    );
+  }
+}
+
+class DesktopWalletSummaryRow extends StatefulWidget {
+  const DesktopWalletSummaryRow({
+    Key? key,
+    required this.coin,
+    required this.walletCount,
+  }) : super(key: key);
+
+  final Coin coin;
+  final int walletCount;
+
+  @override
+  State<DesktopWalletSummaryRow> createState() =>
+      _DesktopWalletSummaryRowState();
+}
+
+class _DesktopWalletSummaryRowState extends State<DesktopWalletSummaryRow> {
+  bool _hovering = false;
+
+  void _onPressed() {
+    showDialog<void>(
+      context: context,
+      builder: (_) => DesktopDialog(
+        maxHeight: 600,
+        maxWidth: 700,
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 32),
+                  child: Text(
+                    "${widget.coin.prettyName} (${widget.coin.ticker}) wallets",
+                    style: STextStyles.desktopH3(context),
+                  ),
+                ),
+                const DesktopDialogCloseButton(),
+              ],
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: 32,
+                  right: 32,
+                  bottom: 32,
+                ),
+                child: DesktopCoinWalletsDialog(
+                  coin: widget.coin,
+                  navigatorState: Navigator.of(context),
                 ),
               ),
-            );
-          },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(
+        () => _hovering = true,
+      ),
+      onExit: (_) => setState(
+        () => _hovering = false,
+      ),
+      child: AnimatedScale(
+        scale: _hovering ? 1.00 : 0.98,
+        duration: const Duration(
+          milliseconds: 200,
+        ),
+        child: RoundedWhiteContainer(
+          padding: const EdgeInsets.all(20),
+          hoverColor: Colors.transparent,
+          onPressed: _onPressed,
           child: Row(
             children: [
               Expanded(
@@ -82,7 +140,7 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
                 child: Row(
                   children: [
                     SvgPicture.asset(
-                      Assets.svg.iconFor(coin: providersByCoin[index].item1),
+                      Assets.svg.iconFor(coin: widget.coin),
                       width: 28,
                       height: 28,
                     ),
@@ -90,7 +148,7 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
                       width: 10,
                     ),
                     Text(
-                      providersByCoin[index].item1.prettyName,
+                      widget.coin.prettyName,
                       style:
                           STextStyles.desktopTextExtraSmall(context).copyWith(
                         color: Theme.of(context)
@@ -104,9 +162,9 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
               Expanded(
                 flex: 4,
                 child: Text(
-                  providers.length == 1
-                      ? "${providers.length} wallet"
-                      : "${providers.length} wallets",
+                  widget.walletCount == 1
+                      ? "${widget.walletCount} wallet"
+                      : "${widget.walletCount} wallets",
                   style: STextStyles.desktopTextExtraSmall(context).copyWith(
                     color: Theme.of(context)
                         .extension<StackColors>()!
@@ -117,129 +175,16 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
               Expanded(
                 flex: 6,
                 child: TablePriceInfo(
-                  coin: providersByCoin[index].item1,
+                  coin: widget.coin,
                 ),
               ),
             ],
           ),
-        );
-      },
-      separatorBuilder: (_, __) => const SizedBox(
-        height: 10,
+        ),
       ),
-      itemCount: providersByCoin.length,
     );
   }
 }
-//
-// class WalletSummaryTable extends ConsumerStatefulWidget {
-//   const WalletSummaryTable({Key? key}) : super(key: key);
-//
-//   @override
-//   ConsumerState<WalletSummaryTable> createState() => _WalletTableState();
-// }
-//
-// class _WalletTableState extends ConsumerState<WalletSummaryTable> {
-//   @override
-//   Widget build(BuildContext context) {
-//     debugPrint("BUILD: $runtimeType");
-//     final providersByCoin = ref.watch(
-//       walletsChangeNotifierProvider.select(
-//         (value) => value.getManagerProvidersByCoin(),
-//       ),
-//     );
-//
-//     return TableView(
-//       rows: [
-//         for (int i = 0; i < providersByCoin.length; i++)
-//           Builder(
-//             key: Key("${providersByCoin[i].item1.name}_${runtimeType}_key"),
-//             builder: (context) {
-//               final providers = providersByCoin[i].item2;
-//
-//               VoidCallback? expandOverride;
-//               if (providers.length == 1) {
-//                 expandOverride = () async {
-//                   final manager = ref.read(providers.first);
-//                   if (manager.coin == Coin.monero ||
-//                       manager.coin == Coin.wownero) {
-//                     await manager.initializeExisting();
-//                   }
-//                   await Navigator.of(context).pushNamed(
-//                     DesktopWalletView.routeName,
-//                     arguments: manager.walletId,
-//                   );
-//                 };
-//               }
-//
-//               return TableViewRow(
-//                 expandOverride: expandOverride,
-//                 padding: const EdgeInsets.symmetric(
-//                   horizontal: 20,
-//                   vertical: 16,
-//                 ),
-//                 decoration: BoxDecoration(
-//                   color: Theme.of(context).extension<StackColors>()!.popupBG,
-//                   borderRadius: BorderRadius.circular(
-//                     Constants.size.circularBorderRadius,
-//                   ),
-//                 ),
-//                 cells: [
-//                   TableViewCell(
-//                     flex: 4,
-//                     child: Row(
-//                       children: [
-//                         SvgPicture.asset(
-//                           Assets.svg.iconFor(coin: providersByCoin[i].item1),
-//                           width: 28,
-//                           height: 28,
-//                         ),
-//                         const SizedBox(
-//                           width: 10,
-//                         ),
-//                         Text(
-//                           providersByCoin[i].item1.prettyName,
-//                           style: STextStyles.desktopTextExtraSmall(context)
-//                               .copyWith(
-//                             color: Theme.of(context)
-//                                 .extension<StackColors>()!
-//                                 .textDark,
-//                           ),
-//                         )
-//                       ],
-//                     ),
-//                   ),
-//                   TableViewCell(
-//                     flex: 4,
-//                     child: Text(
-//                       providers.length == 1
-//                           ? "${providers.length} wallet"
-//                           : "${providers.length} wallets",
-//                       style:
-//                           STextStyles.desktopTextExtraSmall(context).copyWith(
-//                         color: Theme.of(context)
-//                             .extension<StackColors>()!
-//                             .textSubtitle1,
-//                       ),
-//                     ),
-//                   ),
-//                   TableViewCell(
-//                     flex: 6,
-//                     child: TablePriceInfo(
-//                       coin: providersByCoin[i].item1,
-//                     ),
-//                   ),
-//                 ],
-//                 expandingChild: CoinWalletsTable(
-//                   coin: providersByCoin[i].item1,
-//                 ),
-//               );
-//             },
-//           ),
-//       ],
-//     );
-//   }
-// }
 
 class TablePriceInfo extends ConsumerWidget {
   const TablePriceInfo({Key? key, required this.coin}) : super(key: key);
