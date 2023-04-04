@@ -82,6 +82,9 @@ void main() {
   group("operators", () {
     final one = Amount(rawValue: BigInt.one, fractionDigits: 0);
     final two = Amount(rawValue: BigInt.two, fractionDigits: 0);
+    final four4 = Amount(rawValue: BigInt.from(4), fractionDigits: 4);
+    final four4_2 = Amount(rawValue: BigInt.from(4), fractionDigits: 4);
+    final four5 = Amount(rawValue: BigInt.from(4), fractionDigits: 5);
 
     test(">", () {
       expect(one > two, false);
@@ -113,6 +116,66 @@ void main() {
 
       expect(two <= two, true);
       expect(two <= one, false);
+    });
+
+    test("<=", () {
+      expect(one <= two, true);
+      expect(one <= one, true);
+
+      expect(two <= two, true);
+      expect(two <= one, false);
+    });
+
+    test("==", () {
+      expect(one == two, false);
+      expect(one == one, true);
+
+      expect(BigInt.from(2) == BigInt.from(2), true);
+
+      expect(four4 == four4_2, true);
+      expect(four4 == four5, false);
+    });
+
+    test("+", () {
+      expect(one + two, Amount(rawValue: BigInt.from(3), fractionDigits: 0));
+      expect(one + one, Amount(rawValue: BigInt.from(2), fractionDigits: 0));
+
+      expect(
+          Amount(rawValue: BigInt.from(3), fractionDigits: 0) +
+              Amount(rawValue: BigInt.from(-5), fractionDigits: 0),
+          Amount(rawValue: BigInt.from(-2), fractionDigits: 0));
+      expect(
+          Amount(rawValue: BigInt.from(-3), fractionDigits: 0) +
+              Amount(rawValue: BigInt.from(6), fractionDigits: 0),
+          Amount(rawValue: BigInt.from(3), fractionDigits: 0));
+    });
+
+    test("-", () {
+      expect(one - two, Amount(rawValue: BigInt.from(-1), fractionDigits: 0));
+      expect(one - one, Amount(rawValue: BigInt.from(0), fractionDigits: 0));
+
+      expect(
+          Amount(rawValue: BigInt.from(3), fractionDigits: 0) -
+              Amount(rawValue: BigInt.from(-5), fractionDigits: 0),
+          Amount(rawValue: BigInt.from(8), fractionDigits: 0));
+      expect(
+          Amount(rawValue: BigInt.from(-3), fractionDigits: 0) -
+              Amount(rawValue: BigInt.from(6), fractionDigits: 0),
+          Amount(rawValue: BigInt.from(-9), fractionDigits: 0));
+    });
+
+    test("*", () {
+      expect(one * two, Amount(rawValue: BigInt.from(2), fractionDigits: 0));
+      expect(one * one, Amount(rawValue: BigInt.from(1), fractionDigits: 0));
+
+      expect(
+          Amount(rawValue: BigInt.from(3), fractionDigits: 0) *
+              Amount(rawValue: BigInt.from(-5), fractionDigits: 0),
+          Amount(rawValue: BigInt.from(-15), fractionDigits: 0));
+      expect(
+          Amount(rawValue: BigInt.from(-3), fractionDigits: 0) *
+              Amount(rawValue: BigInt.from(-6), fractionDigits: 0),
+          Amount(rawValue: BigInt.from(18), fractionDigits: 0));
     });
   });
 }

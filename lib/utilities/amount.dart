@@ -1,11 +1,10 @@
 import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
-import 'package:equatable/equatable.dart';
 
 final _ten = BigInt.from(10);
 
-class Amount implements Equatable {
+class Amount {
   Amount({
     required BigInt rawValue,
     required this.fractionDigits,
@@ -83,6 +82,39 @@ class Amount implements Equatable {
 
   bool operator <=(Amount other) => raw <= other.raw;
 
+  Amount operator +(Amount other) {
+    if (fractionDigits != other.fractionDigits) {
+      throw ArgumentError(
+          "fractionDigits do not match: this=$this, other=$other");
+    }
+    return Amount(
+      rawValue: raw + other.raw,
+      fractionDigits: fractionDigits,
+    );
+  }
+
+  Amount operator -(Amount other) {
+    if (fractionDigits != other.fractionDigits) {
+      throw ArgumentError(
+          "fractionDigits do not match: this=$this, other=$other");
+    }
+    return Amount(
+      rawValue: raw - other.raw,
+      fractionDigits: fractionDigits,
+    );
+  }
+
+  Amount operator *(Amount other) {
+    if (fractionDigits != other.fractionDigits) {
+      throw ArgumentError(
+          "fractionDigits do not match: this=$this, other=$other");
+    }
+    return Amount(
+      rawValue: raw * other.raw,
+      fractionDigits: fractionDigits,
+    );
+  }
+
   // ===========================================================================
   // ======= Overrides =========================================================
 
@@ -90,8 +122,13 @@ class Amount implements Equatable {
   String toString() => "Amount($raw, $fractionDigits)";
 
   @override
-  List<Object?> get props => [fractionDigits, _value];
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Amount &&
+          runtimeType == other.runtimeType &&
+          raw == other.raw &&
+          fractionDigits == other.fractionDigits;
 
   @override
-  bool? get stringify => false;
+  int get hashCode => Object.hashAll([raw, fractionDigits]);
 }
