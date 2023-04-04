@@ -355,19 +355,21 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
           const SizedBox(
             width: 16,
           ),
-        SecondaryButton(
-          label: "More",
-          width: buttonWidth,
-          buttonHeight: ButtonHeight.l,
-          icon: SvgPicture.asset(
-            Assets.svg.bars,
-            height: 20,
-            width: 20,
-            color:
-                Theme.of(context).extension<StackColors>()!.buttonTextSecondary,
+        if (showMore)
+          SecondaryButton(
+            label: "More",
+            width: buttonWidth,
+            buttonHeight: ButtonHeight.l,
+            icon: SvgPicture.asset(
+              Assets.svg.bars,
+              height: 20,
+              width: 20,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .buttonTextSecondary,
+            ),
+            onPressed: () => _onMorePressed(),
           ),
-          onPressed: () => _onMorePressed(),
-        ),
       ],
     );
   }
