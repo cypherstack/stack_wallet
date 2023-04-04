@@ -17,8 +17,6 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:stackwallet/providers/ui/preview_tx_button_state_provider.dart';
-import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/amount.dart';
@@ -42,6 +40,8 @@ import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
+const _kCryptoAmountRegex = r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$';
 
 class DesktopTokenSend extends ConsumerStatefulWidget {
   const DesktopTokenSend({
@@ -543,27 +543,9 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
   }
 
   Future<void> sendAllTapped() async {
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      final firoWallet = ref
-          .read(walletsChangeNotifierProvider)
-          .getManager(walletId)
-          .wallet as FiroWallet;
-      if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-          "Private") {
-        cryptoAmountController.text = (firoWallet.availablePrivateBalance())
+    cryptoAmountController.text =
+        (ref.read(tokenServiceProvider)!.balance.getSpendable())
             .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
-      } else {
-        cryptoAmountController.text = (firoWallet.availablePublicBalance())
-            .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
-      }
-    } else {
-      cryptoAmountController.text = (ref
-              .read(walletsChangeNotifierProvider)
-              .getManager(walletId)
-              .balance
-              .getSpendable())
-          .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
-    }
   }
 
   @override
@@ -696,9 +678,12 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
           textAlign: TextAlign.right,
           inputFormatters: [
             // regex to validate a crypto amount with 8 decimal places
-            TextInputFormatter.withFunction((oldValue, newValue) =>
-                RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,18})$')
-                        .hasMatch(newValue.text)
+            TextInputFormatter.withFunction((oldValue, newValue) => RegExp(
+                  _kCryptoAmountRegex.replaceAll(
+                    "0,8",
+                    "0,${tokenContract.decimals}",
+                  ),
+                ).hasMatch(newValue.text)
                     ? newValue
                     : oldValue),
           ],
