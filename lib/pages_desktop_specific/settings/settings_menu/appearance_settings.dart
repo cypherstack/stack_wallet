@@ -209,6 +209,8 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
         return Assets.svg.themeOcean;
       case ThemeType.oledBlack:
         return Assets.svg.themeOledBlack;
+      case ThemeType.orange:
+        return Assets.svg.orange;
       case ThemeType.fruitSorbet:
         return Assets.svg.themeFruit;
       case ThemeType.forest:
@@ -270,6 +272,7 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
                         child: SvgPicture.asset(
                           assetNameFor(ThemeType.values[i]),
                           height: 160,
+                          width: 200,
                         ),
                       ),
                       const SizedBox(

@@ -31,6 +31,12 @@ class RoundedContainer extends StatelessWidget {
     return ConditionalParent(
       condition: onPressed != null,
       builder: (child) => RawMaterialButton(
+        fillColor: color,
+        elevation: 0,
+        highlightElevation: 0,
+        disabledElevation: 0,
+        hoverElevation: 0,
+        focusElevation: 0,
         padding: const EdgeInsets.all(0),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(
@@ -45,7 +51,7 @@ class RoundedContainer extends StatelessWidget {
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: color,
+          color: onPressed != null ? Colors.transparent : color,
           borderRadius: BorderRadius.circular(
             Constants.size.circularBorderRadius * radiusMultiplier,
           ),

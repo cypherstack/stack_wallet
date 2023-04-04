@@ -45,7 +45,7 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
-const int MINIMUM_CONFIRMATIONS = 1;
+const int MINIMUM_CONFIRMATIONS = 0;
 const int DUST_LIMIT = 546;
 
 const String GENESIS_HASH_MAINNET =
@@ -2114,8 +2114,10 @@ class BitcoinCashWallet extends CoinServiceAPI
           .txidEqualTo(txHash["tx_hash"] as String)
           .findFirst();
 
-      if (storedTx == null ||
-          !storedTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)) {
+      if (storedTx == null || storedTx.address.value == null
+          // zero conf messes this up
+          // !storedTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)
+          ) {
         final tx = await cachedElectrumXClient.getTransaction(
           txHash: txHash["tx_hash"] as String,
           verbose: true,

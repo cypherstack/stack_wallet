@@ -57,7 +57,10 @@ class AddressEntryData extends ChangeNotifier {
   }
 
   bool get isValidAddress {
-    if (_address == null || coin == null) {
+    if ( coin == null) {
+      return true;
+    }
+    if (_address == null) {
       return false;
     }
     return AddressUtils.validateAddress(_address!, _coin!);

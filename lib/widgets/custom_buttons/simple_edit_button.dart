@@ -52,7 +52,7 @@ class SimpleEditButton extends StatelessWidget {
                   builder: (context) {
                     return DesktopDialog(
                       maxWidth: 580,
-                      maxHeight: 360,
+                      maxHeight: 300,
                       child: SingleFieldEditView(
                         initialValue: editValue!,
                         label: editLabel!,
