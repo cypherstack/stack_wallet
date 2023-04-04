@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_receive.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_send.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_token_send.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/send_receive_tab_menu.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -69,9 +70,13 @@ class _MyWalletState extends State<MyWallet> {
             firstChild: Padding(
               key: const Key("desktopSendViewPortKey"),
               padding: const EdgeInsets.all(20),
-              child: DesktopSend(
-                walletId: widget.walletId,
-              ),
+              child: widget.contractAddress == null
+                  ? DesktopSend(
+                      walletId: widget.walletId,
+                    )
+                  : DesktopTokenSend(
+                      walletId: widget.walletId,
+                    ),
             ),
             secondChild: Padding(
               key: const Key("desktopReceiveViewPortKey"),
