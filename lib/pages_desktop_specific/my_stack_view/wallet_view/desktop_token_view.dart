@@ -175,6 +175,11 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
                     width: 450,
                     child: MyWallet(
                       walletId: widget.walletId,
+                      contractAddress: ref.watch(
+                        tokenServiceProvider.select(
+                          (value) => value!.tokenContract.address,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(

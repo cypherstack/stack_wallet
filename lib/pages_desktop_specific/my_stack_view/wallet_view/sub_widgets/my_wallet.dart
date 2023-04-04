@@ -10,9 +10,11 @@ class MyWallet extends StatefulWidget {
   const MyWallet({
     Key? key,
     required this.walletId,
+    this.contractAddress,
   }) : super(key: key);
 
   final String walletId;
+  final String? contractAddress;
 
   @override
   State<MyWallet> createState() => _MyWalletState();
@@ -76,6 +78,7 @@ class _MyWalletState extends State<MyWallet> {
               padding: const EdgeInsets.all(20),
               child: DesktopReceive(
                 walletId: widget.walletId,
+                contractAddress: widget.contractAddress,
               ),
             ),
             crossFadeState: _selectedIndex == 0
