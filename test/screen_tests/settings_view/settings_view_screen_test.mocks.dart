@@ -478,7 +478,7 @@ class MockManager extends _i1.Mock implements _i9.Manager {
   @override
   _i6.Future<Map<String, dynamic>> prepareSend({
     required String? address,
-    required int? satoshiAmount,
+    required int? amount,
     Map<String, dynamic>? args,
   }) =>
       (super.noSuchMethod(
@@ -487,7 +487,7 @@ class MockManager extends _i1.Mock implements _i9.Manager {
           [],
           {
             #address: address,
-            #satoshiAmount: satoshiAmount,
+            #satoshiAmount: amount,
             #args: args,
           },
         ),

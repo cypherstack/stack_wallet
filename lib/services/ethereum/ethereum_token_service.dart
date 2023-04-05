@@ -28,7 +28,6 @@ import 'package:stackwallet/utilities/eth_commons.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/extensions/impl/contract_abi.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:tuple/tuple.dart';
 import 'package:web3dart/web3dart.dart' as web3dart;
@@ -68,7 +67,7 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
 
   Future<Map<String, dynamic>> prepareSend({
     required String address,
-    required int satoshiAmount,
+    required Amount amount,
     Map<String, dynamic>? args,
   }) async {
     final feeRateType = args?["feeRate"];
@@ -86,12 +85,7 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
         break;
     }
 
-    final feeEstimate = await estimateFeeFor(satoshiAmount, fee);
-
-    final decimalAmount =
-        Format.satoshisToAmount(satoshiAmount, coin: Coin.ethereum);
-    final bigIntAmount =
-        amountToBigInt(decimalAmount.toDouble(), tokenContract.decimals);
+    final feeEstimate = estimateFeeFor(fee);
 
     final client = await getEthClient();
 
@@ -101,8 +95,8 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
     final est = await client.estimateGas(
       sender: myWeb3Address,
       to: web3dart.EthereumAddress.fromHex(address),
-      data: _sendFunction.encodeCall(
-          [web3dart.EthereumAddress.fromHex(address), bigIntAmount]),
+      data: _sendFunction
+          .encodeCall([web3dart.EthereumAddress.fromHex(address), amount.raw]),
       gasPrice: web3dart.EtherAmount.fromUnitAndValue(
         web3dart.EtherUnit.wei,
         fee,
@@ -125,7 +119,7 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
     final tx = web3dart.Transaction.callContract(
       contract: _deployedContract,
       function: _sendFunction,
-      parameters: [web3dart.EthereumAddress.fromHex(address), bigIntAmount],
+      parameters: [web3dart.EthereumAddress.fromHex(address), amount.raw],
       maxGas: _gasLimit,
       gasPrice: web3dart.EtherAmount.fromUnitAndValue(
         web3dart.EtherUnit.wei,
@@ -138,7 +132,7 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
       "fee": feeEstimate,
       "feeInWei": fee,
       "address": address,
-      "recipientAmt": satoshiAmount,
+      "recipientAmt": amount,
       "ethTx": tx,
       "chainId": (await client.getChainId()).toInt(),
       "nonce": tx.nonce,
@@ -238,9 +232,8 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
       .sortByDerivationIndexDesc()
       .findFirst();
 
-  Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
-    final fee = estimateFee(feeRate, _gasLimit, coin.decimals);
-    return Format.decimalAmountToSatoshis(Decimal.parse(fee.toString()), coin);
+  Amount estimateFeeFor(int feeRate) {
+    return estimateFee(feeRate, _gasLimit, coin.decimals);
   }
 
   Future<FeeObject> get fees => EthereumAPI.getFees();
@@ -424,11 +417,22 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
 
     final newBalance = TokenBalance(
       contractAddress: tokenContract.address,
-      total: int.parse(_balance),
-      spendable: int.parse(_balance),
-      blockedTotal: 0,
-      pendingSpendable: 0,
-      decimalPlaces: tokenContract.decimals,
+      total: Amount.fromDecimal(
+        Decimal.parse(_balance),
+        fractionDigits: tokenContract.decimals,
+      ),
+      spendable: Amount.fromDecimal(
+        Decimal.parse(_balance),
+        fractionDigits: tokenContract.decimals,
+      ),
+      blockedTotal: Amount(
+        rawValue: BigInt.zero,
+        fractionDigits: tokenContract.decimals,
+      ),
+      pendingSpendable: Amount(
+        rawValue: BigInt.zero,
+        fractionDigits: tokenContract.decimals,
+      ),
     );
     await updateCachedBalance(newBalance);
     notifyListeners();

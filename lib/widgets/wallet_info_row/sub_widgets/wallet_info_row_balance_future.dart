@@ -1,12 +1,11 @@
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
+import 'package:stackwallet/utilities/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -33,27 +32,27 @@ class WalletInfoRowBalance extends ConsumerWidget {
       ),
     );
 
-    Decimal balance;
+    Amount totalBalance;
     int decimals;
     String unit;
     if (contractAddress == null) {
-      balance = manager.balance.getTotal();
+      totalBalance = manager.balance.total;
       if (manager.coin == Coin.firo || manager.coin == Coin.firoTestNet) {
-        balance += (manager.wallet as FiroWallet).balancePrivate.getTotal();
+        totalBalance =
+            totalBalance + (manager.wallet as FiroWallet).balancePrivate.total;
       }
       unit = manager.coin.ticker;
       decimals = manager.coin.decimals;
     } else {
       final ethWallet = manager.wallet as EthereumWallet;
       final contract = MainDB.instance.getEthContractSync(contractAddress!)!;
-      balance = ethWallet.getCachedTokenBalance(contract).getTotal();
+      totalBalance = ethWallet.getCachedTokenBalance(contract).total;
       unit = contract.symbol;
       decimals = contract.decimals;
     }
 
     return Text(
-      "${Format.localizedStringAsFixed(
-        value: balance,
+      "${totalBalance.localizedStringAsFixed(
         locale: locale,
         decimalPlaces: decimals,
       )} $unit",

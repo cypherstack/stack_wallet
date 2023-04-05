@@ -749,7 +749,7 @@ class MockBitcoinWallet extends _i1.Mock implements _i23.BitcoinWallet {
   @override
   _i20.Future<Map<String, dynamic>> prepareSend({
     required String? address,
-    required int? satoshiAmount,
+    required int? amount,
     Map<String, dynamic>? args,
   }) =>
       (super.noSuchMethod(
@@ -758,7 +758,7 @@ class MockBitcoinWallet extends _i1.Mock implements _i23.BitcoinWallet {
           [],
           {
             #address: address,
-            #satoshiAmount: satoshiAmount,
+            #satoshiAmount: amount,
             #args: args,
           },
         ),
@@ -1446,7 +1446,7 @@ class MockBitcoinWallet extends _i1.Mock implements _i23.BitcoinWallet {
   @override
   _i20.Future<Map<String, dynamic>> preparePaymentCodeSend({
     required _i17.PaymentCode? paymentCode,
-    required int? satoshiAmount,
+    required int? amount,
     Map<String, dynamic>? args,
   }) =>
       (super.noSuchMethod(
@@ -1455,7 +1455,7 @@ class MockBitcoinWallet extends _i1.Mock implements _i23.BitcoinWallet {
           [],
           {
             #paymentCode: paymentCode,
-            #satoshiAmount: satoshiAmount,
+            #satoshiAmount: amount,
             #args: args,
           },
         ),

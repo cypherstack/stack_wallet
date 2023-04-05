@@ -1,4 +1,3 @@
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/balance.dart';
@@ -9,9 +8,9 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:stackwallet/utilities/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
@@ -86,7 +85,7 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
         : ref.watch(walletsChangeNotifierProvider
             .select((value) => value.getManager(walletId).balance));
 
-    Decimal balanceToShow;
+    Amount balanceToShow;
     if (coin == Coin.firo || coin == Coin.firoTestNet) {
       Balance? balanceSecondary = ref
           .watch(
@@ -101,18 +100,16 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
               WalletBalanceToggleState.available;
 
       if (_showAvailable) {
-        balanceToShow = showPrivate
-            ? balanceSecondary!.getSpendable()
-            : balance.getSpendable();
-      } else {
         balanceToShow =
-            showPrivate ? balanceSecondary!.getTotal() : balance.getTotal();
+            showPrivate ? balanceSecondary!.spendable : balance.spendable;
+      } else {
+        balanceToShow = showPrivate ? balanceSecondary!.total : balance.total;
       }
     } else {
       if (_showAvailable) {
-        balanceToShow = balance.getSpendable();
+        balanceToShow = balance.spendable;
       } else {
-        balanceToShow = balance.getTotal();
+        balanceToShow = balance.total;
       }
     }
 
@@ -127,8 +124,7 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(
-                    "${Format.localizedStringAsFixed(
-                      value: balanceToShow,
+                    "${balanceToShow.localizedStringAsFixed(
                       locale: locale,
                       decimalPlaces: decimalPlaces,
                     )} $unit",
@@ -137,8 +133,10 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
                 ),
                 if (externalCalls)
                   Text(
-                    "${Format.localizedStringAsFixed(
-                      value: priceTuple.item1 * balanceToShow,
+                    "${Amount.fromDecimal(
+                      priceTuple.item1 * balanceToShow.decimal,
+                      fractionDigits: 2,
+                    ).localizedStringAsFixed(
                       locale: locale,
                       decimalPlaces: 2,
                     )} $baseCurrency",

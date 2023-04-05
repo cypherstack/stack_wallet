@@ -24,7 +24,6 @@ import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -72,7 +71,6 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
   late TextEditingController sendToController;
   late TextEditingController cryptoAmountController;
   late TextEditingController baseAmountController;
-  // late TextEditingController feeController;
 
   late final SendViewAutoFillData? _data;
 
@@ -82,8 +80,8 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
 
   String? _note;
 
-  Decimal? _amountToSend;
-  Decimal? _cachedAmountToSend;
+  Amount? _amountToSend;
+  Amount? _cachedAmountToSend;
   String? _address;
 
   bool _addressToggleFlag = false;
@@ -94,16 +92,11 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
   Future<void> previewSend() async {
     final tokenWallet = ref.read(tokenServiceProvider)!;
 
-    final amount = Amount.fromDecimal(
-      _amountToSend!,
-      fractionDigits: tokenWallet.tokenContract.decimals,
-    );
-
-    // todo use Amount class
-    final availableBalance = tokenWallet.balance.spendable;
+    final Amount amount = _amountToSend!;
+    final Amount availableBalance = tokenWallet.balance.spendable;
 
     // confirm send all
-    if (amount.raw.toInt() == availableBalance) {
+    if (amount == availableBalance) {
       final bool? shouldSendAll = await showDialog<bool>(
         context: context,
         useSafeArea: false,
@@ -233,7 +226,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
 
       txDataFuture = tokenWallet.prepareSend(
         address: _address!,
-        satoshiAmount: amount.raw.toInt(),
+        amount: amount,
         args: {
           "feeRate": ref.read(feeRateTypeStateProvider),
         },
@@ -361,8 +354,14 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
           cryptoAmount != "." &&
           cryptoAmount != ",") {
         _amountToSend = cryptoAmount.contains(",")
-            ? Decimal.parse(cryptoAmount.replaceFirst(",", "."))
-            : Decimal.parse(cryptoAmount);
+            ? Decimal.parse(cryptoAmount.replaceFirst(",", ".")).toAmount(
+                fractionDigits:
+                    ref.read(tokenServiceProvider)!.tokenContract.decimals,
+              )
+            : Decimal.parse(cryptoAmount).toAmount(
+                fractionDigits:
+                    ref.read(tokenServiceProvider)!.tokenContract.decimals,
+              );
         if (_cachedAmountToSend != null &&
             _cachedAmountToSend == _amountToSend) {
           return;
@@ -375,8 +374,10 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
 
         if (price > Decimal.zero) {
-          final String fiatAmountString = Format.localizedStringAsFixed(
-            value: _amountToSend! * price,
+          final String fiatAmountString = Amount.fromDecimal(
+            _amountToSend!.decimal * price,
+            fractionDigits: 2,
+          ).localizedStringAsFixed(
             locale: ref.read(localeServiceChangeNotifierProvider).locale,
             decimalPlaces: 2,
           );
@@ -403,13 +404,13 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
     return null;
   }
 
-  void _updatePreviewButtonState(String? address, Decimal? amount) {
+  void _updatePreviewButtonState(String? address, Amount? amount) {
     final isValidAddress = ref
         .read(walletsChangeNotifierProvider)
         .getManager(walletId)
         .validateAddress(address ?? "");
     ref.read(previewTxButtonStateProvider.state).state =
-        (isValidAddress && amount != null && amount > Decimal.zero);
+        (isValidAddress && amount != null && amount > Amount.zero);
   }
 
   Future<void> scanQr() async {
@@ -442,12 +443,14 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
 
         // autofill amount field
         if (results["amount"] != null) {
-          final amount = Decimal.parse(results["amount"]!);
-          cryptoAmountController.text = Format.localizedStringAsFixed(
-            value: amount,
-            locale: ref.read(localeServiceChangeNotifierProvider).locale,
-            decimalPlaces: Constants.decimalPlacesForCoin(coin),
+          final amount = Decimal.parse(results["amount"]!).toAmount(
+            fractionDigits:
+                ref.read(tokenServiceProvider)!.tokenContract.decimals,
           );
+          cryptoAmountController.text = amount.localizedStringAsFixed(
+            locale: ref.read(localeServiceChangeNotifierProvider).locale,
+          );
+
           amount.toString();
           _amountToSend = amount;
         }
@@ -498,23 +501,28 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
   }
 
   void fiatTextFieldOnChanged(String baseAmountString) {
+    final int tokenDecimals =
+        ref.read(tokenServiceProvider)!.tokenContract.decimals;
+
     if (baseAmountString.isNotEmpty &&
         baseAmountString != "." &&
         baseAmountString != ",") {
       final baseAmount = baseAmountString.contains(",")
           ? Decimal.parse(baseAmountString.replaceFirst(",", "."))
-          : Decimal.parse(baseAmountString);
+              .toAmount(fractionDigits: 2)
+          : Decimal.parse(baseAmountString).toAmount(fractionDigits: 2);
 
-      var _price =
+      final Decimal _price =
           ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
 
       if (_price == Decimal.zero) {
-        _amountToSend = Decimal.zero;
+        _amountToSend = Decimal.zero.toAmount(fractionDigits: tokenDecimals);
       } else {
-        _amountToSend = baseAmount <= Decimal.zero
-            ? Decimal.zero
-            : (baseAmount / _price).toDecimal(
-                scaleOnInfinitePrecision: Constants.decimalPlacesForCoin(coin));
+        _amountToSend = baseAmount <= Amount.zero
+            ? Decimal.zero.toAmount(fractionDigits: tokenDecimals)
+            : (baseAmount.decimal / _price)
+                .toDecimal(scaleOnInfinitePrecision: tokenDecimals)
+                .toAmount(fractionDigits: tokenDecimals);
       }
       if (_cachedAmountToSend != null && _cachedAmountToSend == _amountToSend) {
         return;
@@ -523,17 +531,16 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
       Logging.instance.log("it changed $_amountToSend $_cachedAmountToSend",
           level: LogLevel.Info);
 
-      final amountString = Format.localizedStringAsFixed(
-        value: _amountToSend!,
+      final amountString = _amountToSend!.localizedStringAsFixed(
         locale: ref.read(localeServiceChangeNotifierProvider).locale,
-        decimalPlaces: Constants.decimalPlacesForCoin(coin),
+        decimalPlaces: tokenDecimals,
       );
 
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = amountString;
       _cryptoAmountChangeLock = false;
     } else {
-      _amountToSend = Decimal.zero;
+      _amountToSend = Decimal.zero.toAmount(fractionDigits: tokenDecimals);
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = "";
       _cryptoAmountChangeLock = false;
@@ -543,9 +550,14 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
   }
 
   Future<void> sendAllTapped() async {
-    cryptoAmountController.text =
-        (ref.read(tokenServiceProvider)!.balance.getSpendable())
-            .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
+    cryptoAmountController.text = ref
+        .read(tokenServiceProvider)!
+        .balance
+        .spendable
+        .decimal
+        .toStringAsFixed(
+          ref.read(tokenServiceProvider)!.tokenContract.decimals,
+        );
   }
 
   @override

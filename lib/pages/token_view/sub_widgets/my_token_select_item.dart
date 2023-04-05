@@ -113,7 +113,13 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
                           ),
                           const Spacer(),
                           Text(
-                            "${cachedBalance.getCachedBalance().getTotal()} "
+                            "${cachedBalance.getCachedBalance().total.localizedStringAsFixed(
+                                  locale: ref.watch(
+                                    localeServiceChangeNotifierProvider.select(
+                                      (value) => value.locale,
+                                    ),
+                                  ),
+                                )} "
                             "${widget.token.symbol}",
                             style: STextStyles.itemSubtitle(context),
                           ),

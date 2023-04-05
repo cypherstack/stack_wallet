@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -68,7 +67,7 @@ class _TransactionDetailsViewState
 
   late final Coin coin;
   late final Amount amount;
-  late final Decimal fee;
+  late final Amount fee;
   late final String amountPrefix;
   late final String unit;
   late final bool isTokenTx;
@@ -83,9 +82,8 @@ class _TransactionDetailsViewState
     walletId = widget.walletId;
 
     coin = widget.coin;
-    amount = _transaction
-        .realAmount; //Format.satoshisToAmount(_transaction.amount, coin: coin);
-    fee = Format.satoshisToAmount(_transaction.fee, coin: coin);
+    amount = _transaction.realAmount;
+    fee = _transaction.fee.toAmount(fractionDigits: coin.decimals);
 
     if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
         _transaction.subType == TransactionSubType.mint) {
@@ -445,15 +443,12 @@ class _TransactionDetailsViewState
                                             : CrossAxisAlignment.start,
                                         children: [
                                           SelectableText(
-                                            "$amountPrefix${Format.localizedStringAsFixed(
-                                              value: amount.decimal,
+                                            "$amountPrefix${amount.localizedStringAsFixed(
                                               locale: ref.watch(
                                                 localeServiceChangeNotifierProvider
                                                     .select((value) =>
                                                         value.locale),
                                               ),
-                                              decimalPlaces:
-                                                  amount.fractionDigits,
                                             )} $unit",
                                             style: isDesktop
                                                 ? STextStyles
@@ -476,28 +471,26 @@ class _TransactionDetailsViewState
                                                   .select((value) =>
                                                       value.externalCalls)))
                                             SelectableText(
-                                              "$amountPrefix${Format.localizedStringAsFixed(
-                                                value: amount.decimal *
-                                                    ref.watch(
-                                                      priceAnd24hChangeNotifierProvider
-                                                          .select((value) => isTokenTx
-                                                              ? value
-                                                                  .getTokenPrice(
-                                                                      _transaction
-                                                                          .otherData!)
-                                                                  .item1
-                                                              : value
-                                                                  .getPrice(
-                                                                      coin)
-                                                                  .item1),
+                                              "$amountPrefix${(amount.decimal * ref.watch(
+                                                        priceAnd24hChangeNotifierProvider.select(
+                                                            (value) => isTokenTx
+                                                                ? value
+                                                                    .getTokenPrice(
+                                                                        _transaction
+                                                                            .otherData!)
+                                                                    .item1
+                                                                : value
+                                                                    .getPrice(
+                                                                        coin)
+                                                                    .item1),
+                                                      )).toAmount(fractionDigits: 2).localizedStringAsFixed(
+                                                    locale: ref.watch(
+                                                      localeServiceChangeNotifierProvider
+                                                          .select(
+                                                        (value) => value.locale,
+                                                      ),
                                                     ),
-                                                locale: ref.watch(
-                                                  localeServiceChangeNotifierProvider
-                                                      .select((value) =>
-                                                          value.locale),
-                                                ),
-                                                decimalPlaces: 2,
-                                              )} ${ref.watch(
+                                                  )} ${ref.watch(
                                                 prefsChangeNotifierProvider
                                                     .select(
                                                   (value) => value.currency,
@@ -896,24 +889,20 @@ class _TransactionDetailsViewState
                                         currentHeight,
                                         coin.requiredConfirmations,
                                       )
-                                        ? Format.localizedStringAsFixed(
-                                            value: fee,
+                                        ? fee.localizedStringAsFixed(
                                             locale: ref.watch(
-                                                localeServiceChangeNotifierProvider
-                                                    .select((value) =>
-                                                        value.locale)),
-                                            decimalPlaces:
-                                                Constants.decimalPlacesForCoin(
-                                                    coin))
+                                              localeServiceChangeNotifierProvider
+                                                  .select(
+                                                      (value) => value.locale),
+                                            ),
+                                          )
                                         : "Pending"
-                                    : Format.localizedStringAsFixed(
-                                        value: fee,
+                                    : fee.localizedStringAsFixed(
                                         locale: ref.watch(
-                                            localeServiceChangeNotifierProvider
-                                                .select(
-                                                    (value) => value.locale)),
-                                        decimalPlaces:
-                                            Constants.decimalPlacesForCoin(coin));
+                                          localeServiceChangeNotifierProvider
+                                              .select((value) => value.locale),
+                                        ),
+                                      );
                                 if (isTokenTx) {
                                   feeString += " ${coin.ticker}";
                                 }
@@ -1517,13 +1506,15 @@ class IconCopyButton extends StatelessWidget {
         ),
         onPressed: () async {
           await Clipboard.setData(ClipboardData(text: data));
-          unawaited(
-            showFloatingFlushBar(
-              type: FlushBarType.info,
-              message: "Copied to clipboard",
-              context: context,
-            ),
-          );
+          if (context.mounted) {
+            unawaited(
+              showFloatingFlushBar(
+                type: FlushBarType.info,
+                message: "Copied to clipboard",
+                context: context,
+              ),
+            );
+          }
         },
         child: Padding(
           padding: const EdgeInsets.all(5),

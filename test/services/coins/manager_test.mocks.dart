@@ -392,7 +392,7 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
   @override
   _i10.Future<Map<String, dynamic>> prepareSendPublic({
     required String? address,
-    required int? satoshiAmount,
+    required int? amount,
     Map<String, dynamic>? args,
   }) =>
       (super.noSuchMethod(
@@ -401,7 +401,7 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
           [],
           {
             #address: address,
-            #satoshiAmount: satoshiAmount,
+            #satoshiAmount: amount,
             #args: args,
           },
         ),
@@ -421,7 +421,7 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
   @override
   _i10.Future<Map<String, dynamic>> prepareSend({
     required String? address,
-    required int? satoshiAmount,
+    required int? amount,
     Map<String, dynamic>? args,
   }) =>
       (super.noSuchMethod(
@@ -430,7 +430,7 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
           [],
           {
             #address: address,
-            #satoshiAmount: satoshiAmount,
+            #satoshiAmount: amount,
             #args: args,
           },
         ),

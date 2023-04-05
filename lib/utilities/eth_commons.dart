@@ -7,6 +7,8 @@ import "package:hex/hex.dart";
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
+import 'amount.dart';
+
 class GasTracker {
   final Decimal average;
   final Decimal fast;
@@ -62,17 +64,12 @@ String getPrivateKey(String mnemonic, String mnemonicPassphrase) {
   return HEX.encode(addressAtIndex.privateKey as List<int>);
 }
 
-double estimateFee(int feeRate, int gasLimit, int decimals) {
+Amount estimateFee(int feeRate, int gasLimit, int decimals) {
   final gweiAmount = feeRate / (pow(10, 9));
   final fee = gasLimit * gweiAmount;
 
   //Convert gwei to ETH
   final feeInWei = fee * (pow(10, 9));
   final ethAmount = feeInWei / (pow(10, decimals));
-  return ethAmount;
-}
-
-BigInt amountToBigInt(num amount, int decimal) {
-  final amountToSendinDecimal = amount * (pow(10, decimal));
-  return BigInt.from(amountToSendinDecimal);
+  return Amount.fromDouble(ethAmount, fractionDigits: decimals);
 }

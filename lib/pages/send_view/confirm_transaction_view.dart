@@ -18,10 +18,10 @@ import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
+import 'package:stackwallet/utilities/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -403,12 +403,12 @@ class _ConfirmTransactionViewState
                           style: STextStyles.smallMed12(context),
                         ),
                         Text(
-                          "${Format.satoshiAmountToPrettyString(transactionInfo["recipientAmt"] as int, ref.watch(
-                                localeServiceChangeNotifierProvider
-                                    .select((value) => value.locale),
-                              ), ref.watch(
-                                managerProvider.select((value) => value.coin),
-                              ))} $unit",
+                          "${(transactionInfo["recipientAmt"] as Amount).localizedStringAsFixed(
+                            locale: ref.watch(
+                              localeServiceChangeNotifierProvider
+                                  .select((value) => value.locale),
+                            ),
+                          )} $unit",
                           style: STextStyles.itemSubtitle12(context),
                           textAlign: TextAlign.right,
                         ),
@@ -427,12 +427,18 @@ class _ConfirmTransactionViewState
                           style: STextStyles.smallMed12(context),
                         ),
                         Text(
-                          "${Format.satoshiAmountToPrettyString(transactionInfo["fee"] as int, ref.watch(
-                                localeServiceChangeNotifierProvider
-                                    .select((value) => value.locale),
-                              ), ref.watch(
-                                managerProvider.select((value) => value.coin),
-                              ))} ${ref.watch(
+                          "${(transactionInfo["fee"] as int).toAmount(
+                                fractionDigits: ref.watch(
+                                  managerProvider.select(
+                                    (value) => value.coin.decimals,
+                                  ),
+                                ),
+                              ).localizedStringAsFixed(
+                                locale: ref.watch(
+                                  localeServiceChangeNotifierProvider
+                                      .select((value) => value.locale),
+                                ),
+                              )} ${ref.watch(
                                 managerProvider.select((value) => value.coin),
                               ).ticker}",
                           style: STextStyles.itemSubtitle12(context),
@@ -534,7 +540,7 @@ class _ConfirmTransactionViewState
                             Builder(
                               builder: (context) {
                                 final amount =
-                                    transactionInfo["recipientAmt"] as int;
+                                    transactionInfo["recipientAmt"] as Amount;
                                 final coin = ref.watch(
                                   managerProvider.select(
                                     (value) => value.coin,
@@ -551,29 +557,25 @@ class _ConfirmTransactionViewState
                                       .getPrice(coin)
                                       .item1;
                                   if (price > Decimal.zero) {
-                                    fiatAmount = Format.localizedStringAsFixed(
-                                      value: Format.satoshisToAmount(amount,
-                                              coin: coin) *
-                                          price,
-                                      locale: ref
-                                          .read(
-                                              localeServiceChangeNotifierProvider)
-                                          .locale,
-                                      decimalPlaces: 2,
-                                    );
+                                    fiatAmount = (amount.decimal * price)
+                                        .toAmount(fractionDigits: 2)
+                                        .localizedStringAsFixed(
+                                          locale: ref
+                                              .read(
+                                                  localeServiceChangeNotifierProvider)
+                                              .locale,
+                                        );
                                   }
                                 }
 
                                 return Row(
                                   children: [
                                     Text(
-                                      "${Format.satoshiAmountToPrettyString(
-                                        amount,
-                                        ref.watch(
+                                      "${amount.localizedStringAsFixed(
+                                        locale: ref.watch(
                                           localeServiceChangeNotifierProvider
                                               .select((value) => value.locale),
                                         ),
-                                        coin,
                                       )} $unit",
                                       style: STextStyles
                                               .desktopTextExtraExtraSmall(
@@ -676,19 +678,19 @@ class _ConfirmTransactionViewState
                                               value.getManager(walletId)))
                                       .coin;
 
-                                  final fee = Format.satoshisToAmount(
-                                    transactionInfo["fee"] as int,
-                                    coin: coin,
+                                  final fee =
+                                      (transactionInfo["fee"] as int).toAmount(
+                                    fractionDigits: coin.decimals,
                                   );
 
                                   return Text(
-                                    "${Format.localizedStringAsFixed(
-                                      value: fee,
+                                    "${fee.localizedStringAsFixed(
                                       locale: ref.watch(
-                                          localeServiceChangeNotifierProvider
-                                              .select((value) => value.locale)),
-                                      decimalPlaces:
-                                          Constants.decimalPlacesForCoin(coin),
+                                        localeServiceChangeNotifierProvider
+                                            .select(
+                                          (value) => value.locale,
+                                        ),
+                                      ),
                                     )} ${coin.ticker}",
                                     style:
                                         STextStyles.desktopTextExtraExtraSmall(
@@ -855,17 +857,17 @@ class _ConfirmTransactionViewState
                               .select((value) => value.getManager(walletId)))
                           .coin;
 
-                      final fee = Format.satoshisToAmount(
-                        transactionInfo["fee"] as int,
-                        coin: coin,
+                      final fee = (transactionInfo["fee"] as int).toAmount(
+                        fractionDigits: coin.decimals,
                       );
 
                       return Text(
-                        "${Format.localizedStringAsFixed(
-                          value: fee,
-                          locale: ref.watch(localeServiceChangeNotifierProvider
-                              .select((value) => value.locale)),
-                          decimalPlaces: Constants.decimalPlacesForCoin(coin),
+                        "${fee.localizedStringAsFixed(
+                          locale: ref.watch(
+                            localeServiceChangeNotifierProvider.select(
+                              (value) => value.locale,
+                            ),
+                          ),
                         )} ${coin.ticker}",
                         style: STextStyles.itemSubtitle(context),
                       );
@@ -911,34 +913,37 @@ class _ConfirmTransactionViewState
                                   .textConfirmTotalAmount,
                             ),
                     ),
-                    Text(
-                      "${Format.satoshiAmountToPrettyString(
-                        (transactionInfo["fee"] as int) +
-                            (transactionInfo["recipientAmt"] as int),
-                        ref.watch(
-                          localeServiceChangeNotifierProvider
-                              .select((value) => value.locale),
-                        ),
-                        ref.watch(
-                          managerProvider.select((value) => value.coin),
-                        ),
-                      )} ${ref.watch(
-                            managerProvider.select((value) => value.coin),
-                          ).ticker}",
-                      style: isDesktop
-                          ? STextStyles.desktopTextExtraExtraSmall(context)
-                              .copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textConfirmTotalAmount,
-                            )
-                          : STextStyles.itemSubtitle12(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textConfirmTotalAmount,
-                            ),
-                      textAlign: TextAlign.right,
-                    ),
+                    Builder(builder: (context) {
+                      final coin = ref.watch(walletsChangeNotifierProvider
+                          .select((value) => value.getManager(walletId).coin));
+                      final fee = (transactionInfo["fee"] as int)
+                          .toAmount(fractionDigits: coin.decimals);
+                      final locale = ref.watch(
+                        localeServiceChangeNotifierProvider
+                            .select((value) => value.locale),
+                      );
+                      final amount = transactionInfo["recipientAmt"] as Amount;
+                      return Text(
+                        "${(amount + fee).localizedStringAsFixed(
+                          locale: locale,
+                        )} ${ref.watch(
+                              managerProvider.select((value) => value.coin),
+                            ).ticker}",
+                        style: isDesktop
+                            ? STextStyles.desktopTextExtraExtraSmall(context)
+                                .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textConfirmTotalAmount,
+                              )
+                            : STextStyles.itemSubtitle12(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textConfirmTotalAmount,
+                              ),
+                        textAlign: TextAlign.right,
+                      );
+                    }),
                   ],
                 ),
               ),

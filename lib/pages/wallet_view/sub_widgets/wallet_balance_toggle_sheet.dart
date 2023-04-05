@@ -1,4 +1,3 @@
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/balance.dart';
@@ -6,6 +5,7 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
+import 'package:stackwallet/utilities/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
@@ -112,7 +112,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
               BalanceSelector(
                 title: "Available balance",
                 coin: coin,
-                balance: balance.getSpendable(),
+                balance: balance.spendable,
                 onPressed: () {
                   ref.read(walletBalanceToggleStateProvider.state).state =
                       WalletBalanceToggleState.available;
@@ -138,7 +138,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 BalanceSelector(
                   title: "Available private balance",
                   coin: coin,
-                  balance: balanceSecondary.getSpendable(),
+                  balance: balanceSecondary.spendable,
                   onPressed: () {
                     ref.read(walletBalanceToggleStateProvider.state).state =
                         WalletBalanceToggleState.available;
@@ -162,7 +162,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
               BalanceSelector(
                 title: "Full balance",
                 coin: coin,
-                balance: balance.getTotal(),
+                balance: balance.total,
                 onPressed: () {
                   ref.read(walletBalanceToggleStateProvider.state).state =
                       WalletBalanceToggleState.full;
@@ -188,7 +188,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 BalanceSelector(
                   title: "Full private balance",
                   coin: coin,
-                  balance: balanceSecondary.getTotal(),
+                  balance: balanceSecondary.total,
                   onPressed: () {
                     ref.read(walletBalanceToggleStateProvider.state).state =
                         WalletBalanceToggleState.full;
@@ -217,7 +217,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
   }
 }
 
-class BalanceSelector<T> extends StatelessWidget {
+class BalanceSelector<T> extends ConsumerWidget {
   const BalanceSelector({
     Key? key,
     required this.title,
@@ -231,14 +231,14 @@ class BalanceSelector<T> extends StatelessWidget {
 
   final String title;
   final Coin coin;
-  final Decimal balance;
+  final Amount balance;
   final VoidCallback onPressed;
   final void Function(T?) onChanged;
   final T value;
   final T? groupValue;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return RawMaterialButton(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(
@@ -278,7 +278,13 @@ class BalanceSelector<T> extends StatelessWidget {
                   height: 2,
                 ),
                 Text(
-                  "${balance.toStringAsFixed(Constants.decimalPlacesForCoin(coin))} ${coin.ticker}",
+                  "${balance.localizedStringAsFixed(
+                    locale: ref.watch(
+                      localeServiceChangeNotifierProvider.select(
+                        (value) => value.locale,
+                      ),
+                    ),
+                  )} ${coin.ticker}",
                   style: STextStyles.itemSubtitle12(context).copyWith(
                     color: Theme.of(context)
                         .extension<StackColors>()!

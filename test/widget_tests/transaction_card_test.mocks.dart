@@ -595,7 +595,7 @@ class MockManager extends _i1.Mock implements _i6.Manager {
   @override
   _i18.Future<Map<String, dynamic>> prepareSend({
     required String? address,
-    required int? satoshiAmount,
+    required int? amount,
     Map<String, dynamic>? args,
   }) =>
       (super.noSuchMethod(
@@ -604,7 +604,7 @@ class MockManager extends _i1.Mock implements _i6.Manager {
           [],
           {
             #address: address,
-            #satoshiAmount: satoshiAmount,
+            #satoshiAmount: amount,
             #args: args,
           },
         ),
@@ -911,7 +911,7 @@ class MockCoinServiceAPI extends _i1.Mock implements _i7.CoinServiceAPI {
   @override
   _i18.Future<Map<String, dynamic>> prepareSend({
     required String? address,
-    required int? satoshiAmount,
+    required int? amount,
     Map<String, dynamic>? args,
   }) =>
       (super.noSuchMethod(
@@ -920,7 +920,7 @@ class MockCoinServiceAPI extends _i1.Mock implements _i7.CoinServiceAPI {
           [],
           {
             #address: address,
-            #satoshiAmount: satoshiAmount,
+            #satoshiAmount: amount,
             #args: args,
           },
         ),
@@ -1361,7 +1361,7 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
   @override
   _i18.Future<Map<String, dynamic>> prepareSendPublic({
     required String? address,
-    required int? satoshiAmount,
+    required int? amount,
     Map<String, dynamic>? args,
   }) =>
       (super.noSuchMethod(
@@ -1370,7 +1370,7 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
           [],
           {
             #address: address,
-            #satoshiAmount: satoshiAmount,
+            #satoshiAmount: amount,
             #args: args,
           },
         ),
@@ -1390,7 +1390,7 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
   @override
   _i18.Future<Map<String, dynamic>> prepareSend({
     required String? address,
-    required int? satoshiAmount,
+    required int? amount,
     Map<String, dynamic>? args,
   }) =>
       (super.noSuchMethod(
@@ -1399,7 +1399,7 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
           [],
           {
             #address: address,
-            #satoshiAmount: satoshiAmount,
+            #satoshiAmount: amount,
             #args: args,
           },
         ),

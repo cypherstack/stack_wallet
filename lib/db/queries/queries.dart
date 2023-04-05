@@ -67,10 +67,10 @@ extension MainDBQueries on MainDB {
           final maybeDecimal = Decimal.tryParse(searchTerm);
           if (maybeDecimal != null) {
             qq = qq.or().valueEqualTo(
-                  Format.decimalAmountToSatoshis(
+                  Amount.fromDecimal(
                     maybeDecimal,
-                    coin,
-                  ),
+                    fractionDigits: coin.decimals,
+                  ).raw.toInt(),
                 );
           }
 
@@ -139,10 +139,10 @@ extension MainDBQueries on MainDB {
           final maybeDecimal = Decimal.tryParse(searchTerm);
           if (maybeDecimal != null) {
             qq = qq.or().valueEqualTo(
-                  Format.decimalAmountToSatoshis(
+                  Amount.fromDecimal(
                     maybeDecimal,
-                    coin,
-                  ),
+                    fractionDigits: coin.decimals,
+                  ).raw.toInt(),
                 );
           }
 

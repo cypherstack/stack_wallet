@@ -25,7 +25,6 @@ import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -34,7 +33,6 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/eth_token_icon.dart';
@@ -102,7 +100,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   Timer? _cryptoAmountChangedFeeUpdateTimer;
   Timer? _baseAmountChangedFeeUpdateTimer;
   late Future<String> _calculateFeesFuture;
-  Map<int, String> cachedFees = {};
+  String cachedFees = "";
 
   void _onTokenSendViewPasteAddressFieldButtonPressed() async {
     final ClipboardData? data = await clipboard.getData(Clipboard.kTextPlain);
@@ -165,17 +163,13 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
         // autofill amount field
         if (results["amount"] != null) {
-          final amount = Decimal.parse(results["amount"]!);
-          cryptoAmountController.text = Format.localizedStringAsFixed(
-            value: amount,
-            locale: ref.read(localeServiceChangeNotifierProvider).locale,
-            decimalPlaces: Constants.decimalPlacesForCoin(coin),
-          );
-          amount.toString();
-          _amountToSend = Amount.fromDecimal(
-            amount,
+          final Amount amount = Decimal.parse(results["amount"]!).toAmount(
             fractionDigits: tokenContract.decimals,
           );
+          cryptoAmountController.text = amount.localizedStringAsFixed(
+            locale: ref.read(localeServiceChangeNotifierProvider).locale,
+          );
+          _amountToSend = amount;
         }
 
         _updatePreviewButtonState(_address, _amountToSend);
@@ -243,14 +237,10 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       Logging.instance.log("it changed $_amountToSend $_cachedAmountToSend",
           level: LogLevel.Info);
 
-      final amountString = Format.localizedStringAsFixed(
-        value: _amountToSend!.decimal,
-        locale: ref.read(localeServiceChangeNotifierProvider).locale,
-        decimalPlaces: Constants.decimalPlacesForCoin(coin),
-      );
-
       _cryptoAmountChangeLock = true;
-      cryptoAmountController.text = amountString;
+      cryptoAmountController.text = _amountToSend!.localizedStringAsFixed(
+        locale: ref.read(localeServiceChangeNotifierProvider).locale,
+      );
       _cryptoAmountChangeLock = false;
     } else {
       _amountToSend = Amount.zero;
@@ -291,13 +281,13 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
             .item1;
 
         if (price > Decimal.zero) {
-          final String fiatAmountString = Format.localizedStringAsFixed(
-            value: _amountToSend!.decimal * price,
-            locale: ref.read(localeServiceChangeNotifierProvider).locale,
-            decimalPlaces: 2,
-          );
-
-          baseAmountController.text = fiatAmountString;
+          baseAmountController.text = (_amountToSend!.decimal * price)
+              .toAmount(
+                fractionDigits: 2,
+              )
+              .localizedStringAsFixed(
+                locale: ref.read(localeServiceChangeNotifierProvider).locale,
+              );
         }
       } else {
         _amountToSend = null;
@@ -310,9 +300,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       _cryptoAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
         if (coin != Coin.epicCash && !_baseFocus.hasFocus) {
           setState(() {
-            _calculateFeesFuture = calculateFees(
-              _amountToSend == null ? 0 : _amountToSend!.raw.toInt(),
-            );
+            _calculateFeesFuture = calculateFees();
           });
         }
       });
@@ -324,9 +312,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     _baseAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
       if (coin != Coin.epicCash && !_cryptoFocus.hasFocus) {
         setState(() {
-          _calculateFeesFuture = calculateFees(
-            _amountToSend == null ? 0 : _amountToSend!.raw.toInt(),
-          );
+          _calculateFeesFuture = calculateFees();
         });
       }
     });
@@ -351,15 +337,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         (isValidAddress && amount != null && amount > Amount.zero);
   }
 
-  Future<String> calculateFees(int amount) async {
-    if (amount <= 0) {
-      return "0";
-    }
-
-    if (cachedFees[amount] != null) {
-      return cachedFees[amount]!;
-    }
-
+  Future<String> calculateFees() async {
     final wallet = ref.read(tokenServiceProvider)!;
     final feeObject = await wallet.fees;
 
@@ -377,13 +355,12 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         break;
     }
 
-    int fee;
+    final Amount fee = wallet.estimateFeeFor(feeRate);
+    cachedFees = fee.localizedStringAsFixed(
+      locale: ref.read(localeServiceChangeNotifierProvider).locale,
+    );
 
-    fee = await wallet.estimateFeeFor(amount, feeRate);
-    cachedFees[amount] = Format.satoshisToAmount(fee, coin: coin)
-        .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
-
-    return cachedFees[amount]!;
+    return cachedFees;
   }
 
   Future<void> _previewTransaction() async {
@@ -397,10 +374,6 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     final tokenWallet = ref.read(tokenServiceProvider)!;
 
     final Amount amount = _amountToSend!;
-    final Amount availableBalance = Amount.fromDecimal(
-      tokenWallet.balance.getSpendable(),
-      fractionDigits: tokenContract.decimals,
-    );
 
     // // confirm send all
     // if (amount == availableBalance) {
@@ -487,7 +460,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
       txDataFuture = tokenWallet.prepareSend(
         address: _address!,
-        satoshiAmount: amount.raw.toInt(),
+        amount: amount,
         args: {
           "feeRate": ref.read(feeRateTypeStateProvider),
         },
@@ -560,7 +533,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   void initState() {
     ref.refresh(feeSheetSessionCacheProvider);
 
-    _calculateFeesFuture = calculateFees(0);
+    _calculateFeesFuture = calculateFees();
     _data = widget.autoFillData;
     walletId = widget.walletId;
     coin = widget.coin;
@@ -703,9 +676,13 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                       cryptoAmountController.text = ref
                                           .read(tokenServiceProvider)!
                                           .balance
-                                          .getSpendable()
-                                          .toStringAsFixed(
-                                              tokenContract.decimals);
+                                          .spendable
+                                          .localizedStringAsFixed(
+                                            locale: ref
+                                                .read(
+                                                    localeServiceChangeNotifierProvider)
+                                                .locale,
+                                          );
                                     },
                                     child: Container(
                                       color: Colors.transparent,
@@ -714,7 +691,20 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                             CrossAxisAlignment.end,
                                         children: [
                                           Text(
-                                            "${ref.read(tokenServiceProvider)!.balance.getSpendable().toStringAsFixed(tokenContract.decimals)} ${tokenContract.symbol}",
+                                            "${ref.watch(
+                                              tokenServiceProvider.select(
+                                                (value) => value!
+                                                    .balance.spendable
+                                                    .localizedStringAsFixed(
+                                                  locale: ref.watch(
+                                                    localeServiceChangeNotifierProvider
+                                                        .select(
+                                                      (value) => value.locale,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            )} ${tokenContract.symbol}",
                                             style:
                                                 STextStyles.titleBold12(context)
                                                     .copyWith(
@@ -723,22 +713,11 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                             textAlign: TextAlign.right,
                                           ),
                                           Text(
-                                            "${Format.localizedStringAsFixed(
-                                              value: ref
-                                                      .read(
-                                                          tokenServiceProvider)!
-                                                      .balance
-                                                      .getSpendable() *
-                                                  ref.watch(
-                                                      priceAnd24hChangeNotifierProvider
-                                                          .select((value) => value
-                                                              .getTokenPrice(
-                                                                  tokenContract
-                                                                      .address)
-                                                              .item1)),
-                                              locale: locale,
-                                              decimalPlaces: 2,
-                                            )} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                                            "${(ref.watch(tokenServiceProvider.select((value) => value!.balance.spendable.decimal)) * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getTokenPrice(tokenContract.address).item1))).toAmount(
+                                                  fractionDigits: 2,
+                                                ).localizedStringAsFixed(
+                                                  locale: locale,
+                                                )} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
                                             style: STextStyles.subtitle(context)
                                                 .copyWith(
                                               fontSize: 8,
@@ -1138,9 +1117,14 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                           TransactionFeeSelectionSheet(
                                         walletId: walletId,
                                         isToken: true,
-                                        amount: Decimal.tryParse(
-                                                cryptoAmountController.text) ??
-                                            Decimal.zero,
+                                        amount: (Decimal.tryParse(
+                                                    cryptoAmountController
+                                                        .text) ??
+                                                Decimal.zero)
+                                            .toAmount(
+                                          fractionDigits:
+                                              tokenContract.decimals,
+                                        ),
                                         updateChosen: (String fee) {
                                           setState(() {
                                             _calculateFeesFuture =

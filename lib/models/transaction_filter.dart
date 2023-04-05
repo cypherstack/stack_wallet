@@ -1,10 +1,12 @@
+import 'package:stackwallet/utilities/amount.dart';
+
 class TransactionFilter {
   final bool sent;
   final bool received;
   final bool trade;
   final DateTime? from;
   final DateTime? to;
-  final int? amount;
+  final Amount? amount;
   final String keyword;
 
   TransactionFilter({
@@ -23,7 +25,7 @@ class TransactionFilter {
     bool? trade,
     DateTime? from,
     DateTime? to,
-    int? amount,
+    Amount? amount,
     String? keyword,
   }) {
     return TransactionFilter(

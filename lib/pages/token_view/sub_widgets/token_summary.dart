@@ -15,10 +15,10 @@ import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/price_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:stackwallet/utilities/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
@@ -80,7 +80,13 @@ class TokenSummary extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "${balance.getTotal()}"
+                    "${balance.total.localizedStringAsFixed(
+                      locale: ref.watch(
+                        localeServiceChangeNotifierProvider.select(
+                          (value) => value.locale,
+                        ),
+                      ),
+                    )}"
                     " ${token.symbol}",
                     style: STextStyles.pageTitleH1(context),
                   ),
@@ -96,17 +102,23 @@ class TokenSummary extends ConsumerWidget {
                 height: 6,
               ),
               Text(
-                "${Format.localizedStringAsFixed(
-                  value: ref
-                          .read(tokenServiceProvider)!
-                          .balance
-                          .getSpendable() *
-                      ref.watch(priceAnd24hChangeNotifierProvider.select(
-                          (value) => value.getTokenPrice(token.address).item1)),
-                  locale: ref.watch(localeServiceChangeNotifierProvider
-                      .select((value) => value.locale)),
-                  decimalPlaces: 2,
-                )} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                "${(balance.total.decimal * ref.watch(
+                          priceAnd24hChangeNotifierProvider.select(
+                            (value) => value.getTokenPrice(token.address).item1,
+                          ),
+                        )).toAmount(
+                      fractionDigits: 2,
+                    ).localizedStringAsFixed(
+                      locale: ref.watch(
+                        localeServiceChangeNotifierProvider.select(
+                          (value) => value.locale,
+                        ),
+                      ),
+                    )} ${ref.watch(
+                  prefsChangeNotifierProvider.select(
+                    (value) => value.currency,
+                  ),
+                )}",
                 style: STextStyles.subtitle500(context),
               ),
               const SizedBox(

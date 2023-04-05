@@ -1,6 +1,7 @@
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/models/token_balance.dart';
+import 'package:stackwallet/utilities/amount.dart';
 
 abstract class TokenCacheKeys {
   static String tokenBalance(String contractAddress) {
@@ -26,15 +27,27 @@ mixin EthTokenCache {
     if (jsonString == null) {
       return TokenBalance(
         contractAddress: _token.address,
-        decimalPlaces: _token.decimals,
-        total: 0,
-        spendable: 0,
-        blockedTotal: 0,
-        pendingSpendable: 0,
+        total: Amount(
+          rawValue: BigInt.zero,
+          fractionDigits: _token.decimals,
+        ),
+        spendable: Amount(
+          rawValue: BigInt.zero,
+          fractionDigits: _token.decimals,
+        ),
+        blockedTotal: Amount(
+          rawValue: BigInt.zero,
+          fractionDigits: _token.decimals,
+        ),
+        pendingSpendable: Amount(
+          rawValue: BigInt.zero,
+          fractionDigits: _token.decimals,
+        ),
       );
     }
     return TokenBalance.fromJson(
       jsonString,
+      _token.decimals,
     );
   }
 

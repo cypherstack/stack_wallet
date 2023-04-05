@@ -12,6 +12,7 @@ import 'package:stackwallet/services/event_bus/events/global/updated_in_backgrou
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
+import 'package:stackwallet/utilities/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
@@ -91,13 +92,13 @@ class Manager with ChangeNotifier {
 
   Future<Map<String, dynamic>> prepareSend({
     required String address,
-    required int satoshiAmount,
+    required Amount amount,
     Map<String, dynamic>? args,
   }) async {
     try {
       final txInfo = await _currentWallet.prepareSend(
         address: address,
-        satoshiAmount: satoshiAmount,
+        amount: amount,
         args: args,
       );
       // notifyListeners();
@@ -214,8 +215,8 @@ class Manager with ChangeNotifier {
 
   bool get isConnected => _currentWallet.isConnected;
 
-  Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
-    return _currentWallet.estimateFeeFor(satoshiAmount, feeRate);
+  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+    return _currentWallet.estimateFeeFor(amount, feeRate);
   }
 
   Future<bool> generateNewAddress() async {

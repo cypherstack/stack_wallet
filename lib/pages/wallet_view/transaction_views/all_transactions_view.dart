@@ -13,6 +13,7 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_sear
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
+import 'package:stackwallet/utilities/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -111,8 +112,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
         return false;
       }
 
-      if (filter.amount != null &&
-          BigInt.from(filter.amount!) != tx.realAmount.raw) {
+      if (filter.amount != null && filter.amount! != tx.realAmount) {
         return false;
       }
 
@@ -956,10 +956,8 @@ class _DesktopTransactionCardRowState
                   builder: (_) {
                     final amount = _transaction.realAmount;
                     return Text(
-                      "$prefix${Format.localizedStringAsFixed(
-                        value: amount.decimal,
+                      "$prefix${amount.localizedStringAsFixed(
                         locale: locale,
-                        decimalPlaces: coin.decimals,
                       )} ${coin.ticker}",
                       style: STextStyles.desktopTextExtraExtraSmall(context)
                           .copyWith(
@@ -980,11 +978,11 @@ class _DesktopTransactionCardRowState
                       final amount = _transaction.realAmount;
 
                       return Text(
-                        "$prefix${Format.localizedStringAsFixed(
-                          value: amount.decimal * price,
-                          locale: locale,
-                          decimalPlaces: 2,
-                        )} $baseCurrency",
+                        "$prefix${(amount.decimal * price).toAmount(
+                              fractionDigits: 2,
+                            ).localizedStringAsFixed(
+                              locale: locale,
+                            )} $baseCurrency",
                         style: STextStyles.desktopTextExtraExtraSmall(context),
                       );
                     },

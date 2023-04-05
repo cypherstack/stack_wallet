@@ -8,6 +8,7 @@ import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/utilities/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
@@ -239,10 +240,8 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                   final amount = _transaction.realAmount;
 
                                   return Text(
-                                    "$prefix${Format.localizedStringAsFixed(
-                                      value: amount.decimal,
+                                    "$prefix${amount.localizedStringAsFixed(
                                       locale: locale,
-                                      decimalPlaces: amount.fractionDigits,
                                     )} $unit",
                                     style: STextStyles.itemSubtitle12(context),
                                   );
@@ -283,8 +282,10 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                     final amount = _transaction.realAmount;
 
                                     return Text(
-                                      "$prefix${Format.localizedStringAsFixed(
-                                        value: amount.decimal * price,
+                                      "$prefix${Amount.fromDecimal(
+                                        amount.decimal * price,
+                                        fractionDigits: 2,
+                                      ).localizedStringAsFixed(
                                         locale: locale,
                                         decimalPlaces: 2,
                                       )} $baseCurrency",

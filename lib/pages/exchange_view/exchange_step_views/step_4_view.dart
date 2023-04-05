@@ -15,11 +15,11 @@ import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dia
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
+import 'package:stackwallet/utilities/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -526,10 +526,11 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                     walletsChangeNotifierProvider)
                                                 .getManager(tuple.item1);
 
-                                            final amount =
-                                                Format.decimalAmountToSatoshis(
-                                                    model.sendAmount,
-                                                    manager.coin);
+                                            final Amount amount =
+                                                model.sendAmount.toAmount(
+                                              fractionDigits:
+                                                  manager.coin.decimals,
+                                            );
                                             final address =
                                                 model.trade!.payInAddress;
 
@@ -565,7 +566,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                               final txDataFuture =
                                                   manager.prepareSend(
                                                 address: address,
-                                                satoshiAmount: amount,
+                                                amount: amount,
                                                 args: {
                                                   "feeRate":
                                                       FeeRateType.average,
@@ -670,12 +671,17 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                         .useMaterialPageRoute,
                                                 builder:
                                                     (BuildContext context) {
+                                                  final coin =
+                                                      coinFromTickerCaseInsensitive(
+                                                          model.trade!
+                                                              .payInCurrency);
                                                   return SendFromView(
-                                                    coin:
-                                                        coinFromTickerCaseInsensitive(
-                                                            model.trade!
-                                                                .payInCurrency),
-                                                    amount: model.sendAmount,
+                                                    coin: coin,
+                                                    amount: model.sendAmount
+                                                        .toAmount(
+                                                      fractionDigits:
+                                                          coin.decimals,
+                                                    ),
                                                     address: model
                                                         .trade!.payInAddress,
                                                     trade: model.trade!,

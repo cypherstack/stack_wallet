@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
+import 'package:intl/number_symbols.dart';
+import 'package:intl/number_symbols_data.dart';
 
 final _ten = BigInt.from(10);
 
@@ -58,6 +60,25 @@ class Amount {
 
   String toJsonString() {
     return jsonEncode(toMap());
+  }
+
+  String localizedStringAsFixed({
+    required String locale,
+    int? decimalPlaces,
+  }) {
+    decimalPlaces ??= fractionDigits;
+    assert(decimalPlaces >= 0);
+
+    final String separator =
+        (numberFormatSymbols[locale] as NumberSymbols?)?.DECIMAL_SEP ??
+            (numberFormatSymbols[locale.substring(0, 2)] as NumberSymbols?)
+                ?.DECIMAL_SEP ??
+            ".";
+
+    final intValue = decimal.shift(fractionDigits).toBigInt();
+    final fraction = (raw - intValue).toDecimal();
+
+    return "$intValue$separator${fraction.toStringAsFixed(decimalPlaces).substring(2)}";
   }
 
   // ===========================================================================
@@ -131,4 +152,35 @@ class Amount {
 
   @override
   int get hashCode => Object.hashAll([raw, fractionDigits]);
+}
+
+// =============================================================================
+// =============================================================================
+// ======= Extensions ==========================================================
+
+extension DecimalAmountExt on Decimal {
+  Amount toAmount({required int fractionDigits}) {
+    return Amount.fromDecimal(
+      this,
+      fractionDigits: fractionDigits,
+    );
+  }
+}
+
+extension DoubleAmountExt on double {
+  Amount toAmount({required int fractionDigits}) {
+    return Amount.fromDouble(
+      this,
+      fractionDigits: fractionDigits,
+    );
+  }
+}
+
+extension IntAmountExtension on int {
+  Amount toAmount({required int fractionDigits}) {
+    return Amount(
+      rawValue: BigInt.from(this),
+      fractionDigits: fractionDigits,
+    );
+  }
 }

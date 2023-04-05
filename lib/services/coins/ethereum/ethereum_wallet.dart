@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:bip39/bip39.dart' as bip39;
-import 'package:decimal/decimal.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:http/http.dart';
 import 'package:isar/isar.dart';
@@ -34,7 +33,6 @@ import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/eth_commons.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
@@ -88,15 +86,27 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
     if (jsonString == null) {
       return TokenBalance(
         contractAddress: contract.address,
-        decimalPlaces: contract.decimals,
-        total: 0,
-        spendable: 0,
-        blockedTotal: 0,
-        pendingSpendable: 0,
+        total: Amount(
+          rawValue: BigInt.zero,
+          fractionDigits: contract.decimals,
+        ),
+        spendable: Amount(
+          rawValue: BigInt.zero,
+          fractionDigits: contract.decimals,
+        ),
+        blockedTotal: Amount(
+          rawValue: BigInt.zero,
+          fractionDigits: contract.decimals,
+        ),
+        pendingSpendable: Amount(
+          rawValue: BigInt.zero,
+          fractionDigits: contract.decimals,
+        ),
       );
     }
     return TokenBalance.fromJson(
       jsonString,
+      contract.decimals,
     );
   }
 
@@ -214,18 +224,29 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
     // TODO: check if toInt() is ok and if getBalance actually returns enough balance data
     _balance = Balance(
       coin: coin,
-      total: ethBalance.getInWei.toInt(),
-      spendable: ethBalance.getInWei.toInt(),
-      blockedTotal: 0,
-      pendingSpendable: 0,
+      total: Amount.fromDouble(
+        ethBalance.getValueInUnit(web3.EtherUnit.ether),
+        fractionDigits: coin.decimals,
+      ),
+      spendable: Amount.fromDouble(
+        ethBalance.getValueInUnit(web3.EtherUnit.ether),
+        fractionDigits: coin.decimals,
+      ),
+      blockedTotal: Amount(
+        rawValue: BigInt.zero,
+        fractionDigits: coin.decimals,
+      ),
+      pendingSpendable: Amount(
+        rawValue: BigInt.zero,
+        fractionDigits: coin.decimals,
+      ),
     );
     await updateCachedBalance(_balance!);
   }
 
   @override
-  Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
-    final fee = estimateFee(feeRate, _gasLimit, coin.decimals);
-    return Format.decimalAmountToSatoshis(Decimal.parse(fee.toString()), coin);
+  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+    return estimateFee(feeRate, _gasLimit, coin.decimals);
   }
 
   @override
@@ -370,9 +391,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<int> get maxFee async {
-    final fee = (await fees).fast;
-    final feeEstimate = await estimateFeeFor(0, fee);
-    return feeEstimate;
+    throw UnimplementedError("Not used for eth");
   }
 
   @override
@@ -421,10 +440,11 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   @override
-  Future<Map<String, dynamic>> prepareSend(
-      {required String address,
-      required int satoshiAmount,
-      Map<String, dynamic>? args}) async {
+  Future<Map<String, dynamic>> prepareSend({
+    required String address,
+    required Amount amount,
+    Map<String, dynamic>? args,
+  }) async {
     final feeRateType = args?["feeRate"];
     int fee = 0;
     final feeObject = await fees;
@@ -440,7 +460,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
         break;
     }
 
-    final feeEstimate = await estimateFeeFor(satoshiAmount, fee);
+    final feeEstimate = await estimateFeeFor(amount, fee);
 
     // bool isSendAll = false;
     // final availableBalance = balance.spendable;
@@ -452,12 +472,6 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
     //   //Subtract fee amount from send amount
     //   satoshiAmount -= feeEstimate;
     // }
-
-    final decimalAmount = Format.satoshisToAmount(satoshiAmount, coin: coin);
-    final bigIntAmount = amountToBigInt(
-      decimalAmount.toDouble(),
-      Constants.decimalPlacesForCoin(coin),
-    );
 
     final client = getEthClient();
 
@@ -472,7 +486,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
         fee,
       ),
       amountOfGas: BigInt.from(_gasLimit),
-      value: web3.EtherAmount.inWei(bigIntAmount),
+      value: web3.EtherAmount.inWei(amount.raw),
     );
 
     final nonce = args?["nonce"] as int? ??
@@ -494,7 +508,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
         fee,
       ),
       maxGas: _gasLimit,
-      value: web3.EtherAmount.inWei(bigIntAmount),
+      value: web3.EtherAmount.inWei(amount.raw),
       nonce: nonce,
     );
 
@@ -502,7 +516,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
       "fee": feeEstimate,
       "feeInWei": fee,
       "address": address,
-      "recipientAmt": satoshiAmount,
+      "recipientAmt": amount,
       "ethTx": tx,
       "chainId": (await client.getChainId()).toInt(),
       "nonce": tx.nonce,

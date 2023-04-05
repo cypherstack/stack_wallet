@@ -51,8 +51,14 @@ import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
 const int MINIMUM_CONFIRMATIONS = 1;
-const int DUST_LIMIT = 294;
-const int DUST_LIMIT_P2PKH = 546;
+final Amount DUST_LIMIT = Amount(
+  rawValue: BigInt.from(294),
+  fractionDigits: Coin.particl.decimals,
+);
+final Amount DUST_LIMIT_P2PKH = Amount(
+  rawValue: BigInt.from(546),
+  fractionDigits: Coin.particl.decimals,
+);
 
 const String GENESIS_HASH_MAINNET =
     "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f";
@@ -155,7 +161,7 @@ class BitcoinWallet extends CoinServiceAPI
       // checkChangeAddressForTransactions:
       //     _checkP2PKHChangeAddressForTransactions,
       addDerivation: addDerivation,
-      dustLimitP2PKH: DUST_LIMIT_P2PKH,
+      dustLimitP2PKH: DUST_LIMIT_P2PKH.raw.toInt(),
       minConfirms: MINIMUM_CONFIRMATIONS,
     );
   }
@@ -1119,7 +1125,7 @@ class BitcoinWallet extends CoinServiceAPI
   @override
   Future<Map<String, dynamic>> prepareSend({
     required String address,
-    required int satoshiAmount,
+    required Amount amount,
     Map<String, dynamic>? args,
   }) async {
     try {
@@ -1149,14 +1155,14 @@ class BitcoinWallet extends CoinServiceAPI
 
         // check for send all
         bool isSendAll = false;
-        if (satoshiAmount == balance.spendable) {
+        if (amount == balance.spendable) {
           isSendAll = true;
         }
 
         final bool coinControl = utxos != null;
 
         final txData = await coinSelection(
-          satoshiAmountToSend: satoshiAmount,
+          satoshiAmountToSend: amount.raw.toInt(),
           selectedTxFeeRate: rate,
           recipientAddress: address,
           isSendAll: isSendAll,
@@ -1468,9 +1474,18 @@ class BitcoinWallet extends CoinServiceAPI
         numberOfBlocksFast: f,
         numberOfBlocksAverage: m,
         numberOfBlocksSlow: s,
-        fast: Format.decimalAmountToSatoshis(fast, coin),
-        medium: Format.decimalAmountToSatoshis(medium, coin),
-        slow: Format.decimalAmountToSatoshis(slow, coin),
+        fast: Amount.fromDecimal(
+          fast,
+          fractionDigits: coin.decimals,
+        ).raw.toInt(),
+        medium: Amount.fromDecimal(
+          medium,
+          fractionDigits: coin.decimals,
+        ).raw.toInt(),
+        slow: Amount.fromDecimal(
+          slow,
+          fractionDigits: coin.decimals,
+        ).raw.toInt(),
       );
 
       Logging.instance.log("fetched fees: $feeObject", level: LogLevel.Info);
@@ -2404,8 +2419,11 @@ class BitcoinWallet extends CoinServiceAPI
         feeRatePerKB: selectedTxFeeRate,
       );
 
-      final int roughEstimate =
-          roughFeeEstimate(spendableOutputs.length, 1, selectedTxFeeRate);
+      final int roughEstimate = roughFeeEstimate(
+        spendableOutputs.length,
+        1,
+        selectedTxFeeRate,
+      ).raw.toInt();
       if (feeForOneOutput < roughEstimate) {
         feeForOneOutput = roughEstimate;
       }
@@ -2476,7 +2494,7 @@ class BitcoinWallet extends CoinServiceAPI
 
     if (satoshisBeingUsed - satoshiAmountToSend > feeForOneOutput) {
       if (satoshisBeingUsed - satoshiAmountToSend >
-          feeForOneOutput + DUST_LIMIT) {
+          feeForOneOutput + DUST_LIMIT.raw.toInt()) {
         // Here, we know that theoretically, we may be able to include another output(change) but we first need to
         // factor in the value of this output in satoshis.
         int changeOutputSize =
@@ -2484,7 +2502,7 @@ class BitcoinWallet extends CoinServiceAPI
         // We check to see if the user can pay for the new transaction with 2 outputs instead of one. If they can and
         // the second output's size > DUST_LIMIT satoshis, we perform the mechanics required to properly generate and use a new
         // change address.
-        if (changeOutputSize > DUST_LIMIT &&
+        if (changeOutputSize > DUST_LIMIT.raw.toInt() &&
             satoshisBeingUsed - satoshiAmountToSend - changeOutputSize ==
                 feeForTwoOutputs) {
           // generate new change address if current change address has been used
@@ -3063,22 +3081,28 @@ class BitcoinWallet extends CoinServiceAPI
       (isActive) => this.isActive = isActive;
 
   @override
-  Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
+  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
     final available = balance.spendable;
 
-    if (available == satoshiAmount) {
-      return satoshiAmount - (await sweepAllEstimate(feeRate));
-    } else if (satoshiAmount <= 0 || satoshiAmount > available) {
+    if (available == amount) {
+      return amount - (await sweepAllEstimate(feeRate));
+    } else if (amount <= Amount.zero || amount > available) {
       return roughFeeEstimate(1, 2, feeRate);
     }
 
-    int runningBalance = 0;
+    Amount runningBalance = Amount(
+      rawValue: BigInt.zero,
+      fractionDigits: coin.decimals,
+    );
     int inputCount = 0;
     for (final output in (await utxos)) {
       if (!output.isBlocked) {
-        runningBalance += output.value;
+        runningBalance += Amount(
+          rawValue: BigInt.from(output.value),
+          fractionDigits: coin.decimals,
+        );
         inputCount++;
-        if (runningBalance > satoshiAmount) {
+        if (runningBalance > amount) {
           break;
         }
       }
@@ -3087,31 +3111,35 @@ class BitcoinWallet extends CoinServiceAPI
     final oneOutPutFee = roughFeeEstimate(inputCount, 1, feeRate);
     final twoOutPutFee = roughFeeEstimate(inputCount, 2, feeRate);
 
-    if (runningBalance - satoshiAmount > oneOutPutFee) {
-      if (runningBalance - satoshiAmount > oneOutPutFee + DUST_LIMIT) {
-        final change = runningBalance - satoshiAmount - twoOutPutFee;
+    if (runningBalance - amount > oneOutPutFee) {
+      if (runningBalance - amount > oneOutPutFee + DUST_LIMIT) {
+        final change = runningBalance - amount - twoOutPutFee;
         if (change > DUST_LIMIT &&
-            runningBalance - satoshiAmount - change == twoOutPutFee) {
-          return runningBalance - satoshiAmount - change;
+            runningBalance - amount - change == twoOutPutFee) {
+          return runningBalance - amount - change;
         } else {
-          return runningBalance - satoshiAmount;
+          return runningBalance - amount;
         }
       } else {
-        return runningBalance - satoshiAmount;
+        return runningBalance - amount;
       }
-    } else if (runningBalance - satoshiAmount == oneOutPutFee) {
+    } else if (runningBalance - amount == oneOutPutFee) {
       return oneOutPutFee;
     } else {
       return twoOutPutFee;
     }
   }
 
-  int roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
-    return ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
-        (feeRatePerKB / 1000).ceil();
+  Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
+    return Amount(
+      rawValue: BigInt.from(
+          ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
+              (feeRatePerKB / 1000).ceil()),
+      fractionDigits: coin.decimals,
+    );
   }
 
-  Future<int> sweepAllEstimate(int feeRate) async {
+  Future<Amount> sweepAllEstimate(int feeRate) async {
     int available = 0;
     int inputCount = 0;
     for (final output in (await utxos)) {
@@ -3125,7 +3153,11 @@ class BitcoinWallet extends CoinServiceAPI
     // transaction will only have 1 output minus the fee
     final estimatedFee = roughFeeEstimate(inputCount, 1, feeRate);
 
-    return available - estimatedFee;
+    return Amount(
+          rawValue: BigInt.from(available),
+          fractionDigits: coin.decimals,
+        ) -
+        estimatedFee;
   }
 
   @override

@@ -8,10 +8,10 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
+import 'package:stackwallet/utilities/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -23,9 +23,9 @@ final feeSheetSessionCacheProvider =
 });
 
 class FeeSheetSessionCache extends ChangeNotifier {
-  final Map<int, Decimal> fast = {};
-  final Map<int, Decimal> average = {};
-  final Map<int, Decimal> slow = {};
+  final Map<Amount, Amount> fast = {};
+  final Map<Amount, Amount> average = {};
+  final Map<Amount, Amount> slow = {};
 
   void notify() => notifyListeners();
 }
@@ -40,7 +40,7 @@ class TransactionFeeSelectionSheet extends ConsumerStatefulWidget {
   }) : super(key: key);
 
   final String walletId;
-  final Decimal amount;
+  final Amount amount;
   final Function updateChosen;
   final bool isToken;
 
@@ -52,7 +52,7 @@ class TransactionFeeSelectionSheet extends ConsumerStatefulWidget {
 class _TransactionFeeSelectionSheetState
     extends ConsumerState<TransactionFeeSelectionSheet> {
   late final String walletId;
-  late final Decimal amount;
+  late final Amount amount;
 
   FeeObject? feeObject;
 
@@ -63,8 +63,8 @@ class _TransactionFeeSelectionSheetState
     "Calculating...",
   ];
 
-  Future<Decimal> feeFor({
-    required int amount,
+  Future<Amount> feeFor({
+    required Amount amount,
     required FeeRateType feeRateType,
     required int feeRate,
     required Coin coin,
@@ -79,30 +79,21 @@ class _TransactionFeeSelectionSheetState
             if (coin == Coin.monero || coin == Coin.wownero) {
               final fee = await manager.estimateFeeFor(
                   amount, MoneroTransactionPriority.fast.raw!);
-              ref.read(feeSheetSessionCacheProvider).fast[amount] =
-                  Format.satoshisToAmount(
-                fee,
-                coin: coin,
-              );
+              ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
             } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
                 ref.read(publicPrivateBalanceStateProvider.state).state !=
                     "Private") {
               ref.read(feeSheetSessionCacheProvider).fast[amount] =
-                  Format.satoshisToAmount(
-                      await (manager.wallet as FiroWallet)
-                          .estimateFeeForPublic(amount, feeRate),
-                      coin: coin);
+                  await (manager.wallet as FiroWallet)
+                      .estimateFeeForPublic(amount, feeRate);
             } else {
               ref.read(feeSheetSessionCacheProvider).fast[amount] =
-                  Format.satoshisToAmount(
-                      await manager.estimateFeeFor(amount, feeRate),
-                      coin: coin);
+                  await manager.estimateFeeFor(amount, feeRate);
             }
           } else {
             final tokenWallet = ref.read(tokenServiceProvider)!;
-            final fee = await tokenWallet.estimateFeeFor(amount, feeRate);
-            ref.read(feeSheetSessionCacheProvider).fast[amount] =
-                Format.satoshisToAmount(fee, coin: coin);
+            final fee = tokenWallet.estimateFeeFor(feeRate);
+            ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
           }
         }
         return ref.read(feeSheetSessionCacheProvider).fast[amount]!;
@@ -115,30 +106,21 @@ class _TransactionFeeSelectionSheetState
             if (coin == Coin.monero || coin == Coin.wownero) {
               final fee = await manager.estimateFeeFor(
                   amount, MoneroTransactionPriority.regular.raw!);
-              ref.read(feeSheetSessionCacheProvider).average[amount] =
-                  Format.satoshisToAmount(
-                fee,
-                coin: coin,
-              );
+              ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
             } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
                 ref.read(publicPrivateBalanceStateProvider.state).state !=
                     "Private") {
               ref.read(feeSheetSessionCacheProvider).average[amount] =
-                  Format.satoshisToAmount(
-                      await (manager.wallet as FiroWallet)
-                          .estimateFeeForPublic(amount, feeRate),
-                      coin: coin);
+                  await (manager.wallet as FiroWallet)
+                      .estimateFeeForPublic(amount, feeRate);
             } else {
               ref.read(feeSheetSessionCacheProvider).average[amount] =
-                  Format.satoshisToAmount(
-                      await manager.estimateFeeFor(amount, feeRate),
-                      coin: coin);
+                  await manager.estimateFeeFor(amount, feeRate);
             }
           } else {
             final tokenWallet = ref.read(tokenServiceProvider)!;
-            final fee = await tokenWallet.estimateFeeFor(amount, feeRate);
-            ref.read(feeSheetSessionCacheProvider).average[amount] =
-                Format.satoshisToAmount(fee, coin: coin);
+            final fee = tokenWallet.estimateFeeFor(feeRate);
+            ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
           }
         }
         return ref.read(feeSheetSessionCacheProvider).average[amount]!;
@@ -151,30 +133,21 @@ class _TransactionFeeSelectionSheetState
             if (coin == Coin.monero || coin == Coin.wownero) {
               final fee = await manager.estimateFeeFor(
                   amount, MoneroTransactionPriority.slow.raw!);
-              ref.read(feeSheetSessionCacheProvider).slow[amount] =
-                  Format.satoshisToAmount(
-                fee,
-                coin: coin,
-              );
+              ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
             } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
                 ref.read(publicPrivateBalanceStateProvider.state).state !=
                     "Private") {
               ref.read(feeSheetSessionCacheProvider).slow[amount] =
-                  Format.satoshisToAmount(
-                      await (manager.wallet as FiroWallet)
-                          .estimateFeeForPublic(amount, feeRate),
-                      coin: coin);
+                  await (manager.wallet as FiroWallet)
+                      .estimateFeeForPublic(amount, feeRate);
             } else {
               ref.read(feeSheetSessionCacheProvider).slow[amount] =
-                  Format.satoshisToAmount(
-                      await manager.estimateFeeFor(amount, feeRate),
-                      coin: coin);
+                  await manager.estimateFeeFor(amount, feeRate);
             }
           } else {
             final tokenWallet = ref.read(tokenServiceProvider)!;
-            final fee = await tokenWallet.estimateFeeFor(amount, feeRate);
-            ref.read(feeSheetSessionCacheProvider).slow[amount] =
-                Format.satoshisToAmount(fee, coin: coin);
+            final fee = tokenWallet.estimateFeeFor(feeRate);
+            ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
           }
         }
         return ref.read(feeSheetSessionCacheProvider).slow[amount]!;
@@ -347,23 +320,25 @@ class _TransactionFeeSelectionSheetState
                                       if (feeObject != null)
                                         FutureBuilder(
                                           future: feeFor(
-                                              coin: manager.coin,
-                                              feeRateType: FeeRateType.fast,
-                                              feeRate: feeObject!.fast,
-                                              amount: Format
-                                                  .decimalAmountToSatoshis(
-                                                      amount, manager.coin)),
+                                            coin: manager.coin,
+                                            feeRateType: FeeRateType.fast,
+                                            feeRate: feeObject!.fast,
+                                            amount: amount,
+                                          ),
                                           // future: manager.estimateFeeFor(
                                           //     Format.decimalAmountToSatoshis(
                                           //         amount),
                                           //     feeObject!.fast),
                                           builder: (_,
-                                              AsyncSnapshot<Decimal> snapshot) {
+                                              AsyncSnapshot<Amount> snapshot) {
                                             if (snapshot.connectionState ==
                                                     ConnectionState.done &&
                                                 snapshot.hasData) {
                                               return Text(
-                                                "(~${snapshot.data!.toStringAsFixed(manager.coin.decimals)} ${manager.coin.ticker})",
+                                                "(~${snapshot.data!.decimal.toStringAsFixed(
+                                                  manager.coin.decimals,
+                                                )}"
+                                                " ${manager.coin.ticker})",
                                                 style: STextStyles.itemSubtitle(
                                                     context),
                                                 textAlign: TextAlign.left,
@@ -479,23 +454,23 @@ class _TransactionFeeSelectionSheetState
                                       if (feeObject != null)
                                         FutureBuilder(
                                           future: feeFor(
-                                              coin: manager.coin,
-                                              feeRateType: FeeRateType.average,
-                                              feeRate: feeObject!.medium,
-                                              amount: Format
-                                                  .decimalAmountToSatoshis(
-                                                      amount, manager.coin)),
+                                            coin: manager.coin,
+                                            feeRateType: FeeRateType.average,
+                                            feeRate: feeObject!.medium,
+                                            amount: amount,
+                                          ),
                                           // future: manager.estimateFeeFor(
                                           //     Format.decimalAmountToSatoshis(
                                           //         amount),
                                           //     feeObject!.fast),
                                           builder: (_,
-                                              AsyncSnapshot<Decimal> snapshot) {
+                                              AsyncSnapshot<Amount> snapshot) {
                                             if (snapshot.connectionState ==
                                                     ConnectionState.done &&
                                                 snapshot.hasData) {
                                               return Text(
-                                                "(~${snapshot.data!.toStringAsFixed(manager.coin.decimals)} ${manager.coin.ticker})",
+                                                "(~${snapshot.data!.decimal.toStringAsFixed(manager.coin.decimals)}"
+                                                " ${manager.coin.ticker})",
                                                 style: STextStyles.itemSubtitle(
                                                     context),
                                                 textAlign: TextAlign.left,
@@ -612,23 +587,22 @@ class _TransactionFeeSelectionSheetState
                                       if (feeObject != null)
                                         FutureBuilder(
                                           future: feeFor(
-                                              coin: manager.coin,
-                                              feeRateType: FeeRateType.slow,
-                                              feeRate: feeObject!.slow,
-                                              amount: Format
-                                                  .decimalAmountToSatoshis(
-                                                      amount, manager.coin)),
+                                            coin: manager.coin,
+                                            feeRateType: FeeRateType.slow,
+                                            feeRate: feeObject!.slow,
+                                            amount: amount,
+                                          ),
                                           // future: manager.estimateFeeFor(
                                           //     Format.decimalAmountToSatoshis(
                                           //         amount),
                                           //     feeObject!.fast),
                                           builder: (_,
-                                              AsyncSnapshot<Decimal> snapshot) {
+                                              AsyncSnapshot<Amount> snapshot) {
                                             if (snapshot.connectionState ==
                                                     ConnectionState.done &&
                                                 snapshot.hasData) {
                                               return Text(
-                                                "(~${snapshot.data!.toStringAsFixed(manager.coin.decimals)} ${manager.coin.ticker})",
+                                                "(~${snapshot.data!.decimal.toStringAsFixed(manager.coin.decimals)} ${manager.coin.ticker})",
                                                 style: STextStyles.itemSubtitle(
                                                     context),
                                                 textAlign: TextAlign.left,
@@ -686,7 +660,6 @@ class _TransactionFeeSelectionSheetState
 
   String? getAmount(FeeRateType feeRateType, Coin coin) {
     try {
-      final amount = Format.decimalAmountToSatoshis(this.amount, coin);
       switch (feeRateType) {
         case FeeRateType.fast:
           if (ref.read(feeSheetSessionCacheProvider).fast[amount] != null) {

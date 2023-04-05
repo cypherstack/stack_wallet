@@ -8,12 +8,13 @@ import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/coin_control/utxo_card.dart';
 import 'package:stackwallet/pages/coin_control/utxo_details_view.dart';
+import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/mixins/coin_control_interface.dart';
+import 'package:stackwallet/utilities/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
@@ -682,12 +683,14 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                                             value += element,
                                                       );
                                           return Text(
-                                            "${Format.satoshisToAmount(
-                                              selectedSum,
-                                              coin: coin,
-                                            ).toStringAsFixed(
-                                              coin.decimals,
-                                            )} ${coin.ticker}",
+                                            "${selectedSum.toAmount(fractionDigits: coin.decimals).localizedStringAsFixed(
+                                                  locale: ref.watch(
+                                                    localeServiceChangeNotifierProvider
+                                                        .select(
+                                                      (value) => value.locale,
+                                                    ),
+                                                  ),
+                                                )} ${coin.ticker}",
                                             style: widget.requestedTotal == null
                                                 ? STextStyles.w600_14(context)
                                                 : STextStyles.w600_14(context).copyWith(
@@ -728,12 +731,14 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                           style: STextStyles.w600_14(context),
                                         ),
                                         Text(
-                                          "${Format.satoshisToAmount(
-                                            widget.requestedTotal!,
-                                            coin: coin,
-                                          ).toStringAsFixed(
-                                            coin.decimals,
-                                          )} ${coin.ticker}",
+                                          "${widget.requestedTotal!.toAmount(fractionDigits: coin.decimals).localizedStringAsFixed(
+                                                locale: ref.watch(
+                                                  localeServiceChangeNotifierProvider
+                                                      .select(
+                                                    (value) => value.locale,
+                                                  ),
+                                                ),
+                                              )} ${coin.ticker}",
                                           style: STextStyles.w600_14(context),
                                         ),
                                       ],
