@@ -111,6 +111,7 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/des
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/delete_wallet_keys_popup.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_attention_delete_wallet.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_delete_wallet_dialog.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_show_xpub_dialog.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/qr_code_desktop_popup_content.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/unlock_wallet_keys_desktop.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/wallet_keys_desktop_popup.dart';
@@ -1523,6 +1524,19 @@ class RouteGenerator {
           //     name: settings.name,
           //   ),
           // );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case DesktopShowXpubDialog.routeName:
+        if (args is String) {
+          return FadePageRoute(
+            DesktopShowXpubDialog(
+              walletId: args,
+            ),
+            RouteSettings(
+              name: settings.name,
+            ),
+          );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 

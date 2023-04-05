@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages_desktop_specific/addresses/desktop_wallet_addresses_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_delete_wallet_dialog.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_show_xpub_dialog.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -117,32 +118,31 @@ class _WalletOptionsButtonState extends ConsumerState<WalletOptionsButton> {
               }
               break;
             case _WalletOptions.showXpub:
-              print("TODO");
-            // final result = await showDialog<bool?>(
-            //   context: context,
-            //   barrierDismissible: false,
-            //   builder: (context) => Navigator(
-            //     initialRoute: DesktopShowXpubDialog.routeName,
-            //     onGenerateRoute: RouteGenerator.generateRoute,
-            //     onGenerateInitialRoutes: (_, __) {
-            //       return [
-            //         RouteGenerator.generateRoute(
-            //           RouteSettings(
-            //             name: DesktopShowXpubDialog.routeName,
-            //             arguments: walletId,
-            //           ),
-            //         ),
-            //       ];
-            //     },
-            //   ),
-            // );
-            //
-            // if (result == true) {
-            //   if (mounted) {
-            //     Navigator.of(context).pop();
-            //   }
-            // }
-            // break;
+              final result = await showDialog<bool?>(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => Navigator(
+                  initialRoute: DesktopShowXpubDialog.routeName,
+                  onGenerateRoute: RouteGenerator.generateRoute,
+                  onGenerateInitialRoutes: (_, __) {
+                    return [
+                      RouteGenerator.generateRoute(
+                        RouteSettings(
+                          name: DesktopShowXpubDialog.routeName,
+                          arguments: walletId,
+                        ),
+                      ),
+                    ];
+                  },
+                ),
+              );
+
+              if (result == true) {
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+              }
+              break;
           }
         }
       },
