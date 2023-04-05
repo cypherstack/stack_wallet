@@ -107,7 +107,7 @@ class ForestColors extends StackColorTheme {
   @override
   Color get numpadTextDefault => const Color(0xFFFFFFFF);
   @override
-  Color get bottomNavText => const Color(0xFF232323);
+  Color get bottomNavText => const Color(0xFF22867A);
   @override
   Color get customTextButtonEnabledText => infoItemIcons;
   @override

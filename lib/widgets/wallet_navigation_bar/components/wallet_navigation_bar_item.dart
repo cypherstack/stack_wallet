@@ -67,7 +67,10 @@ class WalletNavigationBarItem extends ConsumerWidget {
                   data.overrideText ??
                       Text(
                         data.label ?? "",
-                        style: STextStyles.buttonSmall(context),
+                        style: STextStyles.buttonSmall(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .bottomNavText),
                       ),
                 ],
               ),
