@@ -13,7 +13,8 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 enum _WalletOptions {
   addressList,
-  deleteWallet;
+  deleteWallet,
+  showXpub;
 
   String get prettyName {
     switch (this) {
@@ -21,6 +22,8 @@ enum _WalletOptions {
         return "Address list";
       case _WalletOptions.deleteWallet:
         return "Delete wallet";
+      case _WalletOptions.showXpub:
+        return "Show xPub";
     }
   }
 }
@@ -70,6 +73,9 @@ class _WalletOptionsButtonState extends ConsumerState<WalletOptionsButton> {
               onAddressListPressed: () async {
                 Navigator.of(context).pop(_WalletOptions.addressList);
               },
+              onShowXpubPressed: () async {
+                Navigator.of(context).pop(_WalletOptions.showXpub);
+              },
             );
           },
         );
@@ -110,6 +116,33 @@ class _WalletOptionsButtonState extends ConsumerState<WalletOptionsButton> {
                 }
               }
               break;
+            case _WalletOptions.showXpub:
+              print("TODO");
+            // final result = await showDialog<bool?>(
+            //   context: context,
+            //   barrierDismissible: false,
+            //   builder: (context) => Navigator(
+            //     initialRoute: DesktopShowXpubDialog.routeName,
+            //     onGenerateRoute: RouteGenerator.generateRoute,
+            //     onGenerateInitialRoutes: (_, __) {
+            //       return [
+            //         RouteGenerator.generateRoute(
+            //           RouteSettings(
+            //             name: DesktopShowXpubDialog.routeName,
+            //             arguments: walletId,
+            //           ),
+            //         ),
+            //       ];
+            //     },
+            //   ),
+            // );
+            //
+            // if (result == true) {
+            //   if (mounted) {
+            //     Navigator.of(context).pop();
+            //   }
+            // }
+            // break;
           }
         }
       },
@@ -140,10 +173,12 @@ class WalletOptionsPopupMenu extends StatelessWidget {
     Key? key,
     required this.onDeletePressed,
     required this.onAddressListPressed,
+    required this.onShowXpubPressed,
   }) : super(key: key);
 
   final VoidCallback onDeletePressed;
   final VoidCallback onAddressListPressed;
+  final VoidCallback onShowXpubPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -187,6 +222,41 @@ class WalletOptionsPopupMenu extends StatelessWidget {
                           Expanded(
                             child: Text(
                               _WalletOptions.addressList.prettyName,
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                      context)
+                                  .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 8,
+                  ),
+                  TransparentButton(
+                    onPressed: onShowXpubPressed,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          SvgPicture.asset(
+                            Assets.svg.eye,
+                            width: 20,
+                            height: 20,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFieldActiveSearchIconLeft,
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Text(
+                              _WalletOptions.showXpub.prettyName,
                               style: STextStyles.desktopTextExtraExtraSmall(
                                       context)
                                   .copyWith(
