@@ -177,7 +177,7 @@ class ForestColors extends StackColorTheme {
   @override
   Color get bottomNavIconBack => const Color(0xFFA7C7CF);
   @override
-  Color get bottomNavIconIcon => const Color(0xFF227386);
+  Color get bottomNavIconIcon => const Color(0xFF22867A);
 
   @override
   Color get topNavIconPrimary => const Color(0xFF227386);
