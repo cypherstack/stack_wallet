@@ -38,6 +38,7 @@ import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -71,6 +72,7 @@ class WalletView extends ConsumerStatefulWidget {
     required this.walletId,
     required this.managerProvider,
     this.eventBus,
+    this.clipboardInterface = const ClipboardWrapper(),
   }) : super(key: key);
 
   static const String routeName = "/wallet";
@@ -79,6 +81,8 @@ class WalletView extends ConsumerStatefulWidget {
   final String walletId;
   final ChangeNotifierProvider<Manager> managerProvider;
   final EventBus? eventBus;
+
+  final ClipboardInterface clipboardInterface;
 
   @override
   ConsumerState<WalletView> createState() => _WalletViewState();
@@ -99,10 +103,13 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
   bool _rescanningOnOpen = false;
 
+  late ClipboardInterface _clipboardInterface;
+
   @override
   void initState() {
     walletId = widget.walletId;
     managerProvider = widget.managerProvider;
+    _clipboardInterface = widget.clipboardInterface;
 
     ref.read(managerProvider).isActiveWallet = true;
     if (!ref.read(managerProvider).shouldAutoSync) {
@@ -259,7 +266,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
   }
 
   void _onExchangePressed(BuildContext context) async {
-    final coin = ref.read(managerProvider).coin;
+    final Coin coin = ref.read(managerProvider).coin;
 
     if (coin.isTestNet) {
       await showDialog<void>(
@@ -384,7 +391,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final coin = ref.watch(managerProvider.select((value) => value.coin));
+    final Coin coin = ref.watch(managerProvider.select((value) => value.coin));
 
     return ConditionalParent(
       condition: _rescanningOnOpen,

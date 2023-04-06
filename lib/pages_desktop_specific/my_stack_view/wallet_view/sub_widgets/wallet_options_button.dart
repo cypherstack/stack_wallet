@@ -1,19 +1,25 @@
 import 'dart:async';
 
+import 'package:bip32/bip32.dart' as bip32;
+import 'package:bip39/bip39.dart' as bip39;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages_desktop_specific/addresses/desktop_wallet_addresses_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_delete_wallet_dialog.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_show_xpub_dialog.dart';
+import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 enum _WalletOptions {
   addressList,
-  deleteWallet;
+  deleteWallet,
+  showXpub;
 
   String get prettyName {
     switch (this) {
@@ -21,15 +27,15 @@ enum _WalletOptions {
         return "Address list";
       case _WalletOptions.deleteWallet:
         return "Delete wallet";
+      case _WalletOptions.showXpub:
+        return "Show xPub";
     }
   }
 }
 
 class WalletOptionsButton extends ConsumerStatefulWidget {
-  const WalletOptionsButton({
-    Key? key,
-    required this.walletId,
-  }) : super(key: key);
+  const WalletOptionsButton({Key? key, required this.walletId})
+      : super(key: key);
 
   final String walletId;
 
@@ -40,10 +46,12 @@ class WalletOptionsButton extends ConsumerStatefulWidget {
 
 class _WalletOptionsButtonState extends ConsumerState<WalletOptionsButton> {
   late final String walletId;
+  late final Coin coin;
 
   @override
   void initState() {
     walletId = widget.walletId;
+    coin = ref.read(walletsChangeNotifierProvider).getManager(walletId).coin;
 
     super.initState();
   }
@@ -70,6 +78,10 @@ class _WalletOptionsButtonState extends ConsumerState<WalletOptionsButton> {
               onAddressListPressed: () async {
                 Navigator.of(context).pop(_WalletOptions.addressList);
               },
+              onShowXpubPressed: () async {
+                Navigator.of(context).pop(_WalletOptions.showXpub);
+              },
+              coin: coin,
             );
           },
         );
@@ -97,6 +109,41 @@ class _WalletOptionsButtonState extends ConsumerState<WalletOptionsButton> {
                         RouteSettings(
                           name: DesktopDeleteWalletDialog.routeName,
                           arguments: walletId,
+                        ),
+                      ),
+                    ];
+                  },
+                ),
+              );
+
+              if (result == true) {
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+              }
+              break;
+            case _WalletOptions.showXpub:
+              final List<String> mnemonic = await ref
+                  .read(walletsChangeNotifierProvider)
+                  .getManager(widget.walletId)
+                  .mnemonic;
+
+              final seed = bip39.mnemonicToSeed(mnemonic.join(' '));
+              final node = bip32.BIP32.fromSeed(seed);
+              final xpub = node.neutered().toBase58();
+
+              final result = await showDialog<bool?>(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => Navigator(
+                  initialRoute: DesktopShowXpubDialog.routeName,
+                  onGenerateRoute: RouteGenerator.generateRoute,
+                  onGenerateInitialRoutes: (_, __) {
+                    return [
+                      RouteGenerator.generateRoute(
+                        RouteSettings(
+                          name: DesktopShowXpubDialog.routeName,
+                          arguments: xpub,
                         ),
                       ),
                     ];
@@ -140,13 +187,20 @@ class WalletOptionsPopupMenu extends StatelessWidget {
     Key? key,
     required this.onDeletePressed,
     required this.onAddressListPressed,
+    required this.onShowXpubPressed,
+    required this.coin,
   }) : super(key: key);
 
   final VoidCallback onDeletePressed;
   final VoidCallback onAddressListPressed;
+  final VoidCallback onShowXpubPressed;
+  final Coin coin;
 
   @override
   Widget build(BuildContext context) {
+    final bool xpubEnabled =
+        coin != Coin.monero && coin != Coin.epicCash && coin != Coin.wownero;
+
     return Stack(
       children: [
         Positioned(
@@ -200,6 +254,43 @@ class WalletOptionsPopupMenu extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (xpubEnabled)
+                    const SizedBox(
+                      height: 8,
+                    ),
+                  if (xpubEnabled)
+                    TransparentButton(
+                      onPressed: onShowXpubPressed,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            SvgPicture.asset(
+                              Assets.svg.eye,
+                              width: 20,
+                              height: 20,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldActiveSearchIconLeft,
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Text(
+                                _WalletOptions.showXpub.prettyName,
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                        context)
+                                    .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   const SizedBox(
                     height: 8,
                   ),
