@@ -4,8 +4,6 @@ import 'package:decimal/decimal.dart';
 import 'package:intl/number_symbols.dart';
 import 'package:intl/number_symbols_data.dart';
 
-final _ten = BigInt.from(10);
-
 class Amount {
   Amount({
     required BigInt rawValue,
@@ -18,12 +16,6 @@ class Amount {
         rawValue: BigInt.zero,
         fractionDigits: 0,
       );
-
-  /// truncate double value to [fractionDigits] places
-  Amount.fromDouble(double amount, {required this.fractionDigits})
-      : assert(fractionDigits >= 0),
-        _value =
-            Decimal.parse(amount.toString()).shift(fractionDigits).toBigInt();
 
   /// truncate decimal value to [fractionDigits] places
   Amount.fromDecimal(Decimal amount, {required this.fractionDigits})
@@ -164,15 +156,6 @@ class Amount {
 extension DecimalAmountExt on Decimal {
   Amount toAmount({required int fractionDigits}) {
     return Amount.fromDecimal(
-      this,
-      fractionDigits: fractionDigits,
-    );
-  }
-}
-
-extension DoubleAmountExt on double {
-  Amount toAmount({required int fractionDigits}) {
-    return Amount.fromDouble(
       this,
       fractionDigits: fractionDigits,
     );

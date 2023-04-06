@@ -28,31 +28,6 @@ void main() {
     expect(didThrow, true);
   });
 
-  test("Named fromDouble Amount Constructor tests", () {
-    Amount amount = Amount.fromDouble(2.0, fractionDigits: 0);
-    expect(amount.fractionDigits, 0);
-    expect(amount.raw, BigInt.two);
-    expect(amount.decimal, Decimal.fromInt(2));
-
-    amount = Amount.fromDouble(2.0, fractionDigits: 2);
-    expect(amount.fractionDigits, 2);
-    expect(amount.raw, BigInt.from(200));
-    expect(amount.decimal, Decimal.fromInt(2));
-
-    amount = Amount.fromDouble(0.0123456789, fractionDigits: 7);
-    expect(amount.fractionDigits, 7);
-    expect(amount.raw, BigInt.from(123456));
-    expect(amount.decimal, Decimal.parse("0.0123456"));
-
-    bool didThrow = false;
-    try {
-      amount = Amount.fromDouble(2.0, fractionDigits: -1);
-    } catch (_) {
-      didThrow = true;
-    }
-    expect(didThrow, true);
-  });
-
   test("Named fromDecimal Amount Constructor tests", () {
     Amount amount = Amount.fromDecimal(Decimal.fromInt(2), fractionDigits: 0);
     expect(amount.fractionDigits, 0);
@@ -89,10 +64,6 @@ void main() {
         Amount.fromDecimal(Decimal.fromInt(2), fractionDigits: 8).toMap(),
         {"raw": "200000000", "fractionDigits": 8},
       );
-      expect(
-        Amount.fromDouble(2, fractionDigits: 8).toMap(),
-        {"raw": "200000000", "fractionDigits": 8},
-      );
     });
 
     test("toJsonString", () {
@@ -103,10 +74,6 @@ void main() {
       expect(
         Amount.fromDecimal(Decimal.fromInt(2), fractionDigits: 8)
             .toJsonString(),
-        '{"raw":"200000000","fractionDigits":8}',
-      );
-      expect(
-        Amount.fromDouble(2, fractionDigits: 8).toJsonString(),
         '{"raw":"200000000","fractionDigits":8}',
       );
     });
@@ -145,7 +112,7 @@ void main() {
       expect(
         Amount.fromSerializedJsonString(
             '{"raw":"200000000","fractionDigits":8}'),
-        Amount.fromDouble(2, fractionDigits: 8),
+        Amount.fromDecimal(Decimal.parse("2"), fractionDigits: 8),
       );
     });
   });
