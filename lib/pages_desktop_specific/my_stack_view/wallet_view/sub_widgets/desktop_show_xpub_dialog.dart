@@ -12,6 +12,7 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 
 class DesktopShowXpubDialog extends ConsumerStatefulWidget {
   const DesktopShowXpubDialog({
@@ -94,7 +95,7 @@ class _DesktopShowXpubDialog extends ConsumerState<DesktopShowXpubDialog> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    PrimaryButton(
+                    SecondaryButton(
                         width: 250,
                         buttonHeight: ButtonHeight.xl,
                         label: "Copy to clipboard",
