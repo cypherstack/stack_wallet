@@ -114,7 +114,7 @@ class OceanBreezeColors extends StackColorTheme {
   @override
   Color get numpadTextDefault => const Color(0xFFFFFFFF);
   @override
-  Color get bottomNavText => const Color(0xFF232323);
+  Color get bottomNavText => const Color(0xFF227386);
   @override
   Color get customTextButtonEnabledText => buttonTextBorderless;
   @override

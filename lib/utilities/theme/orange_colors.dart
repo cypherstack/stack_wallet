@@ -83,7 +83,7 @@ class OrangeColors extends StackColorTheme {
   @override
   Color get numpadBackDefault => const Color(0xFFF36B43);
   @override
-  Color get bottomNavBack => const Color(0xFFFFFFFF);
+  Color get bottomNavBack => const Color(0xFFF36B43);
 
   // button text/element
   @override
@@ -107,7 +107,7 @@ class OrangeColors extends StackColorTheme {
   @override
   Color get numpadTextDefault => const Color(0xFFFFFFFF);
   @override
-  Color get bottomNavText => const Color(0xFF232323);
+  Color get bottomNavText => const Color(0xFFFFFFFF);
   @override
   Color get customTextButtonEnabledText => buttonTextBorderless;
   @override

@@ -12,7 +12,7 @@ class ReceiveNavIcon extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context)
             .extension<StackColors>()!
-            .accentColorDark
+            .bottomNavIconIcon
             .withOpacity(0.4),
         borderRadius: BorderRadius.circular(
           24,
@@ -24,7 +24,7 @@ class ReceiveNavIcon extends StatelessWidget {
           Assets.svg.arrowDownLeft,
           width: 12,
           height: 12,
-          color: Theme.of(context).extension<StackColors>()!.accentColorDark,
+          color: Theme.of(context).extension<StackColors>()!.bottomNavIconIcon,
         ),
       ),
     );
