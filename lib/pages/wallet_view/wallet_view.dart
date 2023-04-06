@@ -1,11 +1,8 @@
 import 'dart:async';
 
-import 'package:bip32/bip32.dart' as bip32;
-import 'package:bip39/bip39.dart' as bip39;
 import 'package:decimal/decimal.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
@@ -57,7 +54,6 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:stackwallet/widgets/qr_dialog.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/buy_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/coin_control_nav_icon.dart';
@@ -65,7 +61,6 @@ import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/excha
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/paynym_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/receive_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/send_nav_icon.dart';
-import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/xpub_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/wallet_navigation_bar_item.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/wallet_navigation_bar.dart';
 import 'package:tuple/tuple.dart';
@@ -198,16 +193,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
     _nodeStatusSubscription.cancel();
     _syncStatusSubscription.cancel();
     super.dispose();
-  }
-
-  Future<void> _copy(String xpub) async {
-    await _clipboardInterface.setData(ClipboardData(text: xpub));
-    unawaited(showFloatingFlushBar(
-      type: FlushBarType.info,
-      message: "Copied to clipboard",
-      iconAsset: Assets.svg.copy,
-      context: context,
-    ));
   }
 
   DateTime? _cachedTime;
@@ -407,8 +392,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
     debugPrint("BUILD: $runtimeType");
 
     final Coin coin = ref.watch(managerProvider.select((value) => value.coin));
-    final bool xPubEnabled =
-        coin != Coin.monero && coin != Coin.wownero && coin != Coin.epicCash;
 
     return ConditionalParent(
       condition: _rescanningOnOpen,
@@ -932,58 +915,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             );
                           }
                         }
-                      },
-                    ),
-                  if (xPubEnabled)
-                    WalletNavigationBarItemData(
-                      label: "Show xPub",
-                      icon: const XPubNavIcon(),
-                      onTap: () async {
-                        final List<String> mnemonic = await ref
-                            .read(walletsChangeNotifierProvider)
-                            .getManager(walletId)
-                            .mnemonic;
-
-                        final seed = bip39.mnemonicToSeed(mnemonic.join(' '));
-                        final node = bip32.BIP32.fromSeed(seed);
-                        final xpub = node.neutered().toBase58();
-
-                        showDialog<dynamic>(
-                          barrierDismissible: true,
-                          context: context,
-                          builder: (_) => QrDialog(
-                            title: "Wallet xPub",
-                            // message: xpub,
-                            qr: xpub,
-                            leftButton: TextButton(
-                              style: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .getSecondaryEnabledButtonStyle(context),
-                              onPressed: () async {
-                                await _copy(xpub);
-                              },
-                              child: Text(
-                                "Copy",
-                                style: STextStyles.button(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorDark),
-                              ),
-                            ),
-                            rightButton: TextButton(
-                              style: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .getPrimaryEnabledButtonStyle(context),
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: Text(
-                                "Continue",
-                                style: STextStyles.button(context),
-                              ),
-                            ),
-                          ),
-                        );
                       },
                     ),
                 ],
