@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -59,16 +60,39 @@ class _XPubViewState extends ConsumerState<XPubView> {
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () async {
-              Navigator.of(context).pop();
-            },
-          ),
-          title: Text(
-            "Wallet xPub",
-            style: STextStyles.navBarTitle(context),
-          ),
-        ),
+            leading: AppBarBackButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+              },
+            ),
+            title: Text(
+              "Wallet xPub",
+              style: STextStyles.navBarTitle(context),
+            ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: AppBarIconButton(
+                    color:
+                        Theme.of(context).extension<StackColors>()!.background,
+                    shadows: const [],
+                    icon: SvgPicture.asset(
+                      Assets.svg.copy,
+                      width: 24,
+                      height: 24,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .topNavIconPrimary,
+                    ),
+                    onPressed: () async {
+                      await _copy();
+                    },
+                  ),
+                ),
+              ),
+            ]),
         body: Padding(
           padding: const EdgeInsets.only(
             top: 12,
