@@ -359,7 +359,7 @@ class _ConfirmChangeNowSendViewState
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           Text(
-                            "${(transactionInfo["fee"] as int).toAmount(
+                            "${(transactionInfo["fee"] as int).toAmountAsRaw(
                               fractionDigits: ref.watch(
                                 managerProvider
                                     .select((value) => value.coin.decimals),
@@ -402,7 +402,7 @@ class _ConfirmChangeNowSendViewState
                                 managerProvider.select((value) => value.coin),
                               );
                               final fee =
-                                  (transactionInfo["fee"] as int).toAmount(
+                                  (transactionInfo["fee"] as int).toAmountAsRaw(
                                 fractionDigits: coin.decimals,
                               );
                               final amount =
@@ -637,7 +637,7 @@ class _ConfirmChangeNowSendViewState
                     style: STextStyles.smallMed12(context),
                   ),
                   Text(
-                    "${(transactionInfo["fee"] as int).toAmount(fractionDigits: ref.watch(
+                    "${(transactionInfo["fee"] as int).toAmountAsRaw(fractionDigits: ref.watch(
                           managerProvider.select(
                             (value) => value.coin.decimals,
                           ),
@@ -733,7 +733,7 @@ class _ConfirmChangeNowSendViewState
                         final coin = ref.watch(
                           managerProvider.select((value) => value.coin),
                         );
-                        final fee = (transactionInfo["fee"] as int).toAmount(
+                        final fee = (transactionInfo["fee"] as int).toAmountAsRaw(
                           fractionDigits: coin.decimals,
                         );
                         final amount =

@@ -143,7 +143,7 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
             );
           },
           amount: (preparedTx["amount"] as Amount) +
-              (preparedTx["fee"] as int).toAmount(
+              (preparedTx["fee"] as int).toAmountAsRaw(
                 fractionDigits: manager.coin.decimals,
               ),
           coin: manager.coin,

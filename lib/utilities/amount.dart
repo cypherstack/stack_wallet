@@ -43,9 +43,7 @@ class Amount {
   BigInt get raw => _value;
 
   /// actual decimal vale represented
-  Decimal get decimal =>
-      (Decimal.fromBigInt(_value) / _ten.pow(fractionDigits).toDecimal())
-          .toDecimal(scaleOnInfinitePrecision: fractionDigits);
+  Decimal get decimal => Decimal.fromBigInt(raw).shift(-1 * fractionDigits);
 
   /// convenience getter
   @Deprecated("provided for convenience only. Use fractionDigits instead.")
@@ -69,16 +67,21 @@ class Amount {
     decimalPlaces ??= fractionDigits;
     assert(decimalPlaces >= 0);
 
+    final wholeNumber = decimal.truncate();
+
+    if (decimalPlaces == 0) {
+      return wholeNumber.toStringAsFixed(0);
+    }
+
     final String separator =
         (numberFormatSymbols[locale] as NumberSymbols?)?.DECIMAL_SEP ??
             (numberFormatSymbols[locale.substring(0, 2)] as NumberSymbols?)
                 ?.DECIMAL_SEP ??
             ".";
 
-    final intValue = decimal.shift(fractionDigits).toBigInt();
-    final fraction = (raw - intValue).toDecimal();
+    final fraction = decimal - wholeNumber;
 
-    return "$intValue$separator${fraction.toStringAsFixed(decimalPlaces).substring(2)}";
+    return "${wholeNumber.toStringAsFixed(0)}$separator${fraction.toStringAsFixed(decimalPlaces).substring(2)}";
   }
 
   // ===========================================================================
@@ -95,13 +98,13 @@ class Amount {
   // ===========================================================================
   // ======= operators =========================================================
 
-  bool operator >(Amount other) => raw > other.raw;
+  bool operator >(Amount other) => decimal > other.decimal;
 
-  bool operator <(Amount other) => raw < other.raw;
+  bool operator <(Amount other) => decimal < other.decimal;
 
-  bool operator >=(Amount other) => raw >= other.raw;
+  bool operator >=(Amount other) => decimal >= other.decimal;
 
-  bool operator <=(Amount other) => raw <= other.raw;
+  bool operator <=(Amount other) => decimal <= other.decimal;
 
   Amount operator +(Amount other) {
     if (fractionDigits != other.fractionDigits) {
@@ -177,7 +180,7 @@ extension DoubleAmountExt on double {
 }
 
 extension IntAmountExtension on int {
-  Amount toAmount({required int fractionDigits}) {
+  Amount toAmountAsRaw({required int fractionDigits}) {
     return Amount(
       rawValue: BigInt.from(this),
       fractionDigits: fractionDigits,

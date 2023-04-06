@@ -683,7 +683,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                                             value += element,
                                                       );
                                           return Text(
-                                            "${selectedSum.toAmount(fractionDigits: coin.decimals).localizedStringAsFixed(
+                                            "${selectedSum.toAmountAsRaw(fractionDigits: coin.decimals).localizedStringAsFixed(
                                                   locale: ref.watch(
                                                     localeServiceChangeNotifierProvider
                                                         .select(
@@ -731,7 +731,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                           style: STextStyles.w600_14(context),
                                         ),
                                         Text(
-                                          "${widget.requestedTotal!.toAmount(fractionDigits: coin.decimals).localizedStringAsFixed(
+                                          "${widget.requestedTotal!.toAmountAsRaw(fractionDigits: coin.decimals).localizedStringAsFixed(
                                                 locale: ref.watch(
                                                   localeServiceChangeNotifierProvider
                                                       .select(

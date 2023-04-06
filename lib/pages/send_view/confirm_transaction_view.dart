@@ -427,7 +427,7 @@ class _ConfirmTransactionViewState
                           style: STextStyles.smallMed12(context),
                         ),
                         Text(
-                          "${(transactionInfo["fee"] as int).toAmount(
+                          "${(transactionInfo["fee"] as int).toAmountAsRaw(
                                 fractionDigits: ref.watch(
                                   managerProvider.select(
                                     (value) => value.coin.decimals,
@@ -678,8 +678,8 @@ class _ConfirmTransactionViewState
                                               value.getManager(walletId)))
                                       .coin;
 
-                                  final fee =
-                                      (transactionInfo["fee"] as int).toAmount(
+                                  final fee = (transactionInfo["fee"] as int)
+                                      .toAmountAsRaw(
                                     fractionDigits: coin.decimals,
                                   );
 
@@ -857,7 +857,7 @@ class _ConfirmTransactionViewState
                               .select((value) => value.getManager(walletId)))
                           .coin;
 
-                      final fee = (transactionInfo["fee"] as int).toAmount(
+                      final fee = (transactionInfo["fee"] as int).toAmountAsRaw(
                         fractionDigits: coin.decimals,
                       );
 
@@ -917,7 +917,7 @@ class _ConfirmTransactionViewState
                       final coin = ref.watch(walletsChangeNotifierProvider
                           .select((value) => value.getManager(walletId).coin));
                       final fee = (transactionInfo["fee"] as int)
-                          .toAmount(fractionDigits: coin.decimals);
+                          .toAmountAsRaw(fractionDigits: coin.decimals);
                       final locale = ref.watch(
                         localeServiceChangeNotifierProvider
                             .select((value) => value.locale),

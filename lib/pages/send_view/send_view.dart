@@ -154,7 +154,7 @@ class _SendViewState extends ConsumerState<SendView> {
           setState(() {
             _calculateFeesFuture = calculateFees(
               _amountToSend == null
-                  ? 0.toAmount(fractionDigits: coin.decimals)
+                  ? 0.toAmountAsRaw(fractionDigits: coin.decimals)
                   : _amountToSend!,
             );
           });
@@ -175,7 +175,7 @@ class _SendViewState extends ConsumerState<SendView> {
         setState(() {
           _calculateFeesFuture = calculateFees(
             _amountToSend == null
-                ? 0.toAmount(fractionDigits: coin.decimals)
+                ? 0.toAmountAsRaw(fractionDigits: coin.decimals)
                 : _amountToSend!,
           );
         });
@@ -560,10 +560,10 @@ class _SendViewState extends ConsumerState<SendView> {
   void initState() {
     coin = widget.coin;
     ref.refresh(feeSheetSessionCacheProvider);
-    _currentFee = 0.toAmount(fractionDigits: coin.decimals);
+    _currentFee = 0.toAmountAsRaw(fractionDigits: coin.decimals);
 
     _calculateFeesFuture =
-        calculateFees(0.toAmount(fractionDigits: coin.decimals));
+        calculateFees(0.toAmountAsRaw(fractionDigits: coin.decimals));
     _data = widget.autoFillData;
     walletId = widget.walletId;
     clipboard = widget.clipboard;
@@ -672,7 +672,7 @@ class _SendViewState extends ConsumerState<SendView> {
         if (_amountToSend == null) {
           setState(() {
             _calculateFeesFuture =
-                calculateFees(0.toAmount(fractionDigits: coin.decimals));
+                calculateFees(0.toAmountAsRaw(fractionDigits: coin.decimals));
           });
         } else {
           setState(() {
@@ -1526,11 +1526,11 @@ class _SendViewState extends ConsumerState<SendView> {
                                       .item1;
 
                                   if (_price == Decimal.zero) {
-                                    _amountToSend = 0.toAmount(
+                                    _amountToSend = 0.toAmountAsRaw(
                                         fractionDigits: coin.decimals);
                                   } else {
                                     _amountToSend = baseAmount <= Amount.zero
-                                        ? 0.toAmount(
+                                        ? 0.toAmountAsRaw(
                                             fractionDigits: coin.decimals)
                                         : (baseAmount.decimal / _price)
                                             .toDouble()
@@ -1558,8 +1558,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                   cryptoAmountController.text = amountString;
                                   _cryptoAmountChangeLock = false;
                                 } else {
-                                  _amountToSend =
-                                      0.toAmount(fractionDigits: coin.decimals);
+                                  _amountToSend = 0.toAmountAsRaw(
+                                      fractionDigits: coin.decimals);
                                   _cryptoAmountChangeLock = true;
                                   cryptoAmountController.text = "";
                                   _cryptoAmountChangeLock = false;

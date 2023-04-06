@@ -124,7 +124,7 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          "${utxo.value.toAmount(fractionDigits: coin.decimals).localizedStringAsFixed(
+                          "${utxo.value.toAmountAsRaw(fractionDigits: coin.decimals).localizedStringAsFixed(
                                 locale: ref.watch(
                                   localeServiceChangeNotifierProvider.select(
                                     (value) => value.locale,

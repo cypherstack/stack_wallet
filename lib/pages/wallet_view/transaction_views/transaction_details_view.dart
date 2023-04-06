@@ -83,7 +83,7 @@ class _TransactionDetailsViewState
 
     coin = widget.coin;
     amount = _transaction.realAmount;
-    fee = _transaction.fee.toAmount(fractionDigits: coin.decimals);
+    fee = _transaction.fee.toAmountAsRaw(fractionDigits: coin.decimals);
 
     if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
         _transaction.subType == TransactionSubType.mint) {

@@ -79,6 +79,77 @@ void main() {
     expect(didThrow, true);
   });
 
+  group("serialization", () {
+    test("toMap", () {
+      expect(
+        Amount(rawValue: BigInt.two, fractionDigits: 8).toMap(),
+        {"raw": "2", "fractionDigits": 8},
+      );
+      expect(
+        Amount.fromDecimal(Decimal.fromInt(2), fractionDigits: 8).toMap(),
+        {"raw": "200000000", "fractionDigits": 8},
+      );
+      expect(
+        Amount.fromDouble(2, fractionDigits: 8).toMap(),
+        {"raw": "200000000", "fractionDigits": 8},
+      );
+    });
+
+    test("toJsonString", () {
+      expect(
+        Amount(rawValue: BigInt.two, fractionDigits: 8).toJsonString(),
+        '{"raw":"2","fractionDigits":8}',
+      );
+      expect(
+        Amount.fromDecimal(Decimal.fromInt(2), fractionDigits: 8)
+            .toJsonString(),
+        '{"raw":"200000000","fractionDigits":8}',
+      );
+      expect(
+        Amount.fromDouble(2, fractionDigits: 8).toJsonString(),
+        '{"raw":"200000000","fractionDigits":8}',
+      );
+    });
+
+    test("localizedStringAsFixed", () {
+      expect(
+        Amount(rawValue: BigInt.two, fractionDigits: 8)
+            .localizedStringAsFixed(locale: "en_US"),
+        "0.00000002",
+      );
+      expect(
+        Amount(rawValue: BigInt.two, fractionDigits: 8)
+            .localizedStringAsFixed(locale: "en_US", decimalPlaces: 2),
+        "0.00",
+      );
+      expect(
+        Amount.fromDecimal(Decimal.fromInt(2), fractionDigits: 8)
+            .localizedStringAsFixed(locale: "en_US"),
+        "2.00000000",
+      );
+      expect(
+        Amount.fromDecimal(Decimal.fromInt(2), fractionDigits: 8)
+            .localizedStringAsFixed(locale: "en_US", decimalPlaces: 4),
+        "2.0000",
+      );
+      expect(
+        Amount.fromDecimal(Decimal.fromInt(2), fractionDigits: 8)
+            .localizedStringAsFixed(locale: "en_US", decimalPlaces: 0),
+        "2",
+      );
+    });
+  });
+
+  group("deserialization", () {
+    test("fromSerializedJsonString", () {
+      expect(
+        Amount.fromSerializedJsonString(
+            '{"raw":"200000000","fractionDigits":8}'),
+        Amount.fromDouble(2, fractionDigits: 8),
+      );
+    });
+  });
+
   group("operators", () {
     final one = Amount(rawValue: BigInt.one, fractionDigits: 0);
     final two = Amount(rawValue: BigInt.two, fractionDigits: 0);
