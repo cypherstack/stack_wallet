@@ -60,6 +60,7 @@ import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/excha
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/paynym_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/receive_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/send_nav_icon.dart';
+import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/xpub_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/wallet_navigation_bar_item.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/wallet_navigation_bar.dart';
 import 'package:tuple/tuple.dart';
@@ -259,7 +260,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
   }
 
   void _onExchangePressed(BuildContext context) async {
-    final coin = ref.read(managerProvider).coin;
+    final Coin coin = ref.read(managerProvider).coin;
 
     if (coin.isTestNet) {
       await showDialog<void>(
@@ -384,7 +385,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final coin = ref.watch(managerProvider.select((value) => value.coin));
+    final Coin coin = ref.watch(managerProvider.select((value) => value.coin));
+    final bool xPubEnabled =
+        coin != Coin.monero && coin != Coin.wownero && coin != Coin.epicCash;
 
     return ConditionalParent(
       condition: _rescanningOnOpen,
@@ -908,6 +911,14 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             );
                           }
                         }
+                      },
+                    ),
+                  if (xPubEnabled)
+                    WalletNavigationBarItemData(
+                      label: "Show xPub",
+                      icon: const XPubNavIcon(),
+                      onTap: () async {
+                        print("TODO");
                       },
                     ),
                 ],
