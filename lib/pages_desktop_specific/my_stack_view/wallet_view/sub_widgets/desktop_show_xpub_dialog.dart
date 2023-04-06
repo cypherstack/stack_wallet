@@ -91,7 +91,9 @@ class _DesktopShowXpubDialog extends ConsumerState<DesktopShowXpubDialog> {
                       .extension<StackColors>()!
                       .accentColorDark,
                 ),
-                const SizedBox(height: 50),
+                const SizedBox(height: 25),
+                Text(widget.xpub!, style: STextStyles.largeMedium14(context)),
+                const SizedBox(height: 25),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
