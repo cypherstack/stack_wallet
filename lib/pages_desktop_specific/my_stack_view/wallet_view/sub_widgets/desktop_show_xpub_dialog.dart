@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -8,10 +10,10 @@ import 'package:stackwallet/widgets/desktop/primary_button.dart';
 class DesktopShowXpubDialog extends ConsumerStatefulWidget {
   const DesktopShowXpubDialog({
     Key? key,
-    required this.walletId,
+    required this.xpub,
   }) : super(key: key);
 
-  final String walletId;
+  final String xpub;
 
   static const String routeName = "/desktopShowXpubDialog";
 
@@ -50,7 +52,7 @@ class _DesktopShowXpubDialog extends ConsumerState<DesktopShowXpubDialog> {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 26),
+            padding: const EdgeInsets.fromLTRB(32, 0, 32, 26),
             child: Column(
               children: [
                 const SizedBox(height: 16),
@@ -58,7 +60,14 @@ class _DesktopShowXpubDialog extends ConsumerState<DesktopShowXpubDialog> {
                   "Wallet Xpub",
                   style: STextStyles.desktopH2(context),
                 ),
-                const SizedBox(height: 50),
+                const SizedBox(height: 14),
+                QrImage(
+                  data: widget.xpub,
+                  size: 300,
+                  foregroundColor: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark,
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

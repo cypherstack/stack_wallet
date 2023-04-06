@@ -1531,7 +1531,7 @@ class RouteGenerator {
         if (args is String) {
           return FadePageRoute(
             DesktopShowXpubDialog(
-              walletId: args,
+              xpub: args,
             ),
             RouteSettings(
               name: settings.name,
