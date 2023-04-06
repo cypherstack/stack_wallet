@@ -98,7 +98,7 @@ class _DesktopShowXpubDialog extends ConsumerState<DesktopShowXpubDialog> {
                     SecondaryButton(
                         width: 250,
                         buttonHeight: ButtonHeight.xl,
-                        label: "Copy to clipboard",
+                        label: "Copy",
                         onPressed: () async {
                           await _copy();
                         }),
