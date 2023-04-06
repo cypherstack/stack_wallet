@@ -57,6 +57,7 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
+import 'package:stackwallet/widgets/qr_dialog.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/buy_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/coin_control_nav_icon.dart';
@@ -950,9 +951,10 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         showDialog<dynamic>(
                           barrierDismissible: true,
                           context: context,
-                          builder: (_) => StackDialog(
+                          builder: (_) => QrDialog(
                             title: "Wallet xPub",
-                            message: xpub,
+                            // message: xpub,
+                            qr: xpub,
                             leftButton: TextButton(
                               style: Theme.of(context)
                                   .extension<StackColors>()!
@@ -961,7 +963,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                 await _copy(xpub);
                               },
                               child: Text(
-                                "Copy to clipboard",
+                                "Copy",
                                 style: STextStyles.button(context).copyWith(
                                     color: Theme.of(context)
                                         .extension<StackColors>()!
