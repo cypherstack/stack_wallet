@@ -17,7 +17,7 @@ import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/notifications_api.dart';
-import 'package:stackwallet/utilities/amount.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';

@@ -11,7 +11,7 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
-import 'package:stackwallet/utilities/amount.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -733,7 +733,8 @@ class _ConfirmChangeNowSendViewState
                         final coin = ref.watch(
                           managerProvider.select((value) => value.coin),
                         );
-                        final fee = (transactionInfo["fee"] as int).toAmountAsRaw(
+                        final fee =
+                            (transactionInfo["fee"] as int).toAmountAsRaw(
                           fractionDigits: coin.decimals,
                         );
                         final amount =

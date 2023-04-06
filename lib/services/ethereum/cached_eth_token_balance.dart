@@ -2,7 +2,7 @@ import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/models/token_balance.dart';
 import 'package:stackwallet/services/ethereum/ethereum_api.dart';
 import 'package:stackwallet/services/mixins/eth_token_cache.dart';
-import 'package:stackwallet/utilities/amount.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 class CachedEthTokenBalance with EthTokenCache {

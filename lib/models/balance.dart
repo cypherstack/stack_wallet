@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:stackwallet/utilities/amount.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 enum Unit {

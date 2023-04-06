@@ -7,7 +7,7 @@ import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages/wallets_sheet/wallets_sheet.dart';
 import 'package:stackwallet/pages/wallets_view/eth_wallets_overview.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/amount.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';

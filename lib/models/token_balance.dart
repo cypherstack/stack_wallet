@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/utilities/amount.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 class TokenBalance extends Balance {

@@ -4,10 +4,9 @@ import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:decimal/decimal.dart';
 import "package:hex/hex.dart";
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-
-import 'amount.dart';
 
 class GasTracker {
   final Decimal average;

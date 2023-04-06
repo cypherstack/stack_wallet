@@ -1,7 +1,7 @@
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/models/token_balance.dart';
-import 'package:stackwallet/utilities/amount.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 
 abstract class TokenCacheKeys {
   static String tokenBalance(String contractAddress) {
