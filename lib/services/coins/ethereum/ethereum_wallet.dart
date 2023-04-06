@@ -221,15 +221,14 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<void> updateBalance() async {
     web3.Web3Client client = getEthClient();
     web3.EtherAmount ethBalance = await client.getBalance(_credentials.address);
-    // TODO: check if toInt() is ok and if getBalance actually returns enough balance data
     _balance = Balance(
       coin: coin,
-      total: Amount.fromDouble(
-        ethBalance.getValueInUnit(web3.EtherUnit.ether),
+      total: Amount(
+        rawValue: ethBalance.getInWei,
         fractionDigits: coin.decimals,
       ),
-      spendable: Amount.fromDouble(
-        ethBalance.getValueInUnit(web3.EtherUnit.ether),
+      spendable: Amount(
+        rawValue: ethBalance.getInWei,
         fractionDigits: coin.decimals,
       ),
       blockedTotal: Amount(
@@ -922,11 +921,9 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
       timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
       type: TransactionType.outgoing,
       subType: TransactionSubType.none,
-      amount: txData["recipientAmt"] as int,
-      amountString: Amount(
-        rawValue: BigInt.from(txData["recipientAmt"] as int),
-        fractionDigits: coin.decimals,
-      ).toJsonString(),
+      // precision may be lost here hence the following amountString
+      amount: (txData["recipientAmt"] as Amount).raw.toInt(),
+      amountString: (txData["recipientAmt"] as Amount).toJsonString(),
       fee: txData["fee"] as int,
       height: null,
       isCancelled: false,

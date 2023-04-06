@@ -1533,7 +1533,10 @@ class _SendViewState extends ConsumerState<SendView> {
                                         ? 0.toAmountAsRaw(
                                             fractionDigits: coin.decimals)
                                         : (baseAmount.decimal / _price)
-                                            .toDouble()
+                                            .toDecimal(
+                                              scaleOnInfinitePrecision:
+                                                  coin.decimals,
+                                            )
                                             .toAmount(
                                                 fractionDigits: coin.decimals);
                                   }

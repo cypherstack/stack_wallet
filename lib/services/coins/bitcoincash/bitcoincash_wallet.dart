@@ -1250,11 +1250,9 @@ class BitcoinCashWallet extends CoinServiceAPI
       timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
       type: isar_models.TransactionType.outgoing,
       subType: isar_models.TransactionSubType.none,
-      amount: txData["recipientAmt"] as int,
-      amountString: Amount(
-        rawValue: BigInt.from(txData["recipientAmt"] as int),
-        fractionDigits: coin.decimals,
-      ).toJsonString(),
+      // precision may be lost here hence the following amountString
+      amount: (txData["recipientAmt"] as Amount).raw.toInt(),
+      amountString: (txData["recipientAmt"] as Amount).toJsonString(),
       fee: txData["fee"] as int,
       height: null,
       isCancelled: false,

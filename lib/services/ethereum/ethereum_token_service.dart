@@ -178,11 +178,9 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
       timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
       type: TransactionType.outgoing,
       subType: TransactionSubType.ethToken,
-      amount: txData["recipientAmt"] as int,
-      amountString: Amount(
-        rawValue: BigInt.from(txData["recipientAmt"] as int),
-        fractionDigits: tokenContract.decimals,
-      ).toJsonString(),
+      // precision may be lost here hence the following amountString
+      amount: (txData["recipientAmt"] as Amount).raw.toInt(),
+      amountString: (txData["recipientAmt"] as Amount).toJsonString(),
       fee: txData["fee"] as int,
       height: null,
       isCancelled: false,
