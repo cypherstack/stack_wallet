@@ -399,10 +399,18 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name));
 
       case XPubView.routeName:
-        return getRoute(
+        if (args is String) {
+          return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const XPubView(),
-            settings: RouteSettings(name: settings.name));
+            builder: (_) => XPubView(
+              xpub: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case AppearanceSettingsView.routeName:
         return getRoute(

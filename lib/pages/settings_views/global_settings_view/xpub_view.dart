@@ -1,12 +1,27 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class XPubView extends ConsumerStatefulWidget {
-  const XPubView({Key? key}) : super(key: key);
+  const XPubView({
+    Key? key,
+    this.xpub,
+    this.clipboardInterface = const ClipboardWrapper(),
+  }) : super(key: key);
+
+  final String? xpub;
+  final ClipboardInterface clipboardInterface;
 
   static const String routeName = "/xpub";
 
@@ -15,14 +30,27 @@ class XPubView extends ConsumerStatefulWidget {
 }
 
 class _XPubViewState extends ConsumerState<XPubView> {
+  late ClipboardInterface _clipboardInterface;
+
   @override
   void initState() {
+    _clipboardInterface = widget.clipboardInterface;
     super.initState();
   }
 
   @override
   void dispose() {
     super.dispose();
+  }
+
+  Future<void> _copy() async {
+    await _clipboardInterface.setData(ClipboardData(text: widget.xpub));
+    unawaited(showFloatingFlushBar(
+      type: FlushBarType.info,
+      message: "Copied to clipboard",
+      iconAsset: Assets.svg.copy,
+      context: context,
+    ));
   }
 
   @override
@@ -47,7 +75,25 @@ class _XPubViewState extends ConsumerState<XPubView> {
             left: 16,
             right: 16,
           ),
-          child: Text("TODO"),
+          child: Column(children: [
+            if (widget.xpub != null)
+              RoundedWhiteContainer(
+                padding: const EdgeInsets.all(12),
+                child: QrImage(data: widget.xpub!),
+                onPressed: () => _copy(),
+              ),
+            if (widget.xpub != null)
+              const SizedBox(
+                height: 8,
+              ),
+            if (widget.xpub != null)
+              RoundedWhiteContainer(
+                padding: const EdgeInsets.all(12),
+                child: Text(widget.xpub!,
+                    style: STextStyles.largeMedium14(context)),
+                onPressed: () => _copy(),
+              )
+          ]),
         ),
       ),
     );

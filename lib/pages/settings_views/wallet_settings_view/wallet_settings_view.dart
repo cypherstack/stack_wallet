@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:bip32/bip32.dart' as bip32;
+import 'package:bip39/bip39.dart' as bip39;
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,6 +60,7 @@ class WalletSettingsView extends StatefulWidget {
 class _WalletSettingsViewState extends State<WalletSettingsView> {
   late final String walletId;
   late final Coin coin;
+  late String xpub;
   late final bool xPubEnabled;
 
   late final EventBus eventBus;
@@ -74,6 +77,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
     coin = widget.coin;
     xPubEnabled =
         coin != Coin.monero && coin != Coin.wownero && coin != Coin.epicCash;
+    xpub = "";
 
     _currentSyncStatus = widget.initialSyncStatus;
     // _currentNodeStatus = widget.initialNodeStatus;
@@ -274,6 +278,37 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                                         SyncingPreferencesView.routeName);
                                   },
                                 ),
+                                if (xPubEnabled)
+                                  const SizedBox(
+                                    height: 8,
+                                  ),
+                                if (xPubEnabled)
+                                  Consumer(
+                                    builder: (_, ref, __) {
+                                      return SettingsListButton(
+                                        iconAssetName: Assets.svg.eye,
+                                        title: "Wallet xPub",
+                                        onPressed: () async {
+                                          final List<String> mnemonic = await ref
+                                              .read(
+                                                  walletsChangeNotifierProvider)
+                                              .getManager(widget.walletId)
+                                              .mnemonic;
+
+                                          final seed = bip39.mnemonicToSeed(
+                                              mnemonic.join(' '));
+                                          final node =
+                                              bip32.BIP32.fromSeed(seed);
+                                          final xpub =
+                                              node.neutered().toBase58();
+
+                                          Navigator.of(context).pushNamed(
+                                              XPubView.routeName,
+                                              arguments: xpub);
+                                        },
+                                      );
+                                    },
+                                  ),
                                 const SizedBox(
                                   height: 8,
                                 ),
@@ -285,19 +320,6 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                                         .pushNamed(DebugView.routeName);
                                   },
                                 ),
-                                if (xPubEnabled)
-                                  const SizedBox(
-                                    height: 8,
-                                  ),
-                                if (xPubEnabled)
-                                  SettingsListButton(
-                                    iconAssetName: Assets.svg.eye,
-                                    title: "Wallet xPub",
-                                    onPressed: () {
-                                      Navigator.of(context)
-                                          .pushNamed(XPubView.routeName);
-                                    },
-                                  ),
                               ],
                             ),
                           ),
