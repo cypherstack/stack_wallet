@@ -10,6 +10,7 @@ import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/syncing_preferences_views/syncing_preferences_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/xpub_view.dart';
 import 'package:stackwallet/pages/settings_views/sub_widgets/settings_list_button.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_backup_views/wallet_backup_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
@@ -57,6 +58,7 @@ class WalletSettingsView extends StatefulWidget {
 class _WalletSettingsViewState extends State<WalletSettingsView> {
   late final String walletId;
   late final Coin coin;
+  late final bool xPubEnabled;
 
   late final EventBus eventBus;
 
@@ -70,6 +72,8 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
   void initState() {
     walletId = widget.walletId;
     coin = widget.coin;
+    xPubEnabled =
+        coin != Coin.monero && coin != Coin.wownero && coin != Coin.epicCash;
 
     _currentSyncStatus = widget.initialSyncStatus;
     // _currentNodeStatus = widget.initialNodeStatus;
@@ -281,6 +285,19 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                                         .pushNamed(DebugView.routeName);
                                   },
                                 ),
+                                if (xPubEnabled)
+                                  const SizedBox(
+                                    height: 8,
+                                  ),
+                                if (xPubEnabled)
+                                  SettingsListButton(
+                                    iconAssetName: Assets.svg.eye,
+                                    title: "Wallet xPub",
+                                    onPressed: () {
+                                      Navigator.of(context)
+                                          .pushNamed(XPubView.routeName);
+                                    },
+                                  ),
                               ],
                             ),
                           ),
