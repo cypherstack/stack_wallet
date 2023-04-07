@@ -22,10 +22,14 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
@@ -36,10 +40,12 @@ class EditWalletTokensView extends ConsumerStatefulWidget {
     Key? key,
     required this.walletId,
     this.contractsToMarkSelected,
+    this.isDesktopPopup = false,
   }) : super(key: key);
 
   final String walletId;
   final List<String>? contractsToMarkSelected;
+  final bool isDesktopPopup;
 
   static const routeName = "/editWalletTokens";
 
@@ -173,136 +179,204 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
         .select((value) => value.getManager(widget.walletId).walletName));
 
     if (isDesktop) {
-      return DesktopScaffold(
-        appBar: DesktopAppBar(
-          isCompactHeight: false,
-          leading: const AppBarBackButton(),
-          trailing: widget.contractsToMarkSelected == null
-              ? const ExitToMyStackButton()
-              : null,
-        ),
-        body: Column(
-          children: [
-            AddTokenText(
-              isDesktop: true,
-              walletName: walletName,
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            Expanded(
-              child: SizedBox(
-                width: 480,
-                child: RoundedWhiteContainer(
-                  radiusMultiplier: 2,
-                  padding: const EdgeInsets.only(
-                    left: 20,
-                    top: 20,
-                    right: 20,
-                    bottom: 0,
+      return ConditionalParent(
+        condition: !widget.isDesktopPopup,
+        builder: (child) => DesktopScaffold(
+          appBar: DesktopAppBar(
+            isCompactHeight: false,
+            leading: const AppBarBackButton(),
+            trailing: widget.contractsToMarkSelected == null
+                ? const ExitToMyStackButton()
+                : null,
+          ),
+          body: SizedBox(
+            width: 480,
+            child: RoundedWhiteContainer(
+              radiusMultiplier: 2,
+              padding: const EdgeInsets.only(
+                left: 20,
+                top: 20,
+                right: 20,
+                bottom: 0,
+              ),
+              child: Column(
+                children: [
+                  AddTokenText(
+                    isDesktop: true,
+                    walletName: walletName,
                   ),
-                  child: Column(
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  Expanded(
+                    child: child,
+                  ),
+                  const SizedBox(
+                    height: 26,
+                  ),
+                  SizedBox(
+                    height: 70,
+                    width: 480,
+                    child: PrimaryButton(
+                      label: widget.contractsToMarkSelected != null
+                          ? "Save"
+                          : "Next",
+                      onPressed: onNextPressed,
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 32,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        child: ConditionalParent(
+          condition: widget.isDesktopPopup,
+          builder: (child) => DesktopDialog(
+            maxHeight: 670,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        left: 32,
+                      ),
+                      child: Text(
+                        "Edit tokens",
+                        style: STextStyles.desktopH3(context),
+                      ),
+                    ),
+                    const DesktopDialogCloseButton(),
+                  ],
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                    child: child,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                  ),
+                  child: Row(
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                        child: TextField(
-                          autocorrect: Util.isDesktop ? false : true,
-                          enableSuggestions: Util.isDesktop ? false : true,
-                          controller: _searchFieldController,
-                          focusNode: _searchFocusNode,
-                          onChanged: (value) {
-                            setState(() {
-                              _searchTerm = value;
-                            });
-                          },
-                          style:
-                              STextStyles.desktopTextMedium(context).copyWith(
-                            height: 2,
-                          ),
-                          decoration: standardInputDecoration(
-                            "Search",
-                            _searchFocusNode,
-                            context,
-                          ).copyWith(
-                            contentPadding: const EdgeInsets.symmetric(
-                              vertical: 10,
-                            ),
-                            prefixIcon: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                // vertical: 20,
-                              ),
-                              child: SvgPicture.asset(
-                                Assets.svg.search,
-                                width: 24,
-                                height: 24,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textFieldDefaultSearchIconLeft,
-                              ),
-                            ),
-                            suffixIcon: _searchFieldController.text.isNotEmpty
-                                ? Padding(
-                                    padding: const EdgeInsets.only(right: 10),
-                                    child: UnconstrainedBox(
-                                      child: Row(
-                                        children: [
-                                          TextFieldIconButton(
-                                            child: const XIcon(
-                                              width: 24,
-                                              height: 24,
-                                            ),
-                                            onTap: () async {
-                                              setState(() {
-                                                _searchFieldController.text =
-                                                    "";
-                                                _searchTerm = "";
-                                              });
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                : null,
-                          ),
+                      Expanded(
+                        child: SecondaryButton(
+                          label: "Add custom token",
+                          buttonHeight: ButtonHeight.l,
+                          onPressed: _addToken,
                         ),
                       ),
                       const SizedBox(
-                        height: 12,
+                        width: 16,
                       ),
                       Expanded(
-                        child: AddTokenList(
-                          walletId: widget.walletId,
-                          items: filter(_searchTerm, tokenEntities),
-                          addFunction: _addToken,
+                        child: PrimaryButton(
+                          label: "Done",
+                          buttonHeight: ButtonHeight.l,
+                          onPressed: onNextPressed,
                         ),
-                      ),
-                      const SizedBox(
-                        height: 12,
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(
+                  height: 32,
+                ),
+              ],
+            ),
+          ),
+          child: Column(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
+                ),
+                child: TextField(
+                  autocorrect: Util.isDesktop ? false : true,
+                  enableSuggestions: Util.isDesktop ? false : true,
+                  controller: _searchFieldController,
+                  focusNode: _searchFocusNode,
+                  onChanged: (value) {
+                    setState(() {
+                      _searchTerm = value;
+                    });
+                  },
+                  style: STextStyles.desktopTextMedium(context).copyWith(
+                    height: 2,
+                  ),
+                  decoration: standardInputDecoration(
+                    "Search",
+                    _searchFocusNode,
+                    context,
+                  ).copyWith(
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 10,
+                    ),
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        // vertical: 20,
+                      ),
+                      child: SvgPicture.asset(
+                        Assets.svg.search,
+                        width: 24,
+                        height: 24,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultSearchIconLeft,
+                      ),
+                    ),
+                    suffixIcon: _searchFieldController.text.isNotEmpty
+                        ? Padding(
+                            padding: const EdgeInsets.only(right: 10),
+                            child: UnconstrainedBox(
+                              child: Row(
+                                children: [
+                                  TextFieldIconButton(
+                                    child: const XIcon(
+                                      width: 24,
+                                      height: 24,
+                                    ),
+                                    onTap: () async {
+                                      setState(() {
+                                        _searchFieldController.text = "";
+                                        _searchTerm = "";
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : null,
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(
-              height: 26,
-            ),
-            SizedBox(
-              height: 70,
-              width: 480,
-              child: PrimaryButton(
-                label: widget.contractsToMarkSelected != null ? "Save" : "Next",
-                onPressed: onNextPressed,
+              const SizedBox(
+                height: 12,
               ),
-            ),
-            const SizedBox(
-              height: 32,
-            ),
-          ],
+              Expanded(
+                child: AddTokenList(
+                  walletId: widget.walletId,
+                  items: filter(_searchTerm, tokenEntities),
+                  addFunction: widget.isDesktopPopup ? null : _addToken,
+                ),
+              ),
+              const SizedBox(
+                height: 12,
+              ),
+            ],
+          ),
         ),
       );
     } else {
