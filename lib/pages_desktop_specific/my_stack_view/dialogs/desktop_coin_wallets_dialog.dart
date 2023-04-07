@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
+import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -19,6 +22,7 @@ import 'package:stackwallet/widgets/textfield_icon_button.dart';
 import 'package:stackwallet/widgets/wallet_card.dart';
 import 'package:stackwallet/widgets/wallet_info_row/sub_widgets/wallet_info_row_balance_future.dart';
 import 'package:stackwallet/widgets/wallet_info_row/sub_widgets/wallet_info_row_coin_icon.dart';
+import 'package:tuple/tuple.dart';
 
 class DesktopCoinWalletsDialog extends ConsumerStatefulWidget {
   const DesktopCoinWalletsDialog({
@@ -44,7 +48,50 @@ class _DesktopCoinWalletsDialogState
 
   String _searchString = "";
 
-  final List<String> walletIds = [];
+  final List<Tuple2<Manager, List<EthContract>>> wallets = [];
+
+  List<Tuple2<Manager, List<EthContract>>> _filter(String searchTerm) {
+    if (searchTerm.isEmpty) {
+      return wallets;
+    }
+
+    final List<Tuple2<Manager, List<EthContract>>> results = [];
+    final term = searchTerm.toLowerCase();
+
+    for (final tuple in wallets) {
+      bool includeManager = false;
+      // search wallet name and total balance
+      includeManager |= _elementContains(tuple.item1.walletName, term);
+      includeManager |= _elementContains(
+        tuple.item1.balance.total.decimal.toString(),
+        term,
+      );
+
+      final List<EthContract> contracts = [];
+
+      for (final contract in tuple.item2) {
+        if (_elementContains(contract.name, term)) {
+          contracts.add(contract);
+        } else if (_elementContains(contract.symbol, term)) {
+          contracts.add(contract);
+        } else if (_elementContains(contract.type.name, term)) {
+          contracts.add(contract);
+        } else if (_elementContains(contract.address, term)) {
+          contracts.add(contract);
+        }
+      }
+
+      if (includeManager || contracts.isNotEmpty) {
+        results.add(Tuple2(tuple.item1, contracts));
+      }
+    }
+
+    return results;
+  }
+
+  bool _elementContains(String element, String term) {
+    return element.toLowerCase().contains(term);
+  }
 
   @override
   void initState() {
@@ -54,9 +101,55 @@ class _DesktopCoinWalletsDialogState
     final walletsData =
         ref.read(walletsServiceChangeNotifierProvider).fetchWalletsData();
     walletsData.removeWhere((key, value) => value.coin != widget.coin);
-    walletIds.clear();
 
-    walletIds.addAll(walletsData.values.map((e) => e.walletId));
+    if (widget.coin == Coin.ethereum) {
+      for (final data in walletsData.values) {
+        final List<EthContract> contracts = [];
+        final manager =
+            ref.read(walletsChangeNotifierProvider).getManager(data.walletId);
+        final contractAddresses = (manager.wallet as EthereumWallet)
+            .getWalletTokenContractAddresses();
+
+        // fetch each contract
+        for (final contractAddress in contractAddresses) {
+          final contract = ref
+              .read(
+                mainDBProvider,
+              )
+              .getEthContractSync(
+                contractAddress,
+              );
+
+          // add it to list if it exists in DB
+          if (contract != null) {
+            contracts.add(contract);
+          }
+        }
+
+        // add tuple to list
+        wallets.add(
+          Tuple2(
+            ref.read(walletsChangeNotifierProvider).getManager(
+                  data.walletId,
+                ),
+            contracts,
+          ),
+        );
+      }
+    } else {
+      // add non token wallet tuple to list
+      for (final data in walletsData.values) {
+        wallets.add(
+          Tuple2(
+            ref.read(walletsChangeNotifierProvider).getManager(
+                  data.walletId,
+                ),
+            [],
+          ),
+        );
+      }
+    }
+
     super.initState();
   }
 
@@ -137,71 +230,66 @@ class _DesktopCoinWalletsDialogState
           height: 16,
         ),
         Expanded(
-          child: ListView.separated(
-            itemBuilder: (_, index) => widget.coin == Coin.ethereum
-                ? _DesktopWalletCard(
-                    walletId: walletIds[index],
-                    navigatorState: widget.navigatorState,
-                  )
-                : RoundedWhiteContainer(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 14,
-                      horizontal: 20,
+          child: Builder(builder: (context) {
+            final data = _filter(_searchString);
+            return ListView.separated(
+              itemBuilder: (_, index) => widget.coin == Coin.ethereum
+                  ? _DesktopWalletCard(
+                      key: Key(
+                          "${data[index].item1.walletName}_${data[index].item2.map((e) => e.address).join()}"),
+                      data: data[index],
+                      navigatorState: widget.navigatorState,
+                    )
+                  : RoundedWhiteContainer(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 14,
+                        horizontal: 20,
+                      ),
+                      borderColor: Theme.of(context)
+                          .extension<StackColors>()!
+                          .backgroundAppBar,
+                      child: WalletSheetCard(
+                        walletId: data[index].item1.walletId,
+                        popPrevious: true,
+                        desktopNavigatorState: widget.navigatorState,
+                      ),
                     ),
-                    borderColor: Theme.of(context)
-                        .extension<StackColors>()!
-                        .backgroundAppBar,
-                    child: WalletSheetCard(
-                      walletId: walletIds[index],
-                      popPrevious: true,
-                      desktopNavigatorState: widget.navigatorState,
-                    ),
-                  ),
-            separatorBuilder: (_, __) => const SizedBox(
-              height: 10,
-            ),
-            itemCount: walletIds.length,
-          ),
+              separatorBuilder: (_, __) => const SizedBox(
+                height: 10,
+              ),
+              itemCount: data.length,
+            );
+          }),
         ),
       ],
     );
   }
 }
 
-class _DesktopWalletCard extends ConsumerStatefulWidget {
+class _DesktopWalletCard extends StatefulWidget {
   const _DesktopWalletCard({
     Key? key,
-    required this.walletId,
+    required this.data,
     required this.navigatorState,
   }) : super(key: key);
 
-  final String walletId;
+  final Tuple2<Manager, List<EthContract>> data;
   final NavigatorState navigatorState;
 
   @override
-  ConsumerState<_DesktopWalletCard> createState() => _DesktopWalletCardState();
+  State<_DesktopWalletCard> createState() => _DesktopWalletCardState();
 }
 
-class _DesktopWalletCardState extends ConsumerState<_DesktopWalletCard> {
+class _DesktopWalletCardState extends State<_DesktopWalletCard> {
   final expandableController = ExpandableController();
   final rotateIconController = RotateIconController();
   final List<String> tokenContractAddresses = [];
-  late final Coin coin;
 
   @override
   void initState() {
-    coin = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .coin;
-
-    if (coin == Coin.ethereum) {
+    if (widget.data.item1.hasTokenSupport) {
       tokenContractAddresses.addAll(
-        (ref
-                .read(walletsChangeNotifierProvider)
-                .getManager(widget.walletId)
-                .wallet as EthereumWallet)
-            .getWalletTokenContractAddresses(),
+        widget.data.item2.map((e) => e.address),
       );
     }
 
@@ -214,6 +302,9 @@ class _DesktopWalletCardState extends ConsumerState<_DesktopWalletCard> {
       padding: EdgeInsets.zero,
       borderColor: Theme.of(context).extension<StackColors>()!.backgroundAppBar,
       child: Expandable(
+        initialState: widget.data.item1.hasTokenSupport
+            ? ExpandableState.expanded
+            : ExpandableState.collapsed,
         controller: expandableController,
         expandOverride: () {},
         header: Padding(
@@ -231,19 +322,13 @@ class _DesktopWalletCardState extends ConsumerState<_DesktopWalletCard> {
                       child: Row(
                         children: [
                           WalletInfoCoinIcon(
-                            coin: coin,
+                            coin: widget.data.item1.coin,
                           ),
                           const SizedBox(
                             width: 12,
                           ),
                           Text(
-                            ref.watch(
-                              walletsChangeNotifierProvider.select(
-                                (value) => value
-                                    .getManager(widget.walletId)
-                                    .walletName,
-                              ),
-                            ),
+                            widget.data.item1.walletName,
                             style: STextStyles.desktopTextExtraSmall(context)
                                 .copyWith(
                               color: Theme.of(context)
@@ -257,7 +342,7 @@ class _DesktopWalletCardState extends ConsumerState<_DesktopWalletCard> {
                     Expanded(
                       flex: 4,
                       child: WalletInfoRowBalance(
-                        walletId: widget.walletId,
+                        walletId: widget.data.item1.walletId,
                       ),
                     ),
                   ],
@@ -290,9 +375,12 @@ class _DesktopWalletCardState extends ConsumerState<_DesktopWalletCard> {
                 },
                 child: RotateIcon(
                   controller: rotateIconController,
-                  icon: SvgPicture.asset(
-                    Assets.svg.chevronDown,
-                    width: 14,
+                  icon: RotatedBox(
+                    quarterTurns: 2,
+                    child: SvgPicture.asset(
+                      Assets.svg.chevronDown,
+                      width: 14,
+                    ),
                   ),
                   curve: Curves.easeInOut,
                 ),
@@ -318,7 +406,7 @@ class _DesktopWalletCardState extends ConsumerState<_DesktopWalletCard> {
                 bottom: 14,
               ),
               child: WalletSheetCard(
-                walletId: widget.walletId,
+                walletId: widget.data.item1.walletId,
                 popPrevious: true,
                 desktopNavigatorState: widget.navigatorState,
               ),
@@ -332,7 +420,7 @@ class _DesktopWalletCardState extends ConsumerState<_DesktopWalletCard> {
                   bottom: 14,
                 ),
                 child: WalletSheetCard(
-                  walletId: widget.walletId,
+                  walletId: widget.data.item1.walletId,
                   contractAddress: e,
                   popPrevious: true,
                   desktopNavigatorState: widget.navigatorState,
