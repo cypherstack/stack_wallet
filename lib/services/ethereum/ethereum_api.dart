@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:decimal/decimal.dart';
 import 'package:http/http.dart';
@@ -9,6 +8,7 @@ import 'package:stackwallet/dto/ethereum/eth_tx_dto.dart';
 import 'package:stackwallet/dto/ethereum/pending_eth_tx_dto.dart';
 import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/eth_commons.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
@@ -396,7 +396,7 @@ abstract class EthereumAPI {
   //   }
   // }
 
-  static Future<EthereumResponse<int>> getWalletTokenBalance({
+  static Future<EthereumResponse<Amount>> getWalletTokenBalance({
     required String address,
     required String contractAddress,
   }) async {
@@ -411,19 +411,11 @@ abstract class EthereumAPI {
         if (json["data"] is List) {
           final map = json["data"].first as Map;
 
-          final bal = Decimal.tryParse(map["balance"].toString());
-          final int balance;
-          if (bal == null) {
-            balance = 0;
-          } else {
-            final int decimals = map["decimals"] as int;
-            balance = (bal * Decimal.fromInt(pow(10, decimals).truncate()))
-                .toBigInt()
-                .toInt();
-          }
+          final balance =
+              Decimal.tryParse(map["balance"].toString()) ?? Decimal.zero;
 
           return EthereumResponse(
-            balance,
+            Amount.fromDecimal(balance, fractionDigits: map["decimals"] as int),
             null,
           );
         } else {

@@ -23,14 +23,8 @@ class CachedEthTokenBalance with EthTokenCache {
       await updateCachedBalance(
         TokenBalance(
           contractAddress: token.address,
-          total: Amount(
-            rawValue: BigInt.from(response.value!),
-            fractionDigits: token.decimals,
-          ),
-          spendable: Amount(
-            rawValue: BigInt.from(response.value!),
-            fractionDigits: token.decimals,
-          ),
+          total: response.value!,
+          spendable: response.value!,
           blockedTotal: Amount(
             rawValue: BigInt.zero,
             fractionDigits: token.decimals,
