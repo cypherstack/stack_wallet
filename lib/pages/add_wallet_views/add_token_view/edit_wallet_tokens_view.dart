@@ -12,7 +12,6 @@ import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/ad
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_list_element.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_text.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -113,18 +112,32 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
   }
 
   Future<void> _addToken() async {
-    final token = await Navigator.of(context).pushNamed(
-      AddCustomTokenView.routeName,
-      arguments: widget.walletId,
-    );
-    if (token is EthContract) {
-      await MainDB.instance.putEthContract(token);
+    EthContract? contract;
+
+    if (isDesktop) {
+      contract = await showDialog(
+        context: context,
+        builder: (context) => const DesktopDialog(
+          maxWidth: 580,
+          maxHeight: 500,
+          child: AddCustomTokenView(),
+        ),
+      );
+    } else {
+      contract = await Navigator.of(context).pushNamed(
+        AddCustomTokenView.routeName,
+      );
+    }
+
+    if (contract != null) {
+      await MainDB.instance.putEthContract(contract);
       if (mounted) {
         setState(() {
           if (tokenEntities
-              .where((e) => e.token.address == token.address)
+              .where((e) => e.token.address == contract!.address)
               .isEmpty) {
-            tokenEntities.add(AddTokenListElementData(token)..selected = true);
+            tokenEntities
+                .add(AddTokenListElementData(contract!)..selected = true);
             tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
           }
         });
@@ -184,51 +197,79 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
         builder: (child) => DesktopScaffold(
           appBar: DesktopAppBar(
             isCompactHeight: false,
+            useSpacers: false,
             leading: const AppBarBackButton(),
+            overlayCenter: Text(
+              walletName,
+              style: STextStyles.desktopSubtitleH2(context),
+            ),
             trailing: widget.contractsToMarkSelected == null
-                ? const ExitToMyStackButton()
+                ? Padding(
+                    padding: const EdgeInsets.only(
+                      right: 24,
+                    ),
+                    child: SizedBox(
+                      height: 56,
+                      child: TextButton(
+                        style: Theme.of(context)
+                            .extension<StackColors>()!
+                            .getSmallSecondaryEnabledButtonStyle(context),
+                        onPressed: _addToken,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 30,
+                          ),
+                          child: Text(
+                            "Add custom token",
+                            style:
+                                STextStyles.desktopButtonSmallSecondaryEnabled(
+                                    context),
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
                 : null,
           ),
           body: SizedBox(
             width: 480,
-            child: RoundedWhiteContainer(
-              radiusMultiplier: 2,
-              padding: const EdgeInsets.only(
-                left: 20,
-                top: 20,
-                right: 20,
-                bottom: 0,
-              ),
-              child: Column(
-                children: [
-                  AddTokenText(
-                    isDesktop: true,
-                    walletName: walletName,
-                  ),
-                  const SizedBox(
-                    height: 16,
-                  ),
-                  Expanded(
+            child: Column(
+              children: [
+                const AddTokenText(
+                  isDesktop: true,
+                ),
+                const SizedBox(
+                  height: 16,
+                ),
+                Expanded(
+                  child: RoundedWhiteContainer(
+                    radiusMultiplier: 2,
+                    padding: const EdgeInsets.only(
+                      left: 20,
+                      top: 20,
+                      right: 20,
+                      bottom: 0,
+                    ),
                     child: child,
                   ),
-                  const SizedBox(
-                    height: 26,
+                ),
+                const SizedBox(
+                  height: 26,
+                ),
+                SizedBox(
+                  height: 70,
+                  width: 480,
+                  child: PrimaryButton(
+                    label: widget.contractsToMarkSelected != null
+                        ? "Save"
+                        : "Next",
+                    onPressed: onNextPressed,
                   ),
-                  SizedBox(
-                    height: 70,
-                    width: 480,
-                    child: PrimaryButton(
-                      label: widget.contractsToMarkSelected != null
-                          ? "Save"
-                          : "Next",
-                      onPressed: onNextPressed,
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 32,
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(
+                  height: 32,
+                ),
+              ],
             ),
           ),
         ),
@@ -369,7 +410,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
                 child: AddTokenList(
                   walletId: widget.walletId,
                   items: filter(_searchTerm, tokenEntities),
-                  addFunction: widget.isDesktopPopup ? null : _addToken,
+                  addFunction: isDesktop ? null : _addToken,
                 ),
               ),
               const SizedBox(

@@ -5,10 +5,10 @@ class AddTokenText extends StatelessWidget {
   const AddTokenText({
     Key? key,
     required this.isDesktop,
-    required this.walletName,
+    this.walletName,
   }) : super(key: key);
 
-  final String walletName;
+  final String? walletName;
   final bool isDesktop;
 
   @override
@@ -16,16 +16,18 @@ class AddTokenText extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          walletName,
-          textAlign: TextAlign.center,
-          style: isDesktop
-              ? STextStyles.sectionLabelMedium12(context) // todo: fixme
-              : STextStyles.sectionLabelMedium12(context),
-        ),
-        const SizedBox(
-          height: 4,
-        ),
+        if (walletName != null)
+          Text(
+            walletName!,
+            textAlign: TextAlign.center,
+            style: isDesktop
+                ? STextStyles.sectionLabelMedium12(context) // todo: fixme
+                : STextStyles.sectionLabelMedium12(context),
+          ),
+        if (walletName != null)
+          const SizedBox(
+            height: 4,
+          ),
         Text(
           "Edit Tokens",
           textAlign: TextAlign.center,
