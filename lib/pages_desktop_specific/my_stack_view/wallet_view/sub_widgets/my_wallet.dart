@@ -4,7 +4,6 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_token_send.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/send_receive_tab_menu.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class MyWallet extends StatefulWidget {
@@ -29,17 +28,6 @@ class _MyWalletState extends State<MyWallet> {
     return ListView(
       primary: false,
       children: [
-        Text(
-          "My wallet",
-          style: STextStyles.desktopTextExtraSmall(context).copyWith(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .textFieldActiveSearchIconLeft,
-          ),
-        ),
-        const SizedBox(
-          height: 16,
-        ),
         Container(
           decoration: BoxDecoration(
             color: Theme.of(context).extension<StackColors>()!.popupBG,
