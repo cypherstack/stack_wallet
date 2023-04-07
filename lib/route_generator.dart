@@ -12,7 +12,7 @@ import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_custom_token_view.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_token_view.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/name_your_wallet_view/name_your_wallet_view.dart';
@@ -217,12 +217,23 @@ class RouteGenerator {
             builder: (_) => const AddWalletView(),
             settings: RouteSettings(name: settings.name));
 
-      case AddTokenView.routeName:
+      case EditWalletTokensView.routeName:
         if (args is String) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => AddTokenView(
+            builder: (_) => EditWalletTokensView(
               walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        } else if (args is Tuple2<String, List<String>>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => EditWalletTokensView(
+              walletId: args.item1,
+              contractsToMarkSelected: args.item2,
             ),
             settings: RouteSettings(
               name: settings.name,

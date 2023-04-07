@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_token_view.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/my_tokens_list.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
@@ -147,7 +147,7 @@ class _MyTokensViewState extends ConsumerState<MyTokensView> {
                       ),
                       onPressed: () async {
                         final result = await Navigator.of(context).pushNamed(
-                          AddTokenView.routeName,
+                          EditWalletTokensView.routeName,
                           arguments: widget.walletId,
                         );
 

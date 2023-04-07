@@ -31,46 +31,6 @@ class AddTokenList extends StatelessWidget {
               AddCustomTokenSelector(
                 addFunction: addFunction,
               ),
-              // Padding(
-              //   padding: const EdgeInsets.symmetric(vertical: 4),
-              //   child: RawMaterialButton(
-              //     fillColor:
-              //         Theme.of(context).extension<StackColors>()!.popupBG,
-              //     elevation: 0,
-              //     focusElevation: 0,
-              //     hoverElevation: 0,
-              //     highlightElevation: 0,
-              //     constraints: const BoxConstraints(),
-              //     shape: RoundedRectangleBorder(
-              //       borderRadius: BorderRadius.circular(
-              //         Constants.size.circularBorderRadius,
-              //       ),
-              //     ),
-              //     onPressed: addFunction,
-              //     child: Padding(
-              //       padding: const EdgeInsets.all(12),
-              //       child: Row(
-              //         children: [
-              //           SvgPicture.asset(
-              //             Assets.svg.circlePlusFilled,
-              //             color: Theme.of(context)
-              //                 .extension<StackColors>()!
-              //                 .textDark,
-              //             width: 24,
-              //             height: 24,
-              //           ),
-              //           const SizedBox(
-              //             width: 12,
-              //           ),
-              //           Text(
-              //             "Add custom token",
-              //             style: STextStyles.w600_14(context),
-              //           ),
-              //         ],
-              //       ),
-              //     ),
-              //   ),
-              // ),
             ],
           ),
           child: Padding(

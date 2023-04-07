@@ -3,13 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/coin_entity.dart';
 import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
-import 'package:stackwallet/pages/home_view/home_view.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/global/wallets_service_provider.dart';
-import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
 import 'package:stackwallet/services/wallets_service.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -24,6 +21,7 @@ import 'package:stackwallet/widgets/eth_wallet_radio.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/wallet_info_row/wallet_info_row.dart';
+import 'package:tuple/tuple.dart';
 
 final newEthWalletTriggerTempUntilHiveCompletelyDeleted =
     StateProvider((ref) => false);
@@ -52,21 +50,12 @@ class _SelectWalletForTokenViewState
   String? _selectedWalletId;
 
   void _onContinue() {
-    final wallet = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(_selectedWalletId!)
-        .wallet as EthereumWallet;
-
-    final tokenSet = wallet.getWalletTokenContractAddresses().toSet();
-    tokenSet.add(widget.entity.token.address);
-    wallet.updateWalletTokenContractAddresses(tokenSet.toList());
-
-    Navigator.of(context).pushNamed(HomeView.routeName);
-    showFloatingFlushBar(
-      type: FlushBarType.success,
-      message:
-          "${widget.entity.name} (${widget.entity.ticker}) added to ${wallet.walletName}",
-      context: context,
+    Navigator.of(context).pushNamed(
+      EditWalletTokensView.routeName,
+      arguments: Tuple2(
+        _selectedWalletId!,
+        [widget.entity.token.address],
+      ),
     );
   }
 
@@ -170,17 +159,23 @@ class _SelectWalletForTokenViewState
               leading: AppBarBackButton(),
             ),
             body: SizedBox(
-              width: 480,
+              width: 500,
               child: child,
             ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (isDesktop)
+                const SizedBox(
+                  height: 24,
+                ),
               Text(
                 "Select Ethereum wallet",
                 textAlign: TextAlign.center,
-                style: STextStyles.pageTitleH1(context),
+                style: isDesktop
+                    ? STextStyles.desktopH2(context)
+                    : STextStyles.pageTitleH1(context),
               ),
               SizedBox(
                 height: isDesktop ? 16 : 8,
@@ -188,7 +183,9 @@ class _SelectWalletForTokenViewState
               Text(
                 "You are adding an ETH token.",
                 textAlign: TextAlign.center,
-                style: STextStyles.subtitle(context),
+                style: isDesktop
+                    ? STextStyles.desktopSubtitleH2(context)
+                    : STextStyles.subtitle(context),
               ),
               const SizedBox(
                 height: 8,
@@ -196,62 +193,77 @@ class _SelectWalletForTokenViewState
               Text(
                 "You must choose an Ethereum wallet in order to use ${widget.entity.name}",
                 textAlign: TextAlign.center,
-                style: STextStyles.subtitle(context),
+                style: isDesktop
+                    ? STextStyles.desktopSubtitleH2(context)
+                    : STextStyles.subtitle(context),
               ),
               SizedBox(
                 height: isDesktop ? 60 : 16,
               ),
               ethWalletIds.isEmpty
                   ? RoundedWhiteContainer(
+                      padding: EdgeInsets.all(isDesktop ? 16 : 12),
                       child: Text(
                         _hasEthWallets
                             ? "All current Ethereum wallets already have ${widget.entity.name}"
                             : "You do not have any Ethereum wallets",
-                        style: STextStyles.label(context),
+                        style: isDesktop
+                            ? STextStyles.desktopSubtitleH2(context)
+                            : STextStyles.label(context),
                       ),
                     )
-                  : Expanded(
-                      child: Column(
-                        children: [
-                          RoundedWhiteContainer(
-                            padding: const EdgeInsets.all(8),
-                            child: ListView.separated(
-                              itemCount: ethWalletIds.length,
-                              shrinkWrap: true,
-                              separatorBuilder: (_, __) => SizedBox(
-                                height: isDesktop ? 12 : 6,
-                              ),
-                              itemBuilder: (_, index) {
-                                return RoundedContainer(
-                                  padding: const EdgeInsets.all(8),
-                                  onPressed: () {
-                                    setState(() {
-                                      _selectedWalletId = ethWalletIds[index];
-                                    });
-                                  },
-                                  color: isDesktop
-                                      ? Colors.transparent
-                                      : _selectedWalletId == ethWalletIds[index]
-                                          ? Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .highlight
-                                          : Colors.transparent,
-                                  child: isDesktop
-                                      ? EthWalletRadio(
-                                          walletId: ethWalletIds[index],
-                                          selectedWalletId: _selectedWalletId,
-                                        )
-                                      : WalletInfoRow(
-                                          walletId: ethWalletIds[index],
-                                        ),
-                                );
-                              },
+                  : ConditionalParent(
+                      condition: !isDesktop,
+                      builder: (child) => Expanded(
+                        child: Column(
+                          children: [
+                            RoundedWhiteContainer(
+                              padding: const EdgeInsets.all(8),
+                              child: child,
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                      ),
+                      child: ListView.separated(
+                        itemCount: ethWalletIds.length,
+                        shrinkWrap: true,
+                        separatorBuilder: (_, __) => SizedBox(
+                          height: isDesktop ? 12 : 6,
+                        ),
+                        itemBuilder: (_, index) {
+                          return RoundedContainer(
+                            padding: EdgeInsets.all(isDesktop ? 16 : 8),
+                            onPressed: () {
+                              setState(() {
+                                _selectedWalletId = ethWalletIds[index];
+                              });
+                            },
+                            color: isDesktop
+                                ? Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .popupBG
+                                : _selectedWalletId == ethWalletIds[index]
+                                    ? Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .highlight
+                                    : Colors.transparent,
+                            child: isDesktop
+                                ? EthWalletRadio(
+                                    walletId: ethWalletIds[index],
+                                    selectedWalletId: _selectedWalletId,
+                                  )
+                                : WalletInfoRow(
+                                    walletId: ethWalletIds[index],
+                                  ),
+                          );
+                        },
                       ),
                     ),
-              if (ethWalletIds.isEmpty)
+              if (ethWalletIds.isEmpty || isDesktop)
+                const SizedBox(
+                  height: 16,
+                ),
+              if (isDesktop)
                 const SizedBox(
                   height: 16,
                 ),

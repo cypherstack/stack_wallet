@@ -1,13 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_custom_token_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_list.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_list_element.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_text.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
@@ -27,21 +31,24 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
-class AddTokenView extends ConsumerStatefulWidget {
-  const AddTokenView({
+class EditWalletTokensView extends ConsumerStatefulWidget {
+  const EditWalletTokensView({
     Key? key,
     required this.walletId,
+    this.contractsToMarkSelected,
   }) : super(key: key);
 
   final String walletId;
+  final List<String>? contractsToMarkSelected;
 
-  static const routeName = "/addToken";
+  static const routeName = "/editWalletTokens";
 
   @override
-  ConsumerState<AddTokenView> createState() => _AddTokenViewState();
+  ConsumerState<EditWalletTokensView> createState() =>
+      _EditWalletTokensViewState();
 }
 
-class _AddTokenViewState extends ConsumerState<AddTokenView> {
+class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
   late final TextEditingController _searchFieldController;
   late final FocusNode _searchFocusNode;
 
@@ -82,7 +89,20 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
 
     await ethWallet.updateTokenContracts(selectedTokens);
     if (mounted) {
-      Navigator.of(context).pop(42);
+      if (widget.contractsToMarkSelected == null) {
+        Navigator.of(context).pop(42);
+      } else {
+        Navigator.of(context).popUntil(
+          ModalRoute.withName(DesktopHomeView.routeName),
+        );
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.success,
+            message: "${ethWallet.walletName} tokens saved",
+            context: context,
+          ),
+        );
+      }
     }
   }
 
@@ -127,8 +147,13 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
             .wallet as EthereumWallet)
         .getWalletTokenContractAddresses();
 
-    for (var e in tokenEntities) {
-      e.selected = walletContracts.contains(e.token.address);
+    final shouldMarkAsSelectedContracts = [
+      ...walletContracts,
+      ...(widget.contractsToMarkSelected ?? []),
+    ];
+
+    for (final e in tokenEntities) {
+      e.selected = shouldMarkAsSelectedContracts.contains(e.token.address);
     }
 
     super.initState();
@@ -149,10 +174,12 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
 
     if (isDesktop) {
       return DesktopScaffold(
-        appBar: const DesktopAppBar(
+        appBar: DesktopAppBar(
           isCompactHeight: false,
-          leading: AppBarBackButton(),
-          trailing: ExitToMyStackButton(),
+          leading: const AppBarBackButton(),
+          trailing: widget.contractsToMarkSelected == null
+              ? const ExitToMyStackButton()
+              : null,
         ),
         body: Column(
           children: [
@@ -169,82 +196,82 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
                 child: RoundedWhiteContainer(
                   radiusMultiplier: 2,
                   padding: const EdgeInsets.only(
-                    left: 16,
-                    top: 16,
-                    right: 16,
+                    left: 20,
+                    top: 20,
+                    right: 20,
                     bottom: 0,
                   ),
                   child: Column(
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                        child: TextField(
+                          autocorrect: Util.isDesktop ? false : true,
+                          enableSuggestions: Util.isDesktop ? false : true,
+                          controller: _searchFieldController,
+                          focusNode: _searchFocusNode,
+                          onChanged: (value) {
+                            setState(() {
+                              _searchTerm = value;
+                            });
+                          },
+                          style:
+                              STextStyles.desktopTextMedium(context).copyWith(
+                            height: 2,
                           ),
-                          child: TextField(
-                            autocorrect: Util.isDesktop ? false : true,
-                            enableSuggestions: Util.isDesktop ? false : true,
-                            controller: _searchFieldController,
-                            focusNode: _searchFocusNode,
-                            onChanged: (value) {
-                              setState(() {
-                                _searchTerm = value;
-                              });
-                            },
-                            style:
-                                STextStyles.desktopTextMedium(context).copyWith(
-                              height: 2,
+                          decoration: standardInputDecoration(
+                            "Search",
+                            _searchFocusNode,
+                            context,
+                          ).copyWith(
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 10,
                             ),
-                            decoration: standardInputDecoration(
-                              "Search",
-                              _searchFocusNode,
-                              context,
-                            ).copyWith(
-                              contentPadding: const EdgeInsets.symmetric(
-                                vertical: 10,
+                            prefixIcon: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                // vertical: 20,
                               ),
-                              prefixIcon: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  // vertical: 20,
-                                ),
-                                child: SvgPicture.asset(
-                                  Assets.svg.search,
-                                  width: 24,
-                                  height: 24,
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textFieldDefaultSearchIconLeft,
-                                ),
+                              child: SvgPicture.asset(
+                                Assets.svg.search,
+                                width: 24,
+                                height: 24,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFieldDefaultSearchIconLeft,
                               ),
-                              suffixIcon: _searchFieldController.text.isNotEmpty
-                                  ? Padding(
-                                      padding: const EdgeInsets.only(right: 10),
-                                      child: UnconstrainedBox(
-                                        child: Row(
-                                          children: [
-                                            TextFieldIconButton(
-                                              child: const XIcon(
-                                                width: 24,
-                                                height: 24,
-                                              ),
-                                              onTap: () async {
-                                                setState(() {
-                                                  _searchFieldController.text =
-                                                      "";
-                                                  _searchTerm = "";
-                                                });
-                                              },
+                            ),
+                            suffixIcon: _searchFieldController.text.isNotEmpty
+                                ? Padding(
+                                    padding: const EdgeInsets.only(right: 10),
+                                    child: UnconstrainedBox(
+                                      child: Row(
+                                        children: [
+                                          TextFieldIconButton(
+                                            child: const XIcon(
+                                              width: 24,
+                                              height: 24,
                                             ),
-                                          ],
-                                        ),
+                                            onTap: () async {
+                                              setState(() {
+                                                _searchFieldController.text =
+                                                    "";
+                                                _searchTerm = "";
+                                              });
+                                            },
+                                          ),
+                                        ],
                                       ),
-                                    )
-                                  : null,
-                            ),
+                                    ),
+                                  )
+                                : null,
                           ),
                         ),
+                      ),
+                      const SizedBox(
+                        height: 12,
                       ),
                       Expanded(
                         child: AddTokenList(
@@ -253,19 +280,22 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
                           addFunction: _addToken,
                         ),
                       ),
+                      const SizedBox(
+                        height: 12,
+                      ),
                     ],
                   ),
                 ),
               ),
             ),
             const SizedBox(
-              height: 16,
+              height: 26,
             ),
             SizedBox(
               height: 70,
               width: 480,
               child: PrimaryButton(
-                label: "Next",
+                label: widget.contractsToMarkSelected != null ? "Save" : "Next",
                 onPressed: onNextPressed,
               ),
             ),
@@ -384,7 +414,9 @@ class _AddTokenViewState extends ConsumerState<AddTokenView> {
                     height: 16,
                   ),
                   PrimaryButton(
-                    label: "Next",
+                    label: widget.contractsToMarkSelected != null
+                        ? "Save"
+                        : "Next",
                     onPressed: onNextPressed,
                   ),
                 ],

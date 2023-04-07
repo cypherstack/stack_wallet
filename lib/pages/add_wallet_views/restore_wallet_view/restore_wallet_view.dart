@@ -12,7 +12,7 @@ import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_token_view.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/confirm_recovery_dialog.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/restore_failed_dialog.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/restore_succeeded_dialog.dart';
@@ -351,7 +351,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                   if (manager.coin == Coin.ethereum) {
                     unawaited(
                       Navigator.of(context).pushNamed(
-                        AddTokenView.routeName,
+                        EditWalletTokensView.routeName,
                         arguments: manager.walletId,
                       ),
                     );

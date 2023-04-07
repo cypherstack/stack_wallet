@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_token_view.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/select_wallet_for_token_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/verify_recovery_phrase_view/sub_widgets/word_table.dart';
@@ -134,7 +134,7 @@ class _VerifyRecoveryPhraseViewState
             if (widget.manager.coin == Coin.ethereum) {
               unawaited(
                 Navigator.of(context).pushNamed(
-                  AddTokenView.routeName,
+                  EditWalletTokensView.routeName,
                   arguments: widget.manager.walletId,
                 ),
               );
