@@ -4,6 +4,7 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/my_token_select_item.dart';
+import 'package:stackwallet/utilities/util.dart';
 
 class MyTokensList extends StatelessWidget {
   const MyTokensList({
@@ -52,6 +53,8 @@ class MyTokensList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDesktop = Util.isDesktop;
+
     return Consumer(
       builder: (_, ref, __) {
         final tokens = _filter(searchTerm);
@@ -61,7 +64,9 @@ class MyTokensList extends StatelessWidget {
             final token = tokens[index];
             return Padding(
               key: Key(token.address),
-              padding: const EdgeInsets.all(4),
+              padding: isDesktop
+                  ? const EdgeInsets.symmetric(vertical: 5)
+                  : const EdgeInsets.all(4),
               child: MyTokenSelectItem(
                 walletId: walletId,
                 token: token,

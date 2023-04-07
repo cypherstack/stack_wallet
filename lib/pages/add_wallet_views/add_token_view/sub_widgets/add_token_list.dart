@@ -13,7 +13,7 @@ class AddTokenList extends StatelessWidget {
 
   final String walletId;
   final List<AddTokenListElementData> items;
-  final VoidCallback addFunction;
+  final VoidCallback? addFunction;
 
   @override
   Widget build(BuildContext context) {
@@ -23,13 +23,13 @@ class AddTokenList extends StatelessWidget {
       itemCount: items.length,
       itemBuilder: (ctx, index) {
         return ConditionalParent(
-          condition: index == items.length - 1,
+          condition: index == items.length - 1 && addFunction != null,
           builder: (child) => Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               child,
               AddCustomTokenSelector(
-                addFunction: addFunction,
+                addFunction: addFunction!,
               ),
             ],
           ),

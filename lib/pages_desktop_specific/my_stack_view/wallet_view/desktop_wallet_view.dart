@@ -4,8 +4,9 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
+import 'package:stackwallet/pages/token_view/my_tokens_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_wallet_features.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_wallet_summary.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/my_wallet.dart';
@@ -282,7 +283,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Recent transactions",
+                          "Tokens",
                           style: STextStyles.desktopTextExtraSmall(context)
                               .copyWith(
                             color: Theme.of(context)
@@ -291,12 +292,20 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                           ),
                         ),
                         CustomTextButton(
-                          text: "See all",
-                          onTap: () {
-                            Navigator.of(context).pushNamed(
-                              AllTransactionsView.routeName,
-                              arguments: widget.walletId,
+                          text: "Edit",
+                          onTap: () async {
+                            final result = await showDialog<int?>(
+                              context: context,
+                              builder: (context) => EditWalletTokensView(
+                                walletId: widget.walletId,
+                                isDesktopPopup: true,
+                              ),
                             );
+
+                            if (result == 42) {
+                              // wallet tokens were edited so update ui
+                              setState(() {});
+                            }
                           },
                         ),
                       ],
@@ -321,12 +330,20 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                       width: 16,
                     ),
                     Expanded(
-                      child: TransactionsList(
-                        managerProvider: ref.watch(
-                            walletsChangeNotifierProvider.select((value) =>
-                                value.getManagerProvider(widget.walletId))),
-                        walletId: widget.walletId,
-                      ),
+                      child: ref.watch(walletsChangeNotifierProvider.select(
+                              (value) => value
+                                  .getManager(widget.walletId)
+                                  .hasTokenSupport))
+                          ? MyTokensView(
+                              walletId: widget.walletId,
+                            )
+                          : TransactionsList(
+                              managerProvider: ref.watch(
+                                  walletsChangeNotifierProvider.select(
+                                      (value) => value.getManagerProvider(
+                                          widget.walletId))),
+                              walletId: widget.walletId,
+                            ),
                     ),
                   ],
                 ),
