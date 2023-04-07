@@ -16,38 +16,13 @@ class TokenBalance extends Balance {
 
   final String contractAddress;
 
-  // @override
-  // Decimal getTotal({bool includeBlocked = false}) =>
-  //     Format.satoshisToEthTokenAmount(
-  //       includeBlocked ? total : total - blockedTotal,
-  //       decimalPlaces,
-  //     );
-  //
-  // @override
-  // Decimal getSpendable() => Format.satoshisToEthTokenAmount(
-  //       spendable,
-  //       decimalPlaces,
-  //     );
-  //
-  // @override
-  // Decimal getPending() => Format.satoshisToEthTokenAmount(
-  //       pendingSpendable,
-  //       decimalPlaces,
-  //     );
-  //
-  // @override
-  // Decimal getBlocked() => Format.satoshisToEthTokenAmount(
-  //       blockedTotal,
-  //       decimalPlaces,
-  //     );
-
   @override
   String toJsonIgnoreCoin() => jsonEncode({
         "contractAddress": contractAddress,
-        "total": total,
-        "spendable": spendable,
-        "blockedTotal": blockedTotal,
-        "pendingSpendable": pendingSpendable,
+        "total": total.toJsonString(),
+        "spendable": spendable.toJsonString(),
+        "blockedTotal": blockedTotal.toJsonString(),
+        "pendingSpendable": pendingSpendable.toJsonString(),
       });
 
   factory TokenBalance.fromJson(
