@@ -112,11 +112,27 @@ class _VerifyRecoveryPhraseViewState
 
       if (mounted) {
         if (isDesktop) {
-          Navigator.of(context).popUntil(
-            ModalRoute.withName(
-              DesktopHomeView.routeName,
-            ),
-          );
+          if (isCreateSpecialEthWallet) {
+            Navigator.of(context).popUntil(
+              ModalRoute.withName(
+                SelectWalletForTokenView.routeName,
+              ),
+            );
+          } else {
+            Navigator.of(context).popUntil(
+              ModalRoute.withName(
+                DesktopHomeView.routeName,
+              ),
+            );
+            if (widget.manager.coin == Coin.ethereum) {
+              unawaited(
+                Navigator.of(context).pushNamed(
+                  EditWalletTokensView.routeName,
+                  arguments: widget.manager.walletId,
+                ),
+              );
+            }
+          }
         } else {
           if (isCreateSpecialEthWallet) {
             Navigator.of(context).popUntil(
