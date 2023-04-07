@@ -309,6 +309,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
               ),
               Expanded(
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(
                       width: sendReceiveColumnWidth,

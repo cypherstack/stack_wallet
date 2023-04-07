@@ -39,6 +39,8 @@ class DesktopTokenView extends ConsumerStatefulWidget {
 }
 
 class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
+  static const double sendReceiveColumnWidth = 460;
+
   late final WalletSyncStatus initialSyncStatus;
 
   @override
@@ -168,11 +170,58 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
             const SizedBox(
               height: 24,
             ),
+            Row(
+              children: [
+                SizedBox(
+                  width: sendReceiveColumnWidth,
+                  child: Text(
+                    "My wallet",
+                    style: STextStyles.desktopTextExtraSmall(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldActiveSearchIconLeft,
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  width: 16,
+                ),
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Recent transactions",
+                        style:
+                            STextStyles.desktopTextExtraSmall(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFieldActiveSearchIconLeft,
+                        ),
+                      ),
+                      CustomTextButton(
+                        text: "See all",
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            AllTransactionsView.routeName,
+                            arguments: widget.walletId,
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 14,
+            ),
             Expanded(
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(
-                    width: 450,
+                    width: sendReceiveColumnWidth,
                     child: MyWallet(
                       walletId: widget.walletId,
                       contractAddress: ref.watch(
@@ -186,40 +235,8 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
                     width: 16,
                   ),
                   Expanded(
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Recent transactions",
-                              style: STextStyles.desktopTextExtraSmall(context)
-                                  .copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textFieldActiveSearchIconLeft,
-                              ),
-                            ),
-                            CustomTextButton(
-                              text: "See all",
-                              onTap: () {
-                                Navigator.of(context).pushNamed(
-                                  AllTransactionsView.routeName,
-                                  arguments: widget.walletId,
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                        Expanded(
-                          child: TokenTransactionsList(
-                            walletId: widget.walletId,
-                          ),
-                        ),
-                      ],
+                    child: TokenTransactionsList(
+                      walletId: widget.walletId,
                     ),
                   ),
                 ],
