@@ -109,8 +109,10 @@ class _XPubViewState extends ConsumerState<XPubView> {
                           .extension<StackColors>()!
                           .topNavIconPrimary,
                     ),
-                    onPressed: () async {
-                      await _copy();
+                    onPressed: () {
+                      if (xpub != null) {
+                        _copy();
+                      }
                     },
                   ),
                 ),
@@ -118,12 +120,13 @@ class _XPubViewState extends ConsumerState<XPubView> {
             ],
           ),
           body: Padding(
-              padding: const EdgeInsets.only(
-                top: 12,
-                left: 16,
-                right: 16,
-              ),
-              child: child),
+            padding: const EdgeInsets.only(
+              top: 12,
+              left: 16,
+              right: 16,
+            ),
+            child: child,
+          ),
         ),
       ),
       child: ConditionalParent(
@@ -168,79 +171,138 @@ class _XPubViewState extends ConsumerState<XPubView> {
         child: Column(
           children: [
             if (isDesktop) const SizedBox(height: 44),
-            FutureBuilder(
-              future: (manager.wallet as XPubAble).xpub,
-              builder: (context, AsyncSnapshot<String> snapshot) {
-                if (snapshot.connectionState == ConnectionState.done &&
-                    snapshot.hasData) {
-                  xpub = snapshot.data!;
-                }
+            ConditionalParent(
+              condition: !isDesktop,
+              builder: (child) => Expanded(
+                child: child,
+              ),
+              child: FutureBuilder(
+                future: (manager.wallet as XPubAble).xpub,
+                builder: (context, AsyncSnapshot<String> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done &&
+                      snapshot.hasData) {
+                    xpub = snapshot.data!;
+                  }
 
-                return Column(
-                  children: [
-                    ConditionalParent(
-                      condition: !isDesktop,
-                      builder: (child) => RoundedWhiteContainer(
-                        child: child,
-                      ),
-                      child: xpub == null
-                          ? const SizedBox(
-                              height: 300,
-                              child: LoadingIndicator(),
-                            )
-                          : QrImage(
-                              data: xpub!,
-                              size: 280,
-                              foregroundColor: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .accentColorDark,
-                            ),
-                    ),
-                    const SizedBox(height: 25),
-                    RoundedWhiteContainer(
-                      padding: const EdgeInsets.all(16),
-                      borderColor: xpub == null
-                          ? null
-                          : Theme.of(context)
-                              .extension<StackColors>()!
-                              .backgroundAppBar,
-                      child: SelectableText(
-                        xpub ?? "",
-                        style: STextStyles.largeMedium14(context),
-                      ),
-                    ),
-                    if (isDesktop) const SizedBox(height: 32),
-                    if (!isDesktop) const Spacer(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: SecondaryButton(
-                            buttonHeight: ButtonHeight.xl,
-                            label: "Cancel",
-                            onPressed: Navigator.of(
-                              context,
-                              rootNavigator: true,
-                            ).pop,
-                          ),
+                  const height = 600.0;
+                  Widget child;
+                  if (xpub == null) {
+                    child = const SizedBox(
+                      key: Key("loadingXPUB"),
+                      height: height,
+                      child: Center(
+                        child: LoadingIndicator(
+                          width: 100,
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: PrimaryButton(
-                            buttonHeight: ButtonHeight.xl,
-                            label: "Copy",
-                            enabled: xpub != null,
-                            onPressed: _copy,
-                          ),
-                        ),
-                      ],
+                      ),
+                    );
+                  } else {
+                    child = _XPub(
+                      xpub: xpub!,
+                      height: height,
+                    );
+                  }
+
+                  return AnimatedSwitcher(
+                    duration: const Duration(
+                      milliseconds: 200,
                     ),
-                  ],
-                );
-              },
+                    child: child,
+                  );
+                },
+              ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _XPub extends StatelessWidget {
+  const _XPub({
+    Key? key,
+    required this.xpub,
+    required this.height,
+    this.clipboardInterface = const ClipboardWrapper(),
+  }) : super(key: key);
+
+  final String xpub;
+  final double height;
+  final ClipboardInterface clipboardInterface;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isDesktop = Util.isDesktop;
+
+    return SizedBox(
+      height: isDesktop ? height : double.infinity,
+      child: Column(
+        children: [
+          ConditionalParent(
+            condition: !isDesktop,
+            builder: (child) => RoundedWhiteContainer(
+              child: child,
+            ),
+            child: QrImage(
+              data: xpub,
+              size: isDesktop ? 280 : MediaQuery.of(context).size.width / 1.5,
+              foregroundColor:
+                  Theme.of(context).extension<StackColors>()!.accentColorDark,
+            ),
+          ),
+          const SizedBox(height: 25),
+          RoundedWhiteContainer(
+            padding: const EdgeInsets.all(16),
+            borderColor:
+                Theme.of(context).extension<StackColors>()!.backgroundAppBar,
+            child: SelectableText(
+              xpub,
+              style: STextStyles.largeMedium14(context),
+            ),
+          ),
+          const SizedBox(height: 32),
+          Row(
+            children: [
+              if (isDesktop)
+                Expanded(
+                  child: SecondaryButton(
+                    buttonHeight: ButtonHeight.xl,
+                    label: "Cancel",
+                    onPressed: Navigator.of(
+                      context,
+                      rootNavigator: true,
+                    ).pop,
+                  ),
+                ),
+              if (isDesktop) const SizedBox(width: 16),
+              Expanded(
+                child: PrimaryButton(
+                  buttonHeight: ButtonHeight.xl,
+                  label: "Copy",
+                  onPressed: () async {
+                    await clipboardInterface.setData(
+                      ClipboardData(
+                        text: xpub,
+                      ),
+                    );
+                    if (context.mounted) {
+                      unawaited(
+                        showFloatingFlushBar(
+                          type: FlushBarType.info,
+                          message: "Copied to clipboard",
+                          iconAsset: Assets.svg.copy,
+                          context: context,
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+          if (!isDesktop) const Spacer(),
+        ],
       ),
     );
   }
