@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,10 +10,12 @@ import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/dialogs/cancelling_transaction_progress_dialog.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/edit_note_view.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/block_explorers.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -65,9 +66,11 @@ class _TransactionDetailsViewState
   late final String walletId;
 
   late final Coin coin;
-  late final Decimal amount;
-  late final Decimal fee;
+  late final Amount amount;
+  late final Amount fee;
   late final String amountPrefix;
+  late final String unit;
+  late final bool isTokenTx;
 
   bool showFeePending = false;
 
@@ -75,11 +78,12 @@ class _TransactionDetailsViewState
   void initState() {
     isDesktop = Util.isDesktop;
     _transaction = widget.transaction;
+    isTokenTx = _transaction.subType == TransactionSubType.ethToken;
     walletId = widget.walletId;
 
     coin = widget.coin;
-    amount = Format.satoshisToAmount(_transaction.amount, coin: coin);
-    fee = Format.satoshisToAmount(_transaction.fee, coin: coin);
+    amount = _transaction.realAmount;
+    fee = _transaction.fee.toAmountAsRaw(fractionDigits: coin.decimals);
 
     if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
         _transaction.subType == TransactionSubType.mint) {
@@ -87,6 +91,13 @@ class _TransactionDetailsViewState
     } else {
       amountPrefix = _transaction.type == TransactionType.outgoing ? "-" : "+";
     }
+
+    unit = isTokenTx
+        ? ref
+            .read(mainDBProvider)
+            .getEthContractSync(_transaction.otherData!)!
+            .symbol
+        : coin.ticker;
 
     // if (coin == Coin.firo || coin == Coin.firoTestNet) {
     //   showFeePending = true;
@@ -432,16 +443,13 @@ class _TransactionDetailsViewState
                                             : CrossAxisAlignment.start,
                                         children: [
                                           SelectableText(
-                                            "$amountPrefix${Format.localizedStringAsFixed(
-                                              value: amount,
+                                            "$amountPrefix${amount.localizedStringAsFixed(
                                               locale: ref.watch(
                                                 localeServiceChangeNotifierProvider
                                                     .select((value) =>
                                                         value.locale),
                                               ),
-                                              decimalPlaces: Constants
-                                                  .decimalPlacesForCoin(coin),
-                                            )} ${coin.ticker}",
+                                            )} $unit",
                                             style: isDesktop
                                                 ? STextStyles
                                                         .desktopTextExtraExtraSmall(
@@ -463,23 +471,26 @@ class _TransactionDetailsViewState
                                                   .select((value) =>
                                                       value.externalCalls)))
                                             SelectableText(
-                                              "$amountPrefix${Format.localizedStringAsFixed(
-                                                value: amount *
-                                                    ref.watch(
-                                                      priceAnd24hChangeNotifierProvider
-                                                          .select((value) =>
-                                                              value
-                                                                  .getPrice(
-                                                                      coin)
-                                                                  .item1),
+                                              "$amountPrefix${(amount.decimal * ref.watch(
+                                                        priceAnd24hChangeNotifierProvider.select(
+                                                            (value) => isTokenTx
+                                                                ? value
+                                                                    .getTokenPrice(
+                                                                        _transaction
+                                                                            .otherData!)
+                                                                    .item1
+                                                                : value
+                                                                    .getPrice(
+                                                                        coin)
+                                                                    .item1),
+                                                      )).toAmount(fractionDigits: 2).localizedStringAsFixed(
+                                                    locale: ref.watch(
+                                                      localeServiceChangeNotifierProvider
+                                                          .select(
+                                                        (value) => value.locale,
+                                                      ),
                                                     ),
-                                                locale: ref.watch(
-                                                  localeServiceChangeNotifierProvider
-                                                      .select((value) =>
-                                                          value.locale),
-                                                ),
-                                                decimalPlaces: 2,
-                                              )} ${ref.watch(
+                                                  )} ${ref.watch(
                                                 prefsChangeNotifierProvider
                                                     .select(
                                                   (value) => value.currency,
@@ -873,29 +884,28 @@ class _TransactionDetailsViewState
                                   ? const EdgeInsets.all(16)
                                   : const EdgeInsets.all(12),
                               child: Builder(builder: (context) {
-                                final feeString = showFeePending
+                                String feeString = showFeePending
                                     ? _transaction.isConfirmed(
                                         currentHeight,
                                         coin.requiredConfirmations,
                                       )
-                                        ? Format.localizedStringAsFixed(
-                                            value: fee,
+                                        ? fee.localizedStringAsFixed(
                                             locale: ref.watch(
-                                                localeServiceChangeNotifierProvider
-                                                    .select((value) =>
-                                                        value.locale)),
-                                            decimalPlaces:
-                                                Constants.decimalPlacesForCoin(
-                                                    coin))
+                                              localeServiceChangeNotifierProvider
+                                                  .select(
+                                                      (value) => value.locale),
+                                            ),
+                                          )
                                         : "Pending"
-                                    : Format.localizedStringAsFixed(
-                                        value: fee,
+                                    : fee.localizedStringAsFixed(
                                         locale: ref.watch(
-                                            localeServiceChangeNotifierProvider
-                                                .select(
-                                                    (value) => value.locale)),
-                                        decimalPlaces:
-                                            Constants.decimalPlacesForCoin(coin));
+                                          localeServiceChangeNotifierProvider
+                                              .select((value) => value.locale),
+                                        ),
+                                      );
+                                if (isTokenTx) {
+                                  feeString += " ${coin.ticker}";
+                                }
 
                                 return Row(
                                   mainAxisAlignment:
@@ -1048,6 +1058,46 @@ class _TransactionDetailsViewState
                                 );
                               }),
                             ),
+                            if (coin == Coin.ethereum)
+                              isDesktop
+                                  ? const _Divider()
+                                  : const SizedBox(
+                                      height: 12,
+                                    ),
+                            if (coin == Coin.ethereum)
+                              RoundedWhiteContainer(
+                                padding: isDesktop
+                                    ? const EdgeInsets.all(16)
+                                    : const EdgeInsets.all(12),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Nonce",
+                                      style: isDesktop
+                                          ? STextStyles
+                                              .desktopTextExtraExtraSmall(
+                                                  context)
+                                          : STextStyles.itemSubtitle(context),
+                                    ),
+                                    SelectableText(
+                                      _transaction.nonce.toString(),
+                                      style: isDesktop
+                                          ? STextStyles
+                                                  .desktopTextExtraExtraSmall(
+                                                      context)
+                                              .copyWith(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textDark,
+                                            )
+                                          : STextStyles.itemSubtitle12(context),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             isDesktop
                                 ? const _Divider()
                                 : const SizedBox(
@@ -1137,18 +1187,20 @@ class _TransactionDetailsViewState
                                                       .externalApplication,
                                                 );
                                               } catch (_) {
-                                                unawaited(
-                                                  showDialog<void>(
-                                                    context: context,
-                                                    builder: (_) =>
-                                                        StackOkDialog(
-                                                      title:
-                                                          "Could not open in block explorer",
-                                                      message:
-                                                          "Failed to open \"${uri.toString()}\"",
+                                                if (mounted) {
+                                                  unawaited(
+                                                    showDialog<void>(
+                                                      context: context,
+                                                      builder: (_) =>
+                                                          StackOkDialog(
+                                                        title:
+                                                            "Could not open in block explorer",
+                                                        message:
+                                                            "Failed to open \"${uri.toString()}\"",
+                                                      ),
                                                     ),
-                                                  ),
-                                                );
+                                                  );
+                                                }
                                               } finally {
                                                 // Future<void>.delayed(
                                                 //   const Duration(seconds: 1),
@@ -1454,13 +1506,15 @@ class IconCopyButton extends StatelessWidget {
         ),
         onPressed: () async {
           await Clipboard.setData(ClipboardData(text: data));
-          unawaited(
-            showFloatingFlushBar(
-              type: FlushBarType.info,
-              message: "Copied to clipboard",
-              context: context,
-            ),
-          );
+          if (context.mounted) {
+            unawaited(
+              showFloatingFlushBar(
+                type: FlushBarType.info,
+                message: "Copied to clipboard",
+                context: context,
+              ),
+            );
+          }
         },
         child: Padding(
           padding: const EdgeInsets.all(5),

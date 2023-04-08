@@ -3,12 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/main_db.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
+import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -239,12 +240,13 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                               width: 16,
                             ),
                           Text(
-                            "${Format.satoshisToAmount(
-                              utxo!.value,
-                              coin: coin,
-                            ).toStringAsFixed(
-                              coin.decimals,
-                            )} ${coin.ticker}",
+                            "${utxo!.value.toAmountAsRaw(fractionDigits: coin.decimals).localizedStringAsFixed(
+                                  locale: ref.watch(
+                                    localeServiceChangeNotifierProvider.select(
+                                      (value) => value.locale,
+                                    ),
+                                  ),
+                                )} ${coin.ticker}",
                             style: STextStyles.pageTitleH2(context),
                           ),
                         ],

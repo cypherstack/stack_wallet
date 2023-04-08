@@ -1,4 +1,4 @@
-import 'package:stackwallet/db/main_db.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 
 mixin WalletDB {
   MainDB? _db;

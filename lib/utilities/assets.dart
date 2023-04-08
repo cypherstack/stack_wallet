@@ -272,6 +272,10 @@ class _SVG {
   String get whirlPool => "assets/svg/whirlpool.svg";
   String get fingerprint => "assets/svg/fingerprint.svg";
   String get faceId => "assets/svg/faceid.svg";
+  String get tokens => "assets/svg/tokens.svg";
+  String get circlePlusDark => "assets/svg/circle-plus.svg";
+  String get creditCard => "assets/svg/cc.svg";
+
   String get ellipse1 => "assets/svg/Ellipse-43.svg";
   String get ellipse2 => "assets/svg/Ellipse-42.svg";
   String get chevronRight => "assets/svg/chevron-right.svg";
@@ -295,11 +299,14 @@ class _SVG {
   String get bitcoincash => "assets/svg/coin_icons/Bitcoincash.svg";
   String get dogecoin => "assets/svg/coin_icons/Dogecoin.svg";
   String get epicCash => "assets/svg/coin_icons/EpicCash.svg";
+  String get ethereum => "assets/svg/coin_icons/Ethereum.svg";
   String get firo => "assets/svg/coin_icons/Firo.svg";
   String get monero => "assets/svg/coin_icons/Monero.svg";
   String get wownero => "assets/svg/coin_icons/Wownero.svg";
   String get namecoin => "assets/svg/coin_icons/Namecoin.svg";
   String get particl => "assets/svg/coin_icons/Particl.svg";
+
+  String get bnbIcon => "assets/svg/coin_icons/bnb_icon.svg";
 
   String iconFor({required Coin coin}) {
     switch (coin) {
@@ -314,6 +321,8 @@ class _SVG {
         return dogecoin;
       case Coin.epicCash:
         return epicCash;
+      case Coin.ethereum:
+        return ethereum;
       case Coin.firo:
         return firo;
       case Coin.monero:
@@ -342,6 +351,8 @@ class _SVG {
   String dogecoinImage(BuildContext context) => "${_path(context)}/doge.svg";
   String epicCashImage(BuildContext context) =>
       "${_path(context)}/epic-cash.svg";
+  String ethereumImage(BuildContext context) =>
+      "${_path(context)}/ethereum.svg";
   String firoImage(BuildContext context) => "${_path(context)}/firo.svg";
   String litecoinImage(BuildContext context) =>
       "${_path(context)}/litecoin.svg";
@@ -382,6 +393,8 @@ class _SVG {
         return firoImage(context);
       case Coin.dogecoinTestNet:
         return dogecoinImage(context);
+      case Coin.ethereum:
+        return ethereumImage(context);
     }
   }
 }

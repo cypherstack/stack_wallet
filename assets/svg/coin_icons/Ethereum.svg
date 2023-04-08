@@ -1,0 +1,21 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_7503_3080)">
+<circle cx="12" cy="12" r="12" fill="#CDD4F0"/>
+<g clip-path="url(#clip1_7503_3080)">
+<path d="M11.9999 16.4938V21L6.59961 13.2179L11.9999 16.4938Z" fill="#8A92B2"/>
+<path d="M17.3997 13.2186L12 21V16.4939L17.3997 13.2186Z" fill="#62688F"/>
+<path d="M11.9993 3V9.6401L7.21816 11.8643L6.63477 12.1357L6.79429 11.8643L9.44041 7.35817L11.9993 3Z" fill="#8A92B2"/>
+<path d="M17.3639 12.1357L16.7805 11.8643L12 9.6401V3L14.5589 7.35817L17.2043 11.8643L17.3639 12.1357Z" fill="#62688F"/>
+<path d="M17.3639 12.1357L12 15.3977V9.64014L16.7805 11.8643L17.3639 12.1357Z" fill="#454A75"/>
+<path d="M11.9993 9.64014V15.3977L6.63477 12.1357L7.21816 11.8643L11.9993 9.64014Z" fill="#62688F"/>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_7503_3080">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+<clipPath id="clip1_7503_3080">
+<rect width="10.8" height="18" fill="white" transform="translate(6.59961 3)"/>
+</clipPath>
+</defs>
+</svg>

@@ -3,12 +3,12 @@ import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/exceptions/main_db/main_db_exception.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:tuple/tuple.dart';
 
-part 'queries/queries.dart';
+part '../queries/queries.dart';
 
 class MainDB {
   MainDB._();
@@ -32,6 +32,7 @@ class MainDB {
         UTXOSchema,
         AddressSchema,
         AddressLabelSchema,
+        EthContractSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       // inspector: kDebugMode,
@@ -395,4 +396,26 @@ class MainDB {
       throw MainDBException("failed addNewTransactionData", e);
     }
   }
+
+  // ========== Ethereum =======================================================
+
+  // eth contracts
+
+  QueryBuilder<EthContract, EthContract, QWhere> getEthContracts() =>
+      isar.ethContracts.where();
+
+  Future<EthContract?> getEthContract(String contractAddress) =>
+      isar.ethContracts.where().addressEqualTo(contractAddress).findFirst();
+
+  EthContract? getEthContractSync(String contractAddress) =>
+      isar.ethContracts.where().addressEqualTo(contractAddress).findFirstSync();
+
+  Future<int> putEthContract(EthContract contract) => isar.writeTxn(() async {
+        return await isar.ethContracts.put(contract);
+      });
+
+  Future<void> putEthContracts(List<EthContract> contracts) =>
+      isar.writeTxn(() async {
+        await isar.ethContracts.putAll(contracts);
+      });
 }

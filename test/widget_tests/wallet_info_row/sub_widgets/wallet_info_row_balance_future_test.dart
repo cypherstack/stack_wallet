@@ -51,7 +51,7 @@ void main() {
         (realInvocation) => ChangeNotifierProvider((ref) => manager));
 
     const walletInfoRowBalance =
-        WalletInfoRowBalanceFuture(walletId: "some-wallet-id");
+        WalletInfoRowBalance(walletId: "some-wallet-id");
     await widgetTester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -76,6 +76,6 @@ void main() {
 
     await widgetTester.pumpAndSettle();
 
-    expect(find.byType(WalletInfoRowBalanceFuture), findsOneWidget);
+    expect(find.byType(WalletInfoRowBalance), findsOneWidget);
   });
 }

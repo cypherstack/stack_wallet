@@ -180,9 +180,9 @@ class ForestColors extends StackColorTheme {
   Color get bottomNavIconIcon => const Color(0xFF22867A);
 
   @override
-  Color get topNavIconPrimary => const Color(0xFF227386);
+  Color get topNavIconPrimary => accentColorDark; //const Color(0xFF227386);
   @override
-  Color get topNavIconGreen => const Color(0xFF00A591);
+  Color get topNavIconGreen => accentColorDark; //const Color(0xFF00A591);
   @override
   Color get topNavIconYellow => const Color(0xFFFDD33A);
   @override

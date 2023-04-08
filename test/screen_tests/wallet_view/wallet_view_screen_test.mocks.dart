@@ -210,6 +210,11 @@ class MockManager extends _i1.Mock implements _i5.Manager {
         returnValue: false,
       ) as bool);
   @override
+  bool get hasTokenSupport => (super.noSuchMethod(
+        Invocation.getter(#hasTokenSupport),
+        returnValue: false,
+      ) as bool);
+  @override
   bool get hasWhirlpoolSupport => (super.noSuchMethod(
         Invocation.getter(#hasWhirlpoolSupport),
         returnValue: false,
@@ -244,7 +249,7 @@ class MockManager extends _i1.Mock implements _i5.Manager {
   @override
   _i7.Future<Map<String, dynamic>> prepareSend({
     required String? address,
-    required int? satoshiAmount,
+    required int? amount,
     Map<String, dynamic>? args,
   }) =>
       (super.noSuchMethod(
@@ -253,7 +258,7 @@ class MockManager extends _i1.Mock implements _i5.Manager {
           [],
           {
             #address: address,
-            #satoshiAmount: satoshiAmount,
+            #satoshiAmount: amount,
             #args: args,
           },
         ),

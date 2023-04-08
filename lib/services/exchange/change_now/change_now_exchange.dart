@@ -82,10 +82,11 @@ class ChangeNowExchange extends Exchange {
   Future<ExchangeResponse<List<Currency>>> getAllCurrencies(
     bool fixedRate,
   ) async {
-    return await ChangeNowAPI.instance.getAvailableCurrencies(
-      fixedRate: fixedRate ? true : null,
-      active: true,
-    );
+    return await ChangeNowAPI.instance.getCurrenciesV2();
+    // return await ChangeNowAPI.instance.getAvailableCurrencies(
+    //   fixedRate: fixedRate ? true : null,
+    //   active: true,
+    // );
   }
 
   @override

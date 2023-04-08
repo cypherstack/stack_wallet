@@ -11,7 +11,7 @@ import 'package:crypto/crypto.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/main_db.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/balance.dart';
@@ -31,6 +31,7 @@ import 'package:stackwallet/services/mixins/xpubable.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -46,7 +47,10 @@ import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
 const int MINIMUM_CONFIRMATIONS = 1;
-const int DUST_LIMIT = 294;
+final Amount DUST_LIMIT = Amount(
+  rawValue: BigInt.from(294),
+  fractionDigits: Coin.particl.decimals,
+);
 
 const String GENESIS_HASH_MAINNET =
     "0000ee0784c195317ac95623e22fddb8c7b8825dc3998e0bb924d66866eccf4c";
@@ -945,7 +949,7 @@ class ParticlWallet extends CoinServiceAPI
   @override
   Future<Map<String, dynamic>> prepareSend({
     required String address,
-    required int satoshiAmount,
+    required Amount amount,
     Map<String, dynamic>? args,
   }) async {
     try {
@@ -975,14 +979,14 @@ class ParticlWallet extends CoinServiceAPI
 
         // check for send all
         bool isSendAll = false;
-        if (satoshiAmount == balance.spendable) {
+        if (amount == balance.spendable) {
           isSendAll = true;
         }
 
         final bool coinControl = utxos != null;
 
         final txData = await coinSelection(
-          satoshiAmountToSend: satoshiAmount,
+          satoshiAmountToSend: amount.raw.toInt(),
           selectedTxFeeRate: rate,
           recipientAddress: address,
           isSendAll: isSendAll,
@@ -1161,13 +1165,16 @@ class ParticlWallet extends CoinServiceAPI
       timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
       type: isar_models.TransactionType.outgoing,
       subType: isar_models.TransactionSubType.none,
-      amount: txData["recipientAmt"] as int,
+      // precision may be lost here hence the following amountString
+      amount: (txData["recipientAmt"] as Amount).raw.toInt(),
+      amountString: (txData["recipientAmt"] as Amount).toJsonString(),
       fee: txData["fee"] as int,
       height: null,
       isCancelled: false,
       isLelantus: false,
       otherData: null,
       slateId: null,
+      nonce: null,
       inputs: [],
       outputs: [],
     );
@@ -1324,9 +1331,18 @@ class ParticlWallet extends CoinServiceAPI
         numberOfBlocksFast: f,
         numberOfBlocksAverage: m,
         numberOfBlocksSlow: s,
-        fast: Format.decimalAmountToSatoshis(fast, coin),
-        medium: Format.decimalAmountToSatoshis(medium, coin),
-        slow: Format.decimalAmountToSatoshis(slow, coin),
+        fast: Amount.fromDecimal(
+          fast,
+          fractionDigits: coin.decimals,
+        ).raw.toInt(),
+        medium: Amount.fromDecimal(
+          medium,
+          fractionDigits: coin.decimals,
+        ).raw.toInt(),
+        slow: Amount.fromDecimal(
+          slow,
+          fractionDigits: coin.decimals,
+        ).raw.toInt(),
       );
 
       Logging.instance.log("fetched fees: $feeObject", level: LogLevel.Info);
@@ -2338,10 +2354,10 @@ class ParticlWallet extends CoinServiceAPI
               json["scriptPubKey"]?["addresses"]?[0] as String? ??
                   json['scriptPubKey']?['type'] as String? ??
                   "",
-          value: Format.decimalAmountToSatoshis(
+          value: Amount.fromDecimal(
             Decimal.parse((json["value"] ?? 0).toString()),
-            coin,
-          ),
+            fractionDigits: coin.decimals,
+          ).raw.toInt(),
         );
         outputs.add(output);
       }
@@ -2353,12 +2369,17 @@ class ParticlWallet extends CoinServiceAPI
         type: type,
         subType: isar_models.TransactionSubType.none,
         amount: amount,
+        amountString: Amount(
+          rawValue: BigInt.from(amount),
+          fractionDigits: coin.decimals,
+        ).toJsonString(),
         fee: fee,
         height: txObject["height"] as int,
         inputs: inputs,
         outputs: outputs,
         isCancelled: false,
         isLelantus: false,
+        nonce: null,
         slateId: null,
         otherData: null,
       );
@@ -2504,8 +2525,11 @@ class ParticlWallet extends CoinServiceAPI
         feeRatePerKB: selectedTxFeeRate,
       );
 
-      final int roughEstimate =
-          roughFeeEstimate(spendableOutputs.length, 1, selectedTxFeeRate);
+      final int roughEstimate = roughFeeEstimate(
+        spendableOutputs.length,
+        1,
+        selectedTxFeeRate,
+      ).raw.toInt();
       if (feeForOneOutput < roughEstimate) {
         feeForOneOutput = roughEstimate;
       }
@@ -2562,7 +2586,7 @@ class ParticlWallet extends CoinServiceAPI
 
     if (satoshisBeingUsed - satoshiAmountToSend > feeForOneOutput) {
       if (satoshisBeingUsed - satoshiAmountToSend >
-          feeForOneOutput + DUST_LIMIT) {
+          feeForOneOutput + DUST_LIMIT.raw.toInt()) {
         // Here, we know that theoretically, we may be able to include another output(change) but we first need to
         // factor in the value of this output in satoshis.
         int changeOutputSize =
@@ -2570,7 +2594,7 @@ class ParticlWallet extends CoinServiceAPI
         // We check to see if the user can pay for the new transaction with 2 outputs instead of one. If they can and
         // the second output's size > DUST_LIMIT satoshis, we perform the mechanics required to properly generate and use a new
         // change address.
-        if (changeOutputSize > DUST_LIMIT &&
+        if (changeOutputSize > DUST_LIMIT.raw.toInt() &&
             satoshisBeingUsed - satoshiAmountToSend - changeOutputSize ==
                 feeForTwoOutputs) {
           // generate new change address if current change address has been used
@@ -3271,22 +3295,28 @@ class ParticlWallet extends CoinServiceAPI
       (isActive) => this.isActive = isActive;
 
   @override
-  Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
+  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
     final available = balance.spendable;
 
-    if (available == satoshiAmount) {
-      return satoshiAmount - (await sweepAllEstimate(feeRate));
-    } else if (satoshiAmount <= 0 || satoshiAmount > available) {
+    if (available == amount) {
+      return amount - (await sweepAllEstimate(feeRate));
+    } else if (amount <= Amount.zero || amount > available) {
       return roughFeeEstimate(1, 2, feeRate);
     }
 
-    int runningBalance = 0;
+    Amount runningBalance = Amount(
+      rawValue: BigInt.zero,
+      fractionDigits: coin.decimals,
+    );
     int inputCount = 0;
     for (final output in (await utxos)) {
       if (!output.isBlocked) {
-        runningBalance += output.value;
+        runningBalance += Amount(
+          rawValue: BigInt.from(output.value),
+          fractionDigits: coin.decimals,
+        );
         inputCount++;
-        if (runningBalance > satoshiAmount) {
+        if (runningBalance > amount) {
           break;
         }
       }
@@ -3295,31 +3325,35 @@ class ParticlWallet extends CoinServiceAPI
     final oneOutPutFee = roughFeeEstimate(inputCount, 1, feeRate);
     final twoOutPutFee = roughFeeEstimate(inputCount, 2, feeRate);
 
-    if (runningBalance - satoshiAmount > oneOutPutFee) {
-      if (runningBalance - satoshiAmount > oneOutPutFee + DUST_LIMIT) {
-        final change = runningBalance - satoshiAmount - twoOutPutFee;
+    if (runningBalance - amount > oneOutPutFee) {
+      if (runningBalance - amount > oneOutPutFee + DUST_LIMIT) {
+        final change = runningBalance - amount - twoOutPutFee;
         if (change > DUST_LIMIT &&
-            runningBalance - satoshiAmount - change == twoOutPutFee) {
-          return runningBalance - satoshiAmount - change;
+            runningBalance - amount - change == twoOutPutFee) {
+          return runningBalance - amount - change;
         } else {
-          return runningBalance - satoshiAmount;
+          return runningBalance - amount;
         }
       } else {
-        return runningBalance - satoshiAmount;
+        return runningBalance - amount;
       }
-    } else if (runningBalance - satoshiAmount == oneOutPutFee) {
+    } else if (runningBalance - amount == oneOutPutFee) {
       return oneOutPutFee;
     } else {
       return twoOutPutFee;
     }
   }
 
-  int roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
-    return ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
-        (feeRatePerKB / 1000).ceil();
+  Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
+    return Amount(
+      rawValue: BigInt.from(
+          ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
+              (feeRatePerKB / 1000).ceil()),
+      fractionDigits: coin.decimals,
+    );
   }
 
-  Future<int> sweepAllEstimate(int feeRate) async {
+  Future<Amount> sweepAllEstimate(int feeRate) async {
     int available = 0;
     int inputCount = 0;
     for (final output in (await utxos)) {
@@ -3333,7 +3367,11 @@ class ParticlWallet extends CoinServiceAPI
     // transaction will only have 1 output minus the fee
     final estimatedFee = roughFeeEstimate(inputCount, 1, feeRate);
 
-    return available - estimatedFee;
+    return Amount(
+          rawValue: BigInt.from(available),
+          fractionDigits: coin.decimals,
+        ) -
+        estimatedFee;
   }
 
   @override

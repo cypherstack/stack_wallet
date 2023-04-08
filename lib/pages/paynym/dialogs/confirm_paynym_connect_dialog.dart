@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -17,25 +16,22 @@ class ConfirmPaynymConnectDialog extends StatelessWidget {
   const ConfirmPaynymConnectDialog({
     Key? key,
     required this.nymName,
+    required this.locale,
     required this.onConfirmPressed,
     required this.amount,
     required this.coin,
   }) : super(key: key);
 
   final String nymName;
+  final String locale;
   final VoidCallback onConfirmPressed;
-  final int amount;
+  final Amount amount;
   final Coin coin;
 
   String get title => "Connect to $nymName";
 
   String get message => "A one-time connection fee of "
-      "${Format.satoshisToAmount(
-        amount,
-        coin: coin,
-      ).toStringAsFixed(
-        Constants.decimalPlacesForCoin(coin),
-      )} ${coin.ticker} "
+      "${amount.localizedStringAsFixed(locale: locale)} ${coin.ticker} "
       "will be charged to connect to this PayNym.\n\nThis fee "
       "covers the cost of creating a one-time transaction to create a "
       "record on the blockchain. This keeps PayNyms decentralized.";

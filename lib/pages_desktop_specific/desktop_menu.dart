@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -225,19 +227,20 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       controller: controllers[7],
                     ),
                     const Spacer(),
-                    DesktopMenuItem(
-                      duration: duration,
-                      labelLength: 123,
-                      icon: const DesktopExitIcon(),
-                      label: "Exit",
-                      value: 7,
-                      onChanged: (_) {
-                        // todo: save stuff/ notify before exit?
-                        // exit(0);
-                        SystemNavigator.pop();
-                      },
-                      controller: controllers[8],
-                    ),
+                    if (!Platform.isIOS)
+                      DesktopMenuItem(
+                        duration: duration,
+                        labelLength: 123,
+                        icon: const DesktopExitIcon(),
+                        label: "Exit",
+                        value: 7,
+                        onChanged: (_) {
+                          // todo: save stuff/ notify before exit?
+                          // exit(0);
+                          SystemNavigator.pop();
+                        },
+                        controller: controllers[8],
+                      ),
                   ],
                 ),
               ),

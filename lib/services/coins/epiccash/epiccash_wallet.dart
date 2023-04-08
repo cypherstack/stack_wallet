@@ -9,7 +9,7 @@ import 'package:flutter_libepiccash/epic_cash.dart';
 import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
-import 'package:stackwallet/db/main_db.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/epicbox_config_model.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
@@ -27,12 +27,12 @@ import 'package:stackwallet/services/mixins/epic_cash_hive.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_epicboxes.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
@@ -856,20 +856,23 @@ class EpicCashWallet extends CoinServiceAPI
       );
 
   @override
-  Future<Map<String, dynamic>> prepareSend(
-      {required String address,
-      required int satoshiAmount,
-      Map<String, dynamic>? args}) async {
+  Future<Map<String, dynamic>> prepareSend({
+    required String address,
+    required Amount amount,
+    Map<String, dynamic>? args,
+  }) async {
     try {
-      int realfee = await nativeFee(satoshiAmount);
-      if (balance.spendable == satoshiAmount) {
-        satoshiAmount = balance.spendable - realfee;
+      int satAmount = amount.raw.toInt();
+      int realfee = await nativeFee(satAmount);
+
+      if (balance.spendable == amount) {
+        satAmount = balance.spendable.raw.toInt() - realfee;
       }
 
       Map<String, dynamic> txData = {
         "fee": realfee,
         "addresss": address,
-        "recipientAmt": satoshiAmount,
+        "recipientAmt": satAmount,
       };
 
       Logging.instance.log("prepare send: $txData", level: LogLevel.Info);
@@ -1739,12 +1742,17 @@ class EpicCashWallet extends CoinServiceAPI
             : isar_models.TransactionType.outgoing,
         subType: isar_models.TransactionSubType.none,
         amount: amt,
+        amountString: Amount(
+          rawValue: BigInt.from(amt),
+          fractionDigits: coin.decimals,
+        ).toJsonString(),
         fee: (tx["fee"] == null) ? 0 : int.parse(tx["fee"] as String),
         height: height,
         isCancelled: tx["tx_type"] == "TxSentCancelled" ||
             tx["tx_type"] == "TxReceivedCancelled",
         isLelantus: false,
         slateId: slateId,
+        nonce: null,
         otherData: tx["id"].toString(),
         inputs: [],
         outputs: [],
@@ -1933,9 +1941,13 @@ class EpicCashWallet extends CoinServiceAPI
   bool isActive = false;
 
   @override
-  Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
-    int currentFee = await nativeFee(satoshiAmount, ifErrorEstimateFee: true);
-    return currentFee;
+  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+    int currentFee =
+        await nativeFee(amount.raw.toInt(), ifErrorEstimateFee: true);
+    return Amount(
+      rawValue: BigInt.from(currentFee),
+      fractionDigits: coin.decimals,
+    );
   }
 
   // not used in epic currently
@@ -1967,18 +1979,21 @@ class EpicCashWallet extends CoinServiceAPI
 
     _balance = Balance(
       coin: coin,
-      total: Format.decimalAmountToSatoshis(
+      total: Amount.fromDecimal(
         Decimal.parse(total) + Decimal.parse(awaiting),
-        coin,
+        fractionDigits: coin.decimals,
       ),
-      spendable: Format.decimalAmountToSatoshis(
+      spendable: Amount.fromDecimal(
         Decimal.parse(spendable),
-        coin,
+        fractionDigits: coin.decimals,
       ),
-      blockedTotal: 0,
-      pendingSpendable: Format.decimalAmountToSatoshis(
+      blockedTotal: Amount(
+        rawValue: BigInt.zero,
+        fractionDigits: coin.decimals,
+      ),
+      pendingSpendable: Amount.fromDecimal(
         Decimal.parse(pending),
-        coin,
+        fractionDigits: coin.decimals,
       ),
     );
 

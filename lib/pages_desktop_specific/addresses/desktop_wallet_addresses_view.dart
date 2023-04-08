@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/receive_view/addresses/address_details_view.dart';
 import 'package:stackwallet/pages_desktop_specific/addresses/sub_widgets/desktop_address_list.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -45,8 +45,11 @@ class _DesktopWalletAddressesViewState
 
   @override
   void initState() {
-    addressCollectionWatcher =
-        MainDB.instance.isar.addresses.watchLazy(fireImmediately: true);
+    addressCollectionWatcher = ref
+        .read(mainDBProvider)
+        .isar
+        .addresses
+        .watchLazy(fireImmediately: true);
     addressCollectionWatcher.listen((_) => _onAddressCollectionWatcherEvent());
 
     super.initState();

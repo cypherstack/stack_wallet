@@ -5,6 +5,8 @@ import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart'
     as doge;
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart'
     as epic;
+import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart'
+    as eth;
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as firo;
 import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart'
     as ltc;
@@ -15,13 +17,13 @@ import 'package:stackwallet/services/coins/particl/particl_wallet.dart'
     as particl;
 import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart' as wow;
 import 'package:stackwallet/utilities/constants.dart';
-import 'dart:io' show Platform;
 
 enum Coin {
   bitcoin,
   bitcoincash,
   dogecoin,
   epicCash,
+  ethereum,
   firo,
   litecoin,
   monero,
@@ -57,6 +59,8 @@ extension CoinExt on Coin {
         return "Dogecoin";
       case Coin.epicCash:
         return "Epic Cash";
+      case Coin.ethereum:
+        return "Ethereum";
       case Coin.firo:
         return "Firo";
       case Coin.monero:
@@ -92,6 +96,8 @@ extension CoinExt on Coin {
         return "DOGE";
       case Coin.epicCash:
         return "EPIC";
+      case Coin.ethereum:
+        return "ETH";
       case Coin.firo:
         return "FIRO";
       case Coin.monero:
@@ -128,6 +134,8 @@ extension CoinExt on Coin {
       case Coin.epicCash:
         // TODO: is this actually the right one?
         return "epic";
+      case Coin.ethereum:
+        return "ethereum";
       case Coin.firo:
         return "firo";
       case Coin.monero:
@@ -168,6 +176,7 @@ extension CoinExt on Coin {
         return true;
 
       case Coin.epicCash:
+      case Coin.ethereum:
       case Coin.monero:
       case Coin.wownero:
         return false;
@@ -180,6 +189,7 @@ extension CoinExt on Coin {
       case Coin.litecoin:
       case Coin.bitcoincash:
       case Coin.dogecoin:
+      case Coin.ethereum:
         return true;
 
       case Coin.firo:
@@ -207,6 +217,7 @@ extension CoinExt on Coin {
       case Coin.namecoin:
       case Coin.particl:
       case Coin.epicCash:
+      case Coin.ethereum:
       case Coin.monero:
       case Coin.wownero:
         return false;
@@ -230,6 +241,7 @@ extension CoinExt on Coin {
       case Coin.namecoin:
       case Coin.particl:
       case Coin.epicCash:
+      case Coin.ethereum:
       case Coin.monero:
       case Coin.wownero:
         return this;
@@ -276,6 +288,9 @@ extension CoinExt on Coin {
       case Coin.epicCash:
         return epic.MINIMUM_CONFIRMATIONS;
 
+      case Coin.ethereum:
+        return eth.MINIMUM_CONFIRMATIONS;
+
       case Coin.monero:
         return xmr.MINIMUM_CONFIRMATIONS;
 
@@ -315,6 +330,10 @@ Coin coinFromPrettyName(String name) {
     case "Epic Cash":
     case "epicCash":
       return Coin.epicCash;
+
+    case "Ethereum":
+    case "ethereum":
+      return Coin.ethereum;
 
     case "Firo":
     case "firo":
@@ -385,6 +404,8 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.dogecoin;
     case "epic":
       return Coin.epicCash;
+    case "eth":
+      return Coin.ethereum;
     case "firo":
       return Coin.firo;
     case "xmr":

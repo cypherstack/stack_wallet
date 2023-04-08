@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 
 const double kDesktopAppBarHeight = 96.0;
 const double kDesktopAppBarHeightCompact = 82.0;
@@ -8,6 +9,7 @@ class DesktopAppBar extends StatelessWidget {
     Key? key,
     this.leading,
     this.center,
+    this.overlayCenter,
     this.trailing,
     this.background = Colors.transparent,
     required this.isCompactHeight,
@@ -16,6 +18,7 @@ class DesktopAppBar extends StatelessWidget {
 
   final Widget? leading;
   final Widget? center;
+  final Widget? overlayCenter;
   final Widget? trailing;
   final Color background;
   final bool isCompactHeight;
@@ -43,16 +46,31 @@ class DesktopAppBar extends StatelessWidget {
       items.add(trailing!);
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: background,
+    return ConditionalParent(
+      condition: overlayCenter != null,
+      builder: (child) => Stack(
+        children: [
+          child,
+          Positioned.fill(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [overlayCenter!],
+            ),
+          ),
+        ],
       ),
-      height:
-          isCompactHeight ? kDesktopAppBarHeightCompact : kDesktopAppBarHeight,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: items,
+      child: Container(
+        decoration: BoxDecoration(
+          color: background,
+        ),
+        height: isCompactHeight
+            ? kDesktopAppBarHeightCompact
+            : kDesktopAppBarHeight,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: items,
+        ),
       ),
     );
   }

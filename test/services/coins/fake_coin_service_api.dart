@@ -103,7 +103,7 @@ class FakeCoinServiceAPI extends CoinServiceAPI {
   @override
   Future<Map<String, dynamic>> prepareSend(
       {required String address,
-      required int satoshiAmount,
+      required int amount,
       Map<String, dynamic>? args}) {
     // TODO: implement prepareSend
     throw UnimplementedError();

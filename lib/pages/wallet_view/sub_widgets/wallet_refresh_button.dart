@@ -4,6 +4,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
@@ -18,12 +19,14 @@ class WalletRefreshButton extends ConsumerStatefulWidget {
     Key? key,
     required this.walletId,
     required this.initialSyncStatus,
+    this.tokenContractAddress,
     this.onPressed,
     this.eventBus,
   }) : super(key: key);
 
   final String walletId;
   final WalletSyncStatus initialSyncStatus;
+  final String? tokenContractAddress;
   final VoidCallback? onPressed;
   final EventBus? eventBus;
 
@@ -62,7 +65,21 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton>
     _syncStatusSubscription =
         eventBus.on<WalletSyncStatusChangedEvent>().listen(
       (event) async {
-        if (event.walletId == widget.walletId) {
+        if (event.walletId == widget.walletId &&
+            widget.tokenContractAddress == null) {
+          switch (event.newStatus) {
+            case WalletSyncStatus.unableToSync:
+              _spinController?.stop();
+              break;
+            case WalletSyncStatus.synced:
+              _spinController?.stop();
+              break;
+            case WalletSyncStatus.syncing:
+              unawaited(_spinController?.repeat());
+              break;
+          }
+        } else if (widget.tokenContractAddress != null &&
+            event.walletId == widget.walletId + widget.tokenContractAddress!) {
           switch (event.newStatus) {
             case WalletSyncStatus.unableToSync:
               _spinController?.stop();
@@ -104,16 +121,22 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton>
             : null,
         splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         onPressed: () {
-          final managerProvider = ref
-              .read(walletsChangeNotifierProvider)
-              .getManagerProvider(widget.walletId);
-          final isRefreshing = ref.read(managerProvider).isRefreshing;
-          if (!isRefreshing) {
-            _spinController?.repeat();
-            ref
-                .read(managerProvider)
-                .refresh()
-                .then((_) => _spinController?.stop());
+          if (widget.tokenContractAddress == null) {
+            final managerProvider = ref
+                .read(walletsChangeNotifierProvider)
+                .getManagerProvider(widget.walletId);
+            final isRefreshing = ref.read(managerProvider).isRefreshing;
+            if (!isRefreshing) {
+              _spinController?.repeat();
+              ref
+                  .read(managerProvider)
+                  .refresh()
+                  .then((_) => _spinController?.stop());
+            }
+          } else {
+            if (!ref.read(tokenServiceProvider)!.isRefreshing) {
+              ref.read(tokenServiceProvider)!.refresh();
+            }
           }
         },
         elevation: 0,

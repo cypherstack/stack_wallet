@@ -131,6 +131,7 @@ class MajesticBankExchange extends Exchange {
         rateType: SupportedRateType.both,
         isAvailable: true,
         isStackCoin: Currency.checkIsStackCoin(limit.currency),
+        tokenContract: null,
       );
       currencies.add(currency);
     }

@@ -395,7 +395,7 @@ packages:
     source: hosted
     version: "1.0.0"
   dart_bs58:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: dart_bs58
       sha256: e2fff08fca810d5215f6fca3ea713d8a4a9728aaf1b1658472863b2de7377234
@@ -403,7 +403,7 @@ packages:
     source: hosted
     version: "1.0.1"
   dart_bs58check:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: dart_bs58check
       sha256: "4284e606795a18c1df5a955928bdc4e1b6f908da7ab0e87f49db51b3774e9e6c"
@@ -514,6 +514,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.5"
+  ethereum_addresses:
+    dependency: "direct main"
+    description:
+      name: ethereum_addresses
+      sha256: e6ba01d44ecb9c5634367b017d6e94598fc937be8b28fc406d0e51ed6e9513dd
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.2"
   event_bus:
     dependency: "direct main"
     description:
@@ -794,7 +802,7 @@ packages:
     source: hosted
     version: "2.2.0"
   hex:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: hex
       sha256: "4e7cd54e4b59ba026432a6be2dd9d96e4c5205725194997193bf871703b82c4a"
@@ -942,6 +950,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.8.0"
+  json_rpc_2:
+    dependency: transitive
+    description:
+      name: json_rpc_2
+      sha256: "5e469bffa23899edacb7b22787780068d650b106a21c76db3c49218ab7ca447e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.2"
   jsonrpc2:
     dependency: "direct main"
     description:
@@ -1342,7 +1358,7 @@ packages:
     source: hosted
     version: "4.0.0"
   rational:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: rational
       sha256: ba58e9e18df9abde280e8b10051e4bce85091e41e8e7e411b6cde2e738d357cf
@@ -1579,6 +1595,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.0"
+  string_to_hex:
+    dependency: "direct main"
+    description:
+      name: string_to_hex
+      sha256: "63e5dc1f4821a2449d505033fbd4569f7020ebf30ddffb54d00ebaba8e144a49"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.2"
   string_validator:
     dependency: "direct main"
     description:
@@ -1827,6 +1851,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.2"
+  web3dart:
+    dependency: "direct main"
+    description:
+      name: web3dart
+      sha256: "48b89a5fac0029770a18d1a8bd05ce8431722bacf76184e4301dae05781565e5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.5"
   web_socket_channel:
     dependency: transitive
     description:

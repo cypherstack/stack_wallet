@@ -10,6 +10,7 @@ import 'package:stackwallet/models/exchange/aggregate_currency.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
+import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_coin_selection/exchange_currency_selection_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_1_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_2_view.dart';
@@ -43,10 +44,12 @@ class ExchangeForm extends ConsumerStatefulWidget {
     Key? key,
     this.walletId,
     this.coin,
+    this.contract,
   }) : super(key: key);
 
   final String? walletId;
   final Coin? coin;
+  final EthContract? contract;
 
   @override
   ConsumerState<ExchangeForm> createState() => _ExchangeFormState();
@@ -161,10 +164,16 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     final type = (ref.read(exchangeFormStateProvider).exchangeRateType);
     final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "";
 
-    if (walletInitiated &&
-        fromTicker.toLowerCase() == coin!.ticker.toLowerCase()) {
-      // do not allow changing away from wallet coin
-      return;
+    if (walletInitiated) {
+      if (widget.contract != null &&
+          fromTicker.toLowerCase() == widget.contract!.symbol.toLowerCase()) {
+        return;
+      }
+
+      if (fromTicker.toLowerCase() == coin!.ticker.toLowerCase()) {
+        // do not allow changing away from wallet coin
+        return;
+      }
     }
 
     final selectedCurrency = await _showCurrencySelectionSheet(
@@ -620,7 +629,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         ref.read(exchangeFormStateProvider).reset(shouldNotifyListeners: true);
         ExchangeDataLoadingService.instance
             .getAggregateCurrency(
-          coin!.ticker,
+          widget.contract == null ? coin!.ticker : widget.contract!.symbol,
           ExchangeRateType.estimated,
         )
             .then((value) {
