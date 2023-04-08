@@ -12,6 +12,7 @@ import 'package:stackwallet/services/event_bus/events/global/updated_in_backgrou
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
+import 'package:stackwallet/services/mixins/xpubable.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
@@ -246,5 +247,15 @@ class Manager with ChangeNotifier {
       key: "rescan_on_open_$walletId",
       boxName: DB.boxNameDBInfo,
     );
+  }
+
+  bool get hasXPub => _currentWallet is XPubAble;
+
+  Future<String> get xpub async {
+    if (!hasXPub) {
+      throw Exception(
+          "Tried to read xpub from wallet that does not support it");
+    }
+    return (_currentWallet as XPubAble).xpub;
   }
 }

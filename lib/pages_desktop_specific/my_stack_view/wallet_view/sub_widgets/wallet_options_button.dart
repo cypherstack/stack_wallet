@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:bip32/bip32.dart' as bip32;
-import 'package:bip39/bip39.dart' as bip39;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -12,7 +10,6 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
@@ -33,28 +30,13 @@ enum _WalletOptions {
   }
 }
 
-class WalletOptionsButton extends ConsumerStatefulWidget {
-  const WalletOptionsButton({Key? key, required this.walletId})
-      : super(key: key);
+class WalletOptionsButton extends StatelessWidget {
+  const WalletOptionsButton({
+    Key? key,
+    required this.walletId,
+  }) : super(key: key);
 
   final String walletId;
-
-  @override
-  ConsumerState<WalletOptionsButton> createState() =>
-      _WalletOptionsButtonState();
-}
-
-class _WalletOptionsButtonState extends ConsumerState<WalletOptionsButton> {
-  late final String walletId;
-  late final Coin coin;
-
-  @override
-  void initState() {
-    walletId = widget.walletId;
-    coin = ref.read(walletsChangeNotifierProvider).getManager(walletId).coin;
-
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,12 +63,12 @@ class _WalletOptionsButtonState extends ConsumerState<WalletOptionsButton> {
               onShowXpubPressed: () async {
                 Navigator.of(context).pop(_WalletOptions.showXpub);
               },
-              coin: coin,
+              walletId: walletId,
             );
           },
         );
 
-        if (mounted && func != null) {
+        if (context.mounted && func != null) {
           switch (func) {
             case _WalletOptions.addressList:
               unawaited(
@@ -117,21 +99,12 @@ class _WalletOptionsButtonState extends ConsumerState<WalletOptionsButton> {
               );
 
               if (result == true) {
-                if (mounted) {
+                if (context.mounted) {
                   Navigator.of(context).pop();
                 }
               }
               break;
             case _WalletOptions.showXpub:
-              final List<String> mnemonic = await ref
-                  .read(walletsChangeNotifierProvider)
-                  .getManager(widget.walletId)
-                  .mnemonic;
-
-              final seed = bip39.mnemonicToSeed(mnemonic.join(' '));
-              final node = bip32.BIP32.fromSeed(seed);
-              final xpub = node.neutered().toBase58();
-
               final result = await showDialog<bool?>(
                 context: context,
                 barrierDismissible: false,
@@ -143,7 +116,7 @@ class _WalletOptionsButtonState extends ConsumerState<WalletOptionsButton> {
                       RouteGenerator.generateRoute(
                         RouteSettings(
                           name: DesktopShowXpubDialog.routeName,
-                          arguments: xpub,
+                          arguments: walletId,
                         ),
                       ),
                     ];
@@ -152,7 +125,7 @@ class _WalletOptionsButtonState extends ConsumerState<WalletOptionsButton> {
               );
 
               if (result == true) {
-                if (mounted) {
+                if (context.mounted) {
                   Navigator.of(context).pop();
                 }
               }
@@ -182,24 +155,24 @@ class _WalletOptionsButtonState extends ConsumerState<WalletOptionsButton> {
   }
 }
 
-class WalletOptionsPopupMenu extends StatelessWidget {
+class WalletOptionsPopupMenu extends ConsumerWidget {
   const WalletOptionsPopupMenu({
     Key? key,
     required this.onDeletePressed,
     required this.onAddressListPressed,
     required this.onShowXpubPressed,
-    required this.coin,
+    required this.walletId,
   }) : super(key: key);
 
   final VoidCallback onDeletePressed;
   final VoidCallback onAddressListPressed;
   final VoidCallback onShowXpubPressed;
-  final Coin coin;
+  final String walletId;
 
   @override
-  Widget build(BuildContext context) {
-    final bool xpubEnabled =
-        coin != Coin.monero && coin != Coin.epicCash && coin != Coin.wownero;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bool xpubEnabled = ref.watch(walletsChangeNotifierProvider
+        .select((value) => value.getManager(walletId).hasXPub));
 
     return Stack(
       children: [
