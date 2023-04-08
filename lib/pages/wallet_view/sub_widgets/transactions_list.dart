@@ -252,6 +252,7 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
             },
             child: Util.isDesktop
                 ? ListView.separated(
+                    shrinkWrap: true,
                     itemBuilder: (context, index) {
                       BorderRadius? radius;
                       if (_transactions2.length == 1) {

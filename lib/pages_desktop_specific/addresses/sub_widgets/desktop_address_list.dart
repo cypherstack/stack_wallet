@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/receive_view/addresses/address_card.dart';
 import 'package:stackwallet/pages_desktop_specific/addresses/desktop_wallet_addresses_view.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -41,7 +41,8 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
 
   List<Id> _search(String term) {
     if (term.isEmpty) {
-      return MainDB.instance
+      return ref
+          .read(mainDBProvider)
           .getAddresses(widget.walletId)
           .filter()
           .group((q) => q
@@ -60,7 +61,8 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
           .findAllSync();
     }
 
-    final labels = MainDB.instance
+    final labels = ref
+        .read(mainDBProvider)
         .getAddressLabels(widget.walletId)
         .filter()
         .group(
@@ -82,7 +84,8 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
       return [];
     }
 
-    return MainDB.instance
+    return ref
+        .read(mainDBProvider)
         .getAddresses(widget.walletId)
         .filter()
         .anyOf<AddressLabel, Address>(

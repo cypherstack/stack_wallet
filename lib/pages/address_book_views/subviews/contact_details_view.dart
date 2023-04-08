@@ -27,7 +27,7 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/transaction_card.dart';
 import 'package:tuple/tuple.dart';
 
-import '../../../db/main_db.dart';
+import '../../../db/isar/main_db.dart';
 
 class ContactDetailsView extends ConsumerStatefulWidget {
   const ContactDetailsView({

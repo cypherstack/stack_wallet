@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages_desktop_specific/password/create_password_view.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';

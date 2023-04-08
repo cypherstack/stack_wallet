@@ -12,6 +12,7 @@ class RoundedContainer extends StatelessWidget {
     this.width,
     this.height,
     this.borderColor,
+    this.hoverColor,
     this.boxShadow,
     this.onPressed,
   }) : super(key: key);
@@ -23,6 +24,7 @@ class RoundedContainer extends StatelessWidget {
   final double? width;
   final double? height;
   final Color? borderColor;
+  final Color? hoverColor;
   final List<BoxShadow>? boxShadow;
   final VoidCallback? onPressed;
 
@@ -32,6 +34,7 @@ class RoundedContainer extends StatelessWidget {
       condition: onPressed != null,
       builder: (child) => RawMaterialButton(
         fillColor: color,
+        hoverColor: hoverColor,
         elevation: 0,
         highlightElevation: 0,
         disabledElevation: 0,

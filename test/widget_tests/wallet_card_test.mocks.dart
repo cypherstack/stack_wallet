@@ -13,7 +13,7 @@ import 'package:bitcoindart/bitcoindart.dart' as _i13;
 import 'package:flutter/foundation.dart' as _i4;
 import 'package:flutter_riverpod/flutter_riverpod.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/db/main_db.dart' as _i12;
+import 'package:stackwallet/db/isar/main_db.dart' as _i12;
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i10;
 import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i9;
 import 'package:stackwallet/models/balance.dart' as _i11;
@@ -749,7 +749,7 @@ class MockBitcoinWallet extends _i1.Mock implements _i23.BitcoinWallet {
   @override
   _i20.Future<Map<String, dynamic>> prepareSend({
     required String? address,
-    required int? satoshiAmount,
+    required int? amount,
     Map<String, dynamic>? args,
   }) =>
       (super.noSuchMethod(
@@ -758,7 +758,7 @@ class MockBitcoinWallet extends _i1.Mock implements _i23.BitcoinWallet {
           [],
           {
             #address: address,
-            #satoshiAmount: satoshiAmount,
+            #satoshiAmount: amount,
             #args: args,
           },
         ),
@@ -1182,6 +1182,25 @@ class MockBitcoinWallet extends _i1.Mock implements _i23.BitcoinWallet {
         returnValueForMissingStub: _i20.Future<void>.value(),
       ) as _i20.Future<void>);
   @override
+  List<String> getWalletTokenContractAddresses() => (super.noSuchMethod(
+        Invocation.method(
+          #getWalletTokenContractAddresses,
+          [],
+        ),
+        returnValue: <String>[],
+      ) as List<String>);
+  @override
+  _i20.Future<void> updateWalletTokenContractAddresses(
+          List<String>? contractAddresses) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateWalletTokenContractAddresses,
+          [contractAddresses],
+        ),
+        returnValue: _i20.Future<void>.value(),
+        returnValueForMissingStub: _i20.Future<void>.value(),
+      ) as _i20.Future<void>);
+  @override
   void initWalletDB({_i12.MainDB? mockableOverride}) => super.noSuchMethod(
         Invocation.method(
           #initWalletDB,
@@ -1427,7 +1446,7 @@ class MockBitcoinWallet extends _i1.Mock implements _i23.BitcoinWallet {
   @override
   _i20.Future<Map<String, dynamic>> preparePaymentCodeSend({
     required _i17.PaymentCode? paymentCode,
-    required int? satoshiAmount,
+    required int? amount,
     Map<String, dynamic>? args,
   }) =>
       (super.noSuchMethod(
@@ -1436,7 +1455,7 @@ class MockBitcoinWallet extends _i1.Mock implements _i23.BitcoinWallet {
           [],
           {
             #paymentCode: paymentCode,
-            #satoshiAmount: satoshiAmount,
+            #satoshiAmount: amount,
             #args: args,
           },
         ),

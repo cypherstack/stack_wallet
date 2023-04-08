@@ -12,8 +12,10 @@ import 'package:stackwallet/pages/paynym/dialogs/confirm_paynym_connect_dialog.d
 import 'package:stackwallet/pages/paynym/subwidgets/paynym_bot.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/paynym/desktop_paynym_send_dialog.dart';
+import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -102,6 +104,7 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
         context: context,
         builder: (context) => ConfirmPaynymConnectDialog(
           nymName: widget.accountLite.nymName,
+          locale: ref.read(localeServiceChangeNotifierProvider).locale,
           onConfirmPressed: () {
             Navigator.of(context, rootNavigator: true).pop();
             unawaited(
@@ -139,7 +142,10 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
               ),
             );
           },
-          amount: (preparedTx["amount"] as int) + (preparedTx["fee"] as int),
+          amount: (preparedTx["amount"] as Amount) +
+              (preparedTx["fee"] as int).toAmountAsRaw(
+                fractionDigits: manager.coin.decimals,
+              ),
           coin: manager.coin,
         ),
       );

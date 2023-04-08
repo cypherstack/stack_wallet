@@ -1,23 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/pages/buy_view/buy_form.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
-class BuyView extends StatefulWidget {
+class BuyView extends StatelessWidget {
   const BuyView({
     Key? key,
     this.coin,
+    this.tokenContract,
   }) : super(key: key);
 
   static const String routeName = "/stackBuyView";
 
   final Coin? coin;
-
-  @override
-  State<BuyView> createState() => _BuyViewState();
-}
-
-class _BuyViewState extends State<BuyView> {
-  late final Coin? coin;
+  final EthContract? tokenContract;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +26,10 @@ class _BuyViewState extends State<BuyView> {
           right: 16,
           top: 16,
         ),
-        child: BuyForm(coin: widget.coin),
+        child: BuyForm(
+          coin: coin,
+          tokenContract: tokenContract,
+        ),
       ),
     );
   }

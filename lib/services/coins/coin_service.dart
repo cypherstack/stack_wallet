@@ -8,6 +8,7 @@ import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
 import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
+import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart';
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart';
@@ -15,6 +16,7 @@ import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:stackwallet/services/coins/particl/particl_wallet.dart';
 import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/prefs.dart';
@@ -173,6 +175,15 @@ abstract class CoinServiceAPI {
           // tracker: tracker,
         );
 
+      case Coin.ethereum:
+        return EthereumWallet(
+          walletId: walletId,
+          walletName: walletName,
+          coin: coin,
+          secureStore: secureStorageInterface,
+          tracker: tracker,
+        );
+
       case Coin.monero:
         return MoneroWallet(
           walletId: walletId,
@@ -234,7 +245,7 @@ abstract class CoinServiceAPI {
 
   Future<Map<String, dynamic>> prepareSend({
     required String address,
-    required int satoshiAmount,
+    required Amount amount,
     Map<String, dynamic>? args,
   });
 
@@ -289,7 +300,7 @@ abstract class CoinServiceAPI {
 
   bool get isConnected;
 
-  Future<int> estimateFeeFor(int satoshiAmount, int feeRate);
+  Future<Amount> estimateFeeFor(Amount amount, int feeRate);
 
   Future<bool> generateNewAddress();
 

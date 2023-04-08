@@ -25,8 +25,8 @@ import 'package:flutter_libmonero/view_model/send/output.dart'
 import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
-import 'package:stackwallet/db/main_db.dart';
-import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/db/hive/db.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/node_model.dart';
@@ -40,12 +40,11 @@ import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
@@ -172,7 +171,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
       (await _generateAddressForChain(0, 0)).value;
 
   @override
-  Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
+  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
     MoneroTransactionPriority priority;
     FeeRateType feeRateType = FeeRateType.slow;
     switch (feeRate) {
@@ -204,20 +203,29 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         try {
           aprox = (await prepareSend(
               // This address is only used for getting an approximate fee, never for sending
-              address:
-                  "WW3iVcnoAY6K9zNdU4qmdvZELefx6xZz4PMpTwUifRkvMQckyadhSPYMVPJhBdYE8P9c27fg9RPmVaWNFx1cDaj61HnetqBiy",
-              satoshiAmount: satoshiAmount,
+              address: "WW3iVcnoAY6K9zNdU4qmdvZELefx6xZz4PMpTwUifRkvMQckyadhSPYMVPJhBdYE8P9c27fg9RPmVaWNFx1cDaj61HnetqBiy",
+              amount: amount,
               args: {"feeRate": feeRateType}))['fee'];
-          await Future.delayed(const Duration(milliseconds: 500));
+          await Future<void>.delayed(const Duration(milliseconds: 500));
         } catch (e, s) {
-          aprox = walletBase!.calculateEstimatedFee(priority, satoshiAmount);
+          aprox = walletBase!.calculateEstimatedFee(
+            priority,
+            amount.raw.toInt(),
+          );
         }
       }
     });
 
-    print("this is the aprox fee $aprox for $satoshiAmount");
-    final fee = (aprox as int);
-    return fee;
+    print("this is the aprox fee $aprox for $amount");
+
+    if (aprox is Amount) {
+      return aprox as Amount;
+    } else {
+      return Amount(
+        rawValue: BigInt.from(aprox as int),
+        fractionDigits: coin.decimals,
+      );
+    }
   }
 
   @override
@@ -451,7 +459,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<Map<String, dynamic>> prepareSend({
     required String address,
-    required int satoshiAmount,
+    required Amount amount,
     Map<String, dynamic>? args,
   }) async {
     try {
@@ -475,16 +483,12 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
           // check for send all
           bool isSendAll = false;
           final balance = await _availableBalance;
-          if (satoshiAmount == balance) {
+          if (amount == balance) {
             isSendAll = true;
           }
-          Logging.instance
-              .log("$address $satoshiAmount $args", level: LogLevel.Info);
-          String amountToSend =
-              Format.satoshisToAmount(satoshiAmount, coin: coin)
-                  .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
-          Logging.instance
-              .log("$satoshiAmount $amountToSend", level: LogLevel.Info);
+          Logging.instance.log("$address $amount $args", level: LogLevel.Info);
+          String amountToSend = amount.decimal.toString();
+          Logging.instance.log("$amount $amountToSend", level: LogLevel.Info);
 
           wownero_output.Output output = wownero_output.Output(walletBase!);
           output.address = address;
@@ -507,15 +511,16 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
         PendingWowneroTransaction pendingWowneroTransaction =
             await (awaitPendingTransaction!) as PendingWowneroTransaction;
-        int realfee = Format.decimalAmountToSatoshis(
-            Decimal.parse(pendingWowneroTransaction.feeFormatted), coin);
-        //todo: check if print needed
-        // debugPrint("fee? $realfee");
+        final int realFee = Amount.fromDecimal(
+          Decimal.parse(pendingWowneroTransaction.feeFormatted),
+          fractionDigits: coin.decimals,
+        ).raw.toInt();
+
         Map<String, dynamic> txData = {
           "pendingWowneroTransaction": pendingWowneroTransaction,
-          "fee": realfee,
+          "fee": realFee,
           "addresss": address,
-          "recipientAmt": satoshiAmount,
+          "recipientAmt": amount,
         };
 
         Logging.instance.log("prepare send: $txData", level: LogLevel.Info);
@@ -772,25 +777,34 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
       coin: coin,
       total: total,
       spendable: available,
-      blockedTotal: 0,
+      blockedTotal: Amount(
+        rawValue: BigInt.zero,
+        fractionDigits: coin.decimals,
+      ),
       pendingSpendable: total - available,
     );
     await updateCachedBalance(_balance!);
   }
 
-  Future<int> get _availableBalance async {
+  Future<Amount> get _availableBalance async {
     try {
       int runningBalance = 0;
       for (final entry in walletBase!.balance!.entries) {
         runningBalance += entry.value.unlockedBalance;
       }
-      return runningBalance;
+      return Amount(
+        rawValue: BigInt.from(runningBalance),
+        fractionDigits: coin.decimals,
+      );
     } catch (_) {
-      return 0;
+      return Amount(
+        rawValue: BigInt.zero,
+        fractionDigits: coin.decimals,
+      );
     }
   }
 
-  Future<int> get _totalBalance async {
+  Future<Amount> get _totalBalance async {
     try {
       final balanceEntries = walletBase?.balance?.entries;
       if (balanceEntries != null) {
@@ -799,7 +813,10 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
           bal = bal + element.value.fullBalance;
         }
         await _updateCachedBalance(bal);
-        return bal;
+        return Amount(
+          rawValue: BigInt.from(bal),
+          fractionDigits: coin.decimals,
+        );
       } else {
         final transactions = walletBase!.transactionHistory!.transactions;
         int transactionBalance = 0;
@@ -812,10 +829,16 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         }
 
         await _updateCachedBalance(transactionBalance);
-        return transactionBalance;
+        return Amount(
+          rawValue: BigInt.from(transactionBalance),
+          fractionDigits: coin.decimals,
+        );
       }
     } catch (_) {
-      return _getCachedBalance();
+      return Amount(
+        rawValue: BigInt.from(_getCachedBalance()),
+        fractionDigits: coin.decimals,
+      );
     }
   }
 
@@ -1006,12 +1029,17 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
           type: type,
           subType: isar_models.TransactionSubType.none,
           amount: tx.value.amount ?? 0,
+          amountString: Amount(
+            rawValue: BigInt.from(tx.value.amount ?? 0),
+            fractionDigits: coin.decimals,
+          ).toJsonString(),
           fee: tx.value.fee ?? 0,
           height: tx.value.height,
           isCancelled: false,
           isLelantus: false,
           slateId: null,
           otherData: null,
+          nonce: null,
           inputs: [],
           outputs: [],
         );

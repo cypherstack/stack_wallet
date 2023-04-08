@@ -112,7 +112,7 @@ class _ChooseFromStackViewState extends ConsumerState<ChooseFromStackView> {
                                     const SizedBox(
                                       height: 2,
                                     ),
-                                    WalletInfoRowBalanceFuture(
+                                    WalletInfoRowBalance(
                                       walletId: walletIds[index],
                                     ),
                                   ],

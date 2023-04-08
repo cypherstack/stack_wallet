@@ -96,7 +96,8 @@ class TransactionChunk {
         .toList();
 
     return TransactionChunk(
-        timestamp: json['timestamp'] as int, transactions: txList);
+        timestamp: int.parse(json['timestamp'].toString()),
+        transactions: txList);
   }
 
   @override
@@ -192,13 +193,13 @@ class Transaction {
     return Transaction(
       txid: json['txid'] as String,
       confirmedStatus: json['confirmed_status'] as bool,
-      timestamp: json['timestamp'] as int,
+      timestamp: int.parse(json['timestamp'].toString()),
       txType: json['txType'] as String,
       amount: json['amount'] as int,
       aliens: json['aliens'] as List,
       worthNow: json['worthNow'] as String? ?? "",
       worthAtBlockTimestamp: json['worthAtBlockTimestamp'] as String? ?? "",
-      fees: json['fees'] as int,
+      fees: int.parse(json['fees'].toString()),
       inputSize: json['inputSize'] as int,
       outputSize: json['outputSize'] as int,
       inputs: inputList,

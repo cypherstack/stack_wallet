@@ -18,12 +18,12 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:isar/isar.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:stackwallet/db/main_db.dart';
-import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/db/hive/db.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/isar/models/log.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/models.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/notification_model.dart';
@@ -251,6 +251,12 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           await ref.read(storageCryptoHandlerProvider).hasPassword();
     }
     await MainDB.instance.initMainDB();
+    ref
+        .read(priceAnd24hChangeNotifierProvider)
+        .tokenContractAddressesToCheck
+        .addAll(
+          await MainDB.instance.getEthContracts().addressProperty().findAll(),
+        );
   }
 
   Future<void> load() async {

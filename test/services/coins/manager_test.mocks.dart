@@ -7,7 +7,7 @@ import 'dart:async' as _i10;
 
 import 'package:decimal/decimal.dart' as _i8;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/db/main_db.dart' as _i7;
+import 'package:stackwallet/db/isar/main_db.dart' as _i7;
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i5;
 import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i4;
 import 'package:stackwallet/models/balance.dart' as _i6;
@@ -392,7 +392,7 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
   @override
   _i10.Future<Map<String, dynamic>> prepareSendPublic({
     required String? address,
-    required int? satoshiAmount,
+    required int? amount,
     Map<String, dynamic>? args,
   }) =>
       (super.noSuchMethod(
@@ -401,7 +401,7 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
           [],
           {
             #address: address,
-            #satoshiAmount: satoshiAmount,
+            #satoshiAmount: amount,
             #args: args,
           },
         ),
@@ -421,7 +421,7 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
   @override
   _i10.Future<Map<String, dynamic>> prepareSend({
     required String? address,
-    required int? satoshiAmount,
+    required int? amount,
     Map<String, dynamic>? args,
   }) =>
       (super.noSuchMethod(
@@ -430,7 +430,7 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
           [],
           {
             #address: address,
-            #satoshiAmount: satoshiAmount,
+            #satoshiAmount: amount,
             #args: args,
           },
         ),
@@ -987,6 +987,25 @@ class MockFiroWallet extends _i1.Mock implements _i9.FiroWallet {
         Invocation.method(
           #updateCachedBalanceSecondary,
           [balance],
+        ),
+        returnValue: _i10.Future<void>.value(),
+        returnValueForMissingStub: _i10.Future<void>.value(),
+      ) as _i10.Future<void>);
+  @override
+  List<String> getWalletTokenContractAddresses() => (super.noSuchMethod(
+        Invocation.method(
+          #getWalletTokenContractAddresses,
+          [],
+        ),
+        returnValue: <String>[],
+      ) as List<String>);
+  @override
+  _i10.Future<void> updateWalletTokenContractAddresses(
+          List<String>? contractAddresses) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateWalletTokenContractAddresses,
+          [contractAddresses],
         ),
         returnValue: _i10.Future<void>.value(),
         returnValueForMissingStub: _i10.Future<void>.value(),

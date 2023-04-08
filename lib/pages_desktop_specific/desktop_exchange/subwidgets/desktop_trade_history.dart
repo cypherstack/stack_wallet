@@ -19,7 +19,7 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/trade_card.dart';
 
-import '../../../db/main_db.dart';
+import '../../../db/isar/main_db.dart';
 
 class DesktopTradeHistory extends ConsumerStatefulWidget {
   const DesktopTradeHistory({Key? key}) : super(key: key);

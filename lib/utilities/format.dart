@@ -1,41 +1,43 @@
 import 'dart:typed_data';
 
-import 'package:decimal/decimal.dart';
-import 'package:intl/number_symbols.dart';
-import 'package:intl/number_symbols_data.dart' show numberFormatSymbols;
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 abstract class Format {
   static String shorten(String value, int beginCount, int endCount) {
     return "${value.substring(0, beginCount)}...${value.substring(value.length - endCount)}";
   }
 
-  static Decimal satoshisToAmount(int sats, {required Coin coin}) {
-    return (Decimal.fromInt(sats) /
-            Decimal.fromInt(Constants.satsPerCoin(coin)))
-        .toDecimal(
-            scaleOnInfinitePrecision: Constants.decimalPlacesForCoin(coin));
-  }
-
-  ///
-  static String satoshiAmountToPrettyString(
-      int sats, String locale, Coin coin) {
-    final amount = satoshisToAmount(sats, coin: coin);
-    return localizedStringAsFixed(
-      value: amount,
-      locale: locale,
-      decimalPlaces: Constants.decimalPlacesForCoin(coin),
-    );
-  }
-
-  static int decimalAmountToSatoshis(Decimal amount, Coin coin) {
-    final value = (Decimal.fromInt(Constants.satsPerCoin(coin)) * amount)
-        .floor()
-        .toBigInt();
-    return value.toInt();
-  }
+  // static Decimal satoshisToAmount(int sats, {required Coin coin}) {
+  //   return (Decimal.fromInt(sats) /
+  //           Decimal.fromInt(Constants.satsPerCoin(coin)))
+  //       .toDecimal(
+  //           scaleOnInfinitePrecision: Constants.decimalPlacesForCoin(coin));
+  // }
+  //
+  // static Decimal satoshisToEthTokenAmount(int sats, int decimalPlaces) {
+  //   return (Decimal.fromInt(sats) /
+  //           Decimal.fromInt(pow(10, decimalPlaces).toInt()))
+  //       .toDecimal(scaleOnInfinitePrecision: decimalPlaces);
+  // }
+  //
+  // ///
+  // static String satoshiAmountToPrettyString(
+  //     int sats, String locale, Coin coin) {
+  //   final amount = satoshisToAmount(sats, coin: coin);
+  //   return localizedStringAsFixed(
+  //     value: amount,
+  //     locale: locale,
+  //     decimalPlaces: Constants.decimalPlacesForCoin(coin),
+  //   );
+  // }
+  //
+  // static int decimalAmountToSatoshis(Decimal amount, Coin coin) {
+  //   final value = (Decimal.fromInt(Constants.satsPerCoin(coin)) * amount)
+  //       .floor()
+  //       .toBigInt();
+  //   return value.toInt();
+  // }
 
   // format date string from unix timestamp
   static String extractDateFrom(int timestamp, {bool localized = true}) {
@@ -50,26 +52,26 @@ abstract class Format {
     return "${date.day} ${Constants.monthMapShort[date.month]} ${date.year}, ${date.hour}:$minutes";
   }
 
-  static String localizedStringAsFixed({
-    required Decimal value,
-    required String locale,
-    int decimalPlaces = 0,
-  }) {
-    assert(decimalPlaces >= 0);
-
-    final String separator =
-        (numberFormatSymbols[locale] as NumberSymbols?)?.DECIMAL_SEP ??
-            (numberFormatSymbols[locale.substring(0, 2)] as NumberSymbols?)
-                ?.DECIMAL_SEP ??
-            ".";
-
-    final intValue = value.truncate();
-    final fraction = value - intValue;
-
-    return intValue.toStringAsFixed(0) +
-        separator +
-        fraction.toStringAsFixed(decimalPlaces).substring(2);
-  }
+  // static String localizedStringAsFixed({
+  //   required Decimal value,
+  //   required String locale,
+  //   int decimalPlaces = 0,
+  // }) {
+  //   assert(decimalPlaces >= 0);
+  //
+  //   final String separator =
+  //       (numberFormatSymbols[locale] as NumberSymbols?)?.DECIMAL_SEP ??
+  //           (numberFormatSymbols[locale.substring(0, 2)] as NumberSymbols?)
+  //               ?.DECIMAL_SEP ??
+  //           ".";
+  //
+  //   final intValue = value.truncate();
+  //   final fraction = value - intValue;
+  //
+  //   return intValue.toStringAsFixed(0) +
+  //       separator +
+  //       fraction.toStringAsFixed(decimalPlaces).substring(2);
+  // }
 
   /// format date string as dd/mm/yy from DateTime object
   static String formatDate(DateTime date) {

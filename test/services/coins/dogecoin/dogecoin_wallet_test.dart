@@ -4,9 +4,9 @@ import 'package:hive/hive.dart';
 import 'package:hive_test/hive_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
-import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
@@ -39,7 +39,6 @@ void main() {
           "bb0a78264637406b6360aad926284d544d7049f45189db5664f3c4d07350559e");
     });
   });
-
 
   group("validate mainnet dogecoin addresses", () {
     MockElectrumX? client;

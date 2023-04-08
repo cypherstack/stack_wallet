@@ -17,7 +17,7 @@ import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/trade_card.dart';
 import 'package:tuple/tuple.dart';
 
-import '../../db/main_db.dart';
+import '../../db/isar/main_db.dart';
 
 class ExchangeView extends ConsumerStatefulWidget {
   const ExchangeView({Key? key}) : super(key: key);

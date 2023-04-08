@@ -94,6 +94,11 @@ dependencies:
       ref: 22279d4bb24ed541b431acd269a1bc50af0f36a0
   bs58check: ^1.0.2
 
+  # Eth Plugins
+  web3dart: 2.3.5
+  string_to_hex: 0.2.2
+  ethereum_addresses: 1.0.2
+
   # Storage plugins
   flutter_secure_storage: ^5.0.2
   hive: ^2.0.5
@@ -142,6 +147,10 @@ dependencies:
   string_validator: ^0.3.0
   equatable: ^2.0.5
   async: ^2.10.0
+  dart_bs58: ^1.0.1
+  dart_bs58check: ^3.0.2
+  hex: ^0.2.0
+  rational: ^2.2.2
 
 dev_dependencies:
   flutter_test:
@@ -300,6 +309,8 @@ flutter:
     - assets/svg/plus-circle.svg
     - assets/svg/circle-plus-filled.svg
     - assets/svg/configuration.svg
+    - assets/svg/tokens.svg
+    - assets/svg/circle-plus.svg
     - assets/svg/robot-head.svg
     - assets/svg/whirlpool.svg
     - assets/svg/fingerprint.svg
@@ -314,6 +325,7 @@ flutter:
     - assets/svg/framed-address-book.svg
     - assets/svg/framed-gear.svg
     - assets/svg/list-ul.svg
+    - assets/svg/cc.svg
 
 
     # coin icons

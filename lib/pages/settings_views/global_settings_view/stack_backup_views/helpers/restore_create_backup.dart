@@ -4,7 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
-import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/models/contact.dart';
 import 'package:stackwallet/models/contact_address_entry.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';

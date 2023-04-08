@@ -10,12 +10,13 @@ import 'package:bitcoindart/src/utils/constants/op.dart' as op;
 import 'package:bitcoindart/src/utils/script.dart' as bscript;
 import 'package:isar/isar.dart';
 import 'package:pointycastle/digests/sha256.dart';
-import 'package:stackwallet/db/main_db.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/exceptions/wallet/insufficient_balance_exception.dart';
 import 'package:stackwallet/exceptions/wallet/paynym_send_exception.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/signing_data.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/bip47_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -52,7 +53,7 @@ mixin PaynymWalletInterface {
   }) _estimateTxFee;
   late final Future<Map<String, dynamic>> Function({
     required String address,
-    required int satoshiAmount,
+    required Amount amount,
     Map<String, dynamic>? args,
   }) _prepareSend;
   late final Future<int> Function({
@@ -93,7 +94,7 @@ mixin PaynymWalletInterface {
         estimateTxFee,
     required Future<Map<String, dynamic>> Function({
       required String address,
-      required int satoshiAmount,
+      required Amount amount,
       Map<String, dynamic>? args,
     })
         prepareSend,
@@ -307,10 +308,11 @@ mixin PaynymWalletInterface {
     return Format.uint8listToString(bytes);
   }
 
-  Future<Map<String, dynamic>> preparePaymentCodeSend(
-      {required PaymentCode paymentCode,
-      required int satoshiAmount,
-      Map<String, dynamic>? args}) async {
+  Future<Map<String, dynamic>> preparePaymentCodeSend({
+    required PaymentCode paymentCode,
+    required Amount amount,
+    Map<String, dynamic>? args,
+  }) async {
     if (!(await hasConnected(paymentCode.toString()))) {
       throw PaynymSendException(
           "No notification transaction sent to $paymentCode");
@@ -326,7 +328,7 @@ mixin PaynymWalletInterface {
 
       return _prepareSend(
         address: sendToAddress.value,
-        satoshiAmount: satoshiAmount,
+        amount: amount,
         args: args,
       );
     }

@@ -287,11 +287,11 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                       ),
                     ),
                   ),
-                  if (coin != Coin.epicCash)
+                  if (coin != Coin.epicCash && coin != Coin.ethereum)
                     const SizedBox(
                       height: 12,
                     ),
-                  if (coin != Coin.epicCash)
+                  if (coin != Coin.epicCash && coin != Coin.ethereum)
                     TextButton(
                       onPressed: generateNewAddress,
                       style: Theme.of(context)

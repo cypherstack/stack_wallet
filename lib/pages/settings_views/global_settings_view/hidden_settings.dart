@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_api.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -164,9 +163,59 @@ class HiddenSettings extends StatelessWidget {
                         Consumer(builder: (_, ref, __) {
                           return GestureDetector(
                             onTap: () async {
-                              final x = await MajesticBankAPI.instance
-                                  .getLimit(fromCurrency: 'btc');
-                              print(x);
+                              ref
+                                  .read(priceAnd24hChangeNotifierProvider)
+                                  .tokenContractAddressesToCheck
+                                  .add(
+                                      "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48");
+                              ref
+                                  .read(priceAnd24hChangeNotifierProvider)
+                                  .tokenContractAddressesToCheck
+                                  .add(
+                                      "0xdAC17F958D2ee523a2206206994597C13D831ec7");
+                              await ref
+                                  .read(priceAnd24hChangeNotifierProvider)
+                                  .updatePrice();
+
+                              final x = ref
+                                  .read(priceAnd24hChangeNotifierProvider)
+                                  .getTokenPrice(
+                                      "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48");
+
+                              print(
+                                  "PRICE 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48: $x");
+                            },
+                            child: RoundedWhiteContainer(
+                              child: Text(
+                                "Click me",
+                                style: STextStyles.button(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark),
+                              ),
+                            ),
+                          );
+                        }),
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        Consumer(builder: (_, ref, __) {
+                          return GestureDetector(
+                            onTap: () async {
+                              // final erc20 = Erc20ContractInfo(
+                              //   contractAddress: 'some con',
+                              //   name: "loonamsn",
+                              //   symbol: "DD",
+                              //   decimals: 19,
+                              // );
+                              //
+                              // final json = erc20.toJson();
+                              //
+                              // print(json);
+                              //
+                              // final ee = EthContractInfo.fromJson(json);
+                              //
+                              // print(ee);
                             },
                             child: RoundedWhiteContainer(
                               child: Text(

@@ -13,7 +13,7 @@ import 'package:bitcoindart/bitcoindart.dart' as _i13;
 import 'package:flutter/foundation.dart' as _i4;
 import 'package:flutter_riverpod/flutter_riverpod.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/db/main_db.dart' as _i12;
+import 'package:stackwallet/db/isar/main_db.dart' as _i12;
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i10;
 import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i9;
 import 'package:stackwallet/models/balance.dart' as _i11;
@@ -468,6 +468,14 @@ class MockWalletsService extends _i1.Mock implements _i2.WalletsService {
         ),
         returnValue: _i21.Future<bool>.value(false),
       ) as _i21.Future<bool>);
+  @override
+  Map<String, _i2.WalletInfo> fetchWalletsData() => (super.noSuchMethod(
+        Invocation.method(
+          #fetchWalletsData,
+          [],
+        ),
+        returnValue: <String, _i2.WalletInfo>{},
+      ) as Map<String, _i2.WalletInfo>);
   @override
   _i21.Future<void> addExistingStackWallet({
     required String? name,
@@ -986,7 +994,7 @@ class MockBitcoinWallet extends _i1.Mock implements _i24.BitcoinWallet {
   @override
   _i21.Future<Map<String, dynamic>> prepareSend({
     required String? address,
-    required int? satoshiAmount,
+    required int? amount,
     Map<String, dynamic>? args,
   }) =>
       (super.noSuchMethod(
@@ -995,7 +1003,7 @@ class MockBitcoinWallet extends _i1.Mock implements _i24.BitcoinWallet {
           [],
           {
             #address: address,
-            #satoshiAmount: satoshiAmount,
+            #satoshiAmount: amount,
             #args: args,
           },
         ),
@@ -1419,6 +1427,25 @@ class MockBitcoinWallet extends _i1.Mock implements _i24.BitcoinWallet {
         returnValueForMissingStub: _i21.Future<void>.value(),
       ) as _i21.Future<void>);
   @override
+  List<String> getWalletTokenContractAddresses() => (super.noSuchMethod(
+        Invocation.method(
+          #getWalletTokenContractAddresses,
+          [],
+        ),
+        returnValue: <String>[],
+      ) as List<String>);
+  @override
+  _i21.Future<void> updateWalletTokenContractAddresses(
+          List<String>? contractAddresses) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateWalletTokenContractAddresses,
+          [contractAddresses],
+        ),
+        returnValue: _i21.Future<void>.value(),
+        returnValueForMissingStub: _i21.Future<void>.value(),
+      ) as _i21.Future<void>);
+  @override
   void initWalletDB({_i12.MainDB? mockableOverride}) => super.noSuchMethod(
         Invocation.method(
           #initWalletDB,
@@ -1664,7 +1691,7 @@ class MockBitcoinWallet extends _i1.Mock implements _i24.BitcoinWallet {
   @override
   _i21.Future<Map<String, dynamic>> preparePaymentCodeSend({
     required _i17.PaymentCode? paymentCode,
-    required int? satoshiAmount,
+    required int? amount,
     Map<String, dynamic>? args,
   }) =>
       (super.noSuchMethod(
@@ -1673,7 +1700,7 @@ class MockBitcoinWallet extends _i1.Mock implements _i24.BitcoinWallet {
           [],
           {
             #paymentCode: paymentCode,
-            #satoshiAmount: satoshiAmount,
+            #satoshiAmount: amount,
             #args: args,
           },
         ),
@@ -2136,6 +2163,11 @@ class MockManager extends _i1.Mock implements _i6.Manager {
         returnValue: false,
       ) as bool);
   @override
+  bool get hasTokenSupport => (super.noSuchMethod(
+        Invocation.getter(#hasTokenSupport),
+        returnValue: false,
+      ) as bool);
+  @override
   bool get hasWhirlpoolSupport => (super.noSuchMethod(
         Invocation.getter(#hasWhirlpoolSupport),
         returnValue: false,
@@ -2170,7 +2202,7 @@ class MockManager extends _i1.Mock implements _i6.Manager {
   @override
   _i21.Future<Map<String, dynamic>> prepareSend({
     required String? address,
-    required int? satoshiAmount,
+    required int? amount,
     Map<String, dynamic>? args,
   }) =>
       (super.noSuchMethod(
@@ -2179,7 +2211,7 @@ class MockManager extends _i1.Mock implements _i6.Manager {
           [],
           {
             #address: address,
-            #satoshiAmount: satoshiAmount,
+            #satoshiAmount: amount,
             #args: args,
           },
         ),
@@ -2482,7 +2514,7 @@ class MockCoinServiceAPI extends _i1.Mock implements _i18.CoinServiceAPI {
   @override
   _i21.Future<Map<String, dynamic>> prepareSend({
     required String? address,
-    required int? satoshiAmount,
+    required int? amount,
     Map<String, dynamic>? args,
   }) =>
       (super.noSuchMethod(
@@ -2491,7 +2523,7 @@ class MockCoinServiceAPI extends _i1.Mock implements _i18.CoinServiceAPI {
           [],
           {
             #address: address,
-            #satoshiAmount: satoshiAmount,
+            #satoshiAmount: amount,
             #args: args,
           },
         ),

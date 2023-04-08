@@ -1576,6 +1576,8 @@ class StackColors extends ThemeExtension<StackColors> {
         return _coin.dogecoin;
       case Coin.epicCash:
         return _coin.epicCash;
+      case Coin.ethereum:
+        return _coin.ethereum;
       case Coin.firo:
       case Coin.firoTestNet:
         return _coin.firo;

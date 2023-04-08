@@ -17,6 +17,7 @@ import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/notes_service.dart';
 import 'package:stackwallet/services/price_service.dart';
 import 'package:stackwallet/services/wallets.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
@@ -51,6 +52,10 @@ void main() {
       timestamp: 1648595998,
       type: TransactionType.outgoing,
       amount: 100000000,
+      amountString: Amount(
+        rawValue: BigInt.from(100000000),
+        fractionDigits: Coin.firo.decimals,
+      ).toJsonString(),
       fee: 3794,
       height: 450123,
       subType: TransactionSubType.none,
@@ -59,6 +64,7 @@ void main() {
       isLelantus: null,
       slateId: '',
       otherData: '',
+      nonce: null,
       inputs: [],
       outputs: [],
     )..address.value = Address(
@@ -132,7 +138,7 @@ void main() {
 
     verify(mockPrefs.currency).called(1);
     verify(mockPriceService.getPrice(Coin.firo)).called(1);
-    verify(wallet.coin.ticker).called(2);
+    verify(wallet.coin.ticker).called(1);
 
     verify(mockLocaleService.locale).called(1);
 
@@ -152,6 +158,10 @@ void main() {
       timestamp: 1648595998,
       type: TransactionType.outgoing,
       amount: 9659,
+      amountString: Amount(
+        rawValue: BigInt.from(9659),
+        fractionDigits: Coin.firo.decimals,
+      ).toJsonString(),
       fee: 3794,
       height: 450123,
       subType: TransactionSubType.mint,
@@ -160,6 +170,7 @@ void main() {
       isLelantus: null,
       slateId: '',
       otherData: '',
+      nonce: null,
       inputs: [],
       outputs: [],
     )..address.value = Address(
@@ -230,7 +241,7 @@ void main() {
 
     verify(mockPrefs.currency).called(1);
     verify(mockPriceService.getPrice(Coin.firo)).called(1);
-    verify(wallet.coin.ticker).called(2);
+    verify(wallet.coin.ticker).called(1);
 
     verify(mockLocaleService.locale).called(1);
 
@@ -250,6 +261,10 @@ void main() {
       timestamp: 1648595998,
       type: TransactionType.incoming,
       amount: 100000000,
+      amountString: Amount(
+        rawValue: BigInt.from(100000000),
+        fractionDigits: Coin.firo.decimals,
+      ).toJsonString(),
       fee: 3794,
       height: 450123,
       subType: TransactionSubType.none,
@@ -258,6 +273,7 @@ void main() {
       isLelantus: null,
       slateId: '',
       otherData: '',
+      nonce: null,
       inputs: [],
       outputs: [],
     )..address.value = Address(
@@ -321,7 +337,7 @@ void main() {
 
     verify(mockPrefs.currency).called(1);
     verify(mockPriceService.getPrice(Coin.firo)).called(1);
-    verify(wallet.coin.ticker).called(2);
+    verify(wallet.coin.ticker).called(1);
 
     verify(mockLocaleService.locale).called(1);
 
@@ -342,6 +358,10 @@ void main() {
       timestamp: 1648595998,
       type: TransactionType.outgoing,
       amount: 100000000,
+      amountString: Amount(
+        rawValue: BigInt.from(100000000),
+        fractionDigits: Coin.firo.decimals,
+      ).toJsonString(),
       fee: 3794,
       height: 450123,
       subType: TransactionSubType.none,
@@ -350,6 +370,7 @@ void main() {
       isLelantus: null,
       slateId: '',
       otherData: '',
+      nonce: null,
       inputs: [],
       outputs: [],
     )..address.value = Address(
@@ -413,7 +434,7 @@ void main() {
 
     verify(mockPrefs.currency).called(2);
     verify(mockLocaleService.locale).called(4);
-    verify(wallet.coin.ticker).called(2);
+    verify(wallet.coin.ticker).called(1);
     verify(wallet.storedChainHeight).called(2);
 
     verifyNoMoreInteractions(wallet);

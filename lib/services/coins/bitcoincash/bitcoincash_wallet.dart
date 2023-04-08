@@ -11,7 +11,7 @@ import 'package:bs58check/bs58check.dart' as bs58check;
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/main_db.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/balance.dart';
@@ -31,6 +31,7 @@ import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -46,7 +47,10 @@ import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
 const int MINIMUM_CONFIRMATIONS = 0;
-const int DUST_LIMIT = 546;
+final Amount DUST_LIMIT = Amount(
+  rawValue: BigInt.from(546),
+  fractionDigits: Coin.particl.decimals,
+);
 
 const String GENESIS_HASH_MAINNET =
     "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f";
@@ -211,10 +215,7 @@ class BitcoinCashWallet extends CoinServiceAPI
 
   @override
   Future<int> get maxFee async {
-    final fee = (await fees).fast;
-    final satsFee = Format.satoshisToAmount(fee, coin: coin) *
-        Decimal.fromInt(Constants.satsPerCoin(coin));
-    return satsFee.floor().toBigInt().toInt();
+    throw UnimplementedError("Not used in bch");
   }
 
   @override
@@ -1048,7 +1049,7 @@ class BitcoinCashWallet extends CoinServiceAPI
   @override
   Future<Map<String, dynamic>> prepareSend({
     required String address,
-    required int satoshiAmount,
+    required Amount amount,
     Map<String, dynamic>? args,
   }) async {
     try {
@@ -1077,14 +1078,14 @@ class BitcoinCashWallet extends CoinServiceAPI
         }
         // check for send all
         bool isSendAll = false;
-        if (satoshiAmount == balance.spendable) {
+        if (amount == balance.spendable) {
           isSendAll = true;
         }
 
         final bool coinControl = utxos != null;
 
         final result = await coinSelection(
-          satoshiAmountToSend: satoshiAmount,
+          satoshiAmountToSend: amount.raw.toInt(),
           selectedTxFeeRate: rate,
           recipientAddress: address,
           isSendAll: isSendAll,
@@ -1249,13 +1250,16 @@ class BitcoinCashWallet extends CoinServiceAPI
       timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
       type: isar_models.TransactionType.outgoing,
       subType: isar_models.TransactionSubType.none,
-      amount: txData["recipientAmt"] as int,
+      // precision may be lost here hence the following amountString
+      amount: (txData["recipientAmt"] as Amount).raw.toInt(),
+      amountString: (txData["recipientAmt"] as Amount).toJsonString(),
       fee: txData["fee"] as int,
       height: null,
       isCancelled: false,
       isLelantus: false,
       otherData: null,
       slateId: null,
+      nonce: null,
       inputs: [],
       outputs: [],
     );
@@ -1417,9 +1421,18 @@ class BitcoinCashWallet extends CoinServiceAPI
         numberOfBlocksFast: f,
         numberOfBlocksAverage: m,
         numberOfBlocksSlow: s,
-        fast: Format.decimalAmountToSatoshis(fast, coin),
-        medium: Format.decimalAmountToSatoshis(medium, coin),
-        slow: Format.decimalAmountToSatoshis(slow, coin),
+        fast: Amount.fromDecimal(
+          fast,
+          fractionDigits: coin.decimals,
+        ).raw.toInt(),
+        medium: Amount.fromDecimal(
+          medium,
+          fractionDigits: coin.decimals,
+        ).raw.toInt(),
+        slow: Amount.fromDecimal(
+          slow,
+          fractionDigits: coin.decimals,
+        ).raw.toInt(),
       );
 
       Logging.instance.log("fetched fees: $feeObject", level: LogLevel.Info);
@@ -1627,8 +1640,9 @@ class BitcoinCashWallet extends CoinServiceAPI
       case DerivePathType.bip49:
         key = "${walletId}_${chainId}DerivationsP2SH";
         break;
-      case DerivePathType.bip84:
-        throw UnsupportedError("bip84 not supported by BCH");
+      default:
+        throw UnsupportedError(
+            "${derivePathType.name} not supported by ${coin.prettyName}");
     }
     return key;
   }
@@ -2149,12 +2163,27 @@ class BitcoinCashWallet extends CoinServiceAPI
       Set<String> inputAddresses = {};
       Set<String> outputAddresses = {};
 
-      int totalInputValue = 0;
-      int totalOutputValue = 0;
+      Amount totalInputValue = Amount(
+        rawValue: BigInt.from(0),
+        fractionDigits: coin.decimals,
+      );
+      Amount totalOutputValue = Amount(
+        rawValue: BigInt.from(0),
+        fractionDigits: coin.decimals,
+      );
 
-      int amountSentFromWallet = 0;
-      int amountReceivedInWallet = 0;
-      int changeAmount = 0;
+      Amount amountSentFromWallet = Amount(
+        rawValue: BigInt.from(0),
+        fractionDigits: coin.decimals,
+      );
+      Amount amountReceivedInWallet = Amount(
+        rawValue: BigInt.from(0),
+        fractionDigits: coin.decimals,
+      );
+      Amount changeAmount = Amount(
+        rawValue: BigInt.from(0),
+        fractionDigits: coin.decimals,
+      );
 
       // parse inputs
       for (final input in txData["vin"] as List) {
@@ -2171,13 +2200,13 @@ class BitcoinCashWallet extends CoinServiceAPI
           // check matching output
           if (prevOut == output["n"]) {
             // get value
-            final value = Format.decimalAmountToSatoshis(
+            final value = Amount.fromDecimal(
               Decimal.parse(output["value"].toString()),
-              coin,
+              fractionDigits: coin.decimals,
             );
 
             // add value to total
-            totalInputValue += value;
+            totalInputValue = totalInputValue + value;
 
             // get input(prevOut) address
             final address =
@@ -2190,7 +2219,7 @@ class BitcoinCashWallet extends CoinServiceAPI
               // if input was from my wallet, add value to amount sent
               if (receivingAddresses.contains(address) ||
                   changeAddresses.contains(address)) {
-                amountSentFromWallet += value;
+                amountSentFromWallet = amountSentFromWallet + value;
               }
             }
           }
@@ -2200,9 +2229,9 @@ class BitcoinCashWallet extends CoinServiceAPI
       // parse outputs
       for (final output in txData["vout"] as List) {
         // get value
-        final value = Format.decimalAmountToSatoshis(
+        final value = Amount.fromDecimal(
           Decimal.parse(output["value"].toString()),
-          coin,
+          fractionDigits: coin.decimals,
         );
 
         // add value to total
@@ -2239,7 +2268,7 @@ class BitcoinCashWallet extends CoinServiceAPI
           txData["address"] as isar_models.Address;
 
       isar_models.TransactionType type;
-      int amount;
+      Amount amount;
       if (mySentFromAddresses.isNotEmpty && myReceivedOnAddresses.isNotEmpty) {
         // tx is sent to self
         type = isar_models.TransactionType.sentToSelf;
@@ -2294,10 +2323,10 @@ class BitcoinCashWallet extends CoinServiceAPI
           scriptPubKeyAddress:
               json["scriptPubKey"]?["addresses"]?[0] as String? ??
                   json['scriptPubKey']['type'] as String,
-          value: Format.decimalAmountToSatoshis(
+          value: Amount.fromDecimal(
             Decimal.parse(json["value"].toString()),
-            coin,
-          ),
+            fractionDigits: coin.decimals,
+          ).raw.toInt(),
         );
         outputs.add(output);
       }
@@ -2309,13 +2338,15 @@ class BitcoinCashWallet extends CoinServiceAPI
             (DateTime.now().millisecondsSinceEpoch ~/ 1000),
         type: type,
         subType: isar_models.TransactionSubType.none,
-        amount: amount,
-        fee: fee,
+        amount: amount.raw.toInt(),
+        amountString: amount.toJsonString(),
+        fee: fee.raw.toInt(),
         height: txData["height"] as int?,
         isCancelled: false,
         isLelantus: false,
         slateId: null,
         otherData: null,
+        nonce: null,
         inputs: inputs,
         outputs: outputs,
       );
@@ -2536,7 +2567,7 @@ class BitcoinCashWallet extends CoinServiceAPI
 
     if (satoshisBeingUsed - satoshiAmountToSend > feeForOneOutput) {
       if (satoshisBeingUsed - satoshiAmountToSend >
-          feeForOneOutput + DUST_LIMIT) {
+          feeForOneOutput + DUST_LIMIT.raw.toInt()) {
         // Here, we know that theoretically, we may be able to include another output(change) but we first need to
         // factor in the value of this output in satoshis.
         int changeOutputSize =
@@ -2544,7 +2575,7 @@ class BitcoinCashWallet extends CoinServiceAPI
         // We check to see if the user can pay for the new transaction with 2 outputs instead of one. If they can and
         // the second output's size > 546 satoshis, we perform the mechanics required to properly generate and use a new
         // change address.
-        if (changeOutputSize > DUST_LIMIT &&
+        if (changeOutputSize > DUST_LIMIT.raw.toInt() &&
             satoshisBeingUsed - satoshiAmountToSend - changeOutputSize ==
                 feeForTwoOutputs) {
           // generate new change address if current change address has been used
@@ -2763,7 +2794,8 @@ class BitcoinCashWallet extends CoinServiceAPI
               addressTxid[address] = <String>[];
             }
             (addressTxid[address] as List).add(txid);
-            switch (addressType(address: address)) {
+            final deriveType = addressType(address: address);
+            switch (deriveType) {
               case DerivePathType.bip44:
               case DerivePathType.bch44:
                 addressesP2PKH.add(address);
@@ -2771,8 +2803,9 @@ class BitcoinCashWallet extends CoinServiceAPI
               case DerivePathType.bip49:
                 addressesP2SH.add(address);
                 break;
-              case DerivePathType.bip84:
-                throw UnsupportedError("bip84 not supported by BCH");
+              default:
+                throw UnsupportedError(
+                    "${deriveType.name} not supported by ${coin.prettyName}");
             }
           }
         }
@@ -3103,22 +3136,28 @@ class BitcoinCashWallet extends CoinServiceAPI
       (isActive) => this.isActive = isActive;
 
   @override
-  Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
+  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
     final available = balance.spendable;
 
-    if (available == satoshiAmount) {
-      return satoshiAmount - (await sweepAllEstimate(feeRate));
-    } else if (satoshiAmount <= 0 || satoshiAmount > available) {
+    if (available == amount) {
+      return amount - (await sweepAllEstimate(feeRate));
+    } else if (amount <= Amount.zero || amount > available) {
       return roughFeeEstimate(1, 2, feeRate);
     }
 
-    int runningBalance = 0;
+    Amount runningBalance = Amount(
+      rawValue: BigInt.zero,
+      fractionDigits: coin.decimals,
+    );
     int inputCount = 0;
     for (final output in (await utxos)) {
       if (!output.isBlocked) {
-        runningBalance += output.value;
+        runningBalance += Amount(
+          rawValue: BigInt.from(output.value),
+          fractionDigits: coin.decimals,
+        );
         inputCount++;
-        if (runningBalance > satoshiAmount) {
+        if (runningBalance > amount) {
           break;
         }
       }
@@ -3127,19 +3166,19 @@ class BitcoinCashWallet extends CoinServiceAPI
     final oneOutPutFee = roughFeeEstimate(inputCount, 1, feeRate);
     final twoOutPutFee = roughFeeEstimate(inputCount, 2, feeRate);
 
-    if (runningBalance - satoshiAmount > oneOutPutFee) {
-      if (runningBalance - satoshiAmount > oneOutPutFee + DUST_LIMIT) {
-        final change = runningBalance - satoshiAmount - twoOutPutFee;
+    if (runningBalance - amount > oneOutPutFee) {
+      if (runningBalance - amount > oneOutPutFee + DUST_LIMIT) {
+        final change = runningBalance - amount - twoOutPutFee;
         if (change > DUST_LIMIT &&
-            runningBalance - satoshiAmount - change == twoOutPutFee) {
-          return runningBalance - satoshiAmount - change;
+            runningBalance - amount - change == twoOutPutFee) {
+          return runningBalance - amount - change;
         } else {
-          return runningBalance - satoshiAmount;
+          return runningBalance - amount;
         }
       } else {
-        return runningBalance - satoshiAmount;
+        return runningBalance - amount;
       }
-    } else if (runningBalance - satoshiAmount == oneOutPutFee) {
+    } else if (runningBalance - amount == oneOutPutFee) {
       return oneOutPutFee;
     } else {
       return twoOutPutFee;
@@ -3147,12 +3186,15 @@ class BitcoinCashWallet extends CoinServiceAPI
   }
 
   // TODO: correct formula for bch?
-  int roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
-    return ((181 * inputCount) + (34 * outputCount) + 10) *
-        (feeRatePerKB / 1000).ceil();
+  Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
+    return Amount(
+      rawValue: BigInt.from(((181 * inputCount) + (34 * outputCount) + 10) *
+          (feeRatePerKB / 1000).ceil()),
+      fractionDigits: coin.decimals,
+    );
   }
 
-  Future<int> sweepAllEstimate(int feeRate) async {
+  Future<Amount> sweepAllEstimate(int feeRate) async {
     int available = 0;
     int inputCount = 0;
     for (final output in (await utxos)) {
@@ -3166,7 +3208,11 @@ class BitcoinCashWallet extends CoinServiceAPI
     // transaction will only have 1 output minus the fee
     final estimatedFee = roughFeeEstimate(inputCount, 1, feeRate);
 
-    return available - estimatedFee;
+    return Amount(
+          rawValue: BigInt.from(available),
+          fractionDigits: coin.decimals,
+        ) -
+        estimatedFee;
   }
 
   @override

@@ -4,8 +4,8 @@ import 'package:bip47/src/util.dart';
 import 'package:decimal/decimal.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:tuple/tuple.dart';
 
 mixin ElectrumXParsing {
@@ -32,12 +32,27 @@ mixin ElectrumXParsing {
     Set<String> inputAddresses = {};
     Set<String> outputAddresses = {};
 
-    int totalInputValue = 0;
-    int totalOutputValue = 0;
+    Amount totalInputValue = Amount(
+      rawValue: BigInt.zero,
+      fractionDigits: coin.decimals,
+    );
+    Amount totalOutputValue = Amount(
+      rawValue: BigInt.zero,
+      fractionDigits: coin.decimals,
+    );
 
-    int amountSentFromWallet = 0;
-    int amountReceivedInWallet = 0;
-    int changeAmount = 0;
+    Amount amountSentFromWallet = Amount(
+      rawValue: BigInt.zero,
+      fractionDigits: coin.decimals,
+    );
+    Amount amountReceivedInWallet = Amount(
+      rawValue: BigInt.zero,
+      fractionDigits: coin.decimals,
+    );
+    Amount changeAmount = Amount(
+      rawValue: BigInt.zero,
+      fractionDigits: coin.decimals,
+    );
 
     // parse inputs
     for (final input in txData["vin"] as List) {
@@ -54,9 +69,9 @@ mixin ElectrumXParsing {
         // check matching output
         if (prevOut == output["n"]) {
           // get value
-          final value = Format.decimalAmountToSatoshis(
+          final value = Amount.fromDecimal(
             Decimal.parse(output["value"].toString()),
-            coin,
+            fractionDigits: coin.decimals,
           );
 
           // add value to total
@@ -82,9 +97,9 @@ mixin ElectrumXParsing {
     // parse outputs
     for (final output in txData["vout"] as List) {
       // get value
-      final value = Format.decimalAmountToSatoshis(
+      final value = Amount.fromDecimal(
         Decimal.parse(output["value"].toString()),
-        coin,
+        fractionDigits: coin.decimals,
       );
 
       // add value to total
@@ -120,7 +135,7 @@ mixin ElectrumXParsing {
     Address transactionAddress = txData["address"] as Address;
 
     TransactionType type;
-    int amount;
+    Amount amount;
     if (mySentFromAddresses.isNotEmpty && myReceivedOnAddresses.isNotEmpty) {
       // tx is sent to self
       type = TransactionType.sentToSelf;
@@ -188,10 +203,10 @@ mixin ElectrumXParsing {
             json["scriptPubKey"]?["addresses"]?[0] as String? ??
                 json['scriptPubKey']?['type'] as String? ??
                 "",
-        value: Format.decimalAmountToSatoshis(
+        value: Amount.fromDecimal(
           Decimal.parse(json["value"].toString()),
-          coin,
-        ),
+          fractionDigits: coin.decimals,
+        ).raw.toInt(),
       );
       outs.add(output);
     }
@@ -219,13 +234,16 @@ mixin ElectrumXParsing {
           (DateTime.now().millisecondsSinceEpoch ~/ 1000),
       type: type,
       subType: txSubType,
-      amount: amount,
-      fee: fee,
+      // amount may overflow. Deprecated. Use amountString
+      amount: amount.raw.toInt(),
+      amountString: amount.toJsonString(),
+      fee: fee.raw.toInt(),
       height: txData["height"] as int?,
       isCancelled: false,
       isLelantus: false,
       slateId: null,
       otherData: null,
+      nonce: null,
       inputs: ins,
       outputs: outs,
     );

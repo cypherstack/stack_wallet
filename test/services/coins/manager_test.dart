@@ -8,6 +8,7 @@ import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 import 'manager_test.mocks.dart';
@@ -74,6 +75,7 @@ void main() {
   group("get balances", () {
     test("balance", () async {
       final CoinServiceAPI wallet = MockFiroWallet();
+      when(wallet.coin).thenAnswer((_) => Coin.firo);
       when(wallet.balance).thenAnswer(
         (_) => Balance(
           coin: Coin.firo,
@@ -96,6 +98,9 @@ void main() {
 
   test("transactions", () async {
     final CoinServiceAPI wallet = MockFiroWallet();
+
+    when(wallet.coin).thenAnswer((realInvocation) => Coin.firo);
+
     final tx = Transaction(
       walletId: "walletId",
       txid: "txid",
@@ -103,12 +108,17 @@ void main() {
       type: TransactionType.incoming,
       subType: TransactionSubType.mint,
       amount: 123,
+      amountString: Amount(
+        rawValue: BigInt.from(123),
+        fractionDigits: wallet.coin.decimals,
+      ).toJsonString(),
       fee: 3,
       height: 123,
       isCancelled: false,
       isLelantus: true,
       slateId: null,
       otherData: null,
+      nonce: null,
       inputs: [],
       outputs: [],
     );

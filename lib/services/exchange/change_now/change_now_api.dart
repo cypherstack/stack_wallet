@@ -195,6 +195,89 @@ class ChangeNowAPI {
     }
   }
 
+  Future<ExchangeResponse<List<Currency>>> getCurrenciesV2(
+      //     {
+      //   bool? fixedRate,
+      //   bool? active,
+      // }
+      ) async {
+    Map<String, dynamic>? params;
+
+    // if (active != null || fixedRate != null) {
+    //   params = {};
+    //   if (fixedRate != null) {
+    //     params.addAll({"fixedRate": fixedRate.toString()});
+    //   }
+    //   if (active != null) {
+    //     params.addAll({"active": active.toString()});
+    //   }
+    // }
+
+    final uri = _buildUriV2("/exchange/currencies", params);
+
+    try {
+      // json array is expected here
+      final jsonArray = await _makeGetRequest(uri);
+
+      try {
+        final result = await compute(
+          _parseV2CurrenciesJson,
+          jsonArray as List<dynamic>,
+        );
+        return result;
+      } catch (e, s) {
+        Logging.instance.log("getAvailableCurrencies exception: $e\n$s",
+            level: LogLevel.Error);
+        return ExchangeResponse(
+          exception: ExchangeException(
+            "Error: $jsonArray",
+            ExchangeExceptionType.serializeResponseError,
+          ),
+        );
+      }
+    } catch (e, s) {
+      Logging.instance.log("getAvailableCurrencies exception: $e\n$s",
+          level: LogLevel.Error);
+      return ExchangeResponse(
+        exception: ExchangeException(
+          e.toString(),
+          ExchangeExceptionType.generic,
+        ),
+      );
+    }
+  }
+
+  ExchangeResponse<List<Currency>> _parseV2CurrenciesJson(
+    List<dynamic> args,
+  ) {
+    try {
+      List<Currency> currencies = [];
+
+      for (final json in args) {
+        try {
+          final map = Map<String, dynamic>.from(json as Map);
+          currencies.add(
+            Currency.fromJson(
+              map,
+              rateType: (map["supportsFixedRate"] as bool)
+                  ? SupportedRateType.both
+                  : SupportedRateType.estimated,
+              exchangeName: ChangeNowExchange.exchangeName,
+            ),
+          );
+        } catch (_) {
+          return ExchangeResponse(
+              exception: ExchangeException("Failed to serialize $json",
+                  ExchangeExceptionType.serializeResponseError));
+        }
+      }
+
+      return ExchangeResponse(value: currencies);
+    } catch (_) {
+      rethrow;
+    }
+  }
+
   /// This API endpoint returns the array of markets available for the specified currency be default.
   /// The availability of a particular pair is determined by the 'isAvailable' field.
   ///
