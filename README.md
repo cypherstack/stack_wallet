@@ -37,7 +37,7 @@ Install basic dependencies
 sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm python3-distutils
 ```
 
-The following  be needed for Android studio:
+The following *may* be needed for Android studio:
 ```
 sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-1.0:i386
 ```
