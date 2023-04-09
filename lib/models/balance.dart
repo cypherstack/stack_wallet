@@ -3,13 +3,6 @@ import 'dart:convert';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
-enum Unit {
-  base,
-  u,
-  m,
-  normal;
-}
-
 class Balance {
   final Coin coin;
   final Amount total;
@@ -24,26 +17,6 @@ class Balance {
     required this.blockedTotal,
     required this.pendingSpendable,
   });
-
-  // Decimal getTotal({bool includeBlocked = true}) => Format.satoshisToAmount(
-  //       includeBlocked ? total : total - blockedTotal,
-  //       coin: coin,
-  //     );
-  //
-  // Decimal getSpendable() => Format.satoshisToAmount(
-  //       spendable,
-  //       coin: coin,
-  //     );
-  //
-  // Decimal getPending() => Format.satoshisToAmount(
-  //       pendingSpendable,
-  //       coin: coin,
-  //     );
-  //
-  // Decimal getBlocked() => Format.satoshisToAmount(
-  //       blockedTotal,
-  //       coin: coin,
-  //     );
 
   String toJsonIgnoreCoin() => jsonEncode({
         "total": total.toJsonString(),
