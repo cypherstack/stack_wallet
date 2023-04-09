@@ -1,3 +1,4 @@
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,6 +13,7 @@ import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/services/wallets_service.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/listenable_list.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
@@ -19,6 +21,13 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/managed_favorite.dart';
 
 import 'managed_favorite_test.mocks.dart';
+
+/// quick amount constructor wrapper. Using an int is bad practice but for
+/// testing with small amounts this should be fine
+Amount _a(int i) => Amount.fromDecimal(
+      Decimal.fromInt(i),
+      fractionDigits: 8,
+    );
 
 @GenerateMocks([
   Wallets,
@@ -45,10 +54,10 @@ void main() {
     when(manager.balance).thenAnswer(
       (realInvocation) => Balance(
         coin: Coin.bitcoin,
-        total: 10,
-        spendable: 10,
-        blockedTotal: 0,
-        pendingSpendable: 0,
+        total: _a(10),
+        spendable: _a(10),
+        blockedTotal: _a(0),
+        pendingSpendable: _a(0),
       ),
     );
 
@@ -98,10 +107,10 @@ void main() {
     when(manager.balance).thenAnswer(
       (realInvocation) => Balance(
         coin: Coin.bitcoin,
-        total: 10,
-        spendable: 10,
-        blockedTotal: 0,
-        pendingSpendable: 0,
+        total: _a(10),
+        spendable: _a(10),
+        blockedTotal: _a(0),
+        pendingSpendable: _a(0),
       ),
     );
 
@@ -169,10 +178,10 @@ void main() {
     when(manager.balance).thenAnswer(
       (realInvocation) => Balance(
         coin: Coin.bitcoin,
-        total: 10,
-        spendable: 10,
-        blockedTotal: 0,
-        pendingSpendable: 0,
+        total: _a(10),
+        spendable: _a(10),
+        blockedTotal: _a(0),
+        pendingSpendable: _a(0),
       ),
     );
 
