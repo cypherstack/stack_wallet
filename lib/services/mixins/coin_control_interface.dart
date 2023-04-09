@@ -59,18 +59,18 @@ mixin CoinControlInterface {
         fractionDigits: _coin.decimals,
       );
 
-      satoshiBalanceTotal = satoshiBalanceTotal + utxoAmount;
+      satoshiBalanceTotal += utxoAmount;
 
       if (utxo.isBlocked) {
-        satoshiBalanceBlocked = satoshiBalanceBlocked + utxoAmount;
+        satoshiBalanceBlocked += utxoAmount;
       } else {
         if (utxo.isConfirmed(
           currentChainHeight,
           _coin.requiredConfirmations,
         )) {
-          satoshiBalanceSpendable + satoshiBalanceSpendable + utxoAmount;
+          satoshiBalanceSpendable += utxoAmount;
         } else {
-          satoshiBalancePending = satoshiBalancePending + utxoAmount;
+          satoshiBalancePending += utxoAmount;
         }
       }
     }

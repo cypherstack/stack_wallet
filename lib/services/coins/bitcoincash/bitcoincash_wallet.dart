@@ -27,6 +27,7 @@ import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
+import 'package:stackwallet/services/mixins/xpubable.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
@@ -104,7 +105,8 @@ String constructDerivePath({
 }
 
 class BitcoinCashWallet extends CoinServiceAPI
-    with WalletCache, WalletDB, CoinControlInterface {
+    with WalletCache, WalletDB, CoinControlInterface
+    implements XPubAble {
   BitcoinCashWallet({
     required String walletId,
     required String walletName,
@@ -3236,6 +3238,17 @@ class BitcoinCashWallet extends CoinServiceAPI
           level: LogLevel.Error);
       return false;
     }
+  }
+
+  @override
+  Future<String> get xpub async {
+    final node = await Bip32Utils.getBip32Root(
+      (await mnemonic).join(" "),
+      await mnemonicPassphrase ?? "",
+      _network,
+    );
+
+    return node.neutered().toBase58();
   }
 }
 

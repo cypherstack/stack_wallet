@@ -1,3 +1,4 @@
+import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -12,6 +13,13 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 import 'manager_test.mocks.dart';
+
+/// quick amount constructor wrapper. Using an int is bad practice but for
+/// testing with small amounts this should be fine
+Amount _a(int i) => Amount.fromDecimal(
+      Decimal.fromInt(i),
+      fractionDigits: 8,
+    );
 
 @GenerateMocks([FiroWallet, ElectrumX])
 void main() {
@@ -79,20 +87,20 @@ void main() {
       when(wallet.balance).thenAnswer(
         (_) => Balance(
           coin: Coin.firo,
-          total: 10,
-          spendable: 1,
-          blockedTotal: 0,
-          pendingSpendable: 9,
+          total: _a(10),
+          spendable: _a(1),
+          blockedTotal: _a(0),
+          pendingSpendable: _a(9),
         ),
       );
 
       final manager = Manager(wallet);
 
       expect(manager.balance.coin, Coin.firo);
-      expect(manager.balance.total, 10);
-      expect(manager.balance.spendable, 1);
-      expect(manager.balance.blockedTotal, 0);
-      expect(manager.balance.pendingSpendable, 9);
+      expect(manager.balance.total.raw.toInt(), 10);
+      expect(manager.balance.spendable.raw.toInt(), 1);
+      expect(manager.balance.blockedTotal.raw.toInt(), 0);
+      expect(manager.balance.pendingSpendable.raw.toInt(), 9);
     });
   });
 

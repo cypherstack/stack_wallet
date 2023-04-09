@@ -28,6 +28,7 @@ import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/firo_hive.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
+import 'package:stackwallet/services/mixins/xpubable.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
@@ -785,7 +786,9 @@ Future<void> _setTestnetWrapper(bool isTestnet) async {
 }
 
 /// Handles a single instance of a firo wallet
-class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
+class FiroWallet extends CoinServiceAPI
+    with WalletCache, WalletDB, FiroHive
+    implements XPubAble {
   // Constructor
   FiroWallet({
     required String walletId,
@@ -5151,4 +5154,15 @@ class FiroWallet extends CoinServiceAPI with WalletCache, WalletDB, FiroHive {
   @override
   Future<List<isar_models.Transaction>> get transactions =>
       db.getTransactions(walletId).findAll();
+
+  @override
+  Future<String> get xpub async {
+    final node = await Bip32Utils.getBip32Root(
+      (await mnemonic).join(" "),
+      await mnemonicPassphrase ?? "",
+      _network,
+    );
+
+    return node.neutered().toBase58();
+  }
 }

@@ -3,6 +3,7 @@ import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart'
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 class FakeCoinServiceAPI extends CoinServiceAPI {
@@ -71,7 +72,7 @@ class FakeCoinServiceAPI extends CoinServiceAPI {
   }
 
   @override
-  Future<int> estimateFeeFor(int satoshiAmount, int feeRate) {
+  Future<Amount> estimateFeeFor(Amount amount, int feeRate) {
     // TODO: implement estimateFeeFor
     throw UnimplementedError();
   }
@@ -103,7 +104,7 @@ class FakeCoinServiceAPI extends CoinServiceAPI {
   @override
   Future<Map<String, dynamic>> prepareSend(
       {required String address,
-      required int amount,
+      required Amount amount,
       Map<String, dynamic>? args}) {
     // TODO: implement prepareSend
     throw UnimplementedError();

@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:bip32/bip32.dart' as bip32;
-import 'package:bip39/bip39.dart' as bip39;
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -288,23 +286,11 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                                       return SettingsListButton(
                                         iconAssetName: Assets.svg.eye,
                                         title: "Wallet xPub",
-                                        onPressed: () async {
-                                          final List<String> mnemonic = await ref
-                                              .read(
-                                                  walletsChangeNotifierProvider)
-                                              .getManager(widget.walletId)
-                                              .mnemonic;
-
-                                          final seed = bip39.mnemonicToSeed(
-                                              mnemonic.join(' '));
-                                          final node =
-                                              bip32.BIP32.fromSeed(seed);
-                                          final xpub =
-                                              node.neutered().toBase58();
-
+                                        onPressed: () {
                                           Navigator.of(context).pushNamed(
-                                              XPubView.routeName,
-                                              arguments: xpub);
+                                            XPubView.routeName,
+                                            arguments: widget.walletId,
+                                          );
                                         },
                                       );
                                     },

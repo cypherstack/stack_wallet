@@ -8,7 +8,7 @@ Stack Wallet is a fully open source cryptocurrency wallet. With an easy to use u
 ## Feature List
 
 Highlights include:
-- 5 Different cryptocurrencies
+- 11 Different cryptocurrencies
 - All private keys and seeds stay on device and are never shared.
 - Easy backup and restore feature to save all the information that's important to you.
 - Trading cryptocurrencies through our partners.
@@ -24,7 +24,7 @@ Highlights include:
 
 The following prerequisites can be installed with the setup script `scripts/setup.sh` or manually as described below:
 
-- Flutter 3.7.6 [(install manually or with git, do not install with snap)](https://docs.flutter.dev/get-started/install)
+- Flutter 3.7.10 [(install manually or with git, do not install with snap)](https://docs.flutter.dev/get-started/install)
 - Dart SDK Requirement (>=2.19.0, up until <3.0.0) (normally included with a flutter install)
 - Android setup ([Android Studio](https://developer.android.com/studio) and subsequent dependencies)
 
@@ -32,27 +32,27 @@ The following prerequisites can be installed with the setup script `scripts/setu
 [`scripts/setup.sh`](https://github.com/cypherstack/stack_wallet/blob/main/scripts/setup.sh) is provided as a tool to set up a stock Ubuntu 20.04 installation for building: download the script and run it anywhere.  This script should skip the entire [Manual setup](#manual-setup) section below and prepare you for [running](#running).  It will set up the stack_wallet repository in `~/projects/stack_wallet` and build it there. 
 
 ### Manual setup
-After installing the prerequisites listed above, download the code and init the submodules
+Install basic dependencies
 ```
-git clone https://github.com/cypherstack/stack_wallet.git
-cd stack_wallet
-git submodule update --init --recursive
+sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm python3-distutils
 ```
 
-Install all dependencies listed in each of the plugins in the crypto_plugins folder (eg. [flutter_libmonero](https://github.com/cypherstack/flutter_libmonero/blob/main/howto-build-android.md), [flutter_libepiccash](https://github.com/cypherstack/flutter_libepiccash) ) as of Oct 3rd 2022 that is:
+The following *may* be needed for Android studio:
 ```
-sudo apt-get install unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm debhelper libclang-dev cargo rustc opencl-headers libssl-dev ocl-icd-opencl-dev
+sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-1.0:i386
 ```
 
 Install [Rust](https://www.rust-lang.org/tools/install)
 ```
 cargo install cargo-ndk
 rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
+```
 
-sudo apt install libc6-dev-i386
-sudo apt install build-essential cmake git libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev pkg-config llvm 
-sudo apt install build-essential debhelper cmake libclang-dev libncurses5-dev clang libncursesw5-dev cargo rustc opencl-headers libssl-dev pkg-config ocl-icd-opencl-dev
-sudo apt install unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless
+After installing the prerequisites listed above, download the code and init the submodules
+```
+git clone https://github.com/cypherstack/stack_wallet.git
+cd stack_wallet
+git submodule update --init --recursive
 ```
 
 Run prebuild script
@@ -72,7 +72,7 @@ for example to find which pre-installed packages you may need to remove with `su
 ```
 sudo apt-get remove '^libboost.*-dev.*'
 ```
-<!-- TODO: configure compiler to prefer built over system libraries -->
+<!-- TODO: configure compiler to prefer built over system libraries. Should already use them? -->
 
 Building plugins for Android
 ```
@@ -109,7 +109,9 @@ flutter run linux
 ```
 
 ## Android Studio
-Android Studio is the recommended IDE for development, not just for launching on Android devices and emulators but also for Linux desktop development.  Install it and configure it as follows:
+Android Studio is the recommended IDE for development, not just for launching on Android devices and emulators but also for Linux desktop development. 
+
+Follow instructions here [https://developer.android.com/studio/install#linux](https://developer.android.com/studio/install#linux) or install via snap:
 ```
 # setup android studio
 sudo apt install -y openjdk-11-jdk
