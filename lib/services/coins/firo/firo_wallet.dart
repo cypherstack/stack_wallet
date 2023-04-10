@@ -2671,7 +2671,7 @@ class FiroWallet extends CoinServiceAPI
 
   Future<List<Map<String, dynamic>>> createMintsFromAmount(int total) async {
     var tmpTotal = total;
-    var index = 1; //
+    var index = 1;
     var mints = <Map<String, dynamic>>[];
     final nextFreeMintIndex = firoGetMintIndex()!;
     while (tmpTotal > 0) {
