@@ -338,6 +338,26 @@ class OledBlackColors extends StackColorTheme {
   @override
   Color get rateTypeToggleDesktopColorOff => buttonBackSecondary;
 
+  // token view colors
+  @override
+  Color get ethTagText => const Color(0xFFFFFFFF);
+  @override
+  Color get ethTagBG => const Color(0xFF5761A2);
+  @override
+  Color get ethWalletTagText => const Color(0xFFDEDEDE);
+  @override
+  Color get ethWalletTagBG => const Color(0xFF222539);
+  @override
+  Color get tokenSummaryTextPrimary => const Color(0xFFFFFFFF);
+  @override
+  Color get tokenSummaryTextSecondary => const Color(0xFFC9D0FF);
+  @override
+  Color get tokenSummaryBG => const Color(0xFF292D45);
+  @override
+  Color get tokenSummaryButtonBG => const Color(0xFFC9D0FF);
+  @override
+  Color get tokenSummaryIcon => const Color(0xFF252C78);
+
   @override
   BoxShadow get standardBoxShadow => BoxShadow(
         color: shadow,

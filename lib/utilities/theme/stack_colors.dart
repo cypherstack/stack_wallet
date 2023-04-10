@@ -187,6 +187,17 @@ class StackColors extends ThemeExtension<StackColors> {
   final Color rateTypeToggleDesktopColorOn;
   final Color rateTypeToggleDesktopColorOff;
 
+  // token view colors
+  final Color ethTagText;
+  final Color ethTagBG;
+  final Color ethWalletTagText;
+  final Color ethWalletTagBG;
+  final Color tokenSummaryTextPrimary;
+  final Color tokenSummaryTextSecondary;
+  final Color tokenSummaryBG;
+  final Color tokenSummaryButtonBG;
+  final Color tokenSummaryIcon;
+
   final BoxShadow standardBoxShadow;
   final BoxShadow? homeViewButtonBarBoxShadow;
 
@@ -337,6 +348,15 @@ class StackColors extends ThemeExtension<StackColors> {
     required this.rateTypeToggleDesktopColorOff,
     required this.standardBoxShadow,
     required this.homeViewButtonBarBoxShadow,
+    required this.ethTagText,
+    required this.ethTagBG,
+    required this.ethWalletTagText,
+    required this.ethWalletTagBG,
+    required this.tokenSummaryTextPrimary,
+    required this.tokenSummaryTextSecondary,
+    required this.tokenSummaryBG,
+    required this.tokenSummaryButtonBG,
+    required this.tokenSummaryIcon,
   });
 
   factory StackColors.fromStackColorTheme(StackColorTheme colorTheme) {
@@ -490,6 +510,15 @@ class StackColors extends ThemeExtension<StackColors> {
       rateTypeToggleDesktopColorOff: colorTheme.rateTypeToggleDesktopColorOff,
       homeViewButtonBarBoxShadow: colorTheme.homeViewButtonBarBoxShadow,
       standardBoxShadow: colorTheme.standardBoxShadow,
+      ethTagText: colorTheme.ethTagText,
+      ethTagBG: colorTheme.ethTagBG,
+      ethWalletTagText: colorTheme.ethWalletTagText,
+      ethWalletTagBG: colorTheme.ethWalletTagBG,
+      tokenSummaryTextPrimary: colorTheme.tokenSummaryTextPrimary,
+      tokenSummaryTextSecondary: colorTheme.tokenSummaryTextSecondary,
+      tokenSummaryBG: colorTheme.tokenSummaryBG,
+      tokenSummaryButtonBG: colorTheme.tokenSummaryButtonBG,
+      tokenSummaryIcon: colorTheme.tokenSummaryIcon,
     );
   }
 
@@ -639,6 +668,15 @@ class StackColors extends ThemeExtension<StackColors> {
     Color? rateTypeToggleColorOff,
     Color? rateTypeToggleDesktopColorOn,
     Color? rateTypeToggleDesktopColorOff,
+    Color? ethTagText,
+    Color? ethTagBG,
+    Color? ethWalletTagText,
+    Color? ethWalletTagBG,
+    Color? tokenSummaryTextPrimary,
+    Color? tokenSummaryTextSecondary,
+    Color? tokenSummaryBG,
+    Color? tokenSummaryButtonBG,
+    Color? tokenSummaryIcon,
     BoxShadow? homeViewButtonBarBoxShadow,
     BoxShadow? standardBoxShadow,
   }) {
@@ -833,6 +871,17 @@ class StackColors extends ThemeExtension<StackColors> {
           rateTypeToggleDesktopColorOn ?? this.rateTypeToggleDesktopColorOn,
       rateTypeToggleDesktopColorOff:
           rateTypeToggleDesktopColorOff ?? this.rateTypeToggleDesktopColorOff,
+      ethTagText: ethTagText ?? this.ethTagText,
+      ethTagBG: ethTagBG ?? this.ethTagBG,
+      ethWalletTagText: ethWalletTagText ?? this.ethWalletTagText,
+      ethWalletTagBG: ethWalletTagBG ?? this.ethWalletTagBG,
+      tokenSummaryTextPrimary:
+          tokenSummaryTextPrimary ?? this.tokenSummaryTextPrimary,
+      tokenSummaryTextSecondary:
+          tokenSummaryTextSecondary ?? this.tokenSummaryTextSecondary,
+      tokenSummaryBG: tokenSummaryBG ?? this.tokenSummaryBG,
+      tokenSummaryButtonBG: tokenSummaryButtonBG ?? this.tokenSummaryButtonBG,
+      tokenSummaryIcon: tokenSummaryIcon ?? this.tokenSummaryIcon,
       homeViewButtonBarBoxShadow:
           homeViewButtonBarBoxShadow ?? this.homeViewButtonBarBoxShadow,
       standardBoxShadow: standardBoxShadow ?? this.standardBoxShadow,
@@ -1555,6 +1604,51 @@ class StackColors extends ThemeExtension<StackColors> {
       rateTypeToggleDesktopColorOff: Color.lerp(
         rateTypeToggleDesktopColorOff,
         other.rateTypeToggleDesktopColorOff,
+        t,
+      )!,
+      ethTagText: Color.lerp(
+        ethTagText,
+        other.ethTagText,
+        t,
+      )!,
+      ethTagBG: Color.lerp(
+        ethTagBG,
+        other.ethTagBG,
+        t,
+      )!,
+      ethWalletTagText: Color.lerp(
+        ethWalletTagText,
+        other.ethWalletTagText,
+        t,
+      )!,
+      ethWalletTagBG: Color.lerp(
+        ethWalletTagBG,
+        other.ethWalletTagBG,
+        t,
+      )!,
+      tokenSummaryTextPrimary: Color.lerp(
+        tokenSummaryTextPrimary,
+        other.tokenSummaryTextPrimary,
+        t,
+      )!,
+      tokenSummaryTextSecondary: Color.lerp(
+        tokenSummaryTextSecondary,
+        other.tokenSummaryTextSecondary,
+        t,
+      )!,
+      tokenSummaryBG: Color.lerp(
+        tokenSummaryBG,
+        other.tokenSummaryBG,
+        t,
+      )!,
+      tokenSummaryButtonBG: Color.lerp(
+        tokenSummaryButtonBG,
+        other.tokenSummaryButtonBG,
+        t,
+      )!,
+      tokenSummaryIcon: Color.lerp(
+        tokenSummaryIcon,
+        other.tokenSummaryIcon,
         t,
       )!,
     );
