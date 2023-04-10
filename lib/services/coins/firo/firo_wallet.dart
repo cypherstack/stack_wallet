@@ -914,8 +914,16 @@ class FiroWallet extends CoinServiceAPI
       type: isar_models.TransactionType.outgoing,
       subType: isar_models.TransactionSubType.none,
       // precision may be lost here hence the following amountString
-      amount: (txData["recipientAmt"] as Amount).raw.toInt(),
-      amountString: (txData["recipientAmt"] as Amount).toJsonString(),
+      amount: Amount(
+              rawValue: BigInt.from(txData["recipientAmt"] as int),
+              fractionDigits: coin.decimals)
+          .raw
+          .toInt(),
+      amountString: Amount(
+              rawValue: BigInt.from(txData["recipientAmt"] as int),
+              fractionDigits: coin.decimals)
+          .raw
+          .toString(),
       fee: txData["fee"] as int,
       height: null,
       isCancelled: false,
@@ -2413,7 +2421,14 @@ class FiroWallet extends CoinServiceAPI
       if (!jindexes!.contains(lelantusCoinsList[i].index) &&
           transactions
               .where((e) => e.txid == lelantusCoinsList[i].txId)
-              .isEmpty) {
+              .isEmpty &&
+          !(lelantusTransactionsd
+                  .where((e) => e.txid == lelantusCoinsList[i].txId)
+                  .isNotEmpty &&
+              lelantusTransactionsd
+                  .where((e) => e.txid == lelantusCoinsList[i].txId)
+                  .first
+                  .isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS))) {
         isUnconfirmed = true;
       }
 
