@@ -900,10 +900,6 @@ class FiroWallet extends CoinServiceAPI
       .findAll();
   // _transactionData ??= _refreshTransactions();
 
-  // Query for lelantus txs / mints
-  Future<List<isar_models.Transaction>> get _mintsTxnData =>
-      db.getTransactions(walletId).filter().isLelantusEqualTo(true).findAll();
-
   // models.TransactionData? cachedTxData;
 
   // hack to add tx to txData before refresh completes
@@ -2389,7 +2385,6 @@ class FiroWallet extends CoinServiceAPI
     }
     final jindexes = firoGetJIndex();
     final transactions = await _txnData;
-    final mints = await _mintsTxnData;
     final lelantusTransactionsd = await db
         .getTransactions(walletId)
         .filter()
@@ -2418,7 +2413,14 @@ class FiroWallet extends CoinServiceAPI
       if (!jindexes!.contains(lelantusCoinsList[i].index) &&
           transactions
               .where((e) => e.txid == lelantusCoinsList[i].txId)
-              .isEmpty) {
+              .isEmpty &&
+          !(lelantusTransactionsd
+                  .where((e) => e.txid == lelantusCoinsList[i].txId)
+                  .isNotEmpty &&
+              lelantusTransactionsd
+                  .where((e) => e.txid == lelantusCoinsList[i].txId)
+                  .first
+                  .isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS))) {
         isUnconfirmed = true;
       }
 
@@ -2441,11 +2443,7 @@ class FiroWallet extends CoinServiceAPI
       }
       if (!lelantusCoinsList[i].isUsed &&
           lelantusCoinsList[i].anonymitySetId != ANONYMITY_SET_EMPTY_ID &&
-          (!isUnconfirmed ||
-              mints
-                  .where((e) => e.txid == lelantusCoinsList[i].txId)
-                  .isNotEmpty)) {
-        // TODO make sure that mints is filtered to remove unconfirmed tx
+          !isUnconfirmed) {
         coins.add(lelantusCoinsList[i]);
       }
     }
