@@ -257,12 +257,12 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
     final contractAddress =
         web3dart.EthereumAddress.fromHex(tokenContract.address);
 
-    // if (tokenContract.abi == null) {
-    _tokenContract = await _updateTokenABI(
-      forContract: tokenContract,
-      usingContractAddress: contractAddress.hex,
-    );
-    // }
+    if (tokenContract.abi == null) {
+      _tokenContract = await _updateTokenABI(
+        forContract: tokenContract,
+        usingContractAddress: contractAddress.hex,
+      );
+    }
 
     String? mnemonicString = await ethWallet.mnemonicString;
 
