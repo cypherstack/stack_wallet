@@ -2515,7 +2515,6 @@ class FiroWallet extends CoinServiceAPI
       }
 
       _balancePrivate = Balance(
-        coin: coin,
         total: Amount(
           rawValue:
               BigInt.from(intLelantusBalance + unconfirmedLelantusBalance),
@@ -3803,7 +3802,6 @@ class FiroWallet extends CoinServiceAPI
 
       // finally update public balance
       _balance = Balance(
-        coin: coin,
         total: satoshiBalanceTotal,
         spendable: satoshiBalanceSpendable,
         blockedTotal: satoshiBalanceBlocked,

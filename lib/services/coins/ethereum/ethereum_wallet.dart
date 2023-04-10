@@ -10,7 +10,6 @@ import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/models/token_balance.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/ethereum/ethereum_api.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
@@ -78,14 +77,13 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
     );
   }
 
-  TokenBalance getCachedTokenBalance(EthContract contract) {
+  Balance getCachedTokenBalance(EthContract contract) {
     final jsonString = DB.instance.get<dynamic>(
       boxName: _walletId,
       key: TokenCacheKeys.tokenBalance(contract.address),
     ) as String?;
     if (jsonString == null) {
-      return TokenBalance(
-        contractAddress: contract.address,
+      return Balance(
         total: Amount(
           rawValue: BigInt.zero,
           fractionDigits: contract.decimals,
@@ -104,7 +102,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
         ),
       );
     }
-    return TokenBalance.fromJson(
+    return Balance.fromJson(
       jsonString,
       contract.decimals,
     );
@@ -222,7 +220,6 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
     web3.Web3Client client = getEthClient();
     web3.EtherAmount ethBalance = await client.getBalance(_credentials.address);
     _balance = Balance(
-      coin: coin,
       total: Amount(
         rawValue: ethBalance.getInWei,
         fractionDigits: coin.decimals,
