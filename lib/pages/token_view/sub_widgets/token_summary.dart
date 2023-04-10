@@ -21,6 +21,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:tuple/tuple.dart';
 
@@ -44,8 +45,7 @@ class TokenSummary extends ConsumerWidget {
     return Stack(
       children: [
         RoundedContainer(
-          color: const Color(0xFFE9EAFF), // todo: fix color
-          // color: Theme.of(context).extension<StackColors>()!.,
+          color: Theme.of(context).extension<StackColors>()!.tokenSummaryBG,
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
@@ -54,7 +54,9 @@ class TokenSummary extends ConsumerWidget {
                 children: [
                   SvgPicture.asset(
                     Assets.svg.walletDesktop,
-                    color: const Color(0xFF8488AB), // todo: fix color
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .tokenSummaryTextSecondary,
                     width: 12,
                     height: 12,
                   ),
@@ -68,7 +70,9 @@ class TokenSummary extends ConsumerWidget {
                       ),
                     ),
                     style: STextStyles.w500_12(context).copyWith(
-                      color: const Color(0xFF8488AB), // todo: fix color
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .tokenSummaryTextSecondary,
                     ),
                   ),
                 ],
@@ -88,7 +92,11 @@ class TokenSummary extends ConsumerWidget {
                       ),
                     )}"
                     " ${token.symbol}",
-                    style: STextStyles.pageTitleH1(context),
+                    style: STextStyles.pageTitleH1(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .tokenSummaryTextPrimary,
+                    ),
                   ),
                   const SizedBox(
                     width: 10,
@@ -119,7 +127,11 @@ class TokenSummary extends ConsumerWidget {
                     (value) => value.currency,
                   ),
                 )}",
-                style: STextStyles.subtitle500(context),
+                style: STextStyles.subtitle500(context).copyWith(
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .tokenSummaryTextPrimary,
+                ),
               ),
               const SizedBox(
                 height: 20,
@@ -137,8 +149,13 @@ class TokenSummary extends ConsumerWidget {
           child: WalletRefreshButton(
             walletId: walletId,
             initialSyncStatus: initialSyncStatus,
-            tokenContractAddress: ref.watch(tokenServiceProvider
-                .select((value) => value!.tokenContract.address)),
+            tokenContractAddress: ref.watch(
+              tokenServiceProvider.select(
+                (value) => value!.tokenContract.address,
+              ),
+            ),
+            overrideIconColor:
+                Theme.of(context).extension<StackColors>()!.topNavIconPrimary,
           ),
         ),
       ],
@@ -192,12 +209,12 @@ class TokenWalletOptions extends StatelessWidget {
               ReceiveView.routeName,
               arguments: Tuple2(
                 walletId,
-                Coin.ethereum,
+                tokenContract,
               ),
             );
           },
           subLabel: "Receive",
-          iconAssetSVG: Assets.svg.receive(context),
+          iconAssetSVG: Assets.svg.arrowDownLeft,
         ),
         const SizedBox(
           width: 16,
@@ -214,7 +231,7 @@ class TokenWalletOptions extends StatelessWidget {
             );
           },
           subLabel: "Send",
-          iconAssetSVG: Assets.svg.send(context),
+          iconAssetSVG: Assets.svg.arrowUpRight,
         ),
         const SizedBox(
           width: 16,
@@ -251,12 +268,14 @@ class TokenOptionsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final iconSize = subLabel == "Send" || subLabel == "Receive" ? 12.0 : 24.0;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         RawMaterialButton(
-          fillColor: Theme.of(context).extension<StackColors>()!.popupBG,
+          fillColor:
+              Theme.of(context).extension<StackColors>()!.tokenSummaryButtonBG,
           elevation: 0,
           focusElevation: 0,
           hoverElevation: 0,
@@ -270,11 +289,27 @@ class TokenOptionsButton extends StatelessWidget {
           onPressed: onPressed,
           child: Padding(
             padding: const EdgeInsets.all(10),
-            child: SvgPicture.asset(
-              iconAssetSVG,
-              color: const Color(0xFF424A97), // todo: fix color
-              width: 24,
-              height: 24,
+            child: ConditionalParent(
+              condition: iconSize < 24,
+              builder: (child) => RoundedContainer(
+                padding: const EdgeInsets.all(6),
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .tokenSummaryIcon
+                    .withOpacity(0.4),
+                radiusMultiplier: 10,
+                child: Center(
+                  child: child,
+                ),
+              ),
+              child: SvgPicture.asset(
+                iconAssetSVG,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .tokenSummaryIcon,
+                width: iconSize,
+                height: iconSize,
+              ),
             ),
           ),
         ),
@@ -283,7 +318,11 @@ class TokenOptionsButton extends StatelessWidget {
         ),
         Text(
           subLabel,
-          style: STextStyles.w500_12(context),
+          style: STextStyles.w500_12(context).copyWith(
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .tokenSummaryTextPrimary,
+          ),
         )
       ],
     );
@@ -303,12 +342,14 @@ class CoinTickerTag extends ConsumerWidget {
     return RoundedContainer(
       padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
       radiusMultiplier: 0.25,
-      color: const Color(0xFF4D5798), // TODO: color theme for multi themes
+      color: Theme.of(context).extension<StackColors>()!.ethTagBG,
       child: Text(
-        ref.watch(walletsChangeNotifierProvider
-            .select((value) => value.getManager(walletId).coin.ticker)),
+        ref.watch(
+          walletsChangeNotifierProvider
+              .select((value) => value.getManager(walletId).coin.ticker),
+        ),
         style: STextStyles.w600_12(context).copyWith(
-          color: Colors.white, // TODO: design is wrong?
+          color: Theme.of(context).extension<StackColors>()!.ethTagText,
         ),
       ),
     );

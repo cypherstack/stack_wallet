@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:decimal/decimal.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart';
@@ -8,10 +7,10 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/dto/ethereum/eth_token_tx_dto.dart';
 import 'package:stackwallet/dto/ethereum/eth_token_tx_extra_dto.dart';
+import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/models/token_balance.dart';
 import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
 import 'package:stackwallet/services/ethereum/ethereum_api.dart';
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
@@ -40,7 +39,6 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
   // late web3dart.EthereumAddress _contractAddress;
   late web3dart.EthPrivateKey _credentials;
   late web3dart.DeployedContract _deployedContract;
-  late web3dart.ContractFunction _balanceFunction;
   late web3dart.ContractFunction _sendFunction;
   late web3dart.Web3Client _client;
 
@@ -60,8 +58,8 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
   EthContract get tokenContract => _tokenContract;
   EthContract _tokenContract;
 
-  TokenBalance get balance => _balance ??= getCachedBalance();
-  TokenBalance? _balance;
+  Balance get balance => _balance ??= getCachedBalance();
+  Balance? _balance;
 
   Coin get coin => Coin.ethereum;
 
@@ -259,12 +257,12 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
     final contractAddress =
         web3dart.EthereumAddress.fromHex(tokenContract.address);
 
-    // if (tokenContract.abi == null) {
-    _tokenContract = await _updateTokenABI(
-      forContract: tokenContract,
-      usingContractAddress: contractAddress.hex,
-    );
-    // }
+    if (tokenContract.abi == null) {
+      _tokenContract = await _updateTokenABI(
+        forContract: tokenContract,
+        usingContractAddress: contractAddress.hex,
+      );
+    }
 
     String? mnemonicString = await ethWallet.mnemonicString;
 
@@ -284,7 +282,6 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
     );
 
     try {
-      _balanceFunction = _deployedContract.function('balanceOf');
       _sendFunction = _deployedContract.function('transfer');
     } catch (_) {
       //====================================================================
@@ -359,7 +356,6 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
       contractAddress,
     );
 
-    _balanceFunction = _deployedContract.function('balanceOf');
     _sendFunction = _deployedContract.function('transfer');
 
     _client = await getEthClient();
@@ -405,35 +401,33 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
   }
 
   Future<void> refreshCachedBalance() async {
-    final balanceRequest = await _client.call(
-      contract: _deployedContract,
-      function: _balanceFunction,
-      params: [_credentials.address],
-    );
-
-    String _balance = balanceRequest.first.toString();
-
-    final newBalance = TokenBalance(
+    final response = await EthereumAPI.getWalletTokenBalance(
+      address: _credentials.address.hex,
       contractAddress: tokenContract.address,
-      total: Amount.fromDecimal(
-        Decimal.parse(_balance),
-        fractionDigits: tokenContract.decimals,
-      ),
-      spendable: Amount.fromDecimal(
-        Decimal.parse(_balance),
-        fractionDigits: tokenContract.decimals,
-      ),
-      blockedTotal: Amount(
-        rawValue: BigInt.zero,
-        fractionDigits: tokenContract.decimals,
-      ),
-      pendingSpendable: Amount(
-        rawValue: BigInt.zero,
-        fractionDigits: tokenContract.decimals,
-      ),
     );
-    await updateCachedBalance(newBalance);
-    notifyListeners();
+
+    if (response.value != null) {
+      await updateCachedBalance(
+        Balance(
+          total: response.value!,
+          spendable: response.value!,
+          blockedTotal: Amount(
+            rawValue: BigInt.zero,
+            fractionDigits: tokenContract.decimals,
+          ),
+          pendingSpendable: Amount(
+            rawValue: BigInt.zero,
+            fractionDigits: tokenContract.decimals,
+          ),
+        ),
+      );
+      notifyListeners();
+    } else {
+      Logging.instance.log(
+        "CachedEthTokenBalance.fetchAndUpdateCachedBalance failed: ${response.exception}",
+        level: LogLevel.Warning,
+      );
+    }
   }
 
   Future<List<Transaction>> get transactions => ethWallet.db

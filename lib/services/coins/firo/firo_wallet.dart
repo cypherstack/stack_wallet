@@ -2413,7 +2413,14 @@ class FiroWallet extends CoinServiceAPI
       if (!jindexes!.contains(lelantusCoinsList[i].index) &&
           transactions
               .where((e) => e.txid == lelantusCoinsList[i].txId)
-              .isEmpty) {
+              .isEmpty &&
+          !(lelantusTransactionsd
+                  .where((e) => e.txid == lelantusCoinsList[i].txId)
+                  .isNotEmpty &&
+              lelantusTransactionsd
+                  .where((e) => e.txid == lelantusCoinsList[i].txId)
+                  .first
+                  .isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS))) {
         isUnconfirmed = true;
       }
 
@@ -2515,7 +2522,6 @@ class FiroWallet extends CoinServiceAPI
       }
 
       _balancePrivate = Balance(
-        coin: coin,
         total: Amount(
           rawValue:
               BigInt.from(intLelantusBalance + unconfirmedLelantusBalance),
@@ -3803,7 +3809,6 @@ class FiroWallet extends CoinServiceAPI
 
       // finally update public balance
       _balance = Balance(
-        coin: coin,
         total: satoshiBalanceTotal,
         spendable: satoshiBalanceSpendable,
         blockedTotal: satoshiBalanceBlocked,

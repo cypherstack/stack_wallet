@@ -335,6 +335,26 @@ class ChanColors extends StackColorTheme {
   @override
   Color get rateTypeToggleDesktopColorOff => buttonBackSecondary;
 
+  // token view colors
+  @override
+  Color get ethTagText => const Color(0xFFFFFFFF);
+  @override
+  Color get ethTagBG => const Color(0xFF4D5798);
+  @override
+  Color get ethWalletTagText => const Color(0xFF4D5798);
+  @override
+  Color get ethWalletTagBG => const Color(0xFFF0F3FD);
+  @override
+  Color get tokenSummaryTextPrimary => const Color(0xFF232323);
+  @override
+  Color get tokenSummaryTextSecondary => const Color(0xFF8488AB);
+  @override
+  Color get tokenSummaryBG => const Color(0xFFE9EAFF);
+  @override
+  Color get tokenSummaryButtonBG => const Color(0xFFFFFFFF);
+  @override
+  Color get tokenSummaryIcon => const Color(0xFF424A97);
+
   @override
   BoxShadow get standardBoxShadow => BoxShadow(
         color: shadow,

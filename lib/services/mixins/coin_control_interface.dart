@@ -76,7 +76,6 @@ mixin CoinControlInterface {
     }
 
     final balance = Balance(
-      coin: _coin,
       total: satoshiBalanceTotal,
       spendable: satoshiBalanceSpendable,
       blockedTotal: satoshiBalanceBlocked,
