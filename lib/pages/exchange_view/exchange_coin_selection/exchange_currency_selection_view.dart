@@ -111,26 +111,28 @@ class _ExchangeCurrencySelectionViewState
         return currencies;
       }
 
-      await showDialog<void>(
-        context: context,
-        builder: (context) => StackDialog(
-          title: "ChangeNOW Error",
-          message: "Failed to load currency data: ${cn.exception}",
-          leftButton: SecondaryButton(
-            label: "Ok",
-            onPressed: Navigator.of(context, rootNavigator: isDesktop).pop,
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          builder: (context) => StackDialog(
+            title: "ChangeNOW Error",
+            message: "Failed to load currency data: ${cn.exception}",
+            leftButton: SecondaryButton(
+              label: "Ok",
+              onPressed: Navigator.of(context, rootNavigator: isDesktop).pop,
+            ),
+            rightButton: PrimaryButton(
+              label: "Retry",
+              onPressed: () async {
+                Navigator.of(context, rootNavigator: isDesktop).pop();
+                _currencies = await _showUpdatingCurrencies(
+                    whileFuture: _loadCurrencies());
+                setState(() {});
+              },
+            ),
           ),
-          rightButton: PrimaryButton(
-            label: "Retry",
-            onPressed: () async {
-              Navigator.of(context, rootNavigator: isDesktop).pop();
-              _currencies =
-                  await _showUpdatingCurrencies(whileFuture: _loadCurrencies());
-              setState(() {});
-            },
-          ),
-        ),
-      );
+        );
+      }
     } else {
       currencies.addAll(cn.value!);
     }
@@ -180,13 +182,13 @@ class _ExchangeCurrencySelectionViewState
           .where((e) =>
               e.name.toLowerCase().contains(text.toLowerCase()) ||
               e.ticker.toLowerCase().contains(text.toLowerCase()))
-          .toList(growable: false);
+          .toList();
     } else {
       if (text.isEmpty) {
         return _currencies
             .where((e) =>
                 e.ticker.toLowerCase() != widget.pairedTicker!.toLowerCase())
-            .toList(growable: false);
+            .toList();
       }
 
       return _currencies
@@ -194,7 +196,7 @@ class _ExchangeCurrencySelectionViewState
               e.ticker.toLowerCase() != widget.pairedTicker!.toLowerCase() &&
               (e.name.toLowerCase().contains(text.toLowerCase()) ||
                   e.ticker.toLowerCase().contains(text.toLowerCase())))
-          .toList(growable: false);
+          .toList();
     }
   }
 
@@ -328,181 +330,111 @@ class _ExchangeCurrencySelectionViewState
             height: 12,
           ),
           Flexible(
-            child: Builder(builder: (context) {
-              final coins = Coin.values.where((e) =>
-                  e.ticker.toLowerCase() != widget.pairedTicker?.toLowerCase());
+            child: Builder(
+              builder: (context) {
+                final coins = Coin.values.where((e) =>
+                    e.ticker.toLowerCase() !=
+                    widget.pairedTicker?.toLowerCase());
 
-              final items = filter(_searchString)
-                  .where((e) => coins
-                      .where((coin) =>
-                          coin.ticker.toLowerCase() == e.ticker.toLowerCase())
-                      .isNotEmpty)
-                  .toList(growable: false);
-              items.sort((a, b) => a.name.compareTo(b.name));
+                final items = filter(_searchString);
 
-              return RoundedWhiteContainer(
-                padding: const EdgeInsets.all(0),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  primary: isDesktop ? false : null,
-                  itemCount: items.length,
-                  itemBuilder: (builderContext, index) {
-                    final bool hasImageUrl =
-                        items[index].image.startsWith("http");
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).pop(items[index]);
-                        },
-                        child: RoundedWhiteContainer(
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: isStackCoin(items[index].ticker)
-                                    ? getIconForTicker(
-                                        items[index].ticker,
-                                        size: 24,
-                                      )
-                                    : hasImageUrl
-                                        ? SvgPicture.network(
-                                            items[index].image,
-                                            width: 24,
-                                            height: 24,
-                                            placeholderBuilder: (_) =>
-                                                const LoadingIndicator(),
-                                          )
-                                        : const SizedBox(
-                                            width: 24,
-                                            height: 24,
-                                          ),
-                              ),
-                              const SizedBox(
-                                width: 10,
-                              ),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      items[index].name,
-                                      style: STextStyles.largeMedium14(context),
-                                    ),
-                                    const SizedBox(
-                                      height: 2,
-                                    ),
-                                    Text(
-                                      items[index].ticker.toUpperCase(),
-                                      style: STextStyles.smallMed12(context)
-                                          .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textSubtitle1,
-                                      ),
-                                    ),
-                                  ],
+                final walletCoins = items
+                    .where((currency) => coins
+                        .where((coin) =>
+                            coin.ticker.toLowerCase() ==
+                            currency.ticker.toLowerCase())
+                        .isNotEmpty)
+                    .toList();
+
+                // sort alphabetically by name
+                items.sort((a, b) => a.name.compareTo(b.name));
+
+                // reverse sort walletCoins to prepare for next step
+                walletCoins.sort((a, b) => b.name.compareTo(a.name));
+
+                // insert wallet coins at beginning
+                for (final c in walletCoins) {
+                  items.remove(c);
+                  items.insert(0, c);
+                }
+
+                return RoundedWhiteContainer(
+                  padding: const EdgeInsets.all(0),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    primary: isDesktop ? false : null,
+                    itemCount: items.length,
+                    itemBuilder: (builderContext, index) {
+                      final bool hasImageUrl =
+                          items[index].image.startsWith("http");
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).pop(items[index]);
+                          },
+                          child: RoundedWhiteContainer(
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: isStackCoin(items[index].ticker)
+                                      ? getIconForTicker(
+                                          items[index].ticker,
+                                          size: 24,
+                                        )
+                                      : hasImageUrl
+                                          ? SvgPicture.network(
+                                              items[index].image,
+                                              width: 24,
+                                              height: 24,
+                                              placeholderBuilder: (_) =>
+                                                  const LoadingIndicator(),
+                                            )
+                                          : const SizedBox(
+                                              width: 24,
+                                              height: 24,
+                                            ),
                                 ),
-                              ),
-                            ],
+                                const SizedBox(
+                                  width: 10,
+                                ),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        items[index].name,
+                                        style:
+                                            STextStyles.largeMedium14(context),
+                                      ),
+                                      const SizedBox(
+                                        height: 2,
+                                      ),
+                                      Text(
+                                        items[index].ticker.toUpperCase(),
+                                        style: STextStyles.smallMed12(context)
+                                            .copyWith(
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textSubtitle1,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                ),
-              );
-            }),
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          Text(
-            "All coins",
-            style: STextStyles.smallMed12(context),
-          ),
-          const SizedBox(
-            height: 12,
-          ),
-          Flexible(
-            child: Builder(builder: (context) {
-              final filtered = filter(_searchString);
-              filtered.sort((a, b) => a.name.compareTo(b.name));
-              return RoundedWhiteContainer(
-                padding: const EdgeInsets.all(0),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  primary: isDesktop ? false : null,
-                  itemCount: filtered.length,
-                  itemBuilder: (builderContext, index) {
-                    final bool hasImageUrl =
-                        filtered[index].image.startsWith("http");
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).pop(filtered[index]);
-                        },
-                        child: RoundedWhiteContainer(
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: isStackCoin(filtered[index].ticker)
-                                    ? getIconForTicker(
-                                        filtered[index].ticker,
-                                        size: 24,
-                                      )
-                                    : hasImageUrl
-                                        ? SvgPicture.network(
-                                            filtered[index].image,
-                                            width: 24,
-                                            height: 24,
-                                            placeholderBuilder: (_) =>
-                                                const LoadingIndicator(),
-                                          )
-                                        : const SizedBox(
-                                            width: 24,
-                                            height: 24,
-                                          ),
-                              ),
-                              const SizedBox(
-                                width: 10,
-                              ),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      filtered[index].name,
-                                      style: STextStyles.largeMedium14(context),
-                                    ),
-                                    const SizedBox(
-                                      height: 2,
-                                    ),
-                                    Text(
-                                      filtered[index].ticker.toUpperCase(),
-                                      style: STextStyles.smallMed12(context)
-                                          .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textSubtitle1,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              );
-            }),
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),
