@@ -1,4 +1,3 @@
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -6,10 +5,8 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
@@ -221,7 +218,7 @@ class _DesktopChooseFromStackState
                         const SizedBox(
                           width: 80,
                         ),
-                        BlueTextButton(
+                        CustomTextButton(
                           text: "Select wallet",
                           onTap: () async {
                             final address =
@@ -268,7 +265,7 @@ class _DesktopChooseFromStackState
   }
 }
 
-class BalanceDisplay extends ConsumerStatefulWidget {
+class BalanceDisplay extends ConsumerWidget {
   const BalanceDisplay({
     Key? key,
     required this.walletId,
@@ -277,64 +274,19 @@ class BalanceDisplay extends ConsumerStatefulWidget {
   final String walletId;
 
   @override
-  ConsumerState<BalanceDisplay> createState() => _BalanceDisplayState();
-}
-
-class _BalanceDisplayState extends ConsumerState<BalanceDisplay> {
-  late final String walletId;
-
-  Decimal? _cachedBalance;
-
-  static const loopedText = [
-    "Loading balance   ",
-    "Loading balance.  ",
-    "Loading balance.. ",
-    "Loading balance..."
-  ];
-
-  @override
-  void initState() {
-    walletId = widget.walletId;
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final manager = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManager(walletId)));
     final locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
 
-    return FutureBuilder(
-      future: manager.availableBalance,
-      builder: (context, AsyncSnapshot<Decimal> snapshot) {
-        if (snapshot.connectionState == ConnectionState.done &&
-            snapshot.hasData &&
-            snapshot.data != null) {
-          _cachedBalance = snapshot.data;
-        }
-
-        if (_cachedBalance == null) {
-          return AnimatedText(
-            stringsToLoopThrough: loopedText,
-            style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
-            ),
-          );
-        } else {
-          return Text(
-            "${Format.localizedStringAsFixed(
-              value: _cachedBalance!,
-              locale: locale,
-              decimalPlaces: 8,
-            )} ${manager.coin.ticker}",
-            style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
-            ),
-            textAlign: TextAlign.right,
-          );
-        }
-      },
+    return Text(
+      "${manager.balance.spendable.localizedStringAsFixed(locale: locale)} "
+      "${manager.coin.ticker}",
+      style: STextStyles.desktopTextExtraSmall(context).copyWith(
+        color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
+      ),
+      textAlign: TextAlign.right,
     );
   }
 }

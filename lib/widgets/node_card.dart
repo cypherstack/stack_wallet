@@ -13,7 +13,6 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
@@ -149,6 +148,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
       case Coin.litecoin:
       case Coin.dogecoin:
       case Coin.firo:
+      case Coin.particl:
       case Coin.bitcoinTestNet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
@@ -261,7 +261,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                     const SizedBox(
                       width: 66,
                     ),
-                    BlueTextButton(
+                    CustomTextButton(
                       text: "Connect",
                       enabled: _status == "Disconnected",
                       onTap: () async {
@@ -285,7 +285,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                     const SizedBox(
                       width: 48,
                     ),
-                    BlueTextButton(
+                    CustomTextButton(
                       text: "Details",
                       onTap: () {
                         Navigator.of(context).pushNamed(

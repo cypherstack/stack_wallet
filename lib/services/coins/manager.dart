@@ -1,13 +1,19 @@
 import 'dart:async';
 
-import 'package:decimal/decimal.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
+import 'package:stackwallet/db/hive/db.dart';
+import 'package:stackwallet/models/balance.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/models.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/mixins/coin_control_interface.dart';
+import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/services/mixins/xpubable.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
@@ -59,7 +65,6 @@ class Manager with ChangeNotifier {
   Future<void> updateNode(bool shouldRefresh) async {
     await _currentWallet.updateNode(shouldRefresh);
   }
-  // Function(bool isActive)? onIsActiveWalletChanged;
 
   CoinServiceAPI get wallet => _currentWallet;
 
@@ -88,13 +93,13 @@ class Manager with ChangeNotifier {
 
   Future<Map<String, dynamic>> prepareSend({
     required String address,
-    required int satoshiAmount,
+    required Amount amount,
     Map<String, dynamic>? args,
   }) async {
     try {
       final txInfo = await _currentWallet.prepareSend(
         address: address,
-        satoshiAmount: satoshiAmount,
+        amount: amount,
         args: args,
       );
       // notifyListeners();
@@ -109,36 +114,19 @@ class Manager with ChangeNotifier {
     try {
       final txid = await _currentWallet.confirmSend(txData: txData);
 
-      txData["txid"] = txid;
-      await _currentWallet.updateSentCachedTxData(txData);
+      try {
+        txData["txid"] = txid;
+        await _currentWallet.updateSentCachedTxData(txData);
+      } catch (e, s) {
+        // do not rethrow as that would get handled as a send failure further up
+        // also this is not critical code and transaction should show up on \
+        // refresh regardless
+        Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+      }
 
       notifyListeners();
       return txid;
     } catch (e) {
-      // rethrow to pass error in alert
-      rethrow;
-    }
-  }
-
-  /// create and submit tx to network
-  ///
-  /// Returns the txid of the sent tx
-  /// will throw exceptions on failure
-  Future<String> send({
-    required String toAddress,
-    required int amount,
-    Map<String, String> args = const {},
-  }) async {
-    try {
-      final txid = await _currentWallet.send(
-        toAddress: toAddress,
-        amount: amount,
-        args: args,
-      );
-      notifyListeners();
-      return txid;
-    } catch (e, s) {
-      Logging.instance.log("$e\n $s", level: LogLevel.Error);
       // rethrow to pass error in alert
       rethrow;
     }
@@ -149,44 +137,12 @@ class Manager with ChangeNotifier {
 
   Future<String> get currentReceivingAddress =>
       _currentWallet.currentReceivingAddress;
-  // Future<String> get currentLegacyReceivingAddress =>
-  //     _currentWallet.currentLegacyReceivingAddress;
 
-  Future<Decimal> get availableBalance async {
-    _cachedAvailableBalance = await _currentWallet.availableBalance;
-    return _cachedAvailableBalance;
-  }
+  Balance get balance => _currentWallet.balance;
 
-  Decimal _cachedAvailableBalance = Decimal.zero;
-  Decimal get cachedAvailableBalance => _cachedAvailableBalance;
-
-  Future<Decimal> get pendingBalance => _currentWallet.pendingBalance;
-  Future<Decimal> get balanceMinusMaxFee => _currentWallet.balanceMinusMaxFee;
-
-  Future<Decimal> get totalBalance async {
-    _cachedTotalBalance = await _currentWallet.totalBalance;
-    return _cachedTotalBalance;
-  }
-
-  Decimal _cachedTotalBalance = Decimal.zero;
-  Decimal get cachedTotalBalance => _cachedTotalBalance;
-
-  // Future<Decimal> get fiatBalance async {
-  //   final balance = await _currentWallet.availableBalance;
-  //   final price = await _currentWallet.basePrice;
-  //   return balance * price;
-  // }
-  //
-  // Future<Decimal> get fiatTotalBalance async {
-  //   final balance = await _currentWallet.totalBalance;
-  //   final price = await _currentWallet.basePrice;
-  //   return balance * price;
-  // }
-
-  Future<List<String>> get allOwnAddresses => _currentWallet.allOwnAddresses;
-
-  Future<TransactionData> get transactionData => _currentWallet.transactionData;
-  Future<List<UtxoObject>> get unspentOutputs => _currentWallet.unspentOutputs;
+  Future<List<isar_models.Transaction>> get transactions =>
+      _currentWallet.transactions;
+  Future<List<isar_models.UTXO>> get utxos => _currentWallet.utxos;
 
   Future<void> refresh() async {
     await _currentWallet.refresh();
@@ -208,6 +164,7 @@ class Manager with ChangeNotifier {
       _currentWallet.validateAddress(address);
 
   Future<List<String>> get mnemonic => _currentWallet.mnemonic;
+  Future<String?> get mnemonicPassphrase => _currentWallet.mnemonicPassphrase;
 
   Future<bool> testNetworkConnection() =>
       _currentWallet.testNetworkConnection();
@@ -216,6 +173,7 @@ class Manager with ChangeNotifier {
   Future<void> initializeExisting() => _currentWallet.initializeExisting();
   Future<void> recoverFromMnemonic({
     required String mnemonic,
+    String? mnemonicPassphrase,
     required int maxUnusedAddressGap,
     required int maxNumberOfIndexesToCheck,
     required int height,
@@ -223,6 +181,7 @@ class Manager with ChangeNotifier {
     try {
       await _currentWallet.recoverFromMnemonic(
         mnemonic: mnemonic,
+        mnemonicPassphrase: mnemonicPassphrase,
         maxUnusedAddressGap: maxUnusedAddressGap,
         maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
         height: height,
@@ -232,11 +191,6 @@ class Manager with ChangeNotifier {
       rethrow;
     }
   }
-
-  // Future<bool> initializeWallet() async {
-  //   final success = await _currentWallet.initializeWallet();
-  //   return success;
-  // }
 
   Future<void> exitCurrentWallet() async {
     final name = _currentWallet.walletName;
@@ -260,15 +214,10 @@ class Manager with ChangeNotifier {
     }
   }
 
-  Future<bool> isOwnAddress(String address) async {
-    final allOwnAddresses = await this.allOwnAddresses;
-    return allOwnAddresses.contains(address);
-  }
-
   bool get isConnected => _currentWallet.isConnected;
 
-  Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
-    return _currentWallet.estimateFeeFor(satoshiAmount, feeRate);
+  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+    return _currentWallet.estimateFeeFor(amount, feeRate);
   }
 
   Future<bool> generateNewAddress() async {
@@ -277,5 +226,39 @@ class Manager with ChangeNotifier {
       notifyListeners();
     }
     return success;
+  }
+
+  int get currentHeight => _currentWallet.storedChainHeight;
+
+  bool get hasPaynymSupport => _currentWallet is PaynymWalletInterface;
+
+  bool get hasCoinControlSupport => _currentWallet is CoinControlInterface;
+
+  bool get hasTokenSupport => _currentWallet.coin == Coin.ethereum;
+
+  bool get hasWhirlpoolSupport => false;
+
+  int get rescanOnOpenVersion =>
+      DB.instance.get<dynamic>(
+        boxName: DB.boxNameDBInfo,
+        key: "rescan_on_open_$walletId",
+      ) as int? ??
+      0;
+
+  Future<void> resetRescanOnOpen() async {
+    await DB.instance.delete<dynamic>(
+      key: "rescan_on_open_$walletId",
+      boxName: DB.boxNameDBInfo,
+    );
+  }
+
+  bool get hasXPub => _currentWallet is XPubAble;
+
+  Future<String> get xpub async {
+    if (!hasXPub) {
+      throw Exception(
+          "Tried to read xpub from wallet that does not support it");
+    }
+    return (_currentWallet as XPubAble).xpub;
   }
 }

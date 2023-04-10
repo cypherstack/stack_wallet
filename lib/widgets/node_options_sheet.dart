@@ -13,7 +13,6 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
@@ -132,6 +131,7 @@ class NodeOptionsSheet extends ConsumerWidget {
       case Coin.litecoin:
       case Coin.dogecoin:
       case Coin.firo:
+      case Coin.particl:
       case Coin.bitcoinTestNet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
@@ -307,7 +307,7 @@ class NodeOptionsSheet extends ConsumerWidget {
                       child: TextButton(
                         style: Theme.of(context)
                             .extension<StackColors>()!
-                            .getSecondaryEnabledButtonColor(context),
+                            .getSecondaryEnabledButtonStyle(context),
                         onPressed: () {
                           Navigator.pop(context);
                           Navigator.of(context).pushNamed(
@@ -337,10 +337,10 @@ class NodeOptionsSheet extends ConsumerWidget {
                         style: status == "Connected"
                             ? Theme.of(context)
                                 .extension<StackColors>()!
-                                .getPrimaryDisabledButtonColor(context)
+                                .getPrimaryDisabledButtonStyle(context)
                             : Theme.of(context)
                                 .extension<StackColors>()!
-                                .getPrimaryEnabledButtonColor(context),
+                                .getPrimaryEnabledButtonStyle(context),
                         onPressed: status == "Connected"
                             ? null
                             : () async {

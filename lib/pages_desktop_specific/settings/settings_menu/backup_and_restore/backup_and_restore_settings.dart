@@ -159,7 +159,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                 leftButton: TextButton(
                   style: Theme.of(context)
                       .extension<StackColors>()!
-                      .getSecondaryEnabledButtonColor(context),
+                      .getSecondaryEnabledButtonStyle(context),
                   child: Text(
                     "Back",
                     style: STextStyles.button(context).copyWith(
@@ -175,7 +175,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                 rightButton: TextButton(
                   style: Theme.of(context)
                       .extension<StackColors>()!
-                      .getPrimaryEnabledButtonColor(context),
+                      .getPrimaryEnabledButtonStyle(context),
                   child: Text(
                     "Disable",
                     style: STextStyles.button(context),
@@ -450,7 +450,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                                       STextStyles.itemSubtitle(
                                                           context),
                                                 ),
-                                                BlueTextButton(
+                                                CustomTextButton(
                                                   text: "Back up now",
                                                   onTap: () {
                                                     ref

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 
 abstract class Util {
@@ -20,6 +21,14 @@ abstract class Util {
     }
 
     return Platform.isLinux || Platform.isMacOS || Platform.isWindows;
+  }
+
+  static Future<bool> get isIPad async {
+    final deviceInfo = (await DeviceInfoPlugin().deviceInfo);
+    if (deviceInfo is IosDeviceInfo) {
+      return (deviceInfo).name?.toLowerCase().contains("ipad") == true;
+    }
+    return false;
   }
 
   static MaterialColor createMaterialColor(Color color) {

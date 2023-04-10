@@ -6,7 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockingjay/mockingjay.dart' as mockingjay;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/models/models.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
@@ -16,6 +17,7 @@ import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/notes_service.dart';
 import 'package:stackwallet/services/price_service.dart';
 import 'package:stackwallet/services/wallets.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
@@ -46,24 +48,33 @@ void main() {
     final mockPriceService = MockPriceService();
 
     final tx = Transaction(
-        txid: "some txid",
-        confirmedStatus: true,
-        timestamp: 1648595998,
-        txType: "Sent",
-        amount: 100000000,
-        aliens: [],
-        worthNow: "0.01",
-        worthAtBlockTimestamp: "0.01",
-        fees: 3794,
-        inputSize: 1,
-        outputSize: 1,
-        inputs: [],
-        outputs: [],
-        address: "",
-        height: 450123,
-        subType: "",
-        confirmations: 10,
-        isCancelled: false);
+      txid: "some txid",
+      timestamp: 1648595998,
+      type: TransactionType.outgoing,
+      amount: 100000000,
+      amountString: Amount(
+        rawValue: BigInt.from(100000000),
+        fractionDigits: Coin.firo.decimals,
+      ).toJsonString(),
+      fee: 3794,
+      height: 450123,
+      subType: TransactionSubType.none,
+      isCancelled: false,
+      walletId: '',
+      isLelantus: null,
+      slateId: '',
+      otherData: '',
+      nonce: null,
+      inputs: [],
+      outputs: [],
+    )..address.value = Address(
+        walletId: "walletId",
+        value: "",
+        publicKey: [],
+        derivationIndex: 0,
+        derivationPath: null,
+        type: AddressType.p2pkh,
+        subType: AddressSubType.receiving);
 
     final CoinServiceAPI wallet = MockFiroWallet();
 
@@ -78,6 +89,8 @@ void main() {
 
     when(wallets.getManager("wallet-id"))
         .thenAnswer((realInvocation) => Manager(wallet));
+
+    when(wallet.storedChainHeight).thenAnswer((_) => 6000000);
     //
     await tester.pumpWidget(
       ProviderScope(
@@ -141,24 +154,33 @@ void main() {
     final mockPriceService = MockPriceService();
 
     final tx = Transaction(
-        txid: "some txid",
-        confirmedStatus: true,
-        timestamp: 1648595998,
-        txType: "Anonymized",
-        amount: 100000000,
-        aliens: [],
-        worthNow: "0.01",
-        worthAtBlockTimestamp: "0.01",
-        fees: 3794,
-        inputSize: 1,
-        outputSize: 1,
-        inputs: [],
-        outputs: [],
-        address: "",
-        height: 450123,
-        subType: "mint",
-        confirmations: 10,
-        isCancelled: false);
+      txid: "some txid",
+      timestamp: 1648595998,
+      type: TransactionType.outgoing,
+      amount: 9659,
+      amountString: Amount(
+        rawValue: BigInt.from(9659),
+        fractionDigits: Coin.firo.decimals,
+      ).toJsonString(),
+      fee: 3794,
+      height: 450123,
+      subType: TransactionSubType.mint,
+      isCancelled: false,
+      walletId: '',
+      isLelantus: null,
+      slateId: '',
+      otherData: '',
+      nonce: null,
+      inputs: [],
+      outputs: [],
+    )..address.value = Address(
+        walletId: "walletId",
+        value: "",
+        publicKey: [],
+        derivationIndex: 0,
+        derivationPath: null,
+        type: AddressType.p2pkh,
+        subType: AddressSubType.receiving);
 
     final CoinServiceAPI wallet = MockFiroWallet();
 
@@ -170,6 +192,7 @@ void main() {
         .thenAnswer((realInvocation) => Tuple2(Decimal.ten, 0.00));
 
     when(wallet.coin).thenAnswer((_) => Coin.firo);
+    when(wallet.storedChainHeight).thenAnswer((_) => 6000000);
 
     when(wallets.getManager("wallet-id"))
         .thenAnswer((realInvocation) => Manager(wallet));
@@ -199,7 +222,7 @@ void main() {
     //
     final title = find.text("Anonymized");
     // final price1 = find.text("0.00 USD");
-    final amount = find.text("1.00000000 FIRO");
+    final amount = find.text("-0.00009659 FIRO");
 
     final icon = find.byIcon(FeatherIcons.arrowUp);
 
@@ -235,23 +258,32 @@ void main() {
 
     final tx = Transaction(
       txid: "some txid",
-      confirmedStatus: false,
       timestamp: 1648595998,
-      txType: "Received",
+      type: TransactionType.incoming,
       amount: 100000000,
-      aliens: [],
-      worthNow: "0.01",
-      worthAtBlockTimestamp: "0.01",
-      fees: 3794,
-      inputSize: 1,
-      outputSize: 1,
+      amountString: Amount(
+        rawValue: BigInt.from(100000000),
+        fractionDigits: Coin.firo.decimals,
+      ).toJsonString(),
+      fee: 3794,
+      height: 450123,
+      subType: TransactionSubType.none,
+      isCancelled: false,
+      walletId: '',
+      isLelantus: null,
+      slateId: '',
+      otherData: '',
+      nonce: null,
       inputs: [],
       outputs: [],
-      address: "",
-      height: 0,
-      subType: "",
-      confirmations: 0,
-    );
+    )..address.value = Address(
+        walletId: "walletId",
+        value: "",
+        publicKey: [],
+        derivationIndex: 0,
+        derivationPath: null,
+        type: AddressType.p2pkh,
+        subType: AddressSubType.receiving);
 
     final CoinServiceAPI wallet = MockFiroWallet();
 
@@ -266,6 +298,8 @@ void main() {
 
     when(wallets.getManager("wallet-id"))
         .thenAnswer((realInvocation) => Manager(wallet));
+
+    when(wallet.storedChainHeight).thenAnswer((_) => 6000000);
 
     await tester.pumpWidget(
       ProviderScope(
@@ -289,7 +323,7 @@ void main() {
       ),
     );
 
-    final title = find.text("Receiving");
+    final title = find.text("Received");
     final amount = Util.isDesktop
         ? find.text("+1.00000000 FIRO")
         : find.text("1.00000000 FIRO");
@@ -321,23 +355,32 @@ void main() {
 
     final tx = Transaction(
       txid: "some txid",
-      confirmedStatus: false,
       timestamp: 1648595998,
-      txType: "Received",
+      type: TransactionType.outgoing,
       amount: 100000000,
-      aliens: [],
-      worthNow: "0.01",
-      worthAtBlockTimestamp: "0.01",
-      fees: 3794,
-      inputSize: 1,
-      outputSize: 1,
+      amountString: Amount(
+        rawValue: BigInt.from(100000000),
+        fractionDigits: Coin.firo.decimals,
+      ).toJsonString(),
+      fee: 3794,
+      height: 450123,
+      subType: TransactionSubType.none,
+      isCancelled: false,
+      walletId: '',
+      isLelantus: null,
+      slateId: '',
+      otherData: '',
+      nonce: null,
       inputs: [],
       outputs: [],
-      address: "",
-      height: 250,
-      subType: "",
-      confirmations: 10,
-    );
+    )..address.value = Address(
+        walletId: "walletId",
+        value: "",
+        publicKey: [],
+        derivationIndex: 0,
+        derivationPath: null,
+        type: AddressType.p2pkh,
+        subType: AddressSubType.receiving);
 
     final CoinServiceAPI wallet = MockFiroWallet();
 
@@ -352,6 +395,8 @@ void main() {
 
     when(wallets.getManager("wallet id"))
         .thenAnswer((realInvocation) => Manager(wallet));
+
+    when(wallet.storedChainHeight).thenAnswer((_) => 6000000);
 
     mockingjay
         .when(() => navigator.pushNamed("/transactionDetails",
@@ -390,6 +435,7 @@ void main() {
     verify(mockPrefs.currency).called(2);
     verify(mockLocaleService.locale).called(4);
     verify(wallet.coin.ticker).called(1);
+    verify(wallet.storedChainHeight).called(2);
 
     verifyNoMoreInteractions(wallet);
     verifyNoMoreInteractions(mockLocaleService);

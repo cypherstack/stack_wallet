@@ -48,8 +48,10 @@ class WalletSummary extends StatelessWidget {
               builder: (_, ref, __) {
                 return Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context).extension<StackColors>()!.colorForCoin(ref
-                        .watch(managerProvider.select((value) => value.coin))),
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .colorForCoin(ref.watch(
+                            managerProvider.select((value) => value.coin))),
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -112,7 +114,6 @@ class WalletSummary extends StatelessWidget {
                 padding: const EdgeInsets.all(16.0),
                 child: WalletSummaryInfo(
                   walletId: walletId,
-                  managerProvider: managerProvider,
                   initialSyncStatus: initialSyncStatus,
                 ),
               ),

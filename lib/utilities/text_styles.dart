@@ -7,21 +7,26 @@ class STextStyles {
   static StackColors _theme(BuildContext context) =>
       Theme.of(context).extension<StackColors>()!;
 
+  static TextStyle sectionLabelMedium12(BuildContext context) {
+    switch (_theme(context).themeType) {
+      case ThemeType.forest:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark3,
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        );
+      default:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark3,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+        );
+    }
+  }
+
   static TextStyle pageTitleH1(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 20,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 20,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
@@ -32,19 +37,7 @@ class STextStyles {
 
   static TextStyle pageTitleH2(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 18,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 18,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
@@ -55,19 +48,7 @@ class STextStyles {
 
   static TextStyle navBarTitle(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 16,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 16,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
@@ -78,45 +59,10 @@ class STextStyles {
 
   static TextStyle titleBold12(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
-          fontSize: 16,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 16,
-        );
-      case ThemeType.dark:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 16,
-        );
-    }
-  }
-
-  static TextStyle titleBold12_400(BuildContext context) {
-    switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w400,
-          fontSize: 16,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w400,
-          fontSize: 16,
-        );
-      case ThemeType.dark:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w400,
           fontSize: 16,
         );
     }
@@ -124,19 +70,7 @@ class STextStyles {
 
   static TextStyle subtitle(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w400,
-          fontSize: 16,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w400,
-          fontSize: 16,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w400,
@@ -147,19 +81,7 @@ class STextStyles {
 
   static TextStyle subtitle500(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w500,
-          fontSize: 16,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w500,
-          fontSize: 16,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w500,
@@ -170,19 +92,7 @@ class STextStyles {
 
   static TextStyle subtitle600(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 16,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 16,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
@@ -193,19 +103,7 @@ class STextStyles {
 
   static TextStyle button(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).buttonTextPrimary,
-          fontWeight: FontWeight.w500,
-          fontSize: 16,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).buttonTextPrimary,
-          fontWeight: FontWeight.w500,
-          fontSize: 16,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextPrimary,
           fontWeight: FontWeight.w500,
@@ -216,19 +114,7 @@ class STextStyles {
 
   static TextStyle largeMedium14(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w500,
-          fontSize: 16,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w500,
-          fontSize: 16,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w500,
@@ -239,19 +125,7 @@ class STextStyles {
 
   static TextStyle smallMed14(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark3,
-          fontWeight: FontWeight.w500,
-          fontSize: 16,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark3,
-          fontWeight: FontWeight.w500,
-          fontSize: 16,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark3,
           fontWeight: FontWeight.w500,
@@ -262,19 +136,7 @@ class STextStyles {
 
   static TextStyle smallMed12(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark3,
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark3,
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark3,
           fontWeight: FontWeight.w500,
@@ -285,19 +147,7 @@ class STextStyles {
 
   static TextStyle label(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textSubtitle1,
-          fontWeight: FontWeight.w500,
-          fontSize: 12,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textSubtitle1,
-          fontWeight: FontWeight.w500,
-          fontSize: 12,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textSubtitle1,
           fontWeight: FontWeight.w500,
@@ -308,21 +158,7 @@ class STextStyles {
 
   static TextStyle labelExtraExtraSmall(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textFieldActiveSearchIconRight,
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-          height: 14 / 14,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textFieldActiveSearchIconRight,
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-          height: 14 / 14,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textFieldActiveSearchIconRight,
           fontWeight: FontWeight.w500,
@@ -334,19 +170,7 @@ class STextStyles {
 
   static TextStyle label700(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textSubtitle1,
-          fontWeight: FontWeight.w700,
-          fontSize: 12,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textSubtitle1,
-          fontWeight: FontWeight.w700,
-          fontSize: 12,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textSubtitle1,
           fontWeight: FontWeight.w700,
@@ -357,19 +181,7 @@ class STextStyles {
 
   static TextStyle itemSubtitle(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).infoItemLabel,
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).infoItemLabel,
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).infoItemLabel,
           fontWeight: FontWeight.w500,
@@ -380,42 +192,7 @@ class STextStyles {
 
   static TextStyle itemSubtitle12(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-        );
-      case ThemeType.dark:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-        );
-    }
-  }
-
-  static TextStyle itemSubtitle12_600(BuildContext context) {
-    switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w500,
@@ -426,21 +203,7 @@ class STextStyles {
 
   static TextStyle fieldLabel(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textSubtitle2,
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-          height: 1.5,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textSubtitle2,
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-          height: 1.5,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textSubtitle2,
           fontWeight: FontWeight.w500,
@@ -452,21 +215,7 @@ class STextStyles {
 
   static TextStyle field(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-          height: 1.5,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-          height: 1.5,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w500,
@@ -478,19 +227,7 @@ class STextStyles {
 
   static TextStyle baseXS(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w400,
-          fontSize: 14,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w400,
-          fontSize: 14,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w400,
@@ -501,19 +238,7 @@ class STextStyles {
 
   static TextStyle link(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).accentColorRed,
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).accentColorRed,
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).accentColorRed,
           fontWeight: FontWeight.w500,
@@ -524,19 +249,13 @@ class STextStyles {
 
   static TextStyle link2(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
-          color: _theme(context).infoItemIcons,
+          color: _theme(context).checkboxBGChecked,
           fontWeight: FontWeight.w500,
           fontSize: 14,
         );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).infoItemIcons,
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).infoItemIcons,
           fontWeight: FontWeight.w500,
@@ -547,19 +266,7 @@ class STextStyles {
 
   static TextStyle richLink(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).accentColorBlue,
-          fontWeight: FontWeight.w500,
-          fontSize: 12,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).accentColorBlue,
-          fontWeight: FontWeight.w500,
-          fontSize: 12,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).accentColorBlue,
           fontWeight: FontWeight.w500,
@@ -568,44 +275,76 @@ class STextStyles {
     }
   }
 
-  static TextStyle w600_10(BuildContext context) {
+  static TextStyle w600_12(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
           fontSize: 12,
         );
-      case ThemeType.oceanBreeze:
+    }
+  }
+
+  static TextStyle w600_14(BuildContext context) {
+    switch (_theme(context).themeType) {
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
+          fontSize: 14,
+        );
+    }
+  }
+
+  static TextStyle w500_14(BuildContext context) {
+    switch (_theme(context).themeType) {
+      default:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+        );
+    }
+  }
+
+  static TextStyle w500_12(BuildContext context) {
+    switch (_theme(context).themeType) {
+      default:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
           fontSize: 12,
         );
-      case ThemeType.dark:
+    }
+  }
+
+  static TextStyle w500_10(BuildContext context) {
+    switch (_theme(context).themeType) {
+      default:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 10,
+        );
+    }
+  }
+
+  static TextStyle w600_20(BuildContext context) {
+    switch (_theme(context).themeType) {
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
-          fontSize: 12,
+          fontSize: 20,
+          height: 30 / 20,
         );
     }
   }
 
   static TextStyle syncPercent(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w500,
-          fontSize: 12,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w500,
-          fontSize: 12,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w500,
@@ -616,19 +355,13 @@ class STextStyles {
 
   static TextStyle buttonSmall(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
+      case ThemeType.fruitSorbet:
         return GoogleFonts.inter(
-          color: _theme(context).textDark,
+          color: _theme(context).bottomNavIconIcon,
           fontWeight: FontWeight.w500,
           fontSize: 12,
         );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w500,
-          fontSize: 12,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w500,
@@ -639,19 +372,7 @@ class STextStyles {
 
   static TextStyle errorSmall(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textError,
-          fontWeight: FontWeight.w500,
-          fontSize: 10,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textError,
-          fontWeight: FontWeight.w500,
-          fontSize: 10,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textError,
           fontWeight: FontWeight.w500,
@@ -662,19 +383,7 @@ class STextStyles {
 
   static TextStyle infoSmall(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textSubtitle1,
-          fontWeight: FontWeight.w500,
-          fontSize: 10,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textSubtitle1,
-          fontWeight: FontWeight.w500,
-          fontSize: 10,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textSubtitle1,
           fontWeight: FontWeight.w500,
@@ -687,21 +396,7 @@ class STextStyles {
 
   static TextStyle desktopH1(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 40,
-          height: 40 / 40,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 40,
-          height: 40 / 40,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
@@ -713,21 +408,7 @@ class STextStyles {
 
   static TextStyle desktopH2(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 32,
-          height: 32 / 32,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 32,
-          height: 32 / 32,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
@@ -739,21 +420,7 @@ class STextStyles {
 
   static TextStyle desktopH3(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 24,
-          height: 24 / 24,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 24,
-          height: 24 / 24,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
@@ -763,23 +430,21 @@ class STextStyles {
     }
   }
 
+  static TextStyle w500_24(BuildContext context) {
+    switch (_theme(context).themeType) {
+      default:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w500,
+          fontSize: 24,
+          height: 24 / 24,
+        );
+    }
+  }
+
   static TextStyle desktopTextMedium(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w500,
-          fontSize: 20,
-          height: 30 / 20,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w500,
-          fontSize: 20,
-          height: 30 / 20,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w500,
@@ -791,21 +456,7 @@ class STextStyles {
 
   static TextStyle desktopTextMediumRegular(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w400,
-          fontSize: 20,
-          height: 30 / 20,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w400,
-          fontSize: 20,
-          height: 30 / 20,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w400,
@@ -817,21 +468,7 @@ class STextStyles {
 
   static TextStyle desktopSubtitleH2(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w400,
-          fontSize: 20,
-          height: 28 / 20,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w400,
-          fontSize: 20,
-          height: 28 / 20,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w400,
@@ -843,21 +480,7 @@ class STextStyles {
 
   static TextStyle desktopSubtitleH1(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w400,
-          fontSize: 24,
-          height: 33 / 24,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w400,
-          fontSize: 24,
-          height: 33 / 24,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w400,
@@ -869,21 +492,7 @@ class STextStyles {
 
   static TextStyle desktopButtonEnabled(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).buttonTextPrimary,
-          fontWeight: FontWeight.w500,
-          fontSize: 20,
-          height: 26 / 20,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).buttonTextPrimary,
-          fontWeight: FontWeight.w500,
-          fontSize: 20,
-          height: 26 / 20,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextPrimary,
           fontWeight: FontWeight.w500,
@@ -895,21 +504,7 @@ class STextStyles {
 
   static TextStyle desktopButtonDisabled(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).buttonTextPrimaryDisabled,
-          fontWeight: FontWeight.w500,
-          fontSize: 20,
-          height: 26 / 20,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).buttonTextPrimaryDisabled,
-          fontWeight: FontWeight.w500,
-          fontSize: 20,
-          height: 26 / 20,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextPrimaryDisabled,
           fontWeight: FontWeight.w500,
@@ -921,21 +516,7 @@ class STextStyles {
 
   static TextStyle desktopButtonSecondaryEnabled(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).buttonTextSecondary,
-          fontWeight: FontWeight.w500,
-          fontSize: 20,
-          height: 26 / 20,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).buttonTextSecondary,
-          fontWeight: FontWeight.w500,
-          fontSize: 20,
-          height: 26 / 20,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextSecondary,
           fontWeight: FontWeight.w500,
@@ -947,21 +528,7 @@ class STextStyles {
 
   static TextStyle desktopButtonSecondaryDisabled(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).buttonTextSecondaryDisabled,
-          fontWeight: FontWeight.w500,
-          fontSize: 20,
-          height: 26 / 20,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).buttonTextSecondaryDisabled,
-          fontWeight: FontWeight.w500,
-          fontSize: 20,
-          height: 26 / 20,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextSecondaryDisabled,
           fontWeight: FontWeight.w500,
@@ -973,23 +540,17 @@ class STextStyles {
 
   static TextStyle desktopTextSmall(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w500,
-          fontSize: 18,
-          height: 27 / 18,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w500,
-          fontSize: 18,
-          height: 27 / 18,
-        );
       case ThemeType.dark:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextPrimaryDisabled,
+          fontWeight: FontWeight.w500,
+          fontSize: 18,
+          height: 27 / 18,
+        );
+
+      default:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
           fontWeight: FontWeight.w500,
           fontSize: 18,
           height: 27 / 18,
@@ -999,23 +560,18 @@ class STextStyles {
 
   static TextStyle desktopTextSmallBold(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w700,
-          fontSize: 18,
-          height: 27 / 18,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w700,
-          fontSize: 18,
-          height: 27 / 18,
-        );
       case ThemeType.dark:
+      case ThemeType.oledBlack:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextPrimaryDisabled,
+          fontWeight: FontWeight.w700,
+          fontSize: 18,
+          height: 27 / 18,
+        );
+
+      default:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
           fontWeight: FontWeight.w700,
           fontSize: 18,
           height: 27 / 18,
@@ -1025,21 +581,7 @@ class STextStyles {
 
   static TextStyle desktopTextExtraSmall(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).buttonTextPrimaryDisabled,
-          fontWeight: FontWeight.w500,
-          fontSize: 16,
-          height: 24 / 16,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).buttonTextPrimaryDisabled,
-          fontWeight: FontWeight.w500,
-          fontSize: 16,
-          height: 24 / 16,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextPrimaryDisabled,
           fontWeight: FontWeight.w500,
@@ -1051,21 +593,7 @@ class STextStyles {
 
   static TextStyle desktopTextExtraExtraSmall(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textSubtitle1,
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-          height: 21 / 14,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textSubtitle1,
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-          height: 21 / 14,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textSubtitle1,
           fontWeight: FontWeight.w500,
@@ -1077,21 +605,7 @@ class STextStyles {
 
   static TextStyle desktopTextExtraExtraSmall600(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 14,
-          height: 21 / 14,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 14,
-          height: 21 / 14,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
@@ -1103,21 +617,7 @@ class STextStyles {
 
   static TextStyle desktopButtonSmallSecondaryEnabled(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).buttonTextSecondary,
-          fontWeight: FontWeight.w500,
-          fontSize: 16,
-          height: 24 / 16,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).buttonTextSecondary,
-          fontWeight: FontWeight.w500,
-          fontSize: 16,
-          height: 24 / 16,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextSecondary,
           fontWeight: FontWeight.w500,
@@ -1129,21 +629,7 @@ class STextStyles {
 
   static TextStyle desktopTextFieldLabel(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textSubtitle2,
-          fontWeight: FontWeight.w500,
-          fontSize: 20,
-          height: 30 / 20,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textSubtitle2,
-          fontWeight: FontWeight.w500,
-          fontSize: 20,
-          height: 30 / 20,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textSubtitle2,
           fontWeight: FontWeight.w500,
@@ -1155,21 +641,7 @@ class STextStyles {
 
   static TextStyle desktopMenuItem(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark.withOpacity(0.8),
-          fontWeight: FontWeight.w500,
-          fontSize: 16,
-          height: 20.8 / 16,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark.withOpacity(0.8),
-          fontWeight: FontWeight.w500,
-          fontSize: 16,
-          height: 20.8 / 16,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark.withOpacity(0.8),
           fontWeight: FontWeight.w500,
@@ -1181,21 +653,7 @@ class STextStyles {
 
   static TextStyle desktopMenuItemSelected(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w500,
-          fontSize: 16,
-          height: 20.8 / 16,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w500,
-          fontSize: 16,
-          height: 20.8 / 16,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w500,
@@ -1207,21 +665,7 @@ class STextStyles {
 
   static TextStyle settingsMenuItem(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark.withOpacity(0.5),
-          fontWeight: FontWeight.w500,
-          fontSize: 16,
-          height: 20.8 / 16,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark.withOpacity(0.5),
-          fontWeight: FontWeight.w500,
-          fontSize: 16,
-          height: 20.8 / 16,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark.withOpacity(0.5),
           fontWeight: FontWeight.w500,
@@ -1233,21 +677,7 @@ class STextStyles {
 
   static TextStyle settingsMenuItemSelected(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w500,
-          fontSize: 16,
-          height: 20.8 / 16,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w500,
-          fontSize: 16,
-          height: 20.8 / 16,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w500,
@@ -1259,19 +689,7 @@ class STextStyles {
 
   static TextStyle stepIndicator(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.roboto(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 8,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.roboto(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 8,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.roboto(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
@@ -1282,19 +700,7 @@ class STextStyles {
 
   static TextStyle numberDefault(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.roboto(
-          color: _theme(context).numberTextDefault,
-          fontWeight: FontWeight.w400,
-          fontSize: 26,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.roboto(
-          color: _theme(context).numberTextDefault,
-          fontWeight: FontWeight.w400,
-          fontSize: 26,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.roboto(
           color: _theme(context).numberTextDefault,
           fontWeight: FontWeight.w400,
@@ -1305,21 +711,7 @@ class STextStyles {
 
   static TextStyle datePicker400(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          letterSpacing: 0.5,
-          color: _theme(context).accentColorDark,
-          fontWeight: FontWeight.w400,
-          fontSize: 12,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          letterSpacing: 0.5,
-          color: _theme(context).accentColorDark,
-          fontWeight: FontWeight.w400,
-          fontSize: 12,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           letterSpacing: 0.5,
           color: _theme(context).accentColorDark,
@@ -1331,21 +723,7 @@ class STextStyles {
 
   static TextStyle datePicker600(BuildContext context) {
     switch (_theme(context).themeType) {
-      case ThemeType.light:
-        return GoogleFonts.inter(
-          letterSpacing: 0.5,
-          color: _theme(context).accentColorDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 16,
-        );
-      case ThemeType.oceanBreeze:
-        return GoogleFonts.inter(
-          letterSpacing: 0.5,
-          color: _theme(context).accentColorDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 16,
-        );
-      case ThemeType.dark:
+      default:
         return GoogleFonts.inter(
           letterSpacing: 0.5,
           color: _theme(context).accentColorDark,

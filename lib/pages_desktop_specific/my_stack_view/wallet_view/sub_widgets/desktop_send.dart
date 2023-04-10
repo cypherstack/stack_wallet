@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bip47/bip47.dart';
 import 'package:decimal/decimal.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
@@ -7,10 +8,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/models/contact_address_entry.dart';
+import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
+import 'package:stackwallet/pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/address_book_address_chooser.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_fee_dropdown.dart';
@@ -20,13 +23,14 @@ import 'package:stackwallet/providers/ui/preview_tx_button_state_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -41,6 +45,7 @@ import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
@@ -51,12 +56,14 @@ class DesktopSend extends ConsumerStatefulWidget {
     this.autoFillData,
     this.clipboard = const ClipboardWrapper(),
     this.barcodeScanner = const BarcodeScannerWrapper(),
+    this.accountLite,
   }) : super(key: key);
 
   final String walletId;
   final SendViewAutoFillData? autoFillData;
   final ClipboardInterface clipboard;
   final BarcodeScannerInterface barcodeScanner;
+  final PaynymAccountLite? accountLite;
 
   @override
   ConsumerState<DesktopSend> createState() => _DesktopSendState();
@@ -81,8 +88,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   String? _note;
 
-  Decimal? _amountToSend;
-  Decimal? _cachedAmountToSend;
+  Amount? _amountToSend;
+  Amount? _cachedAmountToSend;
   String? _address;
 
   String? _privateBalanceString;
@@ -93,239 +100,233 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   bool _cryptoAmountChangeLock = false;
   late VoidCallback onCryptoAmountChanged;
 
+  bool get isPaynymSend => widget.accountLite != null;
+
   Future<void> previewSend() async {
     final manager =
         ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
-    // TODO: remove the need for this!!
-    final bool isOwnAddress = await manager.isOwnAddress(_address!);
-    if (isOwnAddress) {
-      await showDialog<dynamic>(
-        context: context,
-        useSafeArea: false,
-        barrierDismissible: true,
-        builder: (context) {
-          return DesktopDialog(
-            maxWidth: 400,
-            maxHeight: double.infinity,
-            child: Padding(
-              padding: const EdgeInsets.only(
-                left: 32,
-                bottom: 32,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Transaction failed",
-                        style: STextStyles.desktopH3(context),
-                      ),
-                      const DesktopDialogCloseButton(),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 12,
-                  ),
-                  Text(
-                    "Sending to self is currently disabled",
-                    textAlign: TextAlign.left,
-                    style: STextStyles.desktopTextExtraExtraSmall(context)
-                        .copyWith(
-                      fontSize: 18,
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 40,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      right: 32,
-                    ),
-                    child: SecondaryButton(
-                      buttonHeight: ButtonHeight.l,
-                      label: "Ok",
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-      return;
-    }
-
-    final amount = Format.decimalAmountToSatoshis(_amountToSend!, coin);
-    int availableBalance;
+    final Amount amount = _amountToSend!;
+    final Amount availableBalance;
     if ((coin == Coin.firo || coin == Coin.firoTestNet)) {
       if (ref.read(publicPrivateBalanceStateProvider.state).state ==
           "Private") {
-        availableBalance = Format.decimalAmountToSatoshis(
-            await (manager.wallet as FiroWallet).availablePrivateBalance(),
-            coin);
+        availableBalance =
+            (manager.wallet as FiroWallet).availablePrivateBalance();
       } else {
-        availableBalance = Format.decimalAmountToSatoshis(
-            await (manager.wallet as FiroWallet).availablePublicBalance(),
-            coin);
+        availableBalance =
+            (manager.wallet as FiroWallet).availablePublicBalance();
       }
     } else {
-      availableBalance =
-          Format.decimalAmountToSatoshis(await manager.availableBalance, coin);
+      availableBalance = manager.balance.spendable;
     }
 
-    // confirm send all
-    if (amount == availableBalance) {
-      final bool? shouldSendAll = await showDialog<bool>(
-        context: context,
-        useSafeArea: false,
-        barrierDismissible: true,
-        builder: (context) {
-          return DesktopDialog(
-            maxWidth: 450,
-            maxHeight: double.infinity,
-            child: Padding(
-              padding: const EdgeInsets.only(
-                left: 32,
-                bottom: 32,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Confirm send all",
-                        style: STextStyles.desktopH3(context),
-                      ),
-                      const DesktopDialogCloseButton(),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 12,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      right: 32,
-                    ),
-                    child: Text(
-                      "You are about to send your entire balance. Would you like to continue?",
-                      textAlign: TextAlign.left,
-                      style: STextStyles.desktopTextExtraExtraSmall(context)
-                          .copyWith(
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 40,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      right: 32,
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: SecondaryButton(
-                            buttonHeight: ButtonHeight.l,
-                            label: "Cancel",
-                            onPressed: () {
-                              Navigator.of(context).pop(false);
-                            },
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 16,
-                        ),
-                        Expanded(
-                          child: PrimaryButton(
-                            buttonHeight: ButtonHeight.l,
-                            label: "Yes",
-                            onPressed: () {
-                              Navigator.of(context).pop(true);
+    final coinControlEnabled =
+        ref.read(prefsChangeNotifierProvider).enableCoinControl;
 
-                              setState(() {
-                                sendToController.text = "";
-                                cryptoAmountController.text = "";
-                                baseAmountController.text = "";
-                              });
-                            },
-                          ),
+    if (!(manager.hasCoinControlSupport && coinControlEnabled) ||
+        (manager.hasCoinControlSupport &&
+            coinControlEnabled &&
+            ref.read(desktopUseUTXOs).isEmpty)) {
+      // confirm send all
+      if (amount == availableBalance) {
+        final bool? shouldSendAll = await showDialog<bool>(
+          context: context,
+          useSafeArea: false,
+          barrierDismissible: true,
+          builder: (context) {
+            return DesktopDialog(
+              maxWidth: 450,
+              maxHeight: double.infinity,
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: 32,
+                  bottom: 32,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Confirm send all",
+                          style: STextStyles.desktopH3(context),
                         ),
+                        const DesktopDialogCloseButton(),
                       ],
                     ),
-                  ),
-                ],
+                    const SizedBox(
+                      height: 12,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        right: 32,
+                      ),
+                      child: Text(
+                        "You are about to send your entire balance. Would you like to continue?",
+                        textAlign: TextAlign.left,
+                        style: STextStyles.desktopTextExtraExtraSmall(context)
+                            .copyWith(
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 40,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        right: 32,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: SecondaryButton(
+                              buttonHeight: ButtonHeight.l,
+                              label: "Cancel",
+                              onPressed: () {
+                                Navigator.of(context).pop(false);
+                              },
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 16,
+                          ),
+                          Expanded(
+                            child: PrimaryButton(
+                              buttonHeight: ButtonHeight.l,
+                              label: "Yes",
+                              onPressed: () {
+                                Navigator.of(context).pop(true);
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
-      );
+            );
+          },
+        );
 
-      if (shouldSendAll == null || shouldSendAll == false) {
-        // cancel preview
-        return;
+        if (shouldSendAll == null || shouldSendAll == false) {
+          // cancel preview
+          return;
+        }
       }
     }
 
     try {
       bool wasCancelled = false;
 
-      unawaited(showDialog<dynamic>(
-        context: context,
-        useSafeArea: false,
-        barrierDismissible: false,
-        builder: (context) {
-          return DesktopDialog(
-            maxWidth: 400,
-            maxHeight: double.infinity,
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: BuildingTransactionDialog(
-                onCancel: () {
-                  wasCancelled = true;
+      if (mounted) {
+        unawaited(
+          showDialog<dynamic>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: false,
+            builder: (context) {
+              return DesktopDialog(
+                maxWidth: 400,
+                maxHeight: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: BuildingTransactionDialog(
+                    coin: manager.coin,
+                    onCancel: () {
+                      wasCancelled = true;
 
-                  Navigator.of(context).pop();
-                },
-              ),
-            ),
-          );
-        },
-      ));
-
-      Map<String, dynamic> txData;
-
-      if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-          ref.read(publicPrivateBalanceStateProvider.state).state !=
-              "Private") {
-        txData = await (manager.wallet as FiroWallet).prepareSendPublic(
-          address: _address!,
-          satoshiAmount: amount,
-          args: {"feeRate": ref.read(feeRateTypeStateProvider)},
-        );
-      } else {
-        txData = await manager.prepareSend(
-          address: _address!,
-          satoshiAmount: amount,
-          args: {"feeRate": ref.read(feeRateTypeStateProvider)},
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
         );
       }
 
+      final time = Future<dynamic>.delayed(
+        const Duration(
+          milliseconds: 2500,
+        ),
+      );
+
+      Map<String, dynamic> txData;
+      Future<Map<String, dynamic>> txDataFuture;
+
+      if (isPaynymSend) {
+        final wallet = manager.wallet as PaynymWalletInterface;
+        final paymentCode = PaymentCode.fromPaymentCode(
+          widget.accountLite!.code,
+          wallet.networkType,
+        );
+        final feeRate = ref.read(feeRateTypeStateProvider);
+        txDataFuture = wallet.preparePaymentCodeSend(
+          paymentCode: paymentCode,
+          amount: amount,
+          args: {
+            "feeRate": feeRate,
+            "UTXOs": (manager.hasCoinControlSupport &&
+                    coinControlEnabled &&
+                    ref.read(desktopUseUTXOs).isNotEmpty)
+                ? ref.read(desktopUseUTXOs)
+                : null,
+          },
+        );
+      } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+          ref.read(publicPrivateBalanceStateProvider.state).state !=
+              "Private") {
+        txDataFuture = (manager.wallet as FiroWallet).prepareSendPublic(
+          address: _address!,
+          amount: amount,
+          args: {
+            "feeRate": ref.read(feeRateTypeStateProvider),
+            "UTXOs": (manager.hasCoinControlSupport &&
+                    coinControlEnabled &&
+                    ref.read(desktopUseUTXOs).isNotEmpty)
+                ? ref.read(desktopUseUTXOs)
+                : null,
+          },
+        );
+      } else {
+        txDataFuture = manager.prepareSend(
+          address: _address!,
+          amount: amount,
+          args: {
+            "feeRate": ref.read(feeRateTypeStateProvider),
+            "UTXOs": (manager.hasCoinControlSupport &&
+                    coinControlEnabled &&
+                    ref.read(desktopUseUTXOs).isNotEmpty)
+                ? ref.read(desktopUseUTXOs)
+                : null,
+          },
+        );
+      }
+
+      final results = await Future.wait([
+        txDataFuture,
+        time,
+      ]);
+
+      txData = results.first as Map<String, dynamic>;
+
       if (!wasCancelled && mounted) {
+        if (isPaynymSend) {
+          txData["paynymAccountLite"] = widget.accountLite!;
+          txData["note"] = _note ?? "PayNym send";
+        } else {
+          txData["address"] = _address;
+          txData["note"] = _note ?? "";
+        }
         // pop building dialog
         Navigator.of(
           context,
           rootNavigator: true,
         ).pop();
-        txData["note"] = _note;
-        txData["address"] = _address;
 
         unawaited(
           showDialog(
@@ -336,6 +337,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               child: ConfirmTransactionView(
                 transactionInfo: txData,
                 walletId: walletId,
+                isPaynymTransaction: isPaynymSend,
                 routeOnSuccessName: DesktopHomeView.routeName,
               ),
             ),
@@ -394,22 +396,24 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       const SizedBox(
                         height: 40,
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          right: 32,
-                        ),
-                        child: Expanded(
-                          child: SecondaryButton(
-                            buttonHeight: ButtonHeight.l,
-                            label: "Yes",
-                            onPressed: () {
-                              Navigator.of(
-                                context,
-                                rootNavigator: true,
-                              ).pop();
-                            },
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SecondaryButton(
+                              buttonHeight: ButtonHeight.l,
+                              label: "Ok",
+                              onPressed: () {
+                                Navigator.of(
+                                  context,
+                                  rootNavigator: true,
+                                ).pop();
+                              },
+                            ),
                           ),
-                        ),
+                          const SizedBox(
+                            width: 32,
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -430,29 +434,32 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           cryptoAmount != ",") {
         _amountToSend = cryptoAmount.contains(",")
             ? Decimal.parse(cryptoAmount.replaceFirst(",", "."))
-            : Decimal.parse(cryptoAmount);
+                .toAmount(fractionDigits: coin.decimals)
+            : Decimal.parse(cryptoAmount)
+                .toAmount(fractionDigits: coin.decimals);
         if (_cachedAmountToSend != null &&
             _cachedAmountToSend == _amountToSend) {
           return;
         }
-        _cachedAmountToSend = _amountToSend;
         Logging.instance.log("it changed $_amountToSend $_cachedAmountToSend",
             level: LogLevel.Info);
+        _cachedAmountToSend = _amountToSend;
 
         final price =
             ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
 
         if (price > Decimal.zero) {
-          final String fiatAmountString = Format.localizedStringAsFixed(
-            value: _amountToSend! * price,
-            locale: ref.read(localeServiceChangeNotifierProvider).locale,
-            decimalPlaces: 2,
-          );
+          final String fiatAmountString = (_amountToSend!.decimal * price)
+              .toAmount(fractionDigits: 2)
+              .localizedStringAsFixed(
+                locale: ref.read(localeServiceChangeNotifierProvider).locale,
+              );
 
           baseAmountController.text = fiatAmountString;
         }
       } else {
         _amountToSend = null;
+        _cachedAmountToSend = null;
         baseAmountController.text = "";
       }
 
@@ -470,87 +477,19 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     return null;
   }
 
-  void _updatePreviewButtonState(String? address, Decimal? amount) {
-    final isValidAddress = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(walletId)
-        .validateAddress(address ?? "");
-    ref.read(previewTxButtonStateProvider.state).state =
-        (isValidAddress && amount != null && amount > Decimal.zero);
+  void _updatePreviewButtonState(String? address, Amount? amount) {
+    if (isPaynymSend) {
+      ref.read(previewTxButtonStateProvider.state).state =
+          (amount != null && amount > Amount.zero);
+    } else {
+      final isValidAddress = ref
+          .read(walletsChangeNotifierProvider)
+          .getManager(walletId)
+          .validateAddress(address ?? "");
+      ref.read(previewTxButtonStateProvider.state).state =
+          (isValidAddress && amount != null && amount > Amount.zero);
+    }
   }
-
-  // late Future<String> _calculateFeesFuture;
-
-  // Map<int, String> cachedFees = {};
-  // Map<int, String> cachedFiroPrivateFees = {};
-  // Map<int, String> cachedFiroPublicFees = {};
-
-  // Future<String> calculateFees(int amount) async {
-  //   if (amount <= 0) {
-  //     return "0";
-  //   }
-  //
-  //   if (coin == Coin.firo || coin == Coin.firoTestNet) {
-  //     if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-  //         "Private") {
-  //       if (cachedFiroPrivateFees[amount] != null) {
-  //         return cachedFiroPrivateFees[amount]!;
-  //       }
-  //     } else {
-  //       if (cachedFiroPublicFees[amount] != null) {
-  //         return cachedFiroPublicFees[amount]!;
-  //       }
-  //     }
-  //   } else if (cachedFees[amount] != null) {
-  //     return cachedFees[amount]!;
-  //   }
-  //
-  //   final manager =
-  //       ref.read(walletsChangeNotifierProvider).getManager(walletId);
-  //   final feeObject = await manager.fees;
-  //
-  //   late final int feeRate;
-  //
-  //   switch (ref.read(feeRateTypeStateProvider.state).state) {
-  //     case FeeRateType.fast:
-  //       feeRate = feeObject.fast;
-  //       break;
-  //     case FeeRateType.average:
-  //       feeRate = feeObject.medium;
-  //       break;
-  //     case FeeRateType.slow:
-  //       feeRate = feeObject.slow;
-  //       break;
-  //   }
-  //
-  //   int fee;
-  //
-  //   if (coin == Coin.firo || coin == Coin.firoTestNet) {
-  //     if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-  //         "Private") {
-  //       fee = await manager.estimateFeeFor(amount, feeRate);
-  //
-  //       cachedFiroPrivateFees[amount] = Format.satoshisToAmount(fee)
-  //           .toStringAsFixed(Constants.decimalPlaces);
-  //
-  //       return cachedFiroPrivateFees[amount]!;
-  //     } else {
-  //       fee = await (manager.wallet as FiroWallet)
-  //           .estimateFeeForPublic(amount, feeRate);
-  //
-  //       cachedFiroPublicFees[amount] = Format.satoshisToAmount(fee)
-  //           .toStringAsFixed(Constants.decimalPlaces);
-  //
-  //       return cachedFiroPublicFees[amount]!;
-  //     }
-  //   } else {
-  //     fee = await manager.estimateFeeFor(amount, feeRate);
-  //     cachedFees[amount] =
-  //         Format.satoshisToAmount(fee).toStringAsFixed(Constants.decimalPlaces);
-  //
-  //     return cachedFees[amount]!;
-  //   }
-  // }
 
   Future<String?> _firoBalanceFuture(
     ChangeNotifierProvider<Manager> provider,
@@ -560,15 +499,16 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final wallet = ref.read(provider).wallet as FiroWallet?;
 
     if (wallet != null) {
-      Decimal? balance;
+      Amount? balance;
       if (private) {
-        balance = await wallet.availablePrivateBalance();
+        balance = wallet.availablePrivateBalance();
       } else {
-        balance = await wallet.availablePublicBalance();
+        balance = wallet.availablePublicBalance();
       }
-
-      return Format.localizedStringAsFixed(
-          value: balance, locale: locale, decimalPlaces: 8);
+      return balance.localizedStringAsFixed(
+        locale: locale,
+        decimalPlaces: coin.decimals,
+      );
     }
 
     return null;
@@ -639,9 +579,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
         // autofill amount field
         if (results["amount"] != null) {
-          final amount = Decimal.parse(results["amount"]!);
-          cryptoAmountController.text = Format.localizedStringAsFixed(
-            value: amount,
+          final amount = Decimal.parse(results["amount"]!).toAmount(
+            fractionDigits: coin.decimals,
+          );
+          cryptoAmountController.text = amount.localizedStringAsFixed(
             locale: ref.read(localeServiceChangeNotifierProvider).locale,
             decimalPlaces: Constants.decimalPlacesForCoin(coin),
           );
@@ -684,6 +625,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         content = content.substring(0, content.indexOf("\n"));
       }
 
+      if (coin == Coin.epicCash) {
+        // strip http:// and https:// if content contains @
+        content = formatAddress(content);
+      }
+
       sendToController.text = content;
       _address = content;
 
@@ -700,18 +646,20 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         baseAmountString != ",") {
       final baseAmount = baseAmountString.contains(",")
           ? Decimal.parse(baseAmountString.replaceFirst(",", "."))
-          : Decimal.parse(baseAmountString);
+              .toAmount(fractionDigits: 2)
+          : Decimal.parse(baseAmountString).toAmount(fractionDigits: 2);
 
       var _price =
           ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
 
       if (_price == Decimal.zero) {
-        _amountToSend = Decimal.zero;
+        _amountToSend = Decimal.zero.toAmount(fractionDigits: coin.decimals);
       } else {
-        _amountToSend = baseAmount <= Decimal.zero
-            ? Decimal.zero
-            : (baseAmount / _price).toDecimal(
-                scaleOnInfinitePrecision: Constants.decimalPlacesForCoin(coin));
+        _amountToSend = baseAmount <= Amount.zero
+            ? Decimal.zero.toAmount(fractionDigits: coin.decimals)
+            : (baseAmount.decimal / _price)
+                .toDecimal(scaleOnInfinitePrecision: coin.decimals)
+                .toAmount(fractionDigits: coin.decimals);
       }
       if (_cachedAmountToSend != null && _cachedAmountToSend == _amountToSend) {
         return;
@@ -720,17 +668,16 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       Logging.instance.log("it changed $_amountToSend $_cachedAmountToSend",
           level: LogLevel.Info);
 
-      final amountString = Format.localizedStringAsFixed(
-        value: _amountToSend!,
+      final amountString = _amountToSend!.localizedStringAsFixed(
         locale: ref.read(localeServiceChangeNotifierProvider).locale,
-        decimalPlaces: Constants.decimalPlacesForCoin(coin),
+        decimalPlaces: coin.decimals,
       );
 
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = amountString;
       _cryptoAmountChangeLock = false;
     } else {
-      _amountToSend = Decimal.zero;
+      _amountToSend = Decimal.zero.toAmount(fractionDigits: coin.decimals);
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = "";
       _cryptoAmountChangeLock = false;
@@ -751,26 +698,43 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           .wallet as FiroWallet;
       if (ref.read(publicPrivateBalanceStateProvider.state).state ==
           "Private") {
-        cryptoAmountController.text =
-            (await firoWallet.availablePrivateBalance())
-                .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
+        cryptoAmountController.text = firoWallet
+            .availablePrivateBalance()
+            .decimal
+            .toStringAsFixed(coin.decimals);
       } else {
-        cryptoAmountController.text =
-            (await firoWallet.availablePublicBalance())
-                .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
+        cryptoAmountController.text = firoWallet
+            .availablePublicBalance()
+            .decimal
+            .toStringAsFixed(coin.decimals);
       }
     } else {
-      cryptoAmountController.text = (await ref
-              .read(walletsChangeNotifierProvider)
-              .getManager(walletId)
-              .availableBalance)
-          .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
+      cryptoAmountController.text = ref
+          .read(walletsChangeNotifierProvider)
+          .getManager(walletId)
+          .balance
+          .spendable
+          .decimal
+          .toStringAsFixed(coin.decimals);
     }
+  }
+
+  void _showDesktopCoinControl() async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) => DesktopCoinControlUseDialog(
+        walletId: widget.walletId,
+        amountToSend: _amountToSend,
+      ),
+    );
   }
 
   @override
   void initState() {
-    ref.refresh(feeSheetSessionCacheProvider);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.refresh(feeSheetSessionCacheProvider);
+      ref.read(previewTxButtonStateProvider.state).state = false;
+    });
 
     // _calculateFeesFuture = calculateFees(0);
     _data = widget.autoFillData;
@@ -794,6 +758,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       sendToController.text = _data!.contactLabel;
       _address = _data!.address;
       _addressToggleFlag = true;
+    }
+
+    if (isPaynymSend) {
+      sendToController.text = widget.accountLite!.nymName;
     }
 
     _cryptoFocus.addListener(() {
@@ -842,20 +810,32 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final String locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
 
-    // if (coin == Coin.firo || coin == Coin.firoTestNet) {
-    //   ref.listen(publicPrivateBalanceStateProvider, (previous, next) {
-    //     if (_amountToSend == null) {
-    //       setState(() {
-    //         _calculateFeesFuture = calculateFees(0);
-    //       });
-    //     } else {
-    //       setState(() {
-    //         _calculateFeesFuture =
-    //             calculateFees(Format.decimalAmountToSatoshis(_amountToSend!));
-    //       });
-    //     }
-    //   });
-    // }
+    // add listener for epic cash to strip http:// and https:// prefixes if the address also ocntains an @ symbol (indicating an epicbox address)
+    if (coin == Coin.epicCash) {
+      sendToController.addListener(() {
+        _address = sendToController.text;
+
+        if (_address != null && _address!.isNotEmpty) {
+          _address = _address!.trim();
+          if (_address!.contains("\n")) {
+            _address = _address!.substring(0, _address!.indexOf("\n"));
+          }
+
+          sendToController.text = formatAddress(_address!);
+        }
+      });
+    }
+
+    final showCoinControl = ref.watch(
+          prefsChangeNotifierProvider.select(
+            (value) => value.enableCoinControl,
+          ),
+        ) &&
+        ref.watch(
+          provider.select(
+            (value) => value.hasCoinControlSupport,
+          ),
+        );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -972,6 +952,36 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           const SizedBox(
             height: 20,
           ),
+        if (isPaynymSend)
+          Text(
+            "Send to PayNym address",
+            style: STextStyles.smallMed12(context),
+            textAlign: TextAlign.left,
+          ),
+        if (isPaynymSend)
+          const SizedBox(
+            height: 10,
+          ),
+        if (isPaynymSend)
+          TextField(
+            key: const Key("sendViewPaynymAddressFieldKey"),
+            controller: sendToController,
+            enabled: false,
+            readOnly: true,
+            style: STextStyles.desktopTextFieldLabel(context).copyWith(
+              fontSize: 16,
+            ),
+            decoration: const InputDecoration(
+              contentPadding: EdgeInsets.symmetric(
+                vertical: 18,
+                horizontal: 16,
+              ),
+            ),
+          ),
+        if (isPaynymSend)
+          const SizedBox(
+            height: 20,
+          ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -984,7 +994,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
               textAlign: TextAlign.left,
             ),
-            BlueTextButton(
+            CustomTextButton(
               text: "Send all ${coin.ticker}",
               onTap: sendAllTapped,
             ),
@@ -1002,10 +1012,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           key: const Key("amountInputFieldCryptoTextFieldKey"),
           controller: cryptoAmountController,
           focusNode: _cryptoFocus,
-          keyboardType: const TextInputType.numberWithOptions(
-            signed: false,
-            decimal: true,
-          ),
+          keyboardType: Util.isDesktop
+              ? null
+              : const TextInputType.numberWithOptions(
+                  signed: false,
+                  decimal: true,
+                ),
           textAlign: TextAlign.right,
           inputFormatters: [
             // regex to validate a crypto amount with 8 decimal places
@@ -1015,6 +1027,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     ? newValue
                     : oldValue),
           ],
+          onChanged: (newValue) {},
           decoration: InputDecoration(
             contentPadding: const EdgeInsets.only(
               top: 22,
@@ -1056,10 +1069,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             key: const Key("amountInputFieldFiatTextFieldKey"),
             controller: baseAmountController,
             focusNode: _baseFocus,
-            keyboardType: const TextInputType.numberWithOptions(
-              signed: false,
-              decimal: true,
-            ),
+            keyboardType: Util.isDesktop
+                ? null
+                : const TextInputType.numberWithOptions(
+                    signed: false,
+                    decimal: true,
+                  ),
             textAlign: TextAlign.right,
             inputFormatters: [
               // regex to validate a fiat amount with 2 decimal places
@@ -1098,202 +1113,232 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
             ),
           ),
+        if (showCoinControl)
+          const SizedBox(
+            height: 10,
+          ),
+        if (showCoinControl)
+          RoundedContainer(
+            color: Colors.transparent,
+            borderColor:
+                Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Coin control",
+                  style: STextStyles.desktopTextExtraExtraSmall(context),
+                ),
+                CustomTextButton(
+                  text: ref.watch(desktopUseUTXOs.state).state.isEmpty
+                      ? "Select coins"
+                      : "Selected coins (${ref.watch(desktopUseUTXOs.state).state.length})",
+                  onTap: _showDesktopCoinControl,
+                ),
+              ],
+            ),
+          ),
         const SizedBox(
           height: 20,
         ),
-        Text(
-          "Send to",
-          style: STextStyles.desktopTextExtraSmall(context).copyWith(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .textFieldActiveSearchIconRight,
-          ),
-          textAlign: TextAlign.left,
-        ),
-        const SizedBox(
-          height: 10,
-        ),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(
-            Constants.size.circularBorderRadius,
-          ),
-          child: TextField(
-            minLines: 1,
-            maxLines: 5,
-            key: const Key("sendViewAddressFieldKey"),
-            controller: sendToController,
-            readOnly: false,
-            autocorrect: false,
-            enableSuggestions: false,
-            // inputFormatters: <TextInputFormatter>[
-            //   FilteringTextInputFormatter.allow(
-            //       RegExp("[a-zA-Z0-9]{34}")),
-            // ],
-            toolbarOptions: const ToolbarOptions(
-              copy: false,
-              cut: false,
-              paste: true,
-              selectAll: false,
-            ),
-            onChanged: (newValue) {
-              _address = newValue;
-              _updatePreviewButtonState(_address, _amountToSend);
-
-              setState(() {
-                _addressToggleFlag = newValue.isNotEmpty;
-              });
-            },
-            focusNode: _addressFocusNode,
+        if (!isPaynymSend)
+          Text(
+            "Send to",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
               color: Theme.of(context)
                   .extension<StackColors>()!
-                  .textFieldActiveText,
-              height: 1.8,
+                  .textFieldActiveSearchIconRight,
             ),
-            decoration: standardInputDecoration(
-              "Enter ${coin.ticker} address",
-              _addressFocusNode,
-              context,
-              desktopMed: true,
-            ).copyWith(
-              contentPadding: const EdgeInsets.only(
-                left: 16,
-                top: 11,
-                bottom: 12,
-                right: 5,
+            textAlign: TextAlign.left,
+          ),
+        if (!isPaynymSend)
+          const SizedBox(
+            height: 10,
+          ),
+        if (!isPaynymSend)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+            child: TextField(
+              minLines: 1,
+              maxLines: 5,
+              key: const Key("sendViewAddressFieldKey"),
+              controller: sendToController,
+              readOnly: false,
+              autocorrect: false,
+              enableSuggestions: false,
+              // inputFormatters: <TextInputFormatter>[
+              //   FilteringTextInputFormatter.allow(
+              //       RegExp("[a-zA-Z0-9]{34}")),
+              // ],
+              toolbarOptions: const ToolbarOptions(
+                copy: false,
+                cut: false,
+                paste: true,
+                selectAll: false,
               ),
-              suffixIcon: Padding(
-                padding: sendToController.text.isEmpty
-                    ? const EdgeInsets.only(right: 8)
-                    : const EdgeInsets.only(right: 0),
-                child: UnconstrainedBox(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _addressToggleFlag
-                          ? TextFieldIconButton(
-                              key: const Key(
-                                  "sendViewClearAddressFieldButtonKey"),
-                              onTap: () {
-                                sendToController.text = "";
-                                _address = "";
-                                _updatePreviewButtonState(
-                                    _address, _amountToSend);
-                                setState(() {
-                                  _addressToggleFlag = false;
-                                });
-                              },
-                              child: const XIcon(),
-                            )
-                          : TextFieldIconButton(
-                              key: const Key(
-                                  "sendViewPasteAddressFieldButtonKey"),
-                              onTap: pasteAddress,
-                              child: sendToController.text.isEmpty
-                                  ? const ClipboardIcon()
-                                  : const XIcon(),
-                            ),
-                      if (sendToController.text.isEmpty)
-                        TextFieldIconButton(
-                          key: const Key("sendViewAddressBookButtonKey"),
-                          onTap: () async {
-                            final entry =
-                                await showDialog<ContactAddressEntry?>(
-                              context: context,
-                              builder: (context) => DesktopDialog(
-                                maxWidth: 696,
-                                maxHeight: 600,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 32,
-                                          ),
-                                          child: Text(
-                                            "Address book",
-                                            style:
-                                                STextStyles.desktopH3(context),
-                                          ),
-                                        ),
-                                        const DesktopDialogCloseButton(),
-                                      ],
-                                    ),
-                                    Expanded(
-                                      child: AddressBookAddressChooser(
-                                        coin: coin,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+              onChanged: (newValue) {
+                _address = newValue;
+                _updatePreviewButtonState(_address, _amountToSend);
+
+                setState(() {
+                  _addressToggleFlag = newValue.isNotEmpty;
+                });
+              },
+              focusNode: _addressFocusNode,
+              style: STextStyles.desktopTextExtraSmall(context).copyWith(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveText,
+                height: 1.8,
+              ),
+              decoration: standardInputDecoration(
+                "Enter ${coin.ticker} address",
+                _addressFocusNode,
+                context,
+                desktopMed: true,
+              ).copyWith(
+                contentPadding: const EdgeInsets.only(
+                  left: 16,
+                  top: 11,
+                  bottom: 12,
+                  right: 5,
+                ),
+                suffixIcon: Padding(
+                  padding: sendToController.text.isEmpty
+                      ? const EdgeInsets.only(right: 8)
+                      : const EdgeInsets.only(right: 0),
+                  child: UnconstrainedBox(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _addressToggleFlag
+                            ? TextFieldIconButton(
+                                key: const Key(
+                                    "sendViewClearAddressFieldButtonKey"),
+                                onTap: () {
+                                  sendToController.text = "";
+                                  _address = "";
+                                  _updatePreviewButtonState(
+                                      _address, _amountToSend);
+                                  setState(() {
+                                    _addressToggleFlag = false;
+                                  });
+                                },
+                                child: const XIcon(),
+                              )
+                            : TextFieldIconButton(
+                                key: const Key(
+                                    "sendViewPasteAddressFieldButtonKey"),
+                                onTap: pasteAddress,
+                                child: sendToController.text.isEmpty
+                                    ? const ClipboardIcon()
+                                    : const XIcon(),
                               ),
-                            );
-
-                            if (entry != null) {
-                              sendToController.text =
-                                  entry.other ?? entry.label;
-
-                              _address = entry.address;
-
-                              _updatePreviewButtonState(
-                                _address,
-                                _amountToSend,
+                        if (sendToController.text.isEmpty)
+                          TextFieldIconButton(
+                            key: const Key("sendViewAddressBookButtonKey"),
+                            onTap: () async {
+                              final entry =
+                                  await showDialog<ContactAddressEntry?>(
+                                context: context,
+                                builder: (context) => DesktopDialog(
+                                  maxWidth: 696,
+                                  maxHeight: 600,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              left: 32,
+                                            ),
+                                            child: Text(
+                                              "Address book",
+                                              style: STextStyles.desktopH3(
+                                                  context),
+                                            ),
+                                          ),
+                                          const DesktopDialogCloseButton(),
+                                        ],
+                                      ),
+                                      Expanded(
+                                        child: AddressBookAddressChooser(
+                                          coin: coin,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               );
 
-                              setState(() {
-                                _addressToggleFlag = true;
-                              });
-                            }
-                          },
-                          child: const AddressBookIcon(),
-                        ),
-                      // if (sendToController.text.isEmpty)
-                      //   TextFieldIconButton(
-                      //     key: const Key("sendViewScanQrButtonKey"),
-                      //     onTap: scanQr,
-                      //     child: const QrCodeIcon(),
-                      //   )
-                    ],
+                              if (entry != null) {
+                                sendToController.text =
+                                    entry.other ?? entry.label;
+
+                                _address = entry.address;
+
+                                _updatePreviewButtonState(
+                                  _address,
+                                  _amountToSend,
+                                );
+
+                                setState(() {
+                                  _addressToggleFlag = true;
+                                });
+                              }
+                            },
+                            child: const AddressBookIcon(),
+                          ),
+                        // if (sendToController.text.isEmpty)
+                        //   TextFieldIconButton(
+                        //     key: const Key("sendViewScanQrButtonKey"),
+                        //     onTap: scanQr,
+                        //     child: const QrCodeIcon(),
+                        //   )
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-        Builder(
-          builder: (_) {
-            final error = _updateInvalidAddressText(
-              _address ?? "",
-              ref.read(walletsChangeNotifierProvider).getManager(walletId),
-            );
+        if (!isPaynymSend)
+          Builder(
+            builder: (_) {
+              final error = _updateInvalidAddressText(
+                _address ?? "",
+                ref.read(walletsChangeNotifierProvider).getManager(walletId),
+              );
 
-            if (error == null || error.isEmpty) {
-              return Container();
-            } else {
-              return Align(
-                alignment: Alignment.topLeft,
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    left: 12.0,
-                    top: 4.0,
-                  ),
-                  child: Text(
-                    error,
-                    textAlign: TextAlign.left,
-                    style: STextStyles.label(context).copyWith(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.textError,
+              if (error == null || error.isEmpty) {
+                return Container();
+              } else {
+                return Align(
+                  alignment: Alignment.topLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      left: 12.0,
+                      top: 4.0,
+                    ),
+                    child: Text(
+                      error,
+                      textAlign: TextAlign.left,
+                      style: STextStyles.label(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textError,
+                      ),
                     ),
                   ),
-                ),
-              );
-            }
-          },
-        ),
+                );
+              }
+            },
+          ),
         // const SizedBox(
         //   height: 20,
         // ),
@@ -1361,9 +1406,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         //     ),
         //   ),
         // ),
-        const SizedBox(
-          height: 20,
-        ),
+        if (!isPaynymSend)
+          const SizedBox(
+            height: 20,
+          ),
         if (coin != Coin.epicCash)
           Text(
             "Transaction fee (estimated)",
@@ -1396,4 +1442,23 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       ],
     );
   }
+}
+
+String formatAddress(String epicAddress) {
+  // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an epicbox address)
+  if ((epicAddress.startsWith("http://") ||
+          epicAddress.startsWith("https://")) &&
+      epicAddress.contains("@")) {
+    epicAddress = epicAddress.replaceAll("http://", "");
+    epicAddress = epicAddress.replaceAll("https://", "");
+  }
+  // strip mailto: prefix
+  if (epicAddress.startsWith("mailto:")) {
+    epicAddress = epicAddress.replaceAll("mailto:", "");
+  }
+  // strip / suffix if the address contains an @ symbol (and is thus an epicbox address)
+  if (epicAddress.endsWith("/") && epicAddress.contains("@")) {
+    epicAddress = epicAddress.substring(0, epicAddress.length - 1);
+  }
+  return epicAddress;
 }

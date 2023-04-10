@@ -298,7 +298,7 @@ class _NewWalletRecoveryPhraseViewState
                     },
                     style: Theme.of(context)
                         .extension<StackColors>()!
-                        .getPrimaryEnabledButtonColor(context),
+                        .getPrimaryEnabledButtonStyle(context),
                     child: Text(
                       "I saved my recovery phrase",
                       style: isDesktop

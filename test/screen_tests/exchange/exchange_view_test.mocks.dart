@@ -15,27 +15,25 @@ import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart
     as _i20;
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart'
     as _i21;
-import 'package:stackwallet/models/exchange/response_objects/currency.dart'
-    as _i14;
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart'
     as _i17;
 import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart'
     as _i19;
-import 'package:stackwallet/models/exchange/response_objects/pair.dart' as _i22;
 import 'package:stackwallet/models/exchange/response_objects/range.dart'
     as _i16;
 import 'package:stackwallet/models/exchange/response_objects/trade.dart'
     as _i10;
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart'
-    as _i5;
+import 'package:stackwallet/models/isar/exchange_cache/currency.dart' as _i14;
+import 'package:stackwallet/models/isar/exchange_cache/pair.dart' as _i22;
 import 'package:stackwallet/services/exchange/change_now/change_now_api.dart'
     as _i12;
 import 'package:stackwallet/services/exchange/exchange_response.dart' as _i2;
 import 'package:stackwallet/services/trade_notes_service.dart' as _i11;
 import 'package:stackwallet/services/trade_service.dart' as _i9;
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i6;
+import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i5;
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i4;
 import 'package:stackwallet/utilities/prefs.dart' as _i3;
+import 'package:stackwallet/utilities/theme/color_theme.dart' as _i6;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -183,20 +181,6 @@ class MockPrefs extends _i1.Mock implements _i3.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i5.ExchangeRateType get exchangeRateType => (super.noSuchMethod(
-        Invocation.getter(#exchangeRateType),
-        returnValue: _i5.ExchangeRateType.estimated,
-      ) as _i5.ExchangeRateType);
-  @override
-  set exchangeRateType(_i5.ExchangeRateType? exchangeRateType) =>
-      super.noSuchMethod(
-        Invocation.setter(
-          #exchangeRateType,
-          exchangeRateType,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
   bool get useBiometrics => (super.noSuchMethod(
         Invocation.getter(#useBiometrics),
         returnValue: false,
@@ -270,12 +254,12 @@ class MockPrefs extends _i1.Mock implements _i3.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i6.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
+  _i5.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
         Invocation.getter(#backupFrequencyType),
-        returnValue: _i6.BackupFrequencyType.everyTenMinutes,
-      ) as _i6.BackupFrequencyType);
+        returnValue: _i5.BackupFrequencyType.everyTenMinutes,
+      ) as _i5.BackupFrequencyType);
   @override
-  set backupFrequencyType(_i6.BackupFrequencyType? backupFrequencyType) =>
+  set backupFrequencyType(_i5.BackupFrequencyType? backupFrequencyType) =>
       super.noSuchMethod(
         Invocation.setter(
           #backupFrequencyType,
@@ -340,6 +324,74 @@ class MockPrefs extends _i1.Mock implements _i3.Prefs {
         returnValueForMissingStub: null,
       );
   @override
+  bool get enableCoinControl => (super.noSuchMethod(
+        Invocation.getter(#enableCoinControl),
+        returnValue: false,
+      ) as bool);
+  @override
+  set enableCoinControl(bool? enableCoinControl) => super.noSuchMethod(
+        Invocation.setter(
+          #enableCoinControl,
+          enableCoinControl,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  bool get enableSystemBrightness => (super.noSuchMethod(
+        Invocation.getter(#enableSystemBrightness),
+        returnValue: false,
+      ) as bool);
+  @override
+  set enableSystemBrightness(bool? enableSystemBrightness) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #enableSystemBrightness,
+          enableSystemBrightness,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i6.ThemeType get theme => (super.noSuchMethod(
+        Invocation.getter(#theme),
+        returnValue: _i6.ThemeType.light,
+      ) as _i6.ThemeType);
+  @override
+  set theme(_i6.ThemeType? theme) => super.noSuchMethod(
+        Invocation.setter(
+          #theme,
+          theme,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i6.ThemeType get systemBrightnessLightTheme => (super.noSuchMethod(
+        Invocation.getter(#systemBrightnessLightTheme),
+        returnValue: _i6.ThemeType.light,
+      ) as _i6.ThemeType);
+  @override
+  set systemBrightnessLightTheme(_i6.ThemeType? systemBrightnessLightTheme) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #systemBrightnessLightTheme,
+          systemBrightnessLightTheme,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i6.ThemeType get systemBrightnessDarkTheme => (super.noSuchMethod(
+        Invocation.getter(#systemBrightnessDarkTheme),
+        returnValue: _i6.ThemeType.light,
+      ) as _i6.ThemeType);
+  @override
+  set systemBrightnessDarkTheme(_i6.ThemeType? systemBrightnessDarkTheme) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #systemBrightnessDarkTheme,
+          systemBrightnessDarkTheme,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
@@ -370,6 +422,24 @@ class MockPrefs extends _i1.Mock implements _i3.Prefs {
         ),
         returnValue: _i7.Future<bool>.value(false),
       ) as _i7.Future<bool>);
+  @override
+  _i7.Future<void> saveUserID(String? userId) => (super.noSuchMethod(
+        Invocation.method(
+          #saveUserID,
+          [userId],
+        ),
+        returnValue: _i7.Future<void>.value(),
+        returnValueForMissingStub: _i7.Future<void>.value(),
+      ) as _i7.Future<void>);
+  @override
+  _i7.Future<void> saveSignupEpoch(int? signupEpoch) => (super.noSuchMethod(
+        Invocation.method(
+          #saveSignupEpoch,
+          [signupEpoch],
+        ),
+        returnValue: _i7.Future<void>.value(),
+        returnValueForMissingStub: _i7.Future<void>.value(),
+      ) as _i7.Future<void>);
   @override
   void addListener(_i8.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
@@ -422,6 +492,11 @@ class MockTradesService extends _i1.Mock implements _i9.TradesService {
         Invocation.getter(#hasListeners),
         returnValue: false,
       ) as bool);
+  @override
+  _i10.Trade? get(String? tradeId) => (super.noSuchMethod(Invocation.method(
+        #get,
+        [tradeId],
+      )) as _i10.Trade?);
   @override
   _i7.Future<void> add({
     required _i10.Trade? trade,
@@ -653,6 +728,23 @@ class MockChangeNowAPI extends _i1.Mock implements _i12.ChangeNowAPI {
               #fixedRate: fixedRate,
               #active: active,
             },
+          ),
+        )),
+      ) as _i7.Future<_i2.ExchangeResponse<List<_i14.Currency>>>);
+  @override
+  _i7.Future<_i2.ExchangeResponse<List<_i14.Currency>>> getCurrenciesV2() =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getCurrenciesV2,
+          [],
+        ),
+        returnValue:
+            _i7.Future<_i2.ExchangeResponse<List<_i14.Currency>>>.value(
+                _FakeExchangeResponse_0<List<_i14.Currency>>(
+          this,
+          Invocation.method(
+            #getCurrenciesV2,
+            [],
           ),
         )),
       ) as _i7.Future<_i2.ExchangeResponse<List<_i14.Currency>>>);

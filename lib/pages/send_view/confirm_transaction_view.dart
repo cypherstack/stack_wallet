@@ -4,20 +4,24 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/sending_transaction_dialog.dart';
+import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
+import 'package:stackwallet/pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
+import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -41,6 +45,10 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
     required this.walletId,
     this.routeOnSuccessName = WalletView.routeName,
     this.isTradeTransaction = false,
+    this.isPaynymTransaction = false,
+    this.isPaynymNotificationTransaction = false,
+    this.isTokenTx = false,
+    this.onSuccessInsteadOfRouteOnSuccess,
   }) : super(key: key);
 
   static const String routeName = "/confirmTransactionView";
@@ -49,6 +57,10 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
   final String walletId;
   final String routeOnSuccessName;
   final bool isTradeTransaction;
+  final bool isPaynymTransaction;
+  final bool isPaynymNotificationTransaction;
+  final bool isTokenTx;
+  final VoidCallback? onSuccessInsteadOfRouteOnSuccess;
 
   @override
   ConsumerState<ConfirmTransactionView> createState() =>
@@ -66,43 +78,81 @@ class _ConfirmTransactionViewState
   late final TextEditingController noteController;
 
   Future<void> _attemptSend(BuildContext context) async {
+    final manager =
+        ref.read(walletsChangeNotifierProvider).getManager(walletId);
     unawaited(
       showDialog<dynamic>(
         context: context,
         useSafeArea: false,
         barrierDismissible: false,
         builder: (context) {
-          return const SendingTransactionDialog();
+          return SendingTransactionDialog(
+            coin: manager.coin,
+          );
         },
       ),
     );
 
+    final time = Future<dynamic>.delayed(
+      const Duration(
+        milliseconds: 2500,
+      ),
+    );
+
+    late String txid;
+    Future<String> txidFuture;
+
     final note = noteController.text;
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
     try {
-      String txid;
-      final coin = manager.coin;
-      if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-          ref.read(publicPrivateBalanceStateProvider.state).state !=
-              "Private") {
-        txid = await (manager.wallet as FiroWallet)
-            .confirmSendPublic(txData: transactionInfo);
+      if (widget.isTokenTx) {
+        txidFuture = ref
+            .read(tokenServiceProvider)!
+            .confirmSend(txData: transactionInfo);
+      } else if (widget.isPaynymNotificationTransaction) {
+        txidFuture = (manager.wallet as PaynymWalletInterface)
+            .broadcastNotificationTx(preparedTx: transactionInfo);
+      } else if (widget.isPaynymTransaction) {
+        txidFuture = manager.confirmSend(txData: transactionInfo);
       } else {
-        txid = await manager.confirmSend(txData: transactionInfo);
+        final coin = manager.coin;
+        if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+            ref.read(publicPrivateBalanceStateProvider.state).state !=
+                "Private") {
+          txidFuture = (manager.wallet as FiroWallet)
+              .confirmSendPublic(txData: transactionInfo);
+        } else {
+          txidFuture = manager.confirmSend(txData: transactionInfo);
+        }
       }
+
+      final results = await Future.wait([
+        txidFuture,
+        time,
+      ]);
+
+      txid = results.first as String;
+      ref.refresh(desktopUseUTXOs);
 
       // save note
       await ref
           .read(notesServiceChangeNotifierProvider(walletId))
           .editOrAddNote(txid: txid, note: note);
 
-      unawaited(manager.refresh());
+      if (widget.isTokenTx) {
+        unawaited(ref.read(tokenServiceProvider)!.refresh());
+      } else {
+        unawaited(manager.refresh());
+      }
 
       // pop back to wallet
       if (mounted) {
-        Navigator.of(context).popUntil(ModalRoute.withName(routeOnSuccessName));
+        if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
+          Navigator.of(context)
+              .popUntil(ModalRoute.withName(routeOnSuccessName));
+        } else {
+          widget.onSuccessInsteadOfRouteOnSuccess!.call();
+        }
       }
     } on BadEpicHttpAddressException catch (_) {
       if (mounted) {
@@ -175,7 +225,7 @@ class _ConfirmTransactionViewState
               rightButton: TextButton(
                 style: Theme.of(context)
                     .extension<StackColors>()!
-                    .getSecondaryEnabledButtonColor(context),
+                    .getSecondaryEnabledButtonStyle(context),
                 child: Text(
                   "Ok",
                   style: STextStyles.button(context).copyWith(
@@ -218,6 +268,15 @@ class _ConfirmTransactionViewState
   Widget build(BuildContext context) {
     final managerProvider = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManagerProvider(walletId)));
+
+    final String unit;
+    if (widget.isTokenTx) {
+      unit = ref.watch(
+          tokenServiceProvider.select((value) => value!.tokenContract.symbol));
+    } else {
+      unit = ref.watch(walletsChangeNotifierProvider
+          .select((value) => value.getManager(walletId).coin.ticker));
+    }
 
     return ConditionalParent(
       condition: !isDesktop,
@@ -285,7 +344,7 @@ class _ConfirmTransactionViewState
                   ).pop(),
                 ),
                 Text(
-                  "Confirm ${ref.watch(managerProvider.select((value) => value.coin.ticker.toUpperCase()))} transaction",
+                  "Confirm $unit transaction",
                   style: STextStyles.desktopH3(context),
                 ),
               ],
@@ -302,7 +361,7 @@ class _ConfirmTransactionViewState
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    "Send ${ref.watch(managerProvider.select((value) => value.coin)).ticker}",
+                    "Send $unit",
                     style: STextStyles.pageTitleH1(context),
                   ),
                   const SizedBox(
@@ -313,14 +372,20 @@ class _ConfirmTransactionViewState
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          "Recipient",
+                          widget.isPaynymTransaction
+                              ? "PayNym recipient"
+                              : "Recipient",
                           style: STextStyles.smallMed12(context),
                         ),
                         const SizedBox(
                           height: 4,
                         ),
                         Text(
-                          "${transactionInfo["address"] ?? "ERROR"}",
+                          widget.isPaynymTransaction
+                              ? (transactionInfo["paynymAccountLite"]
+                                      as PaynymAccountLite)
+                                  .nymName
+                              : "${transactionInfo["address"] ?? "ERROR"}",
                           style: STextStyles.itemSubtitle12(context),
                         ),
                       ],
@@ -338,14 +403,12 @@ class _ConfirmTransactionViewState
                           style: STextStyles.smallMed12(context),
                         ),
                         Text(
-                          "${Format.satoshiAmountToPrettyString(transactionInfo["recipientAmt"] as int, ref.watch(
-                                localeServiceChangeNotifierProvider
-                                    .select((value) => value.locale),
-                              ), ref.watch(
-                                managerProvider.select((value) => value.coin),
-                              ))} ${ref.watch(
-                                managerProvider.select((value) => value.coin),
-                              ).ticker}",
+                          "${(transactionInfo["recipientAmt"] as Amount).localizedStringAsFixed(
+                            locale: ref.watch(
+                              localeServiceChangeNotifierProvider
+                                  .select((value) => value.locale),
+                            ),
+                          )} $unit",
                           style: STextStyles.itemSubtitle12(context),
                           textAlign: TextAlign.right,
                         ),
@@ -364,12 +427,18 @@ class _ConfirmTransactionViewState
                           style: STextStyles.smallMed12(context),
                         ),
                         Text(
-                          "${Format.satoshiAmountToPrettyString(transactionInfo["fee"] as int, ref.watch(
-                                localeServiceChangeNotifierProvider
-                                    .select((value) => value.locale),
-                              ), ref.watch(
-                                managerProvider.select((value) => value.coin),
-                              ))} ${ref.watch(
+                          "${(transactionInfo["fee"] as int).toAmountAsRaw(
+                                fractionDigits: ref.watch(
+                                  managerProvider.select(
+                                    (value) => value.coin.decimals,
+                                  ),
+                                ),
+                              ).localizedStringAsFixed(
+                                locale: ref.watch(
+                                  localeServiceChangeNotifierProvider
+                                      .select((value) => value.locale),
+                                ),
+                              )} ${ref.watch(
                                 managerProvider.select((value) => value.coin),
                               ).ticker}",
                           style: STextStyles.itemSubtitle12(context),
@@ -447,10 +516,7 @@ class _ConfirmTransactionViewState
                                 width: 16,
                               ),
                               Text(
-                                "Send ${ref.watch(
-                                      managerProvider
-                                          .select((value) => value.coin),
-                                    ).ticker}",
+                                "Send $unit",
                                 style: STextStyles.desktopTextMedium(context),
                               ),
                             ],
@@ -473,13 +539,15 @@ class _ConfirmTransactionViewState
                             ),
                             Builder(
                               builder: (context) {
-                                final amount =
-                                    transactionInfo["recipientAmt"] as int;
                                 final coin = ref.watch(
                                   managerProvider.select(
                                     (value) => value.coin,
                                   ),
                                 );
+                                final amount = Amount(
+                                    rawValue: BigInt.from(
+                                        transactionInfo["recipientAmt"] as int),
+                                    fractionDigits: coin.decimals);
                                 final externalCalls = ref.watch(
                                     prefsChangeNotifierProvider.select(
                                         (value) => value.externalCalls));
@@ -491,30 +559,26 @@ class _ConfirmTransactionViewState
                                       .getPrice(coin)
                                       .item1;
                                   if (price > Decimal.zero) {
-                                    fiatAmount = Format.localizedStringAsFixed(
-                                      value: Format.satoshisToAmount(amount,
-                                              coin: coin) *
-                                          price,
-                                      locale: ref
-                                          .read(
-                                              localeServiceChangeNotifierProvider)
-                                          .locale,
-                                      decimalPlaces: 2,
-                                    );
+                                    fiatAmount = (amount.decimal * price)
+                                        .toAmount(fractionDigits: 2)
+                                        .localizedStringAsFixed(
+                                          locale: ref
+                                              .read(
+                                                  localeServiceChangeNotifierProvider)
+                                              .locale,
+                                        );
                                   }
                                 }
 
                                 return Row(
                                   children: [
                                     Text(
-                                      "${Format.satoshiAmountToPrettyString(
-                                        amount,
-                                        ref.watch(
+                                      "${amount.localizedStringAsFixed(
+                                        locale: ref.watch(
                                           localeServiceChangeNotifierProvider
                                               .select((value) => value.locale),
                                         ),
-                                        coin,
-                                      )} ${coin.ticker}",
+                                      )} $unit",
                                       style: STextStyles
                                               .desktopTextExtraExtraSmall(
                                                   context)
@@ -560,7 +624,9 @@ class _ConfirmTransactionViewState
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Send to",
+                              widget.isPaynymTransaction
+                                  ? "PayNym recipient"
+                                  : "Send to",
                               style: STextStyles.desktopTextExtraExtraSmall(
                                   context),
                             ),
@@ -568,7 +634,11 @@ class _ConfirmTransactionViewState
                               height: 2,
                             ),
                             Text(
-                              "${transactionInfo["address"] ?? "ERROR"}",
+                              widget.isPaynymTransaction
+                                  ? (transactionInfo["paynymAccountLite"]
+                                          as PaynymAccountLite)
+                                      .nymName
+                                  : "${transactionInfo["address"] ?? "ERROR"}",
                               style: STextStyles.desktopTextExtraExtraSmall(
                                       context)
                                   .copyWith(
@@ -580,6 +650,64 @@ class _ConfirmTransactionViewState
                           ],
                         ),
                       ),
+                      if (widget.isPaynymTransaction)
+                        Container(
+                          height: 1,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
+                        ),
+                      if (widget.isPaynymTransaction)
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Transaction fee",
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                    context),
+                              ),
+                              const SizedBox(
+                                height: 2,
+                              ),
+                              Builder(
+                                builder: (context) {
+                                  final coin = ref
+                                      .watch(walletsChangeNotifierProvider
+                                          .select((value) =>
+                                              value.getManager(walletId)))
+                                      .coin;
+
+                                  final fee = (transactionInfo["fee"] as int)
+                                      .toAmountAsRaw(
+                                    fractionDigits: coin.decimals,
+                                  );
+
+                                  return Text(
+                                    "${fee.localizedStringAsFixed(
+                                      locale: ref.watch(
+                                        localeServiceChangeNotifierProvider
+                                            .select(
+                                          (value) => value.locale,
+                                        ),
+                                      ),
+                                    )} ${coin.ticker}",
+                                    style:
+                                        STextStyles.desktopTextExtraExtraSmall(
+                                                context)
+                                            .copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
                       // Container(
                       //   height: 1,
                       //   color: Theme.of(context)
@@ -699,7 +827,7 @@ class _ConfirmTransactionViewState
                   ],
                 ),
               ),
-            if (isDesktop)
+            if (isDesktop && !widget.isPaynymTransaction)
               Padding(
                 padding: const EdgeInsets.only(
                   left: 32,
@@ -709,99 +837,46 @@ class _ConfirmTransactionViewState
                   style: STextStyles.desktopTextExtraExtraSmall(context),
                 ),
               ),
-            if (isDesktop)
+            if (isDesktop && !widget.isPaynymTransaction)
               Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    left: 32,
-                    right: 32,
+                padding: const EdgeInsets.only(
+                  top: 10,
+                  left: 32,
+                  right: 32,
+                ),
+                child: RoundedContainer(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 18,
                   ),
-                  child: RoundedContainer(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 18,
-                    ),
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultBG,
-                    child: Builder(builder: (context) {
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
+                  child: Builder(
+                    builder: (context) {
                       final coin = ref
                           .watch(walletsChangeNotifierProvider
                               .select((value) => value.getManager(walletId)))
                           .coin;
 
-                      final fee = Format.satoshisToAmount(
-                        transactionInfo["fee"] as int,
-                        coin: coin,
+                      final fee = (transactionInfo["fee"] as int).toAmountAsRaw(
+                        fractionDigits: coin.decimals,
                       );
 
                       return Text(
-                        "${Format.localizedStringAsFixed(
-                          value: fee,
-                          locale: ref.watch(localeServiceChangeNotifierProvider
-                              .select((value) => value.locale)),
-                          decimalPlaces: Constants.decimalPlacesForCoin(coin),
+                        "${fee.localizedStringAsFixed(
+                          locale: ref.watch(
+                            localeServiceChangeNotifierProvider.select(
+                              (value) => value.locale,
+                            ),
+                          ),
                         )} ${coin.ticker}",
                         style: STextStyles.itemSubtitle(context),
                       );
-                    }),
-                  )
-                  // DropdownButtonHideUnderline(
-                  //   child: DropdownButton2(
-                  //     offset: const Offset(0, -10),
-                  //     isExpanded: true,
-                  //
-                  //     dropdownElevation: 0,
-                  //     value: _fee,
-                  //     items: [
-                  //       ..._dropDownItems.map(
-                  //         (e) {
-                  //           String message = _fee.toString();
-                  //
-                  //           return DropdownMenuItem(
-                  //             value: e,
-                  //             child: Text(message),
-                  //           );
-                  //         },
-                  //       ),
-                  //     ],
-                  //     onChanged: (value) {
-                  //       if (value is int) {
-                  //         setState(() {
-                  //           _fee = value;
-                  //         });
-                  //       }
-                  //     },
-                  //     icon: SvgPicture.asset(
-                  //       Assets.svg.chevronDown,
-                  //       width: 12,
-                  //       height: 6,
-                  //       color:
-                  //           Theme.of(context).extension<StackColors>()!.textDark3,
-                  //     ),
-                  //     buttonPadding: const EdgeInsets.symmetric(
-                  //       horizontal: 16,
-                  //       vertical: 8,
-                  //     ),
-                  //     buttonDecoration: BoxDecoration(
-                  //       color: Theme.of(context)
-                  //           .extension<StackColors>()!
-                  //           .textFieldDefaultBG,
-                  //       borderRadius: BorderRadius.circular(
-                  //         Constants.size.circularBorderRadius,
-                  //       ),
-                  //     ),
-                  //     dropdownDecoration: BoxDecoration(
-                  //       color: Theme.of(context)
-                  //           .extension<StackColors>()!
-                  //           .textFieldDefaultBG,
-                  //       borderRadius: BorderRadius.circular(
-                  //         Constants.size.circularBorderRadius,
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
+                    },
                   ),
+                ),
+              ),
             if (!isDesktop) const Spacer(),
             SizedBox(
               height: isDesktop ? 23 : 12,
@@ -840,34 +915,40 @@ class _ConfirmTransactionViewState
                                   .textConfirmTotalAmount,
                             ),
                     ),
-                    Text(
-                      "${Format.satoshiAmountToPrettyString(
-                        (transactionInfo["fee"] as int) +
-                            (transactionInfo["recipientAmt"] as int),
-                        ref.watch(
-                          localeServiceChangeNotifierProvider
-                              .select((value) => value.locale),
-                        ),
-                        ref.watch(
-                          managerProvider.select((value) => value.coin),
-                        ),
-                      )} ${ref.watch(
-                            managerProvider.select((value) => value.coin),
-                          ).ticker}",
-                      style: isDesktop
-                          ? STextStyles.desktopTextExtraExtraSmall(context)
-                              .copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textConfirmTotalAmount,
-                            )
-                          : STextStyles.itemSubtitle12(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textConfirmTotalAmount,
-                            ),
-                      textAlign: TextAlign.right,
-                    ),
+                    Builder(builder: (context) {
+                      final coin = ref.watch(walletsChangeNotifierProvider
+                          .select((value) => value.getManager(walletId).coin));
+                      final fee = (transactionInfo["fee"] as int)
+                          .toAmountAsRaw(fractionDigits: coin.decimals);
+                      final locale = ref.watch(
+                        localeServiceChangeNotifierProvider
+                            .select((value) => value.locale),
+                      );
+                      final amount = Amount(
+                          rawValue: BigInt.from(
+                              transactionInfo["recipientAmt"] as int),
+                          fractionDigits: coin.decimals);
+                      return Text(
+                        "${(amount + fee).localizedStringAsFixed(
+                          locale: locale,
+                        )} ${ref.watch(
+                              managerProvider.select((value) => value.coin),
+                            ).ticker}",
+                        style: isDesktop
+                            ? STextStyles.desktopTextExtraExtraSmall(context)
+                                .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textConfirmTotalAmount,
+                              )
+                            : STextStyles.itemSubtitle12(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textConfirmTotalAmount,
+                              ),
+                        textAlign: TextAlign.right,
+                      );
+                    }),
                   ],
                 ),
               ),

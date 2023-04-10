@@ -52,10 +52,10 @@ class _IntroViewState extends State<IntroView> {
                         constraints: const BoxConstraints(
                           maxWidth: 300,
                         ),
-                        child: Image(
-                          image: AssetImage(
-                            Assets.png.stack,
-                          ),
+                        child: SvgPicture.asset(
+                          Assets.svg.stack(context),
+                          width: isDesktop ? 324 : 266,
+                          height: isDesktop ? 324 : 266,
                         ),
                       ),
                     ),
@@ -259,7 +259,7 @@ class GetStartedButton extends StatelessWidget {
         ? TextButton(
             style: Theme.of(context)
                 .extension<StackColors>()!
-                .getPrimaryEnabledButtonColor(context),
+                .getPrimaryEnabledButtonStyle(context),
             onPressed: () {
               Prefs.instance.externalCalls = true;
               Navigator.of(context).pushNamed(
@@ -278,7 +278,7 @@ class GetStartedButton extends StatelessWidget {
             child: TextButton(
               style: Theme.of(context)
                   .extension<StackColors>()!
-                  .getPrimaryEnabledButtonColor(context),
+                  .getPrimaryEnabledButtonStyle(context),
               onPressed: () {
                 Navigator.of(context).pushNamed(
                   StackPrivacyCalls.routeName,

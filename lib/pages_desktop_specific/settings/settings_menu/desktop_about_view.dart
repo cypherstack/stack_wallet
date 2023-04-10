@@ -678,7 +678,7 @@ class DesktopAboutView extends ConsumerWidget {
                                                 const SizedBox(
                                                   height: 2,
                                                 ),
-                                                BlueTextButton(
+                                                CustomTextButton(
                                                   text:
                                                       "https://stackwallet.com",
                                                   onTap: () {

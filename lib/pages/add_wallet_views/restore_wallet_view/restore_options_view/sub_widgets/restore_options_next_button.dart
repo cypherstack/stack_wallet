@@ -23,10 +23,10 @@ class RestoreOptionsNextButton extends StatelessWidget {
         style: onPressed != null
             ? Theme.of(context)
                 .extension<StackColors>()!
-                .getPrimaryEnabledButtonColor(context)
+                .getPrimaryEnabledButtonStyle(context)
             : Theme.of(context)
                 .extension<StackColors>()!
-                .getPrimaryDisabledButtonColor(context),
+                .getPrimaryDisabledButtonStyle(context),
         child: Text(
           "Next",
           style: STextStyles.button(context),

@@ -4,6 +4,8 @@ import 'package:stackwallet/utilities/theme/color_theme.dart';
 class OceanBreezeColors extends StackColorTheme {
   @override
   ThemeType get themeType => ThemeType.oceanBreeze;
+  @override
+  Brightness get brightness => Brightness.light;
 
   @override
   Color get background => Colors.transparent;
@@ -62,6 +64,8 @@ class OceanBreezeColors extends StackColorTheme {
   Color get textFavoriteCard => const Color(0xFF232323);
   @override
   Color get textError => const Color(0xFF8D0006);
+  @override
+  Color get textRestore => overlay;
 
   // button background
   @override
@@ -76,6 +80,10 @@ class OceanBreezeColors extends StackColorTheme {
   Color get buttonBackBorder => const Color(0xFF227386);
   @override
   Color get buttonBackBorderDisabled => const Color(0xFFBDD5DB);
+  @override
+  Color get buttonBackBorderSecondary => buttonBackSecondary;
+  @override
+  Color get buttonBackBorderSecondaryDisabled => buttonBackSecondaryDisabled;
 
   @override
   Color get numberBackDefault => const Color(0xFFFFFFFF);
@@ -88,7 +96,7 @@ class OceanBreezeColors extends StackColorTheme {
   @override
   Color get buttonTextPrimary => const Color(0xFFFFFFFF);
   @override
-  Color get buttonTextSecondary => const Color(0xFF232323);
+  Color get buttonTextSecondary => accentColorDark;
   @override
   Color get buttonTextPrimaryDisabled => const Color(0xFFFFFFFF);
   @override
@@ -106,7 +114,11 @@ class OceanBreezeColors extends StackColorTheme {
   @override
   Color get numpadTextDefault => const Color(0xFFFFFFFF);
   @override
-  Color get bottomNavText => const Color(0xFF232323);
+  Color get bottomNavText => const Color(0xFF227386);
+  @override
+  Color get customTextButtonEnabledText => buttonTextBorderless;
+  @override
+  Color get customTextButtonDisabledText => textSubtitle1;
 
   // switch
   @override
@@ -201,6 +213,10 @@ class OceanBreezeColors extends StackColorTheme {
   Color get textFieldErrorBG => const Color(0xFFF6C7C3);
   @override
   Color get textFieldSuccessBG => const Color(0xFFADD6D2);
+  @override
+  Color get textFieldErrorBorder => textFieldErrorBG;
+  @override
+  Color get textFieldSuccessBorder => textFieldSuccessBG;
 
   @override
   Color get textFieldActiveSearchIconLeft => const Color(0xFF86898C);
@@ -315,4 +331,48 @@ class OceanBreezeColors extends StackColorTheme {
   Color get textConfirmTotalAmount => const Color(0xFF232323);
   @override
   Color get textSelectedWordTableItem => const Color(0xFF232323);
+
+  //rate type toggle
+  @override
+  Color get rateTypeToggleColorOn => textFieldDefaultBG;
+  @override
+  Color get rateTypeToggleColorOff => popupBG;
+  @override
+  Color get rateTypeToggleDesktopColorOn => textFieldDefaultBG;
+  @override
+  Color get rateTypeToggleDesktopColorOff => buttonBackSecondary;
+
+  // token view colors
+  @override
+  Color get ethTagText => const Color(0xFFFFFFFF);
+  @override
+  Color get ethTagBG => const Color(0xFF4D5798);
+  @override
+  Color get ethWalletTagText => const Color(0xFF4D5798);
+  @override
+  Color get ethWalletTagBG => const Color(0xFFEBEFFE);
+  @override
+  Color get tokenSummaryTextPrimary => const Color(0xFF232323);
+  @override
+  Color get tokenSummaryTextSecondary => const Color(0xFF4D5798);
+  @override
+  Color get tokenSummaryBG => const Color(0xFFFFFFFF);
+  @override
+  Color get tokenSummaryButtonBG => const Color(0xFFEDF4F9);
+  @override
+  Color get tokenSummaryIcon => const Color(0xFF197287);
+
+  @override
+  BoxShadow get standardBoxShadow => BoxShadow(
+        color: shadow,
+        spreadRadius: 3,
+        blurRadius: 4,
+      );
+
+  @override
+  BoxShadow? get homeViewButtonBarBoxShadow => BoxShadow(
+        color: shadow,
+        spreadRadius: 3,
+        blurRadius: 4,
+      );
 }

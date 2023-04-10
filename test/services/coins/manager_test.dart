@@ -3,14 +3,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
-import 'package:stackwallet/models/models.dart';
+import 'package:stackwallet/models/balance.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
-import 'firo/sample_data/transaction_data_samples.dart';
 import 'manager_test.mocks.dart';
+
+/// quick amount constructor wrapper. Using an int is bad practice but for
+/// testing with small amounts this should be fine
+Amount _a(int i) => Amount.fromDecimal(
+      Decimal.fromInt(i),
+      fractionDigits: 8,
+    );
 
 @GenerateMocks([FiroWallet, ElectrumX])
 void main() {
@@ -26,30 +35,6 @@ void main() {
     final manager = Manager(wallet);
 
     expect(manager.coin, Coin.firo);
-  });
-
-  group("send", () {
-    test("successful send", () async {
-      final CoinServiceAPI wallet = MockFiroWallet();
-      when(wallet.send(toAddress: "some address", amount: 1987634))
-          .thenAnswer((_) async => "some txid");
-
-      final manager = Manager(wallet);
-
-      expect(await manager.send(toAddress: "some address", amount: 1987634),
-          "some txid");
-    });
-
-    test("failed send", () {
-      final CoinServiceAPI wallet = MockFiroWallet();
-      when(wallet.send(toAddress: "some address", amount: 1987634))
-          .thenThrow(Exception("Tx failed!"));
-
-      final manager = Manager(wallet);
-
-      expect(() => manager.send(toAddress: "some address", amount: 1987634),
-          throwsA(isA<Exception>()));
-    });
   });
 
   test("fees", () async {
@@ -98,68 +83,64 @@ void main() {
   group("get balances", () {
     test("balance", () async {
       final CoinServiceAPI wallet = MockFiroWallet();
-      when(wallet.availableBalance).thenAnswer((_) async => Decimal.ten);
+      when(wallet.coin).thenAnswer((_) => Coin.firo);
+      when(wallet.balance).thenAnswer(
+        (_) => Balance(
+          coin: Coin.firo,
+          total: _a(10),
+          spendable: _a(1),
+          blockedTotal: _a(0),
+          pendingSpendable: _a(9),
+        ),
+      );
 
       final manager = Manager(wallet);
 
-      expect(await manager.availableBalance, Decimal.ten);
-    });
-
-    test("pendingBalance", () async {
-      final CoinServiceAPI wallet = MockFiroWallet();
-      when(wallet.pendingBalance).thenAnswer((_) async => Decimal.fromInt(23));
-
-      final manager = Manager(wallet);
-
-      expect(await manager.pendingBalance, Decimal.fromInt(23));
-    });
-
-    test("totalBalance", () async {
-      final wallet = MockFiroWallet();
-      when(wallet.totalBalance).thenAnswer((_) async => Decimal.fromInt(2));
-
-      final manager = Manager(wallet);
-
-      expect(await manager.totalBalance, Decimal.fromInt(2));
-    });
-
-    test("balanceMinusMaxFee", () async {
-      final CoinServiceAPI wallet = MockFiroWallet();
-      when(wallet.balanceMinusMaxFee).thenAnswer((_) async => Decimal.one);
-
-      final manager = Manager(wallet);
-
-      expect(await manager.balanceMinusMaxFee, Decimal.one);
+      expect(manager.balance.coin, Coin.firo);
+      expect(manager.balance.total.raw.toInt(), 10);
+      expect(manager.balance.spendable.raw.toInt(), 1);
+      expect(manager.balance.blockedTotal.raw.toInt(), 0);
+      expect(manager.balance.pendingSpendable.raw.toInt(), 9);
     });
   });
 
-  test("allOwnAddresses", () async {
+  test("transactions", () async {
     final CoinServiceAPI wallet = MockFiroWallet();
-    when(wallet.allOwnAddresses)
-        .thenAnswer((_) async => ["address1", "address2", "address3"]);
+
+    when(wallet.coin).thenAnswer((realInvocation) => Coin.firo);
+
+    final tx = Transaction(
+      walletId: "walletId",
+      txid: "txid",
+      timestamp: 6,
+      type: TransactionType.incoming,
+      subType: TransactionSubType.mint,
+      amount: 123,
+      amountString: Amount(
+        rawValue: BigInt.from(123),
+        fractionDigits: wallet.coin.decimals,
+      ).toJsonString(),
+      fee: 3,
+      height: 123,
+      isCancelled: false,
+      isLelantus: true,
+      slateId: null,
+      otherData: null,
+      nonce: null,
+      inputs: [],
+      outputs: [],
+    );
+    when(wallet.transactions).thenAnswer((_) async => [
+          tx,
+        ]);
 
     final manager = Manager(wallet);
 
-    expect(await manager.allOwnAddresses, ["address1", "address2", "address3"]);
-  });
+    final result = await manager.transactions;
 
-  test("transactionData", () async {
-    final CoinServiceAPI wallet = MockFiroWallet();
-    when(wallet.transactionData)
-        .thenAnswer((_) async => TransactionData.fromJson(dateTimeChunksJson));
+    expect(result.length, 1);
 
-    final manager = Manager(wallet);
-
-    final expectedMap =
-        TransactionData.fromJson(dateTimeChunksJson).getAllTransactions();
-    final result = (await manager.transactionData).getAllTransactions();
-
-    expect(result.length, expectedMap.length);
-
-    for (int i = 0; i < expectedMap.length; i++) {
-      final resultTxid = result.keys.toList(growable: false)[i];
-      expect(result[resultTxid].toString(), expectedMap[resultTxid].toString());
-    }
+    expect(result.first, tx);
   });
 
   test("refresh", () async {

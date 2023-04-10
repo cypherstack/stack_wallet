@@ -5,7 +5,6 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -104,12 +103,13 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
                       ),
                       Expanded(
                         child: Text(
-                          "${Format.localizedStringAsFixed(
-                            value: manager.cachedTotalBalance,
+                          "${manager.balance.total.localizedStringAsFixed(
                             locale: ref.watch(
-                                localeServiceChangeNotifierProvider
-                                    .select((value) => value.locale)),
-                            decimalPlaces: 8,
+                              localeServiceChangeNotifierProvider.select(
+                                (value) => value.locale,
+                              ),
+                            ),
+                            decimalPlaces: manager.coin.decimals,
                           )} ${manager.coin.ticker}",
                           style: STextStyles.itemSubtitle(context),
                         ),
@@ -146,11 +146,13 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
                         height: 2,
                       ),
                       Text(
-                        "${Format.localizedStringAsFixed(
-                          value: manager.cachedTotalBalance,
-                          locale: ref.watch(localeServiceChangeNotifierProvider
-                              .select((value) => value.locale)),
-                          decimalPlaces: 8,
+                        "${manager.balance.total.localizedStringAsFixed(
+                          locale: ref.watch(
+                            localeServiceChangeNotifierProvider.select(
+                              (value) => value.locale,
+                            ),
+                          ),
+                          decimalPlaces: manager.coin.decimals,
                         )} ${manager.coin.ticker}",
                         style: STextStyles.itemSubtitle(context),
                       ),

@@ -92,7 +92,7 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
                     ),
                     textAlign: TextAlign.left,
                   ),
-                  BlueTextButton(
+                  CustomTextButton(
                     text: "Add new node",
                     onTap: () {
                       Navigator.of(context).pushNamed(

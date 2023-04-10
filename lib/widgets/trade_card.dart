@@ -25,11 +25,21 @@ class TradeCard extends ConsumerWidget {
     ChangeNowTransactionStatus? status;
     try {
       if (statusString.toLowerCase().startsWith("waiting")) {
-        statusString = "waiting";
+        statusString = "Waiting";
       }
       status = changeNowTransactionStatusFromStringIgnoreCase(statusString);
     } on ArgumentError catch (_) {
-      status = ChangeNowTransactionStatus.Failed;
+      switch (statusString.toLowerCase()) {
+        case "funds confirming":
+        case "processing payment":
+          return Assets.svg.txExchangePending(context);
+
+        case "completed":
+          return Assets.svg.txExchange(context);
+
+        default:
+          status = ChangeNowTransactionStatus.Failed;
+      }
     }
 
     switch (status) {

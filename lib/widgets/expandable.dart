@@ -19,7 +19,11 @@ class Expandable extends StatefulWidget {
     this.animation,
     this.animationDurationMultiplier = 1.0,
     this.onExpandChanged,
+    this.onExpandWillChange,
     this.controller,
+    this.expandOverride,
+    this.curve = Curves.easeInOut,
+    this.initialState = ExpandableState.collapsed,
   }) : super(key: key);
 
   final Widget header;
@@ -28,7 +32,11 @@ class Expandable extends StatefulWidget {
   final Animation<double>? animation;
   final double animationDurationMultiplier;
   final void Function(ExpandableState)? onExpandChanged;
+  final void Function(ExpandableState)? onExpandWillChange;
   final ExpandableController? controller;
+  final VoidCallback? expandOverride;
+  final Curve curve;
+  final ExpandableState initialState;
 
   @override
   State<Expandable> createState() => _ExpandableState();
@@ -40,14 +48,16 @@ class _ExpandableState extends State<Expandable> with TickerProviderStateMixin {
   late final Duration duration;
   late final ExpandableController? controller;
 
-  ExpandableState _toggleState = ExpandableState.collapsed;
+  late ExpandableState _toggleState;
 
   Future<void> toggle() async {
     if (animation.isDismissed) {
+      widget.onExpandWillChange?.call(ExpandableState.expanded);
       await animationController.forward();
       _toggleState = ExpandableState.expanded;
       widget.onExpandChanged?.call(_toggleState);
     } else if (animation.isCompleted) {
+      widget.onExpandWillChange?.call(ExpandableState.collapsed);
       await animationController.reverse();
       _toggleState = ExpandableState.collapsed;
       widget.onExpandChanged?.call(_toggleState);
@@ -57,6 +67,7 @@ class _ExpandableState extends State<Expandable> with TickerProviderStateMixin {
 
   @override
   void initState() {
+    _toggleState = widget.initialState;
     controller = widget.controller;
     controller?.toggle = toggle;
 
@@ -68,10 +79,15 @@ class _ExpandableState extends State<Expandable> with TickerProviderStateMixin {
           vsync: this,
           duration: duration,
         );
+
+    final tween = _toggleState == ExpandableState.collapsed
+        ? Tween<double>(begin: 0.0, end: 1.0)
+        : Tween<double>(begin: 1.0, end: 0.0);
+
     animation = widget.animation ??
-        Tween<double>(begin: 0.0, end: 1.0).animate(
+        tween.animate(
           CurvedAnimation(
-            curve: Curves.easeInOut,
+            curve: widget.curve,
             parent: animationController,
           ),
         );
@@ -92,7 +108,7 @@ class _ExpandableState extends State<Expandable> with TickerProviderStateMixin {
         MouseRegion(
           cursor: SystemMouseCursors.click,
           child: GestureDetector(
-            onTap: toggle,
+            onTap: widget.expandOverride ?? toggle,
             child: Container(
               color: Colors.transparent,
               child: widget.header,

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -10,7 +12,10 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 class SendingTransactionDialog extends StatefulWidget {
   const SendingTransactionDialog({
     Key? key,
+    required this.coin,
   }) : super(key: key);
+
+  final Coin coin;
 
   @override
   State<SendingTransactionDialog> createState() => _RestoringDialogState();
@@ -46,6 +51,11 @@ class _RestoringDialogState extends State<SendingTransactionDialog>
 
   @override
   Widget build(BuildContext context) {
+    final isChans = Theme.of(context).extension<StackColors>()!.themeType ==
+            ThemeType.chan ||
+        Theme.of(context).extension<StackColors>()!.themeType ==
+            ThemeType.darkChans;
+
     if (Util.isDesktop) {
       return DesktopDialog(
         child: Padding(
@@ -60,17 +70,23 @@ class _RestoringDialogState extends State<SendingTransactionDialog>
               const SizedBox(
                 height: 40,
               ),
-              RotationTransition(
-                turns: _spinAnimation,
-                child: SvgPicture.asset(
-                  Assets.svg.arrowRotate,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorDark,
-                  width: 24,
-                  height: 24,
-                ),
-              ),
+              isChans
+                  ? Image(
+                      image: AssetImage(
+                        Assets.gif.kiss(widget.coin),
+                      ),
+                    )
+                  : RotationTransition(
+                      turns: _spinAnimation,
+                      child: SvgPicture.asset(
+                        Assets.svg.arrowRotate,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
+                        width: 24,
+                        height: 24,
+                      ),
+                    ),
             ],
           ),
         ),
@@ -80,21 +96,42 @@ class _RestoringDialogState extends State<SendingTransactionDialog>
         onWillPop: () async {
           return false;
         },
-        child: StackDialog(
-          title: "Sending transaction",
-          // // TODO get message from design team
-          // message: "<PLACEHOLDER>",
-          icon: RotationTransition(
-            turns: _spinAnimation,
-            child: SvgPicture.asset(
-              Assets.svg.arrowRotate,
-              color:
-                  Theme.of(context).extension<StackColors>()!.accentColorDark,
-              width: 24,
-              height: 24,
-            ),
-          ),
-        ),
+        child: isChans
+            ? StackDialogBase(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image(
+                      image: AssetImage(
+                        Assets.gif.kiss(widget.coin),
+                      ),
+                    ),
+                    Text(
+                      "Sending transaction",
+                      textAlign: TextAlign.center,
+                      style: STextStyles.pageTitleH2(context),
+                    ),
+                    const SizedBox(
+                      height: 32,
+                    ),
+                  ],
+                ),
+              )
+            : StackDialog(
+                title: "Sending transaction",
+                icon: RotationTransition(
+                  turns: _spinAnimation,
+                  child: SvgPicture.asset(
+                    Assets.svg.arrowRotate,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
+                    width: 24,
+                    height: 24,
+                  ),
+                ),
+              ),
       );
     }
   }

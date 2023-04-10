@@ -1,15 +1,16 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/models/epicbox_config_model.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/syncing_preferences_views/syncing_preferences_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/xpub_view.dart';
 import 'package:stackwallet/pages/settings_views/sub_widgets/settings_list_button.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_backup_views/wallet_backup_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
@@ -57,6 +58,8 @@ class WalletSettingsView extends StatefulWidget {
 class _WalletSettingsViewState extends State<WalletSettingsView> {
   late final String walletId;
   late final Coin coin;
+  late String xpub;
+  late final bool xPubEnabled;
 
   late final EventBus eventBus;
 
@@ -70,6 +73,9 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
   void initState() {
     walletId = widget.walletId;
     coin = widget.coin;
+    xPubEnabled =
+        coin != Coin.monero && coin != Coin.wownero && coin != Coin.epicCash;
+    xpub = "";
 
     _currentSyncStatus = widget.initialSyncStatus;
     // _currentNodeStatus = widget.initialNodeStatus;
@@ -270,6 +276,25 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                                         SyncingPreferencesView.routeName);
                                   },
                                 ),
+                                if (xPubEnabled)
+                                  const SizedBox(
+                                    height: 8,
+                                  ),
+                                if (xPubEnabled)
+                                  Consumer(
+                                    builder: (_, ref, __) {
+                                      return SettingsListButton(
+                                        iconAssetName: Assets.svg.eye,
+                                        title: "Wallet xPub",
+                                        onPressed: () {
+                                          Navigator.of(context).pushNamed(
+                                            XPubView.routeName,
+                                            arguments: widget.walletId,
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
                                 const SizedBox(
                                   height: 8,
                                 ),
@@ -306,7 +331,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                                 },
                                 style: Theme.of(context)
                                     .extension<StackColors>()!
-                                    .getSecondaryEnabledButtonColor(context),
+                                    .getSecondaryEnabledButtonStyle(context),
                                 child: Text(
                                   "Log out",
                                   style: STextStyles.button(context).copyWith(
@@ -356,10 +381,9 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
         .getManager(widget.walletId)
         .wallet as EpicCashWallet;
 
-    wallet.getEpicBoxConfig().then((value) {
-      final config = jsonDecode(value);
-      hostController.text = config["domain"] as String;
-      portController.text = (config["port"] as int).toString();
+    wallet.getEpicBoxConfig().then((EpicBoxConfigModel epicBoxConfig) {
+      hostController.text = epicBoxConfig.host;
+      portController.text = "${epicBoxConfig.port ?? 443}";
     });
     super.initState();
   }
@@ -391,7 +415,8 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
             enableSuggestions: Util.isDesktop ? false : true,
             controller: portController,
             decoration: const InputDecoration(hintText: "Port"),
-            keyboardType: const TextInputType.numberWithOptions(),
+            keyboardType:
+                Util.isDesktop ? null : const TextInputType.numberWithOptions(),
           ),
           const SizedBox(
             height: 8,

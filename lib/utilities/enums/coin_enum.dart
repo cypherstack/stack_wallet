@@ -5,24 +5,25 @@ import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart'
     as doge;
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart'
     as epic;
+import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart'
+    as eth;
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as firo;
 import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart'
     as ltc;
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart' as xmr;
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart'
     as nmc;
+import 'package:stackwallet/services/coins/particl/particl_wallet.dart'
+    as particl;
 import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart' as wow;
-import 'package:stackwallet/services/coins/particl/particl_wallet.dart'
-    as particl;
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/services/coins/particl/particl_wallet.dart'
-    as particl;
+import 'package:stackwallet/utilities/constants.dart';
 
 enum Coin {
   bitcoin,
   bitcoincash,
   dogecoin,
   epicCash,
+  ethereum,
   firo,
   litecoin,
   monero,
@@ -42,7 +43,8 @@ enum Coin {
   firoTestNet,
 }
 
-final int kTestNetCoinCount = Util.isDesktop ? 5 : 4;
+final int kTestNetCoinCount = 4; // Util.isDesktop ? 5 : 4;
+// remove firotestnet for now
 
 extension CoinExt on Coin {
   String get prettyName {
@@ -57,6 +59,8 @@ extension CoinExt on Coin {
         return "Dogecoin";
       case Coin.epicCash:
         return "Epic Cash";
+      case Coin.ethereum:
+        return "Ethereum";
       case Coin.firo:
         return "Firo";
       case Coin.monero:
@@ -92,6 +96,8 @@ extension CoinExt on Coin {
         return "DOGE";
       case Coin.epicCash:
         return "EPIC";
+      case Coin.ethereum:
+        return "ETH";
       case Coin.firo:
         return "FIRO";
       case Coin.monero:
@@ -128,6 +134,8 @@ extension CoinExt on Coin {
       case Coin.epicCash:
         // TODO: is this actually the right one?
         return "epic";
+      case Coin.ethereum:
+        return "ethereum";
       case Coin.firo:
         return "firo";
       case Coin.monero:
@@ -168,9 +176,90 @@ extension CoinExt on Coin {
         return true;
 
       case Coin.epicCash:
+      case Coin.ethereum:
       case Coin.monero:
       case Coin.wownero:
         return false;
+    }
+  }
+
+  bool get hasBuySupport {
+    switch (this) {
+      case Coin.bitcoin:
+      case Coin.litecoin:
+      case Coin.bitcoincash:
+      case Coin.dogecoin:
+      case Coin.ethereum:
+        return true;
+
+      case Coin.firo:
+      case Coin.namecoin:
+      case Coin.particl:
+      case Coin.epicCash:
+      case Coin.monero:
+      case Coin.wownero:
+      case Coin.dogecoinTestNet:
+      case Coin.bitcoinTestNet:
+      case Coin.litecoinTestNet:
+      case Coin.bitcoincashTestnet:
+      case Coin.firoTestNet:
+        return false;
+    }
+  }
+
+  bool get isTestNet {
+    switch (this) {
+      case Coin.bitcoin:
+      case Coin.litecoin:
+      case Coin.bitcoincash:
+      case Coin.dogecoin:
+      case Coin.firo:
+      case Coin.namecoin:
+      case Coin.particl:
+      case Coin.epicCash:
+      case Coin.ethereum:
+      case Coin.monero:
+      case Coin.wownero:
+        return false;
+
+      case Coin.dogecoinTestNet:
+      case Coin.bitcoinTestNet:
+      case Coin.litecoinTestNet:
+      case Coin.bitcoincashTestnet:
+      case Coin.firoTestNet:
+        return true;
+    }
+  }
+
+  Coin get mainNetVersion {
+    switch (this) {
+      case Coin.bitcoin:
+      case Coin.litecoin:
+      case Coin.bitcoincash:
+      case Coin.dogecoin:
+      case Coin.firo:
+      case Coin.namecoin:
+      case Coin.particl:
+      case Coin.epicCash:
+      case Coin.ethereum:
+      case Coin.monero:
+      case Coin.wownero:
+        return this;
+
+      case Coin.dogecoinTestNet:
+        return Coin.dogecoin;
+
+      case Coin.bitcoinTestNet:
+        return Coin.bitcoin;
+
+      case Coin.litecoinTestNet:
+        return Coin.litecoin;
+
+      case Coin.bitcoincashTestnet:
+        return Coin.bitcoincash;
+
+      case Coin.firoTestNet:
+        return Coin.firo;
     }
   }
 
@@ -199,6 +288,9 @@ extension CoinExt on Coin {
       case Coin.epicCash:
         return epic.MINIMUM_CONFIRMATIONS;
 
+      case Coin.ethereum:
+        return eth.MINIMUM_CONFIRMATIONS;
+
       case Coin.monero:
         return xmr.MINIMUM_CONFIRMATIONS;
 
@@ -212,6 +304,8 @@ extension CoinExt on Coin {
         return nmc.MINIMUM_CONFIRMATIONS;
     }
   }
+
+  int get decimals => Constants.decimalPlacesForCoin(this);
 }
 
 Coin coinFromPrettyName(String name) {
@@ -236,6 +330,10 @@ Coin coinFromPrettyName(String name) {
     case "Epic Cash":
     case "epicCash":
       return Coin.epicCash;
+
+    case "Ethereum":
+    case "ethereum":
+      return Coin.ethereum;
 
     case "Firo":
     case "firo":
@@ -306,6 +404,8 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.dogecoin;
     case "epic":
       return Coin.epicCash;
+    case "eth":
+      return Coin.ethereum;
     case "firo":
       return Coin.firo;
     case "xmr":
@@ -316,8 +416,6 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.particl;
     case "tltc":
       return Coin.litecoinTestNet;
-    case "part":
-      return Coin.particl;
     case "tbtc":
       return Coin.bitcoinTestNet;
     case "tbch":

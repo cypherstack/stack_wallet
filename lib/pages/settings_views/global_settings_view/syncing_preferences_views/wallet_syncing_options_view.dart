@@ -1,4 +1,3 @@
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -7,11 +6,9 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -144,39 +141,18 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                         const SizedBox(
                                           height: 2,
                                         ),
-                                        FutureBuilder(
-                                          future: manager.totalBalance,
-                                          builder: (builderContext,
-                                              AsyncSnapshot<Decimal> snapshot) {
-                                            if (snapshot.connectionState ==
-                                                    ConnectionState.done &&
-                                                snapshot.hasData) {
-                                              return Text(
-                                                "${Format.localizedStringAsFixed(
-                                                  value: snapshot.data!,
-                                                  locale: ref.watch(
-                                                      localeServiceChangeNotifierProvider
-                                                          .select((value) =>
-                                                              value.locale)),
-                                                  decimalPlaces: 8,
-                                                )} ${manager.coin.ticker}",
-                                                style: STextStyles.itemSubtitle(
-                                                    context),
-                                              );
-                                            } else {
-                                              return AnimatedText(
-                                                stringsToLoopThrough: const [
-                                                  "Loading balance",
-                                                  "Loading balance.",
-                                                  "Loading balance..",
-                                                  "Loading balance..."
-                                                ],
-                                                style: STextStyles.itemSubtitle(
-                                                    context),
-                                              );
-                                            }
-                                          },
-                                        ),
+                                        Text(
+                                          "${manager.balance.total.localizedStringAsFixed(
+                                            locale: ref.watch(
+                                              localeServiceChangeNotifierProvider
+                                                  .select(
+                                                (value) => value.locale,
+                                              ),
+                                            ),
+                                          )} ${manager.coin.ticker}",
+                                          style:
+                                              STextStyles.itemSubtitle(context),
+                                        )
                                       ],
                                     ),
                                     const Spacer(),

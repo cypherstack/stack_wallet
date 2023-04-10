@@ -5,12 +5,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/receive_view/addresses/wallet_addresses_view.dart';
 import 'package:stackwallet/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -23,15 +26,15 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 class ReceiveView extends ConsumerStatefulWidget {
   const ReceiveView({
     Key? key,
-    required this.coin,
     required this.walletId,
+    this.tokenContract,
     this.clipboard = const ClipboardWrapper(),
   }) : super(key: key);
 
   static const String routeName = "/receiveView";
 
-  final Coin coin;
   final String walletId;
+  final EthContract? tokenContract;
   final ClipboardInterface clipboard;
 
   @override
@@ -84,7 +87,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
   @override
   void initState() {
     walletId = widget.walletId;
-    coin = widget.coin;
+    coin = ref.read(walletsChangeNotifierProvider).getManager(walletId).coin;
     clipboard = widget.clipboard;
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
@@ -115,6 +118,8 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       }
     });
 
+    final ticker = widget.tokenContract?.symbol ?? coin.ticker;
+
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -125,9 +130,97 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
             },
           ),
           title: Text(
-            "Receive ${coin.ticker}",
+            "Receive $ticker",
             style: STextStyles.navBarTitle(context),
           ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(
+                top: 10,
+                bottom: 10,
+                right: 10,
+              ),
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: AppBarIconButton(
+                  key: const Key("walletNetworkSettingsAddNewNodeViewButton"),
+                  size: 36,
+                  shadows: const [],
+                  color: Theme.of(context).extension<StackColors>()!.background,
+                  icon: SvgPicture.asset(
+                    Assets.svg.verticalEllipsis,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
+                    width: 20,
+                    height: 20,
+                  ),
+                  onPressed: () {
+                    showDialog<dynamic>(
+                      barrierColor: Colors.transparent,
+                      barrierDismissible: true,
+                      context: context,
+                      builder: (_) {
+                        return Stack(
+                          children: [
+                            Positioned(
+                              top: 9,
+                              right: 10,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .popupBG,
+                                  borderRadius: BorderRadius.circular(
+                                    Constants.size.circularBorderRadius,
+                                  ),
+                                  // boxShadow: [CFColors.standardBoxShadow],
+                                  boxShadow: const [],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.of(context).pop();
+                                        Navigator.of(context).pushNamed(
+                                          WalletAddressesView.routeName,
+                                          arguments: walletId,
+                                        );
+                                      },
+                                      child: RoundedWhiteContainer(
+                                        boxShadow: [
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .standardBoxShadow,
+                                        ],
+                                        child: Material(
+                                          color: Colors.transparent,
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                            ),
+                                            child: Text(
+                                              "Address list",
+                                              style: STextStyles.field(context),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
         ),
         body: Padding(
           padding: const EdgeInsets.all(12),
@@ -155,7 +248,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                           Row(
                             children: [
                               Text(
-                                "Your ${coin.ticker} address",
+                                "Your $ticker address",
                                 style: STextStyles.itemSubtitle(context),
                               ),
                               const Spacer(),
@@ -197,16 +290,16 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                       ),
                     ),
                   ),
-                  if (coin != Coin.epicCash)
+                  if (coin != Coin.epicCash && coin != Coin.ethereum)
                     const SizedBox(
                       height: 12,
                     ),
-                  if (coin != Coin.epicCash)
+                  if (coin != Coin.epicCash && coin != Coin.ethereum)
                     TextButton(
                       onPressed: generateNewAddress,
                       style: Theme.of(context)
                           .extension<StackColors>()!
-                          .getSecondaryEnabledButtonColor(context),
+                          .getSecondaryEnabledButtonStyle(context),
                       child: Text(
                         "Generate new address",
                         style: STextStyles.button(context).copyWith(
@@ -233,7 +326,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                             const SizedBox(
                               height: 20,
                             ),
-                            BlueTextButton(
+                            CustomTextButton(
                               text: "Create new QR code",
                               onTap: () async {
                                 unawaited(Navigator.of(context).push(

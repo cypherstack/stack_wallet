@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/contact.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/models/transaction_filter.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
@@ -13,6 +13,7 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_sear
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -89,11 +90,15 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
         return false;
       }
 
-      if (filter.received && !filter.sent && tx.txType == "Sent") {
+      if (filter.received &&
+          !filter.sent &&
+          tx.type == TransactionType.outgoing) {
         return false;
       }
 
-      if (filter.sent && !filter.received && tx.txType == "Received") {
+      if (filter.sent &&
+          !filter.received &&
+          tx.type == TransactionType.incoming) {
         return false;
       }
 
@@ -107,7 +112,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
         return false;
       }
 
-      if (filter.amount != null && filter.amount != tx.amount) {
+      if (filter.amount != null && filter.amount! != tx.realAmount) {
         return false;
       }
 
@@ -126,12 +131,15 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
     // check if address book name contains
     contains |= contacts
         .where((e) =>
-            e.addresses.where((a) => a.address == tx.address).isNotEmpty &&
+            e.addresses
+                .where((a) => a.address == tx.address.value?.value)
+                .isNotEmpty &&
             e.name.toLowerCase().contains(keyword))
         .isNotEmpty;
 
     // check if address contains
-    contains |= tx.address.toLowerCase().contains(keyword);
+    contains |=
+        tx.address.value?.value.toLowerCase().contains(keyword) ?? false;
 
     // check if note contains
     contains |= notes[tx.txid] != null &&
@@ -141,11 +149,10 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
     contains |= tx.txid.toLowerCase().contains(keyword);
 
     // check if subType contains
-    contains |=
-        tx.subType.isNotEmpty && tx.subType.toLowerCase().contains(keyword);
+    contains |= tx.subType.name.toLowerCase().contains(keyword);
 
     // check if txType contains
-    contains |= tx.txType.toLowerCase().contains(keyword);
+    contains |= tx.type.name.toLowerCase().contains(keyword);
 
     // check if date contains
     contains |=
@@ -454,17 +461,13 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                   // debugPrint("Consumer build called");
 
                   return FutureBuilder(
-                    future: ref.watch(managerProvider
-                        .select((value) => value.transactionData)),
-                    builder: (_, AsyncSnapshot<TransactionData> snapshot) {
+                    future: ref.watch(
+                        managerProvider.select((value) => value.transactions)),
+                    builder: (_, AsyncSnapshot<List<Transaction>> snapshot) {
                       if (snapshot.connectionState == ConnectionState.done &&
                           snapshot.hasData) {
                         final filtered = filter(
-                            transactions: snapshot.data!
-                                .getAllTransactions()
-                                .values
-                                .toList(),
-                            filter: criteria);
+                            transactions: snapshot.data!, filter: criteria);
 
                         final searched = search(_searchString, filtered);
 
@@ -787,33 +790,35 @@ class _DesktopTransactionCardRowState
   late final Transaction _transaction;
   late final String walletId;
 
-  String whatIsIt(String type, Coin coin) {
+  String whatIsIt(TransactionType type, Coin coin, int height) {
     if (coin == Coin.epicCash && _transaction.slateId == null) {
       return "Restored Funds";
     }
 
-    if (_transaction.subType == "mint") {
-      if (_transaction.confirmedStatus) {
+    if (_transaction.subType == TransactionSubType.mint) {
+      if (_transaction.isConfirmed(height, coin.requiredConfirmations)) {
         return "Anonymized";
       } else {
         return "Anonymizing";
       }
     }
 
-    if (type == "Received") {
-      if (_transaction.confirmedStatus) {
+    if (type == TransactionType.incoming) {
+      if (_transaction.isConfirmed(height, coin.requiredConfirmations)) {
         return "Received";
       } else {
         return "Receiving";
       }
-    } else if (type == "Sent") {
-      if (_transaction.confirmedStatus) {
+    } else if (type == TransactionType.outgoing) {
+      if (_transaction.isConfirmed(height, coin.requiredConfirmations)) {
         return "Sent";
       } else {
         return "Sending";
       }
+    } else if (type == TransactionType.sentToSelf) {
+      return "Sent to self";
     } else {
-      return type;
+      return type.name;
     }
   }
 
@@ -843,14 +848,17 @@ class _DesktopTransactionCardRowState
 
     late final String prefix;
     if (Util.isDesktop) {
-      if (_transaction.txType == "Sent") {
+      if (_transaction.type == TransactionType.outgoing) {
         prefix = "-";
-      } else if (_transaction.txType == "Received") {
+      } else if (_transaction.type == TransactionType.incoming) {
         prefix = "+";
       }
     } else {
       prefix = "";
     }
+
+    final currentHeight = ref.watch(walletsChangeNotifierProvider
+        .select((value) => value.getManager(walletId).currentHeight));
 
     return Material(
       color: Theme.of(context).extension<StackColors>()!.popupBG,
@@ -911,7 +919,11 @@ class _DesktopTransactionCardRowState
           ),
           child: Row(
             children: [
-              TxIcon(transaction: _transaction),
+              TxIcon(
+                transaction: _transaction,
+                currentHeight: currentHeight,
+                coin: coin,
+              ),
               const SizedBox(
                 width: 12,
               ),
@@ -920,7 +932,11 @@ class _DesktopTransactionCardRowState
                 child: Text(
                   _transaction.isCancelled
                       ? "Cancelled"
-                      : whatIsIt(_transaction.txType, coin),
+                      : whatIsIt(
+                          _transaction.type,
+                          coin,
+                          currentHeight,
+                        ),
                   style:
                       STextStyles.desktopTextExtraExtraSmall(context).copyWith(
                     color: Theme.of(context).extension<StackColors>()!.textDark,
@@ -938,9 +954,11 @@ class _DesktopTransactionCardRowState
                 flex: 6,
                 child: Builder(
                   builder: (_) {
-                    final amount = _transaction.amount;
+                    final amount = _transaction.realAmount;
                     return Text(
-                      "$prefix${Format.satoshiAmountToPrettyString(amount, locale, coin)} ${coin.ticker}",
+                      "$prefix${amount.localizedStringAsFixed(
+                        locale: locale,
+                      )} ${coin.ticker}",
                       style: STextStyles.desktopTextExtraExtraSmall(context)
                           .copyWith(
                         color: Theme.of(context)
@@ -957,15 +975,14 @@ class _DesktopTransactionCardRowState
                   flex: 4,
                   child: Builder(
                     builder: (_) {
-                      int value = _transaction.amount;
+                      final amount = _transaction.realAmount;
 
                       return Text(
-                        "$prefix${Format.localizedStringAsFixed(
-                          value: Format.satoshisToAmount(value, coin: coin) *
-                              price,
-                          locale: locale,
-                          decimalPlaces: 2,
-                        )} $baseCurrency",
+                        "$prefix${(amount.decimal * price).toAmount(
+                              fractionDigits: 2,
+                            ).localizedStringAsFixed(
+                              locale: locale,
+                            )} $baseCurrency",
                         style: STextStyles.desktopTextExtraExtraSmall(context),
                       );
                     },

@@ -1,24 +1,75 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/theme/chan_colors.dart';
 import 'package:stackwallet/utilities/theme/dark_colors.dart';
+import 'package:stackwallet/utilities/theme/forest_colors.dart';
+import 'package:stackwallet/utilities/theme/fruit_sorbet_colors.dart';
 import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
+import 'package:stackwallet/utilities/theme/oled_black_colors.dart';
+import 'package:stackwallet/utilities/theme/oled_chans_colors.dart';
+import 'package:stackwallet/utilities/theme/orange_colors.dart';
 
 enum ThemeType {
   light,
   dark,
   oceanBreeze,
+  oledBlack,
+  orange,
+  fruitSorbet,
+  forest,
+  chan,
+  darkChans;
 }
 
+// adjust this file
+
 extension ThemeTypeExt on ThemeType {
+  static ThemeType fromName(String name) {
+    switch (name) {
+      case "light":
+        return ThemeType.light;
+      case "chan":
+        return ThemeType.chan;
+      case "dark":
+        return ThemeType.dark;
+      case "oceanBreeze":
+        return ThemeType.oceanBreeze;
+      case "oledBlack":
+        return ThemeType.oledBlack;
+      case "orange":
+        return ThemeType.orange;
+      case "fruitSorbet":
+        return ThemeType.fruitSorbet;
+      case "forest":
+        return ThemeType.forest;
+      case "darkChans":
+        return ThemeType.darkChans;
+      default:
+        throw ArgumentError("Invalid theme name");
+    }
+  }
+
   StackColorTheme get colorTheme {
     switch (this) {
       case ThemeType.light:
         return LightColors();
+      case ThemeType.chan:
+        return ChanColors();
       case ThemeType.dark:
         return DarkColors();
       case ThemeType.oceanBreeze:
         return OceanBreezeColors();
+      case ThemeType.oledBlack:
+        return OledBlackColors();
+      case ThemeType.orange:
+        return OrangeColors();
+      case ThemeType.fruitSorbet:
+        return FruitSorbetColors();
+      case ThemeType.forest:
+        return ForestColors();
+      case ThemeType.darkChans:
+        return DarkChansColors();
     }
   }
 
@@ -26,16 +77,29 @@ extension ThemeTypeExt on ThemeType {
     switch (this) {
       case ThemeType.light:
         return "Light";
+      case ThemeType.chan:
+        return "Crypto Chans";
       case ThemeType.dark:
         return "Dark";
       case ThemeType.oceanBreeze:
         return "Ocean Breeze";
+      case ThemeType.oledBlack:
+        return "OLED Black";
+      case ThemeType.orange:
+        return "Orange";
+      case ThemeType.fruitSorbet:
+        return "Fruit Sorbet";
+      case ThemeType.forest:
+        return "Forest";
+      case ThemeType.darkChans:
+        return "Dark Chans";
     }
   }
 }
 
 abstract class StackColorTheme {
   ThemeType get themeType;
+  Brightness get brightness;
 
   Color get background;
   Color get backgroundAppBar;
@@ -65,6 +129,7 @@ abstract class StackColorTheme {
   Color get textWhite;
   Color get textFavoriteCard;
   Color get textError;
+  Color get textRestore;
 
 // button background
   Color get buttonBackPrimary;
@@ -73,6 +138,8 @@ abstract class StackColorTheme {
   Color get buttonBackSecondaryDisabled;
   Color get buttonBackBorder;
   Color get buttonBackBorderDisabled;
+  Color get buttonBackBorderSecondary;
+  Color get buttonBackBorderSecondaryDisabled;
   Color get numberBackDefault;
   Color get numpadBackDefault;
   Color get bottomNavBack;
@@ -89,6 +156,8 @@ abstract class StackColorTheme {
   Color get numberTextDefault;
   Color get numpadTextDefault;
   Color get bottomNavText;
+  Color get customTextButtonEnabledText;
+  Color get customTextButtonDisabledText;
 
 // switch background
   Color get switchBGOn;
@@ -143,6 +212,8 @@ abstract class StackColorTheme {
   Color get textFieldDefaultBG;
   Color get textFieldErrorBG;
   Color get textFieldSuccessBG;
+  Color get textFieldErrorBorder;
+  Color get textFieldSuccessBorder;
   Color get textFieldActiveSearchIconLeft;
   Color get textFieldDefaultSearchIconLeft;
   Color get textFieldErrorSearchIconLeft;
@@ -206,7 +277,28 @@ abstract class StackColorTheme {
   Color get myStackContactIconBG;
   Color get textConfirmTotalAmount;
   Color get textSelectedWordTableItem;
+
+// rate type toggle
+  Color get rateTypeToggleColorOn;
+  Color get rateTypeToggleColorOff;
+  Color get rateTypeToggleDesktopColorOn;
+  Color get rateTypeToggleDesktopColorOff;
+
+  // token view colors
+  Color get ethTagText;
+  Color get ethTagBG;
+  Color get ethWalletTagText;
+  Color get ethWalletTagBG;
+  Color get tokenSummaryTextPrimary;
+  Color get tokenSummaryTextSecondary;
+  Color get tokenSummaryBG;
+  Color get tokenSummaryButtonBG;
+  Color get tokenSummaryIcon;
+
+  BoxShadow get standardBoxShadow;
+  BoxShadow? get homeViewButtonBarBoxShadow;
 }
+// 0xFFFFD8CE
 
 class CoinThemeColor {
   const CoinThemeColor();
@@ -217,6 +309,7 @@ class CoinThemeColor {
   Color get firo => const Color(0xFFFF897A);
   Color get dogecoin => const Color(0xFFFFE079);
   Color get epicCash => const Color(0xFFC5C7CB);
+  Color get ethereum => const Color(0xFFA7ADE9);
   Color get monero => const Color(0xFFFF9E6B);
   Color get namecoin => const Color(0xFF91B1E1);
   Color get wownero => const Color(0xFFED80C1);
@@ -238,6 +331,8 @@ class CoinThemeColor {
         return dogecoin;
       case Coin.epicCash:
         return epicCash;
+      case Coin.ethereum:
+        return ethereum;
       case Coin.firo:
       case Coin.firoTestNet:
         return firo;

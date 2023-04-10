@@ -50,3 +50,9 @@ test/services/coins/particl/particl_wallet_test_parameters.dart
 coverage
 scripts/**/build
 /lib/external_api_keys.dart
+
+libcw_monero.dll
+libcw_wownero.dll
+libepic_cash_wallet.dll
+libmobileliblelantus.dll
+/libisar.so

@@ -1,7 +1,6 @@
-import 'dart:convert';
-
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+// import 'package:web3dart/browser.dart';
 
 abstract class DefaultNodes {
   static const String defaultNodeIdPrefix = "default_";
@@ -15,6 +14,7 @@ abstract class DefaultNodes {
         firo,
         monero,
         epicCash,
+        ethereum,
         bitcoincash,
         namecoin,
         wownero,
@@ -108,6 +108,7 @@ abstract class DefaultNodes {
         coinName: Coin.monero.name,
         isFailover: true,
         isDown: false,
+        trusted: true,
       );
 
   static NodeModel get wownero => NodeModel(
@@ -120,6 +121,7 @@ abstract class DefaultNodes {
         coinName: Coin.wownero.name,
         isFailover: true,
         isDown: false,
+        trusted: true,
       );
 
   static NodeModel get epicCash => NodeModel(
@@ -130,6 +132,18 @@ abstract class DefaultNodes {
         useSSL: false,
         enabled: true,
         coinName: Coin.epicCash.name,
+        isFailover: true,
+        isDown: false,
+      );
+
+  static NodeModel get ethereum => NodeModel(
+        host: "https://eth.stackwallet.com",
+        port: 443,
+        name: defaultName,
+        id: _nodeId(Coin.ethereum),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.ethereum.name,
         isFailover: true,
         isDown: false,
       );
@@ -158,7 +172,7 @@ abstract class DefaultNodes {
       isDown: false);
 
   static NodeModel get bitcoinTestnet => NodeModel(
-        host: "electrumx-testnet.cypherstack.com",
+        host: "bitcoin-testnet.stackwallet.com",
         port: 51002,
         name: defaultName,
         id: _nodeId(Coin.bitcoinTestNet),
@@ -222,6 +236,9 @@ abstract class DefaultNodes {
       case Coin.epicCash:
         return epicCash;
 
+      case Coin.ethereum:
+        return ethereum;
+
       case Coin.firo:
         return firo;
 
@@ -253,9 +270,4 @@ abstract class DefaultNodes {
         return dogecoinTestnet;
     }
   }
-
-  static final String defaultEpicBoxConfig = jsonEncode({
-    "domain": "209.127.179.199",
-    "port": 13420,
-  });
 }

@@ -45,7 +45,8 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
       return;
     }
 
-    final statusResponse = await ref.read(exchangeProvider).updateTrade(trade);
+    final statusResponse =
+        await ref.read(exchangeFormStateProvider).exchange.updateTrade(trade);
     String status = "Waiting";
     if (statusResponse.value != null) {
       status = statusResponse.value!.status;

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages_desktop_specific/password/create_password_view.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
@@ -148,15 +148,16 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                                   ),
                             children: infoToggle
                                 ? [
+                                    if (Constants.enableExchange)
+                                      const TextSpan(
+                                          text:
+                                              "Exchange data preloaded for a seamless experience.\n\n"),
                                     const TextSpan(
                                         text:
-                                            "Exchange data preloaded for a seamless experience."),
-                                    const TextSpan(
-                                        text:
-                                            "\n\nCoinGecko enabled: (24 hour price change shown in-app, total wallet value shown in USD or other currency)."),
+                                            "CoinGecko enabled: (24 hour price change shown in-app, total wallet value shown in USD or other currency).\n\n"),
                                     TextSpan(
                                       text:
-                                          "\n\nRecommended for most crypto users.",
+                                          "Recommended for most crypto users.",
                                       style: isDesktop
                                           ? STextStyles
                                               .desktopTextExtraExtraSmall600(
@@ -170,15 +171,16 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                                     ),
                                   ]
                                 : [
+                                    if (Constants.enableExchange)
+                                      const TextSpan(
+                                          text:
+                                              "Exchange data not preloaded (slower experience).\n\n"),
                                     const TextSpan(
                                         text:
-                                            "Exchange data not preloaded (slower experience)."),
-                                    const TextSpan(
-                                        text:
-                                            "\n\nCoinGecko disabled (price changes not shown, no wallet value shown in other currencies)."),
+                                            "CoinGecko disabled (price changes not shown, no wallet value shown in other currencies).\n\n"),
                                     TextSpan(
                                       text:
-                                          "\n\nRecommended for the privacy conscious.",
+                                          "Recommended for the privacy conscious.",
                                       style: isDesktop
                                           ? STextStyles
                                               .desktopTextExtraExtraSmall600(
@@ -230,8 +232,15 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                                       value: isEasy)
                                   .then((_) {
                                 if (isEasy) {
-                                  unawaited(ExchangeDataLoadingService()
-                                      .loadAll(ref));
+                                  unawaited(
+                                    ExchangeDataLoadingService.instance
+                                        .init()
+                                        .then((_) => ExchangeDataLoadingService
+                                            .instance
+                                            .loadAll()),
+                                  );
+                                  // unawaited(
+                                  //     BuyDataLoadingService().loadAll(ref));
                                   ref
                                       .read(priceAnd24hChangeNotifierProvider)
                                       .start(true);
@@ -270,7 +279,7 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
   }
 }
 
-class PrivacyToggle extends StatefulWidget {
+class PrivacyToggle extends ConsumerStatefulWidget {
   const PrivacyToggle({
     Key? key,
     required this.externalCallsEnabled,
@@ -281,10 +290,10 @@ class PrivacyToggle extends StatefulWidget {
   final void Function(bool)? onChanged;
 
   @override
-  State<PrivacyToggle> createState() => _PrivacyToggleState();
+  ConsumerState<PrivacyToggle> createState() => _PrivacyToggleState();
 }
 
-class _PrivacyToggleState extends State<PrivacyToggle> {
+class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
   late bool externalCallsEnabled;
 
   late final bool isDesktop;
@@ -335,19 +344,19 @@ class _PrivacyToggleState extends State<PrivacyToggle> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (isDesktop)
-                        const SizedBox(
-                          height: 10,
-                        ),
+                      // if (isDesktop)
+                      //   const SizedBox(
+                      //     height: 10,
+                      //   ),
                       SvgPicture.asset(
-                        Assets.svg.personaEasy,
-                        width: isDesktop ? 120 : 140,
-                        height: isDesktop ? 120 : 140,
+                        Assets.svg.personaEasy(context),
+                        width: 140,
+                        height: 140,
                       ),
-                      if (isDesktop)
-                        const SizedBox(
-                          height: 12,
-                        ),
+                      // if (isDesktop)
+                      //   const SizedBox(
+                      //     height: 12,
+                      //   ),
                       Center(
                         child: Text(
                           "Easy Crypto",
@@ -445,9 +454,9 @@ class _PrivacyToggleState extends State<PrivacyToggle> {
                           height: 10,
                         ),
                       SvgPicture.asset(
-                        Assets.svg.personaIncognito,
-                        width: isDesktop ? 120 : 140,
-                        height: isDesktop ? 120 : 140,
+                        Assets.svg.personaIncognito(context),
+                        width: 140,
+                        height: 140,
                       ),
                       if (isDesktop)
                         const SizedBox(

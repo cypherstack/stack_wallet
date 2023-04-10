@@ -21,14 +21,18 @@ abstract class Constants {
   }
 
   static bool enableExchange = Util.isDesktop || !Platform.isIOS;
+  // just use enable exchange flag
+  // static bool enableBuy = enableExchange;
+  // // true; // true for development,
 
-  //TODO: correct for monero?
+  static const int _satsPerCoinEthereum = 1000000000000000000;
   static const int _satsPerCoinMonero = 1000000000000;
   static const int _satsPerCoinWownero = 100000000000;
   static const int _satsPerCoin = 100000000;
   static const int _decimalPlaces = 8;
   static const int _decimalPlacesWownero = 11;
   static const int _decimalPlacesMonero = 12;
+  static const int _decimalPlacesEthereum = 18;
 
   static const int notificationsMax = 0xFFFFFFFF;
   static const Duration networkAliveTimerDuration = Duration(seconds: 10);
@@ -38,7 +42,9 @@ abstract class Constants {
   // Enable Logger.print statements
   static const bool disableLogger = false;
 
-  static const int currentHiveDbVersion = 4;
+  static const int currentHiveDbVersion = 8;
+
+  static const int rescanV1 = 1;
 
   static int satsPerCoin(Coin coin) {
     switch (coin) {
@@ -62,6 +68,9 @@ abstract class Constants {
 
       case Coin.monero:
         return _satsPerCoinMonero;
+
+      case Coin.ethereum:
+        return _satsPerCoinEthereum;
     }
   }
 
@@ -87,6 +96,9 @@ abstract class Constants {
 
       case Coin.monero:
         return _decimalPlacesMonero;
+
+      case Coin.ethereum:
+        return _decimalPlacesEthereum;
     }
   }
 
@@ -104,6 +116,7 @@ abstract class Constants {
       case Coin.dogecoinTestNet:
       case Coin.firoTestNet:
       case Coin.epicCash:
+      case Coin.ethereum:
       case Coin.namecoin:
       case Coin.particl:
         values.addAll([24, 21, 18, 15, 12]);
@@ -144,6 +157,9 @@ abstract class Constants {
 
       case Coin.epicCash:
         return 60;
+
+      case Coin.ethereum:
+        return 15;
 
       case Coin.monero:
         return 120;

@@ -483,10 +483,10 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                         style: shouldEnableCreate
                             ? Theme.of(context)
                                 .extension<StackColors>()!
-                                .getPrimaryEnabledButtonColor(context)
+                                .getPrimaryEnabledButtonStyle(context)
                             : Theme.of(context)
                                 .extension<StackColors>()!
-                                .getPrimaryDisabledButtonColor(context),
+                                .getPrimaryDisabledButtonStyle(context),
                         onPressed: !shouldEnableCreate
                             ? null
                             : () async {
@@ -596,7 +596,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                                   fileToSave,
                                   adkString,
                                   jsonEncode(backup),
-                                  adkVersion: adkVersion,
+                                  adkVersion,
                                 );
 
                                 // this future should already be complete unless there was an error encrypting

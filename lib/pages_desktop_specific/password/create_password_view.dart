@@ -425,10 +425,10 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
                         style: nextEnabled
                             ? Theme.of(context)
                                 .extension<StackColors>()!
-                                .getPrimaryEnabledButtonColor(context)
+                                .getPrimaryEnabledButtonStyle(context)
                             : Theme.of(context)
                                 .extension<StackColors>()!
-                                .getPrimaryDisabledButtonColor(context),
+                                .getPrimaryDisabledButtonStyle(context),
                         onPressed: nextEnabled ? onNextPressed : null,
                         child: Text(
                           "Next",

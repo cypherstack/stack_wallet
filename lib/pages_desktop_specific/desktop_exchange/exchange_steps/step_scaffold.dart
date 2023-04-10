@@ -7,19 +7,20 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/pages/exchange_view/send_from_view.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_1.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_2.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_3.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_4.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/subwidgets/desktop_exchange_steps_indicator.dart';
-import 'package:stackwallet/providers/exchange/exchange_provider.dart';
+import 'package:stackwallet/providers/exchange/exchange_form_state_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/notifications_api.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -83,7 +84,8 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
     );
 
     final ExchangeResponse<Trade> response = await ref
-        .read(exchangeProvider)
+        .read(exchangeFormStateProvider)
+        .exchange
         .createTrade(
           from: ref.read(desktopExchangeModelProvider)!.sendTicker,
           to: ref.read(desktopExchangeModelProvider)!.receiveTicker,
@@ -181,10 +183,11 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
 
   void sendFromStack() {
     final trade = ref.read(desktopExchangeModelProvider)!.trade!;
-    final amount = Decimal.parse(trade.payInAmount);
     final address = trade.payInAddress;
-
     final coin = coinFromTickerCaseInsensitive(trade.payInCurrency);
+    final amount = Decimal.parse(trade.payInAmount).toAmount(
+      fractionDigits: coin.decimals,
+    );
 
     showDialog<void>(
       context: context,

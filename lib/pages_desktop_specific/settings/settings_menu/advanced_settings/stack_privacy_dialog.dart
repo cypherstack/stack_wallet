@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/price_provider.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
@@ -96,9 +96,10 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
                           ),
                     children: infoToggle
                         ? [
-                            const TextSpan(
-                                text:
-                                    "Exchange data preloaded for a seamless experience."),
+                            if (Constants.enableExchange)
+                              const TextSpan(
+                                  text:
+                                      "Exchange data preloaded for a seamless experience."),
                             const TextSpan(
                                 text:
                                     "\n\nCoinGecko enabled: (24 hour price change shown in-app, total wallet value shown in USD or other currency)."),
@@ -149,7 +150,9 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
                 Expanded(
                   child: SecondaryButton(
                     label: "Cancel",
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
                   ),
                 ),
                 const SizedBox(
@@ -169,7 +172,9 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
                               value: isEasy)
                           .then((_) {
                         if (isEasy) {
-                          unawaited(ExchangeDataLoadingService().loadAll(ref));
+                          unawaited(
+                            ExchangeDataLoadingService.instance.loadAll(),
+                          );
                           ref
                               .read(priceAnd24hChangeNotifierProvider)
                               .start(true);
@@ -190,7 +195,7 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
   }
 }
 
-class PrivacyToggle extends StatefulWidget {
+class PrivacyToggle extends ConsumerStatefulWidget {
   const PrivacyToggle({
     Key? key,
     required this.externalCallsEnabled,
@@ -201,10 +206,10 @@ class PrivacyToggle extends StatefulWidget {
   final void Function(bool)? onChanged;
 
   @override
-  State<PrivacyToggle> createState() => _PrivacyToggleState();
+  ConsumerState<PrivacyToggle> createState() => _PrivacyToggleState();
 }
 
-class _PrivacyToggleState extends State<PrivacyToggle> {
+class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
   late bool externalCallsEnabled;
 
   late final bool isDesktop;
@@ -261,7 +266,7 @@ class _PrivacyToggleState extends State<PrivacyToggle> {
                           height: 10,
                         ),
                       SvgPicture.asset(
-                        Assets.svg.personaEasy,
+                        Assets.svg.personaEasy(context),
                         width: 120,
                         height: 120,
                       ),
@@ -367,7 +372,7 @@ class _PrivacyToggleState extends State<PrivacyToggle> {
                           height: 10,
                         ),
                       SvgPicture.asset(
-                        Assets.svg.personaIncognito,
+                        Assets.svg.personaIncognito(context),
                         width: 120,
                         height: 120,
                       ),

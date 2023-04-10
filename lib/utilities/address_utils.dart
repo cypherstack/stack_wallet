@@ -20,9 +20,14 @@ class AddressUtils {
   /// attempts to convert a string to a valid scripthash
   ///
   /// Returns the scripthash or throws an exception on invalid firo address
-  static String convertToScriptHash(String address, NetworkType network) {
+  static String convertToScriptHash(
+    String address,
+    NetworkType network, [
+    String overridePrefix = "",
+  ]) {
     try {
-      final output = Address.addressToOutputScript(address, network);
+      final output =
+          Address.addressToOutputScript(address, network, overridePrefix);
       final hash = sha256.convert(output.toList(growable: false)).toString();
 
       final chars = hash.split("");
@@ -52,6 +57,8 @@ class AddressUtils {
         return Address.validateAddress(address, dogecoin);
       case Coin.epicCash:
         return validateSendAddress(address) == "1";
+      case Coin.ethereum:
+        return true; //TODO - validate ETH address
       case Coin.firo:
         return Address.validateAddress(address, firoNetwork);
       case Coin.monero:

@@ -12,10 +12,13 @@ import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/confirm_recovery_dialog.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/restore_failed_dialog.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/restore_succeeded_dialog.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/restoring_dialog.dart';
+import 'package:stackwallet/pages/add_wallet_views/select_wallet_for_token_view.dart';
+import 'package:stackwallet/pages/add_wallet_views/verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
@@ -54,6 +57,7 @@ class RestoreWalletView extends ConsumerStatefulWidget {
     required this.walletName,
     required this.coin,
     required this.seedWordsLength,
+    required this.mnemonicPassphrase,
     required this.restoreFromDate,
     this.barcodeScanner = const BarcodeScannerWrapper(),
     this.clipboard = const ClipboardWrapper(),
@@ -63,6 +67,7 @@ class RestoreWalletView extends ConsumerStatefulWidget {
 
   final String walletName;
   final Coin coin;
+  final String mnemonicPassphrase;
   final int seedWordsLength;
   final DateTime restoreFromDate;
 
@@ -290,6 +295,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           // without using them
           await manager.recoverFromMnemonic(
             mnemonic: mnemonic,
+            mnemonicPassphrase: widget.mnemonicPassphrase,
             maxUnusedAddressGap: widget.coin == Coin.firo ? 50 : 20,
             maxNumberOfIndexesToCheck: 1000,
             height: height,
@@ -307,24 +313,62 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                 .read(walletsChangeNotifierProvider.notifier)
                 .addWallet(walletId: manager.walletId, manager: manager);
 
-            if (mounted) {
-              if (isDesktop) {
-                Navigator.of(context)
-                    .popUntil(ModalRoute.withName(DesktopHomeView.routeName));
-              } else {
-                unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
-                    HomeView.routeName, (route) => false));
-              }
+            final isCreateSpecialEthWallet =
+                ref.read(createSpecialEthWalletRoutingFlag);
+            if (isCreateSpecialEthWallet) {
+              ref.read(createSpecialEthWalletRoutingFlag.notifier).state =
+                  false;
+              ref
+                      .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted.state)
+                      .state =
+                  !ref
+                      .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted
+                          .state)
+                      .state;
             }
 
-            await showDialog<dynamic>(
-              context: context,
-              useSafeArea: false,
-              barrierDismissible: true,
-              builder: (context) {
-                return const RestoreSucceededDialog();
-              },
-            );
+            if (mounted) {
+              if (isDesktop) {
+                Navigator.of(context).popUntil(
+                  ModalRoute.withName(
+                    DesktopHomeView.routeName,
+                  ),
+                );
+              } else {
+                if (isCreateSpecialEthWallet) {
+                  Navigator.of(context).popUntil(
+                    ModalRoute.withName(
+                      SelectWalletForTokenView.routeName,
+                    ),
+                  );
+                } else {
+                  unawaited(
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      HomeView.routeName,
+                      (route) => false,
+                    ),
+                  );
+                  if (manager.coin == Coin.ethereum) {
+                    unawaited(
+                      Navigator.of(context).pushNamed(
+                        EditWalletTokensView.routeName,
+                        arguments: manager.walletId,
+                      ),
+                    );
+                  }
+                }
+              }
+
+              await showDialog<dynamic>(
+                context: context,
+                useSafeArea: false,
+                barrierDismissible: true,
+                builder: (context) {
+                  return const RestoreSucceededDialog();
+                },
+              );
+            }
+
             if (!Platform.isLinux && !isDesktop) {
               await Wakelock.disable();
             }
@@ -373,17 +417,22 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       FormInputStatus status, String prefix) {
     Color color;
     Color prefixColor;
+    Color borderColor;
     Widget? suffixIcon;
     switch (status) {
       case FormInputStatus.empty:
         color = Theme.of(context).extension<StackColors>()!.textFieldDefaultBG;
         prefixColor = Theme.of(context).extension<StackColors>()!.textSubtitle2;
+        borderColor =
+            Theme.of(context).extension<StackColors>()!.textFieldDefaultBG;
         break;
       case FormInputStatus.invalid:
         color = Theme.of(context).extension<StackColors>()!.textFieldErrorBG;
         prefixColor = Theme.of(context)
             .extension<StackColors>()!
             .textFieldErrorSearchIconLeft;
+        borderColor =
+            Theme.of(context).extension<StackColors>()!.textFieldErrorBorder;
         suffixIcon = SvgPicture.asset(
           Assets.svg.alertCircle,
           width: 16,
@@ -398,6 +447,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         prefixColor = Theme.of(context)
             .extension<StackColors>()!
             .textFieldSuccessSearchIconLeft;
+        borderColor =
+            Theme.of(context).extension<StackColors>()!.textFieldSuccessBorder;
         suffixIcon = SvgPicture.asset(
           Assets.svg.checkCircle,
           width: 16,
@@ -449,11 +500,11 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           child: suffixIcon,
         ),
       ),
-      enabledBorder: _buildOutlineInputBorder(color),
-      focusedBorder: _buildOutlineInputBorder(color),
-      errorBorder: _buildOutlineInputBorder(color),
-      disabledBorder: _buildOutlineInputBorder(color),
-      focusedErrorBorder: _buildOutlineInputBorder(color),
+      enabledBorder: _buildOutlineInputBorder(borderColor),
+      focusedBorder: _buildOutlineInputBorder(borderColor),
+      errorBorder: _buildOutlineInputBorder(borderColor),
+      disabledBorder: _buildOutlineInputBorder(borderColor),
+      focusedErrorBorder: _buildOutlineInputBorder(borderColor),
     );
   }
 
@@ -736,6 +787,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                           child: Column(
                                             children: [
                                               TextFormField(
+                                                autocorrect: !isDesktop,
+                                                enableSuggestions: !isDesktop,
                                                 textCapitalization:
                                                     TextCapitalization.none,
                                                 key: Key(
@@ -784,7 +837,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                         .copyWith(
                                                   color: Theme.of(context)
                                                       .extension<StackColors>()!
-                                                      .overlay,
+                                                      .textRestore,
                                                   fontSize: isDesktop ? 16 : 14,
                                                 ),
                                               ),
@@ -831,6 +884,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                           child: Column(
                                             children: [
                                               TextFormField(
+                                                autocorrect: !isDesktop,
+                                                enableSuggestions: !isDesktop,
                                                 textCapitalization:
                                                     TextCapitalization.none,
                                                 key: Key(
@@ -954,6 +1009,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                     padding:
                                         const EdgeInsets.symmetric(vertical: 4),
                                     child: TextFormField(
+                                      autocorrect: !isDesktop,
+                                      enableSuggestions: !isDesktop,
                                       textCapitalization:
                                           TextCapitalization.none,
                                       key: Key("restoreMnemonicFormField_$i"),
@@ -987,7 +1044,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                           STextStyles.field(context).copyWith(
                                         color: Theme.of(context)
                                             .extension<StackColors>()!
-                                            .overlay,
+                                            .textRestore,
                                         fontSize: isDesktop ? 16 : 14,
                                       ),
                                     ),

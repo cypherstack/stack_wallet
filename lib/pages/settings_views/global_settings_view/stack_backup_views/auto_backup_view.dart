@@ -85,7 +85,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
           leftButton: TextButton(
             style: Theme.of(context)
                 .extension<StackColors>()!
-                .getSecondaryEnabledButtonColor(context),
+                .getSecondaryEnabledButtonStyle(context),
             child: Text(
               "Back",
               style: STextStyles.button(context).copyWith(
@@ -100,7 +100,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
           rightButton: TextButton(
             style: Theme.of(context)
                 .extension<StackColors>()!
-                .getPrimaryEnabledButtonColor(context),
+                .getPrimaryEnabledButtonStyle(context),
             child: Text(
               "Continue",
               style: STextStyles.button(context),
@@ -142,7 +142,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
           leftButton: TextButton(
             style: Theme.of(context)
                 .extension<StackColors>()!
-                .getSecondaryEnabledButtonColor(context),
+                .getSecondaryEnabledButtonStyle(context),
             child: Text(
               "Back",
               style: STextStyles.button(context).copyWith(
@@ -157,7 +157,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
           rightButton: TextButton(
             style: Theme.of(context)
                 .extension<StackColors>()!
-                .getPrimaryEnabledButtonColor(context),
+                .getPrimaryEnabledButtonStyle(context),
             child: Text(
               "Disable",
               style: STextStyles.button(context),
@@ -327,7 +327,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          BlueTextButton(
+                          CustomTextButton(
                             text: "Back up now",
                             onTap: () {
                               ref.read(autoSWBServiceProvider).doBackup();
@@ -448,7 +448,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                       height: 20,
                     ),
                     Center(
-                      child: BlueTextButton(
+                      child: CustomTextButton(
                         text: "Edit Auto Backup",
                         onTap: () async {
                           Navigator.of(context)

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages_desktop_specific/address_book_view/desktop_address_book.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_buy/desktop_buy_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/my_stack_view.dart';
@@ -56,6 +57,11 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
       onGenerateRoute: RouteGenerator.generateRoute,
       initialRoute: DesktopExchangeView.routeName,
     ),
+    DesktopMenuItemId.buy: const Navigator(
+      key: Key("desktopBuyHomeKey"),
+      onGenerateRoute: RouteGenerator.generateRoute,
+      initialRoute: DesktopBuyView.routeName,
+    ),
     DesktopMenuItemId.notifications: const Navigator(
       key: Key("desktopNotificationsHomeKey"),
       onGenerateRoute: RouteGenerator.generateRoute,
@@ -83,10 +89,11 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
     ),
   };
 
-  DesktopMenuItemId prev = DesktopMenuItemId.myStack;
-
   void onMenuSelectionWillChange(DesktopMenuItemId newKey) {
-    if (prev == DesktopMenuItemId.myStack && prev == newKey) {
+    // handle logging out of active wallet
+    if (ref.read(prevDesktopMenuItemProvider.state).state ==
+            DesktopMenuItemId.myStack &&
+        ref.read(prevDesktopMenuItemProvider.state).state == newKey) {
       Navigator.of(myStackViewNavKey.currentContext!)
           .popUntil(ModalRoute.withName(MyStackView.routeName));
       if (ref.read(currentWalletIdProvider.state).state != null) {
@@ -105,7 +112,7 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
         ref.read(managerProvider.notifier).isActiveWallet = false;
       }
     }
-    prev = newKey;
+    ref.read(prevDesktopMenuItemProvider.state).state = newKey;
 
     // check for unread notifications and refresh provider before
     // showing notifications view
