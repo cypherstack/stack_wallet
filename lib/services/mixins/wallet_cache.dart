@@ -70,7 +70,6 @@ mixin WalletCache {
     ) as String?;
     if (jsonString == null) {
       return Balance(
-        coin: _coin,
         total: Amount(rawValue: BigInt.zero, fractionDigits: _coin.decimals),
         spendable:
             Amount(rawValue: BigInt.zero, fractionDigits: _coin.decimals),
@@ -80,7 +79,7 @@ mixin WalletCache {
             Amount(rawValue: BigInt.zero, fractionDigits: _coin.decimals),
       );
     }
-    return Balance.fromJson(jsonString, _coin);
+    return Balance.fromJson(jsonString, _coin.decimals);
   }
 
   Future<void> updateCachedBalance(Balance balance) async {
@@ -99,7 +98,6 @@ mixin WalletCache {
     ) as String?;
     if (jsonString == null) {
       return Balance(
-        coin: _coin,
         total: Amount(rawValue: BigInt.zero, fractionDigits: _coin.decimals),
         spendable:
             Amount(rawValue: BigInt.zero, fractionDigits: _coin.decimals),
@@ -109,7 +107,7 @@ mixin WalletCache {
             Amount(rawValue: BigInt.zero, fractionDigits: _coin.decimals),
       );
     }
-    return Balance.fromJson(jsonString, _coin);
+    return Balance.fromJson(jsonString, _coin.decimals);
   }
 
   Future<void> updateCachedBalanceSecondary(Balance balance) async {

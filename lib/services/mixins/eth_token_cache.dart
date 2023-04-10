@@ -1,6 +1,6 @@
 import 'package:stackwallet/db/hive/db.dart';
+import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
-import 'package:stackwallet/models/token_balance.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 
 abstract class TokenCacheKeys {
@@ -19,14 +19,13 @@ mixin EthTokenCache {
   }
 
   // token balance cache
-  TokenBalance getCachedBalance() {
+  Balance getCachedBalance() {
     final jsonString = DB.instance.get<dynamic>(
       boxName: _walletId,
       key: TokenCacheKeys.tokenBalance(_token.address),
     ) as String?;
     if (jsonString == null) {
-      return TokenBalance(
-        contractAddress: _token.address,
+      return Balance(
         total: Amount(
           rawValue: BigInt.zero,
           fractionDigits: _token.decimals,
@@ -45,13 +44,13 @@ mixin EthTokenCache {
         ),
       );
     }
-    return TokenBalance.fromJson(
+    return Balance.fromJson(
       jsonString,
       _token.decimals,
     );
   }
 
-  Future<void> updateCachedBalance(TokenBalance balance) async {
+  Future<void> updateCachedBalance(Balance balance) async {
     await DB.instance.put<dynamic>(
       boxName: _walletId,
       key: TokenCacheKeys.tokenBalance(_token.address),

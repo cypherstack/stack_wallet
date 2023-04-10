@@ -8,10 +8,10 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/dto/ethereum/eth_token_tx_dto.dart';
 import 'package:stackwallet/dto/ethereum/eth_token_tx_extra_dto.dart';
+import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/models/token_balance.dart';
 import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
 import 'package:stackwallet/services/ethereum/ethereum_api.dart';
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
@@ -60,8 +60,8 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
   EthContract get tokenContract => _tokenContract;
   EthContract _tokenContract;
 
-  TokenBalance get balance => _balance ??= getCachedBalance();
-  TokenBalance? _balance;
+  Balance get balance => _balance ??= getCachedBalance();
+  Balance? _balance;
 
   Coin get coin => Coin.ethereum;
 
@@ -413,8 +413,7 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
 
     String _balance = balanceRequest.first.toString();
 
-    final newBalance = TokenBalance(
-      contractAddress: tokenContract.address,
+    final newBalance = Balance(
       total: Amount.fromDecimal(
         Decimal.parse(_balance),
         fractionDigits: tokenContract.decimals,
