@@ -110,6 +110,9 @@ class _TokenViewState extends ConsumerState<TokenView> {
                 child: AppBarIconButton(
                   icon: SvgPicture.asset(
                     Assets.svg.verticalEllipsis,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .topNavIconPrimary,
                   ),
                   onPressed: () {
                     // todo: context menu
