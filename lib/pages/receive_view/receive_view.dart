@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/receive_view/addresses/wallet_addresses_view.dart';
 import 'package:stackwallet/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
@@ -25,15 +26,15 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 class ReceiveView extends ConsumerStatefulWidget {
   const ReceiveView({
     Key? key,
-    required this.coin,
     required this.walletId,
+    this.tokenContract,
     this.clipboard = const ClipboardWrapper(),
   }) : super(key: key);
 
   static const String routeName = "/receiveView";
 
-  final Coin coin;
   final String walletId;
+  final EthContract? tokenContract;
   final ClipboardInterface clipboard;
 
   @override
@@ -86,7 +87,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
   @override
   void initState() {
     walletId = widget.walletId;
-    coin = widget.coin;
+    coin = ref.read(walletsChangeNotifierProvider).getManager(walletId).coin;
     clipboard = widget.clipboard;
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
@@ -117,6 +118,8 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       }
     });
 
+    final ticker = widget.tokenContract?.symbol ?? coin.ticker;
+
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -127,7 +130,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
             },
           ),
           title: Text(
-            "Receive ${coin.ticker}",
+            "Receive $ticker",
             style: STextStyles.navBarTitle(context),
           ),
           actions: [
@@ -245,7 +248,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                           Row(
                             children: [
                               Text(
-                                "Your ${coin.ticker} address",
+                                "Your $ticker address",
                                 style: STextStyles.itemSubtitle(context),
                               ),
                               const Spacer(),

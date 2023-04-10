@@ -800,10 +800,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         unawaited(
                           Navigator.of(context).pushNamed(
                             ReceiveView.routeName,
-                            arguments: Tuple2(
-                              walletId,
-                              coin,
-                            ),
+                            arguments: walletId,
                           ),
                         );
                       }
