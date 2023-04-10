@@ -306,7 +306,13 @@ class _DesktopWalletCardState extends State<_DesktopWalletCard> {
             ? ExpandableState.expanded
             : ExpandableState.collapsed,
         controller: expandableController,
-        expandOverride: () {},
+        onExpandWillChange: (toState) {
+          if (toState == ExpandableState.expanded) {
+            rotateIconController.forward?.call();
+          } else {
+            rotateIconController.reverse?.call();
+          }
+        },
         header: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: 20,

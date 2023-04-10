@@ -49,7 +49,13 @@ class _MasterWalletCardState extends ConsumerState<MasterWalletCard> {
       padding: EdgeInsets.zero,
       child: Expandable(
         controller: expandableController,
-        expandOverride: () {},
+        onExpandWillChange: (toState) {
+          if (toState == ExpandableState.expanded) {
+            rotateIconController.forward?.call();
+          } else {
+            rotateIconController.reverse?.call();
+          }
+        },
         header: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
