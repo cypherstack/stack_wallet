@@ -61,10 +61,12 @@ class ExchangeDataLoadingService {
         final sendCurrency = await getAggregateCurrency(
           "BTC",
           state.exchangeRateType,
+          null,
         );
         final receiveCurrency = await getAggregateCurrency(
           "XMR",
           state.exchangeRateType,
+          null,
         );
         state.setCurrencies(sendCurrency, receiveCurrency);
       }
@@ -72,7 +74,10 @@ class ExchangeDataLoadingService {
   }
 
   Future<AggregateCurrency?> getAggregateCurrency(
-      String ticker, ExchangeRateType rateType) async {
+    String ticker,
+    ExchangeRateType rateType,
+    String? contract,
+  ) async {
     final currencies = await ExchangeDataLoadingService.instance.isar.currencies
         .filter()
         .group((q) => rateType == ExchangeRateType.fixed
@@ -89,6 +94,8 @@ class ExchangeDataLoadingService {
           ticker,
           caseSensitive: false,
         )
+        .and()
+        .tokenContractEqualTo(contract)
         .findAll();
 
     final items = currencies

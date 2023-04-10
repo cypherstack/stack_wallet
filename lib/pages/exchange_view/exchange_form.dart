@@ -149,6 +149,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           currency.ticker,
           caseSensitive: false,
         )
+        .and()
+        .tokenContractEqualTo(currency.tokenContract)
         .findAll();
 
     final items = [Tuple2(currency.exchangeName, currency)];
@@ -631,6 +633,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             .getAggregateCurrency(
           widget.contract == null ? coin!.ticker : widget.contract!.symbol,
           ExchangeRateType.estimated,
+          widget.contract == null ? null : widget.contract!.address,
         )
             .then((value) {
           if (value != null) {
