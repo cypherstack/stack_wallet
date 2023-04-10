@@ -209,7 +209,7 @@ class TokenWalletOptions extends StatelessWidget {
               ReceiveView.routeName,
               arguments: Tuple2(
                 walletId,
-                Coin.ethereum,
+                tokenContract,
               ),
             );
           },

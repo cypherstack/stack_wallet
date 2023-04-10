@@ -1019,12 +1019,22 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case ReceiveView.routeName:
-        if (args is Tuple2<String, Coin>) {
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ReceiveView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        } else if (args is Tuple2<String, EthContract?>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => ReceiveView(
               walletId: args.item1,
-              coin: args.item2,
+              tokenContract: args.item2,
             ),
             settings: RouteSettings(
               name: settings.name,
