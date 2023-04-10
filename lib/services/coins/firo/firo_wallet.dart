@@ -914,8 +914,16 @@ class FiroWallet extends CoinServiceAPI
       type: isar_models.TransactionType.outgoing,
       subType: isar_models.TransactionSubType.none,
       // precision may be lost here hence the following amountString
-      amount: (txData["recipientAmt"] as Amount).raw.toInt(),
-      amountString: (txData["recipientAmt"] as Amount).toJsonString(),
+      amount: Amount(
+              rawValue: BigInt.from(txData["recipientAmt"] as int),
+              fractionDigits: coin.decimals)
+          .raw
+          .toInt(),
+      amountString: Amount(
+              rawValue: BigInt.from(txData["recipientAmt"] as int),
+              fractionDigits: coin.decimals)
+          .raw
+          .toString(),
       fee: txData["fee"] as int,
       height: null,
       isCancelled: false,
@@ -2663,7 +2671,7 @@ class FiroWallet extends CoinServiceAPI
 
   Future<List<Map<String, dynamic>>> createMintsFromAmount(int total) async {
     var tmpTotal = total;
-    var index = 1;
+    var index = 1; //
     var mints = <Map<String, dynamic>>[];
     final nextFreeMintIndex = firoGetMintIndex()!;
     while (tmpTotal > 0) {
