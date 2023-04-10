@@ -9,29 +9,35 @@ import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/master_wallet_card.dart';
+import 'package:stackwallet/widgets/wallet_card.dart';
 
-class EthWalletsOverview extends ConsumerStatefulWidget {
-  const EthWalletsOverview({Key? key}) : super(key: key);
+class WalletsOverview extends ConsumerStatefulWidget {
+  const WalletsOverview({
+    Key? key,
+    required this.coin,
+  }) : super(key: key);
+
+  final Coin coin;
 
   static const routeName = "/ethWalletsOverview";
 
   @override
-  ConsumerState<EthWalletsOverview> createState() => _EthWalletsOverviewState();
+  ConsumerState<WalletsOverview> createState() => _EthWalletsOverviewState();
 }
 
-class _EthWalletsOverviewState extends ConsumerState<EthWalletsOverview> {
+class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
   final isDesktop = Util.isDesktop;
 
-  final List<String> ethWalletIds = [];
+  final List<String> walletIds = [];
 
   @override
   void initState() {
     final walletsData =
         ref.read(walletsServiceChangeNotifierProvider).fetchWalletsData();
-    walletsData.removeWhere((key, value) => value.coin != Coin.ethereum);
-    ethWalletIds.clear();
+    walletsData.removeWhere((key, value) => value.coin != widget.coin);
+    walletIds.clear();
 
-    ethWalletIds.addAll(walletsData.values.map((e) => e.walletId));
+    walletIds.addAll(walletsData.values.map((e) => e.walletId));
 
     super.initState();
   }
@@ -47,7 +53,7 @@ class _EthWalletsOverviewState extends ConsumerState<EthWalletsOverview> {
           appBar: AppBar(
             leading: const AppBarBackButton(),
             title: Text(
-              "Ethereum (ETH) wallets",
+              "${widget.coin.prettyName} (${widget.coin.ticker}) wallets",
               style: STextStyles.navBarTitle(context),
             ),
           ),
@@ -59,13 +65,17 @@ class _EthWalletsOverviewState extends ConsumerState<EthWalletsOverview> {
           ),
         ),
         child: ListView.separated(
-          itemCount: ethWalletIds.length,
+          itemCount: walletIds.length,
           separatorBuilder: (_, __) => const SizedBox(
             height: 8,
           ),
-          itemBuilder: (_, index) => MasterWalletCard(
-            walletId: ethWalletIds[index],
-          ),
+          itemBuilder: (_, index) => widget.coin == Coin.ethereum
+              ? MasterWalletCard(
+                  walletId: walletIds[index],
+                )
+              : WalletSheetCard(
+                  walletId: walletIds[index],
+                ),
         ),
       ),
     );

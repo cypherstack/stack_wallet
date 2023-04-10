@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
-import 'package:stackwallet/pages/wallets_sheet/wallets_sheet.dart';
-import 'package:stackwallet/pages/wallets_view/eth_wallets_overview.dart';
+import 'package:stackwallet/pages/wallets_view/wallets_overview.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -46,13 +45,7 @@ class WalletListItem extends ConsumerWidget {
               BorderRadius.circular(Constants.size.circularBorderRadius),
         ),
         onPressed: () async {
-          if (coin == Coin.ethereum) {
-            unawaited(
-              Navigator.of(context).pushNamed(
-                EthWalletsOverview.routeName,
-              ),
-            );
-          } else if (walletCount == 1) {
+          if (walletCount == 1 && coin != Coin.ethereum) {
             final providersByCoin = ref
                 .watch(walletsChangeNotifierProvider
                     .select((value) => value.getManagerProvidersByCoin()))
@@ -77,15 +70,9 @@ class WalletListItem extends ConsumerWidget {
             }
           } else {
             unawaited(
-              showModalBottomSheet<dynamic>(
-                backgroundColor: Colors.transparent,
-                context: context,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(20),
-                  ),
-                ),
-                builder: (_) => WalletsSheet(coin: coin),
+              Navigator.of(context).pushNamed(
+                WalletsOverview.routeName,
+                arguments: coin,
               ),
             );
           }
