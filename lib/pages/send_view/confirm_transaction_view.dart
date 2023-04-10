@@ -539,13 +539,15 @@ class _ConfirmTransactionViewState
                             ),
                             Builder(
                               builder: (context) {
-                                final amount =
-                                    transactionInfo["recipientAmt"] as Amount;
                                 final coin = ref.watch(
                                   managerProvider.select(
                                     (value) => value.coin,
                                   ),
                                 );
+                                final amount = Amount(
+                                    rawValue: BigInt.from(
+                                        transactionInfo["recipientAmt"] as int),
+                                    fractionDigits: coin.decimals);
                                 final externalCalls = ref.watch(
                                     prefsChangeNotifierProvider.select(
                                         (value) => value.externalCalls));
@@ -922,7 +924,10 @@ class _ConfirmTransactionViewState
                         localeServiceChangeNotifierProvider
                             .select((value) => value.locale),
                       );
-                      final amount = transactionInfo["recipientAmt"] as Amount;
+                      final amount = Amount(
+                          rawValue: BigInt.from(
+                              transactionInfo["recipientAmt"] as int),
+                          fractionDigits: coin.decimals);
                       return Text(
                         "${(amount + fee).localizedStringAsFixed(
                           locale: locale,
