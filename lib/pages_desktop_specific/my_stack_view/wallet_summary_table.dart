@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/dialogs/desktop_coin_wallets_dialog.dart';
+import 'package:stackwallet/pages/wallets_view/wallets_overview.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -103,7 +103,7 @@ class _DesktopWalletSummaryRowState extends State<DesktopWalletSummaryRow> {
                   right: 32,
                   bottom: 32,
                 ),
-                child: DesktopCoinWalletsDialog(
+                child: WalletsOverview(
                   coin: widget.coin,
                   navigatorState: Navigator.of(context),
                 ),
