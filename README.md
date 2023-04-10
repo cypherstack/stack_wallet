@@ -47,12 +47,18 @@ Install [Rust](https://www.rust-lang.org/tools/install)
 cargo install cargo-ndk
 rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
 ```
+Linux desktop specific dependencies:
+```
+sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev meson python3-pip libgirepository1.0-dev valac xsltproc docbook-xsl
+pip3 install --upgrade meson==0.64.1 markdown==3.4.1 markupsafe==2.1.1 jinja2==3.1.2 pygments==2.13.0 toml==0.10.2 typogrify==2.0.7 tomli==2.0.1
+```
 
 After installing the prerequisites listed above, download the code and init the submodules
 ```
 git clone https://github.com/cypherstack/stack_wallet.git
 cd stack_wallet
 git submodule update --init --recursive
+
 ```
 
 Run prebuild script
