@@ -914,8 +914,16 @@ class FiroWallet extends CoinServiceAPI
       type: isar_models.TransactionType.outgoing,
       subType: isar_models.TransactionSubType.none,
       // precision may be lost here hence the following amountString
-      amount: (txData["recipientAmt"] as Amount).raw.toInt(),
-      amountString: (txData["recipientAmt"] as Amount).toJsonString(),
+      amount: Amount(
+              rawValue: BigInt.from(txData["recipientAmt"] as int),
+              fractionDigits: coin.decimals)
+          .raw
+          .toInt(),
+      amountString: Amount(
+              rawValue: BigInt.from(txData["recipientAmt"] as int),
+              fractionDigits: coin.decimals)
+          .raw
+          .toString(),
       fee: txData["fee"] as int,
       height: null,
       isCancelled: false,
