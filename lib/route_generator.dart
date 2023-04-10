@@ -106,7 +106,7 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/edit_note_view.d
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_search_filter_view.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
-import 'package:stackwallet/pages/wallets_view/eth_wallets_overview.dart';
+import 'package:stackwallet/pages/wallets_view/wallets_overview.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
 import 'package:stackwallet/pages_desktop_specific/address_book_view/desktop_address_book.dart';
 import 'package:stackwallet/pages_desktop_specific/addresses/desktop_wallet_addresses_view.dart';
@@ -280,14 +280,19 @@ class RouteGenerator {
           ),
         );
 
-      case EthWalletsOverview.routeName:
-        return getRoute(
-          shouldUseMaterialRoute: useMaterialPageRoute,
-          builder: (_) => const EthWalletsOverview(),
-          settings: RouteSettings(
-            name: settings.name,
-          ),
-        );
+      case WalletsOverview.routeName:
+        if (args is Coin) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => WalletsOverview(
+              coin: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case TokenContractDetailsView.routeName:
         if (args is Tuple2<String, String>) {

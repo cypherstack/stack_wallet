@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/theme/chan_colors.dart';
 import 'package:stackwallet/utilities/theme/dark_colors.dart';
 import 'package:stackwallet/utilities/theme/forest_colors.dart';
 import 'package:stackwallet/utilities/theme/fruit_sorbet_colors.dart';
@@ -7,9 +8,7 @@ import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
 import 'package:stackwallet/utilities/theme/oled_black_colors.dart';
 import 'package:stackwallet/utilities/theme/oled_chans_colors.dart';
-
-import 'chan_colors.dart';
-import 'orange_colors.dart';
+import 'package:stackwallet/utilities/theme/orange_colors.dart';
 
 enum ThemeType {
   light,
@@ -284,6 +283,17 @@ abstract class StackColorTheme {
   Color get rateTypeToggleColorOff;
   Color get rateTypeToggleDesktopColorOn;
   Color get rateTypeToggleDesktopColorOff;
+
+  // token view colors
+  Color get ethTagText;
+  Color get ethTagBG;
+  Color get ethWalletTagText;
+  Color get ethWalletTagBG;
+  Color get tokenSummaryTextPrimary;
+  Color get tokenSummaryTextSecondary;
+  Color get tokenSummaryBG;
+  Color get tokenSummaryButtonBG;
+  Color get tokenSummaryIcon;
 
   BoxShadow get standardBoxShadow;
   BoxShadow? get homeViewButtonBarBoxShadow;

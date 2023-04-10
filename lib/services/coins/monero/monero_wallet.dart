@@ -747,7 +747,6 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     final total = await _totalBalance;
     final available = await _availableBalance;
     _balance = Balance(
-      coin: coin,
       total: total,
       spendable: available,
       blockedTotal: Amount(

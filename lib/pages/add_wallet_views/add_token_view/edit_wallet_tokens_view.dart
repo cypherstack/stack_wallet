@@ -11,6 +11,7 @@ import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_custom_tok
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_list.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_list_element.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_text.dart';
+import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
@@ -97,16 +98,25 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
       if (widget.contractsToMarkSelected == null) {
         Navigator.of(context).pop(42);
       } else {
-        Navigator.of(context).popUntil(
-          ModalRoute.withName(DesktopHomeView.routeName),
-        );
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.success,
-            message: "${ethWallet.walletName} tokens saved",
-            context: context,
-          ),
-        );
+        if (isDesktop) {
+          Navigator.of(context).popUntil(
+            ModalRoute.withName(DesktopHomeView.routeName),
+          );
+        } else {
+          await Navigator.of(context).pushNamedAndRemoveUntil(
+            HomeView.routeName,
+            (route) => false,
+          );
+        }
+        if (mounted) {
+          unawaited(
+            showFloatingFlushBar(
+              type: FlushBarType.success,
+              message: "${ethWallet.walletName} tokens saved",
+              context: context,
+            ),
+          );
+        }
       }
     }
   }

@@ -84,7 +84,7 @@ void main() {
           ),
           home: mockingjay.MockNavigatorProvider(
               navigator: navigator,
-              child: const WalletSheetCard(
+              child: const SimpleWalletCard(
                 walletId: "wallet id",
               )),
         ),
@@ -122,7 +122,7 @@ void main() {
     mockito.when(wallets.getManagerProvider("wallet id")).thenAnswer(
         (realInvocation) => ChangeNotifierProvider((ref) => manager));
 
-    const walletSheetCard = WalletSheetCard(
+    const walletSheetCard = SimpleWalletCard(
       walletId: "wallet id",
     );
 

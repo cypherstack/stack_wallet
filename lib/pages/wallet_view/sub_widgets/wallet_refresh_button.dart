@@ -22,6 +22,7 @@ class WalletRefreshButton extends ConsumerStatefulWidget {
     this.tokenContractAddress,
     this.onPressed,
     this.eventBus,
+    this.overrideIconColor,
   }) : super(key: key);
 
   final String walletId;
@@ -29,6 +30,7 @@ class WalletRefreshButton extends ConsumerStatefulWidget {
   final String? tokenContractAddress;
   final VoidCallback? onPressed;
   final EventBus? eventBus;
+  final Color? overrideIconColor;
 
   @override
   ConsumerState<WalletRefreshButton> createState() => _RefreshButtonState();
@@ -155,11 +157,15 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton>
             Assets.svg.arrowRotate,
             width: isDesktop ? 12 : 24,
             height: isDesktop ? 12 : 24,
-            color: isDesktop
-                ? Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultSearchIconRight
-                : Theme.of(context).extension<StackColors>()!.textFavoriteCard,
+            color: widget.overrideIconColor != null
+                ? widget.overrideIconColor!
+                : isDesktop
+                    ? Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultSearchIconRight
+                    : Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFavoriteCard,
           ),
         ),
       ),

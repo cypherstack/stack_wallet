@@ -1978,7 +1978,6 @@ class EpicCashWallet extends CoinServiceAPI
         (jsonBalances['amount_awaiting_finalization'] as double).toString();
 
     _balance = Balance(
-      coin: coin,
       total: Amount.fromDecimal(
         Decimal.parse(total) + Decimal.parse(awaiting),
         fractionDigits: coin.decimals,
