@@ -2418,9 +2418,7 @@ class FiroWallet extends CoinServiceAPI
       if (!jindexes!.contains(lelantusCoinsList[i].index) &&
           transactions
               .where((e) => e.txid == lelantusCoinsList[i].txId)
-              .isEmpty &&
-          mints.where((e) => e.txid == lelantusCoinsList[i].txId).isEmpty) {
-        // TODO make sure that mints is filtered to remove unconfirmed tx
+              .isEmpty) {
         isUnconfirmed = true;
       }
 
@@ -2443,7 +2441,11 @@ class FiroWallet extends CoinServiceAPI
       }
       if (!lelantusCoinsList[i].isUsed &&
           lelantusCoinsList[i].anonymitySetId != ANONYMITY_SET_EMPTY_ID &&
-          !isUnconfirmed) {
+          (!isUnconfirmed ||
+              mints
+                  .where((e) => e.txid == lelantusCoinsList[i].txId)
+                  .isNotEmpty)) {
+        // TODO make sure that mints is filtered to remove unconfirmed tx
         coins.add(lelantusCoinsList[i]);
       }
     }
