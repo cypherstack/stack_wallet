@@ -37,10 +37,11 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
 
         return ConditionalParent(
           condition: index + 1 == providersByCoin.length,
-          builder: (child) => const Padding(
-            padding: EdgeInsets.only(
+          builder: (child) => Padding(
+            padding: const EdgeInsets.only(
               bottom: 16,
             ),
+            child: child,
           ),
           child: DesktopWalletSummaryRow(
             key: Key("DesktopWalletSummaryRow_key_${coin.name}"),
