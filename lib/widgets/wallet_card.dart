@@ -21,8 +21,8 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/wallet_info_row/wallet_info_row.dart';
 import 'package:tuple/tuple.dart';
 
-class WalletSheetCard extends ConsumerWidget {
-  const WalletSheetCard({
+class SimpleWalletCard extends ConsumerWidget {
+  const SimpleWalletCard({
     Key? key,
     required this.walletId,
     this.contractAddress,
@@ -113,7 +113,7 @@ class WalletSheetCard extends ConsumerWidget {
         child: MaterialButton(
           // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
           key: Key("walletsSheetItemButtonKey_$walletId"),
-          padding: const EdgeInsets.all(5),
+          padding: const EdgeInsets.all(10),
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(

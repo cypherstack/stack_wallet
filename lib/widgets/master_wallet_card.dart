@@ -116,7 +116,7 @@ class _MasterWalletCardState extends ConsumerState<MasterWalletCard> {
               padding: const EdgeInsets.all(
                 7,
               ),
-              child: WalletSheetCard(
+              child: SimpleWalletCard(
                 walletId: widget.walletId,
                 popPrevious: true,
               ),
@@ -128,7 +128,7 @@ class _MasterWalletCardState extends ConsumerState<MasterWalletCard> {
                   right: 7,
                   bottom: 7,
                 ),
-                child: WalletSheetCard(
+                child: SimpleWalletCard(
                   walletId: widget.walletId,
                   contractAddress: e,
                   popPrevious: true,
