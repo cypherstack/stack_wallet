@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_all_trades_view.dart';
 import 'package:stackwallet/providers/exchange/trade_sent_from_stack_lookup_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
@@ -13,7 +12,6 @@ import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -65,35 +63,21 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Recent trades",
-                style: STextStyles.desktopTextExtraExtraSmall(context),
-              ),
-              CustomTextButton(
-                text: "See all",
-                onTap: () {
-                  Navigator.of(context)
-                      .pushNamed(DesktopAllTradesView.routeName);
-                },
-              ),
-            ],
-          ),
-          const SizedBox(
-            height: 16,
-          ),
           Expanded(
             child: ListView.separated(
               shrinkWrap: true,
               primary: false,
               itemBuilder: (context, index) {
                 BorderRadius? radius;
-                if (index == tradeCount - 1) {
-                  radius = _borderRadiusLast;
-                } else if (index == 0) {
+                if (index == 0) {
                   radius = _borderRadiusFirst;
+                  if (tradeCount == 1) {
+                    radius = BorderRadius.circular(
+                      Constants.size.checkboxBorderRadius,
+                    );
+                  }
+                } else if (index == tradeCount - 1) {
+                  radius = _borderRadiusLast;
                 }
 
                 return Container(
