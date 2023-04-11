@@ -993,7 +993,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
           height: 20,
         ),
         Text(
-          "Transaction fee (estimated)",
+          "Transaction fee (max)",
           style: STextStyles.desktopTextExtraSmall(context).copyWith(
             color: Theme.of(context)
                 .extension<StackColors>()!
