@@ -544,10 +544,8 @@ class _ConfirmTransactionViewState
                                     (value) => value.coin,
                                   ),
                                 );
-                                final amount = Amount(
-                                    rawValue: BigInt.from(
-                                        transactionInfo["recipientAmt"] as int),
-                                    fractionDigits: coin.decimals);
+                                final amount =
+                                    transactionInfo["recipientAmt"] as Amount;
                                 final externalCalls = ref.watch(
                                     prefsChangeNotifierProvider.select(
                                         (value) => value.externalCalls));
@@ -924,10 +922,7 @@ class _ConfirmTransactionViewState
                         localeServiceChangeNotifierProvider
                             .select((value) => value.locale),
                       );
-                      final amount = Amount(
-                          rawValue: BigInt.from(
-                              transactionInfo["recipientAmt"] as int),
-                          fractionDigits: coin.decimals);
+                      final amount = transactionInfo["recipientAmt"] as Amount;
                       return Text(
                         "${(amount + fee).localizedStringAsFixed(
                           locale: locale,

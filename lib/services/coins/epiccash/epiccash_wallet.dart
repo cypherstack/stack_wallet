@@ -478,8 +478,8 @@ class EpicCashWallet extends CoinServiceAPI
             "selectionStrategyIsAll": selectionStrategyIsAll,
             "minimumConfirmations": MINIMUM_CONFIRMATIONS,
             "message": "",
-            "amount": txData['recipientAmt'],
-            "address": txData['addresss']
+            "amount": (txData['recipientAmt'] as Amount).raw.toInt(),
+            "address": (txData['addresss'] as Amount).raw.toInt(),
           }, name: walletName);
 
           message = await receivePort.first;
@@ -496,8 +496,8 @@ class EpicCashWallet extends CoinServiceAPI
           ReceivePort receivePort = await getIsolate({
             "function": "createTransaction",
             "wallet": wallet!,
-            "amount": txData['recipientAmt'],
-            "address": txData['addresss'],
+            "amount": (txData['recipientAmt'] as Amount).raw.toInt(),
+            "address": (txData['addresss'] as Amount).raw.toInt(),
             "secretKeyIndex": 0,
             "epicboxConfig": epicboxConfig.toString(),
             "minimumConfirmations": MINIMUM_CONFIRMATIONS,
@@ -872,7 +872,10 @@ class EpicCashWallet extends CoinServiceAPI
       Map<String, dynamic> txData = {
         "fee": realfee,
         "addresss": address,
-        "recipientAmt": satAmount,
+        "recipientAmt": Amount(
+          rawValue: BigInt.from(satAmount),
+          fractionDigits: coin.decimals,
+        ),
       };
 
       Logging.instance.log("prepare send: $txData", level: LogLevel.Info);
@@ -913,7 +916,7 @@ class EpicCashWallet extends CoinServiceAPI
       debugPrint(transactionFees);
       dynamic decodeData;
 
-      final available = balance.spendable;
+      final available = balance.spendable.raw.toInt();
 
       if (available == satoshiAmount) {
         if (transactionFees!.contains("Required")) {
