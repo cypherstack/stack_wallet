@@ -501,12 +501,19 @@ abstract class EthereumAPI {
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body) as Map;
         if (json["success"] == true) {
-          return EthereumResponse(
-            GasTracker.fromJson(
-              Map<String, dynamic>.from(json["result"]["result"] as Map),
-            ),
-            null,
-          );
+          try {
+            return EthereumResponse(
+              GasTracker.fromJson(
+                Map<String, dynamic>.from(json["result"]["result"] as Map),
+              ),
+              null,
+            );
+          } catch (_) {
+            throw EthApiException(
+              "getGasOracle() failed with response: "
+              "${response.body}",
+            );
+          }
         } else {
           throw EthApiException(
             "getGasOracle() failed with response: "
