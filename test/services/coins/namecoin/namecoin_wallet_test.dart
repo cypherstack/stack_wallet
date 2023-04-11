@@ -9,6 +9,7 @@ import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -27,7 +28,13 @@ void main() {
       expect(MINIMUM_CONFIRMATIONS, 2);
     });
     test("namecoin dust limit", () async {
-      expect(DUST_LIMIT, 546);
+      expect(
+        DUST_LIMIT,
+        Amount(
+          rawValue: BigInt.from(546),
+          fractionDigits: 8,
+        ),
+      );
     });
     test("namecoin mainnet genesis block hash", () async {
       expect(GENESIS_HASH_MAINNET,

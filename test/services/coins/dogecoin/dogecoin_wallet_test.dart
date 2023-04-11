@@ -10,6 +10,7 @@ import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -28,7 +29,13 @@ void main() {
       expect(MINIMUM_CONFIRMATIONS, 1);
     });
     test("dogecoin dust limit", () async {
-      expect(DUST_LIMIT, 1000000);
+      expect(
+        DUST_LIMIT,
+        Amount(
+          rawValue: BigInt.from(1000000),
+          fractionDigits: 8,
+        ),
+      );
     });
     test("dogecoin mainnet genesis block hash", () async {
       expect(GENESIS_HASH_MAINNET,
@@ -357,37 +364,6 @@ void main() {
       }
 
       expect(didThrow, true);
-
-      verify(client?.estimateFee(blocks: 1)).called(1);
-      verify(client?.estimateFee(blocks: 5)).called(1);
-      verify(client?.estimateFee(blocks: 20)).called(1);
-      expect(secureStore.interactions, 0);
-      verifyNoMoreInteractions(client);
-      verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(tracker);
-    });
-
-    test("get maxFee", () async {
-      when(client?.ping()).thenAnswer((_) async => true);
-      when(client?.getServerFeatures()).thenAnswer((_) async => {
-            "hosts": <dynamic, dynamic>{},
-            "pruning": null,
-            "server_version": "Unit tests",
-            "protocol_min": "1.4",
-            "protocol_max": "1.4.2",
-            "genesis_hash": GENESIS_HASH_TESTNET,
-            "hash_function": "sha256",
-            "services": <dynamic>[]
-          });
-      when(client?.estimateFee(blocks: 20))
-          .thenAnswer((realInvocation) async => Decimal.zero);
-      when(client?.estimateFee(blocks: 5))
-          .thenAnswer((realInvocation) async => Decimal.one);
-      when(client?.estimateFee(blocks: 1))
-          .thenAnswer((realInvocation) async => Decimal.ten);
-
-      final maxFee = await doge?.maxFee;
-      expect(maxFee, 1000000000);
 
       verify(client?.estimateFee(blocks: 1)).called(1);
       verify(client?.estimateFee(blocks: 5)).called(1);
