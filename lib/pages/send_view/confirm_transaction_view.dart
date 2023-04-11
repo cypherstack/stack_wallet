@@ -427,18 +427,18 @@ class _ConfirmTransactionViewState
                           style: STextStyles.smallMed12(context),
                         ),
                         Text(
-                          "${(transactionInfo["fee"] as int).toAmountAsRaw(
-                                fractionDigits: ref.watch(
-                                  managerProvider.select(
-                                    (value) => value.coin.decimals,
-                                  ),
+                          "${(transactionInfo["fee"] is Amount ? transactionInfo["fee"] as Amount : (transactionInfo["fee"] as int).toAmountAsRaw(
+                              fractionDigits: ref.watch(
+                                managerProvider.select(
+                                  (value) => value.coin.decimals,
                                 ),
-                              ).localizedStringAsFixed(
-                                locale: ref.watch(
-                                  localeServiceChangeNotifierProvider
-                                      .select((value) => value.locale),
-                                ),
-                              )} ${ref.watch(
+                              ),
+                            )).localizedStringAsFixed(
+                            locale: ref.watch(
+                              localeServiceChangeNotifierProvider
+                                  .select((value) => value.locale),
+                            ),
+                          )} ${ref.watch(
                                 managerProvider.select((value) => value.coin),
                               ).ticker}",
                           style: STextStyles.itemSubtitle12(context),
@@ -678,10 +678,12 @@ class _ConfirmTransactionViewState
                                               value.getManager(walletId)))
                                       .coin;
 
-                                  final fee = (transactionInfo["fee"] as int)
-                                      .toAmountAsRaw(
-                                    fractionDigits: coin.decimals,
-                                  );
+                                  final fee = transactionInfo["fee"] is Amount
+                                      ? transactionInfo["fee"] as Amount
+                                      : (transactionInfo["fee"] as int)
+                                          .toAmountAsRaw(
+                                          fractionDigits: coin.decimals,
+                                        );
 
                                   return Text(
                                     "${fee.localizedStringAsFixed(
@@ -857,9 +859,11 @@ class _ConfirmTransactionViewState
                               .select((value) => value.getManager(walletId)))
                           .coin;
 
-                      final fee = (transactionInfo["fee"] as int).toAmountAsRaw(
-                        fractionDigits: coin.decimals,
-                      );
+                      final fee = transactionInfo["fee"] is Amount
+                          ? transactionInfo["fee"] as Amount
+                          : (transactionInfo["fee"] as int).toAmountAsRaw(
+                              fractionDigits: coin.decimals,
+                            );
 
                       return Text(
                         "${fee.localizedStringAsFixed(
@@ -916,8 +920,10 @@ class _ConfirmTransactionViewState
                     Builder(builder: (context) {
                       final coin = ref.watch(walletsChangeNotifierProvider
                           .select((value) => value.getManager(walletId).coin));
-                      final fee = (transactionInfo["fee"] as int)
-                          .toAmountAsRaw(fractionDigits: coin.decimals);
+                      final fee = transactionInfo["fee"] is Amount
+                          ? transactionInfo["fee"] as Amount
+                          : (transactionInfo["fee"] as int)
+                              .toAmountAsRaw(fractionDigits: coin.decimals);
                       final locale = ref.watch(
                         localeServiceChangeNotifierProvider
                             .select((value) => value.locale),

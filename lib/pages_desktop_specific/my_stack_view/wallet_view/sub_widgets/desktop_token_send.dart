@@ -305,7 +305,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                         padding: const EdgeInsets.only(
                           right: 32,
                         ),
-                        child: Text(
+                        child: SelectableText(
                           e.toString(),
                           textAlign: TextAlign.left,
                           style: STextStyles.desktopTextExtraExtraSmall(context)
