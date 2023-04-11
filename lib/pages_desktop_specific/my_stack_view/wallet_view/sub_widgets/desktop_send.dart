@@ -1412,7 +1412,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           ),
         if (coin != Coin.epicCash)
           Text(
-            "Transaction fee (estimated)",
+            "Transaction fee (${coin == Coin.ethereum ? "max" : "estimated"})",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
               color: Theme.of(context)
                   .extension<StackColors>()!

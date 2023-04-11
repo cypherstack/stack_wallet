@@ -427,18 +427,18 @@ class _ConfirmTransactionViewState
                           style: STextStyles.smallMed12(context),
                         ),
                         Text(
-                          "${(transactionInfo["fee"] as int).toAmountAsRaw(
-                                fractionDigits: ref.watch(
-                                  managerProvider.select(
-                                    (value) => value.coin.decimals,
-                                  ),
+                          "${(transactionInfo["fee"] is Amount ? transactionInfo["fee"] as Amount : (transactionInfo["fee"] as int).toAmountAsRaw(
+                              fractionDigits: ref.watch(
+                                managerProvider.select(
+                                  (value) => value.coin.decimals,
                                 ),
-                              ).localizedStringAsFixed(
-                                locale: ref.watch(
-                                  localeServiceChangeNotifierProvider
-                                      .select((value) => value.locale),
-                                ),
-                              )} ${ref.watch(
+                              ),
+                            )).localizedStringAsFixed(
+                            locale: ref.watch(
+                              localeServiceChangeNotifierProvider
+                                  .select((value) => value.locale),
+                            ),
+                          )} ${ref.watch(
                                 managerProvider.select((value) => value.coin),
                               ).ticker}",
                           style: STextStyles.itemSubtitle12(context),
@@ -552,10 +552,22 @@ class _ConfirmTransactionViewState
                                 String fiatAmount = "N/A";
 
                                 if (externalCalls) {
-                                  final price = ref
-                                      .read(priceAnd24hChangeNotifierProvider)
-                                      .getPrice(coin)
-                                      .item1;
+                                  final price = widget.isTokenTx
+                                      ? ref
+                                          .read(
+                                              priceAnd24hChangeNotifierProvider)
+                                          .getTokenPrice(
+                                            ref
+                                                .read(tokenServiceProvider)!
+                                                .tokenContract
+                                                .address,
+                                          )
+                                          .item1
+                                      : ref
+                                          .read(
+                                              priceAnd24hChangeNotifierProvider)
+                                          .getPrice(coin)
+                                          .item1;
                                   if (price > Decimal.zero) {
                                     fiatAmount = (amount.decimal * price)
                                         .toAmount(fractionDigits: 2)
@@ -678,10 +690,12 @@ class _ConfirmTransactionViewState
                                               value.getManager(walletId)))
                                       .coin;
 
-                                  final fee = (transactionInfo["fee"] as int)
-                                      .toAmountAsRaw(
-                                    fractionDigits: coin.decimals,
-                                  );
+                                  final fee = transactionInfo["fee"] is Amount
+                                      ? transactionInfo["fee"] as Amount
+                                      : (transactionInfo["fee"] as int)
+                                          .toAmountAsRaw(
+                                          fractionDigits: coin.decimals,
+                                        );
 
                                   return Text(
                                     "${fee.localizedStringAsFixed(
@@ -857,9 +871,11 @@ class _ConfirmTransactionViewState
                               .select((value) => value.getManager(walletId)))
                           .coin;
 
-                      final fee = (transactionInfo["fee"] as int).toAmountAsRaw(
-                        fractionDigits: coin.decimals,
-                      );
+                      final fee = transactionInfo["fee"] is Amount
+                          ? transactionInfo["fee"] as Amount
+                          : (transactionInfo["fee"] as int).toAmountAsRaw(
+                              fractionDigits: coin.decimals,
+                            );
 
                       return Text(
                         "${fee.localizedStringAsFixed(
@@ -879,56 +895,28 @@ class _ConfirmTransactionViewState
             SizedBox(
               height: isDesktop ? 23 : 12,
             ),
-            Padding(
-              padding: isDesktop
-                  ? const EdgeInsets.symmetric(
-                      horizontal: 32,
-                    )
-                  : const EdgeInsets.all(0),
-              child: RoundedContainer(
+            if (!widget.isTokenTx)
+              Padding(
                 padding: isDesktop
                     ? const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 18,
+                        horizontal: 32,
                       )
-                    : const EdgeInsets.all(12),
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .snackBarBackSuccess,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      isDesktop ? "Total amount to send" : "Total amount",
-                      style: isDesktop
-                          ? STextStyles.desktopTextExtraExtraSmall(context)
-                              .copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textConfirmTotalAmount,
-                            )
-                          : STextStyles.titleBold12(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textConfirmTotalAmount,
-                            ),
-                    ),
-                    Builder(builder: (context) {
-                      final coin = ref.watch(walletsChangeNotifierProvider
-                          .select((value) => value.getManager(walletId).coin));
-                      final fee = (transactionInfo["fee"] as int)
-                          .toAmountAsRaw(fractionDigits: coin.decimals);
-                      final locale = ref.watch(
-                        localeServiceChangeNotifierProvider
-                            .select((value) => value.locale),
-                      );
-                      final amount = transactionInfo["recipientAmt"] as Amount;
-                      return Text(
-                        "${(amount + fee).localizedStringAsFixed(
-                          locale: locale,
-                        )} ${ref.watch(
-                              managerProvider.select((value) => value.coin),
-                            ).ticker}",
+                    : const EdgeInsets.all(0),
+                child: RoundedContainer(
+                  padding: isDesktop
+                      ? const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 18,
+                        )
+                      : const EdgeInsets.all(12),
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .snackBarBackSuccess,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        isDesktop ? "Total amount to send" : "Total amount",
                         style: isDesktop
                             ? STextStyles.desktopTextExtraExtraSmall(context)
                                 .copyWith(
@@ -936,18 +924,51 @@ class _ConfirmTransactionViewState
                                     .extension<StackColors>()!
                                     .textConfirmTotalAmount,
                               )
-                            : STextStyles.itemSubtitle12(context).copyWith(
+                            : STextStyles.titleBold12(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .textConfirmTotalAmount,
                               ),
-                        textAlign: TextAlign.right,
-                      );
-                    }),
-                  ],
+                      ),
+                      Builder(builder: (context) {
+                        final coin = ref.watch(
+                            walletsChangeNotifierProvider.select(
+                                (value) => value.getManager(walletId).coin));
+                        final fee = transactionInfo["fee"] is Amount
+                            ? transactionInfo["fee"] as Amount
+                            : (transactionInfo["fee"] as int)
+                                .toAmountAsRaw(fractionDigits: coin.decimals);
+                        final locale = ref.watch(
+                          localeServiceChangeNotifierProvider
+                              .select((value) => value.locale),
+                        );
+                        final amount =
+                            transactionInfo["recipientAmt"] as Amount;
+                        return Text(
+                          "${(amount + fee).localizedStringAsFixed(
+                            locale: locale,
+                          )} ${ref.watch(
+                                managerProvider.select((value) => value.coin),
+                              ).ticker}",
+                          style: isDesktop
+                              ? STextStyles.desktopTextExtraExtraSmall(context)
+                                  .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textConfirmTotalAmount,
+                                )
+                              : STextStyles.itemSubtitle12(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textConfirmTotalAmount,
+                                ),
+                          textAlign: TextAlign.right,
+                        );
+                      }),
+                    ],
+                  ),
                 ),
               ),
-            ),
             SizedBox(
               height: isDesktop ? 28 : 16,
             ),

@@ -449,7 +449,7 @@ abstract class EthereumAPI {
   }) async {
     try {
       final uri = Uri.parse(
-        "$stackBaseServer/state?addrs=$address&parts=nonce",
+        "$stackBaseServer/state?addrs=$address&parts=all",
       );
       final response = await get(uri);
 
@@ -469,7 +469,7 @@ abstract class EthereumAPI {
         }
       } else {
         throw EthApiException(
-          "getWalletTokenBalance($address) failed with status code: "
+          "getAddressNonce($address) failed with status code: "
           "${response.statusCode}",
         );
       }
@@ -480,7 +480,7 @@ abstract class EthereumAPI {
       );
     } catch (e, s) {
       Logging.instance.log(
-        "getWalletTokenBalance(): $e\n$s",
+        "getAddressNonce(): $e\n$s",
         level: LogLevel.Error,
       );
       return EthereumResponse(
@@ -501,12 +501,19 @@ abstract class EthereumAPI {
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body) as Map;
         if (json["success"] == true) {
-          return EthereumResponse(
-            GasTracker.fromJson(
-              Map<String, dynamic>.from(json["result"] as Map),
-            ),
-            null,
-          );
+          try {
+            return EthereumResponse(
+              GasTracker.fromJson(
+                Map<String, dynamic>.from(json["result"]["result"] as Map),
+              ),
+              null,
+            );
+          } catch (_) {
+            throw EthApiException(
+              "getGasOracle() failed with response: "
+              "${response.body}",
+            );
+          }
         } else {
           throw EthApiException(
             "getGasOracle() failed with response: "

@@ -359,10 +359,16 @@ class _ConfirmChangeNowSendViewState
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           Text(
-                            "${(transactionInfo["fee"] as int).toAmountAsRaw(
-                              fractionDigits: ref.watch(
-                                managerProvider
-                                    .select((value) => value.coin.decimals),
+                            "${(transactionInfo["fee"] is Amount ? transactionInfo["fee"] as Amount : (transactionInfo["fee"] as int).toAmountAsRaw(
+                                fractionDigits: ref.watch(
+                                  managerProvider
+                                      .select((value) => value.coin.decimals),
+                                ),
+                              )).localizedStringAsFixed(
+                              locale: ref.watch(
+                                localeServiceChangeNotifierProvider.select(
+                                  (value) => value.locale,
+                                ),
                               ),
                             )} ${ref.watch(
                                   managerProvider.select((value) => value.coin),
@@ -401,10 +407,12 @@ class _ConfirmChangeNowSendViewState
                               final coin = ref.watch(
                                 managerProvider.select((value) => value.coin),
                               );
-                              final fee =
-                                  (transactionInfo["fee"] as int).toAmountAsRaw(
-                                fractionDigits: coin.decimals,
-                              );
+                              final fee = transactionInfo["fee"] is Amount
+                                  ? transactionInfo["fee"] as Amount
+                                  : (transactionInfo["fee"] as int)
+                                      .toAmountAsRaw(
+                                      fractionDigits: coin.decimals,
+                                    );
                               final amount =
                                   transactionInfo["recipientAmt"] as Amount;
                               final total = amount + fee;
@@ -637,17 +645,17 @@ class _ConfirmChangeNowSendViewState
                     style: STextStyles.smallMed12(context),
                   ),
                   Text(
-                    "${(transactionInfo["fee"] as int).toAmountAsRaw(fractionDigits: ref.watch(
-                          managerProvider.select(
-                            (value) => value.coin.decimals,
-                          ),
-                        )).localizedStringAsFixed(
-                          locale: ref.watch(
-                            localeServiceChangeNotifierProvider.select(
-                              (value) => value.locale,
-                            ),
-                          ),
-                        )} ${ref.watch(
+                    "${(transactionInfo["fee"] is Amount ? transactionInfo["fee"] as Amount : (transactionInfo["fee"] as int).toAmountAsRaw(fractionDigits: ref.watch(
+                        managerProvider.select(
+                          (value) => value.coin.decimals,
+                        ),
+                      ))).localizedStringAsFixed(
+                      locale: ref.watch(
+                        localeServiceChangeNotifierProvider.select(
+                          (value) => value.locale,
+                        ),
+                      ),
+                    )} ${ref.watch(
                           managerProvider.select((value) => value.coin),
                         ).ticker}",
                     style: STextStyles.itemSubtitle12(context),
@@ -733,10 +741,11 @@ class _ConfirmChangeNowSendViewState
                         final coin = ref.watch(
                           managerProvider.select((value) => value.coin),
                         );
-                        final fee =
-                            (transactionInfo["fee"] as int).toAmountAsRaw(
-                          fractionDigits: coin.decimals,
-                        );
+                        final fee = transactionInfo["fee"] is Amount
+                            ? transactionInfo["fee"] as Amount
+                            : (transactionInfo["fee"] as int).toAmountAsRaw(
+                                fractionDigits: coin.decimals,
+                              );
                         final amount =
                             transactionInfo["recipientAmt"] as Amount;
                         final total = amount + fee;

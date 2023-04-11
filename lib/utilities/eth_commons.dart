@@ -15,7 +15,7 @@ class GasTracker {
   final int numberOfBlocksAverage;
   final int numberOfBlocksSlow;
 
-  final int timestamp;
+  final String lastBlock;
 
   const GasTracker({
     required this.average,
@@ -24,19 +24,20 @@ class GasTracker {
     required this.numberOfBlocksFast,
     required this.numberOfBlocksAverage,
     required this.numberOfBlocksSlow,
-    required this.timestamp,
+    required this.lastBlock,
   });
 
   factory GasTracker.fromJson(Map<String, dynamic> json) {
     final targetTime = Constants.targetBlockTimeInSeconds(Coin.ethereum);
     return GasTracker(
-      average: Decimal.parse(json["average"]["price"].toString()),
-      fast: Decimal.parse(json["fast"]["price"].toString()),
-      slow: Decimal.parse(json["slow"]["price"].toString()),
-      numberOfBlocksAverage: (json["average"]["time"] as int) ~/ targetTime,
-      numberOfBlocksFast: (json["fast"]["time"] as int) ~/ targetTime,
-      numberOfBlocksSlow: (json["slow"]["time"] as int) ~/ targetTime,
-      timestamp: json["timestamp"] as int,
+      fast: Decimal.parse(json["FastGasPrice"].toString()),
+      average: Decimal.parse(json["ProposeGasPrice"].toString()),
+      slow: Decimal.parse(json["SafeGasPrice"].toString()),
+      // TODO fix hardcoded
+      numberOfBlocksFast: 30 ~/ targetTime,
+      numberOfBlocksAverage: 180 ~/ targetTime,
+      numberOfBlocksSlow: 240 ~/ targetTime,
+      lastBlock: json["LastBlock"] as String,
     );
   }
 }

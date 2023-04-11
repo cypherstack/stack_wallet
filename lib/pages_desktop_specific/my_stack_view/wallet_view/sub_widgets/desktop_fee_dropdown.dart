@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/models.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
+import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
@@ -22,9 +23,11 @@ class DesktopFeeDropDown extends ConsumerStatefulWidget {
   const DesktopFeeDropDown({
     Key? key,
     required this.walletId,
+    this.isToken = false,
   }) : super(key: key);
 
   final String walletId;
+  final bool isToken;
 
   @override
   ConsumerState<DesktopFeeDropDown> createState() => _DesktopFeeDropDownState();
@@ -52,66 +55,84 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
     switch (feeRateType) {
       case FeeRateType.fast:
         if (ref.read(feeSheetSessionCacheProvider).fast[amount] == null) {
-          final manager =
-              ref.read(walletsChangeNotifierProvider).getManager(walletId);
+          if (widget.isToken == false) {
+            final manager =
+                ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
-          if (coin == Coin.monero || coin == Coin.wownero) {
-            final fee = await manager.estimateFeeFor(
-                amount, MoneroTransactionPriority.fast.raw!);
-            ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
-          } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-              ref.read(publicPrivateBalanceStateProvider.state).state !=
-                  "Private") {
-            ref.read(feeSheetSessionCacheProvider).fast[amount] =
-                await (manager.wallet as FiroWallet)
-                    .estimateFeeForPublic(amount, feeRate);
+            if (coin == Coin.monero || coin == Coin.wownero) {
+              final fee = await manager.estimateFeeFor(
+                  amount, MoneroTransactionPriority.fast.raw!);
+              ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
+            } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+                ref.read(publicPrivateBalanceStateProvider.state).state !=
+                    "Private") {
+              ref.read(feeSheetSessionCacheProvider).fast[amount] =
+                  await (manager.wallet as FiroWallet)
+                      .estimateFeeForPublic(amount, feeRate);
+            } else {
+              ref.read(feeSheetSessionCacheProvider).fast[amount] =
+                  await manager.estimateFeeFor(amount, feeRate);
+            }
           } else {
-            ref.read(feeSheetSessionCacheProvider).fast[amount] =
-                await manager.estimateFeeFor(amount, feeRate);
+            final tokenWallet = ref.read(tokenServiceProvider)!;
+            final fee = tokenWallet.estimateFeeFor(feeRate);
+            ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
           }
         }
         return ref.read(feeSheetSessionCacheProvider).fast[amount]!;
 
       case FeeRateType.average:
         if (ref.read(feeSheetSessionCacheProvider).average[amount] == null) {
-          final manager =
-              ref.read(walletsChangeNotifierProvider).getManager(walletId);
+          if (widget.isToken == false) {
+            final manager =
+                ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
-          if (coin == Coin.monero || coin == Coin.wownero) {
-            final fee = await manager.estimateFeeFor(
-                amount, MoneroTransactionPriority.regular.raw!);
-            ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
-          } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-              ref.read(publicPrivateBalanceStateProvider.state).state !=
-                  "Private") {
-            ref.read(feeSheetSessionCacheProvider).average[amount] =
-                await (manager.wallet as FiroWallet)
-                    .estimateFeeForPublic(amount, feeRate);
+            if (coin == Coin.monero || coin == Coin.wownero) {
+              final fee = await manager.estimateFeeFor(
+                  amount, MoneroTransactionPriority.regular.raw!);
+              ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
+            } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+                ref.read(publicPrivateBalanceStateProvider.state).state !=
+                    "Private") {
+              ref.read(feeSheetSessionCacheProvider).average[amount] =
+                  await (manager.wallet as FiroWallet)
+                      .estimateFeeForPublic(amount, feeRate);
+            } else {
+              ref.read(feeSheetSessionCacheProvider).average[amount] =
+                  await manager.estimateFeeFor(amount, feeRate);
+            }
           } else {
-            ref.read(feeSheetSessionCacheProvider).average[amount] =
-                await manager.estimateFeeFor(amount, feeRate);
+            final tokenWallet = ref.read(tokenServiceProvider)!;
+            final fee = tokenWallet.estimateFeeFor(feeRate);
+            ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
           }
         }
         return ref.read(feeSheetSessionCacheProvider).average[amount]!;
 
       case FeeRateType.slow:
         if (ref.read(feeSheetSessionCacheProvider).slow[amount] == null) {
-          final manager =
-              ref.read(walletsChangeNotifierProvider).getManager(walletId);
+          if (widget.isToken == false) {
+            final manager =
+                ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
-          if (coin == Coin.monero || coin == Coin.wownero) {
-            final fee = await manager.estimateFeeFor(
-                amount, MoneroTransactionPriority.slow.raw!);
-            ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
-          } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-              ref.read(publicPrivateBalanceStateProvider.state).state !=
-                  "Private") {
-            ref.read(feeSheetSessionCacheProvider).slow[amount] =
-                await (manager.wallet as FiroWallet)
-                    .estimateFeeForPublic(amount, feeRate);
+            if (coin == Coin.monero || coin == Coin.wownero) {
+              final fee = await manager.estimateFeeFor(
+                  amount, MoneroTransactionPriority.slow.raw!);
+              ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
+            } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+                ref.read(publicPrivateBalanceStateProvider.state).state !=
+                    "Private") {
+              ref.read(feeSheetSessionCacheProvider).slow[amount] =
+                  await (manager.wallet as FiroWallet)
+                      .estimateFeeForPublic(amount, feeRate);
+            } else {
+              ref.read(feeSheetSessionCacheProvider).slow[amount] =
+                  await manager.estimateFeeFor(amount, feeRate);
+            }
           } else {
-            ref.read(feeSheetSessionCacheProvider).slow[amount] =
-                await manager.estimateFeeFor(amount, feeRate);
+            final tokenWallet = ref.read(tokenServiceProvider)!;
+            final fee = tokenWallet.estimateFeeFor(feeRate);
+            ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
           }
         }
         return ref.read(feeSheetSessionCacheProvider).slow[amount]!;
@@ -321,14 +342,16 @@ class FeeDropDownChild extends ConsumerWidget {
                 ),
                 if (feeObject != null)
                   Text(
-                    estimatedTimeToBeIncludedInNextBlock(
-                      Constants.targetBlockTimeInSeconds(manager.coin),
-                      feeRateType == FeeRateType.fast
-                          ? feeObject!.numberOfBlocksFast
-                          : feeRateType == FeeRateType.slow
-                              ? feeObject!.numberOfBlocksSlow
-                              : feeObject!.numberOfBlocksAverage,
-                    ),
+                    manager.coin == Coin.ethereum
+                        ? ""
+                        : estimatedTimeToBeIncludedInNextBlock(
+                            Constants.targetBlockTimeInSeconds(manager.coin),
+                            feeRateType == FeeRateType.fast
+                                ? feeObject!.numberOfBlocksFast
+                                : feeRateType == FeeRateType.slow
+                                    ? feeObject!.numberOfBlocksSlow
+                                    : feeObject!.numberOfBlocksAverage,
+                          ),
                     style: STextStyles.desktopTextExtraExtraSmall(context)
                         .copyWith(
                       color: Theme.of(context)

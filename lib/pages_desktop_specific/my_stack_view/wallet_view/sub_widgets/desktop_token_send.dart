@@ -71,12 +71,14 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
   late TextEditingController sendToController;
   late TextEditingController cryptoAmountController;
   late TextEditingController baseAmountController;
+  late TextEditingController nonceController;
 
   late final SendViewAutoFillData? _data;
 
   final _addressFocusNode = FocusNode();
   final _cryptoFocus = FocusNode();
   final _baseFocus = FocusNode();
+  final _nonceFocusNode = FocusNode();
 
   String? _note;
 
@@ -229,6 +231,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         amount: amount,
         args: {
           "feeRate": ref.read(feeRateTypeStateProvider),
+          "nonce": int.tryParse(nonceController.text),
         },
       );
 
@@ -305,7 +308,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                         padding: const EdgeInsets.only(
                           right: 32,
                         ),
-                        child: Text(
+                        child: SelectableText(
                           e.toString(),
                           textAlign: TextAlign.left,
                           style: STextStyles.desktopTextExtraExtraSmall(context)
@@ -370,8 +373,12 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             level: LogLevel.Info);
         _cachedAmountToSend = _amountToSend;
 
-        final price =
-            ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
+        final price = ref
+            .read(priceAnd24hChangeNotifierProvider)
+            .getTokenPrice(
+              ref.read(tokenServiceProvider)!.tokenContract.address,
+            )
+            .item1;
 
         if (price > Decimal.zero) {
           final String fiatAmountString = Amount.fromDecimal(
@@ -512,8 +519,12 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
               .toAmount(fractionDigits: 2)
           : Decimal.parse(baseAmountString).toAmount(fractionDigits: 2);
 
-      final Decimal _price =
-          ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
+      final Decimal _price = ref
+          .read(priceAnd24hChangeNotifierProvider)
+          .getTokenPrice(
+            ref.read(tokenServiceProvider)!.tokenContract.address,
+          )
+          .item1;
 
       if (_price == Decimal.zero) {
         _amountToSend = Decimal.zero.toAmount(fractionDigits: tokenDecimals);
@@ -577,6 +588,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
     sendToController = TextEditingController();
     cryptoAmountController = TextEditingController();
     baseAmountController = TextEditingController();
+    nonceController = TextEditingController();
     // feeController = TextEditingController();
 
     onCryptoAmountChanged = _cryptoAmountChanged;
@@ -621,11 +633,13 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
     sendToController.dispose();
     cryptoAmountController.dispose();
     baseAmountController.dispose();
+    nonceController.dispose();
     // feeController.dispose();
 
     _addressFocusNode.dispose();
     _cryptoFocus.dispose();
     _baseFocus.dispose();
+    _nonceFocusNode.dispose();
     super.dispose();
   }
 
@@ -979,7 +993,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
           height: 20,
         ),
         Text(
-          "Transaction fee (estimated)",
+          "Transaction fee (max)",
           style: STextStyles.desktopTextExtraSmall(context).copyWith(
             color: Theme.of(context)
                 .extension<StackColors>()!
@@ -990,9 +1004,59 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         const SizedBox(
           height: 10,
         ),
-        // TODO mod this for token fees
         DesktopFeeDropDown(
           walletId: walletId,
+          isToken: true,
+        ),
+        const SizedBox(
+          height: 20,
+        ),
+        Text(
+          "Nonce",
+          style: STextStyles.desktopTextExtraSmall(context).copyWith(
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .textFieldActiveSearchIconRight,
+          ),
+          textAlign: TextAlign.left,
+        ),
+        const SizedBox(
+          height: 10,
+        ),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
+          ),
+          child: TextField(
+            minLines: 1,
+            maxLines: 1,
+            key: const Key("sendViewNonceFieldKey"),
+            controller: nonceController,
+            readOnly: false,
+            autocorrect: false,
+            enableSuggestions: false,
+            keyboardType: const TextInputType.numberWithOptions(),
+            focusNode: _nonceFocusNode,
+            style: STextStyles.desktopTextExtraSmall(context).copyWith(
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveText,
+              height: 1.8,
+            ),
+            decoration: standardInputDecoration(
+              "Leave empty to auto select nonce",
+              _nonceFocusNode,
+              context,
+              desktopMed: true,
+            ).copyWith(
+              contentPadding: const EdgeInsets.only(
+                left: 16,
+                top: 11,
+                bottom: 12,
+                right: 5,
+              ),
+            ),
+          ),
         ),
         const SizedBox(
           height: 36,

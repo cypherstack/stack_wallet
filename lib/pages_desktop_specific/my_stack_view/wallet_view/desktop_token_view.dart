@@ -2,6 +2,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/token_summary.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/token_transaction_list_widget.dart';
 import 'package:stackwallet/pages/token_view/token_view.dart';
@@ -89,7 +90,10 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
                       .extension<StackColors>()!
                       .topNavIconPrimary,
                 ),
-                onPressed: Navigator.of(context).pop,
+                onPressed: () {
+                  ref.refresh(feeSheetSessionCacheProvider);
+                  Navigator.of(context).pop();
+                },
               ),
               const SizedBox(
                 width: 15,
