@@ -35,11 +35,13 @@ class _DesktopWalletAddressesViewState
   static const _headerHeight = 70.0;
   static const _columnWidth0 = 489.0;
 
-  late final Stream<void> addressCollectionWatcher;
+  Stream<void>? addressCollectionWatcher;
 
   void _onAddressCollectionWatcherEvent() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
   }
 
@@ -50,13 +52,14 @@ class _DesktopWalletAddressesViewState
         .isar
         .addresses
         .watchLazy(fireImmediately: true);
-    addressCollectionWatcher.listen((_) => _onAddressCollectionWatcherEvent());
+    addressCollectionWatcher!.listen((_) => _onAddressCollectionWatcherEvent());
 
     super.initState();
   }
 
   @override
   void dispose() {
+    addressCollectionWatcher = null;
     super.dispose();
   }
 
