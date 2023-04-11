@@ -22,7 +22,6 @@ class CustomTabView extends StatefulWidget {
 }
 
 class _CustomTabViewState extends State<CustomTabView> {
-  final _key = GlobalKey();
   late int _selectedIndex;
 
   static const duration = Duration(milliseconds: 250);
@@ -80,6 +79,9 @@ class _CustomTabViewState extends State<CustomTabView> {
                                   : CrossFadeState.showSecond,
                               duration: const Duration(milliseconds: 250),
                             ),
+                            const SizedBox(
+                              height: 19,
+                            ),
                           ],
                         ),
                       ),
@@ -87,9 +89,6 @@ class _CustomTabViewState extends State<CustomTabView> {
                   ),
                 ),
             ],
-          ),
-          const SizedBox(
-            height: 19,
           ),
           Stack(
             children: [
@@ -117,7 +116,6 @@ class _CustomTabViewState extends State<CustomTabView> {
             ],
           ),
           AnimatedSwitcher(
-            key: _key,
             duration: duration,
             transitionBuilder: (child, animation) {
               return FadeTransition(
@@ -135,7 +133,7 @@ class _CustomTabViewState extends State<CustomTabView> {
               );
             },
             child: AnimatedAlign(
-              key: Key(widget.titles[_selectedIndex]),
+              key: Key("${widget.titles[_selectedIndex]}_customTabKey"),
               alignment: Alignment.topCenter,
               duration: duration,
               child: Padding(
