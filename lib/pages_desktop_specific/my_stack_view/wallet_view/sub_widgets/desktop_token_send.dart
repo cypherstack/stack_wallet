@@ -370,8 +370,12 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             level: LogLevel.Info);
         _cachedAmountToSend = _amountToSend;
 
-        final price =
-            ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
+        final price = ref
+            .read(priceAnd24hChangeNotifierProvider)
+            .getTokenPrice(
+              ref.read(tokenServiceProvider)!.tokenContract.address,
+            )
+            .item1;
 
         if (price > Decimal.zero) {
           final String fiatAmountString = Amount.fromDecimal(
@@ -512,8 +516,12 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
               .toAmount(fractionDigits: 2)
           : Decimal.parse(baseAmountString).toAmount(fractionDigits: 2);
 
-      final Decimal _price =
-          ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
+      final Decimal _price = ref
+          .read(priceAnd24hChangeNotifierProvider)
+          .getTokenPrice(
+            ref.read(tokenServiceProvider)!.tokenContract.address,
+          )
+          .item1;
 
       if (_price == Decimal.zero) {
         _amountToSend = Decimal.zero.toAmount(fractionDigits: tokenDecimals);
