@@ -342,14 +342,16 @@ class FeeDropDownChild extends ConsumerWidget {
                 ),
                 if (feeObject != null)
                   Text(
-                    estimatedTimeToBeIncludedInNextBlock(
-                      Constants.targetBlockTimeInSeconds(manager.coin),
-                      feeRateType == FeeRateType.fast
-                          ? feeObject!.numberOfBlocksFast
-                          : feeRateType == FeeRateType.slow
-                              ? feeObject!.numberOfBlocksSlow
-                              : feeObject!.numberOfBlocksAverage,
-                    ),
+                    manager.coin == Coin.ethereum
+                        ? ""
+                        : estimatedTimeToBeIncludedInNextBlock(
+                            Constants.targetBlockTimeInSeconds(manager.coin),
+                            feeRateType == FeeRateType.fast
+                                ? feeObject!.numberOfBlocksFast
+                                : feeRateType == FeeRateType.slow
+                                    ? feeObject!.numberOfBlocksSlow
+                                    : feeObject!.numberOfBlocksAverage,
+                          ),
                     style: STextStyles.desktopTextExtraExtraSmall(context)
                         .copyWith(
                       color: Theme.of(context)

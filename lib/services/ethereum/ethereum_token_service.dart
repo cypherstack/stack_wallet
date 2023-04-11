@@ -90,29 +90,9 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
     final myAddress = await currentReceivingAddress;
     final myWeb3Address = web3dart.EthereumAddress.fromHex(myAddress);
 
-    final est = await client.estimateGas(
-      sender: myWeb3Address,
-      to: web3dart.EthereumAddress.fromHex(address),
-      data: _sendFunction
-          .encodeCall([web3dart.EthereumAddress.fromHex(address), amount.raw]),
-      gasPrice: web3dart.EtherAmount.fromUnitAndValue(
-        web3dart.EtherUnit.wei,
-        fee,
-      ),
-      amountOfGas: BigInt.from(_gasLimit),
-    );
-
     final nonce = args?["nonce"] as int? ??
         await client.getTransactionCount(myWeb3Address,
             atBlock: const web3dart.BlockNum.pending());
-
-    final nResponse = await EthereumAPI.getAddressNonce(address: myAddress);
-    print("==============================================================");
-    print("TOKEN client.estimateGas:  $est");
-    print("TOKEN estimateFeeFor    :  $feeEstimate");
-    print("TOKEN nonce custom response:  $nResponse");
-    print("TOKEN actual nonce         :  $nonce");
-    print("==============================================================");
 
     final tx = web3dart.Transaction.callContract(
       contract: _deployedContract,
@@ -179,7 +159,7 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
       // precision may be lost here hence the following amountString
       amount: (txData["recipientAmt"] as Amount).raw.toInt(),
       amountString: (txData["recipientAmt"] as Amount).toJsonString(),
-      fee: txData["fee"] as int,
+      fee: (txData["fee"] as Amount).raw.toInt(),
       height: null,
       isCancelled: false,
       isLelantus: false,

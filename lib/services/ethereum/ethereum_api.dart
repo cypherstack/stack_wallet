@@ -503,7 +503,7 @@ abstract class EthereumAPI {
         if (json["success"] == true) {
           return EthereumResponse(
             GasTracker.fromJson(
-              Map<String, dynamic>.from(json["result"] as Map),
+              Map<String, dynamic>.from(json["result"]["result"] as Map),
             ),
             null,
           );
