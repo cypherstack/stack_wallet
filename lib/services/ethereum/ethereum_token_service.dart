@@ -167,7 +167,7 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
 
   Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
     final txid = txData["txid"] as String;
-    final addressString = txData["address"] as String;
+    final addressString = checksumEthereumAddress(txData["address"] as String);
     final response = await EthereumAPI.getEthTransactionByHash(txid);
 
     final transaction = Transaction(

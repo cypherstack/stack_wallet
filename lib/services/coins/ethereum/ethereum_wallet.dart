@@ -201,7 +201,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<String> get currentReceivingAddress async {
     final address = await _currentReceivingAddress;
     return checksumEthereumAddress(
-        address?.value ?? _credentials.address.toString());
+        address?.value ?? _credentials.address.hexEip55);
   }
 
   Future<Address?> get _currentReceivingAddress => db
@@ -362,7 +362,8 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
     _credentials = web3.EthPrivateKey.fromHex(privateKey);
 
     final address = Address(
-      walletId: walletId, value: _credentials.address.toString(),
+      walletId: walletId,
+      value: _credentials.address.hexEip55,
       publicKey: [], // maybe store address bytes here? seems a waste of space though
       derivationIndex: 0,
       derivationPath: DerivationPath()..value = "$hdPathEthereum/0",
@@ -566,7 +567,8 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
       _credentials = web3.EthPrivateKey.fromHex(privateKey);
 
       final address = Address(
-        walletId: walletId, value: _credentials.address.toString(),
+        walletId: walletId,
+        value: _credentials.address.hexEip55,
         publicKey: [], // maybe store address bytes here? seems a waste of space though
         derivationIndex: 0,
         derivationPath: DerivationPath()..value = "$hdPathEthereum/0",
@@ -909,7 +911,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
     final txid = txData["txid"] as String;
-    final addressString = txData["address"] as String;
+    final addressString = checksumEthereumAddress(txData["address"] as String);
     final response = await EthereumAPI.getEthTransactionByHash(txid);
 
     final transaction = Transaction(
