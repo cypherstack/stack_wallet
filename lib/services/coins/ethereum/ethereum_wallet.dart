@@ -923,7 +923,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
       // precision may be lost here hence the following amountString
       amount: (txData["recipientAmt"] as Amount).raw.toInt(),
       amountString: (txData["recipientAmt"] as Amount).toJsonString(),
-      fee: txData["fee"] as int,
+      fee: (txData["fee"] as Amount).raw.toInt(),
       height: null,
       isCancelled: false,
       isLelantus: false,

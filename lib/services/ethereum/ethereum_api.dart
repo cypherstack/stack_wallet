@@ -449,7 +449,7 @@ abstract class EthereumAPI {
   }) async {
     try {
       final uri = Uri.parse(
-        "$stackBaseServer/state?addrs=$address&parts=nonce",
+        "$stackBaseServer/state?addrs=$address&parts=all",
       );
       final response = await get(uri);
 
@@ -469,7 +469,7 @@ abstract class EthereumAPI {
         }
       } else {
         throw EthApiException(
-          "getWalletTokenBalance($address) failed with status code: "
+          "getAddressNonce($address) failed with status code: "
           "${response.statusCode}",
         );
       }
@@ -480,7 +480,7 @@ abstract class EthereumAPI {
       );
     } catch (e, s) {
       Logging.instance.log(
-        "getWalletTokenBalance(): $e\n$s",
+        "getAddressNonce(): $e\n$s",
         level: LogLevel.Error,
       );
       return EthereumResponse(
