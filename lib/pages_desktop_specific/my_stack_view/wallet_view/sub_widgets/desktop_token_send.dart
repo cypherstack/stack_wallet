@@ -1004,9 +1004,9 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         const SizedBox(
           height: 10,
         ),
-        // TODO mod this for token fees
         DesktopFeeDropDown(
           walletId: walletId,
+          isToken: true,
         ),
         const SizedBox(
           height: 20,
