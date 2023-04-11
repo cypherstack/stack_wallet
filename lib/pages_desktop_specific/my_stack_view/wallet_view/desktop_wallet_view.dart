@@ -21,6 +21,7 @@ import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -104,7 +105,8 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
       _shouldDisableAutoSyncOnLogOut = false;
     }
 
-    if (ref.read(managerProvider).rescanOnOpenVersion == Constants.rescanV1) {
+    if (ref.read(managerProvider).coin != Coin.ethereum &&
+        ref.read(managerProvider).rescanOnOpenVersion == Constants.rescanV1) {
       _rescanningOnOpen = true;
       ref.read(managerProvider).fullRescan(20, 1000).then(
             (_) => ref.read(managerProvider).resetRescanOnOpen().then(

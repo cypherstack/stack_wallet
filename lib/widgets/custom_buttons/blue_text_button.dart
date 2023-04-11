@@ -64,6 +64,7 @@ class _CustomTextButtonState extends State<_CustomTextButton>
   @override
   void dispose() {
     controller?.dispose();
+    controller = null;
     super.dispose();
   }
 

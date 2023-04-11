@@ -12,6 +12,7 @@ import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/icon_widgets/eth_token_icon.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -117,6 +118,11 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
                             widget.token.name,
                             style: isDesktop
                                 ? STextStyles.desktopTextExtraSmall(context)
+                                    .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
+                                  )
                                 : STextStyles.titleBold12(context),
                           ),
                           const Spacer(),
@@ -131,6 +137,11 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
                             "${widget.token.symbol}",
                             style: isDesktop
                                 ? STextStyles.desktopTextExtraSmall(context)
+                                    .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
+                                  )
                                 : STextStyles.itemSubtitle(context),
                           ),
                         ],

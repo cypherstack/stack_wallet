@@ -83,24 +83,21 @@ void main() {
   group("get balances", () {
     test("balance", () async {
       final CoinServiceAPI wallet = MockFiroWallet();
+      final balance = Balance(
+        total: _a(10),
+        spendable: _a(1),
+        blockedTotal: _a(0),
+        pendingSpendable: _a(9),
+      );
+
       when(wallet.coin).thenAnswer((_) => Coin.firo);
       when(wallet.balance).thenAnswer(
-        (_) => Balance(
-          coin: Coin.firo,
-          total: _a(10),
-          spendable: _a(1),
-          blockedTotal: _a(0),
-          pendingSpendable: _a(9),
-        ),
+        (_) => balance,
       );
 
       final manager = Manager(wallet);
 
-      expect(manager.balance.coin, Coin.firo);
-      expect(manager.balance.total.raw.toInt(), 10);
-      expect(manager.balance.spendable.raw.toInt(), 1);
-      expect(manager.balance.blockedTotal.raw.toInt(), 0);
-      expect(manager.balance.pendingSpendable.raw.toInt(), 9);
+      expect(manager.balance, balance);
     });
   });
 

@@ -265,11 +265,13 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                                 title: "Coins",
                                 entities: filter(_searchTerm, coinEntities),
                                 initialState: ExpandableState.expanded,
+                                animationDurationMultiplier: 0.5,
                               ),
                               ExpandingSubListItem(
                                 title: "Tokens",
                                 entities: filter(_searchTerm, tokenEntities),
                                 initialState: ExpandableState.expanded,
+                                animationDurationMultiplier: 0.5,
                                 trailing: AddCustomTokenSelector(
                                   addFunction: _addToken,
                                 ),

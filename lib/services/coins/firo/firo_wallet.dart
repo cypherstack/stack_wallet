@@ -704,6 +704,12 @@ Future<dynamic> isolateCreateJoinSplitTransaction(
   final txId = extTx.getId();
   Logging.instance.log("txid  $txId", level: LogLevel.Info);
   Logging.instance.log("txHex: $txHex", level: LogLevel.Info);
+
+  final amountAmount = Amount(
+    rawValue: BigInt.from(amount),
+    fractionDigits: coin.decimals,
+  );
+
   return {
     "txid": txId,
     "txHex": txHex,
@@ -720,11 +726,8 @@ Future<dynamic> isolateCreateJoinSplitTransaction(
     "height": locktime,
     "txType": "Sent",
     "confirmed_status": false,
-    "amount": Amount(
-      rawValue: BigInt.from(amount),
-      fractionDigits: coin.decimals,
-    ).decimal.toDouble(),
-    "recipientAmt": amount,
+    "amount": amountAmount.decimal.toDouble(),
+    "recipientAmt": amountAmount,
     "address": address,
     "timestamp": DateTime.now().millisecondsSinceEpoch ~/ 1000,
     "subType": "join",
@@ -914,16 +917,8 @@ class FiroWallet extends CoinServiceAPI
       type: isar_models.TransactionType.outgoing,
       subType: isar_models.TransactionSubType.none,
       // precision may be lost here hence the following amountString
-      amount: Amount(
-              rawValue: BigInt.from(txData["recipientAmt"] as int),
-              fractionDigits: coin.decimals)
-          .raw
-          .toInt(),
-      amountString: Amount(
-              rawValue: BigInt.from(txData["recipientAmt"] as int),
-              fractionDigits: coin.decimals)
-          .raw
-          .toString(),
+      amount: (txData["recipientAmt"] as Amount).raw.toInt(),
+      amountString: (txData["recipientAmt"] as Amount).toJsonString(),
       fee: txData["fee"] as int,
       height: null,
       isCancelled: false,
@@ -1422,7 +1417,10 @@ class FiroWallet extends CoinServiceAPI
       Map<String, dynamic> transactionObject = {
         "hex": txn["hex"],
         "recipient": recipientsArray[0],
-        "recipientAmt": amount,
+        "recipientAmt": Amount(
+          rawValue: BigInt.from(amount),
+          fractionDigits: coin.decimals,
+        ),
         "fee": feeForOneOutput,
         "vSize": txn["vSize"],
       };
@@ -1549,7 +1547,10 @@ class FiroWallet extends CoinServiceAPI
           Map<String, dynamic> transactionObject = {
             "hex": txn["hex"],
             "recipient": recipientsArray[0],
-            "recipientAmt": recipientsAmtArray[0],
+            "recipientAmt": Amount(
+              rawValue: BigInt.from(recipientsAmtArray[0]),
+              fractionDigits: coin.decimals,
+            ),
             "fee": feeBeingPaid,
             "vSize": txn["vSize"],
           };
@@ -1575,7 +1576,10 @@ class FiroWallet extends CoinServiceAPI
           Map<String, dynamic> transactionObject = {
             "hex": txn["hex"],
             "recipient": recipientsArray[0],
-            "recipientAmt": recipientsAmtArray[0],
+            "recipientAmt": Amount(
+              rawValue: BigInt.from(recipientsAmtArray[0]),
+              fractionDigits: coin.decimals,
+            ),
             "fee": satoshisBeingUsed - satoshiAmountToSend,
             "vSize": txn["vSize"],
           };
@@ -1603,7 +1607,10 @@ class FiroWallet extends CoinServiceAPI
         Map<String, dynamic> transactionObject = {
           "hex": txn["hex"],
           "recipient": recipientsArray[0],
-          "recipientAmt": recipientsAmtArray[0],
+          "recipientAmt": Amount(
+            rawValue: BigInt.from(recipientsAmtArray[0]),
+            fractionDigits: coin.decimals,
+          ),
           "fee": satoshisBeingUsed - satoshiAmountToSend,
           "vSize": txn["vSize"],
         };
@@ -1631,7 +1638,10 @@ class FiroWallet extends CoinServiceAPI
       Map<String, dynamic> transactionObject = {
         "hex": txn["hex"],
         "recipient": recipientsArray[0],
-        "recipientAmt": recipientsAmtArray[0],
+        "recipientAmt": Amount(
+          rawValue: BigInt.from(recipientsAmtArray[0]),
+          fractionDigits: coin.decimals,
+        ),
         "fee": feeForOneOutput,
         "vSize": txn["vSize"],
       };

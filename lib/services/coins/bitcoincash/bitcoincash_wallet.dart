@@ -2510,7 +2510,10 @@ class BitcoinCashWallet extends CoinServiceAPI
       Map<String, dynamic> transactionObject = {
         "hex": txn["hex"],
         "recipient": recipientsArray[0],
-        "recipientAmt": amount,
+        "recipientAmt": Amount(
+          rawValue: BigInt.from(amount),
+          fractionDigits: coin.decimals,
+        ),
         "fee": feeForOneOutput,
         "vSize": txn["vSize"],
         "usedUTXOs": utxoObjectsToUse,
@@ -2643,7 +2646,10 @@ class BitcoinCashWallet extends CoinServiceAPI
           Map<String, dynamic> transactionObject = {
             "hex": txn["hex"],
             "recipient": recipientsArray[0],
-            "recipientAmt": recipientsAmtArray[0],
+            "recipientAmt": Amount(
+              rawValue: BigInt.from(recipientsAmtArray[0]),
+              fractionDigits: coin.decimals,
+            ),
             "fee": feeBeingPaid,
             "vSize": txn["vSize"],
             "usedUTXOs": utxoObjectsToUse,
@@ -2671,7 +2677,10 @@ class BitcoinCashWallet extends CoinServiceAPI
           Map<String, dynamic> transactionObject = {
             "hex": txn["hex"],
             "recipient": recipientsArray[0],
-            "recipientAmt": recipientsAmtArray[0],
+            "recipientAmt": Amount(
+              rawValue: BigInt.from(recipientsAmtArray[0]),
+              fractionDigits: coin.decimals,
+            ),
             "fee": satoshisBeingUsed - satoshiAmountToSend,
             "vSize": txn["vSize"],
             "usedUTXOs": utxoObjectsToUse,
@@ -2701,7 +2710,10 @@ class BitcoinCashWallet extends CoinServiceAPI
         Map<String, dynamic> transactionObject = {
           "hex": txn["hex"],
           "recipient": recipientsArray[0],
-          "recipientAmt": recipientsAmtArray[0],
+          "recipientAmt": Amount(
+            rawValue: BigInt.from(recipientsAmtArray[0]),
+            fractionDigits: coin.decimals,
+          ),
           "fee": satoshisBeingUsed - satoshiAmountToSend,
           "vSize": txn["vSize"],
           "usedUTXOs": utxoObjectsToUse,
@@ -2731,7 +2743,10 @@ class BitcoinCashWallet extends CoinServiceAPI
       Map<String, dynamic> transactionObject = {
         "hex": txn["hex"],
         "recipient": recipientsArray[0],
-        "recipientAmt": recipientsAmtArray[0],
+        "recipientAmt": Amount(
+          rawValue: BigInt.from(recipientsAmtArray[0]),
+          fractionDigits: coin.decimals,
+        ),
         "fee": feeForOneOutput,
         "vSize": txn["vSize"],
         "usedUTXOs": utxoObjectsToUse,

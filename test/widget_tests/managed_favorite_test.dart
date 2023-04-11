@@ -53,7 +53,6 @@ void main() {
         .thenAnswer((realInvocation) => manager);
     when(manager.balance).thenAnswer(
       (realInvocation) => Balance(
-        coin: Coin.bitcoin,
         total: _a(10),
         spendable: _a(10),
         blockedTotal: _a(0),
@@ -106,7 +105,6 @@ void main() {
         .thenAnswer((realInvocation) => manager);
     when(manager.balance).thenAnswer(
       (realInvocation) => Balance(
-        coin: Coin.bitcoin,
         total: _a(10),
         spendable: _a(10),
         blockedTotal: _a(0),
@@ -177,7 +175,6 @@ void main() {
     when(manager.isFavorite).thenAnswer((realInvocation) => true);
     when(manager.balance).thenAnswer(
       (realInvocation) => Balance(
-        coin: Coin.bitcoin,
         total: _a(10),
         spendable: _a(10),
         blockedTotal: _a(0),

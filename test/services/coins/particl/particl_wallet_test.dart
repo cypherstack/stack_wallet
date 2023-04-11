@@ -9,6 +9,7 @@ import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/particl/particl_wallet.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -28,7 +29,13 @@ void main() {
           1); // TODO confirm particl minimum confirmations
     });
     test("particl dust limit", () async {
-      expect(DUST_LIMIT, 294); // TODO confirm particl dust limit
+      expect(
+        DUST_LIMIT,
+        Amount(
+          rawValue: BigInt.from(294),
+          fractionDigits: 8,
+        ),
+      ); // TODO confirm particl dust limit
     });
     test("particl mainnet genesis block hash", () async {
       expect(GENESIS_HASH_MAINNET,

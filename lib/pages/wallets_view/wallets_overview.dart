@@ -162,10 +162,10 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
 
   @override
   Widget build(BuildContext context) {
-    return Background(
-      child: ConditionalParent(
-        condition: !isDesktop,
-        builder: (child) => Scaffold(
+    return ConditionalParent(
+      condition: !isDesktop,
+      builder: (child) => Background(
+        child: Scaffold(
           backgroundColor:
               Theme.of(context).extension<StackColors>()!.background,
           appBar: AppBar(
@@ -182,126 +182,126 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
             ),
           ),
         ),
-        child: Column(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
-              ),
-              child: TextField(
-                autocorrect: !isDesktop,
-                enableSuggestions: !isDesktop,
-                controller: _searchController,
-                focusNode: searchFieldFocusNode,
-                onChanged: (value) {
-                  setState(() {
-                    _searchString = value;
-                  });
-                },
-                style: isDesktop
-                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textFieldActiveText,
-                        height: 1.8,
-                      )
-                    : STextStyles.field(context),
-                decoration: standardInputDecoration(
-                  "Search...",
-                  searchFieldFocusNode,
-                  context,
-                  desktopMed: isDesktop,
-                ).copyWith(
-                  prefixIcon: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isDesktop ? 12 : 10,
-                      vertical: isDesktop ? 18 : 16,
-                    ),
-                    child: SvgPicture.asset(
-                      Assets.svg.search,
-                      width: isDesktop ? 20 : 16,
-                      height: isDesktop ? 20 : 16,
-                    ),
+      ),
+      child: Column(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+            child: TextField(
+              autocorrect: !isDesktop,
+              enableSuggestions: !isDesktop,
+              controller: _searchController,
+              focusNode: searchFieldFocusNode,
+              onChanged: (value) {
+                setState(() {
+                  _searchString = value;
+                });
+              },
+              style: isDesktop
+                  ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldActiveText,
+                      height: 1.8,
+                    )
+                  : STextStyles.field(context),
+              decoration: standardInputDecoration(
+                "Search...",
+                searchFieldFocusNode,
+                context,
+                desktopMed: isDesktop,
+              ).copyWith(
+                prefixIcon: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isDesktop ? 12 : 10,
+                    vertical: isDesktop ? 18 : 16,
                   ),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.only(right: 0),
-                          child: UnconstrainedBox(
-                            child: Row(
-                              children: [
-                                TextFieldIconButton(
-                                  child: const XIcon(),
-                                  onTap: () async {
-                                    setState(() {
-                                      _searchController.text = "";
-                                      _searchString = "";
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      : null,
+                  child: SvgPicture.asset(
+                    Assets.svg.search,
+                    width: isDesktop ? 20 : 16,
+                    height: isDesktop ? 20 : 16,
+                  ),
                 ),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.only(right: 0),
+                        child: UnconstrainedBox(
+                          child: Row(
+                            children: [
+                              TextFieldIconButton(
+                                child: const XIcon(),
+                                onTap: () async {
+                                  setState(() {
+                                    _searchController.text = "";
+                                    _searchString = "";
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : null,
               ),
             ),
-            const SizedBox(
-              height: 16,
-            ),
-            Expanded(
-              child: Builder(
-                builder: (context) {
-                  final data = _filter(_searchString);
-                  return ListView.separated(
-                    itemBuilder: (_, index) {
-                      final element = data[index];
+          ),
+          const SizedBox(
+            height: 16,
+          ),
+          Expanded(
+            child: Builder(
+              builder: (context) {
+                final data = _filter(_searchString);
+                return ListView.separated(
+                  itemBuilder: (_, index) {
+                    final element = data[index];
 
-                      if (element.item1.hasTokenSupport) {
-                        if (isDesktop) {
-                          return DesktopExpandingWalletCard(
-                            key: Key(
-                                "${element.item1.walletName}_${element.item2.map((e) => e.address).join()}"),
-                            data: element,
-                            navigatorState: widget.navigatorState!,
-                          );
-                        } else {
-                          return MasterWalletCard(
-                            walletId: element.item1.walletId,
-                          );
-                        }
+                    if (element.item1.hasTokenSupport) {
+                      if (isDesktop) {
+                        return DesktopExpandingWalletCard(
+                          key: Key(
+                              "${element.item1.walletName}_${element.item2.map((e) => e.address).join()}"),
+                          data: element,
+                          navigatorState: widget.navigatorState!,
+                        );
                       } else {
-                        return ConditionalParent(
-                          condition: isDesktop,
-                          builder: (child) => RoundedWhiteContainer(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 14,
-                              horizontal: 20,
-                            ),
-                            borderColor: Theme.of(context)
-                                .extension<StackColors>()!
-                                .backgroundAppBar,
-                            child: child,
-                          ),
-                          child: SimpleWalletCard(
-                            walletId: element.item1.walletId,
-                            popPrevious: isDesktop,
-                            desktopNavigatorState:
-                                isDesktop ? widget.navigatorState : null,
-                          ),
+                        return MasterWalletCard(
+                          walletId: element.item1.walletId,
                         );
                       }
-                    },
-                    separatorBuilder: (_, __) => SizedBox(
-                      height: isDesktop ? 10 : 8,
-                    ),
-                    itemCount: data.length,
-                  );
-                },
-              ),
+                    } else {
+                      return ConditionalParent(
+                        condition: isDesktop,
+                        builder: (child) => RoundedWhiteContainer(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                            horizontal: 20,
+                          ),
+                          borderColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .backgroundAppBar,
+                          child: child,
+                        ),
+                        child: SimpleWalletCard(
+                          walletId: element.item1.walletId,
+                          popPrevious: isDesktop,
+                          desktopNavigatorState:
+                              isDesktop ? widget.navigatorState : null,
+                        ),
+                      );
+                    }
+                  },
+                  separatorBuilder: (_, __) => SizedBox(
+                    height: isDesktop ? 10 : 8,
+                  ),
+                  itemCount: data.length,
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

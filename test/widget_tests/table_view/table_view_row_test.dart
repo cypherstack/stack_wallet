@@ -40,7 +40,6 @@ void main() {
     when(wallet.walletId).thenAnswer((_) => "Wallet id 1");
     when(wallet.balance).thenAnswer(
       (_) => Balance(
-        coin: Coin.bitcoin,
         total: Amount.zero,
         spendable: Amount.zero,
         blockedTotal: Amount.zero,
