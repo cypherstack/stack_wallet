@@ -704,6 +704,12 @@ Future<dynamic> isolateCreateJoinSplitTransaction(
   final txId = extTx.getId();
   Logging.instance.log("txid  $txId", level: LogLevel.Info);
   Logging.instance.log("txHex: $txHex", level: LogLevel.Info);
+
+  final amountAmount = Amount(
+    rawValue: BigInt.from(amount),
+    fractionDigits: coin.decimals,
+  );
+
   return {
     "txid": txId,
     "txHex": txHex,
@@ -720,11 +726,8 @@ Future<dynamic> isolateCreateJoinSplitTransaction(
     "height": locktime,
     "txType": "Sent",
     "confirmed_status": false,
-    "amount": Amount(
-      rawValue: BigInt.from(amount),
-      fractionDigits: coin.decimals,
-    ).decimal.toDouble(),
-    "recipientAmt": amount,
+    "amount": amountAmount.decimal.toDouble(),
+    "recipientAmt": amountAmount,
     "address": address,
     "timestamp": DateTime.now().millisecondsSinceEpoch ~/ 1000,
     "subType": "join",
