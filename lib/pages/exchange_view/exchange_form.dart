@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:intl/intl.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/exchange/aggregate_currency.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
@@ -109,7 +110,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       _sendFieldOnChangedTimer?.cancel();
 
       _sendFieldOnChangedTimer = Timer(_valueCheckInterval, () async {
-        final newFromAmount = Decimal.tryParse(value);
+        final newFromAmount = _localizedStringToNum(value);
 
         await ref
             .read(exchangeFormStateProvider)
@@ -123,12 +124,26 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     _receiveFieldOnChangedTimer?.cancel();
 
     _receiveFieldOnChangedTimer = Timer(_valueCheckInterval, () async {
-      final newToAmount = Decimal.tryParse(value);
+      final newToAmount = _localizedStringToNum(value);
 
       await ref
           .read(exchangeFormStateProvider)
           .setReceivingAmountAndCalculateSendAmount(newToAmount, true);
     });
+  }
+
+  Decimal? _localizedStringToNum(String? value) {
+    if (value == null) {
+      return null;
+    }
+    try {
+      final numFromLocalised = NumberFormat.decimalPattern(
+              ref.read(localeServiceChangeNotifierProvider).locale)
+          .parse(value);
+      return Decimal.tryParse(numFromLocalised.toString());
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<AggregateCurrency> _getAggregateCurrency(Currency currency) async {
