@@ -320,14 +320,7 @@ class _ExchangeCurrencySelectionViewState
             ),
           ),
           const SizedBox(
-            height: 10,
-          ),
-          Text(
-            "Popular coins",
-            style: STextStyles.smallMed12(context),
-          ),
-          const SizedBox(
-            height: 12,
+            height: 20,
           ),
           Flexible(
             child: Builder(
