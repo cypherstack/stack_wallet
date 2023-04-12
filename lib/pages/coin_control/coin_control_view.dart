@@ -49,7 +49,7 @@ class CoinControlView extends ConsumerStatefulWidget {
 
   final String walletId;
   final CoinControlViewType type;
-  final int? requestedTotal;
+  final Amount? requestedTotal;
   final Set<UTXO>? selectedUTXOs;
 
   @override
@@ -673,7 +673,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                       ),
                                       Builder(
                                         builder: (context) {
-                                          int selectedSum =
+                                          final int selectedSumInt =
                                               _selectedAvailable.isEmpty
                                                   ? 0
                                                   : _selectedAvailable
@@ -682,15 +682,19 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                                         (value, element) =>
                                                             value += element,
                                                       );
+                                          final selectedSum =
+                                              selectedSumInt.toAmountAsRaw(
+                                            fractionDigits: coin.decimals,
+                                          );
                                           return Text(
-                                            "${selectedSum.toAmountAsRaw(fractionDigits: coin.decimals).localizedStringAsFixed(
-                                                  locale: ref.watch(
-                                                    localeServiceChangeNotifierProvider
-                                                        .select(
-                                                      (value) => value.locale,
-                                                    ),
-                                                  ),
-                                                )} ${coin.ticker}",
+                                            "${selectedSum.localizedStringAsFixed(
+                                              locale: ref.watch(
+                                                localeServiceChangeNotifierProvider
+                                                    .select(
+                                                  (value) => value.locale,
+                                                ),
+                                              ),
+                                            )} ${coin.ticker}",
                                             style: widget.requestedTotal == null
                                                 ? STextStyles.w600_14(context)
                                                 : STextStyles.w600_14(context).copyWith(
@@ -731,14 +735,14 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                           style: STextStyles.w600_14(context),
                                         ),
                                         Text(
-                                          "${widget.requestedTotal!.toAmountAsRaw(fractionDigits: coin.decimals).localizedStringAsFixed(
-                                                locale: ref.watch(
-                                                  localeServiceChangeNotifierProvider
-                                                      .select(
-                                                    (value) => value.locale,
-                                                  ),
-                                                ),
-                                              )} ${coin.ticker}",
+                                          "${widget.requestedTotal!.localizedStringAsFixed(
+                                            locale: ref.watch(
+                                              localeServiceChangeNotifierProvider
+                                                  .select(
+                                                (value) => value.locale,
+                                              ),
+                                            ),
+                                          )} ${coin.ticker}",
                                           style: STextStyles.w600_14(context),
                                         ),
                                       ],
