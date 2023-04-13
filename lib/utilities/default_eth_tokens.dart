@@ -24,20 +24,6 @@ abstract class DefaultTokens {
       type: EthContractType.erc20,
     ),
     EthContract(
-      address: "0xB8c77482e45F1F44dE1745F52C74426C631bDD52",
-      name: "BNB Token",
-      symbol: "BNB",
-      decimals: 18,
-      type: EthContractType.erc20,
-    ),
-    EthContract(
-      address: "0x4Fabb145d64652a948d72533023f6E7A623C7C53",
-      name: "BUSD",
-      symbol: "BUSD",
-      decimals: 18,
-      type: EthContractType.erc20,
-    ),
-    EthContract(
       address: "0x514910771af9ca656af840dff83e8264ecf986ca",
       name: "Chainlink",
       symbol: "LINK",
