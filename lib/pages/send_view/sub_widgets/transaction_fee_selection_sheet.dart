@@ -358,13 +358,15 @@ class _TransactionFeeSelectionSheetState
                                   const SizedBox(
                                     height: 2,
                                   ),
-                                  if (feeObject == null)
+                                  if (feeObject == null &&
+                                      manager.coin != Coin.ethereum)
                                     AnimatedText(
                                       stringsToLoopThrough:
                                           stringsToLoopThrough,
                                       style: STextStyles.itemSubtitle(context),
                                     ),
-                                  if (feeObject != null)
+                                  if (feeObject != null &&
+                                      manager.coin != Coin.ethereum)
                                     Text(
                                       estimatedTimeToBeIncludedInNextBlock(
                                         Constants.targetBlockTimeInSeconds(
@@ -490,13 +492,15 @@ class _TransactionFeeSelectionSheetState
                                   const SizedBox(
                                     height: 2,
                                   ),
-                                  if (feeObject == null)
+                                  if (feeObject == null &&
+                                      manager.coin != Coin.ethereum)
                                     AnimatedText(
                                       stringsToLoopThrough:
                                           stringsToLoopThrough,
                                       style: STextStyles.itemSubtitle(context),
                                     ),
-                                  if (feeObject != null)
+                                  if (feeObject != null &&
+                                      manager.coin != Coin.ethereum)
                                     Text(
                                       estimatedTimeToBeIncludedInNextBlock(
                                         Constants.targetBlockTimeInSeconds(
@@ -622,13 +626,15 @@ class _TransactionFeeSelectionSheetState
                                   const SizedBox(
                                     height: 2,
                                   ),
-                                  if (feeObject == null)
+                                  if (feeObject == null &&
+                                      manager.coin != Coin.ethereum)
                                     AnimatedText(
                                       stringsToLoopThrough:
                                           stringsToLoopThrough,
                                       style: STextStyles.itemSubtitle(context),
                                     ),
-                                  if (feeObject != null)
+                                  if (feeObject != null &&
+                                      manager.coin != Coin.ethereum)
                                     Text(
                                       estimatedTimeToBeIncludedInNextBlock(
                                         Constants.targetBlockTimeInSeconds(
