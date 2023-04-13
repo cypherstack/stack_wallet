@@ -9,7 +9,6 @@ import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
-import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/address_book_address_chooser.dart';
@@ -416,7 +415,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         .read(walletsChangeNotifierProvider)
         .getManager(walletId)
         .validateAddress(address ?? "");
-    ref.read(previewTxButtonStateProvider.state).state =
+    ref.read(previewTokenTxButtonStateProvider.state).state =
         (isValidAddress && amount != null && amount > Amount.zero);
   }
 
@@ -574,8 +573,8 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.refresh(feeSheetSessionCacheProvider);
-      ref.read(previewTxButtonStateProvider.state).state = false;
+      ref.refresh(tokenFeeSessionCacheProvider);
+      ref.read(previewTokenTxButtonStateProvider.state).state = false;
     });
 
     // _calculateFeesFuture = calculateFees(0);
@@ -605,21 +604,25 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
 
     _cryptoFocus.addListener(() {
       if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-        if (_amountToSend == null) {
-          ref.refresh(sendAmountProvider);
-        } else {
-          ref.read(sendAmountProvider.state).state = _amountToSend!;
-        }
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_amountToSend == null) {
+            ref.refresh(sendAmountProvider);
+          } else {
+            ref.read(sendAmountProvider.state).state = _amountToSend!;
+          }
+        });
       }
     });
 
     _baseFocus.addListener(() {
       if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-        if (_amountToSend == null) {
-          ref.refresh(sendAmountProvider);
-        } else {
-          ref.read(sendAmountProvider.state).state = _amountToSend!;
-        }
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_amountToSend == null) {
+            ref.refresh(sendAmountProvider);
+          } else {
+            ref.read(sendAmountProvider.state).state = _amountToSend!;
+          }
+        });
       }
     });
 
@@ -1064,8 +1067,8 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         PrimaryButton(
           buttonHeight: ButtonHeight.l,
           label: "Preview send",
-          enabled: ref.watch(previewTxButtonStateProvider.state).state,
-          onPressed: ref.watch(previewTxButtonStateProvider.state).state
+          enabled: ref.watch(previewTokenTxButtonStateProvider.state).state,
+          onPressed: ref.watch(previewTokenTxButtonStateProvider.state).state
               ? previewSend
               : null,
         )

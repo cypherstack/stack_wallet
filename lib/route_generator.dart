@@ -63,7 +63,8 @@ import 'package:stackwallet/pages/send_view/token_send_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/about_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/advanced_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/appearance_settings_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/system_brightness_theme_selection_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/currency_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/delete_account_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/global_settings_view.dart';
@@ -147,7 +148,6 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:tuple/tuple.dart';
 
 class RouteGenerator {
@@ -761,19 +761,13 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case SystemBrightnessThemeSelectionView.routeName:
-        if (args is Tuple2<String, ThemeType>) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => SystemBrightnessThemeSelectionView(
-              brightness: args.item1,
-              current: args.item2,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const SystemBrightnessThemeSelectionView(),
+          settings: RouteSettings(
+            name: settings.name,
+          ),
+        );
 
       case WalletNetworkSettingsView.routeName:
         if (args is Tuple3<String, WalletSyncStatus, NodeConnectionStatus>) {

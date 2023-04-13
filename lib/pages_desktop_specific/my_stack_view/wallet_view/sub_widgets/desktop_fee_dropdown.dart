@@ -19,6 +19,11 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 
+final tokenFeeSessionCacheProvider =
+    ChangeNotifierProvider<FeeSheetSessionCache>((ref) {
+  return FeeSheetSessionCache();
+});
+
 class DesktopFeeDropDown extends ConsumerStatefulWidget {
   const DesktopFeeDropDown({
     Key? key,
@@ -54,7 +59,12 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
   }) async {
     switch (feeRateType) {
       case FeeRateType.fast:
-        if (ref.read(feeSheetSessionCacheProvider).fast[amount] == null) {
+        if (ref
+                .read(widget.isToken
+                    ? tokenFeeSessionCacheProvider
+                    : feeSheetSessionCacheProvider)
+                .fast[amount] ==
+            null) {
           if (widget.isToken == false) {
             final manager =
                 ref.read(walletsChangeNotifierProvider).getManager(walletId);
@@ -76,13 +86,22 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
           } else {
             final tokenWallet = ref.read(tokenServiceProvider)!;
             final fee = tokenWallet.estimateFeeFor(feeRate);
-            ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
+            ref.read(tokenFeeSessionCacheProvider).fast[amount] = fee;
           }
         }
-        return ref.read(feeSheetSessionCacheProvider).fast[amount]!;
+        return ref
+            .read(widget.isToken
+                ? tokenFeeSessionCacheProvider
+                : feeSheetSessionCacheProvider)
+            .fast[amount]!;
 
       case FeeRateType.average:
-        if (ref.read(feeSheetSessionCacheProvider).average[amount] == null) {
+        if (ref
+                .read(widget.isToken
+                    ? tokenFeeSessionCacheProvider
+                    : feeSheetSessionCacheProvider)
+                .average[amount] ==
+            null) {
           if (widget.isToken == false) {
             final manager =
                 ref.read(walletsChangeNotifierProvider).getManager(walletId);
@@ -104,13 +123,22 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
           } else {
             final tokenWallet = ref.read(tokenServiceProvider)!;
             final fee = tokenWallet.estimateFeeFor(feeRate);
-            ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
+            ref.read(tokenFeeSessionCacheProvider).average[amount] = fee;
           }
         }
-        return ref.read(feeSheetSessionCacheProvider).average[amount]!;
+        return ref
+            .read(widget.isToken
+                ? tokenFeeSessionCacheProvider
+                : feeSheetSessionCacheProvider)
+            .average[amount]!;
 
       case FeeRateType.slow:
-        if (ref.read(feeSheetSessionCacheProvider).slow[amount] == null) {
+        if (ref
+                .read(widget.isToken
+                    ? tokenFeeSessionCacheProvider
+                    : feeSheetSessionCacheProvider)
+                .slow[amount] ==
+            null) {
           if (widget.isToken == false) {
             final manager =
                 ref.read(walletsChangeNotifierProvider).getManager(walletId);
@@ -132,10 +160,14 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
           } else {
             final tokenWallet = ref.read(tokenServiceProvider)!;
             final fee = tokenWallet.estimateFeeFor(feeRate);
-            ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
+            ref.read(tokenFeeSessionCacheProvider).slow[amount] = fee;
           }
         }
-        return ref.read(feeSheetSessionCacheProvider).slow[amount]!;
+        return ref
+            .read(widget.isToken
+                ? tokenFeeSessionCacheProvider
+                : feeSheetSessionCacheProvider)
+            .slow[amount]!;
     }
   }
 

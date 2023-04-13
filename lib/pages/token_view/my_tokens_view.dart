@@ -100,10 +100,10 @@ class _MyTokensViewState extends ConsumerState<MyTokensView> {
                     color:
                         Theme.of(context).extension<StackColors>()!.background,
                     icon: SvgPicture.asset(
-                      Assets.svg.circlePlusDark,
+                      Assets.svg.circlePlusFilled,
                       color: Theme.of(context)
                           .extension<StackColors>()!
-                          .accentColorDark,
+                          .topNavIconPrimary,
                       width: 20,
                       height: 20,
                     ),
