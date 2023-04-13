@@ -479,7 +479,7 @@ class EpicCashWallet extends CoinServiceAPI
             "minimumConfirmations": MINIMUM_CONFIRMATIONS,
             "message": "",
             "amount": (txData['recipientAmt'] as Amount).raw.toInt(),
-            "address": (txData['addresss'] as Amount).raw.toInt(),
+            "address": txData['addresss'] as String,
           }, name: walletName);
 
           message = await receivePort.first;
@@ -497,7 +497,7 @@ class EpicCashWallet extends CoinServiceAPI
             "function": "createTransaction",
             "wallet": wallet!,
             "amount": (txData['recipientAmt'] as Amount).raw.toInt(),
-            "address": (txData['addresss'] as Amount).raw.toInt(),
+            "address": txData['addresss'] as String,
             "secretKeyIndex": 0,
             "epicboxConfig": epicboxConfig.toString(),
             "minimumConfirmations": MINIMUM_CONFIRMATIONS,

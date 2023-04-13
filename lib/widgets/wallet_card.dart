@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_token_view.dart';
@@ -10,6 +11,7 @@ import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
+import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/ethereum/ethereum_token_service.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -34,6 +36,24 @@ class SimpleWalletCard extends ConsumerWidget {
   final String? contractAddress;
   final bool popPrevious;
   final NavigatorState? desktopNavigatorState;
+
+  Future<void> _loadTokenWallet(
+    BuildContext context,
+    WidgetRef ref,
+    Manager manager,
+    EthContract contract,
+  ) async {
+    ref.read(tokenServiceStateProvider.state).state = EthTokenWallet(
+      token: contract,
+      secureStore: ref.read(secureStoreProvider),
+      ethWallet: manager.wallet as EthereumWallet,
+      tracker: TransactionNotificationTracker(
+        walletId: walletId,
+      ),
+    );
+
+    await ref.read(tokenServiceProvider)!.initialize();
+  }
 
   void _openWallet(BuildContext context, WidgetRef ref) async {
     final nav = Navigator.of(context);
@@ -70,24 +90,18 @@ class SimpleWalletCard extends ConsumerWidget {
       if (contractAddress != null) {
         final contract =
             ref.read(mainDBProvider).getEthContractSync(contractAddress!)!;
-        ref.read(tokenServiceStateProvider.state).state = EthTokenWallet(
-          token: contract,
-          secureStore: ref.read(secureStoreProvider),
-          ethWallet: manager.wallet as EthereumWallet,
-          tracker: TransactionNotificationTracker(
-            walletId: walletId,
-          ),
-        );
 
         await showLoading<void>(
-          whileFuture: ref.read(tokenServiceProvider)!.initialize(),
+          whileFuture: _loadTokenWallet(context, ref, manager, contract),
           context: context,
           opaqueBG: true,
           message: "Loading ${contract.name}",
         );
 
-        // pop loading
-        nav.pop();
+        if (desktopNavigatorState == null) {
+          // pop loading
+          nav.pop();
+        }
 
         if (desktopNavigatorState != null) {
           await desktopNavigatorState!.pushNamed(

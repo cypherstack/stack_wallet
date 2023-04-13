@@ -13,6 +13,7 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -94,11 +95,17 @@ class _ExchangeProviderOptionsState
                 onTap: () {
                   if (ref.read(exchangeFormStateProvider).exchange.name !=
                       ChangeNowExchange.exchangeName) {
-                    ref.read(exchangeFormStateProvider).updateExchange(
-                          exchange: ChangeNowExchange.instance,
-                          shouldUpdateData: true,
-                          shouldNotifyListeners: true,
-                        );
+                    showLoading(
+                      whileFuture:
+                          ref.read(exchangeFormStateProvider).updateExchange(
+                                exchange: ChangeNowExchange.instance,
+                                shouldUpdateData: true,
+                                shouldNotifyListeners: true,
+                              ),
+                      context: context,
+                      message: "Updating rates",
+                      isDesktop: isDesktop,
+                    );
                   }
                 },
                 child: Container(
@@ -333,11 +340,17 @@ class _ExchangeProviderOptionsState
                 onTap: () {
                   if (ref.read(exchangeFormStateProvider).exchange.name !=
                       MajesticBankExchange.exchangeName) {
-                    ref.read(exchangeFormStateProvider).updateExchange(
-                          exchange: MajesticBankExchange.instance,
-                          shouldUpdateData: true,
-                          shouldNotifyListeners: true,
-                        );
+                    showLoading(
+                      whileFuture:
+                          ref.read(exchangeFormStateProvider).updateExchange(
+                                exchange: MajesticBankExchange.instance,
+                                shouldUpdateData: true,
+                                shouldNotifyListeners: true,
+                              ),
+                      context: context,
+                      isDesktop: isDesktop,
+                      message: "Updating rates",
+                    );
                   }
                 },
                 child: Container(

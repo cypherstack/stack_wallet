@@ -337,7 +337,7 @@ class RouteGenerator {
             ),
           );
         } else if (args
-            is Tuple4<String, CoinControlViewType, int?, Set<UTXO>?>) {
+            is Tuple4<String, CoinControlViewType, Amount?, Set<UTXO>?>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => CoinControlView(

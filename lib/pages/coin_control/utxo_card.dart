@@ -124,13 +124,15 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          "${utxo.value.toAmountAsRaw(fractionDigits: coin.decimals).localizedStringAsFixed(
+                          "${utxo.value.toAmountAsRaw(
+                                fractionDigits: coin.decimals,
+                              ).localizedStringAsFixed(
                                 locale: ref.watch(
                                   localeServiceChangeNotifierProvider.select(
                                     (value) => value.locale,
                                   ),
                                 ),
-                              )}} ${coin.ticker}",
+                              )} ${coin.ticker}",
                           style: STextStyles.w600_14(context),
                         ),
                         const SizedBox(

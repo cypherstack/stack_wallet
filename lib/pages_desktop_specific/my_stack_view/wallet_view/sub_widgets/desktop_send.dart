@@ -994,10 +994,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
               textAlign: TextAlign.left,
             ),
-            CustomTextButton(
-              text: "Send all ${coin.ticker}",
-              onTap: sendAllTapped,
-            ),
+            if (coin != Coin.ethereum)
+              CustomTextButton(
+                text: "Send all ${coin.ticker}",
+                onTap: sendAllTapped,
+              ),
           ],
         ),
         const SizedBox(

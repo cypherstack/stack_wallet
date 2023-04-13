@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -212,7 +214,7 @@ class _DesktopChooseFromStackState
                           ],
                         ),
                         const Spacer(),
-                        BalanceDisplay(
+                        _BalanceDisplay(
                           walletId: walletIds[index],
                         ),
                         const SizedBox(
@@ -265,8 +267,8 @@ class _DesktopChooseFromStackState
   }
 }
 
-class BalanceDisplay extends ConsumerWidget {
-  const BalanceDisplay({
+class _BalanceDisplay extends ConsumerWidget {
+  const _BalanceDisplay({
     Key? key,
     required this.walletId,
   }) : super(key: key);
@@ -280,8 +282,14 @@ class BalanceDisplay extends ConsumerWidget {
     final locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
 
+    Amount total = manager.balance.total;
+    if (manager.coin == Coin.firo || manager.coin == Coin.firoTestNet) {
+      final firoWallet = manager.wallet as FiroWallet;
+      total += firoWallet.balancePrivate.total;
+    }
+
     return Text(
-      "${manager.balance.spendable.localizedStringAsFixed(locale: locale)} "
+      "${total.localizedStringAsFixed(locale: locale)} "
       "${manager.coin.ticker}",
       style: STextStyles.desktopTextExtraSmall(context).copyWith(
         color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
