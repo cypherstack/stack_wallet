@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
-class ThemeOption extends StatelessWidget {
-  const ThemeOption(
-      {Key? key,
-      required this.onPressed,
-      required this.onChanged,
-      required this.value,
-      required this.groupValue})
-      : super(key: key);
+class ThemeOption<T> extends StatelessWidget {
+  const ThemeOption({
+    Key? key,
+    required this.onPressed,
+    required this.onChanged,
+    required this.label,
+    required this.value,
+    required this.groupValue,
+  }) : super(key: key);
 
   final VoidCallback onPressed;
   final void Function(Object?) onChanged;
-  final ThemeType value;
-  final ThemeType groupValue;
+  final String label;
+  final T value;
+  final T groupValue;
 
   @override
   Widget build(BuildContext context) {
@@ -39,9 +40,9 @@ class ThemeOption extends StatelessWidget {
             Row(
               children: [
                 SizedBox(
-                  width: 10,
-                  height: 10,
-                  child: Radio(
+                  width: 20,
+                  height: 20,
+                  child: Radio<T>(
                     activeColor: Theme.of(context)
                         .extension<StackColors>()!
                         .radioButtonIconEnabled,
@@ -54,7 +55,7 @@ class ThemeOption extends StatelessWidget {
                   width: 14,
                 ),
                 Text(
-                  value.prettyName,
+                  label,
                   style: STextStyles.desktopTextExtraSmall(context).copyWith(
                     color:
                         Theme.of(context).extension<StackColors>()!.textDark2,

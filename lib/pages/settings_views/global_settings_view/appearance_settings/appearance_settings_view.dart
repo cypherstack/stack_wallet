@@ -1,22 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/sub_widgets/theme_options_widget.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/system_brightness_theme_selection_view.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/providers/ui/color_theme_provider.dart';
-import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
-import 'package:stackwallet/widgets/expandable.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:tuple/tuple.dart';
 
 class AppearanceSettingsView extends ConsumerWidget {
   const AppearanceSettingsView({Key? key}) : super(key: key);
@@ -106,56 +98,43 @@ class AppearanceSettingsView extends ConsumerWidget {
                         const SizedBox(
                           height: 10,
                         ),
-                        const SystemBrightnessToggle(),
-                        if (!ref.watch(
-                          prefsChangeNotifierProvider
-                              .select((value) => value.enableSystemBrightness),
-                        ))
-                          const SizedBox(
-                            height: 10,
-                          ),
-                        if (!ref.watch(
-                          prefsChangeNotifierProvider
-                              .select((value) => value.enableSystemBrightness),
-                        ))
-                          RoundedWhiteContainer(
+                        RoundedWhiteContainer(
+                          padding: const EdgeInsets.all(0),
+                          child: RawMaterialButton(
+                            // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                             padding: const EdgeInsets.all(0),
-                            child: RawMaterialButton(
-                              // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                              padding: const EdgeInsets.all(0),
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  Constants.size.circularBorderRadius,
-                                ),
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                Constants.size.circularBorderRadius,
                               ),
-                              onPressed: null,
-                              child: Padding(
-                                padding: const EdgeInsets.all(12),
-                                child: Row(
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Choose Theme",
-                                          style:
-                                              STextStyles.titleBold12(context),
-                                          textAlign: TextAlign.left,
-                                        ),
-                                        const Padding(
-                                          padding: EdgeInsets.all(10),
-                                          child: ThemeOptionsWidget(),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
+                            ),
+                            onPressed: null,
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Row(
+                                children: [
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Choose Theme",
+                                        style: STextStyles.titleBold12(context),
+                                        textAlign: TextAlign.left,
+                                      ),
+                                      const Padding(
+                                        padding: EdgeInsets.all(10),
+                                        child: ThemeOptionsWidget(),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
                             ),
                           ),
+                        ),
                       ],
                     ),
                   ),
@@ -163,238 +142,6 @@ class AppearanceSettingsView extends ConsumerWidget {
               );
             },
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class SystemBrightnessToggle extends ConsumerStatefulWidget {
-  const SystemBrightnessToggle({Key? key}) : super(key: key);
-
-  @override
-  ConsumerState<SystemBrightnessToggle> createState() =>
-      _SystemBrightnessToggleState();
-}
-
-class _SystemBrightnessToggleState
-    extends ConsumerState<SystemBrightnessToggle> {
-  final controller = ExpandableController();
-
-  void _toggle(bool enable) {
-    ref.read(prefsChangeNotifierProvider).enableSystemBrightness = enable;
-
-    if (enable && controller.state == ExpandableState.collapsed) {
-      controller.toggle?.call();
-    } else if (!enable && controller.state == ExpandableState.expanded) {
-      controller.toggle?.call();
-    }
-
-    if (enable) {
-      final ThemeType type;
-      switch (MediaQuery.of(context).platformBrightness) {
-        case Brightness.dark:
-          type = ref
-              .read(prefsChangeNotifierProvider.notifier)
-              .systemBrightnessDarkTheme;
-          break;
-        case Brightness.light:
-          type = ref
-              .read(prefsChangeNotifierProvider.notifier)
-              .systemBrightnessLightTheme;
-          break;
-      }
-      ref.read(colorThemeProvider.notifier).state =
-          StackColors.fromStackColorTheme(
-        type.colorTheme,
-      );
-    } else {
-      ref.read(prefsChangeNotifierProvider.notifier).theme =
-          ref.read(colorThemeProvider.notifier).state.themeType;
-    }
-  }
-
-  @override
-  void initState() {
-    if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        controller.toggle?.call();
-      });
-    }
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final enable = ref.watch(
-      prefsChangeNotifierProvider
-          .select((value) => value.enableSystemBrightness),
-    );
-
-    return RoundedWhiteContainer(
-      child: Expandable(
-        controller: controller,
-        expandOverride: () {
-          _toggle(
-              !ref.read(prefsChangeNotifierProvider).enableSystemBrightness);
-        },
-        header: RawMaterialButton(
-          splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
-            ),
-          ),
-          onPressed: null,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "System brightness",
-                  style: STextStyles.titleBold12(context),
-                  textAlign: TextAlign.left,
-                ),
-                SizedBox(
-                  key: Key("${enable}enableSystemBrightnessToggleKey"),
-                  height: 20,
-                  width: 40,
-                  child: DraggableSwitchButton(
-                    isOn: enable,
-                    onValueChanged: _toggle,
-                  ),
-                )
-              ],
-            ),
-          ),
-        ),
-        body: Column(
-          children: [
-            RoundedContainer(
-              color: Colors.transparent,
-              padding: EdgeInsets.zero,
-              onPressed: () async {
-                final result = await Navigator.of(context).pushNamed(
-                  SystemBrightnessThemeSelectionView.routeName,
-                  arguments: Tuple2(
-                      "light",
-                      ref
-                          .read(prefsChangeNotifierProvider)
-                          .systemBrightnessLightTheme),
-                );
-                if (result is ThemeType) {
-                  ref
-                      .read(prefsChangeNotifierProvider)
-                      .systemBrightnessLightTheme = result;
-                  if (ref
-                      .read(prefsChangeNotifierProvider)
-                      .enableSystemBrightness) {
-                    if (mounted &&
-                        MediaQuery.of(context).platformBrightness ==
-                            Brightness.light) {
-                      ref.read(colorThemeProvider.notifier).state =
-                          StackColors.fromStackColorTheme(result.colorTheme);
-                    }
-                  }
-                }
-              },
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Light theme",
-                          style: STextStyles.itemSubtitle(context),
-                        ),
-                        const SizedBox(
-                          height: 2,
-                        ),
-                        Text(
-                          ref
-                              .watch(
-                                prefsChangeNotifierProvider.select((value) =>
-                                    value.systemBrightnessLightTheme),
-                              )
-                              .prettyName,
-                          style: STextStyles.itemSubtitle12(context),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SvgPicture.asset(
-                    Assets.svg.chevronRight,
-                    color: Theme.of(context).extension<StackColors>()!.textDark,
-                  ),
-                ],
-              ),
-            ),
-            RoundedContainer(
-              color: Colors.transparent,
-              padding: EdgeInsets.zero,
-              onPressed: () async {
-                final result = await Navigator.of(context).pushNamed(
-                  SystemBrightnessThemeSelectionView.routeName,
-                  arguments: Tuple2(
-                      "dark",
-                      ref
-                          .read(prefsChangeNotifierProvider)
-                          .systemBrightnessDarkTheme),
-                );
-                if (result is ThemeType) {
-                  ref
-                      .read(prefsChangeNotifierProvider)
-                      .systemBrightnessDarkTheme = result;
-                  if (ref
-                      .read(prefsChangeNotifierProvider)
-                      .enableSystemBrightness) {
-                    if (mounted &&
-                        MediaQuery.of(context).platformBrightness ==
-                            Brightness.dark) {
-                      ref.read(colorThemeProvider.notifier).state =
-                          StackColors.fromStackColorTheme(result.colorTheme);
-                    }
-                  }
-                }
-              },
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Dark theme",
-                          style: STextStyles.itemSubtitle(context),
-                        ),
-                        const SizedBox(
-                          height: 2,
-                        ),
-                        Text(
-                          ref.watch(
-                            prefsChangeNotifierProvider.select((value) =>
-                                value.systemBrightnessDarkTheme.prettyName),
-                          ),
-                          style: STextStyles.itemSubtitle12(context),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SvgPicture.asset(
-                    Assets.svg.chevronRight,
-                    color: Theme.of(context).extension<StackColors>()!.textDark,
-                  ),
-                ],
-              ),
-            )
-          ],
         ),
       ),
     );
