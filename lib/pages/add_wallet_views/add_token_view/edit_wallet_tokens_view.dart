@@ -134,9 +134,10 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
         ),
       );
     } else {
-      contract = await Navigator.of(context).pushNamed(
+      final result = await Navigator.of(context).pushNamed(
         AddCustomTokenView.routeName,
       );
+      contract = result as EthContract?;
     }
 
     if (contract != null) {
@@ -442,16 +443,26 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
               },
             ),
             actions: [
-              AspectRatio(
-                aspectRatio: 1,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 10,
+                  bottom: 10,
+                  right: 20,
+                ),
+                child: AspectRatio(
+                  aspectRatio: 1,
                   child: AppBarIconButton(
+                    size: 36,
+                    shadows: const [],
+                    color:
+                        Theme.of(context).extension<StackColors>()!.background,
                     icon: SvgPicture.asset(
                       Assets.svg.circlePlusFilled,
                       color: Theme.of(context)
                           .extension<StackColors>()!
                           .topNavIconPrimary,
+                      width: 20,
+                      height: 20,
                     ),
                     onPressed: _addToken,
                   ),
