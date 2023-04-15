@@ -50,7 +50,7 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:tuple/tuple.dart';
 
-const int MINIMUM_CONFIRMATIONS = 10;
+const int MINIMUM_CONFIRMATIONS = 4;
 
 class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
   WowneroWallet({
