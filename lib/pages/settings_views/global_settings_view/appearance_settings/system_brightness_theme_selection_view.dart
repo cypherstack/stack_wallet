@@ -91,7 +91,7 @@ class SystemBrightnessThemeSelectionView extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "Choose dark mode theme",
+                                "Choose light mode theme",
                                 style: STextStyles.titleBold12(context),
                               ),
                               const SizedBox(
