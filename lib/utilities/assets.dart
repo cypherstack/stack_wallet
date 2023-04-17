@@ -319,6 +319,8 @@ class _SVG {
         return bitcoincash;
       case Coin.dogecoin:
         return dogecoin;
+      case Coin.eCash:
+        return dogecoin;
       case Coin.epicCash:
         return epicCash;
       case Coin.ethereum:
@@ -372,6 +374,8 @@ class _SVG {
       case Coin.bitcoincash:
         return bitcoincashImage(context);
       case Coin.dogecoin:
+        return dogecoinImage(context);
+      case Coin.eCash:
         return dogecoinImage(context);
       case Coin.epicCash:
         return epicCashImage(context);

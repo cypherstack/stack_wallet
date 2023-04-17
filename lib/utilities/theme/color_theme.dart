@@ -309,6 +309,7 @@ class CoinThemeColor {
   Color get firo => const Color(0xFFFF897A);
   Color get dogecoin => const Color(0xFFFFE079);
   Color get epicCash => const Color(0xFFC5C7CB);
+  Color get eCash => Colors.pink;
   Color get ethereum => const Color(0xFFA7ADE9);
   Color get monero => const Color(0xFFFF9E6B);
   Color get namecoin => const Color(0xFF91B1E1);
@@ -331,6 +332,8 @@ class CoinThemeColor {
         return dogecoin;
       case Coin.epicCash:
         return epicCash;
+      case Coin.eCash:
+        return eCash;
       case Coin.ethereum:
         return ethereum;
       case Coin.firo:

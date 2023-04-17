@@ -57,6 +57,7 @@ abstract class Constants {
       case Coin.firo:
       case Coin.bitcoinTestNet:
       case Coin.dogecoinTestNet:
+      case Coin.eCash:
       case Coin.firoTestNet:
       case Coin.epicCash:
       case Coin.namecoin:
@@ -86,6 +87,7 @@ abstract class Constants {
       case Coin.bitcoinTestNet:
       case Coin.dogecoinTestNet:
       case Coin.firoTestNet:
+      case Coin.eCash:
       case Coin.epicCash:
       case Coin.namecoin:
       case Coin.particl:
@@ -115,6 +117,7 @@ abstract class Constants {
       case Coin.bitcoinTestNet:
       case Coin.dogecoinTestNet:
       case Coin.firoTestNet:
+      case Coin.eCash:
       case Coin.epicCash:
       case Coin.ethereum:
       case Coin.namecoin:
@@ -137,10 +140,9 @@ abstract class Constants {
     switch (coin) {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
-        return 600;
-
       case Coin.bitcoincash:
       case Coin.bitcoincashTestnet:
+      case Coin.eCash:
         return 600;
 
       case Coin.dogecoin:

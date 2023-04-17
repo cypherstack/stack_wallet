@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_libepiccash/epic_cash.dart';
 import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
+import 'package:stackwallet/services/coins/ecash/ecash_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart';
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
@@ -61,6 +62,8 @@ class AddressUtils {
         return true; //TODO - validate ETH address
       case Coin.firo:
         return Address.validateAddress(address, firoNetwork);
+      case Coin.eCash:
+        return Address.validateAddress(address, eCashNetwork);
       case Coin.monero:
         return RegExp("[a-zA-Z0-9]{95}").hasMatch(address) ||
             RegExp("[a-zA-Z0-9]{106}").hasMatch(address);
