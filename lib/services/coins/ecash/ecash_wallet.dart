@@ -474,6 +474,10 @@ class ECashWallet extends CoinServiceAPI
             .getServerFeatures()
             .timeout(const Duration(seconds: 3));
         Logging.instance.log("features: $features", level: LogLevel.Info);
+
+        _serverVersion =
+            _parseServerVersion(features["server_version"] as String);
+
         switch (coin) {
           case Coin.eCash:
             if (features['genesis_hash'] != GENESIS_HASH_MAINNET) {
@@ -672,6 +676,29 @@ class ECashWallet extends CoinServiceAPI
       }
     }
     return allTransactions;
+  }
+
+  double? _serverVersion;
+  bool get serverCanBatch => _serverVersion != null && _serverVersion! >= 1.6;
+
+  // stupid + fragile
+  double? _parseServerVersion(String version) {
+    double? result;
+    try {
+      final list = version.split(" ");
+      if (list.isNotEmpty) {
+        final numberStrings = list.last.split(".");
+        final major = numberStrings.removeAt(0);
+
+        result = double.tryParse("$major.${numberStrings.join("")}");
+      }
+    } catch (_) {}
+
+    Logging.instance.log(
+      "$walletName _parseServerVersion($version) => $result",
+      level: LogLevel.Info,
+    );
+    return result;
   }
 
   Future<void> _updateUTXOs() async {
@@ -2439,6 +2466,15 @@ class ECashWallet extends CoinServiceAPI
     Logging.instance.log("initializeExisting() ${coin.prettyName} wallet.",
         level: LogLevel.Info);
 
+    try {
+      final features = await electrumXClient.getServerFeatures();
+      _serverVersion =
+          _parseServerVersion(features["server_version"] as String);
+    } catch (_) {
+      // catch nothing as failure here means we just do not batch certain rpc
+      // calls
+    }
+
     if (getCachedId() == null) {
       throw Exception(
           "Attempted to initialize an existing wallet using an unknown wallet ID!");
@@ -2776,6 +2812,8 @@ class ECashWallet extends CoinServiceAPI
       if (!integrationTestFlag) {
         final features = await electrumXClient.getServerFeatures();
         Logging.instance.log("features: $features", level: LogLevel.Info);
+        _serverVersion =
+            _parseServerVersion(features["server_version"] as String);
         switch (coin) {
           case Coin.eCash:
             if (features['genesis_hash'] != GENESIS_HASH_MAINNET) {
