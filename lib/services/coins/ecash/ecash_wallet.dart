@@ -936,38 +936,61 @@ class ECashWallet extends CoinServiceAPI
   }
 
   Future<List<Map<String, dynamic>>> _fetchHistory(
-      List<String> allAddresses) async {
+    List<String> allAddresses,
+  ) async {
     try {
       List<Map<String, dynamic>> allTxHashes = [];
 
-      final Map<int, Map<String, List<dynamic>>> batches = {};
-      final Map<String, String> requestIdToAddressMap = {};
-      const batchSizeMax = 100;
-      int batchNumber = 0;
-      for (int i = 0; i < allAddresses.length; i++) {
-        if (batches[batchNumber] == null) {
-          batches[batchNumber] = {};
+      if (serverCanBatch) {
+        final Map<int, Map<String, List<dynamic>>> batches = {};
+        final Map<String, String> requestIdToAddressMap = {};
+        const batchSizeMax = 100;
+        int batchNumber = 0;
+        for (int i = 0; i < allAddresses.length; i++) {
+          if (batches[batchNumber] == null) {
+            batches[batchNumber] = {};
+          }
+          final scriptHash = AddressUtils.convertToScriptHash(
+            allAddresses[i],
+            _network,
+          );
+          final id = Logger.isTestEnv ? "$i" : const Uuid().v1();
+          requestIdToAddressMap[id] = allAddresses[i];
+          batches[batchNumber]!.addAll({
+            id: [scriptHash]
+          });
+          if (i % batchSizeMax == batchSizeMax - 1) {
+            batchNumber++;
+          }
         }
-        final scripthash =
-            AddressUtils.convertToScriptHash(allAddresses[i], _network);
-        final id = Logger.isTestEnv ? "$i" : const Uuid().v1();
-        requestIdToAddressMap[id] = allAddresses[i];
-        batches[batchNumber]!.addAll({
-          id: [scripthash]
-        });
-        if (i % batchSizeMax == batchSizeMax - 1) {
-          batchNumber++;
-        }
-      }
 
-      for (int i = 0; i < batches.length; i++) {
-        final response =
-            await _electrumXClient.getBatchHistory(args: batches[i]!);
-        for (final entry in response.entries) {
-          for (int j = 0; j < entry.value.length; j++) {
-            entry.value[j]["address"] = requestIdToAddressMap[entry.key];
-            if (!allTxHashes.contains(entry.value[j])) {
-              allTxHashes.add(entry.value[j]);
+        for (int i = 0; i < batches.length; i++) {
+          final response =
+              await _electrumXClient.getBatchHistory(args: batches[i]!);
+          for (final entry in response.entries) {
+            for (int j = 0; j < entry.value.length; j++) {
+              entry.value[j]["address"] = requestIdToAddressMap[entry.key];
+              if (!allTxHashes.contains(entry.value[j])) {
+                allTxHashes.add(entry.value[j]);
+              }
+            }
+          }
+        }
+      } else {
+        for (int i = 0; i < allAddresses.length; i++) {
+          final scriptHash = AddressUtils.convertToScriptHash(
+            allAddresses[i],
+            _network,
+          );
+
+          final response = await electrumXClient.getHistory(
+            scripthash: scriptHash,
+          );
+
+          for (int j = 0; j < response.length; j++) {
+            response[j]["address"] = allAddresses[i];
+            if (!allTxHashes.contains(response[j])) {
+              allTxHashes.add(response[j]);
             }
           }
         }
