@@ -410,6 +410,9 @@ class _PNG {
 
   String get glasses => "assets/images/glasses.png";
   String get glassesHidden => "assets/images/glasses-hidden.png";
+
+  String get chanEasy => "assets/images/chan-persona-easy.png";
+  String get chanIncognito => "assets/images/chan-persona-incognito.png";
 }
 
 class _ANIMATIONS {

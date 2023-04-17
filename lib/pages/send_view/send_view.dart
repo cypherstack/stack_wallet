@@ -186,7 +186,10 @@ class _SendViewState extends ConsumerState<SendView> {
   late Amount _currentFee;
 
   void _setCurrentFee(String fee, bool shouldSetState) {
-    final value = Decimal.parse(fee).toAmount(fractionDigits: coin.decimals);
+    final value = fee.contains(",")
+        ? Decimal.parse(fee.replaceFirst(",", "."))
+            .toAmount(fractionDigits: coin.decimals)
+        : Decimal.parse(fee).toAmount(fractionDigits: coin.decimals);
 
     if (shouldSetState) {
       setState(() => _currentFee = value);
