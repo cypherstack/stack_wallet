@@ -838,13 +838,7 @@ class ECashWallet extends CoinServiceAPI
 
   Future<int> _getTxCount({required isar_models.Address address}) async {
     try {
-      final response = await electrumXClient.getHistory(
-        scripthash: AddressUtils.convertToScriptHash(
-          address.value,
-          _network,
-        ),
-      );
-      return response.length;
+      return await getTxCount(address: address.value);
     } catch (e, s) {
       Logging.instance.log(
           "Exception rethrown in _getTxCount(address: $address: $e\n$s",
