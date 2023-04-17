@@ -211,6 +211,8 @@ flutter:
   #  - images/a_dot_burr.jpeg
   #  - images/a_dot_ham.jpeg
   assets:
+    - assets/images/chan-persona-incognito.png
+    - assets/images/chan-persona-easy.png
     - assets/images/splash.png
     - assets/icon/icon.png
     - google_fonts/

@@ -8,10 +8,12 @@ import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages_desktop_specific/password/create_password_view.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/price_provider.dart';
+import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -308,6 +310,10 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
 
   @override
   Widget build(BuildContext context) {
+    final bool lightChan =
+        ref.read(colorThemeProvider.state).state.themeType == ThemeType.chan;
+    final bool darkChan = ref.read(colorThemeProvider.state).state.themeType ==
+        ThemeType.darkChans;
     return Row(
       children: [
         Expanded(
@@ -344,19 +350,15 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // if (isDesktop)
-                      //   const SizedBox(
-                      //     height: 10,
-                      //   ),
-                      SvgPicture.asset(
-                        Assets.svg.personaEasy(context),
-                        width: 140,
-                        height: 140,
-                      ),
-                      // if (isDesktop)
-                      //   const SizedBox(
-                      //     height: 12,
-                      //   ),
+                      (lightChan || darkChan)
+                          ? Image(
+                              image: AssetImage(Assets.png.chanEasy),
+                            )
+                          : SvgPicture.asset(
+                              Assets.svg.personaEasy(context),
+                              width: 140,
+                              height: 140,
+                            ),
                       Center(
                         child: Text(
                           "Easy Crypto",
@@ -453,11 +455,20 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                         const SizedBox(
                           height: 10,
                         ),
-                      SvgPicture.asset(
-                        Assets.svg.personaIncognito(context),
-                        width: 140,
-                        height: 140,
-                      ),
+                      (lightChan || darkChan)
+                          ? Image(
+                              image: AssetImage(Assets.png.chanIncognito),
+                            )
+                          : SvgPicture.asset(
+                              Assets.svg.personaIncognito(context),
+                              width: 140,
+                              height: 140,
+                            ),
+                      // SvgPicture.asset(
+                      //   Assets.svg.personaIncognito(context),
+                      //   width: 140,
+                      //   height: 140,
+                      // ),
                       if (isDesktop)
                         const SizedBox(
                           height: 12,
