@@ -2413,7 +2413,15 @@ class BitcoinCashWallet extends CoinServiceAPI
     // don't care about sorting if using all utxos
     if (!coinControl) {
       // sort spendable by age (oldest first)
-      spendableOutputs.sort((a, b) => b.blockTime!.compareTo(a.blockTime!));
+      spendableOutputs.sort((a, b) {
+        if (a.blockTime != null && b.blockTime != null) {
+          return b.blockTime!.compareTo(a.blockTime!);
+        } else if (a.blockTime != null) {
+          return -1;
+        } else {
+          return 1;
+        }
+      });
     }
 
     Logging.instance.log("spendableOutputs.length: ${spendableOutputs.length}",

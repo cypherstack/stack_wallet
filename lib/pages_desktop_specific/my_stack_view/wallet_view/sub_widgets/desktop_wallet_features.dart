@@ -310,7 +310,12 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     );
 
     final showMore = manager.hasPaynymSupport ||
-        manager.hasCoinControlSupport ||
+        (manager.hasCoinControlSupport &&
+            ref.watch(
+              prefsChangeNotifierProvider.select(
+                (value) => value.enableCoinControl,
+              ),
+            )) ||
         manager.coin == Coin.firo ||
         manager.coin == Coin.firoTestNet ||
         manager.hasWhirlpoolSupport;
