@@ -809,6 +809,23 @@ class ECashWallet extends CoinServiceAPI
     }
   }
 
+  Future<int> _getTxCount({required isar_models.Address address}) async {
+    try {
+      final response = await electrumXClient.getHistory(
+        scripthash: AddressUtils.convertToScriptHash(
+          address.value,
+          _network,
+        ),
+      );
+      return response.length;
+    } catch (e, s) {
+      Logging.instance.log(
+          "Exception rethrown in _getTxCount(address: $address: $e\n$s",
+          level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
   Future<Map<String, int>> _getBatchTxCount({
     required Map<String, String> addresses,
   }) async {
@@ -1711,13 +1728,33 @@ class ECashWallet extends CoinServiceAPI
     // int p2shChangeIndex = -1;
 
     const txCountBatchSize = 12;
+    const receiveChain = 0;
+    const changeChain = 1;
 
     try {
       // receiving addresses
       Logging.instance
           .log("checking receiving addresses...", level: LogLevel.Info);
-      final resultReceiveBip44 = _checkGaps(maxNumberOfIndexesToCheck,
-          maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip44, 0);
+      final Future<Tuple2<List<isar_models.Address>, int>> resultReceiveBip44;
+
+      if (serverCanBatch) {
+        resultReceiveBip44 = _checkGapsBatched(
+          maxNumberOfIndexesToCheck,
+          maxUnusedAddressGap,
+          txCountBatchSize,
+          root,
+          DerivePathType.bip44,
+          receiveChain,
+        );
+      } else {
+        resultReceiveBip44 = _checkGaps(
+          maxNumberOfIndexesToCheck,
+          maxUnusedAddressGap,
+          root,
+          DerivePathType.bip44,
+          receiveChain,
+        );
+      }
 
       // final resultReceive49 = _checkGaps(maxNumberOfIndexesToCheck,
       //     maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip49, 0);
@@ -1725,8 +1762,26 @@ class ECashWallet extends CoinServiceAPI
       Logging.instance
           .log("checking change addresses...", level: LogLevel.Info);
       // change addresses
-      final bip44ResultChange = _checkGaps(maxNumberOfIndexesToCheck,
-          maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip44, 1);
+      final Future<Tuple2<List<isar_models.Address>, int>> bip44ResultChange;
+
+      if (serverCanBatch) {
+        bip44ResultChange = _checkGapsBatched(
+          maxNumberOfIndexesToCheck,
+          maxUnusedAddressGap,
+          txCountBatchSize,
+          root,
+          DerivePathType.bip44,
+          changeChain,
+        );
+      } else {
+        bip44ResultChange = _checkGaps(
+          maxNumberOfIndexesToCheck,
+          maxUnusedAddressGap,
+          root,
+          DerivePathType.bip44,
+          changeChain,
+        );
+      }
 
       // final resultChange49 = _checkGaps(maxNumberOfIndexesToCheck,
       //     maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip49, 1);
@@ -1738,17 +1793,15 @@ class ECashWallet extends CoinServiceAPI
         // resultChange49,
       ]);
 
-      bip44P2pkhReceiveAddressArray = (await resultReceiveBip44)['addressArray']
-          as List<isar_models.Address>;
-      bip44P2pkhReceiveIndex = (await resultReceiveBip44)['index'] as int;
+      bip44P2pkhReceiveAddressArray = (await resultReceiveBip44).item1;
+      bip44P2pkhReceiveIndex = (await resultReceiveBip44).item2;
 
       // p2shReceiveAddressArray =
       // (await resultReceive49)['addressArray'] as List<isar_models.Address>;
       // p2shReceiveIndex = (await resultReceive49)['index'] as int;
 
-      bip44P2pkhChangeAddressArray = (await bip44ResultChange)['addressArray']
-          as List<isar_models.Address>;
-      bip44P2pkhChangeIndex = (await bip44ResultChange)['index'] as int;
+      bip44P2pkhChangeAddressArray = (await bip44ResultChange).item1;
+      bip44P2pkhChangeIndex = (await bip44ResultChange).item2;
 
       // p2shChangeAddressArray =
       // (await resultChange49)['addressArray'] as List<isar_models.Address>;
@@ -1811,7 +1864,90 @@ class ECashWallet extends CoinServiceAPI
     }
   }
 
-  Future<Map<String, dynamic>> _checkGaps(
+  Future<Tuple2<List<isar_models.Address>, int>> _checkGaps(
+    int maxNumberOfIndexesToCheck,
+    int maxUnusedAddressGap,
+    bip32.BIP32 root,
+    DerivePathType type,
+    int chain,
+  ) async {
+    List<isar_models.Address> addressArray = [];
+    int returningIndex = -1;
+    int gapCounter = 0;
+    for (int index = 0;
+        index < maxNumberOfIndexesToCheck && gapCounter < maxUnusedAddressGap;
+        index++) {
+      Logging.instance.log(
+          "index: $index, \t GapCounter chain=$chain ${type.name}: $gapCounter",
+          level: LogLevel.Info);
+
+      final derivePath = constructDerivePath(
+        derivePathType: type,
+        networkWIF: root.network.wif,
+        chain: chain,
+        index: index,
+      );
+      final node = await Bip32Utils.getBip32NodeFromRoot(root, derivePath);
+
+      String addressString;
+      final data = PaymentData(pubkey: node.publicKey);
+      isar_models.AddressType addressType;
+      switch (type) {
+        case DerivePathType.bip44:
+          addressString = P2PKH(data: data, network: _network).data.address!;
+          addressType = isar_models.AddressType.p2pkh;
+          break;
+        case DerivePathType.bip49:
+          addressString = P2SH(
+                  data: PaymentData(
+                      redeem: P2WPKH(data: data, network: _network).data),
+                  network: _network)
+              .data
+              .address!;
+          addressType = isar_models.AddressType.p2sh;
+          break;
+        case DerivePathType.bip84:
+          addressString = P2WPKH(network: _network, data: data).data.address!;
+          addressType = isar_models.AddressType.p2wpkh;
+          break;
+        default:
+          throw Exception("DerivePathType $type not supported");
+      }
+
+      final address = isar_models.Address(
+        walletId: walletId,
+        value: addressString,
+        publicKey: node.publicKey,
+        type: addressType,
+        derivationIndex: index,
+        derivationPath: isar_models.DerivationPath()..value = derivePath,
+        subType: chain == 0
+            ? isar_models.AddressSubType.receiving
+            : isar_models.AddressSubType.change,
+      );
+
+      // get address tx count
+      final count = await _getTxCount(address: address);
+
+      // check and add appropriate addresses
+      if (count > 0) {
+        // add address to array
+        addressArray.add(address);
+        // set current index
+        returningIndex = index;
+        // reset counter
+        gapCounter = 0;
+        // add info to derivations
+      } else {
+        // increase counter when no tx history found
+        gapCounter++;
+      }
+    }
+
+    return Tuple2(addressArray, returningIndex);
+  }
+
+  Future<Tuple2<List<isar_models.Address>, int>> _checkGapsBatched(
     int maxNumberOfIndexesToCheck,
     int maxUnusedAddressGap,
     int txCountBatchSize,
@@ -1918,10 +2054,8 @@ class ECashWallet extends CoinServiceAPI
       // cache all the transactions while waiting for the current function to finish.
       unawaited(getTransactionCacheEarly(iterationsAddressArray));
     }
-    return {
-      "addressArray": addressArray,
-      "index": returningIndex,
-    };
+
+    return Tuple2(addressArray, returningIndex);
   }
 
   Future<void> getTransactionCacheEarly(List<String> allAddresses) async {
