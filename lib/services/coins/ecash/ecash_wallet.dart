@@ -680,29 +680,46 @@ class ECashWallet extends CoinServiceAPI
     try {
       final fetchedUtxoList = <List<Map<String, dynamic>>>[];
 
-      final Map<int, Map<String, List<dynamic>>> batches = {};
-      const batchSizeMax = 100;
-      int batchNumber = 0;
-      for (int i = 0; i < allAddresses.length; i++) {
-        if (batches[batchNumber] == null) {
-          batches[batchNumber] = {};
+      if (serverCanBatch) {
+        final Map<int, Map<String, List<dynamic>>> batches = {};
+        const batchSizeMax = 100;
+        int batchNumber = 0;
+        for (int i = 0; i < allAddresses.length; i++) {
+          if (batches[batchNumber] == null) {
+            batches[batchNumber] = {};
+          }
+          final scriptHash = AddressUtils.convertToScriptHash(
+            allAddresses[i].value,
+            _network,
+          );
+          batches[batchNumber]!.addAll({
+            scriptHash: [scriptHash]
+          });
+          if (i % batchSizeMax == batchSizeMax - 1) {
+            batchNumber++;
+          }
         }
-        final scripthash =
-            AddressUtils.convertToScriptHash(allAddresses[i].value, _network);
-        batches[batchNumber]!.addAll({
-          scripthash: [scripthash]
-        });
-        if (i % batchSizeMax == batchSizeMax - 1) {
-          batchNumber++;
-        }
-      }
 
-      for (int i = 0; i < batches.length; i++) {
-        final response =
-            await _electrumXClient.getBatchUTXOs(args: batches[i]!);
-        for (final entry in response.entries) {
-          if (entry.value.isNotEmpty) {
-            fetchedUtxoList.add(entry.value);
+        for (int i = 0; i < batches.length; i++) {
+          final response = await _electrumXClient.getBatchUTXOs(
+            args: batches[i]!,
+          );
+          for (final entry in response.entries) {
+            if (entry.value.isNotEmpty) {
+              fetchedUtxoList.add(entry.value);
+            }
+          }
+        }
+      } else {
+        for (int i = 0; i < allAddresses.length; i++) {
+          final scriptHash = AddressUtils.convertToScriptHash(
+            allAddresses[i].value,
+            _network,
+          );
+
+          final utxos = await electrumXClient.getUTXOs(scripthash: scriptHash);
+          if (utxos.isNotEmpty) {
+            fetchedUtxoList.add(utxos);
           }
         }
       }
