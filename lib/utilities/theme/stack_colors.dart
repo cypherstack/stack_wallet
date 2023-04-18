@@ -1686,7 +1686,7 @@ class StackColors extends ThemeExtension<StackColors> {
     }
   }
 
-  static const _coin = CoinThemeColor();
+  static const _coin = CoinThemeColorDefault();
 
   Color colorForStatus(String status) {
     switch (status) {

@@ -300,8 +300,10 @@ abstract class StackColorTheme {
 }
 // 0xFFFFD8CE
 
-class CoinThemeColor {
-  const CoinThemeColor();
+const kCoinThemeColorDefaults = CoinThemeColorDefault();
+
+class CoinThemeColorDefault {
+  const CoinThemeColorDefault();
 
   Color get bitcoin => const Color(0xFFFCC17B);
   Color get litecoin => const Color(0xFF7FA6E1);

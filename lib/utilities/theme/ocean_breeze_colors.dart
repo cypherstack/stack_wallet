@@ -365,8 +365,8 @@ class OceanBreezeColors extends StackColorTheme {
   @override
   BoxShadow get standardBoxShadow => BoxShadow(
         color: shadow,
-        spreadRadius: 3,
-        blurRadius: 4,
+        spreadRadius: 3.0,
+        blurRadius: 4.0,
       );
 
   @override
