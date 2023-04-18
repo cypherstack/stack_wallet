@@ -18,6 +18,7 @@ Highlights include:
 - Favorite wallets with fast syncing
 - Custom Nodes.
 - Open source software.
+- You can find the details in [roadmap](docs/roadmap.md)
 
 ## Building
 
