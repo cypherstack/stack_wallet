@@ -284,12 +284,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
             .tickerEqualToAnyExchangeNameName(coin.ticker)
             .findFirst();
       } catch (_) {
-        _future = ExchangeDataLoadingService.instance
-            .init()
-            .then(
-              (_) => ExchangeDataLoadingService.instance.loadAll(),
-            )
-            .then((_) => ExchangeDataLoadingService.instance.isar.currencies
+        _future = ExchangeDataLoadingService.instance.loadAll().then((_) =>
+            ExchangeDataLoadingService.instance.isar.currencies
                 .where()
                 .tickerEqualToAnyExchangeNameName(coin.ticker)
                 .findFirst());

@@ -40,8 +40,9 @@ class ExchangeDataLoadingService {
     );
   }
 
-  Future<void> init() async {
-    if (_isar != null && isar.isOpen) return;
+  Future<void> initDB() async {
+    if (_isar != null) return;
+    await _isar?.close();
     _isar = await Isar.open(
       [
         CurrencySchema,
