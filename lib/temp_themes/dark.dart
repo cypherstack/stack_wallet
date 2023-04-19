@@ -3,7 +3,7 @@ final Map<String, dynamic> darkJson = {
   "asset_bundle_url": "",
   "brightness": "dark",
   "colors": {
-    "coin_colors": {
+    "coin": {
       "bitcoin": "0xFFFCC17B",
       "litecoin": "0xFF7FA6E1",
       "bitcoincash": "0xFF7BCFB8",
@@ -16,11 +16,11 @@ final Map<String, dynamic> darkJson = {
       "wownero": "0xFFED80C1",
       "particl": "0xFF8175BD"
     },
-    "background_colors": {
+    "background": {
       "background": "0xFF2A2D34",
       "backgroundAppBar": "0xFF2A2D34"
     },
-    "accent_colors": {
+    "accent": {
       "blue": "0xFF4C86E9",
       "green": "0xFF4CC0A0",
       "yellow": "0xFFF7D65D",
@@ -28,7 +28,7 @@ final Map<String, dynamic> darkJson = {
       "orange": "0xFFFEA68D",
       "dark": "0xFFF3F3F3"
     },
-    "text_colors": {
+    "text": {
       "dark_one": "0xFFF3F3F3",
       "dark_two": "0xFFDBDBDB",
       "dark_three": "0xFFEEEFF1",
@@ -37,7 +37,7 @@ final Map<String, dynamic> darkJson = {
       "error": "0xFFF37475",
       "restore": "0xFF111215"
     },
-    "button_text_colors": {
+    "button_text": {
       "primary": "0xFFFFFFFF",
       "secondary": "0xFFFFFFFF",
       "primary_disabled": "0xFFFFFFFF",
@@ -47,7 +47,7 @@ final Map<String, dynamic> darkJson = {
       "borderless": "0xFF4C86E9",
       "borderless_disabled": "0xFFB6B6B6"
     },
-    "switch_colors": {
+    "switch": {
       "bg_on": "0xFF4C86E9",
       "bg_off": "0xFFC1D9FF",
       "bg_disabled": "0xFFB5B7BA",
