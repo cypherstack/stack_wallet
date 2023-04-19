@@ -1,7 +1,7 @@
 final Map<String, dynamic> darkJson = {
   "name": "Dark",
   "asset_bundle_url": "",
-  "brightness": "dark",
+  "brightness": "dark", //TO - Brightness
   "colors": {
     "coin_colors": {
       "bitcoin": "0xFFFCC17B",
@@ -55,6 +55,15 @@ final Map<String, dynamic> darkJson = {
       "circle_off": "0xFFFFFFFF",
       "circle_disabled": "0xFFFFFFFF"
     },
+  },
+  //Optional gradients, not all themes will have this
+  "gradients": {
+    "background": {
+      "type": "Linear",
+      "begin": {"x": 0, "y": 1},
+      "end": {"x": -1, "y": 1},
+      "colors": ["0xFF638227", "0xFF638227"]
+    }
   },
   "overlay": "0xFF111215",
   "shadow": "0x0F2D3132",
@@ -196,6 +205,7 @@ final Map<String, dynamic> darkJson = {
       "spread_radius": 3,
       "blur_radius": 4
     },
+    //Optional box shadow, not all themes will have this
     {
       "type": "home_view_button_bar",
       "color": "0x0F2D3132",
