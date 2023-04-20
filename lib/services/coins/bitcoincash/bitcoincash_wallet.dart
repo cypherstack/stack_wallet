@@ -376,13 +376,14 @@ class BitcoinCashWallet extends CoinServiceAPI
         level: LogLevel.Info);
   }
 
-  Future<Map<String, dynamic>> _checkGaps(
-      int maxNumberOfIndexesToCheck,
-      int maxUnusedAddressGap,
-      int txCountBatchSize,
-      bip32.BIP32 root,
-      DerivePathType type,
-      int chain) async {
+  Future<Tuple2<List<isar_models.Address>, DerivePathType>> _checkGaps(
+    int maxNumberOfIndexesToCheck,
+    int maxUnusedAddressGap,
+    int txCountBatchSize,
+    bip32.BIP32 root,
+    DerivePathType type,
+    int chain,
+  ) async {
     List<isar_models.Address> addressArray = [];
     int returningIndex = -1;
     Map<String, Map<String, String>> derivations = {};
@@ -443,12 +444,8 @@ class BitcoinCashWallet extends CoinServiceAPI
               : isar_models.AddressSubType.change,
         );
 
-        receivingNodes.addAll({
-          "${_id}_$j": {
-            "node": node,
-            "address": address,
-          }
-        });
+        addressArray.add(address);
+
         txCountCallArgs.addAll({
           "${_id}_$j": addressString,
         });
@@ -463,21 +460,9 @@ class BitcoinCashWallet extends CoinServiceAPI
       for (int k = 0; k < txCountBatchSize; k++) {
         int count = counts["${_id}_$k"]!;
         if (count > 0) {
-          final node = receivingNodes["${_id}_$k"];
-          final address = node["address"] as isar_models.Address;
-          // add address to array
-          addressArray.add(address);
-          iterationsAddressArray.add(address.value);
-          // set current index
-          returningIndex = index + k;
-          // reset counter
+          iterationsAddressArray.add(txCountCallArgs["${_id}_$k"]!);
+
           gapCounter = 0;
-          // add info to derivations
-          derivations[address.value] = {
-            "pubKey": Format.uint8listToString(
-                (node["node"] as bip32.BIP32).publicKey),
-            "wif": (node["node"] as bip32.BIP32).toWIF(),
-          };
         }
 
         // increase counter when no tx history found
@@ -488,11 +473,7 @@ class BitcoinCashWallet extends CoinServiceAPI
       // cache all the transactions while waiting for the current function to finish.
       unawaited(getTransactionCacheEarly(iterationsAddressArray));
     }
-    return {
-      "addressArray": addressArray,
-      "index": returningIndex,
-      "derivations": derivations
-    };
+    return Tuple2(addressArray, type);
   }
 
   Future<void> getTransactionCacheEarly(List<String> allAddresses) async {
@@ -525,212 +506,109 @@ class BitcoinCashWallet extends CoinServiceAPI
   }) async {
     longMutex = true;
 
-    Map<String, Map<String, String>> bip44P2pkhReceiveDerivations = {};
-    Map<String, Map<String, String>> bch44P2pkhReceiveDerivations = {};
-    Map<String, Map<String, String>> p2shReceiveDerivations = {};
-    Map<String, Map<String, String>> bip44P2pkhChangeDerivations = {};
-    Map<String, Map<String, String>> bch44P2pkhChangeDerivations = {};
-    Map<String, Map<String, String>> p2shChangeDerivations = {};
-
     final root = await Bip32Utils.getBip32Root(
       mnemonic,
       mnemonicPassphrase,
       _network,
     );
 
-    List<isar_models.Address> bip44P2pkhReceiveAddressArray = [];
-    List<isar_models.Address> bch44P2pkhReceiveAddressArray = [];
-    List<isar_models.Address> p2shReceiveAddressArray = [];
-    int bch44P2pkhReceiveIndex = -1;
-    int bip44P2pkhReceiveIndex = -1;
-    int p2shReceiveIndex = -1;
+    final deriveTypes = [
+      DerivePathType.bip44,
+      DerivePathType.bip49,
+    ];
 
-    List<isar_models.Address> bip44P2pkhChangeAddressArray = [];
-    List<isar_models.Address> bch44P2pkhChangeAddressArray = [];
-    List<isar_models.Address> p2shChangeAddressArray = [];
-    int bch44P2pkhChangeIndex = -1;
-    int bip44P2pkhChangeIndex = -1;
-    int p2shChangeIndex = -1;
+    if (coin != Coin.bitcoincashTestnet) {
+      deriveTypes.add(DerivePathType.bch44);
+    }
 
-    // The gap limit will be capped at [maxUnusedAddressGap]
-    // int receivingGapCounter = 0;
-    // int changeGapCounter = 0;
+    final List<Future<Tuple2<List<isar_models.Address>, DerivePathType>>>
+        receiveFutures = [];
+    final List<Future<Tuple2<List<isar_models.Address>, DerivePathType>>>
+        changeFutures = [];
+
+    const receiveChain = 0;
+    const changeChain = 1;
+    const indexZero = 0;
 
     // actual size is 24 due to p2pkh and p2sh so 12x2
     const txCountBatchSize = 12;
 
     try {
-      bool testnet = ((coin) == Coin.bitcoincashTestnet) ? true : false;
       // receiving addresses
-      Logging.instance
-          .log("checking receiving addresses...", level: LogLevel.Info);
-      final resultReceiveBip44 = _checkGaps(maxNumberOfIndexesToCheck,
-          maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip44, 0);
+      Logging.instance.log(
+        "checking receiving addresses...",
+        level: LogLevel.Info,
+      );
 
-      final resultReceive49 = _checkGaps(maxNumberOfIndexesToCheck,
-          maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip49, 0);
+      for (final type in deriveTypes) {
+        receiveFutures.add(
+          _checkGaps(
+            maxNumberOfIndexesToCheck,
+            maxUnusedAddressGap,
+            txCountBatchSize,
+            root,
+            type,
+            receiveChain,
+          ),
+        );
+      }
 
-      Logging.instance
-          .log("checking change addresses...", level: LogLevel.Info);
       // change addresses
-      final bip44ResultChange = _checkGaps(maxNumberOfIndexesToCheck,
-          maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip44, 1);
+      Logging.instance.log(
+        "checking change addresses...",
+        level: LogLevel.Info,
+      );
+      for (final type in deriveTypes) {
+        changeFutures.add(
+          _checkGaps(
+            maxNumberOfIndexesToCheck,
+            maxUnusedAddressGap,
+            txCountBatchSize,
+            root,
+            type,
+            changeChain,
+          ),
+        );
+      }
 
-      final resultChange49 = _checkGaps(maxNumberOfIndexesToCheck,
-          maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip49, 1);
-
-      await Future.wait([
-        resultReceiveBip44,
-        resultReceive49,
-        bip44ResultChange,
-        resultChange49,
+      // io limitations may require running these linearly instead
+      final futuresResult = await Future.wait([
+        Future.wait(receiveFutures),
+        Future.wait(changeFutures),
       ]);
 
-      bip44P2pkhReceiveAddressArray = (await resultReceiveBip44)['addressArray']
-          as List<isar_models.Address>;
-      bip44P2pkhReceiveIndex = (await resultReceiveBip44)['index'] as int;
-      bip44P2pkhReceiveDerivations = (await resultReceiveBip44)['derivations']
-          as Map<String, Map<String, String>>;
+      final receiveResults = futuresResult[0];
+      final changeResults = futuresResult[1];
 
-      p2shReceiveAddressArray =
-          (await resultReceive49)['addressArray'] as List<isar_models.Address>;
-      p2shReceiveIndex = (await resultReceive49)['index'] as int;
-      p2shReceiveDerivations = (await resultReceive49)['derivations']
-          as Map<String, Map<String, String>>;
-
-      bip44P2pkhChangeAddressArray = (await bip44ResultChange)['addressArray']
-          as List<isar_models.Address>;
-      bip44P2pkhChangeIndex = (await bip44ResultChange)['index'] as int;
-      bip44P2pkhChangeDerivations = (await bip44ResultChange)['derivations']
-          as Map<String, Map<String, String>>;
-
-      p2shChangeAddressArray =
-          (await resultChange49)['addressArray'] as List<isar_models.Address>;
-      p2shChangeIndex = (await resultChange49)['index'] as int;
-      p2shChangeDerivations = (await resultChange49)['derivations']
-          as Map<String, Map<String, String>>;
-
-      // save the derivations (if any)
-      if (bip44P2pkhReceiveDerivations.isNotEmpty) {
-        await addDerivations(
-            chain: 0,
-            derivePathType: DerivePathType.bip44,
-            derivationsToAdd: bip44P2pkhReceiveDerivations);
-      }
-      if (p2shReceiveDerivations.isNotEmpty) {
-        await addDerivations(
-            chain: 0,
-            derivePathType: DerivePathType.bip49,
-            derivationsToAdd: p2shReceiveDerivations);
-      }
-      if (bip44P2pkhChangeDerivations.isNotEmpty) {
-        await addDerivations(
-            chain: 1,
-            derivePathType: DerivePathType.bip44,
-            derivationsToAdd: bip44P2pkhChangeDerivations);
-      }
-      if (p2shChangeDerivations.isNotEmpty) {
-        await addDerivations(
-            chain: 1,
-            derivePathType: DerivePathType.bip49,
-            derivationsToAdd: p2shChangeDerivations);
-      }
-
+      final List<isar_models.Address> addressesToStore = [];
       // If restoring a wallet that never received any funds, then set receivingArray manually
       // If we didn't do this, it'd store an empty array
-      if (bip44P2pkhReceiveIndex == -1) {
-        final address =
-            await _generateAddressForChain(0, 0, DerivePathType.bip44);
-        bip44P2pkhReceiveAddressArray.add(address);
-      }
-      if (p2shReceiveIndex == -1) {
-        final address =
-            await _generateAddressForChain(0, 0, DerivePathType.bip49);
-        p2shReceiveAddressArray.add(address);
+      for (final tuple in receiveResults) {
+        if (tuple.item1.isEmpty) {
+          final address = await _generateAddressForChain(
+            receiveChain,
+            indexZero,
+            tuple.item2,
+          );
+          addressesToStore.add(address);
+        } else {
+          addressesToStore.addAll(tuple.item1);
+        }
       }
 
       // If restoring a wallet that never sent any funds with change, then set changeArray
       // manually. If we didn't do this, it'd store an empty array.
-      if (bip44P2pkhChangeIndex == -1) {
-        final address =
-            await _generateAddressForChain(1, 0, DerivePathType.bip44);
-        bip44P2pkhChangeAddressArray.add(address);
-      }
-      if (p2shChangeIndex == -1) {
-        final address =
-            await _generateAddressForChain(1, 0, DerivePathType.bip49);
-        p2shChangeAddressArray.add(address);
-      }
-
-      final addressesToStore = [
-        ...bip44P2pkhReceiveAddressArray,
-        ...bip44P2pkhChangeAddressArray,
-        ...p2shReceiveAddressArray,
-        ...p2shChangeAddressArray,
-      ];
-
-      if (!testnet) {
-        final resultReceiveBch44 = _checkGaps(
-            maxNumberOfIndexesToCheck,
-            maxUnusedAddressGap,
-            txCountBatchSize,
-            root,
-            DerivePathType.bch44,
-            0);
-        final Future<Map<String, dynamic>> bch44ResultChange = _checkGaps(
-            maxNumberOfIndexesToCheck,
-            maxUnusedAddressGap,
-            txCountBatchSize,
-            root,
-            DerivePathType.bch44,
-            1);
-        await Future.wait([
-          resultReceiveBch44,
-          bch44ResultChange,
-        ]);
-
-        bch44P2pkhReceiveAddressArray =
-            (await resultReceiveBch44)['addressArray']
-                as List<isar_models.Address>;
-        bch44P2pkhReceiveIndex = (await resultReceiveBch44)['index'] as int;
-        bch44P2pkhReceiveDerivations = (await resultReceiveBch44)['derivations']
-            as Map<String, Map<String, String>>;
-
-        bch44P2pkhChangeAddressArray = (await bch44ResultChange)['addressArray']
-            as List<isar_models.Address>;
-        bch44P2pkhChangeIndex = (await bch44ResultChange)['index'] as int;
-        bch44P2pkhChangeDerivations = (await bch44ResultChange)['derivations']
-            as Map<String, Map<String, String>>;
-
-        if (bch44P2pkhReceiveDerivations.isNotEmpty) {
-          await addDerivations(
-              chain: 0,
-              derivePathType: DerivePathType.bch44,
-              derivationsToAdd: bch44P2pkhReceiveDerivations);
+      for (final tuple in changeResults) {
+        if (tuple.item1.isEmpty) {
+          final address = await _generateAddressForChain(
+            changeChain,
+            indexZero,
+            tuple.item2,
+          );
+          addressesToStore.add(address);
+        } else {
+          addressesToStore.addAll(tuple.item1);
         }
-        if (bch44P2pkhChangeDerivations.isNotEmpty) {
-          await addDerivations(
-              chain: 1,
-              derivePathType: DerivePathType.bch44,
-              derivationsToAdd: bch44P2pkhChangeDerivations);
-        }
-
-        if (bch44P2pkhReceiveIndex == -1) {
-          final address =
-              await _generateAddressForChain(0, 0, DerivePathType.bch44);
-          bch44P2pkhReceiveAddressArray.add(address);
-        }
-
-        if (bch44P2pkhChangeIndex == -1) {
-          final address =
-              await _generateAddressForChain(1, 0, DerivePathType.bch44);
-          bch44P2pkhChangeAddressArray.add(address);
-        }
-
-        addressesToStore.addAll([
-          ...bch44P2pkhReceiveAddressArray,
-          ...bch44P2pkhChangeAddressArray,
-        ]);
       }
 
       if (isRescan) {
