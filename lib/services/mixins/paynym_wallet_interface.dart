@@ -280,9 +280,10 @@ mixin PaynymWalletInterface {
 
   /// fetch or generate this wallet's bip47 payment code
   Future<PaymentCode> getPaymentCode(
-    DerivePathType derivePathType,
-  ) async {
-    final address = await getMyNotificationAddress(derivePathType);
+    DerivePathType derivePathType, [
+    bip32.BIP32? bip32Root,
+  ]) async {
+    final address = await getMyNotificationAddress(derivePathType, bip32Root);
     final pCodeString = await paymentCodeStringByKey(address.otherData!);
     final paymentCode = PaymentCode.fromPaymentCode(
       pCodeString!,
@@ -1305,8 +1306,9 @@ mixin PaynymWalletInterface {
   }
 
   Future<Address> getMyNotificationAddress(
-    DerivePathType derivePathType,
-  ) async {
+    DerivePathType derivePathType, [
+    bip32.BIP32? bip32Root,
+  ]) async {
     // TODO: fix when segwit is here
     derivePathType = DerivePathType.bip44;
 
@@ -1339,10 +1341,11 @@ mixin PaynymWalletInterface {
     if (storedAddress != null) {
       return storedAddress;
     } else {
-      final root = await _getRootNode(
-        mnemonic: (await _getMnemonicString())!,
-        mnemonicPassphrase: (await _getMnemonicPassphrase())!,
-      );
+      final root = bip32Root ??
+          await _getRootNode(
+            mnemonic: (await _getMnemonicString())!,
+            mnemonicPassphrase: (await _getMnemonicPassphrase())!,
+          );
       final node = root.derivePath(kPaynymDerivePath);
       final paymentCode = PaymentCode.fromBip32Node(
         node,

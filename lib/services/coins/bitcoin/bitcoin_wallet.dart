@@ -660,7 +660,7 @@ class BitcoinWallet extends CoinServiceAPI
       }
 
       // get own payment code
-      final myCode = await getPaymentCode(DerivePathType.bip44);
+      final myCode = await getPaymentCode(DerivePathType.bip44, root);
 
       // refresh transactions to pick up any received notification transactions
       await _refreshTransactions();
