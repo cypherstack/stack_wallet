@@ -12,6 +12,8 @@ import 'package:uuid/uuid.dart';
 class StackTheme {
   final String assetBundleUrl;
 
+  final ThemeType themeType = ThemeType.dark;
+
   /// should be a uuid
   @Index(unique: true, replace: true)
   final String internalId;
@@ -65,6 +67,19 @@ class StackTheme {
   @ignore
   Gradient? _gradientBackground;
   final String gradientBackgroundString;
+
+  // ==== boxShadows =====================================================
+
+  // @ignore
+  // Gradient get boxShadows =>
+  //     _boxShadows ??= .fromJson(
+  //       Map<String, dynamic>.from(
+  //         jsonDecode(boxShadowsString) as Map,
+  //       ),
+  //     );
+  // @ignore
+  // Gradient? _gradientBackground;
+  // final String gradientBackgroundString;
 
   // ==== overlay =====================================================
 
@@ -1426,14 +1441,10 @@ class StackTheme {
   Map<Coin, Color>? _coinColors;
   final String coinColorsJsonString;
 
-  // ===========================================================================
-
   // ==== assets =====================================================
-  final String circleLock;
 
   final ThemeAssets assets;
 
-  // ===========================================================================
   // ===========================================================================
 
   StackTheme({
@@ -1594,7 +1605,6 @@ class StackTheme {
     required this.tokenSummaryButtonBGInt,
     required this.tokenSummaryIconInt,
     required this.coinColorsJsonString,
-    required this.circleLock,
   });
 
   factory StackTheme.fromJson({
@@ -1607,9 +1617,10 @@ class StackTheme {
       name: json["name"] as String,
       assetBundleUrl: json["assetBundleUrl"] as String,
       brightnessString: json["brightness"] as String,
-      backgroundInt: parseColor(json["colors"]["background"] as String),
-      backgroundAppBarInt:
-          parseColor(json["colors"]["backgroundAppBar"] as String),
+      backgroundInt: parseColor(
+          json["colors"]["background_colors"]["background"] as String),
+      backgroundAppBarInt: parseColor(
+          json["colors"]["background_colors"]["backgroundAppBar"] as String),
       gradientBackgroundString:
           jsonEncode(json["gradients"]["gradientBackground"] as Map),
       coinColorsJsonString: jsonEncode(json["coinColors"] as Map),
@@ -1618,6 +1629,297 @@ class StackTheme {
         applicationThemesDirectoryPath: applicationThemesDirectoryPath,
         internalThemeUuid: _id,
       ),
+      overlayInt: parseColor(json["colors"]["overlay"] as String),
+      accentColorBlueInt:
+          parseColor(json["colors"]["accent_colors"]["blue"] as String),
+      accentColorGreenInt:
+          parseColor(json["colors"]["accent_colors"]["green"] as String),
+      accentColorYellowInt:
+          parseColor(json["colors"]["accent_colors"]["yellow"] as String),
+      accentColorRedInt:
+          parseColor(json["colors"]["accent_colors"]["red"] as String),
+      accentColorOrangeInt:
+          parseColor(json["colors"]["accent_colors"]["orange"] as String),
+      accentColorDarkInt:
+          parseColor(json["colors"]["accent_colors"]["dark"] as String),
+      shadowInt: parseColor(json["colors"]["shadow"] as String),
+      textDarkInt:
+          parseColor(json["colors"]["text_colors"]["dark_one"] as String),
+      textDark2Int:
+          parseColor(json["colors"]["text_colors"]["dark_two"] as String),
+      textDark3Int:
+          parseColor(json["colors"]["text_colors"]["dark_three"] as String),
+      textWhiteInt:
+          parseColor(json["colors"]["text_colors"]["white"] as String),
+      textFavoriteCardInt:
+          parseColor(json["colors"]["text_colors"]["favorite"] as String),
+      textErrorInt:
+          parseColor(json["colors"]["text_colors"]["error"] as String),
+      textRestoreInt:
+          parseColor(json["colors"]["text_colors"]["restore"] as String),
+      buttonBackPrimaryInt:
+          parseColor(json["colors"]["button_back_colors"]["primary"] as String),
+      buttonBackSecondaryInt: parseColor(
+          json["colors"]["button_back_colors"]["secondary"] as String),
+      buttonBackPrimaryDisabledInt: parseColor(
+          json["colors"]["button_back_colors"]["primary_disabled"] as String),
+      buttonBackSecondaryDisabledInt: parseColor(
+          json["colors"]["button_back_colors"]["secondary_disabled"] as String),
+      buttonBackBorderInt:
+          parseColor(json["colors"]["button_back_colors"]["border"] as String),
+      buttonBackBorderDisabledInt: parseColor(
+          json["colors"]["button_back_colors"]["border_disabled"] as String),
+      buttonBackBorderSecondaryInt: parseColor(
+          json["colors"]["button_back_colors"]["border_secondary"] as String),
+      buttonBackBorderSecondaryDisabledInt: parseColor(json["colors"]
+          ["button_back_colors"]["border_secondary_disabled"] as String),
+      numberBackDefaultInt:
+          parseColor(json["colors"]["button_back_colors"]["number"] as String),
+      numpadBackDefaultInt:
+          parseColor(json["colors"]["button_back_colors"]["numpad"] as String),
+      bottomNavBackInt:
+          parseColor(json["colors"]["button_back_colors"]["nav"] as String),
+      textSubtitle1Int: parseColor(
+          json["colors"]["text_subtitles"]["subtitle_one"] as String),
+      textSubtitle2Int: parseColor(
+          json["colors"]["text_subtitles"]["subtitle_two"] as String),
+      textSubtitle3Int: parseColor(
+          json["colors"]["text_subtitles"]["subtitle_three"] as String),
+      textSubtitle4Int: parseColor(
+          json["colors"]["text_subtitles"]["subtitle_four"] as String),
+      textSubtitle5Int: parseColor(
+          json["colors"]["text_subtitles"]["subtitle_five"] as String),
+      textSubtitle6Int: parseColor(
+          json["colors"]["text_subtitles"]["subtitle_six"] as String),
+      buttonTextPrimaryInt:
+          parseColor(json["colors"]["button_text"]["primary"] as String),
+      buttonTextSecondaryInt: parseColor(
+          json["colors"]["button_text_colors"]["secondary"] as String),
+      buttonTextPrimaryDisabledInt: parseColor(
+          json["colors"]["button_text_colors"]["primary_disabled"] as String),
+      buttonTextSecondaryDisabledInt: parseColor(
+          json["colors"]["button_text_colors"]["secondary_disabled"] as String),
+      buttonTextBorderInt:
+          parseColor(json["colors"]["button_text_colors"]["border"] as String),
+      buttonTextDisabledInt: parseColor(
+          json["colors"]["button_text_colors"]["disabled"] as String),
+      buttonTextBorderlessInt: parseColor(
+          json["colors"]["button_text_colors"]["borderless"] as String),
+      buttonTextBorderlessDisabledInt: parseColor(json["colors"]
+          ["button_text_colors"]["borderless_disabled"] as String),
+      numberTextDefaultInt:
+          parseColor(json["colors"]["number_text_default"] as String),
+      numpadTextDefaultInt:
+          parseColor(json["colors"]["numpad_text_default"] as String),
+      bottomNavTextInt: parseColor(json["colors"]["bottom_nav_text"] as String),
+      customTextButtonEnabledTextInt: parseColor(
+          json["colors"]["custom_text_button_enabled_text"] as String),
+      customTextButtonDisabledTextInt: parseColor(
+          json["colors"]["custom_text_button_disabled_text"] as String),
+      switchBGOnInt:
+          parseColor(json["colors"]["switch_colors"]["bg_on"] as String),
+      switchBGOffInt:
+          parseColor(json["colors"]["switch_colors"]["bg_off"] as String),
+      switchBGDisabledInt:
+          parseColor(json["colors"]["switch_colors"]["bg_disabled"] as String),
+      switchCircleOnInt:
+          parseColor(json["colors"]["switch_colors"]["circle_on"] as String),
+      switchCircleOffInt:
+          parseColor(json["colors"]["switch_colors"]["circle_off"] as String),
+      switchCircleDisabledInt: parseColor(
+          json["colors"]["switch_colors"]["circle_disabled"] as String),
+      stepIndicatorBGCheckInt:
+          parseColor(json["colors"]["step_indicator"]["bg_check"] as String),
+      stepIndicatorBGNumberInt:
+          parseColor(json["colors"]["step_indicator"]["bg_number"] as String),
+      stepIndicatorBGInactiveInt:
+          parseColor(json["colors"]["step_indicator"]["bg_inactive"] as String),
+      stepIndicatorBGLinesInt:
+          parseColor(json["colors"]["step_indicator"]["bg_lines"] as String),
+      stepIndicatorBGLinesInactiveInt: parseColor(
+          json["colors"]["step_indicator"]["bg_lines_inactive"] as String),
+      stepIndicatorIconTextInt:
+          parseColor(json["colors"]["step_indicator"]["icon_text"] as String),
+      stepIndicatorIconNumberInt:
+          parseColor(json["colors"]["step_indicator"]["icon_number"] as String),
+      stepIndicatorIconInactiveInt: parseColor(
+          json["colors"]["step_indicator"]["icon_inactive"] as String),
+      checkboxBGCheckedInt:
+          parseColor(json["colors"]["checkbox"]["bg_checked"] as String),
+      checkboxBorderEmptyInt:
+          parseColor(json["colors"]["checkbox"]["border_empty"] as String),
+      checkboxBGDisabledInt:
+          parseColor(json["colors"]["checkbox"]["bg_disabled"] as String),
+      checkboxIconCheckedInt:
+          parseColor(json["colors"]["checkbox"]["icon_checked"] as String),
+      checkboxIconDisabledInt:
+          parseColor(json["colors"]["checkbox"]["icon_disabled"] as String),
+      checkboxTextLabelInt:
+          parseColor(json["colors"]["checkbox"]["text_label"] as String),
+      snackBarBackSuccessInt:
+          parseColor(json["colors"]["snack_bar"]["back_success"] as String),
+      snackBarBackErrorInt:
+          parseColor(json["colors"]["snack_bar"]["back_error"] as String),
+      snackBarBackInfoInt:
+          parseColor(json["colors"]["snack_bar"]["back_info"] as String),
+      snackBarTextSuccessInt:
+          parseColor(json["colors"]["snack_bar"]["text_success"] as String),
+      snackBarTextErrorInt:
+          parseColor(json["colors"]["snack_bar"]["text_error"] as String),
+      snackBarTextInfoInt:
+          parseColor(json["colors"]["snack_bar"]["text_info"] as String),
+      bottomNavIconBackInt:
+          parseColor(json["colors"]["icons"]["bottom_nav_icon_back"] as String),
+      bottomNavIconIconInt:
+          parseColor(json["colors"]["icons"]["bottom_nav_icon_icon"] as String),
+      topNavIconPrimaryInt:
+          parseColor(json["colors"]["icons"]["top_nav_icon_primary"] as String),
+      topNavIconGreenInt:
+          parseColor(json["colors"]["icons"]["top_nav_icon_green"] as String),
+      topNavIconYellowInt:
+          parseColor(json["colors"]["icons"]["top_nav_icon_yellow"] as String),
+      topNavIconRedInt:
+          parseColor(json["colors"]["icons"]["top_nav_icon_red"] as String),
+      settingsIconBackInt:
+          parseColor(json["colors"]["icons"]["settings_icon_back"] as String),
+      settingsIconIconInt:
+          parseColor(json["colors"]["icons"]["settings_icon_icon"] as String),
+      settingsIconBack2Int: parseColor(
+          json["colors"]["icons"]["settings_icon_back_two"] as String),
+      settingsIconElementInt: parseColor(
+          json["colors"]["icons"]["settings_icon_element"] as String),
+      textFieldActiveBGInt:
+          parseColor(json["colors"]["text_field"]["active_bg"] as String),
+      textFieldDefaultBGInt:
+          parseColor(json["colors"]["text_field"]["default_bg"] as String),
+      textFieldErrorBGInt:
+          parseColor(json["colors"]["text_field"]["error_bg"] as String),
+      textFieldSuccessBGInt:
+          parseColor(json["colors"]["text_field"]["success_bg"] as String),
+      textFieldErrorBorderInt:
+          parseColor(json["colors"]["text_field"]["error_border"] as String),
+      textFieldSuccessBorderInt:
+          parseColor(json["colors"]["text_field"]["success_border"] as String),
+      textFieldActiveSearchIconLeftInt: parseColor(
+          json["colors"]["text_field"]["active_search_icon_left"] as String),
+      textFieldDefaultSearchIconLeftInt: parseColor(
+          json["colors"]["text_field"]["default_search_icon_left"] as String),
+      textFieldErrorSearchIconLeftInt: parseColor(
+          json["colors"]["text_field"]["error_search_icon_left"] as String),
+      textFieldSuccessSearchIconLeftInt: parseColor(
+          json["colors"]["text_field"]["success_search_icon_left"] as String),
+      textFieldActiveTextInt:
+          parseColor(json["colors"]["text_field"]["active_text"] as String),
+      textFieldDefaultTextInt:
+          parseColor(json["colors"]["text_field"]["default_text"] as String),
+      textFieldErrorTextInt:
+          parseColor(json["colors"]["text_field"]["error_text"] as String),
+      textFieldSuccessTextInt:
+          parseColor(json["colors"]["text_field"]["success_text"] as String),
+      textFieldActiveLabelInt:
+          parseColor(json["colors"]["text_field"]["active_label"] as String),
+      textFieldErrorLabelInt:
+          parseColor(json["colors"]["text_field"]["error_label"] as String),
+      textFieldSuccessLabelInt:
+          parseColor(json["colors"]["text_field"]["success_label"] as String),
+      textFieldActiveSearchIconRightInt: parseColor(
+          json["colors"]["text_field"]["active_search_icon_right"] as String),
+      textFieldDefaultSearchIconRightInt: parseColor(
+          json["colors"]["text_field"]["default_search_icon_right"] as String),
+      textFieldErrorSearchIconRightInt: parseColor(
+          json["colors"]["text_field"]["error_search_icon_right"] as String),
+      textFieldSuccessSearchIconRightInt: parseColor(
+          json["colors"]["text_field"]["success_search_icon_right"] as String),
+      settingsItem2ActiveBGInt: parseColor(
+          json["colors"]["settings_item_level_two"]["active_bg"] as String),
+      settingsItem2ActiveTextInt: parseColor(
+          json["colors"]["settings_item_level_two"]["active_text"] as String),
+      settingsItem2ActiveSubInt: parseColor(
+          json["colors"]["settings_item_level_two"]["active_sub"] as String),
+      radioButtonIconBorderInt:
+          parseColor(json["colors"]["radio_button"]["icon_border"] as String),
+      radioButtonIconBorderDisabledInt: parseColor(
+          json["colors"]["radio_button"]["icon_border_disabled"] as String),
+      radioButtonBorderEnabledInt: parseColor(
+          json["colors"]["radio_button"]["border_enabled"] as String),
+      radioButtonBorderDisabledInt: parseColor(
+          json["colors"]["radio_button"]["border_disabled"] as String),
+      radioButtonIconCircleInt:
+          parseColor(json["colors"]["radio_button"]["icon_circle"] as String),
+      radioButtonIconEnabledInt:
+          parseColor(json["colors"]["radio_button"]["icon_circle"] as String),
+      radioButtonTextEnabledInt:
+          parseColor(json["colors"]["radio_button"]["text_enabled"] as String),
+      radioButtonTextDisabledInt:
+          parseColor(json["colors"]["radio_button"]["text_disabled"] as String),
+      radioButtonLabelEnabledInt:
+          parseColor(json["colors"]["radio_button"]["label_enabled"] as String),
+      radioButtonLabelDisabledInt: parseColor(
+          json["colors"]["radio_button"]["label_disabled"] as String),
+      infoItemBGInt:
+          parseColor(json["colors"]["info_text"]["item_bg"] as String),
+      infoItemLabelInt:
+          parseColor(json["colors"]["info_text"]["item_label"] as String),
+      infoItemTextInt:
+          parseColor(json["colors"]["info_text"]["item_text"] as String),
+      infoItemIconsInt:
+          parseColor(json["colors"]["info_text"]["item_icons"] as String),
+      popupBGInt: parseColor(json["colors"]["popup_bg"] as String),
+      currencyListItemBGInt:
+          parseColor(json["colors"]["currency_list_item_bg"] as String),
+      stackWalletBGInt:
+          parseColor(json["colors"]["bottom_nav"]["sw_bg"] as String),
+      stackWalletMidInt:
+          parseColor(json["colors"]["bottom_nav"]["sw_mid"] as String),
+      stackWalletBottomInt:
+          parseColor(json["colors"]["bottom_nav"]["sw_bottom"] as String),
+      bottomNavShadowInt:
+          parseColor(json["colors"]["bottom_nav"]["shadow"] as String),
+      splashInt: parseColor(json["colors"]["bottom_nav"]["splash"] as String),
+      highlightInt:
+          parseColor(json["colors"]["bottom_nav"]["highlight"] as String),
+      warningForegroundInt: parseColor(
+          json["colors"]["bottom_nav"]["warning_foreground"] as String),
+      warningBackgroundInt: parseColor(
+          json["colors"]["bottom_nav"]["warning_background"] as String),
+      loadingOverlayTextColorInt: parseColor(
+          json["colors"]["bottom_nav"]["loading_overlay_text_color"] as String),
+      myStackContactIconBGInt: parseColor(
+          json["colors"]["bottom_nav"]["my_stack_contact_icon_bg"] as String),
+      textConfirmTotalAmountInt: parseColor(
+          json["colors"]["bottom_nav"]["text_confirm_total_amount"] as String),
+      textSelectedWordTableItemInt: parseColor(json["colors"]["bottom_nav"]
+          ["text_selected_word_table_iterm"] as String),
+      favoriteStarActiveInt:
+          parseColor(json["colors"]["favorite_star"]["active"] as String),
+      favoriteStarInactiveInt:
+          parseColor(json["colors"]["favorite_star"]["inactive"] as String),
+      rateTypeToggleColorOnInt:
+          parseColor(json["colors"]["rate_type_toggle"]["color_on"] as String),
+      rateTypeToggleColorOffInt:
+          parseColor(json["colors"]["rate_type_toggle"]["color_off"] as String),
+      rateTypeToggleDesktopColorOnInt: parseColor(
+          json["colors"]["rate_type_toggle"]["desktop_color_on"] as String),
+      rateTypeToggleDesktopColorOffInt: parseColor(
+          json["colors"]["rate_type_toggle"]["desktop_color_off"] as String),
+      ethTagTextInt:
+          parseColor(json["colors"]["token_view"]["eth_tag_text"] as String),
+      ethTagBGInt:
+          parseColor(json["colors"]["token_view"]["eth_tag_bg"] as String),
+      ethWalletTagTextInt: parseColor(
+          json["colors"]["token_view"]["eth_wallet_tag_text"] as String),
+      ethWalletTagBGInt: parseColor(
+          json["colors"]["token_view"]["eth_wallet_tag_bg"] as String),
+      tokenSummaryTextPrimaryInt: parseColor(
+          json["colors"]["token_view"]["token_summary_text_primary"] as String),
+      tokenSummaryTextSecondaryInt: parseColor(json["colors"]["token_view"]
+          ["token_summary_text_secondary"] as String),
+      tokenSummaryBGInt: parseColor(
+          json["colors"]["token_view"]["token_summary_bg"] as String),
+      tokenSummaryButtonBGInt: parseColor(
+          json["colors"]["token_view"]["token_summary_button_bg"] as String),
+      tokenSummaryIconInt: parseColor(
+          json["colors"]["token_view"]["token_summary_icon"] as String),
     );
   }
 
