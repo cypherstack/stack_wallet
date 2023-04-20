@@ -9,14 +9,12 @@ import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:uuid/uuid.dart';
 
 @Collection(inheritance: false)
-class ColorTheme {
-  static String themesDirPath = "/djhfgj/sdfd/themes/";
-
+class StackTheme {
   final String assetBundleUrl;
 
   /// should be a uuid
   @Index(unique: true, replace: true)
-  final String id;
+  final String internalId;
 
   /// the theme name that will be displayed in app
   final String name;
@@ -39,21 +37,18 @@ class ColorTheme {
   }
 
   @ignore
-  Color get background => _background ??= Color(
-        backgroundString.toBigIntFromHex.toInt(),
-      );
+  Color get background => _background ??= Color(backgroundInt);
   @ignore
   Color? _background;
-  final String backgroundString;
+  final int backgroundInt;
 
   // ==== backgroundAppBar =====================================================
   @ignore
-  Color get backgroundAppBar => _backgroundAppBar ??= Color(
-        backgroundAppBarString.toBigIntFromHex.toInt(),
-      );
+  Color get backgroundAppBar =>
+      _backgroundAppBar ??= Color(backgroundAppBarInt);
   @ignore
   Color? _backgroundAppBar;
-  final String backgroundAppBarString;
+  final int backgroundAppBarInt;
   // ===========================================================================
 
   @ignore
@@ -67,45 +62,82 @@ class ColorTheme {
   Gradient? _gradientBackground;
   final String gradientBackgroundString;
 
+  // ===========================================================================
+
   @ignore
   Map<Coin, Color> get coinColors =>
-      _coinColors ??= parseCoinColors(coinColorsString);
+      _coinColors ??= parseCoinColors(coinColorsJsonString);
   @ignore
   Map<Coin, Color>? _coinColors;
-  final String coinColorsString;
+  final String coinColorsJsonString;
 
-  // ==== assets =====================================================
-  final String circleLock;
+  // ===========================================================================
 
-  ColorTheme({
-    required this.id,
+  // ===========================================================================
+  // ===========================================================================
+
+  final ThemeAssets assets;
+
+  // ===========================================================================
+  // ===========================================================================
+
+  StackTheme({
+    required this.internalId,
     required this.assetBundleUrl,
     required this.name,
     required this.brightnessString,
-    required this.backgroundString,
-    required this.backgroundAppBarString,
+    required this.backgroundInt,
+    required this.backgroundAppBarInt,
     required this.gradientBackgroundString,
-    required this.coinColorsString,
-    required this.circleLock,
+    required this.coinColorsJsonString,
+    required this.assets,
   });
 
-  factory ColorTheme.fromJson(Map<String, dynamic> json) {
+  factory StackTheme.fromJson({
+    required Map<String, dynamic> json,
+    required String applicationThemesDirectoryPath,
+  }) {
     final _id = const Uuid().v1();
-    return ColorTheme(
-      id: _id,
+    return StackTheme(
+      internalId: _id,
       name: json["name"] as String,
       assetBundleUrl: json["assetBundleUrl"] as String,
       brightnessString: json["brightness"] as String,
-      backgroundString: json["colors"]["background"] as String,
-      backgroundAppBarString: json["colors"]["backgroundAppBar"] as String,
+      backgroundInt: parseColor(json["colors"]["background"] as String),
+      backgroundAppBarInt:
+          parseColor(json["colors"]["backgroundAppBar"] as String),
       gradientBackgroundString:
           jsonEncode(json["gradients"]["gradientBackground"] as Map),
-      coinColorsString: jsonEncode(json["coinColors"] as Map),
-      circleLock:
-          "$themesDirPath/$_id/${json["assets"]["circleLock"] as String}",
+      coinColorsJsonString: jsonEncode(json["coinColors"] as Map),
+      assets: ThemeAssets.fromJson(
+        json: json,
+        applicationThemesDirectoryPath: applicationThemesDirectoryPath,
+        internalThemeUuid: _id,
+      ),
     );
   }
 
+  /// Grab the int value of the hex color string.
+  /// 8 char string value expected where the first 2 are opacity
+  static int parseColor(String colorHex) {
+    try {
+      final int colorValue = colorHex.toBigIntFromHex.toInt();
+      if (colorValue >= 0 && colorValue <= 0xFFFFFFFF) {
+        return colorValue;
+      } else {
+        throw ArgumentError(
+          '"$colorHex" and corresponding int '
+          'value "$colorValue" is not a valid color.',
+        );
+      }
+    } catch (_) {
+      throw ArgumentError(
+        '"$colorHex" is not a valid hex number',
+      );
+    }
+  }
+
+  /// parse coin colors json and fetch color or use default
   static Map<Coin, Color> parseCoinColors(String jsonString) {
     final json = jsonDecode(jsonString) as Map;
     final map = Map<String, dynamic>.from(json);
@@ -123,5 +155,27 @@ class ColorTheme {
     }
 
     return result;
+  }
+}
+
+@Embedded(inheritance: false)
+class ThemeAssets {
+  final String plus;
+
+  // todo: add all assets expected in json
+
+  ThemeAssets({
+    required this.plus,
+  });
+
+  factory ThemeAssets.fromJson({
+    required Map<String, dynamic> json,
+    required String applicationThemesDirectoryPath,
+    required String internalThemeUuid,
+  }) {
+    return ThemeAssets(
+      plus:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["plus.svg"] as String}",
+    );
   }
 }

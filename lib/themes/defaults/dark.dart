@@ -193,14 +193,14 @@ final Map<String, dynamic> darkJson = {
     {
       "type": "standard",
       "color": "0x0F2D3132",
-      "spread_radius": 3,
-      "blur_radius": 4
+      "spread_radius": 3.0,
+      "blur_radius": 4.0
     },
     {
       "type": "home_view_button_bar",
       "color": "0x0F2D3132",
-      "spread_radius": 3,
-      "blur_radius": 4
+      "spread_radius": 3.0,
+      "blur_radius": 4.0
     }
   ]
 };
