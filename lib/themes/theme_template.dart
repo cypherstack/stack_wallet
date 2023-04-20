@@ -37,6 +37,19 @@ final Map<String, dynamic> darkJson = {
       "error": "0xFFF37475",
       "restore": "0xFF111215"
     },
+    "button_back_colors": {
+      "primary": "0xFF4C86E9",
+      "secondary": "0xFF444E5C",
+      "primary_disabled": "0xFF38517C",
+      "secondary_disabled": "0xFF3B3F46",
+      "border": "0xFF4C86E9",
+      "border_disabled": "0xFF314265",
+      "border_secondary": "0xFF444E5C",
+      "border_secondary_disabled": "0xFF3B3F46",
+      "number": "0xFF484B51",
+      "numpad": "0xFF4C86E9",
+      "nav": "0xFF3E4148",
+    },
     "button_text_colors": {
       "primary": "0xFFFFFFFF",
       "secondary": "0xFFFFFFFF",
@@ -198,6 +211,7 @@ final Map<String, dynamic> darkJson = {
     "token_summary_button_bg": "0xFFC9D0FF",
     "token_summary_icon": "0xFF252C78"
   },
+  //Optional box shadow, not all themes will have this
   "box_shadows": [
     {
       "type": "standard",
@@ -205,7 +219,6 @@ final Map<String, dynamic> darkJson = {
       "spread_radius": 3,
       "blur_radius": 4
     },
-    //Optional box shadow, not all themes will have this
     {
       "type": "home_view_button_bar",
       "color": "0x0F2D3132",
