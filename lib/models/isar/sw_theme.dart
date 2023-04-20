@@ -1440,6 +1440,7 @@ class StackTheme {
     required this.internalId,
     required this.assetBundleUrl,
     required this.name,
+    required this.assets,
     required this.brightnessString,
     required this.backgroundInt,
     required this.backgroundAppBarInt,
@@ -1659,6 +1660,7 @@ class StackTheme {
 
     return result;
   }
+}
 
 @Embedded(inheritance: false)
 class ThemeAssets {
