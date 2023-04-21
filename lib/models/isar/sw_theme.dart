@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/extensions/impl/box_shadow.dart';
 import 'package:stackwallet/utilities/extensions/impl/gradient.dart';
 import 'package:stackwallet/utilities/extensions/impl/string.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
@@ -70,16 +71,15 @@ class StackTheme {
 
   // ==== boxShadows =====================================================
 
-  // @ignore
-  // Gradient get boxShadows =>
-  //     _boxShadows ??= .fromJson(
-  //       Map<String, dynamic>.from(
-  //         jsonDecode(boxShadowsString) as Map,
-  //       ),
-  //     );
-  // @ignore
-  // Gradient? _gradientBackground;
-  // final String gradientBackgroundString;
+  @ignore
+  BoxShadow get boxShadows => _boxShadows ??= BoxShadowExt.fromJson(
+        Map<String, dynamic>.from(
+          jsonDecode(boxShadowsString) as Map,
+        ),
+      );
+  @ignore
+  BoxShadow? _boxShadows;
+  final String boxShadowsString;
 
   // ==== overlay =====================================================
 
@@ -1456,6 +1456,7 @@ class StackTheme {
     required this.backgroundInt,
     required this.backgroundAppBarInt,
     required this.gradientBackgroundString,
+    required this.boxShadowsString,
     required this.overlayInt,
     required this.accentColorBlueInt,
     required this.accentColorGreenInt,
@@ -1622,7 +1623,8 @@ class StackTheme {
       backgroundAppBarInt: parseColor(
           json["colors"]["background_colors"]["backgroundAppBar"] as String),
       gradientBackgroundString:
-          jsonEncode(json["gradients"]["gradientBackground"] as Map),
+          jsonEncode(json["gradients"]["background"] as Map),
+      boxShadowsString: jsonEncode(json["box_shadows"] as Map),
       coinColorsJsonString: jsonEncode(json["coinColors"] as Map),
       assets: ThemeAssets.fromJson(
         json: json,
