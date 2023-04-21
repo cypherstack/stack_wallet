@@ -162,7 +162,6 @@ class BitcoinWallet extends CoinServiceAPI
       checkChangeAddressForTransactions: _checkChangeAddressForTransactions,
       // checkChangeAddressForTransactions:
       //     _checkP2PKHChangeAddressForTransactions,
-      addDerivation: addDerivation,
       dustLimitP2PKH: DUST_LIMIT_P2PKH.raw.toInt(),
       minConfirms: MINIMUM_CONFIRMATIONS,
     );
@@ -1588,37 +1587,6 @@ class BitcoinWallet extends CoinServiceAPI
     final derivationsString = await _secureStore.read(key: key);
     return Map<String, dynamic>.from(
         jsonDecode(derivationsString ?? "{}") as Map);
-  }
-
-  /// Add a single derivation to the local secure storage for [chain] and
-  /// [derivePathType] where [chain] must either be 1 for change or 0 for receive.
-  /// This will overwrite a previous entry where the address of the new derivation
-  /// matches a derivation currently stored.
-  Future<void> addDerivation({
-    required int chain,
-    required String address,
-    required String pubKey,
-    required String wif,
-    required DerivePathType derivePathType,
-  }) async {
-    // build lookup key
-    final key = _buildDerivationStorageKey(
-        chain: chain, derivePathType: derivePathType);
-
-    // fetch current derivations
-    final derivationsString = await _secureStore.read(key: key);
-    final derivations =
-        Map<String, dynamic>.from(jsonDecode(derivationsString ?? "{}") as Map);
-
-    // add derivation
-    derivations[address] = {
-      "pubKey": pubKey,
-      "wif": wif,
-    };
-
-    // save derivations
-    final newReceiveDerivationsString = jsonEncode(derivations);
-    await _secureStore.write(key: key, value: newReceiveDerivationsString);
   }
 
   Future<List<Map<String, dynamic>>> fastFetch(List<String> allTxHashes) async {

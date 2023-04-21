@@ -28,9 +28,13 @@ import 'package:tuple/tuple.dart';
 
 const kPaynymDerivePath = "m/47'/0'/0'";
 
-mixin PaynymWalletInterface {
-  static const String _connectedKeyPrefix = "paynym_connected_";
+const kPaynymNotificationDerivationPath = "$kPaynymDerivePath/0";
 
+String _receivingPaynymAddressDerivationPath(int index) {
+  return "$kPaynymDerivePath/$index/0";
+}
+
+mixin PaynymWalletInterface {
   // passed in wallet data
   late final String _walletId;
   late final String _walletName;
@@ -64,13 +68,6 @@ mixin PaynymWalletInterface {
   ) _fetchBuildTxData;
   late final Future<void> Function() _refresh;
   late final Future<void> Function() _checkChangeAddressForTransactions;
-  late final Future<void> Function({
-    required int chain,
-    required String address,
-    required String pubKey,
-    required String wif,
-    required DerivePathType derivePathType,
-  }) _addDerivation;
 
   // initializer
   void initPaynymWalletInterface({
@@ -108,14 +105,6 @@ mixin PaynymWalletInterface {
         fetchBuildTxData,
     required Future<void> Function() refresh,
     required Future<void> Function() checkChangeAddressForTransactions,
-    required Future<void> Function({
-      required int chain,
-      required String address,
-      required String pubKey,
-      required String wif,
-      required DerivePathType derivePathType,
-    })
-        addDerivation,
   }) {
     _walletId = walletId;
     _walletName = walletName;
@@ -136,7 +125,6 @@ mixin PaynymWalletInterface {
     _fetchBuildTxData = fetchBuildTxData;
     _refresh = refresh;
     _checkChangeAddressForTransactions = checkChangeAddressForTransactions;
-    _addDerivation = addDerivation;
   }
 
   // convenience getter
@@ -1022,8 +1010,7 @@ mixin PaynymWalletInterface {
               value: notificationAddress,
               publicKey: [],
               derivationIndex: 0,
-              derivationPath:
-                  null, // might as well use null due to complexity of context
+              derivationPath: oldAddress.derivationPath,
               type: oldAddress.type,
               subType: AddressSubType.paynymNotification,
               otherData: await storeCode(code.toString()),
@@ -1271,8 +1258,8 @@ mixin PaynymWalletInterface {
       value: addressString,
       publicKey: pair.publicKey,
       derivationIndex: derivationIndex,
-      derivationPath:
-          null, // might as well use null due to complexity of context
+      derivationPath: DerivationPath()
+        ..value = _receivingPaynymAddressDerivationPath(derivationIndex),
       type: addrType,
       subType: AddressSubType.paynymReceive,
       otherData: await storeCode(fromPaymentCode.toString()),
@@ -1292,14 +1279,6 @@ mixin PaynymWalletInterface {
       pair.privateKey!,
       myCode.getChain(),
       bip32NetworkType,
-    );
-
-    await _addDerivation(
-      chain: 0,
-      address: address.value,
-      derivePathType: DerivePathType.bip44,
-      pubKey: Format.uint8listToString(node.publicKey),
-      wif: node.toWIF(),
     );
 
     return address;
@@ -1398,19 +1377,11 @@ mixin PaynymWalletInterface {
         value: addressString,
         publicKey: paymentCode.getPubKey(),
         derivationIndex: 0,
-        derivationPath:
-            null, // might as well use null due to complexity of context
+        derivationPath: DerivationPath()
+          ..value = kPaynymNotificationDerivationPath,
         type: type,
         subType: AddressSubType.paynymNotification,
         otherData: await storeCode(paymentCode.toString()),
-      );
-
-      await _addDerivation(
-        chain: 0,
-        address: address.value,
-        derivePathType: DerivePathType.bip44,
-        pubKey: Format.uint8listToString(node.publicKey),
-        wif: node.toWIF(),
       );
 
       await _db.putAddress(address);
