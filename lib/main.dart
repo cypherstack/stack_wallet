@@ -51,6 +51,7 @@ import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/notifications_service.dart';
 import 'package:stackwallet/services/trade_service.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/db_version_migration.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
@@ -66,6 +67,7 @@ import 'package:window_size/window_size.dart';
 final openedFromSWBFileStringStateProvider =
     StateProvider<String?>((ref) => null);
 
+String? themeDirectory;
 // main() is the entry point to the app. It initializes Hive (local database),
 // runs the MyApp widget and checks for new users, caching the value in the
 // miscellaneous box for later use
@@ -178,6 +180,9 @@ void main() async {
     }
   }
 
+  //Add Themes directory - TODO
+  // await StackFileSystem.applicationThemesDirectory();
+
   monero.onStartup();
   wownero.onStartup();
 
@@ -269,6 +274,10 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       if (!Util.isDesktop) {
         await loadShared();
       }
+
+      themeDirectory = ref
+          .read(applicationThemesDirectoryPathProvider.notifier)
+          .state = (await StackFileSystem.applicationThemesDirectory()).path;
 
       _notificationsService = ref.read(notificationsProvider);
       _nodeService = ref.read(nodeServiceChangeNotifierProvider);
