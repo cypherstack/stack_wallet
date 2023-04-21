@@ -417,6 +417,7 @@ class _ANIMATIONS {
   String get test2 => "assets/lottie/test2.json";
   String get iconSend => "assets/lottie/icon_send.json";
   String get loaderAndCheckmark => "assets/lottie/loader_and_checkmark.json";
+  String get arrowRotate => "assets/lottie/arrow_rotate.json";
 }
 
 class _GIF {
