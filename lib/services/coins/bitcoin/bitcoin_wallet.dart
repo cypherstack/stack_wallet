@@ -1505,15 +1505,6 @@ class BitcoinWallet extends CoinServiceAPI
         throw Exception("DerivePathType $derivePathType not supported");
     }
 
-    // add generated address & info to derivations
-    await addDerivation(
-      chain: chain,
-      address: address,
-      pubKey: Format.uint8listToString(node.publicKey),
-      wif: node.toWIF(),
-      derivePathType: derivePathType,
-    );
-
     return isar_models.Address(
       walletId: walletId,
       value: address,
@@ -1624,43 +1615,6 @@ class BitcoinWallet extends CoinServiceAPI
       "pubKey": pubKey,
       "wif": wif,
     };
-
-    // save derivations
-    final newReceiveDerivationsString = jsonEncode(derivations);
-    await _secureStore.write(key: key, value: newReceiveDerivationsString);
-  }
-
-  /// Add multiple derivations to the local secure storage for [chain] and
-  /// [derivePathType] where [chain] must either be 1 for change or 0 for receive.
-  /// This will overwrite any previous entries where the address of the new derivation
-  /// matches a derivation currently stored.
-  /// The [derivationsToAdd] must be in the format of:
-  /// {
-  ///   addressA : {
-  ///     "pubKey": <the pubKey string>,
-  ///     "wif": <the wif string>,
-  ///   },
-  ///   addressB : {
-  ///     "pubKey": <the pubKey string>,
-  ///     "wif": <the wif string>,
-  ///   },
-  /// }
-  Future<void> addDerivations({
-    required int chain,
-    required DerivePathType derivePathType,
-    required Map<String, dynamic> derivationsToAdd,
-  }) async {
-    // build lookup key
-    final key = _buildDerivationStorageKey(
-        chain: chain, derivePathType: derivePathType);
-
-    // fetch current derivations
-    final derivationsString = await _secureStore.read(key: key);
-    final derivations =
-        Map<String, dynamic>.from(jsonDecode(derivationsString ?? "{}") as Map);
-
-    // add derivation
-    derivations.addAll(derivationsToAdd);
 
     // save derivations
     final newReceiveDerivationsString = jsonEncode(derivations);
@@ -2853,121 +2807,6 @@ class BitcoinWallet extends CoinServiceAPI
       rethrow;
     }
   }
-
-  // Future<void> _rescanRestore() async {
-  //   Logging.instance.log("starting rescan restore", level: LogLevel.Info);
-  //
-  //   // restore from backup
-  //   // P2PKH derivations
-  //   final p2pkhReceiveDerivationsString = await _secureStore.read(
-  //       key: "${walletId}_receiveDerivationsP2PKH_BACKUP");
-  //   final p2pkhChangeDerivationsString = await _secureStore.read(
-  //       key: "${walletId}_changeDerivationsP2PKH_BACKUP");
-  //
-  //   await _secureStore.write(
-  //       key: "${walletId}_receiveDerivationsP2PKH",
-  //       value: p2pkhReceiveDerivationsString);
-  //   await _secureStore.write(
-  //       key: "${walletId}_changeDerivationsP2PKH",
-  //       value: p2pkhChangeDerivationsString);
-  //
-  //   await _secureStore.delete(
-  //       key: "${walletId}_receiveDerivationsP2PKH_BACKUP");
-  //   await _secureStore.delete(key: "${walletId}_changeDerivationsP2PKH_BACKUP");
-  //
-  //   // P2SH derivations
-  //   final p2shReceiveDerivationsString = await _secureStore.read(
-  //       key: "${walletId}_receiveDerivationsP2SH_BACKUP");
-  //   final p2shChangeDerivationsString = await _secureStore.read(
-  //       key: "${walletId}_changeDerivationsP2SH_BACKUP");
-  //
-  //   await _secureStore.write(
-  //       key: "${walletId}_receiveDerivationsP2SH",
-  //       value: p2shReceiveDerivationsString);
-  //   await _secureStore.write(
-  //       key: "${walletId}_changeDerivationsP2SH",
-  //       value: p2shChangeDerivationsString);
-  //
-  //   await _secureStore.delete(key: "${walletId}_receiveDerivationsP2SH_BACKUP");
-  //   await _secureStore.delete(key: "${walletId}_changeDerivationsP2SH_BACKUP");
-  //
-  //   // P2WPKH derivations
-  //   final p2wpkhReceiveDerivationsString = await _secureStore.read(
-  //       key: "${walletId}_receiveDerivationsP2WPKH_BACKUP");
-  //   final p2wpkhChangeDerivationsString = await _secureStore.read(
-  //       key: "${walletId}_changeDerivationsP2WPKH_BACKUP");
-  //
-  //   await _secureStore.write(
-  //       key: "${walletId}_receiveDerivationsP2WPKH",
-  //       value: p2wpkhReceiveDerivationsString);
-  //   await _secureStore.write(
-  //       key: "${walletId}_changeDerivationsP2WPKH",
-  //       value: p2wpkhChangeDerivationsString);
-  //
-  //   await _secureStore.delete(
-  //       key: "${walletId}_receiveDerivationsP2WPKH_BACKUP");
-  //   await _secureStore.delete(
-  //       key: "${walletId}_changeDerivationsP2WPKH_BACKUP");
-  //
-  //   Logging.instance.log("rescan restore  complete", level: LogLevel.Info);
-  // }
-  //
-  // Future<void> _rescanBackup() async {
-  //   Logging.instance.log("starting rescan backup", level: LogLevel.Info);
-  //
-  //   // backup current and clear data
-  //   // P2PKH derivations
-  //   final p2pkhReceiveDerivationsString =
-  //       await _secureStore.read(key: "${walletId}_receiveDerivationsP2PKH");
-  //   final p2pkhChangeDerivationsString =
-  //       await _secureStore.read(key: "${walletId}_changeDerivationsP2PKH");
-  //
-  //   await _secureStore.write(
-  //       key: "${walletId}_receiveDerivationsP2PKH_BACKUP",
-  //       value: p2pkhReceiveDerivationsString);
-  //   await _secureStore.write(
-  //       key: "${walletId}_changeDerivationsP2PKH_BACKUP",
-  //       value: p2pkhChangeDerivationsString);
-  //
-  //   await _secureStore.delete(key: "${walletId}_receiveDerivationsP2PKH");
-  //   await _secureStore.delete(key: "${walletId}_changeDerivationsP2PKH");
-  //
-  //   // P2SH derivations
-  //   final p2shReceiveDerivationsString =
-  //       await _secureStore.read(key: "${walletId}_receiveDerivationsP2SH");
-  //   final p2shChangeDerivationsString =
-  //       await _secureStore.read(key: "${walletId}_changeDerivationsP2SH");
-  //
-  //   await _secureStore.write(
-  //       key: "${walletId}_receiveDerivationsP2SH_BACKUP",
-  //       value: p2shReceiveDerivationsString);
-  //   await _secureStore.write(
-  //       key: "${walletId}_changeDerivationsP2SH_BACKUP",
-  //       value: p2shChangeDerivationsString);
-  //
-  //   await _secureStore.delete(key: "${walletId}_receiveDerivationsP2SH");
-  //   await _secureStore.delete(key: "${walletId}_changeDerivationsP2SH");
-  //
-  //   // P2WPKH derivations
-  //   final p2wpkhReceiveDerivationsString =
-  //       await _secureStore.read(key: "${walletId}_receiveDerivationsP2WPKH");
-  //   final p2wpkhChangeDerivationsString =
-  //       await _secureStore.read(key: "${walletId}_changeDerivationsP2WPKH");
-  //
-  //   await _secureStore.write(
-  //       key: "${walletId}_receiveDerivationsP2WPKH_BACKUP",
-  //       value: p2wpkhReceiveDerivationsString);
-  //   await _secureStore.write(
-  //       key: "${walletId}_changeDerivationsP2WPKH_BACKUP",
-  //       value: p2wpkhChangeDerivationsString);
-  //
-  //   await _secureStore.delete(key: "${walletId}_receiveDerivationsP2WPKH");
-  //   await _secureStore.delete(key: "${walletId}_changeDerivationsP2WPKH");
-  //
-  //
-  //
-  //   Logging.instance.log("rescan backup complete", level: LogLevel.Info);
-  // }
 
   Future<void> _deleteDerivations() async {
     // P2PKH derivations
