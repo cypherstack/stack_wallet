@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:lottie/lottie.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -8,6 +9,8 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
+
+import '../../../widgets/animated_widgets/rotate_animation.dart';
 
 class BuildingTransactionDialog extends StatefulWidget {
   const BuildingTransactionDialog({
@@ -28,6 +31,8 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
   late AnimationController? _spinController;
   late Animation<double> _spinAnimation;
 
+  late RotateAnimationController? _rotateAnimationController;
+
   late final VoidCallback onCancel;
 
   @override
@@ -44,6 +49,8 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
       curve: Curves.linear,
     );
 
+    _rotateAnimationController = RotateAnimationController();
+
     super.initState();
   }
 
@@ -51,6 +58,9 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
   void dispose() {
     _spinController?.dispose();
     _spinController = null;
+
+    _rotateAnimationController?.forward = null;
+    _rotateAnimationController?.reset = null;
 
     super.dispose();
   }
@@ -80,15 +90,13 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
               ),
             ),
           if (!isChans)
-            RotationTransition(
-              turns: _spinAnimation,
-              child: SvgPicture.asset(
-                Assets.svg.arrowRotate,
-                color:
-                    Theme.of(context).extension<StackColors>()!.accentColorDark,
-                width: 24,
-                height: 24,
+            RotateAnimation(
+              lottie: Lottie.asset(
+                Assets.lottie.arrowRotate,
+                // delegates: LottieDelegates(values: []),
               ),
+              curve: Curves.easeInOutCubic,
+              controller: _rotateAnimationController,
             ),
           const SizedBox(
             height: 40,

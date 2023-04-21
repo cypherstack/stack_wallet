@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:lottie/lottie.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/animated_widgets/rotate_animation.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
@@ -22,6 +24,7 @@ class _RestoringDialogState extends State<ClaimingPaynymDialog>
     with TickerProviderStateMixin {
   late AnimationController? _spinController;
   late Animation<double> _spinAnimation;
+  late RotateAnimationController? _rotateAnimationController;
 
   @override
   void initState() {
@@ -35,6 +38,8 @@ class _RestoringDialogState extends State<ClaimingPaynymDialog>
       curve: Curves.linear,
     );
 
+    _rotateAnimationController = RotateAnimationController();
+
     super.initState();
   }
 
@@ -42,6 +47,9 @@ class _RestoringDialogState extends State<ClaimingPaynymDialog>
   void dispose() {
     _spinController?.dispose();
     _spinController = null;
+
+    _rotateAnimationController?.forward = null;
+    _rotateAnimationController?.reset = null;
 
     super.dispose();
   }
@@ -115,15 +123,23 @@ class _RestoringDialogState extends State<ClaimingPaynymDialog>
         child: StackDialog(
           title: "Claiming PayNym",
           message: "We are generating your PayNym",
-          icon: RotationTransition(
-            turns: _spinAnimation,
-            child: SvgPicture.asset(
-              Assets.svg.arrowRotate,
-              color:
-                  Theme.of(context).extension<StackColors>()!.accentColorDark,
-              width: 24,
-              height: 24,
+          // icon: RotationTransition(
+          //   turns: _spinAnimation,
+          //   child: SvgPicture.asset(
+          //     Assets.svg.arrowRotate,
+          //     color:
+          //         Theme.of(context).extension<StackColors>()!.accentColorDark,
+          //     width: 24,
+          //     height: 24,
+          //   ),
+          // ),
+          icon: RotateAnimation(
+            lottie: Lottie.asset(
+              Assets.lottie.arrowRotate,
+              // delegates: LottieDelegates(values: []),
             ),
+            curve: Curves.easeInOutCubic,
+            controller: _rotateAnimationController,
           ),
           rightButton: SecondaryButton(
             label: "Cancel",
