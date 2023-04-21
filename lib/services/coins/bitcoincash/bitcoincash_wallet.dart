@@ -18,6 +18,7 @@ import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
+import 'package:stackwallet/models/signing_data.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
@@ -385,8 +386,6 @@ class BitcoinCashWallet extends CoinServiceAPI
     int chain,
   ) async {
     List<isar_models.Address> addressArray = [];
-    int returningIndex = -1;
-    Map<String, Map<String, String>> derivations = {};
     int gapCounter = 0;
     for (int index = 0;
         index < maxNumberOfIndexesToCheck && gapCounter < maxUnusedAddressGap;
@@ -398,7 +397,6 @@ class BitcoinCashWallet extends CoinServiceAPI
 
       final _id = "k_$index";
       Map<String, String> txCountCallArgs = {};
-      final Map<String, dynamic> receivingNodes = {};
 
       for (int j = 0; j < txCountBatchSize; j++) {
         final derivePath = constructDerivePath(
@@ -1435,15 +1433,6 @@ class BitcoinCashWallet extends CoinServiceAPI
         throw Exception("DerivePathType $derivePathType not supported");
     }
 
-    // add generated address & info to derivations
-    await addDerivation(
-      chain: chain,
-      address: address,
-      pubKey: Format.uint8listToString(node.publicKey),
-      wif: node.toWIF(),
-      derivePathType: derivePathType,
-    );
-
     return isar_models.Address(
       walletId: walletId,
       value: address,
@@ -1537,74 +1526,6 @@ class BitcoinCashWallet extends CoinServiceAPI
     final derivationsString = await _secureStore.read(key: key);
     return Map<String, dynamic>.from(
         jsonDecode(derivationsString ?? "{}") as Map);
-  }
-
-  /// Add a single derivation to the local secure storage for [chain] and
-  /// [derivePathType] where [chain] must either be 1 for change or 0 for receive.
-  /// This will overwrite a previous entry where the address of the new derivation
-  /// matches a derivation currently stored.
-  Future<void> addDerivation({
-    required int chain,
-    required String address,
-    required String pubKey,
-    required String wif,
-    required DerivePathType derivePathType,
-  }) async {
-    // build lookup key
-    final key = _buildDerivationStorageKey(
-        chain: chain, derivePathType: derivePathType);
-
-    // fetch current derivations
-    final derivationsString = await _secureStore.read(key: key);
-    final derivations =
-        Map<String, dynamic>.from(jsonDecode(derivationsString ?? "{}") as Map);
-
-    // add derivation
-    derivations[address] = {
-      "pubKey": pubKey,
-      "wif": wif,
-    };
-
-    // save derivations
-    final newReceiveDerivationsString = jsonEncode(derivations);
-    await _secureStore.write(key: key, value: newReceiveDerivationsString);
-  }
-
-  /// Add multiple derivations to the local secure storage for [chain] and
-  /// [derivePathType] where [chain] must either be 1 for change or 0 for receive.
-  /// This will overwrite any previous entries where the address of the new derivation
-  /// matches a derivation currently stored.
-  /// The [derivationsToAdd] must be in the format of:
-  /// {
-  ///   addressA : {
-  ///     "pubKey": <the pubKey string>,
-  ///     "wif": <the wif string>,
-  ///   },
-  ///   addressB : {
-  ///     "pubKey": <the pubKey string>,
-  ///     "wif": <the wif string>,
-  ///   },
-  /// }
-  Future<void> addDerivations({
-    required int chain,
-    required DerivePathType derivePathType,
-    required Map<String, dynamic> derivationsToAdd,
-  }) async {
-    // build lookup key
-    final key = _buildDerivationStorageKey(
-        chain: chain, derivePathType: derivePathType);
-
-    // fetch current derivations
-    final derivationsString = await _secureStore.read(key: key);
-    final derivations =
-        Map<String, dynamic>.from(jsonDecode(derivationsString ?? "{}") as Map);
-
-    // add derivation
-    derivations.addAll(derivationsToAdd);
-
-    // save derivations
-    final newReceiveDerivationsString = jsonEncode(derivations);
-    await _secureStore.write(key: key, value: newReceiveDerivationsString);
   }
 
   Future<void> _updateUTXOs() async {
@@ -2661,16 +2582,11 @@ class BitcoinCashWallet extends CoinServiceAPI
     }
   }
 
-  Future<Map<String, dynamic>> fetchBuildTxData(
+  Future<List<SigningData>> fetchBuildTxData(
     List<isar_models.UTXO> utxosToUse,
   ) async {
     // return data
-    Map<String, dynamic> results = {};
-    Map<String, List<String>> addressTxid = {};
-
-    // addresses to check
-    List<String> addressesP2PKH = [];
-    List<String> addressesP2SH = [];
+    List<SigningData> signingData = [];
 
     try {
       // Populating the addresses to check
@@ -2684,7 +2600,9 @@ class BitcoinCashWallet extends CoinServiceAPI
         for (final output in tx["vout"] as List) {
           final n = output["n"];
           if (n != null && n == utxosToUse[i].vout) {
-            String address = output["scriptPubKey"]["addresses"][0] as String;
+            String address =
+                output["scriptPubKey"]?["addresses"]?[0] as String? ??
+                    output["scriptPubKey"]["address"] as String;
             if (bitbox.Address.detectFormat(address) !=
                 bitbox.Address.formatCashAddr) {
               try {
@@ -2693,169 +2611,114 @@ class BitcoinCashWallet extends CoinServiceAPI
                 rethrow;
               }
             }
-            if (!addressTxid.containsKey(address)) {
-              addressTxid[address] = <String>[];
-            }
-            (addressTxid[address] as List).add(txid);
-            final deriveType = addressType(address: address);
-            switch (deriveType) {
-              case DerivePathType.bip44:
-              case DerivePathType.bch44:
-                addressesP2PKH.add(address);
-                break;
-              case DerivePathType.bip49:
-                addressesP2SH.add(address);
-                break;
-              default:
-                throw UnsupportedError(
-                    "${deriveType.name} not supported by ${coin.prettyName}");
-            }
+
+            utxosToUse[i] = utxosToUse[i].copyWith(address: address);
           }
         }
+
+        final derivePathType = addressType(address: utxosToUse[i].address!);
+
+        signingData.add(
+          SigningData(
+            derivePathType: derivePathType,
+            utxo: utxosToUse[i],
+          ),
+        );
       }
 
-      // p2pkh / bip44
-      final p2pkhLength = addressesP2PKH.length;
-      if (p2pkhLength > 0) {
-        final receiveDerivationsBip44 = await _fetchDerivations(
-          chain: 0,
-          derivePathType: DerivePathType.bip44,
-        );
-        final changeDerivationsBip44 = await _fetchDerivations(
-          chain: 1,
-          derivePathType: DerivePathType.bip44,
-        );
-        final receiveDerivationsBch44 = await _fetchDerivations(
-          chain: 0,
-          derivePathType: DerivePathType.bch44,
-        );
-        final changeDerivationsBch44 = await _fetchDerivations(
-          chain: 1,
-          derivePathType: DerivePathType.bch44,
-        );
-        for (int i = 0; i < p2pkhLength; i++) {
-          String address = addressesP2PKH[i];
+      Map<DerivePathType, Map<String, dynamic>> receiveDerivations = {};
+      Map<DerivePathType, Map<String, dynamic>> changeDerivations = {};
 
-          // receives
-          final receiveDerivation = receiveDerivationsBip44[address] ??
-              receiveDerivationsBch44[address];
-          // if a match exists it will not be null
-          if (receiveDerivation != null) {
-            final data = P2PKH(
-              data: PaymentData(
-                  pubkey: Format.stringToUint8List(
-                      receiveDerivation["pubKey"] as String)),
-              network: _network,
-            ).data;
+      for (final sd in signingData) {
+        String? pubKey;
+        String? wif;
 
-            for (String tx in addressTxid[address]!) {
-              results[tx] = {
-                "output": data.output,
-                "keyPair": ECPair.fromWIF(
-                  receiveDerivation["wif"] as String,
-                  network: _network,
-                ),
-              };
-            }
-          } else {
-            // if its not a receive, check change
-            final changeDerivation = changeDerivationsBip44[address] ??
-                changeDerivationsBch44[address];
-            // if a match exists it will not be null
-            if (changeDerivation != null) {
-              final data = P2PKH(
+        // fetch receiving derivations if null
+        receiveDerivations[sd.derivePathType] ??= await _fetchDerivations(
+          chain: 0,
+          derivePathType: sd.derivePathType,
+        );
+        final receiveDerivation =
+            receiveDerivations[sd.derivePathType]![sd.utxo.address!];
+
+        if (receiveDerivation != null) {
+          pubKey = receiveDerivation["pubKey"] as String;
+          wif = receiveDerivation["wif"] as String;
+        } else {
+          // fetch change derivations if null
+          changeDerivations[sd.derivePathType] ??= await _fetchDerivations(
+            chain: 1,
+            derivePathType: sd.derivePathType,
+          );
+          final changeDerivation =
+              changeDerivations[sd.derivePathType]![sd.utxo.address!];
+          if (changeDerivation != null) {
+            pubKey = changeDerivation["pubKey"] as String;
+            wif = changeDerivation["wif"] as String;
+          }
+        }
+
+        if (wif == null || pubKey == null) {
+          final address = await db.getAddress(walletId, sd.utxo.address!);
+          if (address?.derivationPath != null) {
+            final node = await Bip32Utils.getBip32Node(
+              (await mnemonicString)!,
+              (await mnemonicPassphrase)!,
+              _network,
+              address!.derivationPath!.value,
+            );
+
+            wif = node.toWIF();
+            pubKey = Format.uint8listToString(node.publicKey);
+          }
+        }
+
+        if (wif != null && pubKey != null) {
+          final PaymentData data;
+          final Uint8List? redeemScript;
+
+          switch (sd.derivePathType) {
+            case DerivePathType.bip44:
+            case DerivePathType.bch44:
+              data = P2PKH(
                 data: PaymentData(
-                    pubkey: Format.stringToUint8List(
-                        changeDerivation["pubKey"] as String)),
+                  pubkey: Format.stringToUint8List(pubKey),
+                ),
                 network: _network,
               ).data;
+              redeemScript = null;
+              break;
 
-              for (String tx in addressTxid[address]!) {
-                results[tx] = {
-                  "output": data.output,
-                  "keyPair": ECPair.fromWIF(
-                    changeDerivation["wif"] as String,
-                    network: _network,
-                  ),
-                };
-              }
-            }
-          }
-        }
-      }
-
-      // p2sh / bip49
-      final p2shLength = addressesP2SH.length;
-      if (p2shLength > 0) {
-        final receiveDerivations = await _fetchDerivations(
-          chain: 0,
-          derivePathType: DerivePathType.bip49,
-        );
-        final changeDerivations = await _fetchDerivations(
-          chain: 1,
-          derivePathType: DerivePathType.bip49,
-        );
-        for (int i = 0; i < p2shLength; i++) {
-          // receives
-          final receiveDerivation = receiveDerivations[addressesP2SH[i]];
-          // if a match exists it will not be null
-          if (receiveDerivation != null) {
-            final p2wpkh = P2WPKH(
-                    data: PaymentData(
-                        pubkey: Format.stringToUint8List(
-                            receiveDerivation["pubKey"] as String)),
-                    network: _network)
-                .data;
-
-            final redeemScript = p2wpkh.output;
-
-            final data =
-                P2SH(data: PaymentData(redeem: p2wpkh), network: _network).data;
-
-            for (String tx in addressTxid[addressesP2SH[i]]!) {
-              results[tx] = {
-                "output": data.output,
-                "keyPair": ECPair.fromWIF(
-                  receiveDerivation["wif"] as String,
-                  network: _network,
-                ),
-                "redeemScript": redeemScript,
-              };
-            }
-          } else {
-            // if its not a receive, check change
-            final changeDerivation = changeDerivations[addressesP2SH[i]];
-            // if a match exists it will not be null
-            if (changeDerivation != null) {
+            case DerivePathType.bip49:
               final p2wpkh = P2WPKH(
-                      data: PaymentData(
-                          pubkey: Format.stringToUint8List(
-                              changeDerivation["pubKey"] as String)),
-                      network: _network)
-                  .data;
+                data: PaymentData(
+                  pubkey: Format.stringToUint8List(pubKey),
+                ),
+                network: _network,
+              ).data;
+              redeemScript = p2wpkh.output;
+              data = P2SH(
+                data: PaymentData(redeem: p2wpkh),
+                network: _network,
+              ).data;
+              break;
 
-              final redeemScript = p2wpkh.output;
-
-              final data =
-                  P2SH(data: PaymentData(redeem: p2wpkh), network: _network)
-                      .data;
-
-              for (String tx in addressTxid[addressesP2SH[i]]!) {
-                results[tx] = {
-                  "output": data.output,
-                  "keyPair": ECPair.fromWIF(
-                    changeDerivation["wif"] as String,
-                    network: _network,
-                  ),
-                  "redeemScript": redeemScript,
-                };
-              }
-            }
+            default:
+              throw Exception("DerivePathType unsupported");
           }
+
+          final keyPair = ECPair.fromWIF(
+            wif,
+            network: _network,
+          );
+
+          sd.redeemScript = redeemScript;
+          sd.output = data.output;
+          sd.keyPair = keyPair;
         }
       }
 
-      return results;
+      return signingData;
     } catch (e, s) {
       Logging.instance
           .log("fetchBuildTxData() threw: $e,\n$s", level: LogLevel.Error);
@@ -2866,7 +2729,7 @@ class BitcoinCashWallet extends CoinServiceAPI
   /// Builds and signs a transaction
   Future<Map<String, dynamic>> buildTransaction({
     required List<isar_models.UTXO> utxosToUse,
-    required Map<String, dynamic> utxoSigningData,
+    required List<SigningData> utxoSigningData,
     required List<String> recipients,
     required List<int> satoshiAmounts,
   }) async {
@@ -2897,7 +2760,8 @@ class BitcoinCashWallet extends CoinServiceAPI
     for (var utxo in _utxos) {
       // add the utxo as an input for the transaction
       builder.addInput(utxo.txid, utxo.vout);
-      final ec = utxoSigningData[utxo.txid]["keyPair"] as ECPair;
+      final ec =
+          utxoSigningData.firstWhere((e) => e.utxo.txid == utxo.txid).keyPair!;
 
       final bitboxEC = bitbox.ECPair.fromWIF(ec.toWIF());
 
