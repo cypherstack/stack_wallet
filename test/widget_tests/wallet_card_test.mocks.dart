@@ -875,48 +875,6 @@ class MockBitcoinWallet extends _i1.Mock implements _i24.BitcoinWallet {
         )),
       ) as _i21.Future<_i9.ElectrumXNode>);
   @override
-  _i21.Future<void> addDerivation({
-    required int? chain,
-    required String? address,
-    required String? pubKey,
-    required String? wif,
-    required _i25.DerivePathType? derivePathType,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #addDerivation,
-          [],
-          {
-            #chain: chain,
-            #address: address,
-            #pubKey: pubKey,
-            #wif: wif,
-            #derivePathType: derivePathType,
-          },
-        ),
-        returnValue: _i21.Future<void>.value(),
-        returnValueForMissingStub: _i21.Future<void>.value(),
-      ) as _i21.Future<void>);
-  @override
-  _i21.Future<void> addDerivations({
-    required int? chain,
-    required _i25.DerivePathType? derivePathType,
-    required Map<String, dynamic>? derivationsToAdd,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #addDerivations,
-          [],
-          {
-            #chain: chain,
-            #derivePathType: derivePathType,
-            #derivationsToAdd: derivationsToAdd,
-          },
-        ),
-        returnValue: _i21.Future<void>.value(),
-        returnValueForMissingStub: _i21.Future<void>.value(),
-      ) as _i21.Future<void>);
-  @override
   _i21.Future<List<Map<String, dynamic>>> fastFetch(
           List<String>? allTxHashes) =>
       (super.noSuchMethod(
@@ -1320,14 +1278,6 @@ class MockBitcoinWallet extends _i1.Mock implements _i24.BitcoinWallet {
         fetchBuildTxData,
     required _i21.Future<void> Function()? refresh,
     required _i21.Future<void> Function()? checkChangeAddressForTransactions,
-    required _i21.Future<void> Function({
-      required String address,
-      required int chain,
-      required _i25.DerivePathType derivePathType,
-      required String pubKey,
-      required String wif,
-    })?
-        addDerivation,
   }) =>
       super.noSuchMethod(
         Invocation.method(
@@ -1354,7 +1304,6 @@ class MockBitcoinWallet extends _i1.Mock implements _i24.BitcoinWallet {
             #refresh: refresh,
             #checkChangeAddressForTransactions:
                 checkChangeAddressForTransactions,
-            #addDerivation: addDerivation,
           },
         ),
         returnValueForMissingStub: null,
@@ -1453,17 +1402,25 @@ class MockBitcoinWallet extends _i1.Mock implements _i24.BitcoinWallet {
       ) as _i21.Future<_i17.BIP32>);
   @override
   _i21.Future<_i18.PaymentCode> getPaymentCode(
-          _i25.DerivePathType? derivePathType) =>
+    _i25.DerivePathType? derivePathType, [
+    _i17.BIP32? bip32Root,
+  ]) =>
       (super.noSuchMethod(
         Invocation.method(
           #getPaymentCode,
-          [derivePathType],
+          [
+            derivePathType,
+            bip32Root,
+          ],
         ),
         returnValue: _i21.Future<_i18.PaymentCode>.value(_FakePaymentCode_16(
           this,
           Invocation.method(
             #getPaymentCode,
-            [derivePathType],
+            [
+              derivePathType,
+              bip32Root,
+            ],
           ),
         )),
       ) as _i21.Future<_i18.PaymentCode>);
@@ -1730,17 +1687,25 @@ class MockBitcoinWallet extends _i1.Mock implements _i24.BitcoinWallet {
       ) as _i21.Future<_i16.Address>);
   @override
   _i21.Future<_i16.Address> getMyNotificationAddress(
-          _i25.DerivePathType? derivePathType) =>
+    _i25.DerivePathType? derivePathType, [
+    _i17.BIP32? bip32Root,
+  ]) =>
       (super.noSuchMethod(
         Invocation.method(
           #getMyNotificationAddress,
-          [derivePathType],
+          [
+            derivePathType,
+            bip32Root,
+          ],
         ),
         returnValue: _i21.Future<_i16.Address>.value(_FakeAddress_14(
           this,
           Invocation.method(
             #getMyNotificationAddress,
-            [derivePathType],
+            [
+              derivePathType,
+              bip32Root,
+            ],
           ),
         )),
       ) as _i21.Future<_i16.Address>);
