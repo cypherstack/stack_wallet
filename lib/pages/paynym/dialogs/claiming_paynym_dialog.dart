@@ -136,7 +136,22 @@ class _RestoringDialogState extends State<ClaimingPaynymDialog>
           icon: RotateAnimation(
             lottie: Lottie.asset(
               Assets.lottie.arrowRotate,
-              // delegates: LottieDelegates(values: []),
+              delegates: LottieDelegates(
+                values: [
+                  ValueDelegate.color(
+                    const ["**"],
+                    value: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
+                  ),
+                  ValueDelegate.strokeColor(
+                    const ["**"],
+                    value: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
+                  ),
+                ],
+              ),
             ),
             curve: Curves.easeInOutCubic,
             controller: _rotateAnimationController,
