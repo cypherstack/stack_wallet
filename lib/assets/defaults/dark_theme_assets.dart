@@ -1,4 +1,4 @@
-final Map<String, dynamic> darkJson = {
+final Map<String, dynamic> darkThemeAssets = {
   "assets": {
     "name": "dark",
     "svg": {

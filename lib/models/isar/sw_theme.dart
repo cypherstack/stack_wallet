@@ -9,6 +9,8 @@ import 'package:stackwallet/utilities/extensions/impl/string.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../assets/defaults/dark_theme_assets.dart';
+
 @Collection(inheritance: false)
 class StackTheme {
   final String assetBundleUrl;
@@ -1634,7 +1636,6 @@ class StackTheme {
     required String applicationThemesDirectoryPath,
   }) {
     final _id = const Uuid().v1();
-    print("GRADIENTS IS ${json['gradients']}");
     return StackTheme(
       internalId: _id,
       name: json["name"] as String,
@@ -1653,7 +1654,7 @@ class StackTheme {
               : jsonEncode(json["box_shadows"]["home_view_button_bar"] as Map),
       coinColorsJsonString: jsonEncode(json["colors"]['coin'] as Map),
       assets: ThemeAssets.fromJson(
-        json: json,
+        json: darkThemeAssets,
         applicationThemesDirectoryPath: applicationThemesDirectoryPath,
         internalThemeUuid: _id,
       ),
@@ -2079,7 +2080,8 @@ class ThemeAssets {
     required String applicationThemesDirectoryPath,
     required String internalThemeUuid,
   }) {
-    print("ASSETS JSON IS $json");
+    print(
+        "ASSETS JSON IS ${jsonEncode(json["assets"]["svg"]['coin_icons']['small']['bitcoin'])}");
     return ThemeAssets(
       bellNew:
           "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["bell_new"] as String}",
