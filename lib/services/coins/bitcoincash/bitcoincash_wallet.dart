@@ -2733,7 +2733,9 @@ class BitcoinCashWallet extends CoinServiceAPI
     required List<String> recipients,
     required List<int> satoshiAmounts,
   }) async {
-    final builder = bitbox.Bitbox.transactionBuilder();
+    final builder = bitbox.Bitbox.transactionBuilder(
+      testnet: coin == Coin.bitcoincashTestnet,
+    );
 
     // retrieve address' utxos from the rest api
     List<bitbox.Utxo> _utxos =

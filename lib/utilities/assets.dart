@@ -206,7 +206,7 @@ class _SVG {
   String get pending => "assets/svg/pending.svg";
   String get radio => "assets/svg/signal-stream.svg";
   String get arrowRotate => "assets/svg/arrow-rotate.svg";
-  String get arrowRotate2 => "assets/svg/arrow-rotate2.svg";
+  String get arrowsTwoWay => "assets/svg/arrow-rotate2.svg";
   String get alertCircle => "assets/svg/alert-circle.svg";
   String get checkCircle => "assets/svg/circle-check.svg";
   String get clipboard => "assets/svg/clipboard.svg";
@@ -222,7 +222,6 @@ class _SVG {
   String get networkWired => "assets/svg/network-wired-2.svg";
   String get addressBook => "assets/svg/address-book.svg";
   String get addressBook2 => "assets/svg/address-book2.svg";
-  String get arrowRotate3 => "assets/svg/rotate-exclamation.svg";
   String get delete => "assets/svg/delete.svg";
   String get arrowRight => "assets/svg/arrow-right.svg";
   String get dollarSign => "assets/svg/dollar-sign.svg";
@@ -417,6 +416,7 @@ class _ANIMATIONS {
   String get test2 => "assets/lottie/test2.json";
   String get iconSend => "assets/lottie/icon_send.json";
   String get loaderAndCheckmark => "assets/lottie/loader_and_checkmark.json";
+  String get arrowRotate => "assets/lottie/arrow_rotate.json";
 }
 
 class _GIF {

@@ -248,7 +248,6 @@ flutter:
     - assets/svg/chevron-up.svg
     - assets/svg/lock-keyhole.svg
     - assets/svg/lock-open.svg
-    - assets/svg/rotate-exclamation.svg
     - assets/svg/folder-down.svg
     - assets/svg/network-wired.svg
     - assets/svg/network-wired-2.svg
@@ -383,6 +382,7 @@ flutter:
     - assets/lottie/test2.json
     - assets/lottie/icon_send.json
     - assets/lottie/loader_and_checkmark.json
+    - assets/lottie/arrow_rotate.json
 
     # gifs
     - assets/gif/
