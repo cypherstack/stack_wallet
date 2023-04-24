@@ -32,7 +32,7 @@ class ExampleWidget extends ConsumerWidget {
         const Text("Hello, world!"),
         SvgPicture.file(
           File(
-            ref.watch(themeProvider).assets.plus,
+            ref.watch(themeProvider).assets.bellNew,
           ),
         ),
       ],

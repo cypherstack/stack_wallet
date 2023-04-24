@@ -1968,12 +1968,84 @@ class StackTheme {
 
 @Embedded(inheritance: false)
 class ThemeAssets {
-  final String plus;
+  final String bellNew;
+  final String personaIncognito;
+  final String personaEasy;
+  final String stack;
+  final String stackIcon;
+  final String receive;
+  final String receivePending;
+  final String receiveCancelled;
+  final String send;
+  final String sendPending;
+  final String sendCancelled;
+  final String themeDark;
+  final String themeDarkChan;
+  final String chanEasy;
+  final String chanIncognito;
+  final String bitcoin;
+  final String litecoin;
+  final String bitcoincash;
+  final String dogecoin;
+  final String epicCash;
+  final String ethereum;
+  final String firo;
+  final String monero;
+  final String wownero;
+  final String namecoin;
+  final String particl;
+  final String bitcoinImage;
+  final String bitcoincashImage;
+  final String dogecoinImage;
+  final String epicCashImage;
+  final String ethereumImage;
+  final String firoImage;
+  final String litecoinImage;
+  final String moneroImage;
+  final String wowneroImage;
+  final String namecoinImage;
+  final String particlImage;
 
   // todo: add all assets expected in json
 
   ThemeAssets({
-    required this.plus,
+    required this.bellNew,
+    required this.personaIncognito,
+    required this.personaEasy,
+    required this.stack,
+    required this.stackIcon,
+    required this.receive,
+    required this.receivePending,
+    required this.receiveCancelled,
+    required this.send,
+    required this.sendPending,
+    required this.sendCancelled,
+    required this.themeDark,
+    required this.themeDarkChan,
+    required this.chanEasy,
+    required this.chanIncognito,
+    required this.bitcoin,
+    required this.litecoin,
+    required this.bitcoincash,
+    required this.dogecoin,
+    required this.epicCash,
+    required this.ethereum,
+    required this.firo,
+    required this.monero,
+    required this.wownero,
+    required this.namecoin,
+    required this.particl,
+    required this.bitcoinImage,
+    required this.bitcoincashImage,
+    required this.dogecoinImage,
+    required this.epicCashImage,
+    required this.ethereumImage,
+    required this.firoImage,
+    required this.litecoinImage,
+    required this.moneroImage,
+    required this.wowneroImage,
+    required this.namecoinImage,
+    required this.particlImage,
   });
 
   factory ThemeAssets.fromJson({
@@ -1982,8 +2054,80 @@ class ThemeAssets {
     required String internalThemeUuid,
   }) {
     return ThemeAssets(
-      plus:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["plus.svg"] as String}",
+      bellNew:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["bell_new"] as String}",
+      personaIncognito:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["persona_incognito"] as String}",
+      personaEasy:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["persona_easy"] as String}",
+      stack:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["stack"] as String}",
+      stackIcon:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["stack_icon"] as String}",
+      receive:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["receive"] as String}",
+      receivePending:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["receive_pending"] as String}",
+      receiveCancelled:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["receive_cancelled"] as String}",
+      send:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["send"] as String}",
+      sendPending:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["send_pending"] as String}",
+      sendCancelled:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["send_cancelled"] as String}",
+      themeDark:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["theme_dark"] as String}",
+      themeDarkChan:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["theme_dark_chan"] as String}",
+      chanEasy:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["png"]["chan_persona_easy"] as String}",
+      chanIncognito:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["png"]["chan_persona_incognito"] as String}",
+      bitcoin:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['small']["bitcoin"] as String}",
+      litecoin:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['small']["litecoin"] as String}",
+      bitcoincash:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['small']["bitcoincash"] as String}",
+      dogecoin:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['small']["dogecoin"] as String}",
+      epicCash:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['small']["epicCash"] as String}",
+      ethereum:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['small']["ethereum"] as String}",
+      firo:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['small']["firo"] as String}",
+      monero:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['small']["monero"] as String}",
+      wownero:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['small']["wownero"] as String}",
+      namecoin:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['small']["namecoin"] as String}",
+      particl:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['small']["particl"] as String}",
+      bitcoinImage:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['big']["bitcoin"] as String}",
+      bitcoincashImage:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['big']["bitcoincash"] as String}",
+      dogecoinImage:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['big']["dogecoin"] as String}",
+      epicCashImage:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['big']["epicCash"] as String}",
+      ethereumImage:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['big']["ethereum"] as String}",
+      firoImage:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['big']["firo"] as String}",
+      litecoinImage:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['big']["litecoin"] as String}",
+      moneroImage:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['big']["monero"] as String}",
+      wowneroImage:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['big']["wownero"] as String}",
+      namecoinImage:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['big']["namecoin"] as String}",
+      particlImage:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['big']["particl"] as String}",
     );
   }
 }
