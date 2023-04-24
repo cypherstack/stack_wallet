@@ -1,11 +1,6 @@
-import 'dart:io';
-
-import 'package:cw_core/pathForWallet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/main.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -113,9 +108,9 @@ class _SVG {
       case ThemeType.darkChans:
         // print("THIS THEMES DIRECTORY IS $themeDirectory");
         // final themesPath = themesDirectory();
-        // return "assets/svg/themed/${ThemeType.dark.name}";
-        //TODO - remove, this will be accesses from js
-        return "$themeDirectory/dark";
+        return "assets/svg/themed/${ThemeType.dark.name}";
+      // //TODO - remove, this will be accesses from js
+      // return "$themeDirectory/dark";
 
       default:
         return "assets/svg/themed/${Theme.of(context).extension<StackColors>()!.themeType.name}";

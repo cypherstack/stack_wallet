@@ -30,28 +30,9 @@ final map = {
 };
 
 extension BoxShadowExt on BoxShadow {
-  static BoxShadow fromJson(Map<String, dynamic> json) {
-    switch (json["boxShadowType"] as String) {
-      case "standard":
-        final colorStrings = (json["colors"]);
-        return BoxShadow(
-          color: Color(
-            colorStrings as int,
-          ),
-          spreadRadius: json["spread_radius"] as double,
-          blurRadius: json["blur_radius"] as double,
-        );
-      case "home_view_button_bar":
-        final colorStrings = (json["colors"]);
-        return BoxShadow(
-          color: Color(
-            colorStrings as int,
-          ),
-          spreadRadius: json["spread_radius"] as double,
-          blurRadius: json["blur_radius"] as double,
-        );
-      default:
-        throw ArgumentError("Invalid json box shadow: $json");
-    }
-  }
+  static BoxShadow fromJson(Map<String, dynamic> json) => BoxShadow(
+        color: Color(int.parse(json["color"] as String)),
+        spreadRadius: json["spread_radius"] as double,
+        blurRadius: json["blur_radius"] as double,
+      );
 }

@@ -12,8 +12,8 @@ import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_o
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/mnemonic_word_count_select_sheet.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
-import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -67,7 +67,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
 
   @override
   void initState() {
-    baseColor = ref.read(colorThemeProvider.state).state.textSubtitle2;
+    baseColor = ref.read(themeProvider.state).state.textSubtitle2;
     walletName = widget.walletName;
     coin = widget.coin;
     isDesktop = Util.isDesktop;

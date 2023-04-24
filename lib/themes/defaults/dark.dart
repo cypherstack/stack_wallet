@@ -189,18 +189,16 @@ final Map<String, dynamic> darkJson = {
     "token_summary_button_bg": "0xFFC9D0FF",
     "token_summary_icon": "0xFF252C78"
   },
-  "box_shadows": [
-    {
-      "type": "standard",
+  "box_shadows": {
+    "standard": {
       "color": "0x0F2D3132",
       "spread_radius": 3.0,
       "blur_radius": 4.0
     },
-    {
-      "type": "home_view_button_bar",
+    "home_view_button_bar": {
       "color": "0x0F2D3132",
       "spread_radius": 3.0,
       "blur_radius": 4.0
     }
-  ]
+  }
 };

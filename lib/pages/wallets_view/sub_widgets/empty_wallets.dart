@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
-import 'package:stackwallet/providers/ui/color_theme_provider.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
@@ -17,12 +17,12 @@ class EmptyWallets extends ConsumerWidget {
     debugPrint("BUILD: $runtimeType");
 
     final isDesktop = Util.isDesktop;
-    final bool isSorbet = ref.read(colorThemeProvider.state).state.themeType ==
-        ThemeType.fruitSorbet;
+    final bool isSorbet =
+        ref.read(themeProvider.state).state.themeType == ThemeType.fruitSorbet;
     final bool isForest =
-        ref.read(colorThemeProvider.state).state.themeType == ThemeType.forest;
-    final bool isOcean = ref.read(colorThemeProvider.state).state.themeType ==
-        ThemeType.oceanBreeze;
+        ref.read(themeProvider.state).state.themeType == ThemeType.forest;
+    final bool isOcean =
+        ref.read(themeProvider.state).state.themeType == ThemeType.oceanBreeze;
 
     return SafeArea(
       child: Padding(
@@ -98,8 +98,8 @@ class AddWalletButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bool isOLED = ref.read(colorThemeProvider.state).state.themeType ==
-        ThemeType.oledBlack;
+    final bool isOLED =
+        ref.read(themeProvider.state).state.themeType == ThemeType.oledBlack;
     return TextButton(
       style: Theme.of(context)
           .extension<StackColors>()!

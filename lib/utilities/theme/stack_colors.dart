@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stackwallet/models/isar/sw_theme.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 
@@ -359,7 +360,7 @@ class StackColors extends ThemeExtension<StackColors> {
     required this.tokenSummaryIcon,
   });
 
-  factory StackColors.fromStackColorTheme(StackColorTheme colorTheme) {
+  factory StackColors.fromStackColorTheme(StackTheme colorTheme) {
     return StackColors(
       themeType: colorTheme.themeType,
       brightness: colorTheme.brightness,

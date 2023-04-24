@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/sub_widgets/theme_option.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -27,18 +26,20 @@ class SystemBrightnessThemeSelectionView extends ConsumerWidget {
     if (isDark) {
       ref.read(prefsChangeNotifierProvider).systemBrightnessDarkTheme = type;
       if (brightness == Brightness.dark) {
-        ref.read(colorThemeProvider.notifier).state =
-            StackColors.fromStackColorTheme(
-          type.colorTheme,
-        );
+        throw Exception("aaaaaaaaaaaaaaaa");
+        // ref.read(themeProvider.notifier).state =
+        //     StackColors.fromStackColorTheme(
+        //   type.colorTheme,
+        // );
       }
     } else {
       ref.read(prefsChangeNotifierProvider).systemBrightnessLightTheme = type;
       if (brightness == Brightness.light) {
-        ref.read(colorThemeProvider.notifier).state =
-            StackColors.fromStackColorTheme(
-          type.colorTheme,
-        );
+        throw Exception("aaaaaaaaaaaaaaaa");
+        // ref.read(colorThemeProvider.notifier).state =
+        //     StackColors.fromStackColorTheme(
+        //   type.colorTheme,
+        // );
       }
     }
   }

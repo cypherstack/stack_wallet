@@ -24,6 +24,7 @@ import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/models/isar/sw_theme.dart';
 import 'package:stackwallet/models/models.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/notification_model.dart';
@@ -41,7 +42,6 @@ import 'package:stackwallet/providers/global/base_currencies_provider.dart';
 // import 'package:stackwallet/providers/global/has_authenticated_start_state_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 // import 'package:stackwallet/services/buy/buy_data_loading_service.dart';
 import 'package:stackwallet/services/debug_service.dart';
@@ -51,6 +51,7 @@ import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/notifications_service.dart';
 import 'package:stackwallet/services/trade_service.dart';
+import 'package:stackwallet/themes/defaults/dark.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/db_version_migration.dart';
@@ -60,14 +61,12 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:window_size/window_size.dart';
 
 final openedFromSWBFileStringStateProvider =
     StateProvider<String?>((ref) => null);
 
-String? themeDirectory;
 // main() is the entry point to the app. It initializes Hive (local database),
 // runs the MyApp widget and checks for new users, caching the value in the
 // miscellaneous box for later use
@@ -275,9 +274,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         await loadShared();
       }
 
-      themeDirectory = ref
-          .read(applicationThemesDirectoryPathProvider.notifier)
-          .state = (await StackFileSystem.applicationThemesDirectory()).path;
+      ref.read(applicationThemesDirectoryPathProvider.notifier).state =
+          (await StackFileSystem.applicationThemesDirectory()).path;
 
       _notificationsService = ref.read(notificationsProvider);
       _nodeService = ref.read(nodeServiceChangeNotifierProvider);
@@ -372,8 +370,12 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         .loadLocale(notify: false);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      ref.read(colorThemeProvider.state).state =
-          StackColors.fromStackColorTheme(colorTheme);
+      ref.read(themeProvider.state).state = StackTheme.fromJson(
+        json: darkJson,
+        applicationThemesDirectoryPath: ref.read(
+          applicationThemesDirectoryPathProvider,
+        ),
+      );
 
       if (Platform.isAndroid) {
         // fetch open file if it exists
@@ -411,8 +413,12 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
-          ref.read(colorThemeProvider.notifier).state =
-              StackColors.fromStackColorTheme(colorTheme);
+          ref.read(themeProvider.state).state = StackTheme.fromJson(
+            json: darkJson,
+            applicationThemesDirectoryPath: ref.read(
+              applicationThemesDirectoryPathProvider,
+            ),
+          );
         }
       });
     };
@@ -547,7 +553,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     //       addToDebugMessagesDB: false);
     // });
 
-    final colorScheme = ref.watch(colorThemeProvider.state).state;
+    final colorScheme = ref.watch(colorProvider.state).state;
 
     return MaterialApp(
       key: GlobalKey(),

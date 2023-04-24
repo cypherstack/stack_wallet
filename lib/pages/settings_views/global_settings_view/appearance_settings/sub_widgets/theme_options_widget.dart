@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/sub_widgets/theme_option.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/system_brightness_theme_selection_view.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -51,10 +50,12 @@ class _ThemeOptionsWidgetState extends ConsumerState<ThemeOptionsWidget> {
       }
 
       // apply theme
-      ref.read(colorThemeProvider.notifier).state =
-          StackColors.fromStackColorTheme(
-        theme.colorTheme,
-      );
+
+      throw Exception("bbbbbbbbbbbbbbbbb");
+      // ref.read(colorThemeProvider.notifier).state =
+      //     StackColors.fromStackColorTheme(
+      //   theme.colorTheme,
+      // );
 
       Assets.precache(context);
     } else {
@@ -73,11 +74,12 @@ class _ThemeOptionsWidgetState extends ConsumerState<ThemeOptionsWidget> {
       ref.read(prefsChangeNotifierProvider.notifier).theme = theme;
 
       // apply theme
-      ref.read(colorThemeProvider.notifier).state =
-          StackColors.fromStackColorTheme(
-        theme.colorTheme,
-      );
+      // ref.read(colorThemeProvider.notifier).state =
+      //     StackColors.fromStackColorTheme(
+      //   theme.colorTheme,
+      // );
 
+      throw Exception("bbbbbbbbbbbbbbbbb");
       Assets.precache(context);
     }
   }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/providers/ui/color_theme_provider.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -233,14 +233,16 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
               cursor: SystemMouseCursors.click,
               child: GestureDetector(
                 onTap: () {
-                  if (ref.read(colorThemeProvider.notifier).state.themeType !=
+                  if (ref.read(themeProvider.notifier).state.themeType !=
                       ThemeType.values[i]) {
                     ref.read(prefsChangeNotifierProvider.notifier).theme =
                         ThemeType.values[i];
 
-                    ref.read(colorThemeProvider.notifier).state =
-                        StackColors.fromStackColorTheme(
-                            ThemeType.values[i].colorTheme);
+                    throw Exception(
+                        "TODO: set theme here properly once implemented");
+                    // ref.read(themeProvider.notifier).state =
+                    //     StackColors.fromStackColorTheme(
+                    //         ThemeType.values[i].colorTheme);
                   }
                 },
                 child: Container(
@@ -254,7 +256,7 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
                           border: Border.all(
                             width: 2.5,
                             color: ref
-                                        .read(colorThemeProvider.notifier)
+                                        .read(themeProvider.notifier)
                                         .state
                                         .themeType ==
                                     ThemeType.values[i]
@@ -288,10 +290,8 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
                                   .extension<StackColors>()!
                                   .radioButtonIconEnabled,
                               value: ThemeType.values[i],
-                              groupValue: ref
-                                  .read(colorThemeProvider.state)
-                                  .state
-                                  .themeType,
+                              groupValue:
+                                  ref.read(themeProvider.state).state.themeType,
                               onChanged: (_) {},
                             ),
                           ),

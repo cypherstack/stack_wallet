@@ -8,8 +8,8 @@ import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages_desktop_specific/password/create_password_view.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/price_provider.dart';
-import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -311,9 +311,9 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
   @override
   Widget build(BuildContext context) {
     final bool lightChan =
-        ref.read(colorThemeProvider.state).state.themeType == ThemeType.chan;
-    final bool darkChan = ref.read(colorThemeProvider.state).state.themeType ==
-        ThemeType.darkChans;
+        ref.read(themeProvider.state).state.themeType == ThemeType.chan;
+    final bool darkChan =
+        ref.read(themeProvider.state).state.themeType == ThemeType.darkChans;
     return Row(
       children: [
         Expanded(

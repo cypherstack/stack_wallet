@@ -5,8 +5,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/models/isar/sw_theme.dart';
 import 'package:stackwallet/themes/defaults/dark.dart';
+import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 final applicationThemesDirectoryPathProvider = StateProvider((ref) => "");
+
+final colorProvider = StateProvider<StackColors>(
+  (ref) => StackColors.fromStackColorTheme(
+    ref.watch(themeProvider.state).state,
+  ),
+);
 
 final themeProvider = StateProvider<StackTheme>((ref) {
   // Return default if no theme was properly loaded on startup. This should

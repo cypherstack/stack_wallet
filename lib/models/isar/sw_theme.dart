@@ -72,14 +72,34 @@ class StackTheme {
   // ==== boxShadows =====================================================
 
   @ignore
-  BoxShadow get boxShadows => _boxShadows ??= BoxShadowExt.fromJson(
+  BoxShadow get standardBoxShadow =>
+      _standardBoxShadow ??= BoxShadowExt.fromJson(
         Map<String, dynamic>.from(
-          jsonDecode(boxShadowsString) as Map,
+          jsonDecode(standardBoxShadowString) as Map,
         ),
       );
   @ignore
-  BoxShadow? _boxShadows;
-  final String boxShadowsString;
+  BoxShadow? _standardBoxShadow;
+  final String standardBoxShadowString;
+
+  @ignore
+  BoxShadow? get homeViewButtonBarBoxShadow {
+    if (homeViewButtonBarBoxShadowString == null) {
+      _homeViewButtonBarBoxShadow = null;
+    } else {
+      _homeViewButtonBarBoxShadow ??= BoxShadowExt.fromJson(
+        Map<String, dynamic>.from(
+          jsonDecode(homeViewButtonBarBoxShadowString!) as Map,
+        ),
+      );
+    }
+
+    return _homeViewButtonBarBoxShadow;
+  }
+
+  @ignore
+  BoxShadow? _homeViewButtonBarBoxShadow;
+  final String? homeViewButtonBarBoxShadowString;
 
   // ==== overlay =====================================================
 
@@ -1456,7 +1476,8 @@ class StackTheme {
     required this.backgroundInt,
     required this.backgroundAppBarInt,
     required this.gradientBackgroundString,
-    required this.boxShadowsString,
+    required this.standardBoxShadowString,
+    required this.homeViewButtonBarBoxShadowString,
     required this.overlayInt,
     required this.accentColorBlueInt,
     required this.accentColorGreenInt,
@@ -1624,7 +1645,12 @@ class StackTheme {
           json["colors"]["background_colors"]["backgroundAppBar"] as String),
       gradientBackgroundString:
           jsonEncode(json["gradients"]["background"] as Map),
-      boxShadowsString: jsonEncode(json["box_shadows"] as Map),
+      standardBoxShadowString:
+          jsonEncode(json["box_shadows"]["standard"] as Map),
+      homeViewButtonBarBoxShadowString:
+          json["box_shadows"]["home_view_button_bar"] == null
+              ? null
+              : jsonEncode(json["box_shadows"]["home_view_button_bar"] as Map),
       coinColorsJsonString: jsonEncode(json["coinColors"] as Map),
       assets: ThemeAssets.fromJson(
         json: json,
