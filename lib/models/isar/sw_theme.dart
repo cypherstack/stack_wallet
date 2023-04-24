@@ -1634,24 +1634,24 @@ class StackTheme {
     required String applicationThemesDirectoryPath,
   }) {
     final _id = const Uuid().v1();
+    print("GRADIENTS IS ${json['gradients']}");
     return StackTheme(
       internalId: _id,
       name: json["name"] as String,
-      assetBundleUrl: json["assetBundleUrl"] as String,
+      assetBundleUrl: json["asset_bundle_url"] as String,
       brightnessString: json["brightness"] as String,
-      backgroundInt: parseColor(
-          json["colors"]["background_colors"]["background"] as String),
+      backgroundInt:
+          parseColor(json["colors"]["background"]["background"] as String),
       backgroundAppBarInt: parseColor(
-          json["colors"]["background_colors"]["backgroundAppBar"] as String),
-      gradientBackgroundString:
-          jsonEncode(json["gradients"]["background"] as Map),
+          json["colors"]["background"]["backgroundAppBar"] as String),
+      gradientBackgroundString: jsonEncode(json["gradients"] ?? ["background"]),
       standardBoxShadowString:
           jsonEncode(json["box_shadows"]["standard"] as Map),
       homeViewButtonBarBoxShadowString:
           json["box_shadows"]["home_view_button_bar"] == null
               ? null
               : jsonEncode(json["box_shadows"]["home_view_button_bar"] as Map),
-      coinColorsJsonString: jsonEncode(json["coinColors"] as Map),
+      coinColorsJsonString: jsonEncode(json["colors"]['coin'] as Map),
       assets: ThemeAssets.fromJson(
         json: json,
         applicationThemesDirectoryPath: applicationThemesDirectoryPath,
@@ -2079,6 +2079,7 @@ class ThemeAssets {
     required String applicationThemesDirectoryPath,
     required String internalThemeUuid,
   }) {
+    print("ASSETS JSON IS $json");
     return ThemeAssets(
       bellNew:
           "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["bell_new"] as String}",
