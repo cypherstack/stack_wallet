@@ -10,7 +10,18 @@ Stack Wallet is a fully open source cryptocurrency wallet. With an easy to use u
 ## Feature List
 
 Highlights include:
-- 11 Different cryptocurrencies
+- 11 Different cryptocurrencies:
+    - [Bitcoin](https://bitcoin.org/en/)
+    - [Bitcoin Cash](https://bch.info/en/)
+    - [Dogecoin](https://dogecoin.com/)
+    - [Epic Cash](https://linktr.ee/epiccash)
+    - [Ethereum](https://ethereum.org/en/)
+    - [Firo](https://firo.org/)
+    - [Litecoin](https://litecoin.org/)
+    - [Monero](https://www.getmonero.org/)
+    - [Namecoin](https://www.namecoin.org/)
+    - [Particl](https://particl.io/)
+    - [Wownero](https://wownero.org/)
 - All private keys and seeds stay on device and are never shared.
 - Easy backup and restore feature to save all the information that's important to you.
 - Trading cryptocurrencies through our partners.
