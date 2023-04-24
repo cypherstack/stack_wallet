@@ -72,7 +72,7 @@ class _RescanningDialogState extends State<RescanningDialog>
           icon: RotationTransition(
             turns: _spinAnimation,
             child: SvgPicture.asset(
-              Assets.svg.arrowRotate3,
+              Assets.svg.arrowRotate,
               width: 24,
               height: 24,
               color:

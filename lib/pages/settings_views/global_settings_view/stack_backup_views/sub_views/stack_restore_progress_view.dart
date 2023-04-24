@@ -560,7 +560,7 @@ class _StackRestoreProgressViewState
                                     .buttonBackSecondary,
                                 child: Center(
                                   child: SvgPicture.asset(
-                                    Assets.svg.arrowRotate2,
+                                    Assets.svg.arrowsTwoWay,
                                     width: 16,
                                     height: 16,
                                     color: Theme.of(context)
@@ -603,7 +603,7 @@ class _StackRestoreProgressViewState
                                     .buttonBackSecondary,
                                 child: Center(
                                   child: SvgPicture.asset(
-                                    Assets.svg.arrowRotate2,
+                                    Assets.svg.arrowsTwoWay,
                                     width: 16,
                                     height: 16,
                                     color: Theme.of(context)

@@ -71,7 +71,7 @@ class _RestoringDialogState extends State<RestoringDialog>
             ),
             RotationTransition(
               turns: _spinAnimation,
-              child: SvgPicture.asset(Assets.svg.arrowRotate3,
+              child: SvgPicture.asset(Assets.svg.arrowRotate,
                   width: 40,
                   height: 40,
                   color: Theme.of(context)
@@ -129,7 +129,7 @@ class _RestoringDialogState extends State<RestoringDialog>
           message: "This may take a while. Please do not exit this screen.",
           icon: RotationTransition(
             turns: _spinAnimation,
-            child: SvgPicture.asset(Assets.svg.arrowRotate3,
+            child: SvgPicture.asset(Assets.svg.arrowRotate,
                 width: 24,
                 height: 24,
                 color: Theme.of(context)

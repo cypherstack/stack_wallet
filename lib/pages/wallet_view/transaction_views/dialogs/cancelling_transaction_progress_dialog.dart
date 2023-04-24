@@ -53,7 +53,7 @@ class _CancellingTransactionProgressDialogState
         icon: RotationTransition(
           turns: _spinAnimation,
           child: SvgPicture.asset(
-            Assets.svg.arrowRotate3,
+            Assets.svg.arrowRotate,
             width: 24,
             height: 24,
             color: Theme.of(context).extension<StackColors>()!.accentColorDark,
