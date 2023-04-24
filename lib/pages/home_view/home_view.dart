@@ -13,6 +13,7 @@ import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
 import 'package:stackwallet/providers/global/notifications_provider.dart';
 import 'package:stackwallet/providers/ui/home_view_index_provider.dart';
 import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -200,7 +201,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     icon: SvgPicture.asset(
                       ref.watch(notificationsProvider
                               .select((value) => value.hasUnreadNotifications))
-                          ? Assets.svg.bellNew(context)
+                          ? ref.watch(
+                              themeProvider.select(
+                                (value) => value.assets.bellNew,
+                              ),
+                            )
                           : Assets.svg.bell,
                       width: 20,
                       height: 20,
