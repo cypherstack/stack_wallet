@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:lottie/lottie.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/animated_widgets/rotating_arrows.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
-
-import '../../../widgets/animated_widgets/rotate_animation.dart';
 
 class BuildingTransactionDialog extends StatefulWidget {
   const BuildingTransactionDialog({
@@ -26,43 +23,14 @@ class BuildingTransactionDialog extends StatefulWidget {
   State<BuildingTransactionDialog> createState() => _RestoringDialogState();
 }
 
-class _RestoringDialogState extends State<BuildingTransactionDialog>
-    with TickerProviderStateMixin {
-  late AnimationController? _spinController;
-  late Animation<double> _spinAnimation;
-
-  late RotateAnimationController? _rotateAnimationController;
-
+class _RestoringDialogState extends State<BuildingTransactionDialog> {
   late final VoidCallback onCancel;
 
   @override
   void initState() {
     onCancel = widget.onCancel;
 
-    _spinController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat();
-
-    _spinAnimation = CurvedAnimation(
-      parent: _spinController!,
-      curve: Curves.linear,
-    );
-
-    _rotateAnimationController = RotateAnimationController();
-
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    _spinController?.dispose();
-    _spinController = null;
-
-    _rotateAnimationController?.forward = null;
-    _rotateAnimationController?.reset = null;
-
-    super.dispose();
   }
 
   @override
@@ -90,28 +58,9 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
               ),
             ),
           if (!isChans)
-            RotateAnimation(
-              lottie: Lottie.asset(
-                Assets.lottie.arrowRotate,
-                delegates: LottieDelegates(
-                  values: [
-                    ValueDelegate.color(
-                      const ["**"],
-                      value: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
-                    ),
-                    ValueDelegate.strokeColor(
-                      const ["**"],
-                      value: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
-                    ),
-                  ],
-                ),
-              ),
-              curve: Curves.easeInOutCubic,
-              controller: _rotateAnimationController,
+            const RotatingArrows(
+              width: 40,
+              height: 40,
             ),
           const SizedBox(
             height: 40,
@@ -174,16 +123,9 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
               )
             : StackDialog(
                 title: "Generating transaction",
-                icon: RotationTransition(
-                  turns: _spinAnimation,
-                  child: SvgPicture.asset(
-                    Assets.svg.arrowRotate,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorDark,
-                    width: 24,
-                    height: 24,
-                  ),
+                icon: const RotatingArrows(
+                  width: 24,
+                  height: 24,
                 ),
                 rightButton: TextButton(
                   style: Theme.of(context)

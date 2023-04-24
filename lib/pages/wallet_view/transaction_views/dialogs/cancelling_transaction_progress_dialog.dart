@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/animated_widgets/rotating_arrows.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class CancellingTransactionProgressDialog extends StatefulWidget {
@@ -13,51 +11,19 @@ class CancellingTransactionProgressDialog extends StatefulWidget {
 }
 
 class _CancellingTransactionProgressDialogState
-    extends State<CancellingTransactionProgressDialog>
-    with TickerProviderStateMixin {
-  late AnimationController? _spinController;
-  late Animation<double> _spinAnimation;
-
-  @override
-  void initState() {
-    _spinController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat();
-
-    _spinAnimation = CurvedAnimation(
-      parent: _spinController!,
-      curve: Curves.linear,
-    );
-
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _spinController?.dispose();
-    _spinController = null;
-
-    super.dispose();
-  }
-
+    extends State<CancellingTransactionProgressDialog> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
         return false;
       },
-      child: StackDialog(
+      child: const StackDialog(
         title: "Cancelling transaction",
         message: "This may take a while. Please do not exit this screen.",
-        icon: RotationTransition(
-          turns: _spinAnimation,
-          child: SvgPicture.asset(
-            Assets.svg.arrowRotate,
-            width: 24,
-            height: 24,
-            color: Theme.of(context).extension<StackColors>()!.accentColorDark,
-          ),
+        icon: RotatingArrows(
+          width: 24,
+          height: 24,
         ),
         // rightButton: TextButton(
         //   style: Theme.of(context).textButtonTheme.style?.copyWith(
