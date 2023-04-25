@@ -453,7 +453,7 @@ class _SendViewState extends ConsumerState<SendView> {
         final wallet = manager.wallet as PaynymWalletInterface;
         final paymentCode = PaymentCode.fromPaymentCode(
           widget.accountLite!.code,
-          wallet.networkType,
+          networkType: wallet.networkType,
         );
         final feeRate = ref.read(feeRateTypeStateProvider);
         txDataFuture = wallet.preparePaymentCodeSend(

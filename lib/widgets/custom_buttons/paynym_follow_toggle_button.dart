@@ -11,7 +11,6 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -68,8 +67,7 @@ class _PaynymFollowToggleButtonState
         .read(paynymAPIProvider)
         .nym(widget.paymentCodeStringToFollow, true);
 
-    final myPCode =
-        await wallet.getPaymentCode(DerivePathTypeExt.primaryFor(manager.coin));
+    final myPCode = await wallet.getPaymentCode(isSegwit: false);
 
     PaynymResponse<String> token =
         await ref.read(paynymAPIProvider).token(myPCode.toString());
@@ -169,8 +167,7 @@ class _PaynymFollowToggleButtonState
         .read(paynymAPIProvider)
         .nym(widget.paymentCodeStringToFollow, true);
 
-    final myPCode =
-        await wallet.getPaymentCode(DerivePathTypeExt.primaryFor(manager.coin));
+    final myPCode = await wallet.getPaymentCode(isSegwit: false);
 
     PaynymResponse<String> token =
         await ref.read(paynymAPIProvider).token(myPCode.toString());

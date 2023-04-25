@@ -4,6 +4,7 @@ import 'package:stackwallet/models/paynym/paynym_code.dart';
 class PaynymAccount {
   final String nymID;
   final String nymName;
+  final bool segwit;
 
   final List<PaynymCode> codes;
 
@@ -16,6 +17,7 @@ class PaynymAccount {
   PaynymAccount(
     this.nymID,
     this.nymName,
+    this.segwit,
     this.codes,
     this.followers,
     this.following,
@@ -24,6 +26,7 @@ class PaynymAccount {
   PaynymAccount.fromMap(Map<String, dynamic> map)
       : nymID = map["nymID"] as String,
         nymName = map["nymName"] as String,
+        segwit = map["segwit"] as bool,
         codes = (map["codes"] as List<dynamic>)
             .map((e) => PaynymCode.fromMap(Map<String, dynamic>.from(e as Map)))
             .toList(),
@@ -39,6 +42,7 @@ class PaynymAccount {
   PaynymAccount copyWith({
     String? nymID,
     String? nymName,
+    bool? segwit,
     List<PaynymCode>? codes,
     List<PaynymAccountLite>? followers,
     List<PaynymAccountLite>? following,
@@ -46,6 +50,7 @@ class PaynymAccount {
     return PaynymAccount(
       nymID ?? this.nymID,
       nymName ?? this.nymName,
+      segwit ?? this.segwit,
       codes ?? this.codes,
       followers ?? this.followers,
       following ?? this.following,
@@ -55,6 +60,7 @@ class PaynymAccount {
   Map<String, dynamic> toMap() => {
         "nymID": nymID,
         "nymName": nymName,
+        "segwit": segwit,
         "codes": codes.map((e) => e.toMap()),
         "followers": followers.map((e) => e.toMap()),
         "following": followers.map((e) => e.toMap()),

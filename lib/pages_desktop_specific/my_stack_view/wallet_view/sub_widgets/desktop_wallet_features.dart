@@ -21,7 +21,6 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -271,8 +270,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
     final wallet = manager.wallet as PaynymWalletInterface;
 
-    final code =
-        await wallet.getPaymentCode(DerivePathTypeExt.primaryFor(manager.coin));
+    final code = await wallet.getPaymentCode(isSegwit: false);
 
     final account = await ref.read(paynymAPIProvider).nym(code.toString());
 
@@ -285,7 +283,9 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       Navigator.of(context, rootNavigator: true).pop();
 
       // check if account exists and for matching code to see if claimed
-      if (account.value != null && account.value!.codes.first.claimed) {
+      if (account.value != null &&
+          account.value!.codes.first.claimed &&
+          account.value!.segwit) {
         ref.read(myPaynymAccountStateProvider.state).state = account.value!;
 
         await Navigator.of(context).pushNamed(

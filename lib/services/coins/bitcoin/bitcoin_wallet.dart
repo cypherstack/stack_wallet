@@ -164,6 +164,7 @@ class BitcoinWallet extends CoinServiceAPI
       //     _checkP2PKHChangeAddressForTransactions,
       dustLimitP2PKH: DUST_LIMIT_P2PKH.raw.toInt(),
       minConfirms: MINIMUM_CONFIRMATIONS,
+      dustLimit: DUST_LIMIT.raw.toInt(),
     );
   }
 
@@ -659,7 +660,8 @@ class BitcoinWallet extends CoinServiceAPI
       }
 
       // get own payment code
-      final myCode = await getPaymentCode(DerivePathType.bip44, root);
+      // isSegwit does not matter here at all
+      final myCode = await getPaymentCode(isSegwit: false);
 
       // refresh transactions to pick up any received notification transactions
       await _refreshTransactions();
@@ -915,7 +917,8 @@ class BitcoinWallet extends CoinServiceAPI
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.0, walletId));
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.1, walletId));
-      final myCode = await getPaymentCode(DerivePathType.bip44);
+      // isSegwit does not matter here at all
+      final myCode = await getPaymentCode(isSegwit: false);
       final Set<String> codesToCheck = {};
       final nym = await PaynymIsApi().nym(myCode.toString());
       if (nym.value != null) {
