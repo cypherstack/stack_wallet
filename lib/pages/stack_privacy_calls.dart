@@ -355,7 +355,11 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                               image: AssetImage(Assets.png.chanEasy),
                             )
                           : SvgPicture.asset(
-                              Assets.svg.personaEasy(context),
+                              ref.watch(
+                                themeProvider.select(
+                                  (value) => value.assets.personaEasy,
+                                ),
+                              ),
                               width: 140,
                               height: 140,
                             ),
@@ -460,7 +464,11 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                               image: AssetImage(Assets.png.chanIncognito),
                             )
                           : SvgPicture.asset(
-                              Assets.svg.personaIncognito(context),
+                              ref.watch(
+                                themeProvider.select(
+                                  (value) => value.assets.personaIncognito,
+                                ),
+                              ),
                               width: 140,
                               height: 140,
                             ),
