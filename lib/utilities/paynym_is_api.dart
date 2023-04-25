@@ -25,14 +25,18 @@ class PaynymIsApi {
         version +
         (endpoint.startsWith("/") ? endpoint : "/$endpoint");
     final uri = Uri.parse(url);
+    final headers = {
+      'Content-Type': 'application/json; charset=UTF-8',
+    }..addAll(additionalHeaders);
     final response = await http.post(
       uri,
-      headers: {
-        'Content-Type': 'application/json; charset=UTF-8',
-      }..addAll(additionalHeaders),
+      headers: headers,
       body: jsonEncode(body),
     );
 
+    debugPrint("Paynym request uri: $uri");
+    debugPrint("Paynym request body: $body");
+    debugPrint("Paynym request headers: $headers");
     debugPrint("Paynym response code: ${response.statusCode}");
     debugPrint("Paynym response body: ${response.body}");
 
