@@ -73,8 +73,8 @@ final Map<String, dynamic> darkJson = {
   "gradients": {
     "background": {
       "type": "Linear",
-      "begin": {"x": 0, "y": 1},
-      "end": {"x": -1, "y": 1},
+      "begin": {"x": 0.0, "y": 1.0},
+      "end": {"x": -1.0, "y": 1.0},
       "colors": ["0xFF638227", "0xFF638227"]
     }
   },

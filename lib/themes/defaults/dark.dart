@@ -69,6 +69,14 @@ final Map<String, dynamic> darkJson = {
       "nav": "0xFF3E4148",
     },
   },
+  "gradients": {
+    //   "background": {
+    //     "type": "Linear",
+    //     "begin": {"x": 0.0, "y": 1.0},
+    //     "end": {"x": -1.0, "y": 1.0},
+    //     "colors": ["0xFF638227", "0xFF638227"]
+    //   }
+  },
   "overlay": "0xFF111215",
   "shadow": "0x0F2D3132",
   "text_subtitles": {

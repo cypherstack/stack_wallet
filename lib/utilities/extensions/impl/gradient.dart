@@ -34,29 +34,35 @@ final map = {
 
 extension GradientExt on Gradient {
   static Gradient fromJson(Map<String, dynamic> json) {
-    switch (json["gradientType"] as String) {
-      case "linear":
-        final colorStrings = List<String>.from(json["colors"] as List);
-        return LinearGradient(
-          begin: Alignment(
-            json["begin"]["x"] as double,
-            json["begin"]["y"] as double,
-          ),
-          end: Alignment(
-            json["end"]["x"] as double,
-            json["end"]["y"] as double,
-          ),
-          colors: colorStrings
-              .map(
-                (e) => Color(
-                  e.toBigIntFromHex.toInt(),
-                ),
-              )
-              .toList(),
-        );
+    print("THIS GRADIENTS IS ${json.isEmpty}");
+    if (!json.isEmpty) {
+      switch (json["background"]["type"]) {
+        case "Linear":
+          final colorStrings =
+              List<String>.from(json["background"]["colors"] as List);
+          return LinearGradient(
+            begin: Alignment(
+              json["background"]["begin"]["x"] as double,
+              json["background"]["begin"]["y"] as double,
+            ),
+            end: Alignment(
+              json["background"]["end"]["x"] as double,
+              json["background"]["end"]["y"] as double,
+            ),
+            colors: colorStrings
+                .map(
+                  (e) => Color(
+                    e.toBigIntFromHex.toInt(),
+                  ),
+                )
+                .toList(),
+          );
 
-      default:
-        throw ArgumentError("Invalid json gradient: $json");
+        default:
+          throw ArgumentError("Invalid json gradient: $json");
+      }
     }
+    throw ArgumentError("Invalid json gradient: $json");
+    // if ()
   }
 }

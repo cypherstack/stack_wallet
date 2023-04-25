@@ -1643,7 +1643,7 @@ class StackTheme {
           parseColor(json["colors"]["background"]["background"] as String),
       backgroundAppBarInt: parseColor(
           json["colors"]["background"]["backgroundAppBar"] as String),
-      gradientBackgroundString: jsonEncode(json["gradients"] ?? ["background"]),
+      gradientBackgroundString: jsonEncode(json["gradients"] as Map),
       standardBoxShadowString:
           jsonEncode(json["box_shadows"]["standard"] as Map),
       homeViewButtonBarBoxShadowString:
