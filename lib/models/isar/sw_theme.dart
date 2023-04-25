@@ -65,7 +65,7 @@ class StackTheme {
     } else {
       _gradientBackground ??= GradientExt.fromJson(
         Map<String, dynamic>.from(
-          jsonDecode(gradientBackgroundString) as Map,
+          jsonDecode(gradientBackgroundString!) as Map,
         ),
       );
     }
