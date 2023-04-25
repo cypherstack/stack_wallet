@@ -269,7 +269,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
                                   height: 8,
                                 ),
                                 SettingsListButton(
-                                  iconAssetName: Assets.svg.arrowRotate3,
+                                  iconAssetName: Assets.svg.arrowRotate,
                                   title: "Syncing preferences",
                                   onPressed: () {
                                     Navigator.of(context).pushNamed(

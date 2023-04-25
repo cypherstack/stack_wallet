@@ -135,7 +135,7 @@ class _ConfirmTransactionViewState
         time,
       ]);
 
-      sendProgressController.triggerSuccess();
+      sendProgressController.triggerSuccess?.call();
       await Future<void>.delayed(const Duration(seconds: 5));
 
       txid = results.first as String;
