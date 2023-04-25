@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
@@ -30,6 +30,7 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 import 'package:uuid/uuid.dart';
+// import 'package:web3dart/web3dart.dart';
 
 enum AddEditNodeViewType { add, edit }
 
@@ -62,6 +63,44 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
   late bool saveEnabled;
   late bool testConnectionEnabled;
 
+  Future<bool> _xmrHelper(String url, int? port) async {
+    final uri = Uri.parse(url);
+
+    final String path = uri.path.isEmpty ? "/json_rpc" : uri.path;
+
+    final uriString = "${uri.scheme}://${uri.host}:${port ?? 0}$path";
+
+    ref.read(nodeFormDataProvider).useSSL = true;
+
+    final response = await testMoneroNodeConnection(
+      Uri.parse(uriString),
+      false,
+    );
+
+    if (response.cert != null) {
+      if (mounted) {
+        final shouldAllowBadCert = await showBadX509CertificateDialog(
+          response.cert!,
+          response.url!,
+          response.port!,
+          context,
+        );
+
+        if (shouldAllowBadCert) {
+          final response =
+              await testMoneroNodeConnection(Uri.parse(uriString), true);
+          ref.read(nodeFormDataProvider).host = url;
+          return response.success;
+        }
+      }
+    } else {
+      ref.read(nodeFormDataProvider).host = url;
+      return response.success;
+    }
+
+    return false;
+  }
+
   Future<bool> _testConnection({bool showFlushBar = true}) async {
     final formData = ref.read(nodeFormDataProvider);
 
@@ -86,41 +125,19 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
       case Coin.monero:
       case Coin.wownero:
         try {
-          final uri = Uri.parse(formData.host!);
-          if (uri.scheme.startsWith("http")) {
-            final String path = uri.path.isEmpty ? "/json_rpc" : uri.path;
+          final url = formData.host!;
+          final uri = Uri.tryParse(url);
+          if (uri != null) {
+            if (!uri.hasScheme) {
+              // try https first
+              testPassed = await _xmrHelper("https://$url", formData.port);
 
-            String uriString =
-                "${uri.scheme}://${uri.host}:${formData.port ?? 0}$path";
-
-            if (uri.host == "https") {
-              ref.read(nodeFormDataProvider).useSSL = true;
-            } else {
-              ref.read(nodeFormDataProvider).useSSL = false;
-            }
-
-            final response = await testMoneroNodeConnection(
-              Uri.parse(uriString),
-              false,
-            );
-
-            if (response.cert != null) {
-              if (mounted) {
-                final shouldAllowBadCert = await showBadX509CertificateDialog(
-                  response.cert!,
-                  response.url!,
-                  response.port!,
-                  context,
-                );
-
-                if (shouldAllowBadCert) {
-                  final response = await testMoneroNodeConnection(
-                      Uri.parse(uriString), true);
-                  testPassed = response.success;
-                }
+              if (testPassed == false) {
+                // try http
+                testPassed = await _xmrHelper("http://$url", formData.port);
               }
             } else {
-              testPassed = response.success;
+              testPassed = await _xmrHelper(url, formData.port);
             }
           }
         } catch (e, s) {
@@ -156,9 +173,17 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         }
 
         break;
+
+      case Coin.ethereum:
+        // final client = Web3Client(
+        //     "https://mainnet.infura.io/v3/22677300bf774e49a458b73313ee56ba",
+        //     Client());
+        try {
+          // await client.getSyncStatus();
+        } catch (_) {}
     }
 
-    if (showFlushBar) {
+    if (showFlushBar && mounted) {
       if (testPassed) {
         unawaited(showFloatingFlushBar(
           type: FlushBarType.success,
@@ -182,7 +207,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 
     bool? shouldSave;
 
-    if (!canConnect) {
+    if (!canConnect && mounted) {
       await showDialog<dynamic>(
         context: context,
         useSafeArea: true,
@@ -694,6 +719,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       case Coin.epicCash:
         return false;
 
+      case Coin.ethereum:
       case Coin.monero:
       case Coin.wownero:
         return true;
@@ -975,7 +1001,6 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               controller: _usernameController,
               readOnly: shouldBeReadOnly,
               enabled: enableField(_usernameController),
-              keyboardType: TextInputType.number,
               focusNode: _usernameFocusNode,
               style: STextStyles.field(context),
               decoration: standardInputDecoration(
@@ -1024,7 +1049,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               controller: _passwordController,
               readOnly: shouldBeReadOnly,
               enabled: enableField(_passwordController),
-              keyboardType: TextInputType.number,
+              obscureText: true,
               focusNode: _passwordFocusNode,
               style: STextStyles.field(context),
               decoration: standardInputDecoration(

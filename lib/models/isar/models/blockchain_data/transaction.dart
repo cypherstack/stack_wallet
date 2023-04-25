@@ -5,6 +5,7 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/input.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/output.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:tuple/tuple.dart';
 
 part 'transaction.g.dart';
@@ -18,6 +19,7 @@ class Transaction {
     required this.type,
     required this.subType,
     required this.amount,
+    required this.amountString,
     required this.fee,
     required this.height,
     required this.isCancelled,
@@ -26,6 +28,7 @@ class Transaction {
     required this.otherData,
     required this.inputs,
     required this.outputs,
+    required this.nonce,
   });
 
   Tuple2<Transaction, Address?> copyWith({
@@ -35,6 +38,7 @@ class Transaction {
     TransactionType? type,
     TransactionSubType? subType,
     int? amount,
+    String? amountString,
     int? fee,
     int? height,
     bool? isCancelled,
@@ -43,6 +47,7 @@ class Transaction {
     String? otherData,
     List<Input>? inputs,
     List<Output>? outputs,
+    int? nonce,
     Id? id,
     Address? address,
   }) {
@@ -54,12 +59,14 @@ class Transaction {
           type: type ?? this.type,
           subType: subType ?? this.subType,
           amount: amount ?? this.amount,
+          amountString: amountString ?? this.amountString,
           fee: fee ?? this.fee,
           height: height ?? this.height,
           isCancelled: isCancelled ?? this.isCancelled,
           isLelantus: isLelantus ?? this.isLelantus,
           slateId: slateId ?? this.slateId,
           otherData: otherData ?? this.otherData,
+          nonce: nonce ?? this.nonce,
           inputs: inputs ?? this.inputs,
           outputs: outputs ?? this.outputs)
         ..id = id ?? this.id,
@@ -84,7 +91,10 @@ class Transaction {
   @enumerated
   late final TransactionSubType subType;
 
+  @Deprecated("May be inaccurate for large amounts (eth for example)")
   late final int amount;
+
+  late String? amountString;
 
   late final int fee;
 
@@ -98,12 +108,21 @@ class Transaction {
 
   late final String? otherData;
 
+  late final int? nonce;
+
   late final List<Input> inputs;
 
   late final List<Output> outputs;
 
   @Backlink(to: "transactions")
   final address = IsarLink<Address>();
+
+  @ignore
+  Amount? _cachedAmount;
+
+  @ignore
+  Amount get realAmount =>
+      _cachedAmount ??= Amount.fromSerializedJsonString(amountString!);
 
   int getConfirmations(int currentChainHeight) {
     if (height == null || height! <= 0) return 0;
@@ -124,12 +143,14 @@ class Transaction {
       "type: ${type.name}, "
       "subType: ${subType.name}, "
       "amount: $amount, "
+      "amountString: $amountString, "
       "fee: $fee, "
       "height: $height, "
       "isCancelled: $isCancelled, "
       "isLelantus: $isLelantus, "
       "slateId: $slateId, "
       "otherData: $otherData, "
+      "nonce: $nonce, "
       "address: ${address.value}, "
       "inputsLength: ${inputs.length}, "
       "outputsLength: ${outputs.length}, "
@@ -143,12 +164,14 @@ class Transaction {
       "type": type.name,
       "subType": subType.name,
       "amount": amount,
+      "amountString": amountString,
       "fee": fee,
       "height": height,
       "isCancelled": isCancelled,
       "isLelantus": isLelantus,
       "slateId": slateId,
       "otherData": otherData,
+      "nonce": nonce,
       "address": address.value?.toJsonString(),
       "inputs": inputs.map((e) => e.toJsonString()).toList(),
       "outputs": outputs.map((e) => e.toJsonString()).toList(),
@@ -168,12 +191,14 @@ class Transaction {
       type: TransactionType.values.byName(json["type"] as String),
       subType: TransactionSubType.values.byName(json["subType"] as String),
       amount: json["amount"] as int,
+      amountString: json["amountString"] as String,
       fee: json["fee"] as int,
       height: json["height"] as int?,
       isCancelled: json["isCancelled"] as bool,
       isLelantus: json["isLelantus"] as bool?,
       slateId: json["slateId"] as String?,
       otherData: json["otherData"] as String?,
+      nonce: json["nonce"] as int?,
       inputs: List<String>.from(json["inputs"] as List)
           .map((e) => Input.fromJsonString(e))
           .toList(),
@@ -207,5 +232,6 @@ enum TransactionSubType {
   none,
   bip47Notification, // bip47 payment code notification transaction flag
   mint, // firo specific
-  join; // firo specific
+  join, // firo specific
+  ethToken; // eth token
 }

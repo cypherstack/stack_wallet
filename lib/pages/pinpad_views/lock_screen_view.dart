@@ -14,8 +14,9 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/biometrics.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -81,19 +82,47 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
     if (widget.popOnSuccess) {
       Navigator.of(context).pop(widget.routeOnSuccessArguments);
     } else {
-      unawaited(Navigator.of(context).pushReplacementNamed(
-        widget.routeOnSuccess,
-        arguments: widget.routeOnSuccessArguments,
-      ));
-      if (widget.routeOnSuccess == HomeView.routeName &&
-          widget.routeOnSuccessArguments is String) {
+      final loadIntoWallet = widget.routeOnSuccess == HomeView.routeName &&
+          widget.routeOnSuccessArguments is String;
+
+      if (loadIntoWallet) {
         final walletId = widget.routeOnSuccessArguments as String;
-        unawaited(Navigator.of(context).pushNamed(WalletView.routeName,
-            arguments: Tuple2(
+
+        final manager =
+            ref.read(walletsChangeNotifierProvider).getManager(walletId);
+        if (manager.coin == Coin.monero || manager.coin == Coin.wownero) {
+          await showLoading(
+            opaqueBG: true,
+            whileFuture: manager.initializeExisting(),
+            context: context,
+            message: "Loading ${manager.coin.prettyName} wallet...",
+          );
+        }
+      }
+
+      if (mounted) {
+        unawaited(
+          Navigator.of(context).pushReplacementNamed(
+            widget.routeOnSuccess,
+            arguments: widget.routeOnSuccessArguments,
+          ),
+        );
+
+        if (loadIntoWallet) {
+          final walletId = widget.routeOnSuccessArguments as String;
+
+          unawaited(
+            Navigator.of(context).pushNamed(
+              WalletView.routeName,
+              arguments: Tuple2(
                 walletId,
                 ref
                     .read(walletsChangeNotifierProvider)
-                    .getManagerProvider(walletId))));
+                    .getManagerProvider(walletId),
+              ),
+            ),
+          );
+        }
       }
     }
   }
@@ -128,6 +157,14 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
       //   Navigator.pop(context);
       // }
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    if (widget.isInitialAppLogin) {
+      unawaited(Assets.precache(context));
+    }
+    super.didChangeDependencies();
   }
 
   @override

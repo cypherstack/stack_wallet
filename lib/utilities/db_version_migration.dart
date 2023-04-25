@@ -1,15 +1,18 @@
 import 'package:hive/hive.dart';
-import 'package:stackwallet/db/main_db.dart';
+import 'package:isar/isar.dart';
+import 'package:stackwallet/db/hive/db.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
-import 'package:stackwallet/hive/db.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/models.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets_service.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -185,6 +188,108 @@ class DbVersionMigrator with WalletDB {
         // try to continue migrating
         return await migrate(5, secureStore: secureStore);
 
+      case 5:
+        // migrate
+        await Hive.openBox<dynamic>("theme");
+        await Hive.openBox<dynamic>(DB.boxNamePrefs);
+
+        final themeName =
+            DB.instance.get<dynamic>(boxName: "theme", key: "colorScheme")
+                    as String? ??
+                "light";
+
+        await DB.instance.put<dynamic>(
+            boxName: DB.boxNamePrefs, key: "theme", value: themeName);
+
+        // update version
+        await DB.instance.put<dynamic>(
+            boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 6);
+
+        // try to continue migrating
+        return await migrate(6, secureStore: secureStore);
+
+      case 6:
+        // migrate
+        await MainDB.instance.initMainDB();
+        final count = await MainDB.instance.isar.addresses.count();
+        // add change/receiving tags to address labels
+        for (var i = 0; i < count; i += 50) {
+          final addresses = await MainDB.instance.isar.addresses
+              .where()
+              .offset(i)
+              .limit(50)
+              .findAll();
+
+          final List<isar_models.AddressLabel> labels = [];
+          for (final address in addresses) {
+            List<String>? tags;
+            switch (address.subType) {
+              case AddressSubType.receiving:
+                tags = ["receiving"];
+                break;
+              case AddressSubType.change:
+                tags = ["change"];
+                break;
+              case AddressSubType.paynymNotification:
+                tags = ["paynym notification"];
+                break;
+              case AddressSubType.paynymSend:
+                break;
+              case AddressSubType.paynymReceive:
+                tags = ["paynym receiving"];
+                break;
+              case AddressSubType.unknown:
+                break;
+              case AddressSubType.nonWallet:
+                break;
+            }
+
+            // update/create label if tags is not empty
+            if (tags != null) {
+              isar_models.AddressLabel? label = await MainDB
+                  .instance.isar.addressLabels
+                  .where()
+                  .addressStringWalletIdEqualTo(address.value, address.walletId)
+                  .findFirst();
+              if (label == null) {
+                label = isar_models.AddressLabel(
+                  walletId: address.walletId,
+                  value: "",
+                  addressString: address.value,
+                  tags: tags,
+                );
+              } else if (label.tags == null) {
+                label = label.copyWith(tags: tags);
+              }
+              labels.add(label);
+            }
+          }
+
+          if (labels.isNotEmpty) {
+            await MainDB.instance.isar.writeTxn(() async {
+              await MainDB.instance.isar.addressLabels.putAll(labels);
+            });
+          }
+        }
+
+        // update version
+        await DB.instance.put<dynamic>(
+            boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 7);
+
+        // try to continue migrating
+        return await migrate(7, secureStore: secureStore);
+
+      case 7:
+        // migrate
+        await _v7(secureStore);
+
+        // update version
+        await DB.instance.put<dynamic>(
+            boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 8);
+
+        // try to continue migrating
+        return await migrate(8, secureStore: secureStore);
+
       default:
         // finally return
         return;
@@ -234,12 +339,17 @@ class DbVersionMigrator with WalletDB {
                   : isar_models.TransactionType.outgoing,
               subType: isar_models.TransactionSubType.none,
               amount: tx.amount,
+              amountString: Amount(
+                rawValue: BigInt.from(tx.amount),
+                fractionDigits: info.coin.decimals,
+              ).toJsonString(),
               fee: tx.fees,
               height: tx.height,
               isCancelled: tx.isCancelled,
               isLelantus: false,
               slateId: tx.slateId,
               otherData: tx.otherData,
+              nonce: null,
               inputs: [],
               outputs: [],
             );
@@ -295,6 +405,45 @@ class DbVersionMigrator with WalletDB {
           key: "rescan_on_open_$walletId",
           value: Constants.rescanV1,
         );
+      }
+    }
+  }
+
+  Future<void> _v7(SecureStorageInterface secureStore) async {
+    await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
+    final walletsService = WalletsService(secureStorageInterface: secureStore);
+    final walletInfoList = await walletsService.walletNames;
+    await MainDB.instance.initMainDB();
+
+    for (final walletId in walletInfoList.keys) {
+      final info = walletInfoList[walletId]!;
+      assert(info.walletId == walletId);
+
+      final count = await MainDB.instance.getTransactions(walletId).count();
+
+      for (var i = 0; i < count; i += 50) {
+        final txns = await MainDB.instance
+            .getTransactions(walletId)
+            .offset(i)
+            .limit(50)
+            .findAll();
+
+        // migrate amount to serialized amount string
+        final txnsData = txns
+            .map(
+              (tx) => Tuple2(
+                tx
+                  ..amountString = Amount(
+                    rawValue: BigInt.from(tx.amount),
+                    fractionDigits: info.coin.decimals,
+                  ).toJsonString(),
+                tx.address.value,
+              ),
+            )
+            .toList();
+
+        // update db records
+        await MainDB.instance.addNewTransactionData(txnsData, walletId);
       }
     }
   }

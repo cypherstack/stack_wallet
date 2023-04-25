@@ -1,5 +1,6 @@
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+// import 'package:web3dart/browser.dart';
 
 abstract class DefaultNodes {
   static const String defaultNodeIdPrefix = "default_";
@@ -13,6 +14,7 @@ abstract class DefaultNodes {
         firo,
         monero,
         epicCash,
+        ethereum,
         bitcoincash,
         namecoin,
         wownero,
@@ -134,6 +136,18 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
+  static NodeModel get ethereum => NodeModel(
+        host: "https://eth.stackwallet.com",
+        port: 443,
+        name: defaultName,
+        id: _nodeId(Coin.ethereum),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.ethereum.name,
+        isFailover: true,
+        isDown: false,
+      );
+
   static NodeModel get namecoin => NodeModel(
         host: "namecoin.stackwallet.com",
         port: 57002,
@@ -221,6 +235,9 @@ abstract class DefaultNodes {
 
       case Coin.epicCash:
         return epicCash;
+
+      case Coin.ethereum:
+        return ethereum;
 
       case Coin.firo:
         return firo;

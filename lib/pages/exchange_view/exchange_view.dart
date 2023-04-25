@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_form.dart';
 import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
@@ -16,8 +17,6 @@ import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/trade_card.dart';
 import 'package:tuple/tuple.dart';
-
-import '../../db/main_db.dart';
 
 class ExchangeView extends ConsumerStatefulWidget {
   const ExchangeView({Key? key}) : super(key: key);
@@ -46,9 +45,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
           });
         };
       }
-      ExchangeDataLoadingService.instance
-          .init()
-          .then((_) => ExchangeDataLoadingService.instance.loadAll());
+      ExchangeDataLoadingService.instance.loadAll();
     } else if (ExchangeDataLoadingService.instance.isLoading &&
         ExchangeDataLoadingService.currentCacheVersion <
             ExchangeDataLoadingService.cacheVersion) {

@@ -47,6 +47,7 @@ PODS:
     - cw_wownero/Boost (= 0.0.2)
     - cw_wownero/OpenSSL (= 0.0.2)
     - cw_wownero/Sodium (= 0.0.2)
+    - cw_wownero/Unbound (= 0.0.2)
     - cw_wownero/Wownero (= 0.0.2)
     - Flutter
   - cw_wownero/Boost (0.0.2):
@@ -58,8 +59,13 @@ PODS:
   - cw_wownero/Sodium (0.0.2):
     - cw_shared_external
     - Flutter
+  - cw_wownero/Unbound (0.0.2):
+    - cw_shared_external
+    - Flutter
   - cw_wownero/Wownero (0.0.2):
     - cw_shared_external
+    - Flutter
+  - device_info_plus (0.0.1):
     - Flutter
   - devicelocale (0.0.1):
     - Flutter
@@ -119,8 +125,9 @@ PODS:
   - MTBBarcodeScanner (5.0.11)
   - package_info_plus (0.4.5):
     - Flutter
-  - path_provider_ios (0.0.1):
+  - path_provider_foundation (0.0.1):
     - Flutter
+    - FlutterMacOS
   - permission_handler_apple (9.0.4):
     - Flutter
   - ReachabilitySwift (5.0.0)
@@ -129,8 +136,9 @@ PODS:
   - SDWebImage/Core (5.13.2)
   - share_plus (0.0.1):
     - Flutter
-  - shared_preferences_ios (0.0.1):
+  - shared_preferences_foundation (0.0.1):
     - Flutter
+    - FlutterMacOS
   - stack_wallet_backup (0.0.1):
     - Flutter
   - SwiftProtobuf (1.19.0)
@@ -147,6 +155,7 @@ DEPENDENCIES:
   - cw_monero (from `.symlinks/plugins/cw_monero/ios`)
   - cw_shared_external (from `.symlinks/plugins/cw_shared_external/ios`)
   - cw_wownero (from `.symlinks/plugins/cw_wownero/ios`)
+  - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - devicelocale (from `.symlinks/plugins/devicelocale/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - Flutter (from `Flutter`)
@@ -160,10 +169,10 @@ DEPENDENCIES:
   - lelantus (from `.symlinks/plugins/lelantus/ios`)
   - local_auth (from `.symlinks/plugins/local_auth/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
-  - path_provider_ios (from `.symlinks/plugins/path_provider_ios/ios`)
+  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
-  - shared_preferences_ios (from `.symlinks/plugins/shared_preferences_ios/ios`)
+  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/ios`)
   - stack_wallet_backup (from `.symlinks/plugins/stack_wallet_backup/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
   - wakelock (from `.symlinks/plugins/wakelock/ios`)
@@ -191,6 +200,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/cw_shared_external/ios"
   cw_wownero:
     :path: ".symlinks/plugins/cw_wownero/ios"
+  device_info_plus:
+    :path: ".symlinks/plugins/device_info_plus/ios"
   devicelocale:
     :path: ".symlinks/plugins/devicelocale/ios"
   file_picker:
@@ -217,14 +228,14 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/local_auth/ios"
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
-  path_provider_ios:
-    :path: ".symlinks/plugins/path_provider_ios/ios"
+  path_provider_foundation:
+    :path: ".symlinks/plugins/path_provider_foundation/ios"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
   share_plus:
     :path: ".symlinks/plugins/share_plus/ios"
-  shared_preferences_ios:
-    :path: ".symlinks/plugins/shared_preferences_ios/ios"
+  shared_preferences_foundation:
+    :path: ".symlinks/plugins/shared_preferences_foundation/ios"
   stack_wallet_backup:
     :path: ".symlinks/plugins/stack_wallet_backup/ios"
   url_launcher_ios:
@@ -238,11 +249,12 @@ SPEC CHECKSUMS:
   connectivity_plus: 413a8857dd5d9f1c399a39130850d02fe0feaf7e
   cw_monero: 9816991daff0e3ad0a8be140e31933b5526babd4
   cw_shared_external: 2972d872b8917603478117c9957dfca611845a92
-  cw_wownero: 08e5713fe311a3be95efd7f3c1bf9d47d9cfafde
+  cw_wownero: ac53899fa5c6ff46b3fb490aa3b7ca36301fa832
+  device_info_plus: e5c5da33f982a436e103237c0c85f9031142abed
   devicelocale: b22617f40038496deffba44747101255cee005b0
   DKImagePickerController: b512c28220a2b8ac7419f21c491fc8534b7601ac
   DKPhotoGallery: fdfad5125a9fdda9cc57df834d49df790dbb4179
-  file_picker: 817ab1d8cd2da9d2da412a417162deee3500fc95
+  file_picker: ce3938a0df3cc1ef404671531facef740d03f920
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
   flutter_libepiccash: 36241aa7d3126f6521529985ccb3dc5eaf7bb317
   flutter_libmonero: da68a616b73dd0374a8419c684fa6b6df2c44ffe
@@ -250,23 +262,23 @@ SPEC CHECKSUMS:
   flutter_native_splash: 52501b97d1c0a5f898d687f1646226c1f93c56ef
   flutter_secure_storage: 7953c38a04c3fdbb00571bcd87d8e3b5ceb9daec
   integration_test: a1e7d09bd98eca2fc37aefd79d4f41ad37bdbbe5
-  isar_flutter_libs: bfb66f35a1fa9db9ec96b93539a03329ce147738
-  lelantus: 97ab4ecc648423278f807e499b3a717dea9268f8
+  isar_flutter_libs: b69f437aeab9c521821c3f376198c4371fa21073
+  lelantus: 417f0221260013dfc052cae9cf4b741b6479edba
   local_auth: 1740f55d7af0a2e2a8684ce225fe79d8931e808c
   MTBBarcodeScanner: f453b33c4b7dfe545d8c6484ed744d55671788cb
   package_info_plus: 6c92f08e1f853dc01228d6f553146438dafcd14e
-  path_provider_ios: 14f3d2fd28c4fdb42f44e0f751d12861c43cee02
+  path_provider_foundation: 37748e03f12783f9de2cb2c4eadfaa25fe6d4852
   permission_handler_apple: 44366e37eaf29454a1e7b1b7d736c2cceaeb17ce
   ReachabilitySwift: 985039c6f7b23a1da463388634119492ff86c825
   SDWebImage: 72f86271a6f3139cc7e4a89220946489d4b9a866
   share_plus: 056a1e8ac890df3e33cb503afffaf1e9b4fbae68
-  shared_preferences_ios: 548a61f8053b9b8a49ac19c1ffbc8b92c50d68ad
+  shared_preferences_foundation: 297b3ebca31b34ec92be11acd7fb0ba932c822ca
   stack_wallet_backup: 5b8563aba5d8ffbf2ce1944331ff7294a0ec7c03
   SwiftProtobuf: 6ef3f0e422ef90d6605ca20b21a94f6c1324d6b3
   SwiftyGif: 6c3eafd0ce693cad58bb63d2b2fb9bacb8552780
-  url_launcher_ios: 839c58cdb4279282219f5e248c3321761ff3c4de
+  url_launcher_ios: fb12c43172927bb5cf75aeebd073f883801f1993
   wakelock: d0fc7c864128eac40eba1617cb5264d9c940b46f
 
-PODFILE CHECKSUM: fe0e1ee7f3d1f7d00b11b474b62dd62134535aea
+PODFILE CHECKSUM: 57c8aed26fba39d3ec9424816221f294a07c58eb
 
 COCOAPODS: 1.11.3

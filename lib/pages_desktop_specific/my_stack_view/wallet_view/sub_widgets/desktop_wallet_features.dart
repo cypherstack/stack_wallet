@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -18,6 +17,7 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -162,7 +162,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     final firoWallet = ref.read(managerProvider).wallet as FiroWallet;
 
     final publicBalance = firoWallet.availablePublicBalance();
-    if (publicBalance <= Decimal.zero) {
+    if (publicBalance <= Amount.zero) {
       shouldPop = true;
       if (context.mounted) {
         Navigator.of(context, rootNavigator: true).pop();
@@ -310,7 +310,12 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     );
 
     final showMore = manager.hasPaynymSupport ||
-        manager.hasCoinControlSupport ||
+        (manager.hasCoinControlSupport &&
+            ref.watch(
+              prefsChangeNotifierProvider.select(
+                (value) => value.enableCoinControl,
+              ),
+            )) ||
         manager.coin == Coin.firo ||
         manager.coin == Coin.firoTestNet ||
         manager.hasWhirlpoolSupport;
@@ -355,19 +360,21 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
           const SizedBox(
             width: 16,
           ),
-        SecondaryButton(
-          label: "More",
-          width: buttonWidth,
-          buttonHeight: ButtonHeight.l,
-          icon: SvgPicture.asset(
-            Assets.svg.bars,
-            height: 20,
-            width: 20,
-            color:
-                Theme.of(context).extension<StackColors>()!.buttonTextSecondary,
+        if (showMore)
+          SecondaryButton(
+            label: "More",
+            width: buttonWidth,
+            buttonHeight: ButtonHeight.l,
+            icon: SvgPicture.asset(
+              Assets.svg.bars,
+              height: 20,
+              width: 20,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .buttonTextSecondary,
+            ),
+            onPressed: () => _onMorePressed(),
           ),
-          onPressed: () => _onMorePressed(),
-        ),
       ],
     );
   }

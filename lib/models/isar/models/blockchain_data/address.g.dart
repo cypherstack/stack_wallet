@@ -260,6 +260,7 @@ const _AddresstypeEnumValueMap = {
   'mimbleWimble': 4,
   'unknown': 5,
   'nonWallet': 6,
+  'ethereum': 7,
 };
 const _AddresstypeValueEnumMap = {
   0: AddressType.p2pkh,
@@ -269,6 +270,7 @@ const _AddresstypeValueEnumMap = {
   4: AddressType.mimbleWimble,
   5: AddressType.unknown,
   6: AddressType.nonWallet,
+  7: AddressType.ethereum,
 };
 
 Id _addressGetId(Address object) {

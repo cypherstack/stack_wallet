@@ -18,12 +18,12 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:isar/isar.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:stackwallet/db/main_db.dart';
-import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/db/hive/db.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/isar/models/log.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/models.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/notification_model.dart';
@@ -56,14 +56,9 @@ import 'package:stackwallet/utilities/db_version_migration.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
-import 'package:stackwallet/utilities/theme/dark_colors.dart';
-import 'package:stackwallet/utilities/theme/forest_colors.dart';
-import 'package:stackwallet/utilities/theme/fruit_sorbet_colors.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
-import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
-import 'package:stackwallet/utilities/theme/oled_black_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:window_size/window_size.dart';
@@ -159,6 +154,8 @@ void main() async {
       (await StackFileSystem.applicationHiveDirectory()).path);
 
   await Hive.openBox<dynamic>(DB.boxNameDBInfo);
+  await Hive.openBox<dynamic>(DB.boxNamePrefs);
+  await Prefs.instance.init();
 
   // Desktop migrate handled elsewhere (currently desktop_login_view.dart)
   if (!Util.isDesktop) {
@@ -183,8 +180,6 @@ void main() async {
 
   monero.onStartup();
   wownero.onStartup();
-
-  await Hive.openBox<dynamic>(DB.boxNameTheme);
 
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
   //     overlays: [SystemUiOverlay.bottom]);
@@ -256,6 +251,12 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           await ref.read(storageCryptoHandlerProvider).hasPassword();
     }
     await MainDB.instance.initMainDB();
+    ref
+        .read(priceAnd24hChangeNotifierProvider)
+        .tokenContractAddressesToCheck
+        .addAll(
+          await MainDB.instance.getEthContracts().addressProperty().findAll(),
+        );
   }
 
   Future<void> load() async {
@@ -292,11 +293,11 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
       //  unawaited(_nodeService.updateCommunityNodes());
 
+      await ExchangeDataLoadingService.instance.initDB();
       // run without awaiting
       if (ref.read(prefsChangeNotifierProvider).externalCalls &&
           await ref.read(prefsChangeNotifierProvider).isExternalCallsSet()) {
         if (Constants.enableExchange) {
-          await ExchangeDataLoadingService.instance.init();
           await ExchangeDataLoadingService.instance.setCurrenciesIfEmpty(
             ref.read(exchangeFormStateProvider),
           );
@@ -333,30 +334,27 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   @override
   void initState() {
-    final colorScheme = DB.instance
-        .get<dynamic>(boxName: DB.boxNameTheme, key: "colorScheme") as String?;
-
     StackColorTheme colorTheme;
-    switch (colorScheme) {
-      case "dark":
-        colorTheme = DarkColors();
-        break;
-      case "oledBlack":
-        colorTheme = OledBlackColors();
-        break;
-      case "oceanBreeze":
-        colorTheme = OceanBreezeColors();
-        break;
-      case "fruitSorbet":
-        colorTheme = FruitSorbetColors();
-        break;
-      case "forest":
-        colorTheme = ForestColors();
-        break;
-      case "light":
-      default:
-        colorTheme = LightColors();
+    if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
+      final brightness = WidgetsBinding.instance.window.platformBrightness;
+      switch (brightness) {
+        case Brightness.dark:
+          colorTheme = ref
+              .read(prefsChangeNotifierProvider)
+              .systemBrightnessDarkTheme
+              .colorTheme;
+          break;
+        case Brightness.light:
+          colorTheme = ref
+              .read(prefsChangeNotifierProvider)
+              .systemBrightnessLightTheme
+              .colorTheme;
+          break;
+      }
+    } else {
+      colorTheme = ref.read(prefsChangeNotifierProvider).theme.colorTheme;
     }
+
     loadingCompleter = Completer();
     WidgetsBinding.instance.addObserver(this);
     // load locale and prefs
@@ -384,6 +382,31 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         // ref.read(shouldShowLockscreenOnResumeStateProvider.state).state = false;
       }
     });
+
+    WidgetsBinding.instance.window.onPlatformBrightnessChanged = () {
+      StackColorTheme colorTheme;
+      switch (WidgetsBinding.instance.window.platformBrightness) {
+        case Brightness.dark:
+          colorTheme = ref
+              .read(prefsChangeNotifierProvider)
+              .systemBrightnessDarkTheme
+              .colorTheme;
+          break;
+        case Brightness.light:
+          colorTheme = ref
+              .read(prefsChangeNotifierProvider)
+              .systemBrightnessLightTheme
+              .colorTheme;
+          break;
+      }
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
+          ref.read(colorThemeProvider.notifier).state =
+              StackColors.fromStackColorTheme(colorTheme);
+        }
+      });
+    };
 
     super.initState();
   }
@@ -525,7 +548,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       theme: ThemeData(
         extensions: [colorScheme],
         highlightColor: colorScheme.highlight,
-        brightness: Brightness.light,
+        brightness: colorScheme.brightness,
         fontFamily: GoogleFonts.inter().fontFamily,
         unselectedWidgetColor: colorScheme.radioButtonBorderDisabled,
         // textTheme: GoogleFonts.interTextTheme().copyWith(

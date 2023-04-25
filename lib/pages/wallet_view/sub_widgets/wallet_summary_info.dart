@@ -1,21 +1,21 @@
 import 'dart:async';
 
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_balance_toggle_sheet.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/balance_refreshed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
@@ -92,19 +92,25 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
         ref.watch(walletBalanceToggleStateProvider.state).state ==
             WalletBalanceToggleState.available;
 
-    final Decimal totalBalance;
-    final Decimal availableBalance;
+    final Amount balanceToShow;
+    String title;
+
     if (coin == Coin.firo || coin == Coin.firoTestNet) {
+      final _showPrivate =
+          ref.watch(publicPrivateBalanceStateProvider.state).state == "Private";
+
       final firoWallet = ref.watch(walletsChangeNotifierProvider.select(
           (value) => value.getManager(widget.walletId).wallet)) as FiroWallet;
-      totalBalance = firoWallet.balance.getSpendable();
-      availableBalance = firoWallet.balancePrivate.getSpendable();
-    } else {
-      totalBalance = balance.getTotal();
-      availableBalance = balance.getSpendable();
-    }
 
-    final balanceToShow = _showAvailable ? availableBalance : totalBalance;
+      final bal = _showPrivate ? firoWallet.balancePrivate : firoWallet.balance;
+
+      balanceToShow = _showAvailable ? bal.spendable : bal.total;
+      title = _showAvailable ? "Available" : "Full";
+      title += _showPrivate ? " private balance" : " public balance";
+    } else {
+      balanceToShow = _showAvailable ? balance.spendable : balance.total;
+      title = _showAvailable ? "Available balance" : "Full balance";
+    }
 
     return Row(
       children: [
@@ -116,24 +122,14 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
                 onTap: showSheet,
                 child: Row(
                   children: [
-                    if (coin == Coin.firo || coin == Coin.firoTestNet)
-                      Text(
-                        "${_showAvailable ? "Private" : "Public"} Balance",
-                        style: STextStyles.subtitle500(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFavoriteCard,
-                        ),
+                    Text(
+                      title,
+                      style: STextStyles.subtitle500(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFavoriteCard,
                       ),
-                    if (coin != Coin.firo && coin != Coin.firoTestNet)
-                      Text(
-                        "${_showAvailable ? "Available" : "Full"} Balance",
-                        style: STextStyles.subtitle500(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFavoriteCard,
-                        ),
-                      ),
+                    ),
                     const SizedBox(
                       width: 4,
                     ),
@@ -152,10 +148,8 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
               FittedBox(
                 fit: BoxFit.scaleDown,
                 child: SelectableText(
-                  "${Format.localizedStringAsFixed(
-                    value: balanceToShow,
+                  "${balanceToShow.localizedStringAsFixed(
                     locale: locale,
-                    decimalPlaces: 8,
                   )} ${coin.ticker}",
                   style: STextStyles.pageTitleH1(context).copyWith(
                     fontSize: 24,
@@ -167,11 +161,11 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
               ),
               if (externalCalls)
                 Text(
-                  "${Format.localizedStringAsFixed(
-                    value: priceTuple.item1 * balanceToShow,
-                    locale: locale,
-                    decimalPlaces: 2,
-                  )} $baseCurrency",
+                  "${(priceTuple.item1 * balanceToShow.decimal).toAmount(
+                        fractionDigits: 2,
+                      ).localizedStringAsFixed(
+                        locale: locale,
+                      )} $baseCurrency",
                   style: STextStyles.subtitle500(context).copyWith(
                     color: Theme.of(context)
                         .extension<StackColors>()!

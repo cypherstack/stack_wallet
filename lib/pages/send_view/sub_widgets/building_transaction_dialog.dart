@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:lottie/lottie.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/animated_widgets/rotating_arrows.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
@@ -23,42 +23,23 @@ class BuildingTransactionDialog extends StatefulWidget {
   State<BuildingTransactionDialog> createState() => _RestoringDialogState();
 }
 
-class _RestoringDialogState extends State<BuildingTransactionDialog>
-    with TickerProviderStateMixin {
-  late AnimationController? _spinController;
-  late Animation<double> _spinAnimation;
-
+class _RestoringDialogState extends State<BuildingTransactionDialog> {
   late final VoidCallback onCancel;
-
-  final bool chan = false;
 
   @override
   void initState() {
     onCancel = widget.onCancel;
 
-    _spinController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat();
-
-    _spinAnimation = CurvedAnimation(
-      parent: _spinController!,
-      curve: Curves.linear,
-    );
-
     super.initState();
   }
 
   @override
-  void dispose() {
-    _spinController?.dispose();
-    _spinController = null;
-
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final isChans = Theme.of(context).extension<StackColors>()!.themeType ==
+            ThemeType.chan ||
+        Theme.of(context).extension<StackColors>()!.themeType ==
+            ThemeType.darkChans;
+
     if (Util.isDesktop) {
       return Column(
         mainAxisSize: MainAxisSize.min,
@@ -70,20 +51,16 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
           const SizedBox(
             height: 40,
           ),
-          if (chan)
-            Lottie.asset(
-              Assets.lottie.kiss(widget.coin),
-            ),
-          if (!chan)
-            RotationTransition(
-              turns: _spinAnimation,
-              child: SvgPicture.asset(
-                Assets.svg.arrowRotate,
-                color:
-                    Theme.of(context).extension<StackColors>()!.accentColorDark,
-                width: 24,
-                height: 24,
+          if (isChans)
+            Image(
+              image: AssetImage(
+                Assets.gif.kiss(widget.coin),
               ),
+            ),
+          if (!isChans)
+            const RotatingArrows(
+              width: 40,
+              height: 40,
             ),
           const SizedBox(
             height: 40,
@@ -102,14 +79,16 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
         onWillPop: () async {
           return false;
         },
-        child: chan
+        child: isChans
             ? StackDialogBase(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Lottie.asset(
-                      Assets.lottie.kiss(widget.coin),
+                    Image(
+                      image: AssetImage(
+                        Assets.gif.kiss(widget.coin),
+                      ),
                     ),
                     Text(
                       "Generating transaction",
@@ -144,16 +123,9 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
               )
             : StackDialog(
                 title: "Generating transaction",
-                icon: RotationTransition(
-                  turns: _spinAnimation,
-                  child: SvgPicture.asset(
-                    Assets.svg.arrowRotate,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorDark,
-                    width: 24,
-                    height: 24,
-                  ),
+                icon: const RotatingArrows(
+                  width: 24,
+                  height: 24,
                 ),
                 rightButton: TextButton(
                   style: Theme.of(context)

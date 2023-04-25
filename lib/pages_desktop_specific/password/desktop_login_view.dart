@@ -20,7 +20,7 @@ import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 
-import '../../hive/db.dart';
+import '../../db/hive/db.dart';
 import '../../utilities/db_version_migration.dart';
 import '../../utilities/logger.dart';
 
@@ -119,12 +119,21 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
 
       await Future<void>.delayed(const Duration(seconds: 1));
 
-      await showFloatingFlushBar(
-        type: FlushBarType.warning,
-        message: e.toString(),
-        context: context,
-      );
+      if (mounted) {
+        await showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message: e.toString(),
+          context: context,
+        );
+      }
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    unawaited(Assets.precache(context));
+
+    super.didChangeDependencies();
   }
 
   @override

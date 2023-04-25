@@ -1,14 +1,23 @@
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
+
+enum _BalanceType {
+  available,
+  full,
+  privateAvailable,
+  privateFull;
+}
 
 class WalletBalanceToggleSheet extends ConsumerWidget {
   const WalletBalanceToggleSheet({
@@ -25,21 +34,31 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
     final coin = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManager(walletId).coin));
 
-    Future<Decimal>? totalBalanceFuture;
-    Future<Decimal>? availableBalanceFuture;
+    final balance = ref.watch(walletsChangeNotifierProvider
+        .select((value) => value.getManager(walletId).balance));
+
+    _BalanceType _bal =
+        ref.watch(walletBalanceToggleStateProvider.state).state ==
+                WalletBalanceToggleState.available
+            ? _BalanceType.available
+            : _BalanceType.full;
+
+    Balance? balanceSecondary;
     if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      final firoWallet = ref
-          .watch(walletsChangeNotifierProvider
-              .select((value) => value.getManager(walletId)))
-          .wallet as FiroWallet;
-      totalBalanceFuture = Future(() => firoWallet.balance.getSpendable());
-      availableBalanceFuture =
-          Future(() => firoWallet.balancePrivate.getSpendable());
-    } else {
-      final manager = ref.watch(walletsChangeNotifierProvider
-          .select((value) => value.getManager(walletId)));
-      totalBalanceFuture = Future(() => manager.balance.getTotal());
-      availableBalanceFuture = Future(() => manager.balance.getSpendable());
+      balanceSecondary = ref
+          .watch(
+            walletsChangeNotifierProvider.select(
+              (value) => value.getManager(walletId).wallet as FiroWallet?,
+            ),
+          )
+          ?.balancePrivate;
+
+      if (ref.watch(publicPrivateBalanceStateProvider.state).state ==
+          "Private") {
+        _bal = _bal == _BalanceType.available
+            ? _BalanceType.privateAvailable
+            : _BalanceType.privateFull;
+      }
     }
 
     return Container(
@@ -90,276 +109,191 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
               const SizedBox(
                 height: 24,
               ),
-              RawMaterialButton(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
-                  ),
-                ),
+              BalanceSelector(
+                title: "Available balance",
+                coin: coin,
+                balance: balance.spendable,
                 onPressed: () {
-                  final state =
-                      ref.read(walletBalanceToggleStateProvider.state).state;
-                  if (state != WalletBalanceToggleState.available) {
-                    ref.read(walletBalanceToggleStateProvider.state).state =
-                        WalletBalanceToggleState.available;
-                  }
+                  ref.read(walletBalanceToggleStateProvider.state).state =
+                      WalletBalanceToggleState.available;
+                  ref.read(publicPrivateBalanceStateProvider.state).state =
+                      "Public";
                   Navigator.of(context).pop();
                 },
-                child: Container(
-                  color: Colors.transparent,
-                  padding: const EdgeInsets.all(8),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: Radio(
-                          activeColor: Theme.of(context)
-                              .extension<StackColors>()!
-                              .radioButtonIconEnabled,
-                          value: WalletBalanceToggleState.available,
-                          groupValue: ref
-                              .watch(walletBalanceToggleStateProvider.state)
-                              .state,
-                          onChanged: (_) {
-                            ref
-                                .read(walletBalanceToggleStateProvider.state)
-                                .state = WalletBalanceToggleState.available;
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 12,
-                      ),
-                      if (coin != Coin.firo && coin != Coin.firoTestNet)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Available balance",
-                              style: STextStyles.titleBold12(context),
-                            ),
-                            const SizedBox(
-                              height: 2,
-                            ),
-                            FutureBuilder(
-                                future: availableBalanceFuture,
-                                builder: (fbContext,
-                                    AsyncSnapshot<Decimal> snapshot) {
-                                  if (snapshot.connectionState ==
-                                          ConnectionState.done &&
-                                      snapshot.hasData &&
-                                      snapshot.data != null) {
-                                    return Text(
-                                      "${snapshot.data!.toStringAsFixed(Constants.decimalPlacesForCoin(coin))} ${coin.ticker}",
-                                      style: STextStyles.itemSubtitle12(context)
-                                          .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textSubtitle1,
-                                      ),
-                                    );
-                                  } else {
-                                    return Text(
-                                      "",
-                                      style: STextStyles.itemSubtitle12(context)
-                                          .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textSubtitle1,
-                                      ),
-                                    );
-                                  }
-                                }),
-                          ],
-                        ),
-                      if (coin == Coin.firo || coin == Coin.firoTestNet)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Private balance",
-                              style: STextStyles.titleBold12(context),
-                            ),
-                            const SizedBox(
-                              height: 2,
-                            ),
-                            FutureBuilder(
-                                future: availableBalanceFuture,
-                                builder: (fbContext,
-                                    AsyncSnapshot<Decimal> snapshot) {
-                                  if (snapshot.connectionState ==
-                                          ConnectionState.done &&
-                                      snapshot.hasData &&
-                                      snapshot.data != null) {
-                                    return Text(
-                                      "${snapshot.data!.toStringAsFixed(Constants.decimalPlacesForCoin(coin))} ${coin.ticker}",
-                                      style: STextStyles.itemSubtitle12(context)
-                                          .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textSubtitle1,
-                                      ),
-                                    );
-                                  } else {
-                                    return Text(
-                                      "",
-                                      style: STextStyles.itemSubtitle12(context)
-                                          .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textSubtitle1,
-                                      ),
-                                    );
-                                  }
-                                }),
-                          ],
-                        ),
-                    ],
-                  ),
-                ),
+                onChanged: (_) {
+                  ref.read(walletBalanceToggleStateProvider.state).state =
+                      WalletBalanceToggleState.available;
+                  ref.read(publicPrivateBalanceStateProvider.state).state =
+                      "Public";
+                  Navigator.of(context).pop();
+                },
+                value: _BalanceType.available,
+                groupValue: _bal,
               ),
+              if (balanceSecondary != null)
+                const SizedBox(
+                  height: 12,
+                ),
+              if (balanceSecondary != null)
+                BalanceSelector(
+                  title: "Available private balance",
+                  coin: coin,
+                  balance: balanceSecondary.spendable,
+                  onPressed: () {
+                    ref.read(walletBalanceToggleStateProvider.state).state =
+                        WalletBalanceToggleState.available;
+                    ref.read(publicPrivateBalanceStateProvider.state).state =
+                        "Private";
+                    Navigator.of(context).pop();
+                  },
+                  onChanged: (_) {
+                    ref.read(walletBalanceToggleStateProvider.state).state =
+                        WalletBalanceToggleState.available;
+                    ref.read(publicPrivateBalanceStateProvider.state).state =
+                        "Private";
+                    Navigator.of(context).pop();
+                  },
+                  value: _BalanceType.privateAvailable,
+                  groupValue: _bal,
+                ),
               const SizedBox(
                 height: 12,
               ),
-              RawMaterialButton(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
-                  ),
-                ),
+              BalanceSelector(
+                title: "Full balance",
+                coin: coin,
+                balance: balance.total,
                 onPressed: () {
-                  final state =
-                      ref.read(walletBalanceToggleStateProvider.state).state;
-                  if (state != WalletBalanceToggleState.full) {
-                    ref.read(walletBalanceToggleStateProvider.state).state =
-                        WalletBalanceToggleState.full;
-                  }
+                  ref.read(walletBalanceToggleStateProvider.state).state =
+                      WalletBalanceToggleState.full;
+                  ref.read(publicPrivateBalanceStateProvider.state).state =
+                      "Public";
                   Navigator.of(context).pop();
                 },
-                child: Container(
-                  color: Colors.transparent,
-                  padding: const EdgeInsets.all(8),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: Radio(
-                          activeColor: Theme.of(context)
-                              .extension<StackColors>()!
-                              .radioButtonIconEnabled,
-                          value: WalletBalanceToggleState.full,
-                          groupValue: ref
-                              .watch(walletBalanceToggleStateProvider.state)
-                              .state,
-                          onChanged: (_) {
-                            ref
-                                .read(walletBalanceToggleStateProvider.state)
-                                .state = WalletBalanceToggleState.full;
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 12,
-                      ),
-                      if (coin != Coin.firo && coin != Coin.firoTestNet)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Full balance",
-                              style: STextStyles.titleBold12(context),
-                            ),
-                            const SizedBox(
-                              height: 2,
-                            ),
-                            FutureBuilder(
-                                future: totalBalanceFuture,
-                                builder: (fbContext,
-                                    AsyncSnapshot<Decimal> snapshot) {
-                                  if (snapshot.connectionState ==
-                                          ConnectionState.done &&
-                                      snapshot.hasData &&
-                                      snapshot.data != null) {
-                                    return Text(
-                                      "${snapshot.data!.toStringAsFixed(Constants.decimalPlacesForCoin(coin))} ${coin.ticker}",
-                                      style: STextStyles.itemSubtitle12(context)
-                                          .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textSubtitle1,
-                                      ),
-                                    );
-                                  } else {
-                                    return Text(
-                                      "",
-                                      style: STextStyles.itemSubtitle12(context)
-                                          .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textSubtitle1,
-                                      ),
-                                    );
-                                  }
-                                }),
-                          ],
-                        ),
-                      if (coin == Coin.firo || coin == Coin.firoTestNet)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Public balance",
-                              style: STextStyles.titleBold12(context),
-                            ),
-                            const SizedBox(
-                              height: 2,
-                            ),
-                            FutureBuilder(
-                                future: totalBalanceFuture,
-                                builder: (fbContext,
-                                    AsyncSnapshot<Decimal> snapshot) {
-                                  if (snapshot.connectionState ==
-                                          ConnectionState.done &&
-                                      snapshot.hasData &&
-                                      snapshot.data != null) {
-                                    return Text(
-                                      "${snapshot.data!.toStringAsFixed(Constants.decimalPlacesForCoin(coin))} ${coin.ticker}",
-                                      style: STextStyles.itemSubtitle12(context)
-                                          .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textSubtitle1,
-                                      ),
-                                    );
-                                  } else {
-                                    return Text(
-                                      "",
-                                      style: STextStyles.itemSubtitle12(context)
-                                          .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textSubtitle1,
-                                      ),
-                                    );
-                                  }
-                                }),
-                          ],
-                        ),
-                    ],
-                  ),
-                ),
+                onChanged: (_) {
+                  ref.read(walletBalanceToggleStateProvider.state).state =
+                      WalletBalanceToggleState.full;
+                  ref.read(publicPrivateBalanceStateProvider.state).state =
+                      "Public";
+                  Navigator.of(context).pop();
+                },
+                value: _BalanceType.full,
+                groupValue: _bal,
               ),
+              if (balanceSecondary != null)
+                const SizedBox(
+                  height: 12,
+                ),
+              if (balanceSecondary != null)
+                BalanceSelector(
+                  title: "Full private balance",
+                  coin: coin,
+                  balance: balanceSecondary.total,
+                  onPressed: () {
+                    ref.read(walletBalanceToggleStateProvider.state).state =
+                        WalletBalanceToggleState.full;
+                    ref.read(publicPrivateBalanceStateProvider.state).state =
+                        "Private";
+                    Navigator.of(context).pop();
+                  },
+                  onChanged: (_) {
+                    ref.read(walletBalanceToggleStateProvider.state).state =
+                        WalletBalanceToggleState.full;
+                    ref.read(publicPrivateBalanceStateProvider.state).state =
+                        "Private";
+                    Navigator.of(context).pop();
+                  },
+                  value: _BalanceType.privateFull,
+                  groupValue: _bal,
+                ),
               const SizedBox(
                 height: 40,
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class BalanceSelector<T> extends ConsumerWidget {
+  const BalanceSelector({
+    Key? key,
+    required this.title,
+    required this.coin,
+    required this.balance,
+    required this.onPressed,
+    required this.onChanged,
+    required this.value,
+    required this.groupValue,
+  }) : super(key: key);
+
+  final String title;
+  final Coin coin;
+  final Amount balance;
+  final VoidCallback onPressed;
+  final void Function(T?) onChanged;
+  final T value;
+  final T? groupValue;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return RawMaterialButton(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(
+          Constants.size.circularBorderRadius,
+        ),
+      ),
+      onPressed: onPressed,
+      child: Container(
+        color: Colors.transparent,
+        padding: const EdgeInsets.all(8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: Radio(
+                activeColor: Theme.of(context)
+                    .extension<StackColors>()!
+                    .radioButtonIconEnabled,
+                value: value,
+                groupValue: groupValue,
+                onChanged: onChanged,
+              ),
+            ),
+            const SizedBox(
+              width: 12,
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: STextStyles.titleBold12(context),
+                ),
+                const SizedBox(
+                  height: 2,
+                ),
+                Text(
+                  "${balance.localizedStringAsFixed(
+                    locale: ref.watch(
+                      localeServiceChangeNotifierProvider.select(
+                        (value) => value.locale,
+                      ),
+                    ),
+                  )} ${coin.ticker}",
+                  style: STextStyles.itemSubtitle12(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle1,
+                  ),
+                )
+              ],
+            ),
+          ],
         ),
       ),
     );

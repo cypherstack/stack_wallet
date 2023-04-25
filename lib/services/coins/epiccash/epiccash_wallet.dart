@@ -9,7 +9,7 @@ import 'package:flutter_libepiccash/epic_cash.dart';
 import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
-import 'package:stackwallet/db/main_db.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/epicbox_config_model.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
@@ -27,12 +27,12 @@ import 'package:stackwallet/services/mixins/epic_cash_hive.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_epicboxes.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
@@ -40,7 +40,7 @@ import 'package:stackwallet/utilities/test_epic_box_connection.dart';
 import 'package:tuple/tuple.dart';
 import 'package:websocket_universal/websocket_universal.dart';
 
-const int MINIMUM_CONFIRMATIONS = 10;
+const int MINIMUM_CONFIRMATIONS = 3;
 
 const String GENESIS_HASH_MAINNET = "";
 const String GENESIS_HASH_TESTNET = "";
@@ -478,8 +478,8 @@ class EpicCashWallet extends CoinServiceAPI
             "selectionStrategyIsAll": selectionStrategyIsAll,
             "minimumConfirmations": MINIMUM_CONFIRMATIONS,
             "message": "",
-            "amount": txData['recipientAmt'],
-            "address": txData['addresss']
+            "amount": (txData['recipientAmt'] as Amount).raw.toInt(),
+            "address": txData['addresss'] as String,
           }, name: walletName);
 
           message = await receivePort.first;
@@ -496,8 +496,8 @@ class EpicCashWallet extends CoinServiceAPI
           ReceivePort receivePort = await getIsolate({
             "function": "createTransaction",
             "wallet": wallet!,
-            "amount": txData['recipientAmt'],
-            "address": txData['addresss'],
+            "amount": (txData['recipientAmt'] as Amount).raw.toInt(),
+            "address": txData['addresss'] as String,
             "secretKeyIndex": 0,
             "epicboxConfig": epicboxConfig.toString(),
             "minimumConfirmations": MINIMUM_CONFIRMATIONS,
@@ -856,17 +856,26 @@ class EpicCashWallet extends CoinServiceAPI
       );
 
   @override
-  Future<Map<String, dynamic>> prepareSend(
-      {required String address,
-      required int satoshiAmount,
-      Map<String, dynamic>? args}) async {
+  Future<Map<String, dynamic>> prepareSend({
+    required String address,
+    required Amount amount,
+    Map<String, dynamic>? args,
+  }) async {
     try {
-      int realfee = await nativeFee(satoshiAmount);
+      int satAmount = amount.raw.toInt();
+      int realfee = await nativeFee(satAmount);
+
+      if (balance.spendable == amount) {
+        satAmount = balance.spendable.raw.toInt() - realfee;
+      }
 
       Map<String, dynamic> txData = {
         "fee": realfee,
         "addresss": address,
-        "recipientAmt": satoshiAmount,
+        "recipientAmt": Amount(
+          rawValue: BigInt.from(satAmount),
+          fractionDigits: coin.decimals,
+        ),
       };
 
       Logging.instance.log("prepare send: $txData", level: LogLevel.Info);
@@ -906,33 +915,81 @@ class EpicCashWallet extends CoinServiceAPI
       });
       debugPrint(transactionFees);
       dynamic decodeData;
-      try {
-        decodeData = json.decode(transactionFees!);
-      } catch (e) {
-        if (ifErrorEstimateFee) {
-          //Error Not enough funds. Required: 0.56500000, Available: 0.56200000
-          if (transactionFees!.contains("Required")) {
-            var splits = transactionFees!.split(" ");
-            Decimal required = Decimal.zero;
-            Decimal available = Decimal.zero;
-            for (int i = 0; i < splits.length; i++) {
-              var word = splits[i];
-              if (word == "Required:") {
-                required = Decimal.parse(splits[i + 1].replaceAll(",", ""));
-              } else if (word == "Available:") {
-                available = Decimal.parse(splits[i + 1].replaceAll(",", ""));
-              }
+
+      final available = balance.spendable.raw.toInt();
+
+      if (available == satoshiAmount) {
+        if (transactionFees!.contains("Required")) {
+          var splits = transactionFees!.split(" ");
+          Decimal required = Decimal.zero;
+          Decimal available = Decimal.zero;
+          for (int i = 0; i < splits.length; i++) {
+            var word = splits[i];
+            if (word == "Required:") {
+              required = Decimal.parse(splits[i + 1].replaceAll(",", ""));
+            } else if (word == "Available:") {
+              available = Decimal.parse(splits[i + 1].replaceAll(",", ""));
             }
-            int largestSatoshiFee =
-                ((required - available) * Decimal.fromInt(100000000))
-                    .toBigInt()
-                    .toInt();
-            Logging.instance.log("largestSatoshiFee $largestSatoshiFee",
-                level: LogLevel.Info);
-            return largestSatoshiFee;
           }
+          int largestSatoshiFee =
+              ((required - available) * Decimal.fromInt(100000000))
+                  .toBigInt()
+                  .toInt();
+          var amountSending = satoshiAmount - largestSatoshiFee;
+
+          //Get fees for this new amount
+          await m.protect(() async {
+            ReceivePort receivePort = await getIsolate({
+              "function": "getTransactionFees",
+              "wallet": wallet!,
+              "amount": amountSending,
+              "minimumConfirmations": MINIMUM_CONFIRMATIONS,
+            }, name: walletName);
+
+            var message = await receivePort.first;
+            if (message is String) {
+              Logging.instance
+                  .log("this is a string $message", level: LogLevel.Error);
+              stop(receivePort);
+              throw Exception("getTransactionFees isolate failed");
+            }
+            stop(receivePort);
+            Logging.instance.log('Closing getTransactionFees!\n  $message',
+                level: LogLevel.Info);
+            // return message;
+            transactionFees = message['result'] as String;
+          });
         }
-        rethrow;
+        decodeData = json.decode(transactionFees!);
+      } else {
+        try {
+          decodeData = json.decode(transactionFees!);
+        } catch (e) {
+          if (ifErrorEstimateFee) {
+            //Error Not enough funds. Required: 0.56500000, Available: 0.56200000
+            if (transactionFees!.contains("Required")) {
+              var splits = transactionFees!.split(" ");
+              Decimal required = Decimal.zero;
+              Decimal available = Decimal.zero;
+              for (int i = 0; i < splits.length; i++) {
+                var word = splits[i];
+                if (word == "Required:") {
+                  required = Decimal.parse(splits[i + 1].replaceAll(",", ""));
+                } else if (word == "Available:") {
+                  available = Decimal.parse(splits[i + 1].replaceAll(",", ""));
+                }
+              }
+              int largestSatoshiFee =
+                  ((required - available) * Decimal.fromInt(100000000))
+                      .toBigInt()
+                      .toInt();
+              Logging.instance.log("largestSatoshiFee $largestSatoshiFee",
+                  level: LogLevel.Info);
+              return largestSatoshiFee;
+            }
+          }
+          rethrow;
+        }
       }
 
       //TODO: first problem
@@ -1688,12 +1745,17 @@ class EpicCashWallet extends CoinServiceAPI
             : isar_models.TransactionType.outgoing,
         subType: isar_models.TransactionSubType.none,
         amount: amt,
+        amountString: Amount(
+          rawValue: BigInt.from(amt),
+          fractionDigits: coin.decimals,
+        ).toJsonString(),
         fee: (tx["fee"] == null) ? 0 : int.parse(tx["fee"] as String),
         height: height,
         isCancelled: tx["tx_type"] == "TxSentCancelled" ||
             tx["tx_type"] == "TxReceivedCancelled",
         isLelantus: false,
         slateId: slateId,
+        nonce: null,
         otherData: tx["id"].toString(),
         inputs: [],
         outputs: [],
@@ -1799,7 +1861,7 @@ class EpicCashWallet extends CoinServiceAPI
     //     final chunk = {
     //       "timestamp": txTimeArray[0],
     //       "transactions": [txObject],
-    //     };
+    //     };sendAll
     //
     //     // result["dateTimeChunks"].
     //     result["dateTimeChunks"].add(chunk);
@@ -1882,9 +1944,13 @@ class EpicCashWallet extends CoinServiceAPI
   bool isActive = false;
 
   @override
-  Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
-    int currentFee = await nativeFee(satoshiAmount, ifErrorEstimateFee: true);
-    return currentFee;
+  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+    int currentFee =
+        await nativeFee(amount.raw.toInt(), ifErrorEstimateFee: true);
+    return Amount(
+      rawValue: BigInt.from(currentFee),
+      fractionDigits: coin.decimals,
+    );
   }
 
   // not used in epic currently
@@ -1915,19 +1981,21 @@ class EpicCashWallet extends CoinServiceAPI
         (jsonBalances['amount_awaiting_finalization'] as double).toString();
 
     _balance = Balance(
-      coin: coin,
-      total: Format.decimalAmountToSatoshis(
+      total: Amount.fromDecimal(
         Decimal.parse(total) + Decimal.parse(awaiting),
-        coin,
+        fractionDigits: coin.decimals,
       ),
-      spendable: Format.decimalAmountToSatoshis(
+      spendable: Amount.fromDecimal(
         Decimal.parse(spendable),
-        coin,
+        fractionDigits: coin.decimals,
       ),
-      blockedTotal: 0,
-      pendingSpendable: Format.decimalAmountToSatoshis(
+      blockedTotal: Amount(
+        rawValue: BigInt.zero,
+        fractionDigits: coin.decimals,
+      ),
+      pendingSpendable: Amount.fromDecimal(
         Decimal.parse(pending),
-        coin,
+        fractionDigits: coin.decimals,
       ),
     );
 

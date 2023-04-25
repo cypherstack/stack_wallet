@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:decimal/decimal.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,6 +18,7 @@ import 'package:stackwallet/pages/receive_view/receive_view.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_view.dart';
+import 'package:stackwallet/pages/token_view/my_tokens_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_summary.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
@@ -37,13 +37,16 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -70,6 +73,7 @@ class WalletView extends ConsumerStatefulWidget {
     required this.walletId,
     required this.managerProvider,
     this.eventBus,
+    this.clipboardInterface = const ClipboardWrapper(),
   }) : super(key: key);
 
   static const String routeName = "/wallet";
@@ -78,6 +82,8 @@ class WalletView extends ConsumerStatefulWidget {
   final String walletId;
   final ChangeNotifierProvider<Manager> managerProvider;
   final EventBus? eventBus;
+
+  final ClipboardInterface clipboardInterface;
 
   @override
   ConsumerState<WalletView> createState() => _WalletViewState();
@@ -98,10 +104,13 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
   bool _rescanningOnOpen = false;
 
+  late ClipboardInterface _clipboardInterface;
+
   @override
   void initState() {
     walletId = widget.walletId;
     managerProvider = widget.managerProvider;
+    _clipboardInterface = widget.clipboardInterface;
 
     ref.read(managerProvider).isActiveWallet = true;
     if (!ref.read(managerProvider).shouldAutoSync) {
@@ -258,12 +267,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
   }
 
   void _onExchangePressed(BuildContext context) async {
-    final coin = ref.read(managerProvider).coin;
-
-    final currency = ExchangeDataLoadingService.instance.isar.currencies
-        .where()
-        .tickerEqualToAnyExchangeNameName(coin.ticker)
-        .findFirstSync();
+    final Coin coin = ref.read(managerProvider).coin;
 
     if (coin.isTestNet) {
       await showDialog<void>(
@@ -273,6 +277,26 @@ class _WalletViewState extends ConsumerState<WalletView> {
         ),
       );
     } else {
+      Future<Currency?> _future;
+      try {
+        _future = ExchangeDataLoadingService.instance.isar.currencies
+            .where()
+            .tickerEqualToAnyExchangeNameName(coin.ticker)
+            .findFirst();
+      } catch (_) {
+        _future = ExchangeDataLoadingService.instance.loadAll().then((_) =>
+            ExchangeDataLoadingService.instance.isar.currencies
+                .where()
+                .tickerEqualToAnyExchangeNameName(coin.ticker)
+                .findFirst());
+      }
+
+      final currency = await showLoading(
+        whileFuture: _future,
+        context: context,
+        message: "Loading...",
+      );
+
       if (mounted) {
         unawaited(
           Navigator.of(context).pushNamed(
@@ -325,8 +349,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
     );
     final firoWallet = ref.read(managerProvider).wallet as FiroWallet;
 
-    final publicBalance = firoWallet.availablePublicBalance();
-    if (publicBalance <= Decimal.zero) {
+    final Amount publicBalance = firoWallet.availablePublicBalance();
+    if (publicBalance <= Amount.zero) {
       shouldPop = true;
       if (mounted) {
         Navigator.of(context).popUntil(
@@ -379,7 +403,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final coin = ref.watch(managerProvider.select((value) => value.coin));
+    final Coin coin = ref.watch(managerProvider.select((value) => value.coin));
 
     return ConditionalParent(
       condition: _rescanningOnOpen,
@@ -772,10 +796,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         unawaited(
                           Navigator.of(context).pushNamed(
                             ReceiveView.routeName,
-                            arguments: Tuple2(
-                              walletId,
-                              coin,
-                            ),
+                            arguments: walletId,
                           ),
                         );
                       }
@@ -824,6 +845,22 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     ),
                 ],
                 moreItems: [
+                  if (ref.watch(
+                    walletsChangeNotifierProvider.select(
+                      (value) =>
+                          value.getManager(widget.walletId).hasTokenSupport,
+                    ),
+                  ))
+                    WalletNavigationBarItemData(
+                      label: "Tokens",
+                      icon: const CoinControlNavIcon(),
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          MyTokensView.routeName,
+                          arguments: walletId,
+                        );
+                      },
+                    ),
                   if (ref.watch(
                         walletsChangeNotifierProvider.select(
                           (value) => value

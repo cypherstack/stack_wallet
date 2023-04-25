@@ -25,12 +25,12 @@ import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -88,8 +88,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   String? _note;
 
-  Decimal? _amountToSend;
-  Decimal? _cachedAmountToSend;
+  Amount? _amountToSend;
+  Amount? _cachedAmountToSend;
   String? _address;
 
   String? _privateBalanceString;
@@ -106,20 +106,19 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final manager =
         ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
-    final amount = Format.decimalAmountToSatoshis(_amountToSend!, coin);
-    int availableBalance;
+    final Amount amount = _amountToSend!;
+    final Amount availableBalance;
     if ((coin == Coin.firo || coin == Coin.firoTestNet)) {
       if (ref.read(publicPrivateBalanceStateProvider.state).state ==
           "Private") {
-        availableBalance = Format.decimalAmountToSatoshis(
-            (manager.wallet as FiroWallet).availablePrivateBalance(), coin);
+        availableBalance =
+            (manager.wallet as FiroWallet).availablePrivateBalance();
       } else {
-        availableBalance = Format.decimalAmountToSatoshis(
-            (manager.wallet as FiroWallet).availablePublicBalance(), coin);
+        availableBalance =
+            (manager.wallet as FiroWallet).availablePublicBalance();
       }
     } else {
-      availableBalance =
-          Format.decimalAmountToSatoshis(manager.balance.getSpendable(), coin);
+      availableBalance = manager.balance.spendable;
     }
 
     final coinControlEnabled =
@@ -268,7 +267,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         final feeRate = ref.read(feeRateTypeStateProvider);
         txDataFuture = wallet.preparePaymentCodeSend(
           paymentCode: paymentCode,
-          satoshiAmount: amount,
+          amount: amount,
           args: {
             "feeRate": feeRate,
             "UTXOs": (manager.hasCoinControlSupport &&
@@ -283,7 +282,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               "Private") {
         txDataFuture = (manager.wallet as FiroWallet).prepareSendPublic(
           address: _address!,
-          satoshiAmount: amount,
+          amount: amount,
           args: {
             "feeRate": ref.read(feeRateTypeStateProvider),
             "UTXOs": (manager.hasCoinControlSupport &&
@@ -296,7 +295,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       } else {
         txDataFuture = manager.prepareSend(
           address: _address!,
-          satoshiAmount: amount,
+          amount: amount,
           args: {
             "feeRate": ref.read(feeRateTypeStateProvider),
             "UTXOs": (manager.hasCoinControlSupport &&
@@ -435,7 +434,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           cryptoAmount != ",") {
         _amountToSend = cryptoAmount.contains(",")
             ? Decimal.parse(cryptoAmount.replaceFirst(",", "."))
-            : Decimal.parse(cryptoAmount);
+                .toAmount(fractionDigits: coin.decimals)
+            : Decimal.parse(cryptoAmount)
+                .toAmount(fractionDigits: coin.decimals);
         if (_cachedAmountToSend != null &&
             _cachedAmountToSend == _amountToSend) {
           return;
@@ -448,11 +449,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
 
         if (price > Decimal.zero) {
-          final String fiatAmountString = Format.localizedStringAsFixed(
-            value: _amountToSend! * price,
-            locale: ref.read(localeServiceChangeNotifierProvider).locale,
-            decimalPlaces: 2,
-          );
+          final String fiatAmountString = (_amountToSend!.decimal * price)
+              .toAmount(fractionDigits: 2)
+              .localizedStringAsFixed(
+                locale: ref.read(localeServiceChangeNotifierProvider).locale,
+              );
 
           baseAmountController.text = fiatAmountString;
         }
@@ -476,17 +477,17 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     return null;
   }
 
-  void _updatePreviewButtonState(String? address, Decimal? amount) {
+  void _updatePreviewButtonState(String? address, Amount? amount) {
     if (isPaynymSend) {
       ref.read(previewTxButtonStateProvider.state).state =
-          (amount != null && amount > Decimal.zero);
+          (amount != null && amount > Amount.zero);
     } else {
       final isValidAddress = ref
           .read(walletsChangeNotifierProvider)
           .getManager(walletId)
           .validateAddress(address ?? "");
       ref.read(previewTxButtonStateProvider.state).state =
-          (isValidAddress && amount != null && amount > Decimal.zero);
+          (isValidAddress && amount != null && amount > Amount.zero);
     }
   }
 
@@ -498,15 +499,16 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final wallet = ref.read(provider).wallet as FiroWallet?;
 
     if (wallet != null) {
-      Decimal? balance;
+      Amount? balance;
       if (private) {
         balance = wallet.availablePrivateBalance();
       } else {
         balance = wallet.availablePublicBalance();
       }
-
-      return Format.localizedStringAsFixed(
-          value: balance, locale: locale, decimalPlaces: 8);
+      return balance.localizedStringAsFixed(
+        locale: locale,
+        decimalPlaces: coin.decimals,
+      );
     }
 
     return null;
@@ -577,9 +579,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
         // autofill amount field
         if (results["amount"] != null) {
-          final amount = Decimal.parse(results["amount"]!);
-          cryptoAmountController.text = Format.localizedStringAsFixed(
-            value: amount,
+          final amount = Decimal.parse(results["amount"]!).toAmount(
+            fractionDigits: coin.decimals,
+          );
+          cryptoAmountController.text = amount.localizedStringAsFixed(
             locale: ref.read(localeServiceChangeNotifierProvider).locale,
             decimalPlaces: Constants.decimalPlacesForCoin(coin),
           );
@@ -643,18 +646,20 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         baseAmountString != ",") {
       final baseAmount = baseAmountString.contains(",")
           ? Decimal.parse(baseAmountString.replaceFirst(",", "."))
-          : Decimal.parse(baseAmountString);
+              .toAmount(fractionDigits: 2)
+          : Decimal.parse(baseAmountString).toAmount(fractionDigits: 2);
 
       var _price =
           ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
 
       if (_price == Decimal.zero) {
-        _amountToSend = Decimal.zero;
+        _amountToSend = Decimal.zero.toAmount(fractionDigits: coin.decimals);
       } else {
-        _amountToSend = baseAmount <= Decimal.zero
-            ? Decimal.zero
-            : (baseAmount / _price).toDecimal(
-                scaleOnInfinitePrecision: Constants.decimalPlacesForCoin(coin));
+        _amountToSend = baseAmount <= Amount.zero
+            ? Decimal.zero.toAmount(fractionDigits: coin.decimals)
+            : (baseAmount.decimal / _price)
+                .toDecimal(scaleOnInfinitePrecision: coin.decimals)
+                .toAmount(fractionDigits: coin.decimals);
       }
       if (_cachedAmountToSend != null && _cachedAmountToSend == _amountToSend) {
         return;
@@ -663,17 +668,16 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       Logging.instance.log("it changed $_amountToSend $_cachedAmountToSend",
           level: LogLevel.Info);
 
-      final amountString = Format.localizedStringAsFixed(
-        value: _amountToSend!,
+      final amountString = _amountToSend!.localizedStringAsFixed(
         locale: ref.read(localeServiceChangeNotifierProvider).locale,
-        decimalPlaces: Constants.decimalPlacesForCoin(coin),
+        decimalPlaces: coin.decimals,
       );
 
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = amountString;
       _cryptoAmountChangeLock = false;
     } else {
-      _amountToSend = Decimal.zero;
+      _amountToSend = Decimal.zero.toAmount(fractionDigits: coin.decimals);
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = "";
       _cryptoAmountChangeLock = false;
@@ -694,19 +698,24 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           .wallet as FiroWallet;
       if (ref.read(publicPrivateBalanceStateProvider.state).state ==
           "Private") {
-        cryptoAmountController.text = (firoWallet.availablePrivateBalance())
-            .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
+        cryptoAmountController.text = firoWallet
+            .availablePrivateBalance()
+            .decimal
+            .toStringAsFixed(coin.decimals);
       } else {
-        cryptoAmountController.text = (firoWallet.availablePublicBalance())
-            .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
+        cryptoAmountController.text = firoWallet
+            .availablePublicBalance()
+            .decimal
+            .toStringAsFixed(coin.decimals);
       }
     } else {
-      cryptoAmountController.text = (ref
-              .read(walletsChangeNotifierProvider)
-              .getManager(walletId)
-              .balance
-              .getSpendable())
-          .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
+      cryptoAmountController.text = ref
+          .read(walletsChangeNotifierProvider)
+          .getManager(walletId)
+          .balance
+          .spendable
+          .decimal
+          .toStringAsFixed(coin.decimals);
     }
   }
 
@@ -985,10 +994,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
               textAlign: TextAlign.left,
             ),
-            CustomTextButton(
-              text: "Send all ${coin.ticker}",
-              onTap: sendAllTapped,
-            ),
+            if (coin != Coin.ethereum)
+              CustomTextButton(
+                text: "Send all ${coin.ticker}",
+                onTap: sendAllTapped,
+              ),
           ],
         ),
         const SizedBox(
@@ -1403,7 +1413,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           ),
         if (coin != Coin.epicCash)
           Text(
-            "Transaction fee (estimated)",
+            "Transaction fee (${coin == Coin.ethereum ? "max" : "estimated"})",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
               color: Theme.of(context)
                   .extension<StackColors>()!

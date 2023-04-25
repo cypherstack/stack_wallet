@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
-import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/models.dart';
@@ -12,6 +12,8 @@ import 'package:stackwallet/services/event_bus/events/global/updated_in_backgrou
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/services/mixins/xpubable.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
@@ -91,13 +93,13 @@ class Manager with ChangeNotifier {
 
   Future<Map<String, dynamic>> prepareSend({
     required String address,
-    required int satoshiAmount,
+    required Amount amount,
     Map<String, dynamic>? args,
   }) async {
     try {
       final txInfo = await _currentWallet.prepareSend(
         address: address,
-        satoshiAmount: satoshiAmount,
+        amount: amount,
         args: args,
       );
       // notifyListeners();
@@ -214,8 +216,8 @@ class Manager with ChangeNotifier {
 
   bool get isConnected => _currentWallet.isConnected;
 
-  Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
-    return _currentWallet.estimateFeeFor(satoshiAmount, feeRate);
+  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+    return _currentWallet.estimateFeeFor(amount, feeRate);
   }
 
   Future<bool> generateNewAddress() async {
@@ -232,6 +234,8 @@ class Manager with ChangeNotifier {
 
   bool get hasCoinControlSupport => _currentWallet is CoinControlInterface;
 
+  bool get hasTokenSupport => _currentWallet.coin == Coin.ethereum;
+
   bool get hasWhirlpoolSupport => false;
 
   int get rescanOnOpenVersion =>
@@ -246,5 +250,15 @@ class Manager with ChangeNotifier {
       key: "rescan_on_open_$walletId",
       boxName: DB.boxNameDBInfo,
     );
+  }
+
+  bool get hasXPub => _currentWallet is XPubAble;
+
+  Future<String> get xpub async {
+    if (!hasXPub) {
+      throw Exception(
+          "Tried to read xpub from wallet that does not support it");
+    }
+    return (_currentWallet as XPubAble).xpub;
   }
 }

@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
-import 'package:stackwallet/pages/wallets_sheet/wallets_sheet.dart';
+import 'package:stackwallet/pages/wallets_view/wallets_overview.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -45,7 +45,7 @@ class WalletListItem extends ConsumerWidget {
               BorderRadius.circular(Constants.size.circularBorderRadius),
         ),
         onPressed: () async {
-          if (walletCount == 1) {
+          if (walletCount == 1 && coin != Coin.ethereum) {
             final providersByCoin = ref
                 .watch(walletsChangeNotifierProvider
                     .select((value) => value.getManagerProvidersByCoin()))
@@ -57,26 +57,22 @@ class WalletListItem extends ConsumerWidget {
             if (coin == Coin.monero || coin == Coin.wownero) {
               await manager.initializeExisting();
             }
-            unawaited(
-              Navigator.of(context).pushNamed(
-                WalletView.routeName,
-                arguments: Tuple2(
-                  manager.walletId,
-                  providersByCoin.first,
-                ),
-              ),
-            );
-          } else {
-            unawaited(
-              showModalBottomSheet<dynamic>(
-                backgroundColor: Colors.transparent,
-                context: context,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(20),
+            if (context.mounted) {
+              unawaited(
+                Navigator.of(context).pushNamed(
+                  WalletView.routeName,
+                  arguments: Tuple2(
+                    manager.walletId,
+                    providersByCoin.first,
                   ),
                 ),
-                builder: (_) => WalletsSheet(coin: coin),
+              );
+            }
+          } else {
+            unawaited(
+              Navigator.of(context).pushNamed(
+                WalletsOverview.routeName,
+                arguments: coin,
               ),
             );
           }
@@ -99,13 +95,12 @@ class WalletListItem extends ConsumerWidget {
                   final calls =
                       ref.watch(prefsChangeNotifierProvider).externalCalls;
 
-                  final priceString = Format.localizedStringAsFixed(
-                    value: tuple.item1,
-                    locale: ref
-                        .watch(localeServiceChangeNotifierProvider.notifier)
-                        .locale,
-                    decimalPlaces: 2,
-                  );
+                  final priceString = tuple.item1
+                      .toAmount(fractionDigits: 2)
+                      .localizedStringAsFixed(
+                        locale: ref.watch(localeServiceChangeNotifierProvider
+                            .select((value) => value.locale)),
+                      );
 
                   final double percentChange = tuple.item2;
 

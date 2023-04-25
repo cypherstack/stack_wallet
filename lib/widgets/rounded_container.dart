@@ -12,6 +12,7 @@ class RoundedContainer extends StatelessWidget {
     this.width,
     this.height,
     this.borderColor,
+    this.hoverColor,
     this.boxShadow,
     this.onPressed,
   }) : super(key: key);
@@ -23,6 +24,7 @@ class RoundedContainer extends StatelessWidget {
   final double? width;
   final double? height;
   final Color? borderColor;
+  final Color? hoverColor;
   final List<BoxShadow>? boxShadow;
   final VoidCallback? onPressed;
 
@@ -31,6 +33,13 @@ class RoundedContainer extends StatelessWidget {
     return ConditionalParent(
       condition: onPressed != null,
       builder: (child) => RawMaterialButton(
+        fillColor: color,
+        hoverColor: hoverColor,
+        elevation: 0,
+        highlightElevation: 0,
+        disabledElevation: 0,
+        hoverElevation: 0,
+        focusElevation: 0,
         padding: const EdgeInsets.all(0),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(
@@ -45,7 +54,7 @@ class RoundedContainer extends StatelessWidget {
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: color,
+          color: onPressed != null ? Colors.transparent : color,
           borderRadius: BorderRadius.circular(
             Constants.size.circularBorderRadius * radiusMultiplier,
           ),

@@ -1,3 +1,4 @@
+import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -8,9 +9,17 @@ import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 import 'manager_test.mocks.dart';
+
+/// quick amount constructor wrapper. Using an int is bad practice but for
+/// testing with small amounts this should be fine
+Amount _a(int i) => Amount.fromDecimal(
+      Decimal.fromInt(i),
+      fractionDigits: 8,
+    );
 
 @GenerateMocks([FiroWallet, ElectrumX])
 void main() {
@@ -74,28 +83,29 @@ void main() {
   group("get balances", () {
     test("balance", () async {
       final CoinServiceAPI wallet = MockFiroWallet();
+      final balance = Balance(
+        total: _a(10),
+        spendable: _a(1),
+        blockedTotal: _a(0),
+        pendingSpendable: _a(9),
+      );
+
+      when(wallet.coin).thenAnswer((_) => Coin.firo);
       when(wallet.balance).thenAnswer(
-        (_) => Balance(
-          coin: Coin.firo,
-          total: 10,
-          spendable: 1,
-          blockedTotal: 0,
-          pendingSpendable: 9,
-        ),
+        (_) => balance,
       );
 
       final manager = Manager(wallet);
 
-      expect(manager.balance.coin, Coin.firo);
-      expect(manager.balance.total, 10);
-      expect(manager.balance.spendable, 1);
-      expect(manager.balance.blockedTotal, 0);
-      expect(manager.balance.pendingSpendable, 9);
+      expect(manager.balance, balance);
     });
   });
 
   test("transactions", () async {
     final CoinServiceAPI wallet = MockFiroWallet();
+
+    when(wallet.coin).thenAnswer((realInvocation) => Coin.firo);
+
     final tx = Transaction(
       walletId: "walletId",
       txid: "txid",
@@ -103,12 +113,17 @@ void main() {
       type: TransactionType.incoming,
       subType: TransactionSubType.mint,
       amount: 123,
+      amountString: Amount(
+        rawValue: BigInt.from(123),
+        fractionDigits: wallet.coin.decimals,
+      ).toJsonString(),
       fee: 3,
       height: 123,
       isCancelled: false,
       isLelantus: true,
       slateId: null,
       otherData: null,
+      nonce: null,
       inputs: [],
       outputs: [],
     );

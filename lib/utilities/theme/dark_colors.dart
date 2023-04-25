@@ -4,6 +4,8 @@ import 'package:stackwallet/utilities/theme/color_theme.dart';
 class DarkColors extends StackColorTheme {
   @override
   ThemeType get themeType => ThemeType.dark;
+  @override
+  Brightness get brightness => Brightness.dark;
 
   @override
   Color get background => const Color(0xFF2A2D34);
@@ -332,6 +334,26 @@ class DarkColors extends StackColorTheme {
   Color get rateTypeToggleDesktopColorOn => textFieldDefaultBG;
   @override
   Color get rateTypeToggleDesktopColorOff => buttonBackSecondary;
+
+  // token view colors
+  @override
+  Color get ethTagText => const Color(0xFFFFFFFF);
+  @override
+  Color get ethTagBG => const Color(0xFF5761A2);
+  @override
+  Color get ethWalletTagText => const Color(0xFFE7EBFF);
+  @override
+  Color get ethWalletTagBG => const Color(0xFF414868);
+  @override
+  Color get tokenSummaryTextPrimary => const Color(0xFFFFFFFF);
+  @override
+  Color get tokenSummaryTextSecondary => const Color(0xFFC9D0FF);
+  @override
+  Color get tokenSummaryBG => const Color(0xFF464C73);
+  @override
+  Color get tokenSummaryButtonBG => const Color(0xFFC9D0FF);
+  @override
+  Color get tokenSummaryIcon => const Color(0xFF252C78);
 
   @override
   BoxShadow get standardBoxShadow => BoxShadow(

@@ -5,7 +5,7 @@ import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/about_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/advanced_settings_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/appearance_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/currency_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/delete_account_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/language_view.dart';
@@ -162,7 +162,7 @@ class GlobalSettingsView extends StatelessWidget {
                                   height: 8,
                                 ),
                                 SettingsListButton(
-                                  iconAssetName: Assets.svg.arrowRotate3,
+                                  iconAssetName: Assets.svg.arrowRotate,
                                   iconSize: 18,
                                   title: "Syncing preferences",
                                   onPressed: () {

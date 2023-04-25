@@ -8,10 +8,13 @@ import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
+import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import 'desktop_all_trades_view.dart';
 
 class DesktopExchangeView extends ConsumerStatefulWidget {
   const DesktopExchangeView({Key? key}) : super(key: key);
@@ -43,9 +46,7 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
           });
         };
       }
-      ExchangeDataLoadingService.instance
-          .init()
-          .then((_) => ExchangeDataLoadingService.instance.loadAll());
+      ExchangeDataLoadingService.instance.loadAll();
     } else if (ExchangeDataLoadingService.instance.isLoading &&
         ExchangeDataLoadingService.currentCacheVersion <
             ExchangeDataLoadingService.cacheVersion) {
@@ -106,36 +107,65 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
             right: 24,
             bottom: 24,
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Column(
             children: [
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
                       "Exchange details",
                       style: STextStyles.desktopTextExtraExtraSmall(context),
                     ),
-                    const SizedBox(
-                      height: 16,
+                  ),
+                  const SizedBox(
+                    width: 16,
+                  ),
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Recent trades",
+                          style:
+                              STextStyles.desktopTextExtraExtraSmall(context),
+                        ),
+                        CustomTextButton(
+                          text: "See all",
+                          onTap: () {
+                            Navigator.of(context).pushNamed(
+                              DesktopAllTradesView.routeName,
+                            );
+                          },
+                        ),
+                      ],
                     ),
-                    const RoundedWhiteContainer(
-                      padding: EdgeInsets.all(24),
-                      child: ExchangeForm(),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
               const SizedBox(
-                width: 16,
+                height: 16,
               ),
               Expanded(
                 child: Row(
-                  children: const [
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Expanded(
+                      child: RoundedWhiteContainer(
+                        padding: EdgeInsets.all(24),
+                        child: ExchangeForm(),
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 16,
+                    ),
                     Expanded(
-                      child: DesktopTradeHistory(),
+                      child: Row(
+                        children: const [
+                          Expanded(
+                            child: DesktopTradeHistory(),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),

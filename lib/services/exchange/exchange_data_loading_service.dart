@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/models/exchange/aggregate_currency.dart';
 import 'package:stackwallet/models/exchange/exchange_form_state.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
@@ -40,8 +40,9 @@ class ExchangeDataLoadingService {
     );
   }
 
-  Future<void> init() async {
-    if (_isar != null && isar.isOpen) return;
+  Future<void> initDB() async {
+    if (_isar != null) return;
+    await _isar?.close();
     _isar = await Isar.open(
       [
         CurrencySchema,
@@ -61,10 +62,12 @@ class ExchangeDataLoadingService {
         final sendCurrency = await getAggregateCurrency(
           "BTC",
           state.exchangeRateType,
+          null,
         );
         final receiveCurrency = await getAggregateCurrency(
           "XMR",
           state.exchangeRateType,
+          null,
         );
         state.setCurrencies(sendCurrency, receiveCurrency);
       }
@@ -72,7 +75,10 @@ class ExchangeDataLoadingService {
   }
 
   Future<AggregateCurrency?> getAggregateCurrency(
-      String ticker, ExchangeRateType rateType) async {
+    String ticker,
+    ExchangeRateType rateType,
+    String? contract,
+  ) async {
     final currencies = await ExchangeDataLoadingService.instance.isar.currencies
         .filter()
         .group((q) => rateType == ExchangeRateType.fixed
@@ -89,6 +95,8 @@ class ExchangeDataLoadingService {
           ticker,
           caseSensitive: false,
         )
+        .and()
+        .tokenContractEqualTo(contract)
         .findAll();
 
     final items = currencies

@@ -1,5 +1,6 @@
-import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/models/balance.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 mixin WalletCache {
@@ -69,14 +70,16 @@ mixin WalletCache {
     ) as String?;
     if (jsonString == null) {
       return Balance(
-        coin: _coin,
-        total: 0,
-        spendable: 0,
-        blockedTotal: 0,
-        pendingSpendable: 0,
+        total: Amount(rawValue: BigInt.zero, fractionDigits: _coin.decimals),
+        spendable:
+            Amount(rawValue: BigInt.zero, fractionDigits: _coin.decimals),
+        blockedTotal:
+            Amount(rawValue: BigInt.zero, fractionDigits: _coin.decimals),
+        pendingSpendable:
+            Amount(rawValue: BigInt.zero, fractionDigits: _coin.decimals),
       );
     }
-    return Balance.fromJson(jsonString, _coin);
+    return Balance.fromJson(jsonString, _coin.decimals);
   }
 
   Future<void> updateCachedBalance(Balance balance) async {
@@ -95,14 +98,16 @@ mixin WalletCache {
     ) as String?;
     if (jsonString == null) {
       return Balance(
-        coin: _coin,
-        total: 0,
-        spendable: 0,
-        blockedTotal: 0,
-        pendingSpendable: 0,
+        total: Amount(rawValue: BigInt.zero, fractionDigits: _coin.decimals),
+        spendable:
+            Amount(rawValue: BigInt.zero, fractionDigits: _coin.decimals),
+        blockedTotal:
+            Amount(rawValue: BigInt.zero, fractionDigits: _coin.decimals),
+        pendingSpendable:
+            Amount(rawValue: BigInt.zero, fractionDigits: _coin.decimals),
       );
     }
-    return Balance.fromJson(jsonString, _coin);
+    return Balance.fromJson(jsonString, _coin.decimals);
   }
 
   Future<void> updateCachedBalanceSecondary(Balance balance) async {
@@ -110,6 +115,24 @@ mixin WalletCache {
       boxName: _walletId,
       key: DBKeys.cachedBalanceSecondary,
       value: balance.toJsonIgnoreCoin(),
+    );
+  }
+
+  // Ethereum specific
+  List<String> getWalletTokenContractAddresses() {
+    return DB.instance.get<dynamic>(
+          boxName: _walletId,
+          key: DBKeys.ethTokenContracts,
+        ) as List<String>? ??
+        [];
+  }
+
+  Future<void> updateWalletTokenContractAddresses(
+      List<String> contractAddresses) async {
+    await DB.instance.put<dynamic>(
+      boxName: _walletId,
+      key: DBKeys.ethTokenContracts,
+      value: contractAddresses,
     );
   }
 }

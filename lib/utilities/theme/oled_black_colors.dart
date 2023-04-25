@@ -4,6 +4,8 @@ import 'package:stackwallet/utilities/theme/color_theme.dart';
 class OledBlackColors extends StackColorTheme {
   @override
   ThemeType get themeType => ThemeType.oledBlack;
+  @override
+  Brightness get brightness => Brightness.dark;
 
   @override
   Color get background => const Color(0xFF000000);
@@ -324,7 +326,7 @@ class OledBlackColors extends StackColorTheme {
   Color get textConfirmTotalAmount =>
       textFieldSuccessLabel; //const Color(0xFF144D35);
   @override
-  Color get textSelectedWordTableItem => const Color(0xFF143D8E);
+  Color get textSelectedWordTableItem => const Color(0xFFF26822);
 
   //rate type toggle
   @override
@@ -335,6 +337,26 @@ class OledBlackColors extends StackColorTheme {
   Color get rateTypeToggleDesktopColorOn => textFieldDefaultBG;
   @override
   Color get rateTypeToggleDesktopColorOff => buttonBackSecondary;
+
+  // token view colors
+  @override
+  Color get ethTagText => const Color(0xFFFFFFFF);
+  @override
+  Color get ethTagBG => const Color(0xFF5761A2);
+  @override
+  Color get ethWalletTagText => const Color(0xFFDEDEDE);
+  @override
+  Color get ethWalletTagBG => const Color(0xFF222539);
+  @override
+  Color get tokenSummaryTextPrimary => const Color(0xFFFFFFFF);
+  @override
+  Color get tokenSummaryTextSecondary => const Color(0xFFC9D0FF);
+  @override
+  Color get tokenSummaryBG => const Color(0xFF292D45);
+  @override
+  Color get tokenSummaryButtonBG => const Color(0xFFC9D0FF);
+  @override
+  Color get tokenSummaryIcon => const Color(0xFF252C78);
 
   @override
   BoxShadow get standardBoxShadow => BoxShadow(

@@ -10,11 +10,11 @@ import 'package:stackwallet/providers/global/price_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -120,22 +120,15 @@ class _DesktopPaynymSendDialogState
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          "${Format.localizedStringAsFixed(
-                            value: !isFiro
-                                ? manager.balance.getSpendable()
-                                : ref
-                                            .watch(
-                                                publicPrivateBalanceStateProvider
-                                                    .state)
-                                            .state ==
-                                        "Private"
-                                    ? (manager.wallet as FiroWallet)
-                                        .availablePrivateBalance()
-                                    : (manager.wallet as FiroWallet)
-                                        .availablePublicBalance(),
-                            locale: locale,
-                            decimalPlaces: 8,
-                          )} ${coin.ticker}",
+                          "${!isFiro ? manager.balance.spendable.localizedStringAsFixed(
+                              locale: locale,
+                            ) : ref.watch(
+                                publicPrivateBalanceStateProvider.state,
+                              ).state == "Private" ? (manager.wallet as FiroWallet).availablePrivateBalance().localizedStringAsFixed(
+                                locale: locale,
+                              ) : (manager.wallet as FiroWallet).availablePublicBalance().localizedStringAsFixed(
+                                locale: locale,
+                              )} ${coin.ticker}",
                           style: STextStyles.titleBold12(context),
                           textAlign: TextAlign.right,
                         ),
@@ -143,25 +136,7 @@ class _DesktopPaynymSendDialogState
                           height: 2,
                         ),
                         Text(
-                          "${Format.localizedStringAsFixed(
-                            value: (!isFiro
-                                    ? manager.balance.getSpendable()
-                                    : ref
-                                                .watch(
-                                                    publicPrivateBalanceStateProvider
-                                                        .state)
-                                                .state ==
-                                            "Private"
-                                        ? (manager.wallet as FiroWallet)
-                                            .availablePrivateBalance()
-                                        : (manager.wallet as FiroWallet)
-                                            .availablePublicBalance()) *
-                                ref.watch(
-                                    priceAnd24hChangeNotifierProvider.select(
-                                        (value) => value.getPrice(coin).item1)),
-                            locale: locale,
-                            decimalPlaces: 2,
-                          )} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                          "${((!isFiro ? manager.balance.spendable.decimal : ref.watch(publicPrivateBalanceStateProvider.state).state == "Private" ? (manager.wallet as FiroWallet).availablePrivateBalance().decimal : (manager.wallet as FiroWallet).availablePublicBalance().decimal) * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin).item1))).toAmount(fractionDigits: 2).localizedStringAsFixed(locale: locale)} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
                           style: STextStyles.baseXS(context).copyWith(
                             color: Theme.of(context)
                                 .extension<StackColors>()!

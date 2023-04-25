@@ -3,9 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/price_provider.dart';
+import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -18,8 +19,6 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-
-import '../../../../providers/ui/color_theme_provider.dart';
 
 class StackPrivacyDialog extends ConsumerStatefulWidget {
   const StackPrivacyDialog({Key? key}) : super(key: key);
@@ -99,9 +98,10 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
                           ),
                     children: infoToggle
                         ? [
-                            const TextSpan(
-                                text:
-                                    "Exchange data preloaded for a seamless experience."),
+                            if (Constants.enableExchange)
+                              const TextSpan(
+                                  text:
+                                      "Exchange data preloaded for a seamless experience."),
                             const TextSpan(
                                 text:
                                     "\n\nCoinGecko enabled: (24 hour price change shown in-app, total wallet value shown in USD or other currency)."),
@@ -215,16 +215,10 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
   late bool externalCallsEnabled;
 
   late final bool isDesktop;
-  late final bool isSorbet;
-  late final bool isOcean;
 
   @override
   void initState() {
     isDesktop = Util.isDesktop;
-    isSorbet = ref.read(colorThemeProvider.state).state.themeType ==
-        ThemeType.fruitSorbet;
-    isOcean = ref.read(colorThemeProvider.state).state.themeType ==
-        ThemeType.oceanBreeze;
     // initial toggle state
     externalCallsEnabled = widget.externalCallsEnabled;
     super.initState();
@@ -232,6 +226,10 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
 
   @override
   Widget build(BuildContext context) {
+    final bool lightChan =
+        ref.read(colorThemeProvider.state).state.themeType == ThemeType.chan;
+    final bool darkChan = ref.read(colorThemeProvider.state).state.themeType ==
+        ThemeType.darkChans;
     return Row(
       children: [
         Expanded(
@@ -273,9 +271,12 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                         const SizedBox(
                           height: 10,
                         ),
-                      (isSorbet)
-                          ? Image.asset(
-                              Assets.png.personaEasy(context),
+                      //
+                      (lightChan || darkChan)
+                          ? Image(
+                              image: AssetImage(
+                                Assets.png.chanEasy,
+                              ),
                               width: 120,
                               height: 120,
                             )
@@ -385,9 +386,9 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                         const SizedBox(
                           height: 10,
                         ),
-                      (isSorbet)
-                          ? Image.asset(
-                              Assets.png.personaIncognito(context),
+                      (lightChan || darkChan)
+                          ? Image(
+                              image: AssetImage(Assets.png.chanIncognito),
                               width: 120,
                               height: 120,
                             )
@@ -396,6 +397,11 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                               width: 120,
                               height: 120,
                             ),
+                      // SvgPicture.asset(
+                      //   Assets.svg.personaIncognito(context),
+                      //   width: 120,
+                      //   height: 120,
+                      // ),
                       if (isDesktop)
                         const SizedBox(
                           height: 12,

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_form.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
 import 'package:stackwallet/providers/exchange/exchange_form_state_provider.dart';
@@ -20,12 +21,14 @@ class WalletInitiatedExchangeView extends ConsumerStatefulWidget {
     Key? key,
     required this.walletId,
     required this.coin,
+    this.contract,
   }) : super(key: key);
 
   static const String routeName = "/walletInitiatedExchange";
 
   final String walletId;
   final Coin coin;
+  final EthContract? contract;
 
   @override
   ConsumerState<WalletInitiatedExchangeView> createState() =>
@@ -59,9 +62,7 @@ class _WalletInitiatedExchangeViewState
           });
         };
       }
-      ExchangeDataLoadingService.instance
-          .init()
-          .then((_) => ExchangeDataLoadingService.instance.loadAll());
+      ExchangeDataLoadingService.instance.loadAll();
     } else if (ExchangeDataLoadingService.instance.isLoading &&
         ExchangeDataLoadingService.currentCacheVersion <
             ExchangeDataLoadingService.cacheVersion) {
@@ -172,6 +173,7 @@ class _WalletInitiatedExchangeViewState
                             ExchangeForm(
                               walletId: walletId,
                               coin: coin,
+                              contract: widget.contract,
                             ),
                           ],
                         ),

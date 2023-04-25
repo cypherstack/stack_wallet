@@ -4,6 +4,8 @@ import 'package:stackwallet/utilities/theme/color_theme.dart';
 class ForestColors extends StackColorTheme {
   @override
   ThemeType get themeType => ThemeType.forest;
+  @override
+  Brightness get brightness => Brightness.light;
 
   @override
   Color get background => const Color(0xFFF3FAF5);
@@ -105,7 +107,7 @@ class ForestColors extends StackColorTheme {
   @override
   Color get numpadTextDefault => const Color(0xFFFFFFFF);
   @override
-  Color get bottomNavText => const Color(0xFF232323);
+  Color get bottomNavText => const Color(0xFF22867A);
   @override
   Color get customTextButtonEnabledText => infoItemIcons;
   @override
@@ -175,12 +177,12 @@ class ForestColors extends StackColorTheme {
   @override
   Color get bottomNavIconBack => const Color(0xFFA7C7CF);
   @override
-  Color get bottomNavIconIcon => const Color(0xFF227386);
+  Color get bottomNavIconIcon => const Color(0xFF22867A);
 
   @override
-  Color get topNavIconPrimary => const Color(0xFF227386);
+  Color get topNavIconPrimary => accentColorDark; //const Color(0xFF227386);
   @override
-  Color get topNavIconGreen => const Color(0xFF00A591);
+  Color get topNavIconGreen => accentColorDark; //const Color(0xFF00A591);
   @override
   Color get topNavIconYellow => const Color(0xFFFDD33A);
   @override
@@ -332,6 +334,26 @@ class ForestColors extends StackColorTheme {
   Color get rateTypeToggleDesktopColorOn => textFieldDefaultBG;
   @override
   Color get rateTypeToggleDesktopColorOff => buttonBackSecondary;
+
+  // token view colors
+  @override
+  Color get ethTagText => const Color(0xFFFFFFFF);
+  @override
+  Color get ethTagBG => const Color(0xFF4D5798);
+  @override
+  Color get ethWalletTagText => const Color(0xFF4D5798);
+  @override
+  Color get ethWalletTagBG => const Color(0xFFEBEFFE);
+  @override
+  Color get tokenSummaryTextPrimary => const Color(0xFF232323);
+  @override
+  Color get tokenSummaryTextSecondary => const Color(0xFF4D5798);
+  @override
+  Color get tokenSummaryBG => const Color(0xFFFFFFFF);
+  @override
+  Color get tokenSummaryButtonBG => const Color(0xFFE9FBEF);
+  @override
+  Color get tokenSummaryIcon => const Color(0xFF22867A);
 
   @override
   BoxShadow get standardBoxShadow => BoxShadow(

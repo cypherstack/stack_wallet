@@ -23,8 +23,8 @@ import 'package:flutter_libmonero/monero/monero.dart';
 import 'package:flutter_libmonero/view_model/send/output.dart' as monero_output;
 import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
-import 'package:stackwallet/db/main_db.dart';
-import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/db/hive/db.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/node_model.dart';
@@ -38,12 +38,11 @@ import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
@@ -170,7 +169,7 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
       (await _generateAddressForChain(0, 0)).value;
 
   @override
-  Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
+  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
     MoneroTransactionPriority priority;
 
     switch (feeRate) {
@@ -192,9 +191,9 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         break;
     }
 
-    final fee = walletBase!.calculateEstimatedFee(priority, satoshiAmount);
+    final fee = walletBase!.calculateEstimatedFee(priority, amount.raw.toInt());
 
-    return fee;
+    return Amount(rawValue: BigInt.from(fee), fractionDigits: coin.decimals);
   }
 
   @override
@@ -431,7 +430,7 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<Map<String, dynamic>> prepareSend({
     required String address,
-    required int satoshiAmount,
+    required Amount amount,
     Map<String, dynamic>? args,
   }) async {
     String toAddress = address;
@@ -456,16 +455,13 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
           // check for send all
           bool isSendAll = false;
           final balance = await _availableBalance;
-          if (satoshiAmount == balance) {
+          if (amount == balance) {
             isSendAll = true;
           }
           Logging.instance
-              .log("$toAddress $satoshiAmount $args", level: LogLevel.Info);
-          String amountToSend =
-              Format.satoshisToAmount(satoshiAmount, coin: coin)
-                  .toStringAsFixed(Constants.decimalPlacesForCoin(coin));
-          Logging.instance
-              .log("$satoshiAmount $amountToSend", level: LogLevel.Info);
+              .log("$toAddress $amount $args", level: LogLevel.Info);
+          String amountToSend = amount.decimal.toString();
+          Logging.instance.log("$amount $amountToSend", level: LogLevel.Info);
 
           monero_output.Output output = monero_output.Output(walletBase!);
           output.address = toAddress;
@@ -487,14 +483,16 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         PendingMoneroTransaction pendingMoneroTransaction =
             await (awaitPendingTransaction!) as PendingMoneroTransaction;
 
-        int realfee = Format.decimalAmountToSatoshis(
-            Decimal.parse(pendingMoneroTransaction.feeFormatted), coin);
-        debugPrint("fee? $realfee");
+        final int realFee = Amount.fromDecimal(
+          Decimal.parse(pendingMoneroTransaction.feeFormatted),
+          fractionDigits: coin.decimals,
+        ).raw.toInt();
+
         Map<String, dynamic> txData = {
           "pendingMoneroTransaction": pendingMoneroTransaction,
-          "fee": realfee,
+          "fee": realFee,
           "addresss": toAddress,
-          "recipientAmt": satoshiAmount,
+          "recipientAmt": amount,
         };
 
         Logging.instance.log("prepare send: $txData", level: LogLevel.Info);
@@ -749,28 +747,36 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     final total = await _totalBalance;
     final available = await _availableBalance;
     _balance = Balance(
-      coin: coin,
       total: total,
       spendable: available,
-      blockedTotal: 0,
+      blockedTotal: Amount(
+        rawValue: BigInt.zero,
+        fractionDigits: coin.decimals,
+      ),
       pendingSpendable: total - available,
     );
     await updateCachedBalance(_balance!);
   }
 
-  Future<int> get _availableBalance async {
+  Future<Amount> get _availableBalance async {
     try {
       int runningBalance = 0;
       for (final entry in walletBase!.balance!.entries) {
         runningBalance += entry.value.unlockedBalance;
       }
-      return runningBalance;
+      return Amount(
+        rawValue: BigInt.from(runningBalance),
+        fractionDigits: coin.decimals,
+      );
     } catch (_) {
-      return 0;
+      return Amount(
+        rawValue: BigInt.zero,
+        fractionDigits: coin.decimals,
+      );
     }
   }
 
-  Future<int> get _totalBalance async {
+  Future<Amount> get _totalBalance async {
     try {
       final balanceEntries = walletBase?.balance?.entries;
       if (balanceEntries != null) {
@@ -779,7 +785,10 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
           bal = bal + element.value.fullBalance;
         }
         await _updateCachedBalance(bal);
-        return bal;
+        return Amount(
+          rawValue: BigInt.from(bal),
+          fractionDigits: coin.decimals,
+        );
       } else {
         final transactions = walletBase!.transactionHistory!.transactions;
         int transactionBalance = 0;
@@ -792,10 +801,16 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
         }
 
         await _updateCachedBalance(transactionBalance);
-        return transactionBalance;
+        return Amount(
+          rawValue: BigInt.from(transactionBalance),
+          fractionDigits: coin.decimals,
+        );
       }
     } catch (_) {
-      return _getCachedBalance();
+      return Amount(
+        rawValue: BigInt.from(_getCachedBalance()),
+        fractionDigits: coin.decimals,
+      );
     }
   }
 
@@ -926,12 +941,17 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
           type: type,
           subType: isar_models.TransactionSubType.none,
           amount: tx.value.amount ?? 0,
+          amountString: Amount(
+            rawValue: BigInt.from(tx.value.amount ?? 0),
+            fractionDigits: coin.decimals,
+          ).toJsonString(),
           fee: tx.value.fee ?? 0,
           height: tx.value.height,
           isCancelled: false,
           isLelantus: false,
           slateId: null,
           otherData: null,
+          nonce: null,
           inputs: [],
           outputs: [],
         );

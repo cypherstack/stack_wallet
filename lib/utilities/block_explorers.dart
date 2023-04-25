@@ -6,13 +6,13 @@ Uri getBlockExplorerTransactionUrlFor({
 }) {
   switch (coin) {
     case Coin.bitcoin:
-      return Uri.parse("https://chain.so/tx/BTC/$txid");
+      return Uri.parse("https://mempool.space/tx/$txid");
     case Coin.litecoin:
       return Uri.parse("https://chain.so/tx/LTC/$txid");
     case Coin.litecoinTestNet:
       return Uri.parse("https://chain.so/tx/LTCTEST/$txid");
     case Coin.bitcoinTestNet:
-      return Uri.parse("https://chain.so/tx/BTCTEST/$txid");
+      return Uri.parse("https://mempool.space/testnet/tx/$txid");
     case Coin.dogecoin:
       return Uri.parse("https://chain.so/tx/DOGE/$txid");
     case Coin.dogecoinTestNet:
@@ -20,6 +20,8 @@ Uri getBlockExplorerTransactionUrlFor({
     case Coin.epicCash:
       // TODO: Handle this case.
       throw UnimplementedError("missing block explorer for epic cash");
+    case Coin.ethereum:
+      return Uri.parse("https://etherscan.io/tx/$txid");
     case Coin.monero:
       return Uri.parse("https://xmrchain.net/tx/$txid");
     case Coin.wownero:

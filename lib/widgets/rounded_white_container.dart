@@ -11,7 +11,9 @@ class RoundedWhiteContainer extends StatelessWidget {
     this.width,
     this.height,
     this.borderColor,
+    this.hoverColor,
     this.boxShadow,
+    this.onPressed,
   }) : super(key: key);
 
   final Widget? child;
@@ -20,7 +22,9 @@ class RoundedWhiteContainer extends StatelessWidget {
   final double? width;
   final double? height;
   final Color? borderColor;
+  final Color? hoverColor;
   final List<BoxShadow>? boxShadow;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +36,8 @@ class RoundedWhiteContainer extends StatelessWidget {
       height: height,
       borderColor: borderColor,
       boxShadow: boxShadow,
+      hoverColor: hoverColor,
+      onPressed: onPressed,
       child: child,
     );
   }

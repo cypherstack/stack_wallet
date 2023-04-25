@@ -11,7 +11,7 @@ import 'package:crypto/crypto.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/main_db.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/balance.dart';
@@ -28,9 +28,11 @@ import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/services/mixins/electrum_x_parsing.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
+import 'package:stackwallet/services/mixins/xpubable.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -47,7 +49,10 @@ import 'package:uuid/uuid.dart';
 
 const int MINIMUM_CONFIRMATIONS = 2;
 // Find real dust limit
-const int DUST_LIMIT = 546;
+final Amount DUST_LIMIT = Amount(
+  rawValue: BigInt.from(546),
+  fractionDigits: Coin.particl.decimals,
+);
 
 const String GENESIS_HASH_MAINNET =
     "000000000062b72c5e2ceb45fbc8587e807c155b0da735e6483dfba2f0a9c770";
@@ -89,7 +94,8 @@ String constructDerivePath({
 }
 
 class NamecoinWallet extends CoinServiceAPI
-    with WalletCache, WalletDB, ElectrumXParsing, CoinControlInterface {
+    with WalletCache, WalletDB, ElectrumXParsing, CoinControlInterface
+    implements XPubAble {
   NamecoinWallet({
     required String walletId,
     required String walletName,
@@ -1016,7 +1022,7 @@ class NamecoinWallet extends CoinServiceAPI
   @override
   Future<Map<String, dynamic>> prepareSend({
     required String address,
-    required int satoshiAmount,
+    required Amount amount,
     Map<String, dynamic>? args,
   }) async {
     try {
@@ -1046,14 +1052,14 @@ class NamecoinWallet extends CoinServiceAPI
 
         // check for send all
         bool isSendAll = false;
-        if (satoshiAmount == balance.spendable) {
+        if (amount == balance.spendable) {
           isSendAll = true;
         }
 
         final bool coinControl = utxos != null;
 
         final txData = await coinSelection(
-          satoshiAmountToSend: satoshiAmount,
+          satoshiAmountToSend: amount.raw.toInt(),
           selectedTxFeeRate: rate,
           recipientAddress: address,
           isSendAll: isSendAll,
@@ -1231,13 +1237,16 @@ class NamecoinWallet extends CoinServiceAPI
       timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
       type: isar_models.TransactionType.outgoing,
       subType: isar_models.TransactionSubType.none,
-      amount: txData["recipientAmt"] as int,
+      // precision may be lost here hence the following amountString
+      amount: (txData["recipientAmt"] as Amount).raw.toInt(),
+      amountString: (txData["recipientAmt"] as Amount).toJsonString(),
       fee: txData["fee"] as int,
       height: null,
       isCancelled: false,
       isLelantus: false,
       otherData: null,
       slateId: null,
+      nonce: null,
       inputs: [],
       outputs: [],
     );
@@ -1407,9 +1416,18 @@ class NamecoinWallet extends CoinServiceAPI
         numberOfBlocksFast: f,
         numberOfBlocksAverage: m,
         numberOfBlocksSlow: s,
-        fast: Format.decimalAmountToSatoshis(fast, coin),
-        medium: Format.decimalAmountToSatoshis(medium, coin),
-        slow: Format.decimalAmountToSatoshis(slow, coin),
+        fast: Amount.fromDecimal(
+          fast,
+          fractionDigits: coin.decimals,
+        ).raw.toInt(),
+        medium: Amount.fromDecimal(
+          medium,
+          fractionDigits: coin.decimals,
+        ).raw.toInt(),
+        slow: Amount.fromDecimal(
+          slow,
+          fractionDigits: coin.decimals,
+        ).raw.toInt(),
       );
 
       Logging.instance.log("fetched fees: $feeObject", level: LogLevel.Info);
@@ -2341,8 +2359,11 @@ class NamecoinWallet extends CoinServiceAPI
         feeRatePerKB: selectedTxFeeRate,
       );
 
-      final int roughEstimate =
-          roughFeeEstimate(spendableOutputs.length, 1, selectedTxFeeRate);
+      final int roughEstimate = roughFeeEstimate(
+        spendableOutputs.length,
+        1,
+        selectedTxFeeRate,
+      ).raw.toInt();
       if (feeForOneOutput < roughEstimate) {
         feeForOneOutput = roughEstimate;
       }
@@ -2356,7 +2377,10 @@ class NamecoinWallet extends CoinServiceAPI
       Map<String, dynamic> transactionObject = {
         "hex": txn["hex"],
         "recipient": recipientsArray[0],
-        "recipientAmt": amount,
+        "recipientAmt": Amount(
+          rawValue: BigInt.from(amount),
+          fractionDigits: coin.decimals,
+        ),
         "fee": feeForOneOutput,
         "vSize": txn["vSize"],
         "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
@@ -2399,7 +2423,7 @@ class NamecoinWallet extends CoinServiceAPI
 
     if (satoshisBeingUsed - satoshiAmountToSend > feeForOneOutput) {
       if (satoshisBeingUsed - satoshiAmountToSend >
-          feeForOneOutput + DUST_LIMIT) {
+          feeForOneOutput + DUST_LIMIT.raw.toInt()) {
         // Here, we know that theoretically, we may be able to include another output(change) but we first need to
         // factor in the value of this output in satoshis.
         int changeOutputSize =
@@ -2407,7 +2431,7 @@ class NamecoinWallet extends CoinServiceAPI
         // We check to see if the user can pay for the new transaction with 2 outputs instead of one. If they can and
         // the second output's size > DUST_LIMIT satoshis, we perform the mechanics required to properly generate and use a new
         // change address.
-        if (changeOutputSize > DUST_LIMIT &&
+        if (changeOutputSize > DUST_LIMIT.raw.toInt() &&
             satoshisBeingUsed - satoshiAmountToSend - changeOutputSize ==
                 feeForTwoOutputs) {
           // generate new change address if current change address has been used
@@ -2471,7 +2495,10 @@ class NamecoinWallet extends CoinServiceAPI
           Map<String, dynamic> transactionObject = {
             "hex": txn["hex"],
             "recipient": recipientsArray[0],
-            "recipientAmt": recipientsAmtArray[0],
+            "recipientAmt": Amount(
+              rawValue: BigInt.from(recipientsAmtArray[0]),
+              fractionDigits: coin.decimals,
+            ),
             "fee": feeBeingPaid,
             "vSize": txn["vSize"],
             "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
@@ -2498,7 +2525,10 @@ class NamecoinWallet extends CoinServiceAPI
           Map<String, dynamic> transactionObject = {
             "hex": txn["hex"],
             "recipient": recipientsArray[0],
-            "recipientAmt": recipientsAmtArray[0],
+            "recipientAmt": Amount(
+              rawValue: BigInt.from(recipientsAmtArray[0]),
+              fractionDigits: coin.decimals,
+            ),
             "fee": satoshisBeingUsed - satoshiAmountToSend,
             "vSize": txn["vSize"],
             "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
@@ -2527,7 +2557,10 @@ class NamecoinWallet extends CoinServiceAPI
         Map<String, dynamic> transactionObject = {
           "hex": txn["hex"],
           "recipient": recipientsArray[0],
-          "recipientAmt": recipientsAmtArray[0],
+          "recipientAmt": Amount(
+            rawValue: BigInt.from(recipientsAmtArray[0]),
+            fractionDigits: coin.decimals,
+          ),
           "fee": satoshisBeingUsed - satoshiAmountToSend,
           "vSize": txn["vSize"],
           "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
@@ -2556,7 +2589,10 @@ class NamecoinWallet extends CoinServiceAPI
       Map<String, dynamic> transactionObject = {
         "hex": txn["hex"],
         "recipient": recipientsArray[0],
-        "recipientAmt": recipientsAmtArray[0],
+        "recipientAmt": Amount(
+          rawValue: BigInt.from(recipientsAmtArray[0]),
+          fractionDigits: coin.decimals,
+        ),
         "fee": feeForOneOutput,
         "vSize": txn["vSize"],
         "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
@@ -3215,22 +3251,29 @@ class NamecoinWallet extends CoinServiceAPI
       (isActive) => this.isActive = isActive;
 
   @override
-  Future<int> estimateFeeFor(int satoshiAmount, int feeRate) async {
+  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
     final available = balance.spendable;
 
-    if (available == satoshiAmount) {
-      return satoshiAmount - (await sweepAllEstimate(feeRate));
-    } else if (satoshiAmount <= 0 || satoshiAmount > available) {
+    if (available == amount) {
+      return amount - (await sweepAllEstimate(feeRate));
+    } else if (amount <= Amount.zero || amount > available) {
       return roughFeeEstimate(1, 2, feeRate);
     }
 
-    int runningBalance = 0;
+    Amount runningBalance = Amount(
+      rawValue: BigInt.zero,
+      fractionDigits: coin.decimals,
+    );
     int inputCount = 0;
     for (final output in (await utxos)) {
       if (!output.isBlocked) {
-        runningBalance += output.value;
+        runningBalance = runningBalance +
+            Amount(
+              rawValue: BigInt.from(output.value),
+              fractionDigits: coin.decimals,
+            );
         inputCount++;
-        if (runningBalance > satoshiAmount) {
+        if (runningBalance > amount) {
           break;
         }
       }
@@ -3239,19 +3282,19 @@ class NamecoinWallet extends CoinServiceAPI
     final oneOutPutFee = roughFeeEstimate(inputCount, 1, feeRate);
     final twoOutPutFee = roughFeeEstimate(inputCount, 2, feeRate);
 
-    if (runningBalance - satoshiAmount > oneOutPutFee) {
-      if (runningBalance - satoshiAmount > oneOutPutFee + DUST_LIMIT) {
-        final change = runningBalance - satoshiAmount - twoOutPutFee;
+    if (runningBalance - amount > oneOutPutFee) {
+      if (runningBalance - amount > oneOutPutFee + DUST_LIMIT) {
+        final change = runningBalance - amount - twoOutPutFee;
         if (change > DUST_LIMIT &&
-            runningBalance - satoshiAmount - change == twoOutPutFee) {
-          return runningBalance - satoshiAmount - change;
+            runningBalance - amount - change == twoOutPutFee) {
+          return runningBalance - amount - change;
         } else {
-          return runningBalance - satoshiAmount;
+          return runningBalance - amount;
         }
       } else {
-        return runningBalance - satoshiAmount;
+        return runningBalance - amount;
       }
-    } else if (runningBalance - satoshiAmount == oneOutPutFee) {
+    } else if (runningBalance - amount == oneOutPutFee) {
       return oneOutPutFee;
     } else {
       return twoOutPutFee;
@@ -3259,12 +3302,16 @@ class NamecoinWallet extends CoinServiceAPI
   }
 
   // TODO: Check if this is the correct formula for namecoin
-  int roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
-    return ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
-        (feeRatePerKB / 1000).ceil();
+  Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
+    return Amount(
+      rawValue: BigInt.from(
+          ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
+              (feeRatePerKB / 1000).ceil()),
+      fractionDigits: coin.decimals,
+    );
   }
 
-  Future<int> sweepAllEstimate(int feeRate) async {
+  Future<Amount> sweepAllEstimate(int feeRate) async {
     int available = 0;
     int inputCount = 0;
     for (final output in (await utxos)) {
@@ -3278,7 +3325,11 @@ class NamecoinWallet extends CoinServiceAPI
     // transaction will only have 1 output minus the fee
     final estimatedFee = roughFeeEstimate(inputCount, 1, feeRate);
 
-    return available - estimatedFee;
+    return Amount(
+          rawValue: BigInt.from(available),
+          fractionDigits: coin.decimals,
+        ) -
+        estimatedFee;
   }
 
   @override
@@ -3302,6 +3353,17 @@ class NamecoinWallet extends CoinServiceAPI
           level: LogLevel.Error);
       return false;
     }
+  }
+
+  @override
+  Future<String> get xpub async {
+    final node = await Bip32Utils.getBip32Root(
+      (await mnemonic).join(" "),
+      await mnemonicPassphrase ?? "",
+      _network,
+    );
+
+    return node.neutered().toBase58();
   }
 }
 

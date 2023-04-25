@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages_desktop_specific/password/create_password_view.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
@@ -150,15 +150,16 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                                   ),
                             children: infoToggle
                                 ? [
+                                    if (Constants.enableExchange)
+                                      const TextSpan(
+                                          text:
+                                              "Exchange data preloaded for a seamless experience.\n\n"),
                                     const TextSpan(
                                         text:
-                                            "Exchange data preloaded for a seamless experience."),
-                                    const TextSpan(
-                                        text:
-                                            "\n\nCoinGecko enabled: (24 hour price change shown in-app, total wallet value shown in USD or other currency)."),
+                                            "CoinGecko enabled: (24 hour price change shown in-app, total wallet value shown in USD or other currency).\n\n"),
                                     TextSpan(
                                       text:
-                                          "\n\nRecommended for most crypto users.",
+                                          "Recommended for most crypto users.",
                                       style: isDesktop
                                           ? STextStyles
                                               .desktopTextExtraExtraSmall600(
@@ -172,15 +173,16 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                                     ),
                                   ]
                                 : [
+                                    if (Constants.enableExchange)
+                                      const TextSpan(
+                                          text:
+                                              "Exchange data not preloaded (slower experience).\n\n"),
                                     const TextSpan(
                                         text:
-                                            "Exchange data not preloaded (slower experience)."),
-                                    const TextSpan(
-                                        text:
-                                            "\n\nCoinGecko disabled (price changes not shown, no wallet value shown in other currencies)."),
+                                            "CoinGecko disabled (price changes not shown, no wallet value shown in other currencies).\n\n"),
                                     TextSpan(
                                       text:
-                                          "\n\nRecommended for the privacy conscious.",
+                                          "Recommended for the privacy conscious.",
                                       style: isDesktop
                                           ? STextStyles
                                               .desktopTextExtraExtraSmall600(
@@ -234,10 +236,7 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                                 if (isEasy) {
                                   unawaited(
                                     ExchangeDataLoadingService.instance
-                                        .init()
-                                        .then((_) => ExchangeDataLoadingService
-                                            .instance
-                                            .loadAll()),
+                                        .loadAll(),
                                   );
                                   // unawaited(
                                   //     BuyDataLoadingService().loadAll(ref));
@@ -297,16 +296,10 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
   late bool externalCallsEnabled;
 
   late final bool isDesktop;
-  late final bool isSorbet;
-  late final bool isOcean;
 
   @override
   void initState() {
     isDesktop = Util.isDesktop;
-    isSorbet = ref.read(colorThemeProvider.state).state.themeType ==
-        ThemeType.fruitSorbet;
-    isOcean = ref.read(colorThemeProvider.state).state.themeType ==
-        ThemeType.oceanBreeze;
     // initial toggle state
     externalCallsEnabled = widget.externalCallsEnabled;
     super.initState();
@@ -314,6 +307,10 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
 
   @override
   Widget build(BuildContext context) {
+    final bool lightChan =
+        ref.read(colorThemeProvider.state).state.themeType == ThemeType.chan;
+    final bool darkChan = ref.read(colorThemeProvider.state).state.themeType ==
+        ThemeType.darkChans;
     return Row(
       children: [
         Expanded(
@@ -350,25 +347,15 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // if (isDesktop)
-                      //   const SizedBox(
-                      //     height: 10,
-                      //   ),
-                      (isSorbet)
-                          ? Image.asset(
-                              Assets.png.personaEasy(context),
-                              width: 140,
-                              height: 140,
+                      (lightChan || darkChan)
+                          ? Image(
+                              image: AssetImage(Assets.png.chanEasy),
                             )
                           : SvgPicture.asset(
                               Assets.svg.personaEasy(context),
                               width: 140,
                               height: 140,
                             ),
-                      // if (isDesktop)
-                      //   const SizedBox(
-                      //     height: 12,
-                      //   ),
                       Center(
                         child: Text(
                           "Easy Crypto",
@@ -465,17 +452,20 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                         const SizedBox(
                           height: 10,
                         ),
-                      (isSorbet)
-                          ? Image.asset(
-                              Assets.png.personaIncognito(context),
-                              width: 140,
-                              height: 140,
+                      (lightChan || darkChan)
+                          ? Image(
+                              image: AssetImage(Assets.png.chanIncognito),
                             )
                           : SvgPicture.asset(
                               Assets.svg.personaIncognito(context),
                               width: 140,
                               height: 140,
                             ),
+                      // SvgPicture.asset(
+                      //   Assets.svg.personaIncognito(context),
+                      //   width: 140,
+                      //   height: 140,
+                      // ),
                       if (isDesktop)
                         const SizedBox(
                           height: 12,

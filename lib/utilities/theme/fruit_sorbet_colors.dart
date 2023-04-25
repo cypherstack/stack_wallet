@@ -4,6 +4,8 @@ import 'package:stackwallet/utilities/theme/color_theme.dart';
 class FruitSorbetColors extends StackColorTheme {
   @override
   ThemeType get themeType => ThemeType.fruitSorbet;
+  @override
+  Brightness get brightness => Brightness.light;
 
   @override
   Color get background => Colors.transparent;
@@ -332,6 +334,26 @@ class FruitSorbetColors extends StackColorTheme {
   Color get rateTypeToggleDesktopColorOn => const Color(0xFFFFD8CE);
   @override
   Color get rateTypeToggleDesktopColorOff => popupBG;
+
+  // token view colors
+  @override
+  Color get ethTagText => const Color(0xFFFFFFFF);
+  @override
+  Color get ethTagBG => const Color(0xFF4D5798);
+  @override
+  Color get ethWalletTagText => const Color(0xFF4D5798);
+  @override
+  Color get ethWalletTagBG => const Color(0xFFEBEFFE);
+  @override
+  Color get tokenSummaryTextPrimary => const Color(0xFF232323);
+  @override
+  Color get tokenSummaryTextSecondary => const Color(0xFF4D5798);
+  @override
+  Color get tokenSummaryBG => const Color(0xFFFFF8EE);
+  @override
+  Color get tokenSummaryButtonBG => const Color(0xFFFEDED4);
+  @override
+  Color get tokenSummaryIcon => const Color(0xFFF62A45);
 
   @override
   BoxShadow get standardBoxShadow => BoxShadow(

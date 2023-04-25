@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_libmonero/monero/monero.dart';
 import 'package:flutter_libmonero/wownero/wownero.dart';
-import 'package:stackwallet/db/main_db.dart';
-import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/db/hive/db.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/notifications_service.dart';
 import 'package:stackwallet/services/trade_sent_from_stack_service.dart';
@@ -122,6 +122,29 @@ class WalletsService extends ChangeNotifier {
           value: <String, dynamic>{});
       return {};
     }
+    Logging.instance.log("Fetched wallet names: $names", level: LogLevel.Info);
+    final mapped = Map<String, dynamic>.from(names);
+    mapped.removeWhere((name, dyn) {
+      final jsonObject = Map<String, dynamic>.from(dyn as Map);
+      try {
+        Coin.values.byName(jsonObject["coin"] as String);
+        return false;
+      } catch (e, s) {
+        Logging.instance.log("Error, ${jsonObject["coin"]} does not exist",
+            level: LogLevel.Error);
+        return true;
+      }
+    });
+
+    return mapped.map((name, dyn) => MapEntry(
+        name, WalletInfo.fromJson(Map<String, dynamic>.from(dyn as Map))));
+  }
+
+  Map<String, WalletInfo> fetchWalletsData() {
+    final names = DB.instance.get<dynamic>(
+            boxName: DB.boxNameAllWalletsData, key: 'names') as Map? ??
+        {};
+
     Logging.instance.log("Fetched wallet names: $names", level: LogLevel.Info);
     final mapped = Map<String, dynamic>.from(names);
     mapped.removeWhere((name, dyn) {

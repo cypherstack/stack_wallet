@@ -107,6 +107,7 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                     ),
                   ),
                   Material(
+                    color: Colors.transparent,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
                         1000,
@@ -186,8 +187,13 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                                         overrideText: AnimatedCrossFade(
                                           firstChild: Text(
                                             "More",
-                                            style: STextStyles.buttonSmall(
-                                                context),
+                                            style:
+                                                STextStyles.buttonSmall(context)
+                                                    .copyWith(
+                                                        color: Theme.of(context)
+                                                            .extension<
+                                                                StackColors>()!
+                                                            .bottomNavText),
                                           ),
                                           secondChild: Text(
                                             "More",

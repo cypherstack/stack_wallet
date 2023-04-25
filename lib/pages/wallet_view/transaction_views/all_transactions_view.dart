@@ -13,6 +13,7 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_sear
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -111,7 +112,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
         return false;
       }
 
-      if (filter.amount != null && filter.amount != tx.amount) {
+      if (filter.amount != null && filter.amount! != tx.realAmount) {
         return false;
       }
 
@@ -851,6 +852,8 @@ class _DesktopTransactionCardRowState
         prefix = "-";
       } else if (_transaction.type == TransactionType.incoming) {
         prefix = "+";
+      } else {
+        prefix = "";
       }
     } else {
       prefix = "";
@@ -953,9 +956,11 @@ class _DesktopTransactionCardRowState
                 flex: 6,
                 child: Builder(
                   builder: (_) {
-                    final amount = _transaction.amount;
+                    final amount = _transaction.realAmount;
                     return Text(
-                      "$prefix${Format.satoshiAmountToPrettyString(amount, locale, coin)} ${coin.ticker}",
+                      "$prefix${amount.localizedStringAsFixed(
+                        locale: locale,
+                      )} ${coin.ticker}",
                       style: STextStyles.desktopTextExtraExtraSmall(context)
                           .copyWith(
                         color: Theme.of(context)
@@ -972,15 +977,14 @@ class _DesktopTransactionCardRowState
                   flex: 4,
                   child: Builder(
                     builder: (_) {
-                      int value = _transaction.amount;
+                      final amount = _transaction.realAmount;
 
                       return Text(
-                        "$prefix${Format.localizedStringAsFixed(
-                          value: Format.satoshisToAmount(value, coin: coin) *
-                              price,
-                          locale: locale,
-                          decimalPlaces: 2,
-                        )} $baseCurrency",
+                        "$prefix${(amount.decimal * price).toAmount(
+                              fractionDigits: 2,
+                            ).localizedStringAsFixed(
+                              locale: locale,
+                            )} $baseCurrency",
                         style: STextStyles.desktopTextExtraExtraSmall(context),
                       );
                     },

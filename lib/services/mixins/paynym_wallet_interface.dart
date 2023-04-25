@@ -10,12 +10,13 @@ import 'package:bitcoindart/src/utils/constants/op.dart' as op;
 import 'package:bitcoindart/src/utils/script.dart' as bscript;
 import 'package:isar/isar.dart';
 import 'package:pointycastle/digests/sha256.dart';
-import 'package:stackwallet/db/main_db.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/exceptions/wallet/insufficient_balance_exception.dart';
 import 'package:stackwallet/exceptions/wallet/paynym_send_exception.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/signing_data.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/bip47_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -27,9 +28,13 @@ import 'package:tuple/tuple.dart';
 
 const kPaynymDerivePath = "m/47'/0'/0'";
 
-mixin PaynymWalletInterface {
-  static const String _connectedKeyPrefix = "paynym_connected_";
+const kPaynymNotificationDerivationPath = "$kPaynymDerivePath/0";
 
+String _receivingPaynymAddressDerivationPath(int index) {
+  return "$kPaynymDerivePath/$index/0";
+}
+
+mixin PaynymWalletInterface {
   // passed in wallet data
   late final String _walletId;
   late final String _walletName;
@@ -52,7 +57,7 @@ mixin PaynymWalletInterface {
   }) _estimateTxFee;
   late final Future<Map<String, dynamic>> Function({
     required String address,
-    required int satoshiAmount,
+    required Amount amount,
     Map<String, dynamic>? args,
   }) _prepareSend;
   late final Future<int> Function({
@@ -63,13 +68,6 @@ mixin PaynymWalletInterface {
   ) _fetchBuildTxData;
   late final Future<void> Function() _refresh;
   late final Future<void> Function() _checkChangeAddressForTransactions;
-  late final Future<void> Function({
-    required int chain,
-    required String address,
-    required String pubKey,
-    required String wif,
-    required DerivePathType derivePathType,
-  }) _addDerivation;
 
   // initializer
   void initPaynymWalletInterface({
@@ -93,7 +91,7 @@ mixin PaynymWalletInterface {
         estimateTxFee,
     required Future<Map<String, dynamic>> Function({
       required String address,
-      required int satoshiAmount,
+      required Amount amount,
       Map<String, dynamic>? args,
     })
         prepareSend,
@@ -107,14 +105,6 @@ mixin PaynymWalletInterface {
         fetchBuildTxData,
     required Future<void> Function() refresh,
     required Future<void> Function() checkChangeAddressForTransactions,
-    required Future<void> Function({
-      required int chain,
-      required String address,
-      required String pubKey,
-      required String wif,
-      required DerivePathType derivePathType,
-    })
-        addDerivation,
   }) {
     _walletId = walletId;
     _walletName = walletName;
@@ -135,7 +125,6 @@ mixin PaynymWalletInterface {
     _fetchBuildTxData = fetchBuildTxData;
     _refresh = refresh;
     _checkChangeAddressForTransactions = checkChangeAddressForTransactions;
-    _addDerivation = addDerivation;
   }
 
   // convenience getter
@@ -279,9 +268,10 @@ mixin PaynymWalletInterface {
 
   /// fetch or generate this wallet's bip47 payment code
   Future<PaymentCode> getPaymentCode(
-    DerivePathType derivePathType,
-  ) async {
-    final address = await getMyNotificationAddress(derivePathType);
+    DerivePathType derivePathType, [
+    bip32.BIP32? bip32Root,
+  ]) async {
+    final address = await getMyNotificationAddress(derivePathType, bip32Root);
     final pCodeString = await paymentCodeStringByKey(address.otherData!);
     final paymentCode = PaymentCode.fromPaymentCode(
       pCodeString!,
@@ -307,10 +297,11 @@ mixin PaynymWalletInterface {
     return Format.uint8listToString(bytes);
   }
 
-  Future<Map<String, dynamic>> preparePaymentCodeSend(
-      {required PaymentCode paymentCode,
-      required int satoshiAmount,
-      Map<String, dynamic>? args}) async {
+  Future<Map<String, dynamic>> preparePaymentCodeSend({
+    required PaymentCode paymentCode,
+    required Amount amount,
+    Map<String, dynamic>? args,
+  }) async {
     if (!(await hasConnected(paymentCode.toString()))) {
       throw PaynymSendException(
           "No notification transaction sent to $paymentCode");
@@ -326,7 +317,7 @@ mixin PaynymWalletInterface {
 
       return _prepareSend(
         address: sendToAddress.value,
-        satoshiAmount: satoshiAmount,
+        amount: amount,
         args: args,
       );
     }
@@ -1019,8 +1010,7 @@ mixin PaynymWalletInterface {
               value: notificationAddress,
               publicKey: [],
               derivationIndex: 0,
-              derivationPath:
-                  null, // might as well use null due to complexity of context
+              derivationPath: oldAddress.derivationPath,
               type: oldAddress.type,
               subType: AddressSubType.paynymNotification,
               otherData: await storeCode(code.toString()),
@@ -1268,8 +1258,8 @@ mixin PaynymWalletInterface {
       value: addressString,
       publicKey: pair.publicKey,
       derivationIndex: derivationIndex,
-      derivationPath:
-          null, // might as well use null due to complexity of context
+      derivationPath: DerivationPath()
+        ..value = _receivingPaynymAddressDerivationPath(derivationIndex),
       type: addrType,
       subType: AddressSubType.paynymReceive,
       otherData: await storeCode(fromPaymentCode.toString()),
@@ -1291,20 +1281,13 @@ mixin PaynymWalletInterface {
       bip32NetworkType,
     );
 
-    await _addDerivation(
-      chain: 0,
-      address: address.value,
-      derivePathType: DerivePathType.bip44,
-      pubKey: Format.uint8listToString(node.publicKey),
-      wif: node.toWIF(),
-    );
-
     return address;
   }
 
   Future<Address> getMyNotificationAddress(
-    DerivePathType derivePathType,
-  ) async {
+    DerivePathType derivePathType, [
+    bip32.BIP32? bip32Root,
+  ]) async {
     // TODO: fix when segwit is here
     derivePathType = DerivePathType.bip44;
 
@@ -1337,10 +1320,11 @@ mixin PaynymWalletInterface {
     if (storedAddress != null) {
       return storedAddress;
     } else {
-      final root = await _getRootNode(
-        mnemonic: (await _getMnemonicString())!,
-        mnemonicPassphrase: (await _getMnemonicPassphrase())!,
-      );
+      final root = bip32Root ??
+          await _getRootNode(
+            mnemonic: (await _getMnemonicString())!,
+            mnemonicPassphrase: (await _getMnemonicPassphrase())!,
+          );
       final node = root.derivePath(kPaynymDerivePath);
       final paymentCode = PaymentCode.fromBip32Node(
         node,
@@ -1393,19 +1377,11 @@ mixin PaynymWalletInterface {
         value: addressString,
         publicKey: paymentCode.getPubKey(),
         derivationIndex: 0,
-        derivationPath:
-            null, // might as well use null due to complexity of context
+        derivationPath: DerivationPath()
+          ..value = kPaynymNotificationDerivationPath,
         type: type,
         subType: AddressSubType.paynymNotification,
         otherData: await storeCode(paymentCode.toString()),
-      );
-
-      await _addDerivation(
-        chain: 0,
-        address: address.value,
-        derivePathType: DerivePathType.bip44,
-        pubKey: Format.uint8listToString(node.publicKey),
-        wif: node.toWIF(),
       );
 
       await _db.putAddress(address);

@@ -11,7 +11,7 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.6.2+144
+version: 1.7.3+163
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
@@ -94,6 +94,11 @@ dependencies:
       ref: 22279d4bb24ed541b431acd269a1bc50af0f36a0
   bs58check: ^1.0.2
 
+  # Eth Plugins
+  web3dart: 2.3.5
+  string_to_hex: 0.2.2
+  ethereum_addresses: 1.0.2
+
   # Storage plugins
   flutter_secure_storage: ^5.0.2
   hive: ^2.0.5
@@ -142,6 +147,10 @@ dependencies:
   string_validator: ^0.3.0
   equatable: ^2.0.5
   async: ^2.10.0
+  dart_bs58: ^1.0.1
+  dart_bs58check: ^3.0.2
+  hex: ^0.2.0
+  rational: ^2.2.2
 
 dev_dependencies:
   flutter_test:
@@ -202,14 +211,16 @@ flutter:
   #  - images/a_dot_burr.jpeg
   #  - images/a_dot_ham.jpeg
   assets:
+    - assets/images/chan-persona-incognito.png
+    - assets/images/chan-persona-easy.png
     - assets/images/splash.png
     - assets/icon/icon.png
     - google_fonts/
     - assets/svg/circle-check.svg
     - assets/svg/clipboard.svg
-    - assets/images/unclaimed.png
     - assets/images/glasses.png
     - assets/images/glasses-hidden.png
+    - assets/svg/unclaimed.svg
     - assets/svg/plus.svg
     - assets/svg/gear.svg
     - assets/svg/bell.svg
@@ -237,7 +248,6 @@ flutter:
     - assets/svg/chevron-up.svg
     - assets/svg/lock-keyhole.svg
     - assets/svg/lock-open.svg
-    - assets/svg/rotate-exclamation.svg
     - assets/svg/folder-down.svg
     - assets/svg/network-wired.svg
     - assets/svg/network-wired-2.svg
@@ -300,6 +310,8 @@ flutter:
     - assets/svg/plus-circle.svg
     - assets/svg/circle-plus-filled.svg
     - assets/svg/configuration.svg
+    - assets/svg/tokens.svg
+    - assets/svg/circle-plus.svg
     - assets/svg/robot-head.svg
     - assets/svg/whirlpool.svg
     - assets/svg/fingerprint.svg
@@ -314,6 +326,7 @@ flutter:
     - assets/svg/framed-address-book.svg
     - assets/svg/framed-gear.svg
     - assets/svg/list-ul.svg
+    - assets/svg/cc.svg
 
 
     # coin icons
@@ -335,6 +348,9 @@ flutter:
     - assets/svg/oled-black-theme.svg
     - assets/svg/fruit-sorbet-theme.svg
     - assets/svg/forest-theme.svg
+    - assets/svg/chanstheme.svg
+    - assets/svg/darkChansTheme.svg
+    - assets/svg/orange-theme.svg
 
     # light theme specific
     - assets/svg/themed/light/
@@ -354,6 +370,9 @@ flutter:
     # forest theme specific
     - assets/svg/themed/forest/
 
+    # orange theme specific
+    - assets/svg/themed/orange/
+
     # buy
     - assets/svg/buy/
 
@@ -361,19 +380,25 @@ flutter:
     # lottie animations
     # basic
     - assets/lottie/test2.json
+    - assets/lottie/icon_send.json
+    - assets/lottie/loader_and_checkmark.json
+    - assets/lottie/arrow_rotate.json
 
-    # coin animations
-    - assets/lottie/coins/bitcoin/
-    - assets/lottie/coins/bitcoincash/
-    - assets/lottie/coins/dogecoin/
-    - assets/lottie/coins/epiccash/
-    - assets/lottie/coins/ethereum/
-    - assets/lottie/coins/firo/
-    - assets/lottie/coins/litecoin/
-    - assets/lottie/coins/monero/
-    - assets/lottie/coins/namecoin/
-    - assets/lottie/coins/particl/
-    - assets/lottie/coins/wownero/
+    # gifs
+    - assets/gif/
+
+    # coin gifs
+    - assets/gif/coins/bitcoin/
+    - assets/gif/coins/bitcoincash/
+    - assets/gif/coins/dogecoin/
+    - assets/gif/coins/epicCash/
+    - assets/gif/coins/ethereum/
+    - assets/gif/coins/firo/
+    - assets/gif/coins/litecoin/
+    - assets/gif/coins/monero/
+    - assets/gif/coins/namecoin/
+    - assets/gif/coins/particl/
+    - assets/gif/coins/wownero/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:intl/intl.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/exchange/aggregate_currency.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
+import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_coin_selection/exchange_currency_selection_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_1_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_2_view.dart';
@@ -43,10 +45,12 @@ class ExchangeForm extends ConsumerStatefulWidget {
     Key? key,
     this.walletId,
     this.coin,
+    this.contract,
   }) : super(key: key);
 
   final String? walletId;
   final Coin? coin;
+  final EthContract? contract;
 
   @override
   ConsumerState<ExchangeForm> createState() => _ExchangeFormState();
@@ -106,7 +110,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       _sendFieldOnChangedTimer?.cancel();
 
       _sendFieldOnChangedTimer = Timer(_valueCheckInterval, () async {
-        final newFromAmount = Decimal.tryParse(value);
+        final newFromAmount = _localizedStringToNum(value);
 
         await ref
             .read(exchangeFormStateProvider)
@@ -120,12 +124,26 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     _receiveFieldOnChangedTimer?.cancel();
 
     _receiveFieldOnChangedTimer = Timer(_valueCheckInterval, () async {
-      final newToAmount = Decimal.tryParse(value);
+      final newToAmount = _localizedStringToNum(value);
 
       await ref
           .read(exchangeFormStateProvider)
           .setReceivingAmountAndCalculateSendAmount(newToAmount, true);
     });
+  }
+
+  Decimal? _localizedStringToNum(String? value) {
+    if (value == null) {
+      return null;
+    }
+    try {
+      final numFromLocalised = NumberFormat.decimalPattern(
+              ref.read(localeServiceChangeNotifierProvider).locale)
+          .parse(value);
+      return Decimal.tryParse(numFromLocalised.toString());
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<AggregateCurrency> _getAggregateCurrency(Currency currency) async {
@@ -146,6 +164,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           currency.ticker,
           caseSensitive: false,
         )
+        .and()
+        .tokenContractEqualTo(currency.tokenContract)
         .findAll();
 
     final items = [Tuple2(currency.exchangeName, currency)];
@@ -161,10 +181,16 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     final type = (ref.read(exchangeFormStateProvider).exchangeRateType);
     final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "";
 
-    if (walletInitiated &&
-        fromTicker.toLowerCase() == coin!.ticker.toLowerCase()) {
-      // do not allow changing away from wallet coin
-      return;
+    if (walletInitiated) {
+      if (widget.contract != null &&
+          fromTicker.toLowerCase() == widget.contract!.symbol.toLowerCase()) {
+        return;
+      }
+
+      if (fromTicker.toLowerCase() == coin!.ticker.toLowerCase()) {
+        // do not allow changing away from wallet coin
+        return;
+      }
     }
 
     final selectedCurrency = await _showCurrencySelectionSheet(
@@ -620,8 +646,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         ref.read(exchangeFormStateProvider).reset(shouldNotifyListeners: true);
         ExchangeDataLoadingService.instance
             .getAggregateCurrency(
-          coin!.ticker,
+          widget.contract == null ? coin!.ticker : widget.contract!.symbol,
           ExchangeRateType.estimated,
+          widget.contract == null ? null : widget.contract!.address,
         )
             .then((value) {
           if (value != null) {
@@ -830,7 +857,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           height: isDesktop ? 20 : 12,
         ),
         SizedBox(
-          height: 60,
+          height: isDesktop ? 60 : 40,
           child: RateTypeToggle(
             key: UniqueKey(),
             onChanged: onRateTypeChanged,

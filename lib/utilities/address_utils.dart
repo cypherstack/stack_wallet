@@ -57,6 +57,8 @@ class AddressUtils {
         return Address.validateAddress(address, dogecoin);
       case Coin.epicCash:
         return validateSendAddress(address) == "1";
+      case Coin.ethereum:
+        return true; //TODO - validate ETH address
       case Coin.firo:
         return Address.validateAddress(address, firoNetwork);
       case Coin.monero:
