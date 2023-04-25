@@ -498,6 +498,8 @@ mixin PaynymWalletInterface {
         utxoSigningData: utxoSigningData,
         change: 0,
         isSegwit: isSegwit,
+        // override amount to get around absurd fees error
+        overrideAmountForTesting: satoshisBeingUsed,
       ))
           .item2;
 
@@ -563,7 +565,9 @@ mixin PaynymWalletInterface {
           Map<String, dynamic> transactionObject = {
             "hex": txn.item1,
             "recipientPaynym": targetPaymentCodeString,
-            "amount": amountToSend,
+            "amount": amountToSend.toAmountAsRaw(
+              fractionDigits: _coin.decimals,
+            ),
             "fee": feeBeingPaid,
             "vSize": txn.item2,
             "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
@@ -584,7 +588,8 @@ mixin PaynymWalletInterface {
           Map<String, dynamic> transactionObject = {
             "hex": txn.item1,
             "recipientPaynym": targetPaymentCodeString,
-            "amount": amountToSend,
+            "amount":
+                amountToSend.toAmountAsRaw(fractionDigits: _coin.decimals),
             "fee": feeBeingPaid,
             "vSize": txn.item2,
             "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
@@ -606,7 +611,7 @@ mixin PaynymWalletInterface {
         Map<String, dynamic> transactionObject = {
           "hex": txn.item1,
           "recipientPaynym": targetPaymentCodeString,
-          "amount": amountToSend,
+          "amount": amountToSend.toAmountAsRaw(fractionDigits: _coin.decimals),
           "fee": feeBeingPaid,
           "vSize": txn.item2,
           "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
@@ -639,6 +644,7 @@ mixin PaynymWalletInterface {
     required bool isSegwit,
     required List<SigningData> utxoSigningData,
     required int change,
+    int? overrideAmountForTesting,
   }) async {
     try {
       final targetPaymentCode = PaymentCode.fromPaymentCode(
@@ -711,7 +717,7 @@ mixin PaynymWalletInterface {
 
       txb.addOutput(
         notificationAddress,
-        isSegwit ? _dustLimit : _dustLimitP2PKH,
+        overrideAmountForTesting ?? (isSegwit ? _dustLimit : _dustLimitP2PKH),
       );
       txb.addOutput(opReturnScript, 0);
 
