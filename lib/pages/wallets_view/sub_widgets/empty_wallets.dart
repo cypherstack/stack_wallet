@@ -39,7 +39,11 @@ class EmptyWallets extends ConsumerWidget {
                 flex: 2,
               ),
               SvgPicture.asset(
-                Assets.svg.stack(context),
+                ref.watch(
+                  themeProvider.select(
+                        (value) => value.assets.stack,
+                  ),
+                ),
                 width: isDesktop ? 324 : MediaQuery.of(context).size.width / 3,
               ),
               SizedBox(

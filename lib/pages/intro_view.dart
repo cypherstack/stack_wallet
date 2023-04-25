@@ -5,7 +5,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/stack_privacy_calls.dart';
 import 'package:stackwallet/pages_desktop_specific/password/create_password_view.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -55,7 +54,11 @@ class _IntroViewState extends ConsumerState<IntroView> {
                           maxWidth: 300,
                         ),
                         child: SvgPicture.asset(
-                          Assets.svg.stack(context),
+                          ref.watch(
+                            themeProvider.select(
+                              (value) => value.assets.stack,
+                            ),
+                          ),
                           width: isDesktop ? 324 : 266,
                           height: isDesktop ? 324 : 266,
                         ),
