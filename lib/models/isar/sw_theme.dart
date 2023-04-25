@@ -65,7 +65,7 @@ class StackTheme {
     } else {
       _gradientBackground ??= GradientExt.fromJson(
         Map<String, dynamic>.from(
-          jsonDecode(gradientBackgroundString!) as Map,
+          jsonDecode(gradientBackgroundString) as Map,
         ),
       );
     }
@@ -1650,9 +1650,7 @@ class StackTheme {
           parseColor(json["colors"]["background"]["background"] as String),
       backgroundAppBarInt: parseColor(
           json["colors"]["background"]["backgroundAppBar"] as String),
-      gradientBackgroundString: json["gradients"]["background"] == null
-          ? null
-          : jsonEncode(json["gradients"]["background"] as Map),
+      gradientBackgroundString: jsonEncode(json["gradients"] ?? ["background"]),
       standardBoxShadowString:
           jsonEncode(json["box_shadows"]["standard"] as Map),
       homeViewButtonBarBoxShadowString:
