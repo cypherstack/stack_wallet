@@ -26,9 +26,9 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:tuple/tuple.dart';
 
-const kPaynymDerivePath = "m/47'/0'/0'";
-
-const kPaynymNotificationDerivationPath = "$kPaynymDerivePath/0";
+const String kPaynymDerivePath = "m/47'/0'/0'";
+const String kPaynymNotificationDerivationPath = "$kPaynymDerivePath/0";
+const String kPCodeKeyPrefix = "pCode_key_";
 
 String _receivingPaynymAddressDerivationPath(int index) {
   return "$kPaynymDerivePath/$index/0";
@@ -1430,5 +1430,3 @@ mixin PaynymWalletInterface {
         List<int>.generate(n, (_) => rng.nextInt(0xFF + 1)));
   }
 }
-
-const String kPCodeKeyPrefix = "pCode_key_";
