@@ -14,6 +14,8 @@ import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/expandable.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
+import '../themes/theme_providers.dart';
+
 class AddressBookCard extends ConsumerStatefulWidget {
   const AddressBookCard({
     Key? key,
@@ -91,7 +93,11 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
             child: contact.id == "default"
                 ? Center(
                     child: SvgPicture.asset(
-                      Assets.svg.stackIcon(context),
+                      ref.watch(
+                        themeProvider.select(
+                          (value) => value.assets.stackIcon,
+                        ),
+                      ),
                       width: 20,
                     ),
                   )

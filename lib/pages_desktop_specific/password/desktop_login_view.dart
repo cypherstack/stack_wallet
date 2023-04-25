@@ -8,6 +8,7 @@ import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/password/forgot_password_desktop_view.dart';
 import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -165,7 +166,11 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 SvgPicture.asset(
-                  Assets.svg.stackIcon(context),
+                  ref.watch(
+                    themeProvider.select(
+                      (value) => value.assets.stackIcon,
+                    ),
+                  ),
                   width: 100,
                 ),
                 const SizedBox(
