@@ -111,11 +111,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "48dd65f88822fba8543826274f6d51c17f735f93"
-      resolved-ref: "48dd65f88822fba8543826274f6d51c17f735f93"
+      ref: "3e27b910d92e2ab816d589d202161490c00f986b"
+      resolved-ref: "3e27b910d92e2ab816d589d202161490c00f986b"
       url: "https://github.com/cypherstack/bip47.git"
     source: git
-    version: "1.0.0"
+    version: "2.0.0"
   bitbox:
     dependency: "direct main"
     description:
