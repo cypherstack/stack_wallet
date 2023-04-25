@@ -115,7 +115,7 @@ mixin PaynymWalletInterface {
     _db = db;
     _electrumXClient = electrumXClient;
     _secureStorage = secureStorage;
-    _dustLimitP2PKH = dustLimit;
+    _dustLimit = dustLimit;
     _dustLimitP2PKH = dustLimitP2PKH;
     _minConfirms = minConfirms;
     _getMnemonicString = getMnemonicString;
