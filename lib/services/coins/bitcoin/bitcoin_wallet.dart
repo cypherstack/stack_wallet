@@ -1368,10 +1368,12 @@ class BitcoinWallet extends CoinServiceAPI
         .getAddresses(walletId)
         .filter()
         .not()
-        .typeEqualTo(isar_models.AddressType.nonWallet)
-        .and()
-        .not()
-        .subTypeEqualTo(isar_models.AddressSubType.nonWallet)
+        .group(
+          (q) => q
+              .typeEqualTo(isar_models.AddressType.nonWallet)
+              .or()
+              .subTypeEqualTo(isar_models.AddressSubType.nonWallet),
+        )
         .findAll();
     return allAddresses;
   }
