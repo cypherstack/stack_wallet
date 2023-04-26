@@ -232,6 +232,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                 children: [
                   GestureDetector(
                     onTap: () {
+                      HapticFeedback.lightImpact();
                       clipboard.setData(
                         ClipboardData(text: receivingAddress),
                       );
