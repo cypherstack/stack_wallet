@@ -682,6 +682,10 @@ class BitcoinWallet extends CoinServiceAPI
       // isSegwit does not matter here at all
       final myCode = await getPaymentCode(isSegwit: false);
 
+      // this will add the notification address to the db if it isn't
+      // already there so it can be watched
+      await getMyNotificationAddress();
+
       // refresh transactions to pick up any received notification transactions
       await _refreshTransactions();
 
@@ -1467,6 +1471,10 @@ class BitcoinWallet extends CoinServiceAPI
       _generateAddressForChain(0, 0, DerivePathType.bip49),
       _generateAddressForChain(1, 0, DerivePathType.bip49),
     ]);
+
+    // this will add the notification address to the db if it isn't
+    // already there so it can be watched
+    await getMyNotificationAddress();
 
     await db.putAddresses(initialAddresses);
 
