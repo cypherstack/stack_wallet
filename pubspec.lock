@@ -111,8 +111,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "388c2f4d59af358eba4c92bce3c33e018d5ac03b"
-      resolved-ref: "388c2f4d59af358eba4c92bce3c33e018d5ac03b"
+      ref: "38847255d035c0f6ec5bc93d19130ec804cf90e9"
+      resolved-ref: "38847255d035c0f6ec5bc93d19130ec804cf90e9"
       url: "https://github.com/cypherstack/bip47.git"
     source: git
     version: "2.0.0"

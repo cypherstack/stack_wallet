@@ -142,6 +142,40 @@ mixin PaynymWalletInterface {
   // convenience getter
   btc_dart.NetworkType get networkType => _network;
 
+  Future<bip32.BIP32> getBip47BaseNode() async {
+    final root = await _getRootNode(
+      mnemonic: (await _getMnemonicString())!,
+      mnemonicPassphrase: (await _getMnemonicPassphrase())!,
+    );
+    final node = root.derivePath(
+      _basePaynymDerivePath(
+        testnet: _coin.isTestNet,
+      ),
+    );
+    return node;
+  }
+
+  Future<Uint8List> getPrivateKeyForPaynymReceivingAddress({
+    required String paymentCodeString,
+    required int index,
+  }) async {
+    final bip47base = await getBip47BaseNode();
+
+    final paymentAddress = PaymentAddress(
+      bip32Node: bip47base.derive(index),
+      paymentCode: PaymentCode.fromPaymentCode(
+        paymentCodeString,
+        networkType: networkType,
+      ),
+      networkType: networkType,
+      index: 0,
+    );
+
+    final pair = paymentAddress.getReceiveAddressKeyPair();
+
+    return pair.privateKey!;
+  }
+
   Future<Address> currentReceivingPaynymAddress({
     required PaymentCode sender,
     required bool isSegwit,

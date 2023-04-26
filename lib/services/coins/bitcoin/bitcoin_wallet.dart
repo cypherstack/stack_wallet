@@ -2540,43 +2540,67 @@ class BitcoinWallet extends CoinServiceAPI
         String? pubKey;
         String? wif;
 
-        // fetch receiving derivations if null
-        receiveDerivations[sd.derivePathType] ??= await _fetchDerivations(
-          chain: 0,
-          derivePathType: sd.derivePathType,
-        );
-        final receiveDerivation =
-            receiveDerivations[sd.derivePathType]![sd.utxo.address!];
+        final address = await db.getAddress(walletId, sd.utxo.address!);
+        if (address?.derivationPath != null) {
+          final bip32.BIP32 node;
+          if (address!.subType == isar_models.AddressSubType.paynymReceive) {
+            final code = await paymentCodeStringByKey(address.otherData!);
 
-        if (receiveDerivation != null) {
-          pubKey = receiveDerivation["pubKey"] as String;
-          wif = receiveDerivation["wif"] as String;
-        } else {
-          // fetch change derivations if null
-          changeDerivations[sd.derivePathType] ??= await _fetchDerivations(
-            chain: 1,
-            derivePathType: sd.derivePathType,
-          );
-          final changeDerivation =
-              changeDerivations[sd.derivePathType]![sd.utxo.address!];
-          if (changeDerivation != null) {
-            pubKey = changeDerivation["pubKey"] as String;
-            wif = changeDerivation["wif"] as String;
-          }
-        }
+            final bip47base = await getBip47BaseNode();
 
-        if (wif == null || pubKey == null) {
-          final address = await db.getAddress(walletId, sd.utxo.address!);
-          if (address?.derivationPath != null) {
-            final node = await Bip32Utils.getBip32Node(
+            final privateKey = await getPrivateKeyForPaynymReceivingAddress(
+              paymentCodeString: code!,
+              index: address.derivationIndex,
+            );
+
+            node = bip32.BIP32.fromPrivateKey(
+              privateKey,
+              bip47base.chainCode,
+              bip32.NetworkType(
+                wif: _network.wif,
+                bip32: bip32.Bip32Type(
+                  public: _network.bip32.public,
+                  private: _network.bip32.private,
+                ),
+              ),
+            );
+          } else {
+            node = await Bip32Utils.getBip32Node(
               (await mnemonicString)!,
               (await mnemonicPassphrase)!,
               _network,
-              address!.derivationPath!.value,
+              address.derivationPath!.value,
             );
+          }
 
-            wif = node.toWIF();
-            pubKey = Format.uint8listToString(node.publicKey);
+          wif = node.toWIF();
+          pubKey = Format.uint8listToString(node.publicKey);
+        }
+
+        if (wif == null || pubKey == null) {
+          // fetch receiving derivations if null
+          receiveDerivations[sd.derivePathType] ??= await _fetchDerivations(
+            chain: 0,
+            derivePathType: sd.derivePathType,
+          );
+          final receiveDerivation =
+              receiveDerivations[sd.derivePathType]![sd.utxo.address!];
+
+          if (receiveDerivation != null) {
+            pubKey = receiveDerivation["pubKey"] as String;
+            wif = receiveDerivation["wif"] as String;
+          } else {
+            // fetch change derivations if null
+            changeDerivations[sd.derivePathType] ??= await _fetchDerivations(
+              chain: 1,
+              derivePathType: sd.derivePathType,
+            );
+            final changeDerivation =
+                changeDerivations[sd.derivePathType]![sd.utxo.address!];
+            if (changeDerivation != null) {
+              pubKey = changeDerivation["pubKey"] as String;
+              wif = changeDerivation["wif"] as String;
+            }
           }
         }
 
