@@ -276,11 +276,7 @@ mixin PaynymWalletInterface {
     required bool generateSegwitAddress,
     bip32.BIP32? mySendBip32Node,
   }) async {
-    final node = mySendBip32Node ??
-        await deriveNotificationBip32Node(
-          mnemonic: (await _getMnemonicString())!,
-          mnemonicPassphrase: (await _getMnemonicPassphrase())!,
-        );
+    final node = mySendBip32Node ?? await deriveNotificationBip32Node();
 
     final paymentAddress = PaymentAddress(
       bip32Node: node,
@@ -377,10 +373,7 @@ mixin PaynymWalletInterface {
 
   bip32.BIP32? _cachedRootNode;
 
-  Future<bip32.BIP32> deriveNotificationBip32Node({
-    required String mnemonic,
-    required String mnemonicPassphrase,
-  }) async {
+  Future<bip32.BIP32> deriveNotificationBip32Node() async {
     final root = await _getRootNode();
     final node = root
         .derivePath(
@@ -408,10 +401,7 @@ mixin PaynymWalletInterface {
   }
 
   Future<Uint8List> signWithNotificationKey(Uint8List data) async {
-    final myPrivateKeyNode = await deriveNotificationBip32Node(
-      mnemonic: (await _getMnemonicString())!,
-      mnemonicPassphrase: (await _getMnemonicPassphrase())!,
-    );
+    final myPrivateKeyNode = await deriveNotificationBip32Node();
     final pair = btc_dart.ECPair.fromPrivateKey(myPrivateKeyNode.privateKey!,
         network: _network);
     final signed = pair.sign(SHA256Digest().process(data));
@@ -434,10 +424,7 @@ mixin PaynymWalletInterface {
       throw PaynymSendException(
           "No notification transaction sent to $paymentCode");
     } else {
-      final myPrivateKeyNode = await deriveNotificationBip32Node(
-        mnemonic: (await _getMnemonicString())!,
-        mnemonicPassphrase: (await _getMnemonicPassphrase())!,
-      );
+      final myPrivateKeyNode = await deriveNotificationBip32Node();
       final sendToAddress = await nextUnusedSendAddressFrom(
         pCode: paymentCode,
         privateKeyNode: myPrivateKeyNode,
@@ -968,11 +955,7 @@ mixin PaynymWalletInterface {
 
       final pubKey = _pubKeyFromInput(designatedInput)!;
 
-      final myPrivateKey = (await deriveNotificationBip32Node(
-        mnemonic: (await _getMnemonicString())!,
-        mnemonicPassphrase: (await _getMnemonicPassphrase())!,
-      ))
-          .privateKey!;
+      final myPrivateKey = (await deriveNotificationBip32Node()).privateKey!;
 
       final S = SecretPoint(myPrivateKey, pubKey);
 
@@ -1023,11 +1006,7 @@ mixin PaynymWalletInterface {
 
       final pubKey = _pubKeyFromInput(designatedInput)!;
 
-      final myPrivateKey = (await deriveNotificationBip32Node(
-        mnemonic: (await _getMnemonicString())!,
-        mnemonicPassphrase: (await _getMnemonicPassphrase())!,
-      ))
-          .privateKey!;
+      final myPrivateKey = (await deriveNotificationBip32Node()).privateKey!;
 
       final S = SecretPoint(myPrivateKey, pubKey);
 
@@ -1189,13 +1168,7 @@ mixin PaynymWalletInterface {
     const maxCount = 2147483647;
     assert(maxNumberOfIndexesToCheck < maxCount);
 
-    final mnemonic = (await _getMnemonicString())!;
-    final mnemonicPassphrase = (await _getMnemonicPassphrase())!;
-
-    final mySendBip32Node = await deriveNotificationBip32Node(
-      mnemonic: mnemonic,
-      mnemonicPassphrase: mnemonicPassphrase,
-    );
+    final mySendBip32Node = await deriveNotificationBip32Node();
 
     List<Address> addresses = [];
     int receivingGapCounter = 0;
