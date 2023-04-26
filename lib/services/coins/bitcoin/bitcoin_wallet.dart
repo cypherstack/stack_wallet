@@ -682,12 +682,8 @@ class BitcoinWallet extends CoinServiceAPI
       // isSegwit does not matter here at all
       final myCode = await getPaymentCode(isSegwit: false);
 
-      // this will add the notification address to the db if it isn't
-      // already there so it can be watched
-      await getMyNotificationAddress();
-
       // refresh transactions to pick up any received notification transactions
-      await _refreshTransactions();
+      await _refreshNotificationAddressTransactions();
 
       try {
         final Set<String> codesToCheck = {};
@@ -716,7 +712,10 @@ class BitcoinWallet extends CoinServiceAPI
         );
       }
 
-      await _updateUTXOs();
+      await Future.wait([
+        _refreshTransactions(),
+        _updateUTXOs(),
+      ]);
 
       await Future.wait([
         updateCachedId(walletId),
@@ -1247,6 +1246,11 @@ class BitcoinWallet extends CoinServiceAPI
     }
 
     await _prefs.init();
+
+    // this will add the notification address to the db if it isn't
+    // already there for older wallets
+    await getMyNotificationAddress();
+
     // await _checkCurrentChangeAddressesForTransactions();
     // await _checkCurrentReceivingAddressesForTransactions();
   }
@@ -2014,6 +2018,60 @@ class BitcoinWallet extends CoinServiceAPI
       }
     }
     return false;
+  }
+
+  Future<void> _refreshNotificationAddressTransactions() async {
+    final address = await getMyNotificationAddress();
+    final hashes = await _fetchHistory([address.value]);
+
+    List<Map<String, dynamic>> allTransactions = [];
+
+    final currentHeight = await chainHeight;
+
+    for (final txHash in hashes) {
+      final storedTx = await db
+          .getTransactions(walletId)
+          .filter()
+          .txidEqualTo(txHash["tx_hash"] as String)
+          .findFirst();
+
+      // TODO: remove bip47Notification type check sometime after Q2 2023
+      if (storedTx == null ||
+          storedTx.subType ==
+              isar_models.TransactionSubType.bip47Notification ||
+          !storedTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)) {
+        final tx = await cachedElectrumXClient.getTransaction(
+          txHash: txHash["tx_hash"] as String,
+          verbose: true,
+          coin: coin,
+        );
+
+        tx["address"] = await db
+            .getAddresses(walletId)
+            .filter()
+            .valueEqualTo(txHash["address"] as String)
+            .findFirst();
+        tx["height"] = txHash["height"];
+        allTransactions.add(tx);
+      }
+    }
+
+    final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
+        [];
+
+    for (final txObject in allTransactions) {
+      final data = await parseTransaction(
+        txObject,
+        cachedElectrumXClient,
+        [address],
+        coin,
+        MINIMUM_CONFIRMATIONS,
+        walletId,
+      );
+
+      txnsData.add(data);
+    }
+    await db.addNewTransactionData(txnsData, walletId);
   }
 
   Future<void> _refreshTransactions() async {
