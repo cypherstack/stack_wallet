@@ -25,14 +25,23 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:tuple/tuple.dart';
 
-const String kPaynymDerivePath = "m/47'/0'/0'";
-const String kPaynymNotificationDerivationPath = "$kPaynymDerivePath/0";
 const String kPCodeKeyPrefix = "pCode_key_";
 
-String _receivingPaynymAddressDerivationPath(int index) =>
-    "$kPaynymDerivePath/$index/0";
-String _sendPaynymAddressDerivationPath(int index) =>
-    "$kPaynymDerivePath/0/$index";
+String _basePaynymDerivePath({required bool testnet}) =>
+    "m/47'/${testnet ? "1" : "0"}'/0'";
+String _notificationDerivationPath({required bool testnet}) =>
+    "${_basePaynymDerivePath(testnet: testnet)}/0";
+
+String _receivingPaynymAddressDerivationPath(
+  int index, {
+  required bool testnet,
+}) =>
+    "${_basePaynymDerivePath(testnet: testnet)}/$index/0";
+String _sendPaynymAddressDerivationPath(
+  int index, {
+  required bool testnet,
+}) =>
+    "${_basePaynymDerivePath(testnet: testnet)}/0/$index";
 
 mixin PaynymWalletInterface {
   // passed in wallet data
@@ -194,25 +203,83 @@ mixin PaynymWalletInterface {
     required int index,
     required bool generateSegwitAddress,
   }) async {
-    final myPrivateKeyNode = await deriveReceivingPrivateKeyNode(
+    final root = await _getRootNode(
       mnemonic: (await _getMnemonicString())!,
       mnemonicPassphrase: (await _getMnemonicPassphrase())!,
-      index: index,
+    );
+    final node = root.derivePath(
+      _basePaynymDerivePath(
+        testnet: _coin.isTestNet,
+      ),
     );
 
     final paymentAddress = PaymentAddress(
-      bip32Node: myPrivateKeyNode,
+      bip32Node: node.derive(index),
       paymentCode: sender,
       networkType: networkType,
+      index: 0,
     );
 
-    final pair = paymentAddress.getReceiveAddressKeyPair();
-    final address = await generatePaynymReceivingAddressFromKeyPair(
-      pair: pair,
+    final addressString = generateSegwitAddress
+        ? paymentAddress.getReceiveAddressP2WPKH()
+        : paymentAddress.getReceiveAddressP2PKH();
+
+    final address = Address(
+      walletId: _walletId,
+      value: addressString,
+      publicKey: [],
       derivationIndex: index,
-      isSegwit: generateSegwitAddress,
-      fromPaymentCode: sender,
+      derivationPath: DerivationPath()
+        ..value = _receivingPaynymAddressDerivationPath(
+          index,
+          testnet: _coin.isTestNet,
+        ),
+      type: generateSegwitAddress ? AddressType.p2wpkh : AddressType.p2pkh,
+      subType: AddressSubType.paynymReceive,
+      otherData: await storeCode(sender.toString()),
     );
+
+    return address;
+  }
+
+  Future<Address> _generatePaynymSendAddress({
+    required PaymentCode other,
+    required int index,
+    required bool generateSegwitAddress,
+    bip32.BIP32? mySendBip32Node,
+  }) async {
+    final node = mySendBip32Node ??
+        await deriveNotificationBip32Node(
+          mnemonic: (await _getMnemonicString())!,
+          mnemonicPassphrase: (await _getMnemonicPassphrase())!,
+        );
+
+    final paymentAddress = PaymentAddress(
+      bip32Node: node,
+      paymentCode: other,
+      networkType: networkType,
+      index: index,
+    );
+
+    final addressString = generateSegwitAddress
+        ? paymentAddress.getSendAddressP2WPKH()
+        : paymentAddress.getSendAddressP2PKH();
+
+    final address = Address(
+      walletId: _walletId,
+      value: addressString,
+      publicKey: [],
+      derivationIndex: index,
+      derivationPath: DerivationPath()
+        ..value = _sendPaynymAddressDerivationPath(
+          index,
+          testnet: _coin.isTestNet,
+        ),
+      type: AddressType.nonWallet,
+      subType: AddressSubType.paynymSend,
+      otherData: await storeCode(other.toString()),
+    );
+
     return address;
   }
 
@@ -224,6 +291,7 @@ mixin PaynymWalletInterface {
       sender: sender,
       isSegwit: isSegwit,
     );
+
     final txCount = await _getTxCount(address: address.value);
     if (txCount > 0) {
       // generate next address and add to db
@@ -292,20 +360,13 @@ mixin PaynymWalletInterface {
       mnemonic: mnemonic,
       mnemonicPassphrase: mnemonicPassphrase,
     );
-    final node = root.derivePath(kPaynymDerivePath).derive(0);
-    return node;
-  }
-
-  Future<bip32.BIP32> deriveReceivingPrivateKeyNode({
-    required String mnemonic,
-    required String mnemonicPassphrase,
-    required int index,
-  }) async {
-    final root = await _getRootNode(
-      mnemonic: mnemonic,
-      mnemonicPassphrase: mnemonicPassphrase,
-    );
-    final node = root.derivePath(kPaynymDerivePath).derive(index);
+    final node = root
+        .derivePath(
+          _basePaynymDerivePath(
+            testnet: _coin.isTestNet,
+          ),
+        )
+        .derive(0);
     return node;
   }
 
@@ -313,14 +374,17 @@ mixin PaynymWalletInterface {
   Future<PaymentCode> getPaymentCode({
     required bool isSegwit,
   }) async {
-    final address = await getMyNotificationAddress(
-      isSegwit: isSegwit,
+    final node = await _getRootNode(
+      mnemonic: (await _getMnemonicString())!,
+      mnemonicPassphrase: (await _getMnemonicPassphrase())!,
     );
-    final pCodeString = await paymentCodeStringByKey(address.otherData!);
-    final paymentCode = PaymentCode.fromPaymentCode(
-      pCodeString!,
-      networkType: _network,
+
+    final paymentCode = PaymentCode.fromBip32Node(
+      node.derivePath(_basePaynymDerivePath(testnet: _coin.isTestNet)),
+      networkType: networkType,
+      shouldSetSegwitBit: isSegwit,
     );
+
     return paymentCode;
   }
 
@@ -399,19 +463,11 @@ mixin PaynymWalletInterface {
           return address;
         }
       } else {
-        final pair = PaymentAddress(
-          bip32Node: privateKeyNode,
-          index: i, // index to use
-          paymentCode: pCode,
-          networkType: networkType,
-        ).getSendAddressKeyPair();
-
-        // add address to local db
-        final address = await generatePaynymSendAddressFromKeyPair(
-          pair: pair,
-          derivationIndex: i,
-          toPaymentCode: pCode,
-          isSegwit: isSegwit,
+        final address = await _generatePaynymSendAddress(
+          other: pCode,
+          index: i,
+          generateSegwitAddress: isSegwit,
+          mySendBip32Node: privateKeyNode,
         );
 
         final storedAddress = await _db.getAddress(_walletId, address.value);
@@ -434,7 +490,6 @@ mixin PaynymWalletInterface {
   Future<Map<String, dynamic>> prepareNotificationTx({
     required int selectedTxFeeRate,
     required String targetPaymentCodeString,
-    required bool isSegwit,
     int additionalOutputs = 0,
     List<UTXO>? utxos,
   }) async {
@@ -497,7 +552,6 @@ mixin PaynymWalletInterface {
         targetPaymentCodeString: targetPaymentCodeString,
         utxoSigningData: utxoSigningData,
         change: 0,
-        isSegwit: isSegwit,
         // override amount to get around absurd fees error
         overrideAmountForTesting: satoshisBeingUsed,
       ))
@@ -507,7 +561,6 @@ mixin PaynymWalletInterface {
         targetPaymentCodeString: targetPaymentCodeString,
         utxoSigningData: utxoSigningData,
         change: satoshisBeingUsed - amountToSend,
-        isSegwit: isSegwit,
       ))
           .item2;
 
@@ -545,7 +598,6 @@ mixin PaynymWalletInterface {
             targetPaymentCodeString: targetPaymentCodeString,
             utxoSigningData: utxoSigningData,
             change: changeAmount,
-            isSegwit: isSegwit,
           );
 
           int feeBeingPaid = satoshisBeingUsed - amountToSend - changeAmount;
@@ -558,7 +610,6 @@ mixin PaynymWalletInterface {
               targetPaymentCodeString: targetPaymentCodeString,
               utxoSigningData: utxoSigningData,
               change: changeAmount,
-              isSegwit: isSegwit,
             );
           }
 
@@ -580,7 +631,6 @@ mixin PaynymWalletInterface {
             targetPaymentCodeString: targetPaymentCodeString,
             utxoSigningData: utxoSigningData,
             change: 0,
-            isSegwit: isSegwit,
           );
 
           int feeBeingPaid = satoshisBeingUsed - amountToSend;
@@ -603,7 +653,6 @@ mixin PaynymWalletInterface {
           targetPaymentCodeString: targetPaymentCodeString,
           utxoSigningData: utxoSigningData,
           change: 0,
-          isSegwit: isSegwit,
         );
 
         int feeBeingPaid = satoshisBeingUsed - amountToSend;
@@ -625,7 +674,6 @@ mixin PaynymWalletInterface {
             selectedTxFeeRate: selectedTxFeeRate,
             targetPaymentCodeString: targetPaymentCodeString,
             additionalOutputs: additionalOutputs + 1,
-            isSegwit: isSegwit,
           );
         } else {
           throw InsufficientBalanceException(
@@ -641,7 +689,6 @@ mixin PaynymWalletInterface {
   // equal to its vSize
   Future<Tuple2<String, int>> _createNotificationTx({
     required String targetPaymentCodeString,
-    required bool isSegwit,
     required List<SigningData> utxoSigningData,
     required int change,
     int? overrideAmountForTesting,
@@ -651,7 +698,7 @@ mixin PaynymWalletInterface {
         targetPaymentCodeString,
         networkType: _network,
       );
-      final myCode = await getPaymentCode(isSegwit: isSegwit);
+      final myCode = await getPaymentCode(isSegwit: false);
 
       final utxo = utxoSigningData.first.utxo;
       final txPoint = utxo.txid.fromHex.reversed.toList();
@@ -703,21 +750,12 @@ mixin PaynymWalletInterface {
           utxoSigningData[i].output!,
         );
       }
-      final String notificationAddress;
-      if (isSegwit) {
-        final publicKey = targetPaymentCode.derivePublicKey(0);
-        final data = btc_dart.P2WPKH(
-          data: btc_dart.PaymentData(pubkey: publicKey),
-          network: networkType,
-        );
-        notificationAddress = data.data.address!;
-      } else {
-        notificationAddress = targetPaymentCode.notificationAddressP2PKH();
-      }
+      final String notificationAddress =
+          targetPaymentCode.notificationAddressP2PKH();
 
       txb.addOutput(
         notificationAddress,
-        overrideAmountForTesting ?? (isSegwit ? _dustLimit : _dustLimitP2PKH),
+        overrideAmountForTesting ?? _dustLimitP2PKH,
       );
       txb.addOutput(opReturnScript, 0);
 
@@ -821,10 +859,7 @@ mixin PaynymWalletInterface {
     //         q.anyOf<String, Transaction>(keys, (q, e) => q.otherDataEqualTo(e)))
     //     .findAll();
 
-    final myNotificationAddress =
-        await getMyNotificationAddress(isSegwit: false);
-    final myNotificationAddressSegwit =
-        await getMyNotificationAddress(isSegwit: true);
+    final myNotificationAddress = await getMyNotificationAddress();
 
     final txns = await _db
         .getTransactions(_walletId)
@@ -834,8 +869,7 @@ mixin PaynymWalletInterface {
 
     for (final tx in txns) {
       if (tx.type == TransactionType.incoming &&
-          (tx.address.value?.value == myNotificationAddress.value ||
-              tx.address.value?.value == myNotificationAddressSegwit.value)) {
+          tx.address.value?.value == myNotificationAddress.value) {
         final unBlindedPaymentCode = await unBlindedPaymentCodeFromTransaction(
           transaction: tx,
         );
@@ -939,7 +973,7 @@ mixin PaynymWalletInterface {
       return unBlindedPaymentCode;
     } catch (e) {
       Logging.instance.log(
-        "unBlindedPaymentCodeFromTransaction() failed: $e",
+        "unBlindedPaymentCodeFromTransaction() failed: $e\nFor tx: $transaction",
         level: LogLevel.Warning,
       );
       return null;
@@ -994,7 +1028,7 @@ mixin PaynymWalletInterface {
       return unBlindedPaymentCode;
     } catch (e) {
       Logging.instance.log(
-        "unBlindedPaymentCodeFromTransaction() failed: $e",
+        "unBlindedPaymentCodeFromTransactionBad() failed: $e\nFor tx: $transaction",
         level: LogLevel.Warning,
       );
       return null;
@@ -1147,7 +1181,11 @@ mixin PaynymWalletInterface {
       mnemonic: mnemonic,
       mnemonicPassphrase: mnemonicPassphrase,
     ))
-        .derivePath(kPaynymDerivePath);
+        .derivePath(
+      _basePaynymDerivePath(
+        testnet: _coin.isTestNet,
+      ),
+    );
 
     List<Address> addresses = [];
     int receivingGapCounter = 0;
@@ -1159,20 +1197,12 @@ mixin PaynymWalletInterface {
             receivingGapCounter < maxUnusedAddressGap;
         i++) {
       if (receivingGapCounter < maxUnusedAddressGap) {
-        final paymentAddressReceiving = PaymentAddress(
-          paymentCode: other,
-          bip32Node: receivingNode.derive(i),
-          index: 0,
-          networkType: networkType,
+        final address = await _generatePaynymReceivingAddress(
+          sender: other,
+          index: i,
+          generateSegwitAddress: false,
         );
 
-        final pair = paymentAddressReceiving.getReceiveAddressKeyPair();
-        final address = await generatePaynymReceivingAddressFromKeyPair(
-          pair: pair,
-          derivationIndex: i,
-          isSegwit: false,
-          fromPaymentCode: other,
-        );
         addresses.add(address);
 
         final count = await _getTxCount(address: address.value);
@@ -1191,18 +1221,13 @@ mixin PaynymWalletInterface {
             outgoingGapCounter < maxUnusedAddressGap;
         i++) {
       if (outgoingGapCounter < maxUnusedAddressGap) {
-        final pair = PaymentAddress(
-          paymentCode: other,
-          bip32Node: mySendBip32Node,
+        final address = await _generatePaynymSendAddress(
+          other: other,
           index: i,
-          networkType: networkType,
-        ).getSendAddressKeyPair();
-        final address = await generatePaynymSendAddressFromKeyPair(
-          pair: pair,
-          derivationIndex: i,
-          isSegwit: false,
-          toPaymentCode: other,
+          generateSegwitAddress: false,
+          mySendBip32Node: mySendBip32Node,
         );
+
         addresses.add(address);
 
         final count = await _getTxCount(address: address.value);
@@ -1224,20 +1249,12 @@ mixin PaynymWalletInterface {
               receivingGapCounterSegwit < maxUnusedAddressGap;
           i++) {
         if (receivingGapCounterSegwit < maxUnusedAddressGap) {
-          final paymentAddressReceiving = PaymentAddress(
-            paymentCode: other,
-            bip32Node: receivingNode.derive(i),
-            index: 0,
-            networkType: networkType,
+          final address = await _generatePaynymReceivingAddress(
+            sender: other,
+            index: i,
+            generateSegwitAddress: true,
           );
 
-          final pair = paymentAddressReceiving.getReceiveAddressKeyPair();
-          final address = await generatePaynymReceivingAddressFromKeyPair(
-            pair: pair,
-            derivationIndex: i,
-            isSegwit: true,
-            fromPaymentCode: other,
-          );
           addresses.add(address);
 
           final count = await _getTxCount(address: address.value);
@@ -1256,18 +1273,13 @@ mixin PaynymWalletInterface {
               outgoingGapCounterSegwit < maxUnusedAddressGap;
           i++) {
         if (outgoingGapCounterSegwit < maxUnusedAddressGap) {
-          final pair = PaymentAddress(
-            paymentCode: other,
-            bip32Node: mySendBip32Node,
+          final address = await _generatePaynymSendAddress(
+            other: other,
             index: i,
-            networkType: networkType,
-          ).getSendAddressKeyPair();
-          final address = await generatePaynymSendAddressFromKeyPair(
-            pair: pair,
-            derivationIndex: i,
-            isSegwit: true,
-            toPaymentCode: other,
+            generateSegwitAddress: true,
+            mySendBip32Node: mySendBip32Node,
           );
+
           addresses.add(address);
 
           final count = await _getTxCount(address: address.value);
@@ -1283,122 +1295,13 @@ mixin PaynymWalletInterface {
     await _db.updateOrPutAddresses(addresses);
   }
 
-  Future<Address> generatePaynymSendAddressFromKeyPair({
-    required btc_dart.ECPair pair,
-    required int derivationIndex,
-    required bool isSegwit,
-    required PaymentCode toPaymentCode,
-  }) async {
-    final data = btc_dart.PaymentData(pubkey: pair.publicKey);
-
-    final String addressString;
-
-    if (isSegwit) {
-      addressString = btc_dart
-          .P2WPKH(
-            network: _network,
-            data: data,
-          )
-          .data
-          .address!;
-    } else {
-      addressString = btc_dart
-          .P2PKH(
-            data: data,
-            network: _network,
-          )
-          .data
-          .address!;
-    }
-
-    final address = Address(
-      walletId: _walletId,
-      value: addressString,
-      publicKey: pair.publicKey,
-      derivationIndex: derivationIndex,
-      derivationPath: DerivationPath()
-        ..value = _sendPaynymAddressDerivationPath(derivationIndex),
-      type: AddressType.nonWallet,
-      subType: AddressSubType.paynymSend,
-      otherData: await storeCode(toPaymentCode.toString()),
-    );
-
-    return address;
-  }
-
-  Future<Address> generatePaynymReceivingAddressFromKeyPair({
-    required btc_dart.ECPair pair,
-    required int derivationIndex,
-    required bool isSegwit,
-    required PaymentCode fromPaymentCode,
-  }) async {
-    final data = btc_dart.PaymentData(pubkey: pair.publicKey);
-
-    final String addressString;
-    final AddressType addressType;
-
-    if (isSegwit) {
-      addressString = btc_dart
-          .P2WPKH(
-            network: _network,
-            data: data,
-          )
-          .data
-          .address!;
-      addressType = AddressType.p2wpkh;
-    } else {
-      addressString = btc_dart
-          .P2PKH(
-            data: data,
-            network: _network,
-          )
-          .data
-          .address!;
-      addressType = AddressType.p2pkh;
-    }
-
-    final address = Address(
-      walletId: _walletId,
-      value: addressString,
-      publicKey: pair.publicKey,
-      derivationIndex: derivationIndex,
-      derivationPath: DerivationPath()
-        ..value = _receivingPaynymAddressDerivationPath(derivationIndex),
-      type: addressType,
-      subType: AddressSubType.paynymReceive,
-      otherData: await storeCode(fromPaymentCode.toString()),
-    );
-
-    final myCode = await getPaymentCode(isSegwit: isSegwit);
-
-    final bip32NetworkType = bip32.NetworkType(
-      wif: _network.wif,
-      bip32: bip32.Bip32Type(
-        public: _network.bip32.public,
-        private: _network.bip32.private,
-      ),
-    );
-
-    final bip32.BIP32 node = bip32.BIP32.fromPrivateKey(
-      pair.privateKey!,
-      myCode.getChain(),
-      bip32NetworkType,
-    );
-
-    return address;
-  }
-
-  Future<Address> getMyNotificationAddress({
-    required bool isSegwit,
-  }) async {
-    final AddressType type = isSegwit ? AddressType.p2wpkh : AddressType.p2pkh;
-
+  Future<Address> getMyNotificationAddress() async {
     final storedAddress = await _db
         .getAddresses(_walletId)
         .filter()
         .subTypeEqualTo(AddressSubType.paynymNotification)
         .and()
-        .typeEqualTo(type)
+        .typeEqualTo(AddressType.p2pkh)
         .and()
         .not()
         .typeEqualTo(AddressType.nonWallet)
@@ -1411,49 +1314,66 @@ mixin PaynymWalletInterface {
         mnemonic: (await _getMnemonicString())!,
         mnemonicPassphrase: (await _getMnemonicPassphrase())!,
       );
-      final node = root.derivePath(kPaynymDerivePath);
+      final node = root.derivePath(
+        _basePaynymDerivePath(
+          testnet: _coin.isTestNet,
+        ),
+      );
       final paymentCode = PaymentCode.fromBip32Node(
         node,
         networkType: _network,
-        shouldSetSegwitBit: isSegwit,
+        shouldSetSegwitBit: false,
       );
 
-      final String addressString;
       final data = btc_dart.PaymentData(
         pubkey: paymentCode.notificationPublicKey(),
       );
 
-      if (isSegwit) {
-        addressString = btc_dart
-            .P2WPKH(
-              network: _network,
-              data: data,
-            )
-            .data
-            .address!;
-      } else {
-        addressString = btc_dart
-            .P2PKH(
-              data: data,
-              network: _network,
-            )
-            .data
-            .address!;
-      }
+      final addressString = btc_dart
+          .P2PKH(
+            data: data,
+            network: _network,
+          )
+          .data
+          .address!;
 
-      final address = Address(
+      Address address = Address(
         walletId: _walletId,
         value: addressString,
         publicKey: paymentCode.getPubKey(),
         derivationIndex: 0,
         derivationPath: DerivationPath()
-          ..value = kPaynymNotificationDerivationPath,
-        type: type,
+          ..value = _notificationDerivationPath(
+            testnet: _coin.isTestNet,
+          ),
+        type: AddressType.p2pkh,
         subType: AddressSubType.paynymNotification,
         otherData: await storeCode(paymentCode.toString()),
       );
 
-      await _db.putAddress(address);
+      // check against possible race condition. Ff this function was called
+      // multiple times an address could've been saved after the check at the
+      // beginning to see if there already was notification address. This would
+      // lead to a Unique Index violation  error
+      await _db.isar.writeTxn(() async {
+        final storedAddress = await _db
+            .getAddresses(_walletId)
+            .filter()
+            .subTypeEqualTo(AddressSubType.paynymNotification)
+            .and()
+            .typeEqualTo(AddressType.p2pkh)
+            .and()
+            .not()
+            .typeEqualTo(AddressType.nonWallet)
+            .findFirst();
+
+        if (storedAddress == null) {
+          await _db.isar.addresses.put(address);
+        } else {
+          address = storedAddress;
+        }
+      });
+
       return address;
     }
   }
