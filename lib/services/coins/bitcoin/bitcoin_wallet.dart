@@ -1539,42 +1539,6 @@ class BitcoinWallet extends CoinServiceAPI
     );
   }
 
-  /// Returns the latest receiving/change (external/internal) address for the wallet depending on [chain]
-  /// and
-  /// [chain] - Use 0 for receiving (external), 1 for change (internal). Should not be any other value!
-  Future<String> _getCurrentAddressForChain(
-    int chain,
-    DerivePathType derivePathType,
-  ) async {
-    final subType = chain == 0 // Here, we assume that chain == 1 if it isn't 0
-        ? isar_models.AddressSubType.receiving
-        : isar_models.AddressSubType.change;
-
-    isar_models.AddressType type;
-    isar_models.Address? address;
-    switch (derivePathType) {
-      case DerivePathType.bip44:
-        type = isar_models.AddressType.p2pkh;
-        break;
-      case DerivePathType.bip49:
-        type = isar_models.AddressType.p2sh;
-        break;
-      case DerivePathType.bip84:
-        type = isar_models.AddressType.p2wpkh;
-        break;
-      default:
-        throw Exception("DerivePathType unsupported");
-    }
-    address = await db
-        .getAddresses(walletId)
-        .filter()
-        .typeEqualTo(type)
-        .subTypeEqualTo(subType)
-        .sortByDerivationIndexDesc()
-        .findFirst();
-    return address!.value;
-  }
-
   String _buildDerivationStorageKey({
     required int chain,
     required DerivePathType derivePathType,
@@ -2304,8 +2268,7 @@ class BitcoinWallet extends CoinServiceAPI
         utxoSigningData: utxoSigningData,
         recipients: [
           recipientAddress,
-          await _getCurrentAddressForChain(
-              1, DerivePathTypeExt.primaryFor(coin)),
+          await currentChangeAddress,
         ],
         satoshiAmounts: [
           satoshiAmountToSend,
@@ -2348,8 +2311,7 @@ class BitcoinWallet extends CoinServiceAPI
                 feeForTwoOutputs) {
           // generate new change address if current change address has been used
           await _checkChangeAddressForTransactions();
-          final String newChangeAddress = await _getCurrentAddressForChain(
-              1, DerivePathTypeExt.primaryFor(coin));
+          final String newChangeAddress = await currentChangeAddress;
 
           int feeBeingPaid =
               satoshisBeingUsed - satoshiAmountToSend - changeOutputSize;
