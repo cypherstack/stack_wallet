@@ -1661,7 +1661,8 @@ class StackTheme {
       assets: ThemeAssets.fromJson(
         json: json,
         applicationThemesDirectoryPath: applicationThemesDirectoryPath,
-        internalThemeUuid: _id,
+        internalThemeUuid:
+            "dark", //TODO - Replace this with the uuid (_id) once setup
       ),
       overlayInt: parseColor(json["overlay"] as String),
       accentColorBlueInt:
@@ -2060,8 +2061,6 @@ class ThemeAssets {
     required String applicationThemesDirectoryPath,
     required String internalThemeUuid,
   }) {
-    print(
-        "ASSETS JSON IS ${jsonEncode(json["assets"]["svg"]['coin_icons']['small'])}");
     return ThemeAssets(
       bellNew:
           "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["bell_new"] as String}",

@@ -370,6 +370,10 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         .loadLocale(notify: false);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      //Add themes path to provider
+      ref.read(applicationThemesDirectoryPathProvider.notifier).state =
+          (await StackFileSystem.applicationThemesDirectory()).path;
+
       ref.read(themeProvider.state).state = StackTheme.fromJson(
         json: darkJson,
         applicationThemesDirectoryPath: ref.read(
