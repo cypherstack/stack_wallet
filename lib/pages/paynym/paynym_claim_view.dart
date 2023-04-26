@@ -43,8 +43,9 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
     // get wallet to access paynym calls
     final wallet = manager.wallet as PaynymWalletInterface;
 
-    final token =
-        await ref.read(paynymAPIProvider).token(myAccount.codes.first.code);
+    final token = await ref
+        .read(paynymAPIProvider)
+        .token(myAccount.nonSegwitPaymentCode.code);
     final signature = await wallet.signStringWithNotificationKey(token.value!);
 
     final pCodeSegwit = await wallet.getPaymentCode(isSegwit: true);

@@ -458,6 +458,7 @@ class _SendViewState extends ConsumerState<SendView> {
         final feeRate = ref.read(feeRateTypeStateProvider);
         txDataFuture = wallet.preparePaymentCodeSend(
           paymentCode: paymentCode,
+          isSegwit: widget.accountLite!.segwit,
           amount: amount,
           args: {
             "feeRate": feeRate,

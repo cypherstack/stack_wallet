@@ -275,8 +275,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                       paymentCodeString: ref
                           .watch(myPaynymAccountStateProvider.state)
                           .state!
-                          .codes
-                          .first
+                          .nonSegwitPaymentCode
                           .code,
                     ),
                   ),
@@ -298,8 +297,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                         ref
                             .watch(myPaynymAccountStateProvider.state)
                             .state!
-                            .codes
-                            .first
+                            .nonSegwitPaymentCode
                             .code,
                         12,
                         5),
@@ -330,8 +328,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                                 text: ref
                                     .read(myPaynymAccountStateProvider.state)
                                     .state!
-                                    .codes
-                                    .first
+                                    .nonSegwitPaymentCode
                                     .code,
                               ),
                             );
@@ -376,8 +373,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                                 ref
                                     .read(myPaynymAccountStateProvider.state)
                                     .state!
-                                    .codes
-                                    .first
+                                    .nonSegwitPaymentCode
                                     .code,
                                 sharePositionOrigin: sharePositionOrigin);
                           },
@@ -447,8 +443,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                           paymentCodeString: ref
                               .watch(myPaynymAccountStateProvider.state)
                               .state!
-                              .codes
-                              .first
+                              .nonSegwitPaymentCode
                               .code,
                         ),
                       ),
@@ -473,8 +468,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                                 ref
                                     .watch(myPaynymAccountStateProvider.state)
                                     .state!
-                                    .codes
-                                    .first
+                                    .nonSegwitPaymentCode
                                     .code,
                                 12,
                                 5),
@@ -501,8 +495,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                               text: ref
                                   .read(myPaynymAccountStateProvider.state)
                                   .state!
-                                  .codes
-                                  .first
+                                  .nonSegwitPaymentCode
                                   .code,
                             ),
                           );

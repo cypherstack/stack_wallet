@@ -14,6 +14,9 @@ class PaynymAccount {
   /// list of nymId
   final List<PaynymAccountLite> following;
 
+  PaynymCode get nonSegwitPaymentCode =>
+      codes.firstWhere((element) => !element.segwit);
+
   PaynymAccount(
     this.nymID,
     this.nymName,
