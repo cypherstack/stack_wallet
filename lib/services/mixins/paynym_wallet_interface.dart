@@ -1177,15 +1177,6 @@ mixin PaynymWalletInterface {
       mnemonic: mnemonic,
       mnemonicPassphrase: mnemonicPassphrase,
     );
-    final receivingNode = (await _getRootNode(
-      mnemonic: mnemonic,
-      mnemonicPassphrase: mnemonicPassphrase,
-    ))
-        .derivePath(
-      _basePaynymDerivePath(
-        testnet: _coin.isTestNet,
-      ),
-    );
 
     List<Address> addresses = [];
     int receivingGapCounter = 0;
