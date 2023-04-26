@@ -143,10 +143,7 @@ mixin PaynymWalletInterface {
   btc_dart.NetworkType get networkType => _network;
 
   Future<bip32.BIP32> getBip47BaseNode() async {
-    final root = await _getRootNode(
-      mnemonic: (await _getMnemonicString())!,
-      mnemonicPassphrase: (await _getMnemonicPassphrase())!,
-    );
+    final root = await _getRootNode();
     final node = root.derivePath(
       _basePaynymDerivePath(
         testnet: _coin.isTestNet,
@@ -237,10 +234,7 @@ mixin PaynymWalletInterface {
     required int index,
     required bool generateSegwitAddress,
   }) async {
-    final root = await _getRootNode(
-      mnemonic: (await _getMnemonicString())!,
-      mnemonicPassphrase: (await _getMnemonicPassphrase())!,
-    );
+    final root = await _getRootNode();
     final node = root.derivePath(
       _basePaynymDerivePath(
         testnet: _coin.isTestNet,
@@ -373,13 +367,10 @@ mixin PaynymWalletInterface {
   }
 
   // generate bip32 payment code root
-  Future<bip32.BIP32> _getRootNode({
-    required String mnemonic,
-    required String mnemonicPassphrase,
-  }) async {
+  Future<bip32.BIP32> _getRootNode() async {
     return _cachedRootNode ??= await Bip32Utils.getBip32Root(
-      mnemonic,
-      mnemonicPassphrase,
+      (await _getMnemonicString())!,
+      (await _getMnemonicPassphrase())!,
       _network,
     );
   }
@@ -390,10 +381,7 @@ mixin PaynymWalletInterface {
     required String mnemonic,
     required String mnemonicPassphrase,
   }) async {
-    final root = await _getRootNode(
-      mnemonic: mnemonic,
-      mnemonicPassphrase: mnemonicPassphrase,
-    );
+    final root = await _getRootNode();
     final node = root
         .derivePath(
           _basePaynymDerivePath(
@@ -408,10 +396,7 @@ mixin PaynymWalletInterface {
   Future<PaymentCode> getPaymentCode({
     required bool isSegwit,
   }) async {
-    final node = await _getRootNode(
-      mnemonic: (await _getMnemonicString())!,
-      mnemonicPassphrase: (await _getMnemonicPassphrase())!,
-    );
+    final node = await _getRootNode();
 
     final paymentCode = PaymentCode.fromBip32Node(
       node.derivePath(_basePaynymDerivePath(testnet: _coin.isTestNet)),
@@ -1335,10 +1320,7 @@ mixin PaynymWalletInterface {
     if (storedAddress != null) {
       return storedAddress;
     } else {
-      final root = await _getRootNode(
-        mnemonic: (await _getMnemonicString())!,
-        mnemonicPassphrase: (await _getMnemonicPassphrase())!,
-      );
+      final root = await _getRootNode();
       final node = root.derivePath(
         _basePaynymDerivePath(
           testnet: _coin.isTestNet,
