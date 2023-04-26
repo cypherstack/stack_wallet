@@ -257,9 +257,10 @@ final Map<String, dynamic> darkJson = {
       "send_pending": "svg/tx-icon-send-pending.svg",
       "send_cancelled": "svg/tx-icon-send-failed.svg",
       "theme_dark": "svg/dark-theme.svg",
-      "theme_dark_chan": "svg/darkChansTheme.svg",
+      // "theme_dark_chan": "svg/darkChansTheme.svg", - TO MOVE INTO IT'S OWN THEME
     },
     "png": {
+      //Move these into the Chan theme
       "chan_persona_easy": "images/chan-persona-easy.png",
       "chan_persona_incognito": "images/chan-persona-incognito.png"
     }
