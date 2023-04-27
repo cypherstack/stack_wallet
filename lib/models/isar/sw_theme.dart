@@ -1987,10 +1987,7 @@ class ThemeAssets {
   final String send;
   final String sendPending;
   final String sendCancelled;
-  final String themeDark;
-  final String themeDarkChan;
-  final String chanEasy;
-  final String chanIncognito;
+  final String themePreview;
   final String bitcoin;
   final String litecoin;
   final String bitcoincash;
@@ -2028,10 +2025,7 @@ class ThemeAssets {
     required this.send,
     required this.sendPending,
     required this.sendCancelled,
-    required this.themeDark,
-    required this.themeDarkChan,
-    required this.chanEasy,
-    required this.chanIncognito,
+    required this.themePreview,
     required this.bitcoin,
     required this.litecoin,
     required this.bitcoincash,
@@ -2084,14 +2078,8 @@ class ThemeAssets {
           "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["send_pending"] as String}",
       sendCancelled:
           "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["send_cancelled"] as String}",
-      themeDark:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["theme_dark"] as String}",
-      themeDarkChan:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["theme_dark_chan"] as String}",
-      chanEasy:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["png"]["chan_persona_easy"] as String}",
-      chanIncognito:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["png"]["chan_persona_incognito"] as String}",
+      themePreview:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["theme_preview"] as String}",
       bitcoin:
           "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['small']["bitcoin"] as String}",
       litecoin:
