@@ -1,10 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class TxIcon extends StatelessWidget {
+class TxIcon extends ConsumerWidget {
   const TxIcon({
     Key? key,
     required this.transaction,
@@ -19,7 +21,7 @@ class TxIcon extends StatelessWidget {
   static const Size size = Size(32, 32);
 
   String _getAssetName(
-      bool isCancelled, bool isReceived, bool isPending, BuildContext context) {
+      bool isCancelled, bool isReceived, bool isPending, WidgetRef ref) {
     if (!isReceived && transaction.subType == TransactionSubType.mint) {
       if (isCancelled) {
         return Assets.svg.anonymizeFailed;
@@ -32,25 +34,25 @@ class TxIcon extends StatelessWidget {
 
     if (isReceived) {
       if (isCancelled) {
-        return Assets.svg.receiveCancelled(context);
+        return ref.watch(themeProvider).assets.receiveCancelled;
       }
       if (isPending) {
-        return Assets.svg.receivePending(context);
+        return ref.watch(themeProvider).assets.receivePending;
       }
-      return Assets.svg.receive(context);
+      return ref.watch(themeProvider).assets.receive;
     } else {
       if (isCancelled) {
-        return Assets.svg.sendCancelled(context);
+        return ref.watch(themeProvider).assets.sendCancelled;
       }
       if (isPending) {
-        return Assets.svg.sendPending(context);
+        return ref.watch(themeProvider).assets.sendPending;
       }
-      return Assets.svg.send(context);
+      return ref.watch(themeProvider).assets.send;
     }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final txIsReceived = transaction.type == TransactionType.incoming;
 
     return SizedBox(
@@ -65,7 +67,7 @@ class TxIcon extends StatelessWidget {
               currentHeight,
               coin.requiredConfirmations,
             ),
-            context,
+            ref,
           ),
           width: size.width,
           height: size.height,
