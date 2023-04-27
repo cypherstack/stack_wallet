@@ -1,7 +1,7 @@
 final Map<String, dynamic> darkJson = {
-  "name": "Dark",
+  "name": "Light",
   "asset_bundle_url": "",
-  "brightness": "dark",
+  "brightness": "light",
   "colors": {
     "coin": {
       "bitcoin": "0xFFFCC17B",
@@ -17,24 +17,24 @@ final Map<String, dynamic> darkJson = {
       "particl": "0xFF8175BD"
     },
     "background": {
-      "background": "0xFF2A2D34",
-      "backgroundAppBar": "0xFF2A2D34"
+      "background": "0xFFF7F7F7",
+      "backgroundAppBar": "0xFFF7F7F7"
     },
     "accent": {
-      "blue": "0xFF4C86E9",
+      "blue": "0xFF0052DF",
       "green": "0xFF4CC0A0",
       "yellow": "0xFFF7D65D",
       "red": "0xFFD34E50",
       "orange": "0xFFFEA68D",
-      "dark": "0xFFF3F3F3"
+      "dark": "0xFF232323"
     },
     "text": {
-      "dark_one": "0xFFF3F3F3",
-      "dark_two": "0xFFDBDBDB",
-      "dark_three": "0xFFEEEFF1",
-      "white": "0xFF232323",
+      "dark_one": "0xFF232323",
+      "dark_two": "0xFF414141",
+      "dark_three": "0xFF747778",
+      "white": "0xFFFFFFFF",
       "favorite": "0xFF232323",
-      "error": "0xFFF37475",
+      "error": "0xFF930006",
       "restore": "0xFF111215"
     },
     "button_text": {
@@ -72,12 +72,12 @@ final Map<String, dynamic> darkJson = {
   "overlay": "0xFF111215",
   "shadow": "0x0F2D3132",
   "text_subtitles": {
-    "subtitle_one": "0xFF9E9E9E",
-    "subtitle_two": "0xFF969696",
-    "subtitle_three": "0xFFA9ACAC",
-    "subtitle_four": "0xFF8E9192",
-    "subtitle_five": "0xFF747778",
-    "subtitle_six": "0xFF414141"
+    "subtitle_one": "0xFF8E9192",
+    "subtitle_two": "0xFFA9ACAC",
+    "subtitle_three": "0xFFC4C7C7",
+    "subtitle_four": "0xFFE0E3E3",
+    "subtitle_five": "0xFFEEEFF1",
+    "subtitle_six": "0xFFF5F5F5"
   },
   "number_text_default": "0xFFFFFFFF",
   "numpad_text_default": "0xFFFFFFFF",
