@@ -980,6 +980,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                         children: [
                                           _addressToggleFlag
                                               ? TextFieldIconButton(
+                                                label: "Clear Button. Clears The Address Field Input.",
                                                   key: const Key(
                                                       "sendViewClearAddressFieldButtonKey"),
                                                   onTap: () {
@@ -996,6 +997,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                   child: const XIcon(),
                                                 )
                                               : TextFieldIconButton(
+                                            label: "Paste Button. Pastes From Clipboard To Address Field Input.",
                                                   key: const Key(
                                                       "sendViewPasteAddressFieldButtonKey"),
                                                   onTap: () async {
@@ -1045,6 +1047,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                 ),
                                           if (sendToController.text.isEmpty)
                                             TextFieldIconButton(
+                                              label: "Address Book Button. Opens Address Book For Address Field.",
                                               key: const Key(
                                                   "sendViewAddressBookButtonKey"),
                                               onTap: () {
@@ -1057,6 +1060,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                             ),
                                           if (sendToController.text.isEmpty)
                                             TextFieldIconButton(
+                                              label: "Scan QR Button. Opens Camera For Scanning QR Code.",
                                               key: const Key(
                                                   "sendViewScanQrButtonKey"),
                                               onTap: () async {
