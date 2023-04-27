@@ -8,7 +8,10 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import 'manage_themes.dart';
 
 class AppearanceSettingsView extends ConsumerWidget {
   const AppearanceSettingsView({Key? key}) : super(key: key);
@@ -128,6 +131,14 @@ class AppearanceSettingsView extends ConsumerWidget {
                                         padding: EdgeInsets.all(10),
                                         child: ThemeOptionsWidget(),
                                       ),
+                                      SecondaryButton(
+                                        label: "Add more themes",
+                                        onPressed: () {
+                                          Navigator.of(context).pushNamed(
+                                            ManageThemesView.routeName,
+                                          );
+                                        },
+                                      )
                                     ],
                                   ),
                                 ],
