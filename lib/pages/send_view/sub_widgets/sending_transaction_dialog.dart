@@ -113,7 +113,7 @@ class _RestoringDialogState extends State<SendingTransactionDialog> {
 }
 
 class ProgressAndSuccessController {
-  late VoidCallback triggerSuccess;
+  VoidCallback? triggerSuccess;
 }
 
 class ProgressAndSuccess extends StatefulWidget {

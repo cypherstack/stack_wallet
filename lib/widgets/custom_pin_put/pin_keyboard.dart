@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -276,6 +277,7 @@ class PinKeyboard extends StatelessWidget {
 
   void _numberHandler(String number) {
     onNumberKeyPressed.call(number);
+    HapticFeedback.lightImpact();
   }
 
   @override

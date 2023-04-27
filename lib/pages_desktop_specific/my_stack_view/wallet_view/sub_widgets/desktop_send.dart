@@ -262,11 +262,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         final wallet = manager.wallet as PaynymWalletInterface;
         final paymentCode = PaymentCode.fromPaymentCode(
           widget.accountLite!.code,
-          wallet.networkType,
+          networkType: wallet.networkType,
         );
         final feeRate = ref.read(feeRateTypeStateProvider);
         txDataFuture = wallet.preparePaymentCodeSend(
           paymentCode: paymentCode,
+          isSegwit: widget.accountLite!.segwit,
           amount: amount,
           args: {
             "feeRate": feeRate,

@@ -9,7 +9,7 @@ Here you will find instructions on how to install the necessary tools for buildi
 
 The following prerequisites can be installed with the setup script [`scripts/setup.sh`](./../scripts/setup.sh) or manually as described below:
 
-- Flutter 3.7.6 [(install manually or with git, do not install with snap)](https://docs.flutter.dev/get-started/install)
+- Flutter 3.7.11 [(install manually or with git, do not install with snap)](https://docs.flutter.dev/get-started/install)
 - Dart SDK Requirement (>=2.19.0, up until <3.0.0) (normally included with a flutter install)
 - Android setup ([Android Studio](https://developer.android.com/studio) and subsequent dependencies)
 
@@ -41,11 +41,17 @@ sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-
 Install [Rust](https://www.rust-lang.org/tools/install) with command:
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+rustup install 1.67.1
+rustup default 1.67.1
 ```
 
 Install the additional components for Rust:
 ```
-cargo install cargo-ndk
+cargo install cargo-ndk --version 2.12.7
+```
+Android specific dependencies:
+```
+sudo apt-get install libc6-dev-i386
 rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
 ```
 Linux desktop specific dependencies:
