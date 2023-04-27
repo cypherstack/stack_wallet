@@ -102,21 +102,9 @@ class AppearanceSettingsView extends ConsumerWidget {
                           height: 10,
                         ),
                         RoundedWhiteContainer(
-                          padding: const EdgeInsets.all(0),
-                          child: RawMaterialButton(
-                            // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                            padding: const EdgeInsets.all(0),
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                Constants.size.circularBorderRadius,
-                              ),
-                            ),
-                            onPressed: null,
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Row(
+                          child: Column(
+                            children: [
+                              Row(
                                 children: [
                                   Column(
                                     crossAxisAlignment:
@@ -127,23 +115,29 @@ class AppearanceSettingsView extends ConsumerWidget {
                                         style: STextStyles.titleBold12(context),
                                         textAlign: TextAlign.left,
                                       ),
+                                      const SizedBox(
+                                        height: 12,
+                                      ),
                                       const Padding(
-                                        padding: EdgeInsets.all(10),
+                                        padding: EdgeInsets.all(4),
                                         child: ThemeOptionsWidget(),
                                       ),
-                                      SecondaryButton(
-                                        label: "Add more themes",
-                                        onPressed: () {
-                                          Navigator.of(context).pushNamed(
-                                            ManageThemesView.routeName,
-                                          );
-                                        },
-                                      )
                                     ],
                                   ),
                                 ],
                               ),
-                            ),
+                              const SizedBox(
+                                height: 12,
+                              ),
+                              SecondaryButton(
+                                label: "Add more themes",
+                                onPressed: () {
+                                  Navigator.of(context).pushNamed(
+                                    ManageThemesView.routeName,
+                                  );
+                                },
+                              )
+                            ],
                           ),
                         ),
                       ],
