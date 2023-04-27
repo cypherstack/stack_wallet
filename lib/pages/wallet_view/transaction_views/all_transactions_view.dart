@@ -852,6 +852,8 @@ class _DesktopTransactionCardRowState
         prefix = "-";
       } else if (_transaction.type == TransactionType.incoming) {
         prefix = "+";
+      } else {
+        prefix = "";
       }
     } else {
       prefix = "";

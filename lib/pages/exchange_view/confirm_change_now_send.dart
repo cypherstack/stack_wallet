@@ -66,6 +66,9 @@ class _ConfirmChangeNowSendViewState
   Future<void> _attemptSend(BuildContext context) async {
     final manager =
         ref.read(walletsChangeNotifierProvider).getManager(walletId);
+
+    final sendProgressController = ProgressAndSuccessController();
+
     unawaited(
       showDialog<void>(
         context: context,
@@ -74,6 +77,7 @@ class _ConfirmChangeNowSendViewState
         builder: (context) {
           return SendingTransactionDialog(
             coin: manager.coin,
+            controller: sendProgressController,
           );
         },
       ),
@@ -104,6 +108,9 @@ class _ConfirmChangeNowSendViewState
         txidFuture,
         time,
       ]);
+
+      sendProgressController.triggerSuccess?.call();
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       txid = results.first as String;
 

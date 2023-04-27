@@ -447,7 +447,7 @@ class _AddNewPaynymFollowViewState
                 child: PaynymCard(
                   key: UniqueKey(),
                   label: _searchResult!.nymName,
-                  paymentCodeString: _searchResult!.codes.first.code,
+                  paymentCodeString: _searchResult!.nonSegwitPaymentCode.code,
                   walletId: widget.walletId,
                 ),
               ),

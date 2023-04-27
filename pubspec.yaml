@@ -11,7 +11,7 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.7.2+162
+version: 1.7.4+164
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
@@ -60,7 +60,7 @@ dependencies:
   bip47:
     git:
       url: https://github.com/cypherstack/bip47.git
-      ref: 48dd65f88822fba8543826274f6d51c17f735f93
+      ref: 38847255d035c0f6ec5bc93d19130ec804cf90e9
 
   # Utility plugins
 #  provider: ^6.0.1
@@ -248,7 +248,6 @@ flutter:
     - assets/svg/chevron-up.svg
     - assets/svg/lock-keyhole.svg
     - assets/svg/lock-open.svg
-    - assets/svg/rotate-exclamation.svg
     - assets/svg/folder-down.svg
     - assets/svg/network-wired.svg
     - assets/svg/network-wired-2.svg
@@ -381,6 +380,9 @@ flutter:
     # lottie animations
     # basic
     - assets/lottie/test2.json
+    - assets/lottie/icon_send.json
+    - assets/lottie/loader_and_checkmark.json
+    - assets/lottie/arrow_rotate.json
 
     # gifs
     - assets/gif/

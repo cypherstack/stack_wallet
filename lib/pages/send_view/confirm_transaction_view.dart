@@ -80,6 +80,9 @@ class _ConfirmTransactionViewState
   Future<void> _attemptSend(BuildContext context) async {
     final manager =
         ref.read(walletsChangeNotifierProvider).getManager(walletId);
+
+    final sendProgressController = ProgressAndSuccessController();
+
     unawaited(
       showDialog<dynamic>(
         context: context,
@@ -88,6 +91,7 @@ class _ConfirmTransactionViewState
         builder: (context) {
           return SendingTransactionDialog(
             coin: manager.coin,
+            controller: sendProgressController,
           );
         },
       ),
@@ -130,6 +134,9 @@ class _ConfirmTransactionViewState
         txidFuture,
         time,
       ]);
+
+      sendProgressController.triggerSuccess?.call();
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       txid = results.first as String;
       ref.refresh(desktopUseUTXOs);

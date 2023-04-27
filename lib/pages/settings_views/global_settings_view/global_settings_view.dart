@@ -162,7 +162,7 @@ class GlobalSettingsView extends StatelessWidget {
                                   height: 8,
                                 ),
                                 SettingsListButton(
-                                  iconAssetName: Assets.svg.arrowRotate3,
+                                  iconAssetName: Assets.svg.arrowRotate,
                                   iconSize: 18,
                                   title: "Syncing preferences",
                                   onPressed: () {

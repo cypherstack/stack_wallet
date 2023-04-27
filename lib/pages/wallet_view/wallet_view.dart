@@ -44,7 +44,6 @@ import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
@@ -285,12 +284,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
             .tickerEqualToAnyExchangeNameName(coin.ticker)
             .findFirst();
       } catch (_) {
-        _future = ExchangeDataLoadingService.instance
-            .init()
-            .then(
-              (_) => ExchangeDataLoadingService.instance.loadAll(),
-            )
-            .then((_) => ExchangeDataLoadingService.instance.isar.currencies
+        _future = ExchangeDataLoadingService.instance.loadAll().then((_) =>
+            ExchangeDataLoadingService.instance.isar.currencies
                 .where()
                 .tickerEqualToAnyExchangeNameName(coin.ticker)
                 .findFirst());
@@ -918,7 +913,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             manager.wallet as PaynymWalletInterface;
 
                         final code = await paynymInterface.getPaymentCode(
-                            DerivePathTypeExt.primaryFor(manager.coin));
+                          isSegwit: false,
+                        );
 
                         final account = await ref
                             .read(paynymAPIProvider)
@@ -934,7 +930,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
                           // check if account exists and for matching code to see if claimed
                           if (account.value != null &&
-                              account.value!.codes.first.claimed) {
+                              account.value!.nonSegwitPaymentCode.claimed &&
+                              account.value!.segwit) {
                             ref.read(myPaynymAccountStateProvider.state).state =
                                 account.value!;
 

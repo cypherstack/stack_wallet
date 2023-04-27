@@ -46,9 +46,7 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
           });
         };
       }
-      ExchangeDataLoadingService.instance
-          .init()
-          .then((_) => ExchangeDataLoadingService.instance.loadAll());
+      ExchangeDataLoadingService.instance.loadAll();
     } else if (ExchangeDataLoadingService.instance.isLoading &&
         ExchangeDataLoadingService.currentCacheVersion <
             ExchangeDataLoadingService.cacheVersion) {

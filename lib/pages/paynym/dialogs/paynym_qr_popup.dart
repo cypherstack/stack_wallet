@@ -55,7 +55,7 @@ class PaynymQrPopup extends StatelessWidget {
             child: Row(
               children: [
                 PayNymBot(
-                  paymentCodeString: paynymAccount.codes.first.code,
+                  paymentCodeString: paynymAccount.nonSegwitPaymentCode.code,
                   size: isDesktop ? 56 : 36,
                 ),
                 const SizedBox(
@@ -108,7 +108,7 @@ class PaynymQrPopup extends StatelessWidget {
                           height: 6,
                         ),
                         Text(
-                          paynymAccount.codes.first.code,
+                          paynymAccount.nonSegwitPaymentCode.code,
                           style: isDesktop
                               ? STextStyles.desktopTextSmall(context)
                               : STextStyles.infoSmall(context).copyWith(
@@ -127,7 +127,7 @@ class PaynymQrPopup extends StatelessWidget {
                           onTap: () async {
                             await Clipboard.setData(
                               ClipboardData(
-                                text: paynymAccount.codes.first.code,
+                                text: paynymAccount.nonSegwitPaymentCode.code,
                               ),
                             );
                             unawaited(
@@ -150,7 +150,7 @@ class PaynymQrPopup extends StatelessWidget {
                 QrImage(
                   padding: const EdgeInsets.all(0),
                   size: 130,
-                  data: paynymAccount.codes.first.code,
+                  data: paynymAccount.nonSegwitPaymentCode.code,
                   foregroundColor:
                       Theme.of(context).extension<StackColors>()!.textDark,
                 ),
