@@ -20,6 +20,8 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
+import 'package:stackwallet/widgets/exchange/trocador/trocador_kyc_info_button.dart';
+import 'package:stackwallet/widgets/exchange/trocador/trocador_rating_type_enum.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class ExchangeProviderOptions extends ConsumerStatefulWidget {
@@ -652,7 +654,7 @@ class _ExchangeProviderOptionsState
                             width: isDesktop ? 32 : 24,
                             height: isDesktop ? 32 : 24,
                             child: SvgPicture.asset(
-                              Assets.exchange.majesticBankBlue,
+                              Assets.exchange.trocador,
                               width: isDesktop ? 32 : 24,
                               height: isDesktop ? 32 : 24,
                             ),
@@ -804,6 +806,9 @@ class _ExchangeProviderOptionsState
                                 ),
                             ],
                           ),
+                        ),
+                        const TrocadorKYCInfoButton(
+                          kycType: TrocadorKYCType.a,
                         ),
                       ],
                     ),

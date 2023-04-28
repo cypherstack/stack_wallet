@@ -63,6 +63,7 @@ class _EXCHANGE {
   String get simpleSwap => "${_path}simpleswap-icon.svg";
   String get majesticBankBlue => "${_path}mb_blue.svg";
   String get majesticBankGreen => "${_path}mb_green.svg";
+  String get trocador => "${_path}trocador.svg";
 }
 
 class _BUY {
@@ -284,6 +285,11 @@ class _SVG {
   String get messageQuestion => "assets/svg/message-question-1.svg";
   String get list => "assets/svg/list-ul.svg";
   String get unclaimedPaynym => "assets/svg/unclaimed.png";
+
+  String get trocadorRatingA => "assets/svg/trocador_rating_a.svg";
+  String get trocadorRatingB => "assets/svg/trocador_rating_b.svg";
+  String get trocadorRatingC => "assets/svg/trocador_rating_c.svg";
+  String get trocadorRatingD => "assets/svg/trocador_rating_d.svg";
 
 // TODO provide proper assets
   String get bitcoinTestnet => "assets/svg/coin_icons/Bitcoin.svg";
