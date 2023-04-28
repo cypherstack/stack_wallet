@@ -24,6 +24,11 @@ abstract class Exchange {
       case TrocadorExchange.exchangeName:
         return TrocadorExchange.instance;
       default:
+        final split = name.split(" ");
+        if (split.length >= 2) {
+          // silly way to check for 'Trocador ($providerName)'
+          return fromName(split.first);
+        }
         throw ArgumentError("Unknown exchange name");
     }
   }
