@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:bech32/bech32.dart';
 import 'package:bip32/bip32.dart' as bip32;
@@ -377,7 +378,7 @@ class BitcoinCashWallet extends CoinServiceAPI
         level: LogLevel.Info);
   }
 
-  Future<Tuple2<List<isar_models.Address>, DerivePathType>> _checkGaps(
+  Future<Tuple3<List<isar_models.Address>, DerivePathType, int>> _checkGaps(
     int maxNumberOfIndexesToCheck,
     int maxUnusedAddressGap,
     int txCountBatchSize,
@@ -387,6 +388,8 @@ class BitcoinCashWallet extends CoinServiceAPI
   ) async {
     List<isar_models.Address> addressArray = [];
     int gapCounter = 0;
+    int highestIndexWithHistory = 0;
+
     for (int index = 0;
         index < maxNumberOfIndexesToCheck && gapCounter < maxUnusedAddressGap;
         index += txCountBatchSize) {
@@ -460,6 +463,10 @@ class BitcoinCashWallet extends CoinServiceAPI
         if (count > 0) {
           iterationsAddressArray.add(txCountCallArgs["${_id}_$k"]!);
 
+          // update highest
+          highestIndexWithHistory = index + k;
+
+          // reset counter
           gapCounter = 0;
         }
 
@@ -471,7 +478,7 @@ class BitcoinCashWallet extends CoinServiceAPI
       // cache all the transactions while waiting for the current function to finish.
       unawaited(getTransactionCacheEarly(iterationsAddressArray));
     }
-    return Tuple2(addressArray, type);
+    return Tuple3(addressArray, type, highestIndexWithHistory);
   }
 
   Future<void> getTransactionCacheEarly(List<String> allAddresses) async {
@@ -519,9 +526,9 @@ class BitcoinCashWallet extends CoinServiceAPI
       deriveTypes.add(DerivePathType.bch44);
     }
 
-    final List<Future<Tuple2<List<isar_models.Address>, DerivePathType>>>
+    final List<Future<Tuple3<List<isar_models.Address>, DerivePathType, int>>>
         receiveFutures = [];
-    final List<Future<Tuple2<List<isar_models.Address>, DerivePathType>>>
+    final List<Future<Tuple3<List<isar_models.Address>, DerivePathType, int>>>
         changeFutures = [];
 
     const receiveChain = 0;
@@ -579,6 +586,8 @@ class BitcoinCashWallet extends CoinServiceAPI
       final changeResults = futuresResult[1];
 
       final List<isar_models.Address> addressesToStore = [];
+
+      int highestReceivingIndexWithHistory = 0;
       // If restoring a wallet that never received any funds, then set receivingArray manually
       // If we didn't do this, it'd store an empty array
       for (final tuple in receiveResults) {
@@ -590,10 +599,15 @@ class BitcoinCashWallet extends CoinServiceAPI
           );
           addressesToStore.add(address);
         } else {
+          highestReceivingIndexWithHistory = max(
+            tuple.item3,
+            highestReceivingIndexWithHistory,
+          );
           addressesToStore.addAll(tuple.item1);
         }
       }
 
+      int highestChangeIndexWithHistory = 0;
       // If restoring a wallet that never sent any funds with change, then set changeArray
       // manually. If we didn't do this, it'd store an empty array.
       for (final tuple in changeResults) {
@@ -605,9 +619,21 @@ class BitcoinCashWallet extends CoinServiceAPI
           );
           addressesToStore.add(address);
         } else {
+          highestChangeIndexWithHistory = max(
+            tuple.item3,
+            highestChangeIndexWithHistory,
+          );
           addressesToStore.addAll(tuple.item1);
         }
       }
+
+      // remove extra addresses to help minimize risk of creating a large gap
+      addressesToStore.removeWhere((e) =>
+          e.subType == isar_models.AddressSubType.change &&
+          e.derivationIndex > highestChangeIndexWithHistory);
+      addressesToStore.removeWhere((e) =>
+          e.subType == isar_models.AddressSubType.receiving &&
+          e.derivationIndex > highestReceivingIndexWithHistory);
 
       if (isRescan) {
         await db.updateOrPutAddresses(addressesToStore);
@@ -615,7 +641,10 @@ class BitcoinCashWallet extends CoinServiceAPI
         await db.putAddresses(addressesToStore);
       }
 
-      await _updateUTXOs();
+      await Future.wait([
+        _refreshTransactions(),
+        _updateUTXOs(),
+      ]);
 
       await Future.wait([
         updateCachedId(walletId),
