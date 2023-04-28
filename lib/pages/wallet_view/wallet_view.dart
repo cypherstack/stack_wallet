@@ -473,7 +473,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       child: AspectRatio(
                         aspectRatio: 1,
                         child: AppBarIconButton(
-                          label: "Network Button. Takes To Network Status Page.",
+                          semanticsLabel: "Network Button. Takes To Network Status Page.",
                           key: const Key("walletViewRadioButton"),
                           size: 36,
                           shadows: const [],
@@ -503,7 +503,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       child: AspectRatio(
                         aspectRatio: 1,
                         child: AppBarIconButton(
-                          label: "Notifications Button. Takes To Notifications Page.",
+                          semanticsLabel: "Notifications Button. Takes To Notifications Page.",
                           key: const Key("walletViewAlertsButton"),
                           size: 36,
                           shadows: const [],
@@ -571,7 +571,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       child: AspectRatio(
                         aspectRatio: 1,
                         child: AppBarIconButton(
-                          label: "Settings Button. Takes To Wallet Settings Page.",
+                          semanticsLabel: "Settings Button. Takes To Wallet Settings Page.",
                           key: const Key("walletViewSettingsButton"),
                           size: 36,
                           shadows: const [],

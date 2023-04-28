@@ -13,7 +13,7 @@ class AppBarIconButton extends StatelessWidget {
     // this.circularBorderRadius = 10.0,
     this.size = 36.0,
     this.shadows = const [],
-    this.label = "Button",
+    this.semanticsLabel = "Button",
   }) : super(key: key);
 
   final Widget icon;
@@ -22,7 +22,7 @@ class AppBarIconButton extends StatelessWidget {
   // final double circularBorderRadius;
   final double size;
   final List<BoxShadow> shadows;
-  final String label;
+  final String semanticsLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +36,7 @@ class AppBarIconButton extends StatelessWidget {
       ),
       child: Semantics(
           excludeSemantics: true,
-          label: label,
+          label: semanticsLabel,
           child: MaterialButton(
           splashColor: Theme.of(context).extension<StackColors>()!.highlight,
           padding: EdgeInsets.zero,
@@ -59,14 +59,14 @@ class AppBarBackButton extends StatelessWidget {
     this.isCompact = false,
     this.size,
     this.iconSize,
-    this.label = "Back Button. Takes Back To Previous Page.",
+    this.semanticsLabel = "Back Button. Takes Back To Previous Page.",
   }) : super(key: key);
 
   final VoidCallback? onPressed;
   final bool isCompact;
   final double? size;
   final double? iconSize;
-  final String label;
+  final String semanticsLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +79,7 @@ class AppBarBackButton extends StatelessWidget {
             )
           : const EdgeInsets.all(10),
       child: AppBarIconButton(
-        label: label,
+        semanticsLabel: semanticsLabel,
           size: size ??
               (isDesktop
                   ? isCompact

@@ -202,12 +202,12 @@ class CustomKey extends StatelessWidget {
     Key? key,
     required this.onPressed,
     this.iconAssetName,
-    this.customKeyLabel = "Button",
+    this.semanticsLabel = "Button",
   }) : super(key: key);
 
   final VoidCallback onPressed;
   final String? iconAssetName;
-  final String customKeyLabel;
+  final String semanticsLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -220,7 +220,7 @@ class CustomKey extends StatelessWidget {
         shadows: const [],
       ),
       child: Semantics(
-        label: customKeyLabel,
+        label: semanticsLabel,
         excludeSemantics: true,
         child: MaterialButton(
           // splashColor: Theme.of(context).extension<StackColors>()!.highlight,

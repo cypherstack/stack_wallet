@@ -248,7 +248,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                         ),
                         CustomPinPut(
                           customKey: CustomKey(
-                            customKeyLabel: Platform.isIOS
+                            semanticsLabel: Platform.isIOS
                                 ? "Face ID Button. Checks Face ID."
                                 : "Fingerprint Button. Checks Fingerprint."
                             ,
