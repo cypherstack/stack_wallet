@@ -32,9 +32,9 @@ class CustomPinPutState extends State<CustomPinPut>
       } catch (e) {
         _textControllerValue = ValueNotifier(_controller.value.text);
       }
-      if (pin.length == widget.fieldsCount) {
-        widget.onSubmit?.call(pin);
-      }
+      // if (pin.length == widget.fieldsCount) {
+      // widget.onSubmit?.call(pin);
+      // }
     }
   }
 
