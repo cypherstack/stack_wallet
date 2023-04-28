@@ -64,6 +64,7 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/about_view
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/advanced_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/appearance_settings_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/manage_themes.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/system_brightness_theme_selection_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/currency_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/delete_account_view.dart';
@@ -1558,6 +1559,12 @@ class RouteGenerator {
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const AppearanceOptionSettings(),
+            settings: RouteSettings(name: settings.name));
+
+      case ManageThemesView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const ManageThemesView(),
             settings: RouteSettings(name: settings.name));
 
       case AdvancedSettings.routeName:

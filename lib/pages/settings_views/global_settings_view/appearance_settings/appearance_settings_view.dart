@@ -8,7 +8,10 @@ import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import 'manage_themes.dart';
 
 class AppearanceSettingsView extends ConsumerWidget {
   const AppearanceSettingsView({Key? key}) : super(key: key);
@@ -99,21 +102,9 @@ class AppearanceSettingsView extends ConsumerWidget {
                           height: 10,
                         ),
                         RoundedWhiteContainer(
-                          padding: const EdgeInsets.all(0),
-                          child: RawMaterialButton(
-                            // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                            padding: const EdgeInsets.all(0),
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                Constants.size.circularBorderRadius,
-                              ),
-                            ),
-                            onPressed: null,
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Row(
+                          child: Column(
+                            children: [
+                              Row(
                                 children: [
                                   Column(
                                     crossAxisAlignment:
@@ -124,15 +115,29 @@ class AppearanceSettingsView extends ConsumerWidget {
                                         style: STextStyles.titleBold12(context),
                                         textAlign: TextAlign.left,
                                       ),
+                                      const SizedBox(
+                                        height: 12,
+                                      ),
                                       const Padding(
-                                        padding: EdgeInsets.all(10),
+                                        padding: EdgeInsets.all(4),
                                         child: ThemeOptionsWidget(),
                                       ),
                                     ],
                                   ),
                                 ],
                               ),
-                            ),
+                              const SizedBox(
+                                height: 12,
+                              ),
+                              SecondaryButton(
+                                label: "Add more themes",
+                                onPressed: () {
+                                  Navigator.of(context).pushNamed(
+                                    ManageThemesView.routeName,
+                                  );
+                                },
+                              )
+                            ],
                           ),
                         ),
                       ],

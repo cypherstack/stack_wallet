@@ -154,16 +154,16 @@ class _XPubViewState extends ConsumerState<XPubView> {
                       rootNavigator: true,
                     ).pop,
                   ),
-                  AnimatedSize(
-                    duration: const Duration(
-                      milliseconds: 150,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
-                      child: child,
-                    ),
-                  ),
                 ],
+              ),
+              AnimatedSize(
+                duration: const Duration(
+                  milliseconds: 150,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
+                  child: child,
+                ),
               ),
             ],
           ),

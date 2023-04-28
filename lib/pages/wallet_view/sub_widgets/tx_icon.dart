@@ -1,10 +1,11 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/models/isar/sw_theme.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class TxIcon extends ConsumerWidget {
   const TxIcon({
@@ -20,8 +21,21 @@ class TxIcon extends ConsumerWidget {
 
   static const Size size = Size(32, 32);
 
+  // String _getBundleAssetName(
+  //     bool isCancelled, bool isReceived, bool isPending, BuildContext context) {
+  //   if (!isReceived && transaction.subType == TransactionSubType.mint) {
+  //     if (isCancelled) {
+  //       return Assets.svg.anonymizeFailed;
+  //     }
+  //     if (isPending) {
+  //       return Assets.svg.anonymizePending;
+  //     }
+  //     return Assets.svg.anonymize;
+  //   }
+  // }
+
   String _getAssetName(
-      bool isCancelled, bool isReceived, bool isPending, WidgetRef ref) {
+      bool isCancelled, bool isReceived, bool isPending, ThemeAssets assets) {
     if (!isReceived && transaction.subType == TransactionSubType.mint) {
       if (isCancelled) {
         return Assets.svg.anonymizeFailed;
@@ -34,20 +48,20 @@ class TxIcon extends ConsumerWidget {
 
     if (isReceived) {
       if (isCancelled) {
-        return ref.watch(themeProvider).assets.receiveCancelled;
+        return assets.receive;
       }
       if (isPending) {
-        return ref.watch(themeProvider).assets.receivePending;
+        return assets.receivePending;
       }
-      return ref.watch(themeProvider).assets.receive;
+      return assets.receive;
     } else {
       if (isCancelled) {
-        return ref.watch(themeProvider).assets.sendCancelled;
+        return assets.sendCancelled;
       }
       if (isPending) {
-        return ref.watch(themeProvider).assets.sendPending;
+        return assets.sendPending;
       }
-      return ref.watch(themeProvider).assets.send;
+      return assets.send;
     }
   }
 
@@ -67,7 +81,7 @@ class TxIcon extends ConsumerWidget {
               currentHeight,
               coin.requiredConfirmations,
             ),
-            ref,
+            ref.watch(themeProvider).assets as ThemeAssets,
           ),
           width: size.width,
           height: size.height,
