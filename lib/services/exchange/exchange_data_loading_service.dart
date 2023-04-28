@@ -7,6 +7,7 @@ import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
+import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
 import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
@@ -128,6 +129,7 @@ class ExchangeDataLoadingService {
           // loadSimpleswapFixedRateCurrencies(ref),
           // loadSimpleswapFloatingRateCurrencies(ref),
           loadMajesticBankCurrencies(),
+          loadTrocadorCurrencies(),
         ]);
 
         // quicker to load available currencies on the fly for a specific base currency
@@ -297,6 +299,28 @@ class ExchangeDataLoadingService {
     } else {
       Logging.instance.log(
         "loadMajesticBankCurrencies: $responseCurrencies",
+        level: LogLevel.Warning,
+      );
+    }
+  }
+
+  Future<void> loadTrocadorCurrencies() async {
+    final exchange = TrocadorExchange.instance;
+    final responseCurrencies = await exchange.getAllCurrencies(false);
+
+    if (responseCurrencies.value != null) {
+      await isar.writeTxn(() async {
+        final idsToDelete = await isar.currencies
+            .where()
+            .exchangeNameEqualTo(TrocadorExchange.exchangeName)
+            .idProperty()
+            .findAll();
+        await isar.currencies.deleteAll(idsToDelete);
+        await isar.currencies.putAll(responseCurrencies.value!);
+      });
+    } else {
+      Logging.instance.log(
+        "loadTrocadorCurrencies: $responseCurrencies",
         level: LogLevel.Warning,
       );
     }
