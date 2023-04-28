@@ -202,7 +202,7 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
       case ThemeType.light:
         return Assets.svg.themeLight;
       case ThemeType.dark:
-        return Assets.svg.themeDark;
+        return ref.watch(themeProvider).assets.themePreview;
       case ThemeType.darkChans:
         return Assets.svg.themeDarkChan;
       case ThemeType.oceanBreeze:
