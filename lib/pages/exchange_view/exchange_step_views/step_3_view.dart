@@ -271,24 +271,26 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                                   ? model.refundAddress!
                                                   : "",
                                               refundExtraId: "",
-                                              rateId: model.rateId,
+                                              estimate: model.estimate,
                                               reversed: model.reversed,
                                             );
 
                                     if (response.value == null) {
                                       if (mounted) {
                                         Navigator.of(context).pop();
-                                      }
 
-                                      unawaited(showDialog<void>(
-                                        context: context,
-                                        barrierDismissible: true,
-                                        builder: (_) => StackDialog(
-                                          title: "Failed to create trade",
-                                          message:
-                                              response.exception?.toString(),
-                                        ),
-                                      ));
+                                        unawaited(
+                                          showDialog<void>(
+                                            context: context,
+                                            barrierDismissible: true,
+                                            builder: (_) => StackDialog(
+                                              title: "Failed to create trade",
+                                              message: response.exception
+                                                  ?.toString(),
+                                            ),
+                                          ),
+                                        );
+                                      }
                                       return;
                                     }
 

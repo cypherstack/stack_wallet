@@ -69,7 +69,7 @@ abstract class Exchange {
     String? extraId,
     required String addressRefund,
     required String refundExtraId,
-    String? rateId,
+    Estimate? estimate,
     required bool reversed,
   });
 }

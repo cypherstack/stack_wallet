@@ -31,7 +31,7 @@ class ChangeNowExchange extends Exchange {
     String? extraId,
     required String addressRefund,
     required String refundExtraId,
-    String? rateId,
+    Estimate? estimate,
     required bool reversed,
   }) async {
     late final ExchangeResponse<ExchangeTransaction> response;
@@ -41,7 +41,7 @@ class ChangeNowExchange extends Exchange {
         toTicker: to,
         receivingAddress: addressTo,
         amount: amount,
-        rateId: rateId!,
+        rateId: estimate!.rateId!,
         extraId: extraId ?? "",
         refundAddress: addressRefund,
         refundExtraId: refundExtraId,

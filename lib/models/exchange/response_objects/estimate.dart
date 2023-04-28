@@ -7,6 +7,7 @@ class Estimate {
   final bool reversed;
   final String? warningMessage;
   final String? rateId;
+  final String? exchangeProvider;
 
   Estimate({
     required this.estimatedAmount,
@@ -14,6 +15,7 @@ class Estimate {
     required this.reversed,
     this.warningMessage,
     this.rateId,
+    this.exchangeProvider,
   });
 
   factory Estimate.fromMap(Map<String, dynamic> map) {
@@ -38,6 +40,7 @@ class Estimate {
       "reversed": reversed,
       "warningMessage": warningMessage,
       "rateId": rateId,
+      "exchangeProvider": exchangeProvider,
     };
   }
 

@@ -30,7 +30,7 @@ class SimpleSwapExchange extends Exchange {
     String? extraId,
     required String addressRefund,
     required String refundExtraId,
-    String? rateId,
+    Estimate? estimate,
     required bool reversed,
   }) async {
     return await SimpleSwapAPI.instance.createNewExchange(
