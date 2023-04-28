@@ -98,24 +98,24 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
           extraId: null,
           addressRefund: ref.read(desktopExchangeModelProvider)!.refundAddress!,
           refundExtraId: "",
-          rateId: ref.read(desktopExchangeModelProvider)!.rateId,
+          estimate: ref.read(desktopExchangeModelProvider)!.estimate,
           reversed: ref.read(desktopExchangeModelProvider)!.reversed,
         );
 
     if (response.value == null) {
       if (mounted) {
         Navigator.of(context).pop();
-      }
 
-      unawaited(
-        showDialog<void>(
-          context: context,
-          barrierDismissible: true,
-          builder: (_) => SimpleDesktopDialog(
-              title: "Failed to create trade",
-              message: response.exception?.toString() ?? ""),
-        ),
-      );
+        unawaited(
+          showDialog<void>(
+            context: context,
+            barrierDismissible: true,
+            builder: (_) => SimpleDesktopDialog(
+                title: "Failed to create trade",
+                message: response.exception?.toString() ?? ""),
+          ),
+        );
+      }
       return false;
     }
 
