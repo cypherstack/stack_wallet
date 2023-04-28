@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:http/http.dart' as http;
 import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
@@ -34,7 +35,7 @@ abstract class TrocadorAPI {
   static Future<dynamic> _makeGetRequest(Uri uri) async {
     int code = -1;
     try {
-      // print("URI: $uri");
+      debugPrint("URI: $uri");
       final response = await http.get(
         uri,
         headers: {'Content-Type': 'application/json'},
@@ -42,8 +43,8 @@ abstract class TrocadorAPI {
 
       code = response.statusCode;
 
-      // print("CODE: $code");
-      // print("BODY: ${response.body}");
+      debugPrint("CODE: $code");
+      debugPrint("BODY: ${response.body}");
 
       final json = jsonDecode(response.body);
 
