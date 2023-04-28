@@ -14,8 +14,8 @@ class TrocadorTradeNew {
   final String provider;
   final bool fixed;
   final String status;
-  final String? addressProvider;
-  final String? addressProviderMemo;
+  final String addressProvider;
+  final String addressProviderMemo;
   final String addressUser;
   final String addressUserMemo;
   final String refundAddress;

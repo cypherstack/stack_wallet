@@ -34,7 +34,7 @@ abstract class TrocadorAPI {
   static Future<dynamic> _makeGetRequest(Uri uri) async {
     int code = -1;
     try {
-      print("URI: $uri");
+      // print("URI: $uri");
       final response = await http.get(
         uri,
         headers: {'Content-Type': 'application/json'},
@@ -42,8 +42,8 @@ abstract class TrocadorAPI {
 
       code = response.statusCode;
 
-      print("CODE: $code");
-      print("BODY: ${response.body}");
+      // print("CODE: $code");
+      // print("BODY: ${response.body}");
 
       final json = jsonDecode(response.body);
 
@@ -113,7 +113,7 @@ abstract class TrocadorAPI {
 
     try {
       final json = await _makeGetRequest(uri);
-      final map = Map<String, dynamic>.from(json as Map);
+      final map = Map<String, dynamic>.from((json as List).first as Map);
 
       return ExchangeResponse(value: TrocadorTrade.fromMap(map));
     } catch (e, s) {
@@ -128,7 +128,7 @@ abstract class TrocadorAPI {
   }
 
   /// get standard/floating rate
-  static Future<ExchangeResponse<dynamic>> getNewStandardRate({
+  static Future<ExchangeResponse<TrocadorRate>> getNewStandardRate({
     required bool isOnion,
     required String fromTicker,
     required String fromNetwork,
@@ -139,11 +139,12 @@ abstract class TrocadorAPI {
     final params = {
       "api_key": kTrocadorApiKey,
       "ref": kTrocadorRefCode,
-      "ticker_from": fromTicker,
+      "ticker_from": fromTicker.toLowerCase(),
       "network_from": fromNetwork,
-      "ticker_to": toTicker,
+      "ticker_to": toTicker.toLowerCase(),
       "network_to": toNetwork,
       "amount_from": fromAmount,
+      "payment": "false",
       "min_kycrating": minKYCRating,
       "markup": markup,
     };
@@ -152,7 +153,7 @@ abstract class TrocadorAPI {
   }
 
   /// get fixed rate/payment rate
-  static Future<ExchangeResponse<dynamic>> getNewPaymentRate({
+  static Future<ExchangeResponse<TrocadorRate>> getNewPaymentRate({
     required bool isOnion,
     required String fromTicker,
     required String fromNetwork,
@@ -163,11 +164,12 @@ abstract class TrocadorAPI {
     final params = {
       "api_key": kTrocadorApiKey,
       "ref": kTrocadorRefCode,
-      "ticker_from": fromTicker,
+      "ticker_from": fromTicker.toLowerCase(),
       "network_from": fromNetwork,
-      "ticker_to": toTicker,
+      "ticker_to": toTicker.toLowerCase(),
       "network_to": toNetwork,
       "amount_to": toAmount,
+      "payment": "true",
       "min_kycrating": minKYCRating,
       "markup": markup,
     };
@@ -221,10 +223,9 @@ abstract class TrocadorAPI {
     final Map<String, String> params = {
       "api_key": kTrocadorApiKey,
       "ref": kTrocadorRefCode,
-      "id": rateId ?? "",
-      "ticker_from": fromTicker,
+      "ticker_from": fromTicker.toLowerCase(),
       "network_from": fromNetwork,
-      "ticker_to": toTicker,
+      "ticker_to": toTicker.toLowerCase(),
       "network_to": toNetwork,
       "amount_from": fromAmount,
       "address": receivingAddress,
@@ -238,11 +239,16 @@ abstract class TrocadorAPI {
       "markup": markup,
     };
 
+    if (rateId != null) {
+      params["id"] = rateId;
+    }
+
     return await _getNewTrade(isOnion: isOnion, params: params);
   }
 
   static Future<ExchangeResponse<TrocadorTradeNew>> createNewPaymentRateTrade({
     required bool isOnion,
+    required String? rateId,
     required String fromTicker,
     required String fromNetwork,
     required String toTicker,
@@ -258,9 +264,9 @@ abstract class TrocadorAPI {
     final params = {
       "api_key": kTrocadorApiKey,
       "ref": kTrocadorRefCode,
-      "ticker_from": fromTicker,
+      "ticker_from": fromTicker.toLowerCase(),
       "network_from": fromNetwork,
-      "ticker_to": toTicker,
+      "ticker_to": toTicker.toLowerCase(),
       "network_to": toNetwork,
       "amount_to": toAmount,
       "address": receivingAddress,
@@ -273,6 +279,10 @@ abstract class TrocadorAPI {
       "min_kycrating": minKYCRating,
       "markup": markup,
     };
+
+    if (rateId != null) {
+      params["id"] = rateId;
+    }
 
     return await _getNewTrade(isOnion: isOnion, params: params);
   }

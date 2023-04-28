@@ -1,5 +1,4 @@
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/services/exchange/trocador/response_objects/trocador_quote.dart';
 
 class TrocadorTrade {
   final String tradeId;
@@ -23,7 +22,10 @@ class TrocadorTrade {
   final String refundAddressMemo;
   final String password;
   final String idProvider;
-  final List<TrocadorQuote> quotes;
+
+  // dynamic is the devil but this could be anything... because json.
+  final dynamic quotes;
+
   final bool payment;
 
   TrocadorTrade({
@@ -53,10 +55,6 @@ class TrocadorTrade {
   });
 
   factory TrocadorTrade.fromMap(Map<String, dynamic> map) {
-    final list =
-        List<Map<String, dynamic>>.from(map['quotes']['quotes'] as List);
-    final quotes = list.map((quote) => TrocadorQuote.fromMap(quote)).toList();
-
     return TrocadorTrade(
       tradeId: map['trade_id'] as String,
       date: DateTime.parse(map['date'] as String),
@@ -79,14 +77,13 @@ class TrocadorTrade {
       refundAddressMemo: map['refund_address_memo'] as String,
       password: map['password'] as String,
       idProvider: map['id_provider'] as String,
-      quotes: quotes,
+      quotes: map['quotes'],
       payment: map['payment'] as bool,
     );
   }
 
   @override
   String toString() {
-    final quotesString = quotes.map((quote) => quote.toString()).join(', ');
     return 'TrocadorTrade( '
         'tradeId: $tradeId, '
         'date: $date, '
@@ -109,7 +106,7 @@ class TrocadorTrade {
         'refundAddressMemo: $refundAddressMemo, '
         'password: $password, '
         'idProvider: $idProvider, '
-        'quotes: [ $quotesString   ], '
+        'quotes: $quotes, '
         'payment: $payment '
         ')';
   }
