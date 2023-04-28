@@ -295,6 +295,27 @@ class Prefs extends ChangeNotifier {
   //   }
   // }
 
+  // randomize PIN
+
+  bool _randomizePIN = false;
+
+  bool get randomizePIN => _randomizePIN;
+
+  set randomizePIN(bool randomizePIN) {
+    if (_randomizePIN != randomizePIN) {
+      DB.instance.put<dynamic>(
+          boxName: DB.boxNamePrefs, key: "randomizePIN", value: randomizePIN);
+      _randomizePIN = randomizePIN;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getRandomizePIN() async {
+    return await DB.instance.get<dynamic>(
+            boxName: DB.boxNamePrefs, key: "randomizePIN") as bool? ??
+        false;
+  }
+
   // use biometrics
 
   bool _useBiometrics = false;
