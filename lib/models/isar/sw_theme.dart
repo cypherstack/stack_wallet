@@ -2057,73 +2057,73 @@ class ThemeAssets {
   }) {
     return ThemeAssets(
       bellNew:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["bell_new"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["bell_new"] as String}",
       personaIncognito:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["persona_incognito"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["persona_incognito"] as String}",
       personaEasy:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["persona_easy"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["persona_easy"] as String}",
       stack:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["stack"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["stack"] as String}",
       stackIcon:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["stack_icon"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["stack_icon"] as String}",
       receive:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["receive"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["receive"] as String}",
       receivePending:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["receive_pending"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["receive_pending"] as String}",
       receiveCancelled:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["receive_cancelled"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["receive_cancelled"] as String}",
       send:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["send"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["send"] as String}",
       sendPending:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["send_pending"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["send_pending"] as String}",
       sendCancelled:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["send_cancelled"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["send_cancelled"] as String}",
       themePreview:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]["theme_preview"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["theme_preview"] as String}",
       bitcoin:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['small']["bitcoin"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["bitcoin"] as String}",
       litecoin:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['small']["litecoin"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["litecoin"] as String}",
       bitcoincash:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['small']["bitcoincash"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["bitcoincash"] as String}",
       dogecoin:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['small']["dogecoin"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["dogecoin"] as String}",
       epicCash:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['small']["epicCash"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["epicCash"] as String}",
       ethereum:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['small']["ethereum"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["ethereum"] as String}",
       firo:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['small']["firo"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["firo"] as String}",
       monero:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['small']["monero"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["monero"] as String}",
       wownero:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['small']["wownero"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["wownero"] as String}",
       namecoin:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['small']["namecoin"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["namecoin"] as String}",
       particl:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['small']["particl"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["particl"] as String}",
       bitcoinImage:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['big']["bitcoin"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["bitcoin_image"] as String}",
       bitcoincashImage:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['big']["bitcoincash"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["bitcoincash_image"] as String}",
       dogecoinImage:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['big']["dogecoin"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["dogecoin_image"] as String}",
       epicCashImage:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['big']["epicCash"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["epicCash_image"] as String}",
       ethereumImage:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['big']["ethereum"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["ethereum_image"] as String}",
       firoImage:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['big']["firo"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["firo_image"] as String}",
       litecoinImage:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['big']["litecoin"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["litecoin_image"] as String}",
       moneroImage:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['big']["monero"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["monero_image"] as String}",
       wowneroImage:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['big']["wownero"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["wownero_image"] as String}",
       namecoinImage:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['big']["namecoin"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["namecoin_image"] as String}",
       particlImage:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["svg"]['coin_icons']['big']["particl"] as String}",
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["particl_image"] as String}",
     );
   }
 }
