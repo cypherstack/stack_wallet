@@ -304,6 +304,9 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                           ),
                           selectedFieldDecoration: _pinPutDecoration,
                           followingFieldDecoration: _pinPutDecoration,
+                          isRandom: ref
+                              .read(prefsChangeNotifierProvider)
+                              .randomizePIN,
                           onSubmit: (String pin) async {
                             _attempts++;
 

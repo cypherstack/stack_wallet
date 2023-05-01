@@ -244,6 +244,7 @@ class PinKeyboard extends ConsumerWidget {
     required this.onNumberKeyPressed,
     required this.onBackPressed,
     required this.onSubmitPressed,
+    required this.isRandom,
     this.backgroundColor,
     this.width = 264,
     this.height = 360,
@@ -257,6 +258,7 @@ class PinKeyboard extends ConsumerWidget {
   final double? width;
   final double? height;
   final CustomKey? customKey;
+  final bool isRandom;
 
   void _backHandler() {
     onBackPressed.call();
@@ -286,8 +288,9 @@ class PinKeyboard extends ConsumerWidget {
       "0",
     ];
 
-    // if (ref.read(prefsChangeNotifierProvider).randomizePIN == true)
-    list.shuffle();
+    // final isRandom = ref.read(prefsChangeNotifierProvider).randomizePIN;
+
+    if (isRandom) list.shuffle();
 
     return Container(
       width: width,

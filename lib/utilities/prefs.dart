@@ -19,6 +19,7 @@ class Prefs extends ChangeNotifier {
     if (!_initialized) {
       _currency = await _getPreferredCurrency();
       // _exchangeRateType = await _getExchangeRateType();
+      _randomizePIN = await _getRandomizePIN();
       _useBiometrics = await _getUseBiometrics();
       _hasPin = await _getHasPin();
       _language = await _getPreferredLanguage();

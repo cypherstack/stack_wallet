@@ -50,6 +50,9 @@ class CustomPinPutState extends State<CustomPinPut>
 
   @override
   Widget build(BuildContext context) {
+    // final bool randomize = ref
+    //     .read(prefsChangeNotifierProvider)
+    //     .randomizePIN;
     return SizedBox(
       width: widget.width,
       height: widget.height,
@@ -69,6 +72,7 @@ class CustomPinPutState extends State<CustomPinPut>
           ),
           Center(
             child: PinKeyboard(
+              isRandom: widget.isRandom,
               customKey: widget.customKey,
               onNumberKeyPressed: (number) {
                 if (_controller.text.length < widget.fieldsCount) {

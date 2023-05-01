@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackduo/providers/global/prefs_provider.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/security_views/security_view.dart';
+import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -123,6 +124,8 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
                           .background,
                       counterText: "",
                     ),
+                    isRandom:
+                        ref.read(prefsChangeNotifierProvider).randomizePIN,
                     submittedFieldDecoration: _pinPutDecoration.copyWith(
                       color: Theme.of(context)
                           .extension<StackColors>()!
@@ -188,6 +191,8 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
                           .background,
                       counterText: "",
                     ),
+                    isRandom:
+                        ref.read(prefsChangeNotifierProvider).randomizePIN,
                     submittedFieldDecoration: _pinPutDecoration.copyWith(
                       color: Theme.of(context)
                           .extension<StackColors>()!
