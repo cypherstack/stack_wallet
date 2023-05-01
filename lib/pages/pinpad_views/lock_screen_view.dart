@@ -224,6 +224,26 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // check prefs and hide if user has biometrics toggle off?
+                Padding(
+                  padding: const EdgeInsets.only(right: 40.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      if (ref.read(prefsChangeNotifierProvider).useBiometrics ==
+                          true)
+                        CustomTextButton(
+                          text: "Use biometrics",
+                          onTap: () async {
+                            await _checkUseBiometrics();
+                          },
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: 55,
+                ),
                 Shake(
                   animationDuration: const Duration(milliseconds: 700),
                   animationRange: 12,
