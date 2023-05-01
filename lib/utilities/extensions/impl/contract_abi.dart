@@ -20,13 +20,15 @@ extension ContractAbiExtensions on ContractAbi {
         final anonymous = json["anonymous"] as bool? ?? false;
         final List<EventComponent<dynamic>> components = [];
 
-        for (final input in json["inputs"] as List) {
-          components.add(
-            EventComponent(
-              _parseParam(input as Map),
-              input['indexed'] as bool? ?? false,
-            ),
-          );
+        if (json["inputs"] is List) {
+          for (final input in json["inputs"] as List) {
+            components.add(
+              EventComponent(
+                _parseParam(input as Map),
+                input['indexed'] as bool? ?? false,
+              ),
+            );
+          }
         }
 
         events.add(ContractEvent(anonymous, name, components));
