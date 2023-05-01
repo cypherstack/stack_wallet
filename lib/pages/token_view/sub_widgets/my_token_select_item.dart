@@ -14,6 +14,8 @@ import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/dialogs/basic_dialog.dart';
 import 'package:stackwallet/widgets/icon_widgets/eth_token_icon.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -36,6 +38,36 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
 
   late final CachedEthTokenBalance cachedBalance;
 
+  Future<bool> _loadTokenWallet(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    try {
+      await ref.read(tokenServiceProvider)!.initialize();
+      return true;
+    } catch (_) {
+      await showDialog<void>(
+        barrierDismissible: false,
+        context: context,
+        builder: (context) => BasicDialog(
+          title: "Failed to load token data",
+          desktopHeight: double.infinity,
+          desktopWidth: 450,
+          rightButton: PrimaryButton(
+            label: "OK",
+            onPressed: () {
+              Navigator.of(context).pop();
+              if (!isDesktop) {
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+        ),
+      );
+      return false;
+    }
+  }
+
   void _onPressed() async {
     ref.read(tokenServiceStateProvider.state).state = EthTokenWallet(
       token: widget.token,
@@ -49,12 +81,16 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
       ),
     );
 
-    await showLoading<void>(
-      whileFuture: ref.read(tokenServiceProvider)!.initialize(),
+    final success = await showLoading<bool>(
+      whileFuture: _loadTokenWallet(context, ref),
       context: context,
       isDesktop: isDesktop,
       message: "Loading ${widget.token.name}",
     );
+
+    if (!success) {
+      return;
+    }
 
     if (mounted) {
       await Navigator.of(context).pushNamed(
