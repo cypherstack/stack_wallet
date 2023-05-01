@@ -89,7 +89,7 @@ class SimpleSwapExchange extends Exchange {
   }
 
   @override
-  Future<ExchangeResponse<Estimate>> getEstimate(
+  Future<ExchangeResponse<List<Estimate>>> getEstimates(
     String from,
     String to,
     Decimal amount,
@@ -109,11 +109,14 @@ class SimpleSwapExchange extends Exchange {
     }
 
     return ExchangeResponse(
-      value: Estimate(
-        estimatedAmount: Decimal.parse(response.value!),
-        fixedRate: fixedRate,
-        reversed: reversed,
-      ),
+      value: [
+        Estimate(
+          estimatedAmount: Decimal.parse(response.value!),
+          fixedRate: fixedRate,
+          reversed: reversed,
+          exchangeProvider: SimpleSwapExchange.exchangeName,
+        ),
+      ],
     );
   }
 

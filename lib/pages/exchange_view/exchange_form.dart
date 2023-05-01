@@ -409,7 +409,11 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     final fromTicker = ref.read(exchangeFormStateProvider).fromTicker ?? "";
     final toTicker = ref.read(exchangeFormStateProvider).toTicker ?? "";
     final sendAmount = ref.read(exchangeFormStateProvider).sendAmount!;
-    final estimate = ref.read(exchangeFormStateProvider).estimate!;
+    final estimate = ref.read(exchangeFormStateProvider).estimates.firstWhere(
+          (e) =>
+              e.exchangeProvider ==
+              ref.read(exchangeFormStateProvider).providerName,
+        );
 
     if (rateType == ExchangeRateType.fixed && toTicker.toUpperCase() == "WOW") {
       await showDialog<void>(

@@ -13,6 +13,12 @@ class ExchangeFormState extends ChangeNotifier {
   Exchange? _exchange;
   Exchange get exchange => _exchange ??= Exchange.defaultExchange;
 
+  String? _providerName;
+  // default to exchange name that isn't trocador
+  String get providerName => _providerName ??= Exchange.defaultExchange.name;
+
+  String get combinedExchangeId => "${exchange.name} ($providerName)";
+
   ExchangeRateType _exchangeRateType = ExchangeRateType.estimated;
   ExchangeRateType get exchangeRateType => _exchangeRateType;
   set exchangeRateType(ExchangeRateType exchangeRateType) {
@@ -20,8 +26,8 @@ class ExchangeFormState extends ChangeNotifier {
     //
   }
 
-  Estimate? _estimate;
-  Estimate? get estimate => _estimate;
+  List<Estimate> _estimates = [];
+  List<Estimate> get estimates => _estimates;
 
   bool _reversed = false;
   bool get reversed => _reversed;
@@ -149,10 +155,12 @@ class ExchangeFormState extends ChangeNotifier {
 
   Future<void> updateExchange({
     required Exchange exchange,
+    required String providerName,
     required bool shouldUpdateData,
     required bool shouldNotifyListeners,
   }) async {
     _exchange = exchange;
+    _providerName = providerName;
     if (shouldUpdateData) {
       await _updateRangesAndEstimate(
         shouldNotifyListeners: false,
@@ -173,6 +181,7 @@ class ExchangeFormState extends ChangeNotifier {
     required bool shouldNotifyListeners,
   }) {
     _exchange = null;
+    _providerName = null;
     _reversed = false;
     _rate = null;
     _sendAmount = null;
@@ -445,7 +454,7 @@ class ExchangeFormState extends ChangeNotifier {
       );
       return;
     }
-    final response = await exchange.getEstimate(
+    final response = await exchange.getEstimates(
       sendCurrency!.ticker,
       receiveCurrency!.ticker,
       amount,
@@ -461,12 +470,16 @@ class ExchangeFormState extends ChangeNotifier {
       return;
     }
 
-    _estimate = response.value!;
+    _estimates = response.value!;
 
     if (reversed) {
-      _sendAmount = _estimate!.estimatedAmount;
+      _sendAmount = _estimates
+          .firstWhere((e) => e.exchangeProvider == providerName)
+          .estimatedAmount;
     } else {
-      _receiveAmount = _estimate!.estimatedAmount;
+      _receiveAmount = _estimates
+          .firstWhere((e) => e.exchangeProvider == providerName)
+          .estimatedAmount;
     }
 
     _rate =
@@ -518,7 +531,7 @@ class ExchangeFormState extends ChangeNotifier {
         "\n\t reversed: $reversed,"
         "\n\t sendAmount: $sendAmount,"
         "\n\t receiveAmount: $receiveAmount,"
-        "\n\t estimate: $estimate,"
+        "\n\t estimates: $estimates,"
         "\n\t minSendAmount: $minSendAmount,"
         "\n\t maxSendAmount: $maxSendAmount,"
         "\n\t minReceiveAmount: $minReceiveAmount,"

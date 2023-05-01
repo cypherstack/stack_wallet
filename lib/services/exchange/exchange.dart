@@ -60,7 +60,7 @@ abstract class Exchange {
     bool fixedRate,
   );
 
-  Future<ExchangeResponse<Estimate>> getEstimate(
+  Future<ExchangeResponse<List<Estimate>>> getEstimates(
     String from,
     String to,
     Decimal amount,

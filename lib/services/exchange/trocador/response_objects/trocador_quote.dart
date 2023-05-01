@@ -5,7 +5,8 @@ class TrocadorQuote {
   final String kycRating;
   final int insurance;
   final bool fixed;
-  final Decimal amountTo;
+  final Decimal? amountTo;
+  final Decimal? amountFrom;
   final Decimal waste;
 
   TrocadorQuote({
@@ -14,6 +15,7 @@ class TrocadorQuote {
     required this.insurance,
     required this.fixed,
     required this.amountTo,
+    required this.amountFrom,
     required this.waste,
   });
 
@@ -24,7 +26,8 @@ class TrocadorQuote {
       insurance: map['insurance'] as int,
       // wtf trocador?
       fixed: map['fixed'] == "True",
-      amountTo: Decimal.parse(map['amount_to'].toString()),
+      amountTo: Decimal.tryParse(map['amount_to'].toString()),
+      amountFrom: Decimal.tryParse(map['amount_from'].toString()),
       waste: Decimal.parse(map['waste'].toString()),
     );
   }
@@ -37,6 +40,7 @@ class TrocadorQuote {
         'insurance: $insurance, '
         'fixed: $fixed, '
         'amountTo: $amountTo, '
+        'amountFrom: $amountFrom, '
         'waste: $waste '
         ')';
   }

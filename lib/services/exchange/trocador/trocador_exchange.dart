@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:decimal/decimal.dart';
 import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
@@ -8,6 +10,7 @@ import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/exchange/trocador/response_objects/trocador_coin.dart';
+import 'package:stackwallet/services/exchange/trocador/response_objects/trocador_quote.dart';
 import 'package:stackwallet/services/exchange/trocador/trocador_api.dart';
 import 'package:uuid/uuid.dart';
 
@@ -177,7 +180,7 @@ class TrocadorExchange extends Exchange {
   }
 
   @override
-  Future<ExchangeResponse<Estimate>> getEstimate(
+  Future<ExchangeResponse<List<Estimate>>> getEstimates(
     String from,
     String to,
     Decimal amount,
@@ -208,15 +211,47 @@ class TrocadorExchange extends Exchange {
       return ExchangeResponse(exception: response.exception);
     }
 
+    final List<Estimate> estimates = [];
+    final List<TrocadorQuote> cOrLowerQuotes = [];
+
+    for (final quote in response.value!.quotes) {
+      if (quote.fixed == isPayment) {
+        final rating = quote.kycRating.toLowerCase();
+        if (rating == "a" || rating == "b") {
+          estimates.add(
+            Estimate(
+              estimatedAmount: isPayment ? quote.amountFrom! : quote.amountTo!,
+              fixedRate: quote.fixed,
+              reversed: isPayment,
+              exchangeProvider: quote.provider,
+              rateId: response.value!.tradeId,
+              kycRating: quote.kycRating,
+            ),
+          );
+        } else {
+          cOrLowerQuotes.add(quote);
+        }
+      }
+    }
+
+    cOrLowerQuotes.sort((a, b) => b.waste.compareTo(a.waste));
+
+    for (int i = 0; i < max(3, cOrLowerQuotes.length); i++) {
+      final quote = cOrLowerQuotes[i];
+      estimates.add(
+        Estimate(
+          estimatedAmount: isPayment ? quote.amountFrom! : quote.amountTo!,
+          fixedRate: quote.fixed,
+          reversed: isPayment,
+          exchangeProvider: quote.provider,
+          rateId: response.value!.tradeId,
+          kycRating: quote.kycRating,
+        ),
+      );
+    }
+
     return ExchangeResponse(
-      value: Estimate(
-        estimatedAmount:
-            isPayment ? response.value!.amountFrom : response.value!.amountTo,
-        fixedRate: isPayment,
-        reversed: isPayment,
-        exchangeProvider: response.value!.provider,
-        rateId: response.value!.tradeId,
-      ),
+      value: estimates,
     );
   }
 

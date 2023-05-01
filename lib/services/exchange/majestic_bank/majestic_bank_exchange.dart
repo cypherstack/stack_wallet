@@ -170,7 +170,7 @@ class MajesticBankExchange extends Exchange {
   }
 
   @override
-  Future<ExchangeResponse<Estimate>> getEstimate(
+  Future<ExchangeResponse<List<Estimate>>> getEstimates(
     String from,
     String to,
     Decimal amount,
@@ -192,8 +192,9 @@ class MajesticBankExchange extends Exchange {
       estimatedAmount: reversed ? calc.fromAmount : calc.receiveAmount,
       fixedRate: fixedRate,
       reversed: reversed,
+      exchangeProvider: MajesticBankExchange.exchangeName,
     );
-    return ExchangeResponse(value: estimate);
+    return ExchangeResponse(value: [estimate]);
   }
 
   @override

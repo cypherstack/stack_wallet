@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
+import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
+import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
+import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -64,6 +68,22 @@ class _EXCHANGE {
   String get majesticBankBlue => "${_path}mb_blue.svg";
   String get majesticBankGreen => "${_path}mb_green.svg";
   String get trocador => "${_path}trocador.svg";
+
+  String getIconFor({required String exchangeName}) {
+    switch (exchangeName) {
+      case SimpleSwapExchange.exchangeName:
+        return simpleSwap;
+      case ChangeNowExchange.exchangeName:
+        return changeNow;
+      case MajesticBankExchange.exchangeName:
+        return majesticBankBlue;
+      case TrocadorExchange.exchangeName:
+        return trocador;
+      default:
+        throw ArgumentError("Invalid exchange name passed to "
+            "Assets.exchange.getIconFor()");
+    }
+  }
 }
 
 class _BUY {
