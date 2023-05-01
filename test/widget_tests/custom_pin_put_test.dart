@@ -8,7 +8,8 @@ import 'package:stackwallet/widgets/custom_pin_put/pin_keyboard.dart';
 
 void main() {
   group("CustomPinPut tests, non-random PIN", () {
-    testWidgets("CustomPinPut with 4 fields builds correctly", (tester) async {
+    testWidgets("CustomPinPut with 4 fields builds correctly, non-random PIN",
+        (tester) async {
       const pinPut = CustomPinPut(
         fieldsCount: 4,
         isRandom: false,
@@ -34,7 +35,8 @@ void main() {
       expect(find.byType(NumberKey), findsNWidgets(10));
     });
 
-    testWidgets("CustomPinPut entering a pin successfully", (tester) async {
+    testWidgets("CustomPinPut entering a pin successfully, non-random PIN",
+        (tester) async {
       bool submittedPinMatches = false;
       final pinPut = CustomPinPut(
         fieldsCount: 4,
@@ -82,7 +84,8 @@ void main() {
       expect(submittedPinMatches, true);
     });
 
-    testWidgets("CustomPinPut pin enter fade animation", (tester) async {
+    testWidgets("CustomPinPut pin enter fade animation, non-random PIN",
+        (tester) async {
       final controller = TextEditingController();
       final pinPut = CustomPinPut(
         fieldsCount: 4,
@@ -114,7 +117,8 @@ void main() {
       expect(controller.text, "");
     });
 
-    testWidgets("CustomPinPut pin enter scale animation", (tester) async {
+    testWidgets("CustomPinPut pin enter scale animation, non-random PIN",
+        (tester) async {
       final controller = TextEditingController();
       final pinPut = CustomPinPut(
         fieldsCount: 4,
@@ -146,7 +150,8 @@ void main() {
       expect(controller.text, "");
     });
 
-    testWidgets("CustomPinPut pin enter rotate animation", (tester) async {
+    testWidgets("CustomPinPut pin enter rotate animation, non-random PIN",
+        (tester) async {
       final controller = TextEditingController();
       final pinPut = CustomPinPut(
         fieldsCount: 4,
@@ -179,7 +184,7 @@ void main() {
     });
   });
 
-  testWidgets("PinKeyboard builds correctly", (tester) async {
+  testWidgets("PinKeyboard builds correctly, non-random PIN", (tester) async {
     final keyboard = PinKeyboard(
       onNumberKeyPressed: (_) {},
       onBackPressed: () {},
@@ -201,6 +206,7 @@ void main() {
     );
 
     expect(find.byType(BackspaceKey), findsOneWidget);
+    expect(find.byType(SubmitKey), findsOneWidget);
     expect(find.byType(NumberKey), findsNWidgets(10));
     expect(find.text("0"), findsOneWidget);
     expect(find.text("1"), findsOneWidget);
@@ -212,11 +218,12 @@ void main() {
     expect(find.text("7"), findsOneWidget);
     expect(find.text("8"), findsOneWidget);
     expect(find.text("9"), findsOneWidget);
-    expect(find.byType(SvgPicture), findsOneWidget);
+    expect(find.byType(SvgPicture), findsNWidgets(2));
   });
 
   group("CustomPinPut tests, with random PIN", () {
-    testWidgets("CustomPinPut with 4 fields builds correctly", (tester) async {
+    testWidgets("CustomPinPut with 4 fields builds correctly, with random PIN",
+        (tester) async {
       const pinPut = CustomPinPut(
         fieldsCount: 4,
         isRandom: true,
@@ -242,7 +249,8 @@ void main() {
       expect(find.byType(NumberKey), findsNWidgets(10));
     });
 
-    testWidgets("CustomPinPut entering a pin successfully", (tester) async {
+    testWidgets("CustomPinPut entering a pin successfully, with random PIN",
+        (tester) async {
       bool submittedPinMatches = false;
       final pinPut = CustomPinPut(
         fieldsCount: 4,
@@ -290,7 +298,8 @@ void main() {
       expect(submittedPinMatches, true);
     });
 
-    testWidgets("CustomPinPut pin enter fade animation", (tester) async {
+    testWidgets("CustomPinPut pin enter fade animation, with random PIN",
+        (tester) async {
       final controller = TextEditingController();
       final pinPut = CustomPinPut(
         fieldsCount: 4,
@@ -322,7 +331,8 @@ void main() {
       expect(controller.text, "");
     });
 
-    testWidgets("CustomPinPut pin enter scale animation", (tester) async {
+    testWidgets("CustomPinPut pin enter scale animation, with random PIN",
+        (tester) async {
       final controller = TextEditingController();
       final pinPut = CustomPinPut(
         fieldsCount: 4,
@@ -354,7 +364,8 @@ void main() {
       expect(controller.text, "");
     });
 
-    testWidgets("CustomPinPut pin enter rotate animation", (tester) async {
+    testWidgets("CustomPinPut pin enter rotate animation, with random PIN",
+        (tester) async {
       final controller = TextEditingController();
       final pinPut = CustomPinPut(
         fieldsCount: 4,
@@ -387,7 +398,7 @@ void main() {
     });
   });
 
-  testWidgets("PinKeyboard builds correctly", (tester) async {
+  testWidgets("PinKeyboard builds correctly, with random PIN", (tester) async {
     final keyboard = PinKeyboard(
       onNumberKeyPressed: (_) {},
       onBackPressed: () {},
@@ -409,6 +420,7 @@ void main() {
     );
 
     expect(find.byType(BackspaceKey), findsOneWidget);
+    expect(find.byType(SubmitKey), findsOneWidget);
     expect(find.byType(NumberKey), findsNWidgets(10));
     expect(find.text("0"), findsOneWidget);
     expect(find.text("1"), findsOneWidget);
@@ -420,6 +432,6 @@ void main() {
     expect(find.text("7"), findsOneWidget);
     expect(find.text("8"), findsOneWidget);
     expect(find.text("9"), findsOneWidget);
-    expect(find.byType(SvgPicture), findsOneWidget);
+    expect(find.byType(SvgPicture), findsNWidgets(2));
   });
 }
