@@ -49,7 +49,7 @@ final Map<String, dynamic> darkJson = {
     "button_back_border_secondary_disabled": "0xFFFEEAED",
     "number_back_default": "0xFFFFF8EE",
     "numpad_back_default": "0xFFF95369",
-    "button_nav_back": "0xFFFFFFFF",
+    "bottom_nav_back": "0xFFFFFFFF",
     "button_text_primary": "0xFFFFFFFF",
     "button_text_secondary": "0xFF9D3241",
     "button_text_primary_disabled": "0xFFFFFFFF",

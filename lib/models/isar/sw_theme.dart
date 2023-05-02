@@ -1706,7 +1706,7 @@ class StackTheme {
           parseColor(json["colors"]["number_back_default"] as String),
       numpadBackDefaultInt:
           parseColor(json["colors"]["numpad_back_default"] as String),
-      bottomNavBackInt: parseColor(json["colors"]["button_nav_back"] as String),
+      bottomNavBackInt: parseColor(json["colors"]["bottom_nav_back"] as String),
       textSubtitle1Int:
           parseColor(json["colors"]["text_subtitle_one"] as String),
       textSubtitle2Int:
