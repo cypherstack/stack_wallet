@@ -1,5 +1,5 @@
 final Map<String, dynamic> darkJson = {
-  "name": "Light",
+  "name": "Chan",
   "asset_bundle_url": "",
   "brightness": "light",
   "colors": {
@@ -48,8 +48,8 @@ final Map<String, dynamic> darkJson = {
     "button_back_border_secondary": "0xFFE0E3E3",
     "button_back_border_secondary_disabled": "0xFFF0F1F1",
     "number_back_default": "0xFFFFFFFF",
-    "numpad_back_default": "0xFF232323",
-    "button_nav_back": "0xFFFFFFFF",
+    "numpad_back_default": "0xFFFFFFFF",
+    "button_nav_back": "0xFF232323",
     "button_text_primary": "0xFFFFFFFF",
     "button_text_secondary": "0xFF232323",
     "button_text_primary_disabled": "0xFFF8F8F8",
@@ -214,6 +214,8 @@ final Map<String, dynamic> darkJson = {
     "send": "svg/tx-icon-send.svg",
     "send_pending": "svg/tx-icon-send-pending.svg",
     "send_cancelled": "svg/tx-icon-send-failed.svg",
-    "theme_preview": "svg/light-mode.svg",
+    "theme_preview": "svg/chanstheme.svg",
+    "chan_persona_easy": "chan-persona-easy.png",
+    "chan_persona_incognito": "chan-persona-incognito.png",
   }
 };
