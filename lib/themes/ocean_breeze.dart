@@ -1,5 +1,5 @@
 final Map<String, dynamic> darkJson = {
-  "name": "Forest",
+  "name": "OceanBreeze",
   "asset_bundle_url": "",
   "brightness": "light",
   "colors": {
