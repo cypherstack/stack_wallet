@@ -8,7 +8,6 @@ import 'package:stackwallet/providers/exchange/exchange_form_state_provider.dart
 import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
-import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -21,35 +20,25 @@ import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/exchange/trocador/trocador_kyc_info_button.dart';
 import 'package:stackwallet/widgets/exchange/trocador/trocador_rating_type_enum.dart';
 
-class ExchangeProviderOption extends ConsumerStatefulWidget {
-  const ExchangeProviderOption({
+class ExchangeOption extends ConsumerStatefulWidget {
+  const ExchangeOption({
     Key? key,
     required this.exchange,
-    required this.exchangeProvider,
     required this.fixedRate,
     required this.reversed,
   }) : super(key: key);
 
   final Exchange exchange;
-  final String exchangeProvider;
   final bool fixedRate;
   final bool reversed;
 
   @override
-  ConsumerState<ExchangeProviderOption> createState() =>
-      _ExchangeProviderOptionState();
+  ConsumerState<ExchangeOption> createState() =>
+      _ExchangeMultiProviderOptionState();
 }
 
-class _ExchangeProviderOptionState
-    extends ConsumerState<ExchangeProviderOption> {
+class _ExchangeMultiProviderOptionState extends ConsumerState<ExchangeOption> {
   final isDesktop = Util.isDesktop;
-  late final String _id;
-
-  @override
-  void initState() {
-    _id = "${widget.exchange.name} (${widget.exchangeProvider})";
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,9 +51,179 @@ class _ExchangeProviderOptionState
     final toAmount = ref.watch(
         exchangeFormStateProvider.select((value) => value.receiveAmount));
 
-    final selected = ref.watch(exchangeFormStateProvider
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOutCubicEmphasized,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (sendCurrency != null &&
+              receivingCurrency != null &&
+              toAmount != null &&
+              toAmount > Decimal.zero &&
+              fromAmount != null &&
+              fromAmount > Decimal.zero)
+            FutureBuilder(
+              future: widget.exchange.getEstimates(
+                sendCurrency.ticker,
+                receivingCurrency.ticker,
+                widget.reversed ? toAmount : fromAmount,
+                widget.fixedRate,
+                widget.reversed,
+              ),
+              builder: (context,
+                  AsyncSnapshot<ExchangeResponse<List<Estimate>>> snapshot) {
+                if (snapshot.connectionState == ConnectionState.done &&
+                    snapshot.hasData) {
+                  final estimates = snapshot.data?.value;
+
+                  if (estimates != null && estimates.isNotEmpty) {
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (int i = 0; i < estimates.length; i++)
+                          Builder(
+                            builder: (context) {
+                              final e = estimates[i];
+                              int decimals;
+                              try {
+                                decimals = coinFromTickerCaseInsensitive(
+                                        receivingCurrency.ticker)
+                                    .decimals;
+                              } catch (_) {
+                                decimals = 8; // some reasonable alternative
+                              }
+                              Amount rate;
+                              if (e.reversed) {
+                                rate = (toAmount / e.estimatedAmount)
+                                    .toDecimal(scaleOnInfinitePrecision: 18)
+                                    .toAmount(fractionDigits: decimals);
+                              } else {
+                                rate = (e.estimatedAmount / fromAmount)
+                                    .toDecimal(scaleOnInfinitePrecision: 18)
+                                    .toAmount(fractionDigits: decimals);
+                              }
+
+                              final rateString =
+                                  "1 ${sendCurrency.ticker.toUpperCase()} ~ ${rate.localizedStringAsFixed(
+                                locale: ref.watch(
+                                  localeServiceChangeNotifierProvider
+                                      .select((value) => value.locale),
+                                ),
+                              )} ${receivingCurrency.ticker.toUpperCase()}";
+
+                              return ConditionalParent(
+                                condition: i > 0,
+                                builder: (child) => Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    isDesktop
+                                        ? Container(
+                                            height: 1,
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .background,
+                                          )
+                                        : const SizedBox(
+                                            height: 16,
+                                          ),
+                                    child,
+                                  ],
+                                ),
+                                child: _ProviderOption(
+                                  key: Key(widget.exchange.name +
+                                      e.exchangeProvider),
+                                  exchange: widget.exchange,
+                                  providerName: e.exchangeProvider,
+                                  rateString: rateString,
+                                  kycRating: e.kycRating,
+                                ),
+                              );
+                            },
+                          ),
+                      ],
+                    );
+                  } else if (snapshot.data?.exception
+                      is PairUnavailableException) {
+                    return _ProviderOption(
+                      exchange: widget.exchange,
+                      providerName: widget.exchange.name,
+                      rateString: "Unsupported pair",
+                    );
+                  } else {
+                    Logging.instance.log(
+                      "$runtimeType failed to fetch rate for ${widget.exchange.name}: ${snapshot.data}",
+                      level: LogLevel.Warning,
+                    );
+
+                    return _ProviderOption(
+                      exchange: widget.exchange,
+                      providerName: widget.exchange.name,
+                      rateString: "Failed to fetch rate",
+                    );
+                  }
+                } else {
+                  // show loading
+                  return _ProviderOption(
+                    exchange: widget.exchange,
+                    providerName: widget.exchange.name,
+                    rateString: "",
+                    loadingString: true,
+                  );
+                }
+              },
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProviderOption extends ConsumerStatefulWidget {
+  const _ProviderOption({
+    Key? key,
+    required this.exchange,
+    required this.providerName,
+    required this.rateString,
+    this.kycRating,
+    this.loadingString = false,
+  }) : super(key: key);
+
+  final Exchange exchange;
+  final String providerName;
+  final String rateString;
+  final String? kycRating;
+  final bool loadingString;
+
+  @override
+  ConsumerState<_ProviderOption> createState() => _ProviderOptionState();
+}
+
+class _ProviderOptionState extends ConsumerState<_ProviderOption> {
+  final isDesktop = Util.isDesktop;
+
+  late final String _id;
+
+  @override
+  void initState() {
+    _id = "${widget.exchange.name} (${widget.providerName})";
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    bool selected = ref.watch(exchangeFormStateProvider
             .select((value) => value.combinedExchangeId)) ==
         _id;
+    String groupValue = ref.watch(
+        exchangeFormStateProvider.select((value) => value.combinedExchangeId));
+
+    if (ref.watch(
+            exchangeFormStateProvider.select((value) => value.exchange.name)) ==
+        widget.providerName) {
+      selected = true;
+      groupValue = _id;
+    }
 
     return ConditionalParent(
       condition: isDesktop,
@@ -75,17 +234,12 @@ class _ExchangeProviderOptionState
       child: GestureDetector(
         onTap: () {
           if (!selected) {
-            // showLoading(
-            //   whileFuture:
             ref.read(exchangeFormStateProvider).updateExchange(
                   exchange: widget.exchange,
                   shouldUpdateData: true,
                   shouldNotifyListeners: true,
-                  providerName: widget.exchangeProvider,
-                  //     ),
-                  // context: context,
-                  // message: "Updating rates",
-                  // isDesktop: isDesktop,
+                  providerName: widget.providerName,
+                  shouldAwait: false,
                 );
           }
         },
@@ -107,15 +261,15 @@ class _ExchangeProviderOptionState
                           .extension<StackColors>()!
                           .radioButtonIconEnabled,
                       value: _id,
-                      groupValue: ref.watch(exchangeFormStateProvider
-                          .select((value) => value.combinedExchangeId)),
+                      groupValue: groupValue,
                       onChanged: (_) {
                         if (!selected) {
                           ref.read(exchangeFormStateProvider).updateExchange(
                                 exchange: widget.exchange,
                                 shouldUpdateData: false,
                                 shouldNotifyListeners: true,
-                                providerName: widget.exchangeProvider,
+                                providerName: widget.providerName,
+                                shouldAwait: false,
                               );
                         }
                       },
@@ -149,153 +303,46 @@ class _ExchangeProviderOptionState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.exchangeProvider,
+                        widget.providerName,
                         style: STextStyles.titleBold12(context).copyWith(
                           color: Theme.of(context)
                               .extension<StackColors>()!
                               .textDark2,
                         ),
                       ),
-                      if (sendCurrency != null &&
-                          receivingCurrency != null &&
-                          toAmount != null &&
-                          toAmount > Decimal.zero &&
-                          fromAmount != null &&
-                          fromAmount > Decimal.zero)
-                        FutureBuilder(
-                          future: widget.exchange.getEstimates(
-                            sendCurrency.ticker,
-                            receivingCurrency.ticker,
-                            widget.reversed ? toAmount : fromAmount,
-                            widget.fixedRate,
-                            widget.reversed,
-                          ),
-                          builder: (context,
-                              AsyncSnapshot<ExchangeResponse<List<Estimate>>>
-                                  snapshot) {
-                            if (snapshot.connectionState ==
-                                    ConnectionState.done &&
-                                snapshot.hasData) {
-                              final estimates = snapshot.data?.value;
-                              if (estimates != null &&
-                                  estimates
-                                      .where((e) =>
-                                          e.exchangeProvider ==
-                                          widget.exchangeProvider)
-                                      .isNotEmpty) {
-                                final estimate = estimates.firstWhere((e) =>
-                                    e.exchangeProvider ==
-                                    widget.exchangeProvider);
-                                int decimals;
-                                try {
-                                  decimals = coinFromTickerCaseInsensitive(
-                                          receivingCurrency.ticker)
-                                      .decimals;
-                                } catch (_) {
-                                  decimals = 8; // some reasonable alternative
-                                }
-                                Amount rate;
-                                if (estimate.reversed) {
-                                  rate = (toAmount / estimate.estimatedAmount)
-                                      .toDecimal(scaleOnInfinitePrecision: 18)
-                                      .toAmount(fractionDigits: decimals);
-                                } else {
-                                  rate = (estimate.estimatedAmount / fromAmount)
-                                      .toDecimal(scaleOnInfinitePrecision: 18)
-                                      .toAmount(fractionDigits: decimals);
-                                }
-
-                                return ConditionalParent(
-                                  condition: widget.exchange.name ==
-                                      TrocadorExchange.exchangeName,
-                                  builder: (child) {
-                                    return Row(
-                                      children: [
-                                        child,
-                                        TrocadorKYCInfoButton(
-                                          kycType: TrocadorKYCType.fromString(
-                                            estimate.kycRating!,
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                  child: Text(
-                                    "1 ${sendCurrency.ticker.toUpperCase()} ~ ${rate.localizedStringAsFixed(
-                                      locale: ref.watch(
-                                        localeServiceChangeNotifierProvider
-                                            .select((value) => value.locale),
-                                      ),
-                                    )} ${receivingCurrency.ticker.toUpperCase()}",
-                                    style: STextStyles.itemSubtitle12(context)
-                                        .copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textSubtitle1,
-                                    ),
-                                  ),
-                                );
-                              } else if (snapshot.data?.exception
-                                  is PairUnavailableException) {
-                                return Text(
-                                  "Unsupported pair",
-                                  style: STextStyles.itemSubtitle12(context)
-                                      .copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textSubtitle1,
-                                  ),
-                                );
-                              } else {
-                                Logging.instance.log(
-                                  "$runtimeType failed to fetch rate for $_id}: ${snapshot.data}",
-                                  level: LogLevel.Warning,
-                                );
-                                return Text(
-                                  "Failed to fetch rate",
-                                  style: STextStyles.itemSubtitle12(context)
-                                      .copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textSubtitle1,
-                                  ),
-                                );
-                              }
-                            } else {
-                              return AnimatedText(
-                                stringsToLoopThrough: const [
-                                  "Loading",
-                                  "Loading.",
-                                  "Loading..",
-                                  "Loading...",
-                                ],
-                                style: STextStyles.itemSubtitle12(context)
-                                    .copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textSubtitle1,
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                      if (!(sendCurrency != null &&
-                          receivingCurrency != null &&
-                          toAmount != null &&
-                          toAmount > Decimal.zero &&
-                          fromAmount != null &&
-                          fromAmount > Decimal.zero))
-                        Text(
-                          "n/a",
-                          style: STextStyles.itemSubtitle12(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textSubtitle1,
-                          ),
-                        ),
+                      widget.loadingString
+                          ? AnimatedText(
+                              stringsToLoopThrough: const [
+                                "Loading",
+                                "Loading.",
+                                "Loading..",
+                                "Loading...",
+                              ],
+                              style:
+                                  STextStyles.itemSubtitle12(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textSubtitle1,
+                              ),
+                            )
+                          : Text(
+                              widget.rateString,
+                              style:
+                                  STextStyles.itemSubtitle12(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textSubtitle1,
+                              ),
+                            ),
                     ],
                   ),
                 ),
+                if (widget.kycRating != null)
+                  TrocadorKYCInfoButton(
+                    kycType: TrocadorKYCType.fromString(
+                      widget.kycRating!,
+                    ),
+                  ),
               ],
             ),
           ),

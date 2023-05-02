@@ -84,9 +84,8 @@ class _ExchangeProviderOptionsState
       child: Column(
         children: [
           if (showChangeNow)
-            ExchangeProviderOption(
+            ExchangeOption(
               exchange: ChangeNowExchange.instance,
-              exchangeProvider: ChangeNowExchange.exchangeName,
               fixedRate: widget.fixedRate,
               reversed: widget.reversed,
             ),
@@ -101,9 +100,8 @@ class _ExchangeProviderOptionsState
                     height: 16,
                   ),
           if (showMajesticBank)
-            ExchangeProviderOption(
+            ExchangeOption(
               exchange: MajesticBankExchange.instance,
-              exchangeProvider: MajesticBankExchange.exchangeName,
               fixedRate: widget.fixedRate,
               reversed: widget.reversed,
             ),
@@ -118,11 +116,10 @@ class _ExchangeProviderOptionsState
                     height: 16,
                   ),
           if (showTrocador)
-            ExchangeProviderOption(
+            ExchangeOption(
               fixedRate: widget.fixedRate,
               reversed: widget.reversed,
               exchange: TrocadorExchange.instance,
-              exchangeProvider: 'LetsExchange',
             ),
         ],
       ),

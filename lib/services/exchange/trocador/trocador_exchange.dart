@@ -187,9 +187,7 @@ class TrocadorExchange extends Exchange {
     bool fixedRate,
     bool reversed,
   ) async {
-    final isPayment = reversed || fixedRate;
-
-    final response = isPayment
+    final response = reversed
         ? await TrocadorAPI.getNewPaymentRate(
             isOnion: false,
             fromTicker: from,
@@ -215,14 +213,15 @@ class TrocadorExchange extends Exchange {
     final List<TrocadorQuote> cOrLowerQuotes = [];
 
     for (final quote in response.value!.quotes) {
-      if (quote.fixed == isPayment) {
+      if (quote.fixed == fixedRate &&
+          quote.provider.toLowerCase() != "changenow") {
         final rating = quote.kycRating.toLowerCase();
         if (rating == "a" || rating == "b") {
           estimates.add(
             Estimate(
-              estimatedAmount: isPayment ? quote.amountFrom! : quote.amountTo!,
+              estimatedAmount: reversed ? quote.amountFrom! : quote.amountTo!,
               fixedRate: quote.fixed,
-              reversed: isPayment,
+              reversed: reversed,
               exchangeProvider: quote.provider,
               rateId: response.value!.tradeId,
               kycRating: quote.kycRating,
@@ -236,13 +235,13 @@ class TrocadorExchange extends Exchange {
 
     cOrLowerQuotes.sort((a, b) => b.waste.compareTo(a.waste));
 
-    for (int i = 0; i < max(3, cOrLowerQuotes.length); i++) {
+    for (int i = 0; i < min(3, cOrLowerQuotes.length); i++) {
       final quote = cOrLowerQuotes[i];
       estimates.add(
         Estimate(
-          estimatedAmount: isPayment ? quote.amountFrom! : quote.amountTo!,
+          estimatedAmount: reversed ? quote.amountFrom! : quote.amountTo!,
           fixedRate: quote.fixed,
-          reversed: isPayment,
+          reversed: reversed,
           exchangeProvider: quote.provider,
           rateId: response.value!.tradeId,
           kycRating: quote.kycRating,
@@ -251,7 +250,8 @@ class TrocadorExchange extends Exchange {
     }
 
     return ExchangeResponse(
-      value: estimates,
+      value: estimates
+        ..sort((a, b) => b.estimatedAmount.compareTo(a.estimatedAmount)),
     );
   }
 

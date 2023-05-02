@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:stackwallet/models/exchange/aggregate_currency.dart';
@@ -158,16 +160,23 @@ class ExchangeFormState extends ChangeNotifier {
     required String providerName,
     required bool shouldUpdateData,
     required bool shouldNotifyListeners,
+    bool shouldAwait = true,
   }) async {
     _exchange = exchange;
     _providerName = providerName;
     if (shouldUpdateData) {
-      await _updateRangesAndEstimate(
-        shouldNotifyListeners: false,
-      );
-    }
-
-    if (shouldNotifyListeners) {
+      if (shouldAwait) {
+        await _updateRangesAndEstimate(
+          shouldNotifyListeners: shouldNotifyListeners,
+        );
+      } else {
+        unawaited(
+          _updateRangesAndEstimate(
+            shouldNotifyListeners: shouldNotifyListeners,
+          ),
+        );
+      }
+    } else if (shouldNotifyListeners) {
       _notify();
     }
   }
