@@ -140,6 +140,7 @@ class _NewWalletRecoveryPhraseViewState
                     child: AspectRatio(
                       aspectRatio: 1,
                       child: AppBarIconButton(
+                        semanticsLabel: "Copy Button. Copies The Recovery Phrase To Clipboard.",
                         color: Theme.of(context)
                             .extension<StackColors>()!
                             .background,
