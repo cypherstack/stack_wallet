@@ -13,7 +13,6 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -76,17 +75,18 @@ class _ExchangeProviderOptionState
       child: GestureDetector(
         onTap: () {
           if (!selected) {
-            showLoading(
-              whileFuture: ref.read(exchangeFormStateProvider).updateExchange(
-                    exchange: widget.exchange,
-                    shouldUpdateData: true,
-                    shouldNotifyListeners: true,
-                    providerName: widget.exchangeProvider,
-                  ),
-              context: context,
-              message: "Updating rates",
-              isDesktop: isDesktop,
-            );
+            // showLoading(
+            //   whileFuture:
+            ref.read(exchangeFormStateProvider).updateExchange(
+                  exchange: widget.exchange,
+                  shouldUpdateData: true,
+                  shouldNotifyListeners: true,
+                  providerName: widget.exchangeProvider,
+                  //     ),
+                  // context: context,
+                  // message: "Updating rates",
+                  // isDesktop: isDesktop,
+                );
           }
         },
         child: Container(
@@ -113,7 +113,7 @@ class _ExchangeProviderOptionState
                         if (!selected) {
                           ref.read(exchangeFormStateProvider).updateExchange(
                                 exchange: widget.exchange,
-                                shouldUpdateData: true,
+                                shouldUpdateData: false,
                                 shouldNotifyListeners: true,
                                 providerName: widget.exchangeProvider,
                               );
