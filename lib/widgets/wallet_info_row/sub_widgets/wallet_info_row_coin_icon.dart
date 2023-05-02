@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
-class WalletInfoCoinIcon extends StatelessWidget {
+class WalletInfoCoinIcon extends ConsumerWidget {
   const WalletInfoCoinIcon({
     Key? key,
     required this.coin,
@@ -22,7 +23,7 @@ class WalletInfoCoinIcon extends StatelessWidget {
   final double size;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     Currency? currency;
     if (contractAddress != null) {
       currency = ExchangeDataLoadingService.instance.isar.currencies
@@ -59,7 +60,7 @@ class WalletInfoCoinIcon extends StatelessWidget {
                 height: 20,
               )
             : SvgPicture.asset(
-                Assets.svg.iconFor(coin: coin),
+                ref.watch(coinIconProvider(coin)),
                 width: 20,
                 height: 20,
               ),

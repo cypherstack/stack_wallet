@@ -7,6 +7,7 @@ import 'package:stackwallet/pages/address_book_views/subviews/coin_select_sheet.
 import 'package:stackwallet/providers/providers.dart';
 // import 'package:stackwallet/providers/global/should_show_lockscreen_on_resume_state_provider.dart';
 import 'package:stackwallet/providers/ui/address_book_providers/address_entry_data_provider.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
@@ -141,7 +142,7 @@ class _NewContactAddressEntryFormState
                       child: Row(
                         children: [
                           SvgPicture.asset(
-                            Assets.svg.iconFor(coin: coin),
+                            ref.watch(coinIconProvider(coin)),
                             height: 24,
                             width: 24,
                           ),

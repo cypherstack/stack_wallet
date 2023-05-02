@@ -19,6 +19,7 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
@@ -184,7 +185,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                   width: 15,
                 ),
                 SvgPicture.asset(
-                  Assets.svg.iconFor(coin: coin),
+                  ref.watch(coinIconProvider(coin)),
                   width: 32,
                   height: 32,
                 ),
@@ -240,7 +241,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                 child: Row(
                   children: [
                     SvgPicture.asset(
-                      Assets.svg.iconFor(coin: coin),
+                      ref.watch(coinIconProvider(coin)),
                       width: 40,
                       height: 40,
                     ),
