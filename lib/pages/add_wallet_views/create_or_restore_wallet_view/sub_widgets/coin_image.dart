@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/themes/theme_coin_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
@@ -41,7 +42,7 @@ class CoinImage extends ConsumerWidget {
       );
     } else {
       return SvgPicture.asset(
-        Assets.svg.imageFor(coin: coin, context: context),
+        ref.watch(coinImageProvider(coin)),
         width: width,
         height: height,
       );
