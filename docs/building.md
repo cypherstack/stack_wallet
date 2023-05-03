@@ -4,8 +4,9 @@ Here you will find instructions on how to install the necessary tools for buildi
 
 ### Prerequisites
 
-- The OS'es supported for building is Ubuntu (20.04) and Fedora (37 - Work In Progress)
-- A machine with at least 100 GB of Storage
+- The only OS supported for building is Ubuntu 20.04.  Advanced users may also be able to build on other Debian-based distributions like Fedora 37.
+- Android setup ([Android Studio](https://developer.android.com/studio) and subsequent dependencies)
+- 100 GB of storage
 
 The following prerequisites can be installed with the setup script [`scripts/setup.sh`](./../scripts/setup.sh) or manually as described below:
 
@@ -19,14 +20,7 @@ The following prerequisites can be installed with the setup script [`scripts/set
 
 ### Manual setup
 
-> If you have installed with script, skip to [running](#running) 
-
-Please go to your Linux distribution's title below for instructions on how to manually setup:
-
-- [Ubuntu (20.04)](#ubuntu-2004)
-- [Fedora (37) (Work In Progress)](#fedora-37-work-in-progress)
-
-#### Ubuntu (20.04)
+> If you used the `setup.sh` script, skip to [running](#running)
 
 Install basic dependencies
 ```
