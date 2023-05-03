@@ -712,7 +712,6 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         ref.read(efSendAmountProvider.notifier).state = null;
         ref.read(efReceiveAmountProvider.notifier).state = null;
         ref.read(efReversedProvider.notifier).state = false;
-        ref.read(efWarningProvider.notifier).state = "";
         ref.read(efRefreshingProvider.notifier).state = false;
         ref.read(efCurrencyPairProvider).setSend(null, notifyListeners: true);
         ref
@@ -839,12 +838,12 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         SizedBox(
           height: isDesktop ? 10 : 4,
         ),
-        if (ref.watch(efWarningProvider).isNotEmpty &&
-            !ref.watch(efReversedProvider))
-          Text(
-            ref.watch(efWarningProvider),
-            style: STextStyles.errorSmall(context),
-          ),
+        // if (ref.watch(efWarningProvider).isNotEmpty &&
+        //     !ref.watch(efReversedProvider))
+        //   Text(
+        //     ref.watch(efWarningProvider),
+        //     style: STextStyles.errorSmall(context),
+        //   ),
         Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -924,12 +923,12 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
               ref.watch(efExchangeProvider).name ==
                   ChangeNowExchange.exchangeName,
         ),
-        if (ref.watch(efWarningProvider).isNotEmpty &&
-            ref.watch(efReversedProvider))
-          Text(
-            ref.watch(efWarningProvider),
-            style: STextStyles.errorSmall(context),
-          ),
+        // if (ref.watch(efWarningProvider).isNotEmpty &&
+        //     ref.watch(efReversedProvider))
+        //   Text(
+        //     ref.watch(efWarningProvider),
+        //     style: STextStyles.errorSmall(context),
+        //   ),
         SizedBox(
           height: isDesktop ? 20 : 12,
         ),

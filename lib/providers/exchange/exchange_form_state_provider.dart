@@ -79,38 +79,3 @@ final efCanExchangeProvider = StateProvider<bool>((ref) {
 });
 
 final efRefreshingProvider = StateProvider<bool>((ref) => false);
-
-final efWarningProvider = StateProvider((ref) {
-  // if (ref.watch(efReversedProvider)) {
-  //   final _receiveCurrency =
-  //       ref.watch(efCurrencyPairProvider.select((value) => value.receive));
-  //   final _receiveAmount = ref.watch(efReceiveAmountProvider);
-  //   if (_receiveCurrency != null && _receiveAmount != null) {
-  //     final range = ref.watch(efRangeProvider);
-  //     if (range?.min != null &&
-  //         _receiveAmount < range!.min! &&
-  //         _receiveAmount > Decimal.zero) {
-  //       return "Min receive amount ${range.min!.toString()} ${_receiveCurrency.ticker.toUpperCase()}";
-  //     } else if (range?.max != null &&
-  //         _receiveAmount > ref.watch(efRangeProvider)!.max!) {
-  //       return "Max receive amount $range!.max!.toString()} ${_receiveCurrency.ticker.toUpperCase()}";
-  //     }
-  //   }
-  // } else {
-  //   final _sendCurrency =
-  //       ref.watch(efCurrencyPairProvider.select((value) => value.send));
-  //   final _sendAmount = ref.watch(efSendAmountProvider);
-  //   if (_sendCurrency != null && _sendAmount != null) {
-  //     final range = ref.watch(efRangeProvider);
-  //     if (range?.min != null &&
-  //         _sendAmount < range!.min! &&
-  //         _sendAmount > Decimal.zero) {
-  //       return "Min send amount ${range.min!.toString()} ${_sendCurrency.ticker.toUpperCase()}";
-  //     } else if (range?.max != null && _sendAmount > range!.max!) {
-  //       return "Max send amount ${range.max!.toString()} ${_sendCurrency.ticker.toUpperCase()}";
-  //     }
-  //   }
-  // }
-
-  return "";
-});
