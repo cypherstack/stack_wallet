@@ -333,53 +333,57 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
-                    child: TextField(
-                      autofocus: isDesktop,
-                      autocorrect: !isDesktop,
-                      enableSuggestions: !isDesktop,
-                      controller: _searchFieldController,
-                      focusNode: _searchFocusNode,
-                      onChanged: (value) => setState(() => _searchTerm = value),
-                      style: STextStyles.field(context),
-                      decoration: standardInputDecoration(
-                        "Search",
-                        _searchFocusNode,
-                        context,
-                        desktopMed: isDesktop,
-                      ).copyWith(
-                        prefixIcon: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 16,
+                    child: Semantics(
+                      label: "Search Text Field. Inputs Text To Search In Wallets.",
+                      excludeSemantics: true,
+                      child: TextField(
+                        autofocus: isDesktop,
+                        autocorrect: !isDesktop,
+                        enableSuggestions: !isDesktop,
+                        controller: _searchFieldController,
+                        focusNode: _searchFocusNode,
+                        onChanged: (value) => setState(() => _searchTerm = value),
+                        style: STextStyles.field(context),
+                        decoration: standardInputDecoration(
+                          "Search",
+                          _searchFocusNode,
+                          context,
+                          desktopMed: isDesktop,
+                        ).copyWith(
+                          prefixIcon: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 16,
+                            ),
+                            child: SvgPicture.asset(
+                              Assets.svg.search,
+                              width: 16,
+                              height: 16,
+                            ),
                           ),
-                          child: SvgPicture.asset(
-                            Assets.svg.search,
-                            width: 16,
-                            height: 16,
-                          ),
-                        ),
-                        suffixIcon: _searchFieldController.text.isNotEmpty
-                            ? Padding(
-                                padding: const EdgeInsets.only(right: 0),
-                                child: UnconstrainedBox(
-                                  child: Row(
-                                    children: [
-                                      TextFieldIconButton(
-                                        child: const XIcon(),
-                                        onTap: () async {
-                                          setState(() {
-                                            _searchFieldController.text = "";
-                                            _searchTerm = "";
-                                          });
-                                        },
-                                      ),
-                                    ],
+                          suffixIcon: _searchFieldController.text.isNotEmpty
+                              ? Padding(
+                            padding: const EdgeInsets.only(right: 0),
+                            child: UnconstrainedBox(
+                              child: Row(
+                                children: [
+                                  TextFieldIconButton(
+                                    child: const XIcon(),
+                                    onTap: () async {
+                                      setState(() {
+                                        _searchFieldController.text = "";
+                                        _searchTerm = "";
+                                      });
+                                    },
                                   ),
-                                ),
-                              )
-                            : null,
+                                ],
+                              ),
+                            ),
+                          )
+                              : null,
+                        ),
                       ),
-                    ),
+                    )
                   ),
                   const SizedBox(
                     height: 10,

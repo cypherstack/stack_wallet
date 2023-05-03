@@ -141,15 +141,19 @@ class _BackspaceKeyState extends State<BackspaceKey> {
             }
           });
         },
-        child: Center(
-          child: SvgPicture.asset(
-            Assets.svg.delete,
-            width: 20,
-            height: 20,
-            color:
-                Theme.of(context).extension<StackColors>()!.numpadTextDefault,
+        child: Semantics(
+          label: "Backspace Button. Deletes The Last Digit.",
+          excludeSemantics: true,
+          child: Center(
+            child: SvgPicture.asset(
+              Assets.svg.delete,
+              width: 20,
+              height: 20,
+              color:
+              Theme.of(context).extension<StackColors>()!.numpadTextDefault,
+            ),
           ),
-        ),
+        )
       ),
     );
   }
@@ -199,10 +203,12 @@ class CustomKey extends StatelessWidget {
     Key? key,
     required this.onPressed,
     this.iconAssetName,
+    this.semanticsLabel = "Button",
   }) : super(key: key);
 
   final VoidCallback onPressed;
   final String? iconAssetName;
+  final String semanticsLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -214,26 +220,30 @@ class CustomKey extends StatelessWidget {
         color: Theme.of(context).extension<StackColors>()!.numpadBackDefault,
         shadows: const [],
       ),
-      child: MaterialButton(
-        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        shape: const StadiumBorder(),
-        onPressed: () {
-          onPressed.call();
-        },
-        child: Center(
-          child: iconAssetName == null
-              ? null
-              : SvgPicture.asset(
-                  iconAssetName!,
-                  width: 20,
-                  height: 20,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .numpadTextDefault,
-                ),
+      child: Semantics(
+        label: semanticsLabel,
+        excludeSemantics: true,
+        child: MaterialButton(
+          // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          shape: const StadiumBorder(),
+          onPressed: () {
+            onPressed.call();
+          },
+          child: Center(
+            child: iconAssetName == null
+                ? null
+                : SvgPicture.asset(
+              iconAssetName!,
+              width: 20,
+              height: 20,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .numpadTextDefault,
+            ),
+          ),
         ),
-      ),
+      )
     );
   }
 }
