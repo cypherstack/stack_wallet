@@ -80,7 +80,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   bool _swapLock = false;
 
   // todo: check and adjust this value?
-  static const _valueCheckInterval = Duration(milliseconds: 300);
+  static const _valueCheckInterval = Duration(milliseconds: 1500);
 
   Future<T> showUpdatingExchangeRate<T>({
     required Future<T> whileFuture,
