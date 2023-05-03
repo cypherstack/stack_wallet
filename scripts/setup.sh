@@ -37,7 +37,7 @@ sudo apt-get install -y unzip automake build-essential file pkg-config git pytho
 
 sudo apt-get install -y debhelper libclang-dev cargo rustc opencl-headers libssl-dev ocl-icd-opencl-dev
 
-sudo apt-get install -y unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless
+sudo apt-get install -y unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless libsecret-1-dev
 
 sudo apt install -y libc6-dev-i386
 
