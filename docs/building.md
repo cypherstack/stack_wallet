@@ -2,17 +2,36 @@
 
 Here you will find instructions on how to install the necessary tools for building and running the app.
 
-### Prerequisites
+## Prerequisites
 
 - The only OS supported for building is Ubuntu 20.04.  Advanced users may also be able to build on other Debian-based distributions like Fedora 37.
 - Android setup ([Android Studio](https://developer.android.com/studio) and subsequent dependencies)
 - 100 GB of storage
 
-The following prerequisites can be installed with the setup script [`scripts/setup.sh`](./../scripts/setup.sh) or manually as described below:
+Install Android Studio following the instructions below before proceeding, then the following prerequisites can be installed with the setup script [`scripts/setup.sh`](./../scripts/setup.sh) or manually as described below:
 
 - Flutter 3.7.11 [(install manually or with git, do not install with snap)](https://docs.flutter.dev/get-started/install)
 - Dart SDK Requirement (>=2.19.0, up until <3.0.0) (normally included with a flutter install)
-- Android setup ([Android Studio](https://developer.android.com/studio) and subsequent dependencies)
+
+### Android Studio
+Android Studio is the recommended IDE for development, not just for launching on Android devices and emulators but also for Linux desktop development.
+
+Follow instructions here [https://developer.android.com/studio/install#linux](https://developer.android.com/studio/install#linux) or install via snap:
+```
+# setup android studio
+sudo apt install -y openjdk-11-jdk
+sudo snap install android-studio --classic
+```
+
+Use Tools > SDK Manager to install:
+ - SDK Tools > Android SDK (API 30)
+ - SDK Tools > NDK
+ - SDK Tools > Android SDK command line tools,
+ - SDK Tools > CMake
+
+Then in File > Settings > Plugins, install the Flutter plugin and restart the IDE.  In Android Studio's options for the Flutter language, enable auto format on save to match the project's code style.  If you have problems with the Dart SDK, make sure to run `flutter` in a terminal to download it (use `source ~/.bashrc` to update your environment variables if you're still using the same terminal from which you ran `setup.sh`)
+
+Make a Pixel 4 (API 30) x86_64 emulator with 2GB of storage space for emulation
 
 ### Scripted setup
 
