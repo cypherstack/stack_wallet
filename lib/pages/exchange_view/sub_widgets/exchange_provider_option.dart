@@ -201,12 +201,7 @@ class _ProviderOptionState extends ConsumerState<_ProviderOption> {
       groupValue = _id;
     }
 
-    bool selected = groupValue == _id;
-
-    print("========================================================");
-    print("gourpValue: $groupValue");
-    print("_id: $_id");
-    print("========================================================");
+    // bool selected = groupValue == _id;
 
     return ConditionalParent(
       condition: isDesktop,
