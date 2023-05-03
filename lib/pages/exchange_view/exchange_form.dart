@@ -614,13 +614,15 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         ? ref.read(efReceiveAmountProvider)
         : ref.read(efSendAmountProvider);
 
-    if (amount == null || amount <= Decimal.zero) {
+    final pair = ref.read(efCurrencyPairProvider);
+    if (amount == null ||
+        amount <= Decimal.zero ||
+        pair.send == null ||
+        pair.receive == null) {
       ref.read(efRefreshingProvider.notifier).state = false;
       return;
     }
-
     final rateType = ref.read(efRateTypeProvider);
-    final pair = ref.read(efCurrencyPairProvider);
 
     for (final exchange in exchanges) {
       final sendCurrency = pair.send?.forExchange(exchange.name);
@@ -657,7 +659,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           );
         }
 
-        if (estimateResponse.value != null && rangeResponse.value != null) {
+        if (estimateResponse.value != null &&
+            rangeResponse.value != null &&
+            mounted) {
           ref.read(efEstimatesListProvider(exchange.name).notifier).state =
               Tuple2(estimateResponse.value!, rangeResponse.value!);
         }
@@ -670,16 +674,12 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   }
 
   void updateSend(Estimate? estimate) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(efSendAmountProvider.notifier).state = estimate?.estimatedAmount;
-    });
+    ref.read(efSendAmountProvider.notifier).state = estimate?.estimatedAmount;
   }
 
   void updateReceive(Estimate? estimate) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(efReceiveAmountProvider.notifier).state =
-          estimate?.estimatedAmount;
-    });
+    ref.read(efReceiveAmountProvider.notifier).state =
+        estimate?.estimatedAmount;
   }
 
   @override
@@ -699,7 +699,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       }
     });
     _receiveFocusNode.addListener(() {
-      if (_receiveFocusNode.hasFocus) {
+      if (_receiveFocusNode.hasFocus &&
+          ref.read(efExchangeProvider).name != ChangeNowExchange.exchangeName) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ref.read(efReversedProvider.notifier).state = true;
         });
@@ -746,6 +747,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   void dispose() {
     _receiveController.dispose();
     _sendController.dispose();
+    _receiveFocusNode.dispose();
+    _sendFocusNode.dispose();
     super.dispose();
   }
 
@@ -778,15 +781,18 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     });
 
     ref.listen(efEstimateProvider.notifier, (previous, next) {
+      final estimate = (next as StateController<Estimate?>).state;
       if (ref.read(efReversedProvider)) {
-        updateSend((next as StateController<Estimate?>).state);
+        updateSend(estimate);
       } else {
-        updateReceive((next as StateController<Estimate?>).state);
+        updateReceive(estimate);
       }
     });
 
     ref.listen(efCurrencyPairProvider, (previous, next) {
-      update();
+      if (!_swapLock) {
+        update();
+      }
     });
 
     return Column(
@@ -883,7 +889,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                     ),
                   ),
                 ),
-              )
+              ),
             ),
           ],
         ),
