@@ -39,6 +39,7 @@ class LockscreenView extends ConsumerStatefulWidget {
     this.routeOnSuccessArguments,
     this.biometrics = const Biometrics(),
     this.onSuccess,
+    this.customKeyLabel = "Button",
   }) : super(key: key);
 
   static const String routeName = "/lockscreen";
@@ -53,6 +54,8 @@ class LockscreenView extends ConsumerStatefulWidget {
   final String biometricsCancelButtonString;
   final Biometrics biometrics;
   final VoidCallback? onSuccess;
+  final String customKeyLabel;
+
 
   @override
   ConsumerState<LockscreenView> createState() => _LockscreenViewState();
@@ -245,6 +248,10 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                         ),
                         CustomPinPut(
                           customKey: CustomKey(
+                            semanticsLabel: Platform.isIOS
+                                ? "Face ID Button. Checks Face ID."
+                                : "Fingerprint Button. Checks Fingerprint."
+                            ,
                             onPressed: _checkUseBiometrics,
                             iconAssetName: Platform.isIOS
                                 ? Assets.svg.faceId
