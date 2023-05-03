@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,8 +20,8 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_pin_put/custom_pin_put.dart';
-import 'package:stackwallet/widgets/custom_pin_put/pin_keyboard.dart';
 import 'package:stackwallet/widgets/shake/shake.dart';
 import 'package:tuple/tuple.dart';
 
@@ -39,6 +38,7 @@ class LockscreenView extends ConsumerStatefulWidget {
     this.routeOnSuccessArguments,
     this.biometrics = const Biometrics(),
     this.onSuccess,
+    this.customKeyLabel = "Button",
   }) : super(key: key);
 
   static const String routeName = "/lockscreen";
@@ -53,6 +53,8 @@ class LockscreenView extends ConsumerStatefulWidget {
   final String biometricsCancelButtonString;
   final Biometrics biometrics;
   final VoidCallback? onSuccess;
+  final String customKeyLabel;
+
 
   @override
   ConsumerState<LockscreenView> createState() => _LockscreenViewState();
@@ -90,7 +92,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
 
         final manager =
             ref.read(walletsChangeNotifierProvider).getManager(walletId);
-        if (manager.coin == Coin.monero || manager.coin == Coin.wownero) {
+        if (manager.coin == Coin.monero) {
           await showLoading(
             opaqueBG: true,
             whileFuture: manager.initializeExisting(),
@@ -226,6 +228,26 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // check prefs and hide if user has biometrics toggle off?
+                Padding(
+                  padding: const EdgeInsets.only(right: 40.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      if (ref.read(prefsChangeNotifierProvider).useBiometrics ==
+                          true)
+                        CustomTextButton(
+                          text: "Use biometrics",
+                          onTap: () async {
+                            await _checkUseBiometrics();
+                          },
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: 55,
+                ),
                 Shake(
                   animationDuration: const Duration(milliseconds: 700),
                   animationRange: 12,
@@ -244,12 +266,12 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                           height: 52,
                         ),
                         CustomPinPut(
-                          customKey: CustomKey(
-                            onPressed: _checkUseBiometrics,
-                            iconAssetName: Platform.isIOS
-                                ? Assets.svg.faceId
-                                : Assets.svg.fingerprint,
-                          ),
+                          // customKey: CustomKey(
+                          //   onPressed: _checkUseBiometrics,
+                          //   iconAssetName: Platform.isIOS
+                          //       ? Assets.svg.faceId
+                          //       : Assets.svg.fingerprint,
+                          // ),
                           fieldsCount: Constants.pinLength,
                           eachFieldHeight: 12,
                           eachFieldWidth: 12,
@@ -285,6 +307,9 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                           ),
                           selectedFieldDecoration: _pinPutDecoration,
                           followingFieldDecoration: _pinPutDecoration,
+                          isRandom: ref
+                              .read(prefsChangeNotifierProvider)
+                              .randomizePIN,
                           onSubmit: (String pin) async {
                             _attempts++;
 

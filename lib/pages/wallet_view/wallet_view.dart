@@ -53,6 +53,7 @@ import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/buy_nav_icon.dart';
@@ -420,6 +421,33 @@ class _WalletViewState extends ConsumerState<WalletView> {
                   eventBus: null,
                   textColor:
                       Theme.of(context).extension<StackColors>()!.textDark,
+                  actionButton: SecondaryButton(
+                    label: "Cancel",
+                    onPressed: () async {
+                      await showDialog<void>(
+                        context: context,
+                        builder: (context) => StackDialog(
+                          title: "Warning!",
+                          message: "Skipping this process can completely"
+                              " break your wallet. It is only meant to be done in"
+                              " emergency situations where the migration fails"
+                              " and will not let you continue. Still skip?",
+                          leftButton: SecondaryButton(
+                            label: "Cancel",
+                            onPressed:
+                                Navigator.of(context, rootNavigator: true).pop,
+                          ),
+                          rightButton: SecondaryButton(
+                            label: "Ok",
+                            onPressed: () {
+                              Navigator.of(context, rootNavigator: true).pop();
+                              setState(() => _rescanningOnOpen = false);
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               )
             ],
@@ -473,6 +501,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       child: AspectRatio(
                         aspectRatio: 1,
                         child: AppBarIconButton(
+                          semanticsLabel: "Network Button. Takes To Network Status Page.",
                           key: const Key("walletViewRadioButton"),
                           size: 36,
                           shadows: const [],
@@ -502,6 +531,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       child: AspectRatio(
                         aspectRatio: 1,
                         child: AppBarIconButton(
+                          semanticsLabel: "Notifications Button. Takes To Notifications Page.",
                           key: const Key("walletViewAlertsButton"),
                           size: 36,
                           shadows: const [],
@@ -569,6 +599,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       child: AspectRatio(
                         aspectRatio: 1,
                         child: AppBarIconButton(
+                          semanticsLabel: "Settings Button. Takes To Wallet Settings Page.",
                           key: const Key("walletViewSettingsButton"),
                           size: 36,
                           shadows: const [],
@@ -790,7 +821,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     label: "Receive",
                     icon: const ReceiveNavIcon(),
                     onTap: () {
-                      final coin = ref.read(managerProvider).coin;
                       if (mounted) {
                         unawaited(
                           Navigator.of(context).pushNamed(

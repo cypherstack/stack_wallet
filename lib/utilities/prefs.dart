@@ -19,6 +19,7 @@ class Prefs extends ChangeNotifier {
     if (!_initialized) {
       _currency = await _getPreferredCurrency();
       // _exchangeRateType = await _getExchangeRateType();
+      _randomizePIN = await _getRandomizePIN();
       _useBiometrics = await _getUseBiometrics();
       _hasPin = await _getHasPin();
       _language = await _getPreferredLanguage();
@@ -294,6 +295,27 @@ class Prefs extends ChangeNotifier {
   //       throw Exception("Invalid exchange rate type found in prefs!");
   //   }
   // }
+
+  // randomize PIN
+
+  bool _randomizePIN = false;
+
+  bool get randomizePIN => _randomizePIN;
+
+  set randomizePIN(bool randomizePIN) {
+    if (_randomizePIN != randomizePIN) {
+      DB.instance.put<dynamic>(
+          boxName: DB.boxNamePrefs, key: "randomizePIN", value: randomizePIN);
+      _randomizePIN = randomizePIN;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getRandomizePIN() async {
+    return await DB.instance.get<dynamic>(
+            boxName: DB.boxNamePrefs, key: "randomizePIN") as bool? ??
+        false;
+  }
 
   // use biometrics
 

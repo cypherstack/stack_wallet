@@ -781,31 +781,35 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                 cursor: SystemMouseCursors.click,
                 child: child,
               ),
-              child: RoundedContainer(
-                padding: isDesktop
-                    ? const EdgeInsets.all(6)
-                    : const EdgeInsets.all(2),
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .buttonBackSecondary,
-                radiusMultiplier: 0.75,
-                child: GestureDetector(
-                  onTap: () async {
-                    await _swap();
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: SvgPicture.asset(
-                      Assets.svg.swap,
-                      width: 20,
-                      height: 20,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
+              child: Semantics(
+                label: "Swap Button. Reverse The Exchange Currencies.",
+                excludeSemantics: true,
+                child: RoundedContainer(
+                  padding: isDesktop
+                      ? const EdgeInsets.all(6)
+                      : const EdgeInsets.all(2),
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .buttonBackSecondary,
+                  radiusMultiplier: 0.75,
+                  child: GestureDetector(
+                    onTap: () async {
+                      await _swap();
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: SvgPicture.asset(
+                        Assets.svg.swap,
+                        width: 20,
+                        height: 20,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
+                      ),
                     ),
                   ),
                 ),
-              ),
+              )
             ),
           ],
         ),
