@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/hive/db.dart';
+import 'package:stackwallet/models/exchange/active_pair.dart';
 import 'package:stackwallet/models/exchange/aggregate_currency.dart';
-import 'package:stackwallet/models/exchange/exchange_form_state.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
@@ -57,20 +57,29 @@ class ExchangeDataLoadingService {
     );
   }
 
-  Future<void> setCurrenciesIfEmpty(ExchangeFormState state) async {
-    if (state.sendCurrency == null && state.receiveCurrency == null) {
+  Future<void> setCurrenciesIfEmpty(
+    ActivePair? pair,
+    ExchangeRateType rateType,
+  ) async {
+    if (pair?.send == null && pair?.receive == null) {
       if (await isar.currencies.count() > 0) {
-        final sendCurrency = await getAggregateCurrency(
-          "BTC",
-          state.exchangeRateType,
-          null,
+        pair?.setSend(
+          await getAggregateCurrency(
+            "BTC",
+            rateType,
+            null,
+          ),
+          notifyListeners: false,
         );
-        final receiveCurrency = await getAggregateCurrency(
-          "XMR",
-          state.exchangeRateType,
-          null,
+
+        pair?.setReceive(
+          await getAggregateCurrency(
+            "XMR",
+            rateType,
+            null,
+          ),
+          notifyListeners: false,
         );
-        state.setCurrencies(sendCurrency, receiveCurrency);
       }
     }
   }

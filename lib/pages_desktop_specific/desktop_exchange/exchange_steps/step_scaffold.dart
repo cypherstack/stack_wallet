@@ -84,8 +84,7 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
     );
 
     final ExchangeResponse<Trade> response = await ref
-        .read(exchangeFormStateProvider)
-        .exchange
+        .read(efExchangeProvider)
         .createTrade(
           from: ref.read(desktopExchangeModelProvider)!.sendTicker,
           to: ref.read(desktopExchangeModelProvider)!.receiveTicker,

@@ -49,16 +49,10 @@ class _ExchangeProviderOptionsState
 
   @override
   Widget build(BuildContext context) {
-    final sendCurrency = ref.watch(
-      exchangeFormStateProvider.select(
-        (value) => value.sendCurrency,
-      ),
-    );
-    final receivingCurrency = ref.watch(
-      exchangeFormStateProvider.select(
-        (value) => value.receiveCurrency,
-      ),
-    );
+    final sendCurrency =
+        ref.watch(efCurrencyPairProvider.select((value) => value.send));
+    final receivingCurrency =
+        ref.watch(efCurrencyPairProvider.select((value) => value.receive));
 
     final showChangeNow = exchangeSupported(
       exchangeName: ChangeNowExchange.exchangeName,

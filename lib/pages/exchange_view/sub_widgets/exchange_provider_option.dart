@@ -2,12 +2,10 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/exceptions/exchange/pair_unavailable_exception.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/providers/exchange/exchange_form_state_provider.dart';
 import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
-import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -42,138 +40,121 @@ class _ExchangeMultiProviderOptionState extends ConsumerState<ExchangeOption> {
 
   @override
   Widget build(BuildContext context) {
-    final sendCurrency = ref
-        .watch(exchangeFormStateProvider.select((value) => value.sendCurrency));
-    final receivingCurrency = ref.watch(
-        exchangeFormStateProvider.select((value) => value.receiveCurrency));
-    final fromAmount = ref
-        .watch(exchangeFormStateProvider.select((value) => value.sendAmount));
-    final toAmount = ref.watch(
-        exchangeFormStateProvider.select((value) => value.receiveAmount));
+    final sendCurrency =
+        ref.watch(efCurrencyPairProvider.select((value) => value.send));
+    final receivingCurrency =
+        ref.watch(efCurrencyPairProvider.select((value) => value.receive));
+    final reversed = ref.watch(efReversedProvider);
+    final amount = reversed
+        ? ref.watch(efReceiveAmountProvider)
+        : ref.watch(efSendAmountProvider);
+
+    final estimates = ref.watch(efEstimatesListProvider(widget.exchange.name));
 
     return AnimatedSize(
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeInOutCubicEmphasized,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (sendCurrency != null &&
+      child: Builder(
+        builder: (_) {
+          if (ref.watch(efRefreshingProvider)) {
+            // show loading
+            return _ProviderOption(
+              exchange: widget.exchange,
+              estimate: null,
+              rateString: "",
+              loadingString: true,
+            );
+          } else if (sendCurrency != null &&
               receivingCurrency != null &&
-              toAmount != null &&
-              toAmount > Decimal.zero &&
-              fromAmount != null &&
-              fromAmount > Decimal.zero)
-            FutureBuilder(
-              future: widget.exchange.getEstimates(
-                sendCurrency.ticker,
-                receivingCurrency.ticker,
-                widget.reversed ? toAmount : fromAmount,
-                widget.fixedRate,
-                widget.reversed,
-              ),
-              builder: (context,
-                  AsyncSnapshot<ExchangeResponse<List<Estimate>>> snapshot) {
-                if (snapshot.connectionState == ConnectionState.done &&
-                    snapshot.hasData) {
-                  final estimates = snapshot.data?.value;
+              amount != null &&
+              amount > Decimal.zero) {
+            if (estimates != null && estimates.item1.isNotEmpty) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (int i = 0; i < estimates.item1.length; i++)
+                    Builder(
+                      builder: (context) {
+                        final e = estimates.item1[i];
 
-                  if (estimates != null && estimates.isNotEmpty) {
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        for (int i = 0; i < estimates.length; i++)
-                          Builder(
-                            builder: (context) {
-                              final e = estimates[i];
-                              int decimals;
-                              try {
-                                decimals = coinFromTickerCaseInsensitive(
-                                        receivingCurrency.ticker)
-                                    .decimals;
-                              } catch (_) {
-                                decimals = 8; // some reasonable alternative
-                              }
-                              Amount rate;
-                              if (e.reversed) {
-                                rate = (toAmount / e.estimatedAmount)
-                                    .toDecimal(scaleOnInfinitePrecision: 18)
-                                    .toAmount(fractionDigits: decimals);
-                              } else {
-                                rate = (e.estimatedAmount / fromAmount)
-                                    .toDecimal(scaleOnInfinitePrecision: 18)
-                                    .toAmount(fractionDigits: decimals);
-                              }
+                        int decimals;
+                        try {
+                          decimals = coinFromTickerCaseInsensitive(
+                                  receivingCurrency.ticker)
+                              .decimals;
+                        } catch (_) {
+                          decimals = 8; // some reasonable alternative
+                        }
+                        Amount rate;
+                        if (e.reversed) {
+                          rate = (amount / e.estimatedAmount)
+                              .toDecimal(scaleOnInfinitePrecision: 18)
+                              .toAmount(fractionDigits: decimals);
+                        } else {
+                          rate = (e.estimatedAmount / amount)
+                              .toDecimal(scaleOnInfinitePrecision: 18)
+                              .toAmount(fractionDigits: decimals);
+                        }
 
-                              final rateString =
-                                  "1 ${sendCurrency.ticker.toUpperCase()} ~ ${rate.localizedStringAsFixed(
-                                locale: ref.watch(
-                                  localeServiceChangeNotifierProvider
-                                      .select((value) => value.locale),
-                                ),
-                              )} ${receivingCurrency.ticker.toUpperCase()}";
-
-                              return ConditionalParent(
-                                condition: i > 0,
-                                builder: (child) => Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    isDesktop
-                                        ? Container(
-                                            height: 1,
-                                            color: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .background,
-                                          )
-                                        : const SizedBox(
-                                            height: 16,
-                                          ),
-                                    child,
-                                  ],
-                                ),
-                                child: _ProviderOption(
-                                  key: Key(widget.exchange.name +
-                                      e.exchangeProvider),
-                                  exchange: widget.exchange,
-                                  providerName: e.exchangeProvider,
-                                  rateString: rateString,
-                                  kycRating: e.kycRating,
-                                ),
-                              );
-                            },
+                        final rateString =
+                            "1 ${sendCurrency.ticker.toUpperCase()} ~ ${rate.localizedStringAsFixed(
+                          locale: ref.watch(
+                            localeServiceChangeNotifierProvider
+                                .select((value) => value.locale),
                           ),
-                      ],
-                    );
-                  } else if (snapshot.data?.exception
-                      is PairUnavailableException) {
-                    return _ProviderOption(
-                      exchange: widget.exchange,
-                      providerName: widget.exchange.name,
-                      rateString: "Unsupported pair",
-                    );
-                  } else {
-                    Logging.instance.log(
-                      "$runtimeType failed to fetch rate for ${widget.exchange.name}: ${snapshot.data}",
-                      level: LogLevel.Warning,
-                    );
+                        )} ${receivingCurrency.ticker.toUpperCase()}";
 
-                    return _ProviderOption(
-                      exchange: widget.exchange,
-                      providerName: widget.exchange.name,
-                      rateString: "Failed to fetch rate",
-                    );
-                  }
-                } else {
-                  // show loading
-                  return _ProviderOption(
-                    exchange: widget.exchange,
-                    providerName: widget.exchange.name,
-                    rateString: "",
-                    loadingString: true,
-                  );
-                }
-              },
-            ),
-        ],
+                        return ConditionalParent(
+                          condition: i > 0,
+                          builder: (child) => Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              isDesktop
+                                  ? Container(
+                                      height: 1,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .background,
+                                    )
+                                  : const SizedBox(
+                                      height: 16,
+                                    ),
+                              child,
+                            ],
+                          ),
+                          child: _ProviderOption(
+                            key: Key(widget.exchange.name + e.exchangeProvider),
+                            exchange: widget.exchange,
+                            estimate: e,
+                            rateString: rateString,
+                            kycRating: e.kycRating,
+                          ),
+                        );
+                      },
+                    ),
+                ],
+              );
+            } else {
+              Logging.instance.log(
+                "$runtimeType failed to fetch rate for ${widget.exchange.name}: $estimates",
+                level: LogLevel.Warning,
+              );
+
+              return _ProviderOption(
+                exchange: widget.exchange,
+                estimate: null,
+                rateString: "Failed to fetch rate",
+              );
+            }
+          } else {
+            // show n/a
+            return _ProviderOption(
+              exchange: widget.exchange,
+              estimate: null,
+              rateString: "n/a",
+            );
+          }
+        },
       ),
     );
   }
@@ -183,14 +164,14 @@ class _ProviderOption extends ConsumerStatefulWidget {
   const _ProviderOption({
     Key? key,
     required this.exchange,
-    required this.providerName,
+    required this.estimate,
     required this.rateString,
     this.kycRating,
     this.loadingString = false,
   }) : super(key: key);
 
   final Exchange exchange;
-  final String providerName;
+  final Estimate? estimate;
   final String rateString;
   final String? kycRating;
   final bool loadingString;
@@ -206,24 +187,26 @@ class _ProviderOptionState extends ConsumerState<_ProviderOption> {
 
   @override
   void initState() {
-    _id = "${widget.exchange.name} (${widget.providerName})";
+    _id =
+        "${widget.exchange.name} (${widget.estimate?.exchangeProvider ?? widget.exchange.name})";
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    bool selected = ref.watch(exchangeFormStateProvider
-            .select((value) => value.combinedExchangeId)) ==
-        _id;
-    String groupValue = ref.watch(
-        exchangeFormStateProvider.select((value) => value.combinedExchangeId));
+    String groupValue = ref.watch(currentCombinedExchangeIdProvider);
 
-    if (ref.watch(
-            exchangeFormStateProvider.select((value) => value.exchange.name)) ==
-        widget.providerName) {
-      selected = true;
+    if (ref.watch(efExchangeProvider).name ==
+        (widget.estimate?.exchangeProvider ?? widget.exchange.name)) {
       groupValue = _id;
     }
+
+    bool selected = groupValue == _id;
+
+    print("========================================================");
+    print("gourpValue: $groupValue");
+    print("_id: $_id");
+    print("========================================================");
 
     return ConditionalParent(
       condition: isDesktop,
@@ -233,15 +216,20 @@ class _ProviderOptionState extends ConsumerState<_ProviderOption> {
       ),
       child: GestureDetector(
         onTap: () {
-          if (!selected) {
-            ref.read(exchangeFormStateProvider).updateExchange(
-                  exchange: widget.exchange,
-                  shouldUpdateData: true,
-                  shouldNotifyListeners: true,
-                  providerName: widget.providerName,
-                  shouldAwait: false,
-                );
-          }
+          ref.read(efExchangeProvider.notifier).state = widget.exchange;
+          ref.read(efExchangeProviderNameProvider.notifier).state =
+              widget.estimate?.exchangeProvider ?? widget.exchange.name;
+
+          // if (!selected) {
+          //   ref.read(exchangeFormStateProvider).updateExchange(
+          //         exchange: widget.exchange,
+          //         shouldUpdateData: false,
+          //         shouldNotifyListeners: false,
+          //         providerName:
+          //             widget.estimate?.exchangeProvider ?? widget.exchange.name,
+          //         shouldAwait: false,
+          //       );
+          // }
         },
         child: Container(
           color: Colors.transparent,
@@ -263,15 +251,26 @@ class _ProviderOptionState extends ConsumerState<_ProviderOption> {
                       value: _id,
                       groupValue: groupValue,
                       onChanged: (_) {
-                        if (!selected) {
-                          ref.read(exchangeFormStateProvider).updateExchange(
-                                exchange: widget.exchange,
-                                shouldUpdateData: false,
-                                shouldNotifyListeners: true,
-                                providerName: widget.providerName,
-                                shouldAwait: false,
-                              );
-                        }
+                        ref.read(efExchangeProvider.notifier).state =
+                            widget.exchange;
+                        ref
+                                .read(efExchangeProviderNameProvider.notifier)
+                                .state =
+                            widget.estimate?.exchangeProvider ??
+                                widget.exchange.name;
+                        // if (!selected) {
+                        //
+                        //
+                        //   ref.read(exchangeFormStateProvider).updateExchange(
+                        //         exchange: widget.exchange,
+                        //         shouldUpdateData: false,
+                        //         shouldNotifyListeners: false,
+                        //         providerName:
+                        //             widget.estimate?.exchangeProvider ??
+                        //                 widget.exchange.name,
+                        //         shouldAwait: false,
+                        //       );
+                        // }
                       },
                     ),
                   ),
@@ -303,7 +302,8 @@ class _ProviderOptionState extends ConsumerState<_ProviderOption> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.providerName,
+                        widget.estimate?.exchangeProvider ??
+                            widget.exchange.name,
                         style: STextStyles.titleBold12(context).copyWith(
                           color: Theme.of(context)
                               .extension<StackColors>()!
