@@ -41,8 +41,8 @@ sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-
 Install [Rust](https://www.rust-lang.org/tools/install) with command:
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-rustup install 1.67.1
-rustup default 1.67.1
+rustup install 1.68
+rustup default 1.68
 ```
 
 Install the additional components for Rust:
@@ -105,10 +105,6 @@ cd scripts/linux/
 cd ../..
 ```
 
-#### Fedora (37) (Work In Progress)
-
-This is a work in progress, please use Ubuntu for now.
-
 ## Running
 ### Android
 Plug in your android device or use the emulator available via Android Studio and then run the following commands:
@@ -125,19 +121,3 @@ Plug in your android device or use the emulator available via Android Studio and
 flutter pub get Linux
 flutter run linux
 ```
-
-## Android Studio
-Android Studio is the recommended IDE for development, not just for launching on Android devices and emulators but also for Linux desktop development. 
-
-Follow instructions here [https://developer.android.com/studio/install#linux](https://developer.android.com/studio/install#linux) or install via snap:
-```
-# setup android studio
-sudo apt install -y openjdk-11-jdk
-sudo snap install android-studio --classic
-```
-
-Use Tools > SDK Manager to install the SDK Tools > Android SDK (API 30), SDK Tools > NDK, SDK Tools > Android SDK command line tools, and SDK Tools > CMake
-
-Then install the Flutter plugin and restart the IDE.  In Android Studio's options for the Flutter language, enable auto format on save to match the project's code style.  If you have problems with the Dart SDK, make sure to run `flutter` in a terminal to download it (use `source ~/.bashrc` to update your environment variables if you're still using the same terminal from which you ran `setup.sh`)
-
-Make a Pixel 4 (API 30) x86_64 emulator with 2GB of storage space for emulation
