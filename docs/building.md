@@ -10,7 +10,7 @@ Here you will find instructions on how to install the necessary tools for buildi
 
 Install Android Studio following the instructions below before proceeding, then the following prerequisites can be installed with the setup script [`scripts/setup.sh`](./../scripts/setup.sh) or manually as described below:
 
-- Flutter 3.7.11 [(install manually or with git, do not install with snap)](https://docs.flutter.dev/get-started/install)
+- Flutter 3.7.12 [(install manually or with git, do not install with snap)](https://docs.flutter.dev/get-started/install)
 - Dart SDK Requirement (>=2.19.0, up until <3.0.0) (normally included with a flutter install)
 
 ### Android Studio
