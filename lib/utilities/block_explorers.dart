@@ -1,6 +1,10 @@
+import 'dart:ffi';
+
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
-Uri getBlockExplorerTransactionUrlFor({
+import '../db/hive/db.dart';
+
+Uri getDefaultBlockExplorerUrlFor({
   required Coin coin,
   required String txid,
 }) {
@@ -18,7 +22,7 @@ Uri getBlockExplorerTransactionUrlFor({
     case Coin.dogecoinTestNet:
       return Uri.parse("https://chain.so/tx/DOGETEST/$txid");
     case Coin.epicCash:
-      // TODO: Handle this case.
+    // TODO: Handle this case.
       throw UnimplementedError("missing block explorer for epic cash");
     case Coin.ethereum:
       return Uri.parse("https://etherscan.io/tx/$txid");
@@ -39,5 +43,33 @@ Uri getBlockExplorerTransactionUrlFor({
       return Uri.parse("https://chainz.cryptoid.info/nmc/tx.dws?$txid.htm");
     case Coin.particl:
       return Uri.parse("https://chainz.cryptoid.info/part/tx.dws?$txid.htm");
+  }
+}
+
+int setBlockExplorerForCoin(
+    {required Coin coin, required Uri url}
+    ) {
+  var ticker = coin.ticker;
+  DB.instance.put<dynamic>(
+    boxName: DB.boxNameAllWalletsData,
+    key: "${ticker}blockExplorerUrl",
+    value: url);
+  return 0;
+}
+
+Uri getBlockExplorerTransactionUrlFor({
+  required Coin coin,
+  required String txid,
+}) {
+  var ticker = coin.ticker;
+  var url = DB.instance.get<dynamic>(
+    boxName: DB.boxNameAllWalletsData,
+    key: "${ticker}blockExplorerUrl",
+  );
+  if (url == null) {
+    return getDefaultBlockExplorerUrlFor(coin: coin, txid: txid);
+  } else {
+    url = url.replace("%5BTXID%5D", txid);
+    return Uri.parse(url.toString());
   }
 }

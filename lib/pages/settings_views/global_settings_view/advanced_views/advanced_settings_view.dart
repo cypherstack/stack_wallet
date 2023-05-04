@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/widgets/choose_coin_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
 import 'package:stackwallet/pages/stack_privacy_calls.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
@@ -10,6 +11,9 @@ import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:tuple/tuple.dart';
+
+import 'manage_explorer_view.dart';
 
 class AdvancedSettingsView extends StatelessWidget {
   const AdvancedSettingsView({
@@ -219,6 +223,40 @@ class AdvancedSettingsView extends StatelessWidget {
                       ),
                     );
                   },
+                ),
+              ),
+              const SizedBox(
+                height: 8,
+              ),
+              RoundedWhiteContainer(
+                padding: const EdgeInsets.all(0),
+                child: RawMaterialButton(
+                  // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pushNamed(ChooseCoinView.routeName,
+                        arguments: const Tuple3<String, String, String>("Manage block explorers", "block explorer", ManageExplorerView.routeName));
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 20,
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          "Change block explorer",
+                          style: STextStyles.titleBold12(context),
+                          textAlign: TextAlign.left,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],
