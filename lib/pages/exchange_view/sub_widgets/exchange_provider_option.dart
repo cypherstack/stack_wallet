@@ -9,6 +9,7 @@ import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -31,11 +32,10 @@ class ExchangeOption extends ConsumerStatefulWidget {
   final bool reversed;
 
   @override
-  ConsumerState<ExchangeOption> createState() =>
-      _ExchangeMultiProviderOptionState();
+  ConsumerState<ExchangeOption> createState() => _ExchangeOptionState();
 }
 
-class _ExchangeMultiProviderOptionState extends ConsumerState<ExchangeOption> {
+class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
   final isDesktop = Util.isDesktop;
 
   @override
@@ -49,7 +49,8 @@ class _ExchangeMultiProviderOptionState extends ConsumerState<ExchangeOption> {
         ? ref.watch(efReceiveAmountProvider)
         : ref.watch(efSendAmountProvider);
 
-    final estimates = ref.watch(efEstimatesListProvider(widget.exchange.name));
+    final data = ref.watch(efEstimatesListProvider(widget.exchange.name));
+    final estimates = data?.item1.value;
 
     return AnimatedSize(
       duration: const Duration(milliseconds: 500),
@@ -68,14 +69,14 @@ class _ExchangeMultiProviderOptionState extends ConsumerState<ExchangeOption> {
               receivingCurrency != null &&
               amount != null &&
               amount > Decimal.zero) {
-            if (estimates != null && estimates.item1.isNotEmpty) {
+            if (estimates != null && estimates.isNotEmpty) {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  for (int i = 0; i < estimates.item1.length; i++)
+                  for (int i = 0; i < estimates.length; i++)
                     Builder(
                       builder: (context) {
-                        final e = estimates.item1[i];
+                        final e = estimates[i];
 
                         int decimals;
                         try {
@@ -136,14 +137,37 @@ class _ExchangeMultiProviderOptionState extends ConsumerState<ExchangeOption> {
               );
             } else {
               Logging.instance.log(
-                "$runtimeType failed to fetch rate for ${widget.exchange.name}: $estimates",
+                "$runtimeType rate unavailable for ${widget.exchange.name}: $data",
                 level: LogLevel.Warning,
               );
 
-              return _ProviderOption(
-                exchange: widget.exchange,
-                estimate: null,
-                rateString: "Failed to fetch rate",
+              return Consumer(
+                builder: (_, ref, __) {
+                  String? message;
+
+                  final range = data?.item2;
+                  if (range != null) {
+                    if (range.min != null && amount < range.min!) {
+                      message ??= "Amount too small";
+                    } else if (range.max != null && amount > range.max!) {
+                      message ??= "Amount too large";
+                    }
+                  } else if (data?.item1.value == null) {
+                    final rateType = ref.watch(efRateTypeProvider) ==
+                            ExchangeRateType.estimated
+                        ? "estimated"
+                        : "fixed";
+                    message ??= "Pair unavailable on $rateType rate flow";
+                  }
+
+                  return _ProviderOption(
+                    exchange: widget.exchange,
+                    estimate: null,
+                    rateString: message ?? "Failed to fetch rate",
+                    rateColor:
+                        Theme.of(context).extension<StackColors>()!.textError,
+                  );
+                },
               );
             }
           } else {
@@ -168,6 +192,7 @@ class _ProviderOption extends ConsumerStatefulWidget {
     required this.rateString,
     this.kycRating,
     this.loadingString = false,
+    this.rateColor,
   }) : super(key: key);
 
   final Exchange exchange;
@@ -175,6 +200,7 @@ class _ProviderOption extends ConsumerStatefulWidget {
   final String rateString;
   final String? kycRating;
   final bool loadingString;
+  final Color? rateColor;
 
   @override
   ConsumerState<_ProviderOption> createState() => _ProviderOptionState();
@@ -201,8 +227,6 @@ class _ProviderOptionState extends ConsumerState<_ProviderOption> {
       groupValue = _id;
     }
 
-    // bool selected = groupValue == _id;
-
     return ConditionalParent(
       condition: isDesktop,
       builder: (child) => MouseRegion(
@@ -214,17 +238,6 @@ class _ProviderOptionState extends ConsumerState<_ProviderOption> {
           ref.read(efExchangeProvider.notifier).state = widget.exchange;
           ref.read(efExchangeProviderNameProvider.notifier).state =
               widget.estimate?.exchangeProvider ?? widget.exchange.name;
-
-          // if (!selected) {
-          //   ref.read(exchangeFormStateProvider).updateExchange(
-          //         exchange: widget.exchange,
-          //         shouldUpdateData: false,
-          //         shouldNotifyListeners: false,
-          //         providerName:
-          //             widget.estimate?.exchangeProvider ?? widget.exchange.name,
-          //         shouldAwait: false,
-          //       );
-          // }
         },
         child: Container(
           color: Colors.transparent,
@@ -253,19 +266,6 @@ class _ProviderOptionState extends ConsumerState<_ProviderOption> {
                                 .state =
                             widget.estimate?.exchangeProvider ??
                                 widget.exchange.name;
-                        // if (!selected) {
-                        //
-                        //
-                        //   ref.read(exchangeFormStateProvider).updateExchange(
-                        //         exchange: widget.exchange,
-                        //         shouldUpdateData: false,
-                        //         shouldNotifyListeners: false,
-                        //         providerName:
-                        //             widget.estimate?.exchangeProvider ??
-                        //                 widget.exchange.name,
-                        //         shouldAwait: false,
-                        //       );
-                        // }
                       },
                     ),
                   ),
@@ -324,9 +324,10 @@ class _ProviderOptionState extends ConsumerState<_ProviderOption> {
                               widget.rateString,
                               style:
                                   STextStyles.itemSubtitle12(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textSubtitle1,
+                                color: widget.rateColor ??
+                                    Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textSubtitle1,
                               ),
                             ),
                     ],
