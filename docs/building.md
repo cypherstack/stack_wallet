@@ -2,16 +2,36 @@
 
 Here you will find instructions on how to install the necessary tools for building and running the app.
 
-### Prerequisites
+## Prerequisites
 
-- The OS'es supported for building is Ubuntu (20.04) and Fedora (37 - Work In Progress)
-- A machine with at least 100 GB of Storage
-
-The following prerequisites can be installed with the setup script [`scripts/setup.sh`](./../scripts/setup.sh) or manually as described below:
-
-- Flutter 3.7.11 [(install manually or with git, do not install with snap)](https://docs.flutter.dev/get-started/install)
-- Dart SDK Requirement (>=2.19.0, up until <3.0.0) (normally included with a flutter install)
+- The only OS supported for building is Ubuntu 20.04.  Advanced users may also be able to build on other Debian-based distributions like Fedora 37.
 - Android setup ([Android Studio](https://developer.android.com/studio) and subsequent dependencies)
+- 100 GB of storage
+
+Install Android Studio following the instructions below before proceeding, then the following prerequisites can be installed with the setup script [`scripts/setup.sh`](./../scripts/setup.sh) or manually as described below:
+
+- Flutter 3.7.12 [(install manually or with git, do not install with snap)](https://docs.flutter.dev/get-started/install)
+- Dart SDK Requirement (>=2.19.0, up until <3.0.0) (normally included with a flutter install)
+
+### Android Studio
+Android Studio is the recommended IDE for development, not just for launching on Android devices and emulators but also for Linux desktop development.
+
+Follow instructions here [https://developer.android.com/studio/install#linux](https://developer.android.com/studio/install#linux) or install via snap:
+```
+# setup android studio
+sudo apt install -y openjdk-11-jdk
+sudo snap install android-studio --classic
+```
+
+Use Tools > SDK Manager to install:
+ - SDK Tools > Android SDK (API 30)
+ - SDK Tools > NDK
+ - SDK Tools > Android SDK command line tools
+ - SDK Tools > CMake
+
+Then in File > Settings > Plugins, install the Flutter plugin and restart the IDE.  In File > Settings > Languages & Frameworks > Flutter > Editor, enable auto format on save to match the project's code style.  If you have problems with the Dart SDK, make sure to run `flutter` in a terminal to download it (use `source ~/.bashrc` to update your environment variables if you're still using the same terminal from which you ran `setup.sh`)
+
+Make a Pixel 4 (API 30) x86_64 emulator with 2GB of storage space for emulation
 
 ### Scripted setup
 
@@ -19,14 +39,7 @@ The following prerequisites can be installed with the setup script [`scripts/set
 
 ### Manual setup
 
-> If you have installed with script, skip to [running](#running) 
-
-Please go to your Linux distribution's title below for instructions on how to manually setup:
-
-- [Ubuntu (20.04)](#ubuntu-2004)
-- [Fedora (37) (Work In Progress)](#fedora-37-work-in-progress)
-
-#### Ubuntu (20.04)
+> If you used the `setup.sh` script, skip to [running](#running)
 
 Install basic dependencies
 ```
@@ -105,10 +118,6 @@ cd scripts/linux/
 cd ../..
 ```
 
-#### Fedora (37) (Work In Progress)
-
-This is a work in progress, please use Ubuntu for now.
-
 ## Running
 ### Android
 Plug in your android device or use the emulator available via Android Studio and then run the following commands:
@@ -125,19 +134,3 @@ Plug in your android device or use the emulator available via Android Studio and
 flutter pub get Linux
 flutter run linux
 ```
-
-## Android Studio
-Android Studio is the recommended IDE for development, not just for launching on Android devices and emulators but also for Linux desktop development. 
-
-Follow instructions here [https://developer.android.com/studio/install#linux](https://developer.android.com/studio/install#linux) or install via snap:
-```
-# setup android studio
-sudo apt install -y openjdk-11-jdk
-sudo snap install android-studio --classic
-```
-
-Use Tools > SDK Manager to install the SDK Tools > Android SDK (API 30), SDK Tools > NDK, SDK Tools > Android SDK command line tools, and SDK Tools > CMake
-
-Then install the Flutter plugin and restart the IDE.  In Android Studio's options for the Flutter language, enable auto format on save to match the project's code style.  If you have problems with the Dart SDK, make sure to run `flutter` in a terminal to download it (use `source ~/.bashrc` to update your environment variables if you're still using the same terminal from which you ran `setup.sh`)
-
-Make a Pixel 4 (API 30) x86_64 emulator with 2GB of storage space for emulation
