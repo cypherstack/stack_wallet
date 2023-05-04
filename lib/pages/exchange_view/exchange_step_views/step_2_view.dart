@@ -124,9 +124,8 @@ class _Step2ViewState extends ConsumerState<Step2View> {
 
   @override
   Widget build(BuildContext context) {
-    final supportsRefund = ref.watch(
-            exchangeFormStateProvider.select((value) => value.exchange.name)) !=
-        MajesticBankExchange.exchangeName;
+    final supportsRefund =
+        ref.watch(efExchangeProvider).name != MajesticBankExchange.exchangeName;
 
     return Background(
       child: Scaffold(

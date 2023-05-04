@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_form.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_all_trades_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/subwidgets/desktop_trade_history.dart';
 import 'package:stackwallet/providers/exchange/exchange_form_state_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
@@ -13,8 +14,6 @@ import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-
-import 'desktop_all_trades_view.dart';
 
 class DesktopExchangeView extends ConsumerStatefulWidget {
   const DesktopExchangeView({Key? key}) : super(key: key);
@@ -38,7 +37,8 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
         ExchangeDataLoadingService.instance.onLoadingComplete = () {
           WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
             await ExchangeDataLoadingService.instance.setCurrenciesIfEmpty(
-              ref.read(exchangeFormStateProvider),
+              ref.read(efCurrencyPairProvider),
+              ref.read(efRateTypeProvider),
             );
             setState(() {
               _initialCachePopulationUnderway = false;
@@ -54,7 +54,8 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
       ExchangeDataLoadingService.instance.onLoadingComplete = () {
         WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
           await ExchangeDataLoadingService.instance.setCurrenciesIfEmpty(
-            ref.read(exchangeFormStateProvider),
+            ref.read(efCurrencyPairProvider),
+            ref.read(efRateTypeProvider),
           );
           setState(() {
             _initialCachePopulationUnderway = false;
