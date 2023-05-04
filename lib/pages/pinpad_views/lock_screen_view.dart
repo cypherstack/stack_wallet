@@ -204,55 +204,56 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
   late Biometrics biometrics;
 
   Widget get _body => Background(
-        child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: widget.showBackButton
-                ? AppBarBackButton(
-                    onPressed: () async {
-                      if (FocusScope.of(context).hasFocus) {
-                        FocusScope.of(context).unfocus();
-                        await Future<void>.delayed(
-                            const Duration(milliseconds: 70));
-                      }
-                      if (mounted) {
-                        Navigator.of(context).pop();
-                      }
-                    },
-                  )
-                : Container(),
-            actions: [
-              // check prefs and hide if user has biometrics toggle off?
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      right: 16.0,
+        child: SafeArea(
+          child: Scaffold(
+            extendBodyBehindAppBar: true,
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.background,
+            appBar: AppBar(
+              leading: widget.showBackButton
+                  ? AppBarBackButton(
+                      onPressed: () async {
+                        if (FocusScope.of(context).hasFocus) {
+                          FocusScope.of(context).unfocus();
+                          await Future<void>.delayed(
+                              const Duration(milliseconds: 70));
+                        }
+                        if (mounted) {
+                          Navigator.of(context).pop();
+                        }
+                      },
+                    )
+                  : Container(),
+              actions: [
+                // check prefs and hide if user has biometrics toggle off?
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        right: 16.0,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          if (ref
+                                  .read(prefsChangeNotifierProvider)
+                                  .useBiometrics ==
+                              true)
+                            CustomTextButton(
+                              text: "Use biometrics",
+                              onTap: () async {
+                                await _checkUseBiometrics();
+                              },
+                            ),
+                        ],
+                      ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        if (ref
-                                .read(prefsChangeNotifierProvider)
-                                .useBiometrics ==
-                            true)
-                          CustomTextButton(
-                            text: "Use biometrics",
-                            onTap: () async {
-                              await _checkUseBiometrics();
-                            },
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          body: SafeArea(
-            child: Column(
+                  ],
+                ),
+              ],
+            ),
+            body: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Shake(
