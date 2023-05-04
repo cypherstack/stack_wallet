@@ -28,10 +28,23 @@ final efSendAmountProvider = StateProvider<Decimal?>((ref) => null);
 final efReceiveAmountProvider = StateProvider<Decimal?>((ref) => null);
 
 final efSendAmountStringProvider = StateProvider<String>((ref) {
-  return ref.watch(efSendAmountProvider)?.toStringAsFixed(8) ?? "";
+  final refreshing = ref.watch(efRefreshingProvider);
+  final reversed = ref.watch(efReversedProvider);
+  if (refreshing && reversed) {
+    return "-";
+  } else {
+    return ref.watch(efSendAmountProvider)?.toStringAsFixed(8) ?? "";
+  }
 });
 final efReceiveAmountStringProvider = StateProvider<String>((ref) {
-  return ref.watch(efReceiveAmountProvider)?.toStringAsFixed(8) ?? "";
+  final refreshing = ref.watch(efRefreshingProvider);
+  final reversed = ref.watch(efReversedProvider);
+
+  if (refreshing && reversed == false) {
+    return "-";
+  } else {
+    return ref.watch(efReceiveAmountProvider)?.toStringAsFixed(8) ?? "";
+  }
 });
 
 final efReversedProvider = StateProvider<bool>((ref) => false);
