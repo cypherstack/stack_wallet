@@ -41,9 +41,6 @@ sudo apt-get install -y unzip automake build-essential file pkg-config git pytho
 
 sudo apt install -y libc6-dev-i386
 
-# linux desktop dependencies
-sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev meson python3-pip libgirepository1.0-dev valac xsltproc docbook-xsl
-
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh  -s -- -y
 source "$HOME/.cargo/env"
 cargo install cargo-ndk
