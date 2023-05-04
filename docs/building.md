@@ -54,8 +54,8 @@ sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-
 Install [Rust](https://www.rust-lang.org/tools/install) with command:
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-rustup install 1.68
-rustup default 1.68
+rustup install 1.67.1
+rustup default 1.67.1
 ```
 
 Install the additional components for Rust:
