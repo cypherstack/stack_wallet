@@ -5,8 +5,9 @@ import 'package:tuple/tuple.dart';
 class AggregateCurrency {
   final Map<String, Currency?> _map = {};
 
-  AggregateCurrency(
-      {required List<Tuple2<String, Currency>> exchangeCurrencyPairs}) {
+  AggregateCurrency({
+    required List<Tuple2<String, Currency>> exchangeCurrencyPairs,
+  }) {
     assert(exchangeCurrencyPairs.isNotEmpty);
 
     for (final item in exchangeCurrencyPairs) {
