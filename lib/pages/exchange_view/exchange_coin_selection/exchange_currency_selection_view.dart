@@ -373,10 +373,11 @@ class _ExchangeCurrencySelectionViewState
                                   width: 24,
                                   height: 24,
                                   child: isStackCoin(items[index].ticker)
-                                      ? getIconForTicker(
-                                          items[index].ticker,
-                                          size: 24,
-                                        )
+                              ? CoinIconForTicker(ticker: items[index].ticker, size: 24)
+                                      // ? getIconForTicker(
+                                      //     items[index].ticker,
+                                      //     size: 24,
+                                      //   )
                                       : hasImageUrl
                                           ? SvgPicture.network(
                                               items[index].image,

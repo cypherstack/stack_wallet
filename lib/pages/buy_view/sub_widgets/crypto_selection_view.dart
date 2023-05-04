@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/buy/response_objects/crypto.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -15,7 +18,7 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
-class CryptoSelectionView extends StatefulWidget {
+class CryptoSelectionView extends ConsumerStatefulWidget {
   const CryptoSelectionView({
     Key? key,
     required this.coins,
@@ -24,10 +27,11 @@ class CryptoSelectionView extends StatefulWidget {
   final List<Crypto> coins;
 
   @override
-  State<CryptoSelectionView> createState() => _CryptoSelectionViewState();
+  ConsumerState<CryptoSelectionView> createState() =>
+      _CryptoSelectionViewState();
 }
 
-class _CryptoSelectionViewState extends State<CryptoSelectionView> {
+class _CryptoSelectionViewState extends ConsumerState<CryptoSelectionView> {
   late TextEditingController _searchController;
   final _searchFocusNode = FocusNode();
 
@@ -197,9 +201,13 @@ class _CryptoSelectionViewState extends State<CryptoSelectionView> {
                         child: Row(
                           children: [
                             SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: getIconForTicker(_coins[index].ticker)),
+                              width: 24,
+                              height: 24,
+                              child: CoinIconForTicker(
+                                size: 20,
+                                ticker: _coins[index].ticker,
+                              ),
+                            ),
                             const SizedBox(
                               width: 10,
                             ),
@@ -252,15 +260,56 @@ bool isStackCoin(String? ticker) {
   }
 }
 
-Widget? getIconForTicker(
-  String ticker, {
-  double size = 20,
-}) {
-  String? iconAsset = /*isStackCoin(ticker)
-      ?*/
-      Assets.svg.iconFor(coin: coinFromTickerCaseInsensitive(ticker));
-  // : Assets.svg.buyIconFor(ticker);
-  return (iconAsset != null)
-      ? SvgPicture.asset(iconAsset, height: size, width: size)
-      : null;
+// make a stateless widget that takes in string and double (won't ever be null)
+// class getIconForTicker extends ConsumerWidget{
+//   const getIconForTicker({
+//     Key? key,
+//     this.ticker,
+//
+//   }) : super(key: key);
+//   @override
+//   Widget build(BuildContext context, WidgetRef ref) {
+//     // TODO: implement build
+//     throw UnimplementedError();
+//   }
+//
+// }
+/// caller must ensure [Coin] for ticker exists
+class CoinIconForTicker extends ConsumerWidget {
+  const CoinIconForTicker({
+    Key? key,
+    required this.ticker,
+    required this.size,
+  }) : super(key: key);
+
+  final String ticker;
+  final double size;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    try {
+      final coin = coinFromTickerCaseInsensitive(ticker);
+      return SvgPicture.asset(
+        ref.watch(coinIconProvider(coin)),
+        width: size,
+        height: size,
+      );
+    } catch (e, s) {
+      Logging.instance.log("$e\n$s", level: LogLevel.Fatal);
+      rethrow;
+    }
+  }
 }
+
+// Widget? getIconForTicker(
+//   String ticker, {
+//   double size = 20,
+// }) {
+//   String? iconAsset = /*isStackCoin(ticker)
+//       ?*/
+//       Assets.svg.iconFor(coin: coinFromTickerCaseInsensitive(ticker));
+//   // : Assets.svg.buyIconFor(ticker);
+//   return (iconAsset != null)
+//       ? SvgPicture.asset(iconAsset, height: size, width: size)
+//       : null;
+// }

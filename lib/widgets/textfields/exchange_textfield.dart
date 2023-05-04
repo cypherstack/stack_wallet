@@ -158,10 +158,14 @@ class _ExchangeTextFieldState extends State<ExchangeTextField> {
                             builder: (context) {
                               if (isStackCoin(widget.currency?.ticker)) {
                                 return Center(
-                                  child: getIconForTicker(
-                                    widget.currency!.ticker,
+                                  child: CoinIconForTicker(
                                     size: 18,
+                                    ticker: widget.currency!.ticker,
                                   ),
+                                  // child: getIconForTicker(
+                                  //   widget.currency!.ticker,
+                                  //   size: 18,
+                                  // ),
                                 );
                               } else if (widget.currency != null &&
                                   widget.currency!.image.isNotEmpty) {
