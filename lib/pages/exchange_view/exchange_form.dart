@@ -953,12 +953,20 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             onChanged: onRateTypeChanged,
           ),
         ),
-        Padding(
-          padding: EdgeInsets.only(top: isDesktop ? 20 : 12),
-          child: ExchangeProviderOptions(
-            fixedRate: rateType == ExchangeRateType.fixed,
-            reversed: ref.watch(efReversedProvider),
-          ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 300),
+          child: ref.watch(efSendAmountProvider) == null &&
+                  ref.watch(efReceiveAmountProvider) == null
+              ? const SizedBox(
+                  height: 0,
+                )
+              : Padding(
+                  padding: EdgeInsets.only(top: isDesktop ? 20 : 12),
+                  child: ExchangeProviderOptions(
+                    fixedRate: rateType == ExchangeRateType.fixed,
+                    reversed: ref.watch(efReversedProvider),
+                  ),
+                ),
         ),
         SizedBox(
           height: isDesktop ? 20 : 12,
