@@ -150,10 +150,14 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Expanded(
-                      child: RoundedWhiteContainer(
-                        padding: EdgeInsets.all(24),
-                        child: ExchangeForm(),
+                    Expanded(
+                      child: ListView(
+                        children: const [
+                          RoundedWhiteContainer(
+                            padding: EdgeInsets.all(24),
+                            child: ExchangeForm(),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(
