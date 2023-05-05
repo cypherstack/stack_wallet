@@ -88,8 +88,9 @@ class _ManageExplorerViewState extends ConsumerState<ManageExplorerView> {
                           .getPrimaryEnabledButtonStyle(context),
                       onPressed: () {
                         textEditingController.text = textEditingController.text.trim();
-                        setBlockExplorerForCoin(coin: widget.coin, url: Uri.parse(textEditingController.text));
-                        Navigator.of(context).pop();
+                        setBlockExplorerForCoin(coin: widget.coin, url: Uri.parse(textEditingController.text)).then((value) =>
+                            Navigator.of(context).pop()
+                        );
                       },
                       child: Text(
                         "Save",

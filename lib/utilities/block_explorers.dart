@@ -3,6 +3,8 @@ import 'dart:ffi';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 import '../db/hive/db.dart';
+import '../db/isar/main_db.dart';
+import '../models/isar/models/block_explorer.dart';
 
 Uri getDefaultBlockExplorerUrlFor({
   required Coin coin,
@@ -46,14 +48,10 @@ Uri getDefaultBlockExplorerUrlFor({
   }
 }
 
-int setBlockExplorerForCoin(
+Future<int> setBlockExplorerForCoin(
     {required Coin coin, required Uri url}
-    ) {
-  var ticker = coin.ticker;
-  DB.instance.put<dynamic>(
-    boxName: DB.boxNameAllWalletsData,
-    key: "${ticker}blockExplorerUrl",
-    value: url);
+    ) async {
+  await MainDB.instance.putTransactionBlockExplorer(TransactionBlockExplorer(ticker: coin.ticker, url: url.toString()));
   return 0;
 }
 
@@ -61,15 +59,11 @@ Uri getBlockExplorerTransactionUrlFor({
   required Coin coin,
   required String txid,
 }) {
-  var ticker = coin.ticker;
-  var url = DB.instance.get<dynamic>(
-    boxName: DB.boxNameAllWalletsData,
-    key: "${ticker}blockExplorerUrl",
-  );
+  var url = MainDB.instance.getTransactionBlockExplorer(coin: coin)?.url.toString();
   if (url == null) {
     return getDefaultBlockExplorerUrlFor(coin: coin, txid: txid);
   } else {
-    url = url.replace("%5BTXID%5D", txid);
-    return Uri.parse(url.toString());
+    url =  url.replaceAll("%5BTXID%5D", txid);
+    return Uri.parse(url);
   }
 }
