@@ -30,7 +30,7 @@ class SimpleSwapExchange extends Exchange {
     String? extraId,
     required String addressRefund,
     required String refundExtraId,
-    String? rateId,
+    Estimate? estimate,
     required bool reversed,
   }) async {
     return await SimpleSwapAPI.instance.createNewExchange(
@@ -89,7 +89,7 @@ class SimpleSwapExchange extends Exchange {
   }
 
   @override
-  Future<ExchangeResponse<Estimate>> getEstimate(
+  Future<ExchangeResponse<List<Estimate>>> getEstimates(
     String from,
     String to,
     Decimal amount,
@@ -109,11 +109,14 @@ class SimpleSwapExchange extends Exchange {
     }
 
     return ExchangeResponse(
-      value: Estimate(
-        estimatedAmount: Decimal.parse(response.value!),
-        fixedRate: fixedRate,
-        reversed: reversed,
-      ),
+      value: [
+        Estimate(
+          estimatedAmount: Decimal.parse(response.value!),
+          fixedRate: fixedRate,
+          reversed: reversed,
+          exchangeProvider: SimpleSwapExchange.exchangeName,
+        ),
+      ],
     );
   }
 

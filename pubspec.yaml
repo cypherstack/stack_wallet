@@ -11,7 +11,7 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.7.4+165
+version: 1.7.5+167
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
@@ -327,6 +327,10 @@ flutter:
     - assets/svg/framed-gear.svg
     - assets/svg/list-ul.svg
     - assets/svg/cc.svg
+    - assets/svg/trocador_rating_a.svg
+    - assets/svg/trocador_rating_b.svg
+    - assets/svg/trocador_rating_c.svg
+    - assets/svg/trocador_rating_d.svg
 
 
     # coin icons
