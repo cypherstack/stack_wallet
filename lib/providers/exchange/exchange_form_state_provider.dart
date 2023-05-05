@@ -34,7 +34,7 @@ final efSendAmountStringProvider = StateProvider<String>((ref) {
   if (refreshing && reversed) {
     return "-";
   } else {
-    return ref.watch(efSendAmountProvider)?.toStringAsFixed(8) ?? "";
+    return ref.watch(efSendAmountProvider)?.toString() ?? "";
   }
 });
 final efReceiveAmountStringProvider = StateProvider<String>((ref) {
@@ -44,7 +44,7 @@ final efReceiveAmountStringProvider = StateProvider<String>((ref) {
   if (refreshing && reversed == false) {
     return "-";
   } else {
-    return ref.watch(efReceiveAmountProvider)?.toStringAsFixed(8) ?? "";
+    return ref.watch(efReceiveAmountProvider)?.toString() ?? "";
   }
 });
 
