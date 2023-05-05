@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:intl/intl.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/exchange/aggregate_currency.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
@@ -152,10 +151,22 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       return null;
     }
     try {
-      final numFromLocalised = NumberFormat.decimalPattern(
-              ref.read(localeServiceChangeNotifierProvider).locale)
-          .parse(value);
-      return Decimal.tryParse(numFromLocalised.toString());
+      // wtf Dart?????
+      // This turns "99999999999999999999" into 100000000000000000000.0
+      // final numFromLocalised = NumberFormat.decimalPattern(
+      //         ref.read(localeServiceChangeNotifierProvider).locale)
+      //     .parse(value);
+      // return Decimal.tryParse(numFromLocalised.toString());
+
+      try {
+        return Decimal.parse(value);
+      } catch (_) {
+        try {
+          return Decimal.parse(value.replaceAll(",", "."));
+        } catch (_) {
+          rethrow;
+        }
+      }
     } catch (_) {
       return null;
     }
@@ -953,12 +964,20 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             onChanged: onRateTypeChanged,
           ),
         ),
-        Padding(
-          padding: EdgeInsets.only(top: isDesktop ? 20 : 12),
-          child: ExchangeProviderOptions(
-            fixedRate: rateType == ExchangeRateType.fixed,
-            reversed: ref.watch(efReversedProvider),
-          ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 300),
+          child: ref.watch(efSendAmountProvider) == null &&
+                  ref.watch(efReceiveAmountProvider) == null
+              ? const SizedBox(
+                  height: 0,
+                )
+              : Padding(
+                  padding: EdgeInsets.only(top: isDesktop ? 20 : 12),
+                  child: ExchangeProviderOptions(
+                    fixedRate: rateType == ExchangeRateType.fixed,
+                    reversed: ref.watch(efReversedProvider),
+                  ),
+                ),
         ),
         SizedBox(
           height: isDesktop ? 20 : 12,

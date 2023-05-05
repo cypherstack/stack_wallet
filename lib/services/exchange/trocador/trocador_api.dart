@@ -302,10 +302,32 @@ abstract class TrocadorAPI {
       final json = await _makeGetRequest(uri);
       final map = Map<String, dynamic>.from(json as Map);
 
-      return ExchangeResponse(value: TrocadorTradeNew.fromMap(map));
+      try {
+        return ExchangeResponse(value: TrocadorTradeNew.fromMap(map));
+      } catch (e, s) {
+        String error = map["error"] as String? ?? json.toString();
+        if (error ==
+            "trade could not be generated, some unknown error happened") {
+          error =
+              "This trade couldn't be completed. Please select another provider.";
+        }
+
+        Logging.instance.log(
+          "_getNewTrade failed to parse response: $json\n$e\n$s",
+          level: LogLevel.Error,
+        );
+        return ExchangeResponse(
+          exception: ExchangeException(
+            error,
+            ExchangeExceptionType.serializeResponseError,
+          ),
+        );
+      }
     } catch (e, s) {
-      Logging.instance
-          .log("_getNewTrade exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.log(
+        "_getNewTrade exception: $e\n$s",
+        level: LogLevel.Error,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
