@@ -100,12 +100,18 @@ class ChangeNowAPI {
         body: jsonEncode(body),
       );
 
-      final parsed = jsonDecode(response.body);
+      try {
+        final parsed = jsonDecode(response.body);
 
-      return parsed;
+        return parsed;
+      } catch (_) {
+        Logging.instance.log("ChangeNOW api failed to parse: ${response.body}",
+            level: LogLevel.Error);
+        rethrow;
+      }
     } catch (e, s) {
       Logging.instance
-          .log("_makeRequest($uri) threw: $e\n$s", level: LogLevel.Error);
+          .log("_makePostRequest($uri) threw: $e\n$s", level: LogLevel.Error);
       rethrow;
     }
   }
