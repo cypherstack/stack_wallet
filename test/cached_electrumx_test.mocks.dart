@@ -510,6 +510,19 @@ class MockPrefs extends _i1.Mock implements _i5.Prefs {
         returnValueForMissingStub: null,
       );
   @override
+  bool get randomizePIN => (super.noSuchMethod(
+        Invocation.getter(#randomizePIN),
+        returnValue: false,
+      ) as bool);
+  @override
+  set randomizePIN(bool? randomizePIN) => super.noSuchMethod(
+        Invocation.setter(
+          #randomizePIN,
+          randomizePIN,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   bool get useBiometrics => (super.noSuchMethod(
         Invocation.getter(#useBiometrics),
         returnValue: false,
