@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/coin_nodes_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -65,7 +64,7 @@ class _ChooseCoinViewState extends ConsumerState<ChooseCoinView> {
             },
           ),
           title: Text(
-            widget.title ?? "Choose Coin",
+            widget.title,
             style: STextStyles.navBarTitle(context),
           ),
         ),
@@ -80,12 +79,7 @@ class _ChooseCoinViewState extends ConsumerState<ChooseCoinView> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 ...coins.map(
-                      (coin) {
-                    final count = ref
-                        .watch(nodeServiceChangeNotifierProvider
-                        .select((value) => value.getNodesFor(coin)))
-                        .length;
-
+                  (coin) {
                     return Padding(
                       padding: const EdgeInsets.all(4),
                       child: RoundedWhiteContainer(
@@ -98,7 +92,7 @@ class _ChooseCoinViewState extends ConsumerState<ChooseCoinView> {
                             ),
                           ),
                           materialTapTargetSize:
-                          MaterialTapTargetSize.shrinkWrap,
+                              MaterialTapTargetSize.shrinkWrap,
                           onPressed: () {
                             Navigator.of(context).pushNamed(
                               widget.nextRouteName,
@@ -121,7 +115,7 @@ class _ChooseCoinViewState extends ConsumerState<ChooseCoinView> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "${coin.prettyName} ${widget.coinAdditional ?? ""}",
+                                      "${coin.prettyName} ${widget.coinAdditional}",
                                       style: STextStyles.titleBold12(context),
                                     ),
                                   ],
