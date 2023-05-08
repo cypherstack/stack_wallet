@@ -1,8 +1,4 @@
-import 'dart:io';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/models/isar/sw_theme.dart';
 import 'package:stackwallet/themes/defaults/dark.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -28,21 +24,21 @@ final themeProvider = StateProvider<StackTheme>((ref) {
   );
 });
 
-/// example
-class ExampleWidget extends ConsumerWidget {
-  const ExampleWidget({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Column(
-      children: [
-        const Text("Hello, world!"),
-        SvgPicture.file(
-          File(
-            ref.watch(themeProvider).assets.bellNew,
-          ),
-        ),
-      ],
-    );
-  }
-}
+// /// example
+// class ExampleWidget extends ConsumerWidget {
+//   const ExampleWidget({Key? key}) : super(key: key);
+//
+//   @override
+//   Widget build(BuildContext context, WidgetRef ref) {
+//     return Column(
+//       children: [
+//         const Text("Hello, world!"),
+//         SvgPicture.file(
+//           File(
+//             ref.watch(themeProvider).assets.bellNew,
+//           ),
+//         ),
+//       ],
+//     );
+//   }
+// }
