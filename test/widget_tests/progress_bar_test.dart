@@ -1,26 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
+import 'package:stackwallet/models/isar/sw_theme.dart';
+import 'package:stackwallet/themes/defaults/dark.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/progress_bar.dart';
 
 void main() {
   testWidgets("Widget build", (widgetTester) async {
+    final theme = StackTheme.fromJson(
+      json: darkJson,
+      applicationThemesDirectoryPath: "",
+    );
     await widgetTester.pumpWidget(
       MaterialApp(
         theme: ThemeData(
           extensions: [
-            StackColors.fromStackColorTheme(LightColors()),
+            StackColors.fromStackColorTheme(theme),
           ],
         ),
         home: Material(
           child: ProgressBar(
               width: 20,
               height: 10,
-              fillColor:
-                  StackColors.fromStackColorTheme(LightColors()).accentColorRed,
-              backgroundColor: StackColors.fromStackColorTheme(LightColors())
-                  .accentColorYellow,
+              fillColor: StackColors.fromStackColorTheme(theme).accentColorRed,
+              backgroundColor:
+                  StackColors.fromStackColorTheme(theme).accentColorYellow,
               percent: 30),
         ),
       ),

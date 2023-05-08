@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/models/balance.dart';
+import 'package:stackwallet/models/isar/sw_theme.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
@@ -13,10 +14,10 @@ import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/services/wallets_service.dart';
+import 'package:stackwallet/themes/defaults/dark.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/listenable_list.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/managed_favorite.dart';
 
@@ -72,7 +73,10 @@ void main() {
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
-                LightColors(),
+                StackTheme.fromJson(
+                  json: darkJson,
+                  applicationThemesDirectoryPath: "",
+                ),
               ),
             ],
           ),
@@ -141,7 +145,10 @@ void main() {
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
-                LightColors(),
+                StackTheme.fromJson(
+                  json: darkJson,
+                  applicationThemesDirectoryPath: "",
+                ),
               ),
             ],
           ),
@@ -209,7 +216,10 @@ void main() {
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
-                LightColors(),
+                StackTheme.fromJson(
+                  json: darkJson,
+                  applicationThemesDirectoryPath: "",
+                ),
               ),
             ],
           ),

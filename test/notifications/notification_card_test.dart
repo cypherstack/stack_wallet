@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stackwallet/models/isar/sw_theme.dart';
 import 'package:stackwallet/models/notification_model.dart';
 import 'package:stackwallet/notifications/notification_card.dart';
+import 'package:stackwallet/themes/defaults/dark.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 void main() {
@@ -30,7 +30,12 @@ void main() {
       MaterialApp(
         theme: ThemeData(
           extensions: [
-            StackColors.fromStackColorTheme(LightColors()),
+            StackColors.fromStackColorTheme(
+              StackTheme.fromJson(
+                json: darkJson,
+                applicationThemesDirectoryPath: "",
+              ),
+            ),
           ],
         ),
         home: Material(

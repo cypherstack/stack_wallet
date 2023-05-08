@@ -5,15 +5,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart' as mockito;
 import 'package:stackwallet/models/balance.dart';
+import 'package:stackwallet/models/isar/sw_theme.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/wallets.dart';
+import 'package:stackwallet/themes/defaults/dark.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/wallet_card.dart';
 
@@ -62,7 +63,12 @@ void main() {
         child: MaterialApp(
           theme: ThemeData(
             extensions: [
-              StackColors.fromStackColorTheme(LightColors()),
+              StackColors.fromStackColorTheme(
+                StackTheme.fromJson(
+                  json: darkJson,
+                  applicationThemesDirectoryPath: "",
+                ),
+              ),
             ],
           ),
           home: const Material(

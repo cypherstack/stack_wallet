@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:stackwallet/models/isar/sw_theme.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -13,9 +14,9 @@ import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/services/wallets_service.dart';
+import 'package:stackwallet/themes/defaults/dark.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 import 'send_view_test.mocks.dart';
@@ -72,7 +73,10 @@ void main() {
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
-                LightColors(),
+                StackTheme.fromJson(
+                  json: darkJson,
+                  applicationThemesDirectoryPath: "",
+                ),
               ),
             ],
           ),
@@ -138,7 +142,10 @@ void main() {
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
-                LightColors(),
+                StackTheme.fromJson(
+                  json: darkJson,
+                  applicationThemesDirectoryPath: "",
+                ),
               ),
             ],
           ),

@@ -7,11 +7,12 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/models/contact.dart';
 import 'package:stackwallet/models/contact_address_entry.dart';
+import 'package:stackwallet/models/isar/sw_theme.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/contact_popup.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/services/address_book_service.dart';
+import 'package:stackwallet/themes/defaults/dark.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/address_book_card.dart';
@@ -26,6 +27,7 @@ class MockedFunctions extends Mock {
 void main() {
   testWidgets('test returns Contact Address Entry', (widgetTester) async {
     final service = MockAddressBookService();
+    final applicationThemesDirectoryPath = "";
 
     when(service.getContactById("default")).thenAnswer(
       (realInvocation) => Contact(
@@ -51,7 +53,11 @@ void main() {
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
-                LightColors(),
+                StackTheme.fromJson(
+                  json: darkJson,
+                  applicationThemesDirectoryPath:
+                      applicationThemesDirectoryPath,
+                ),
               ),
             ],
           ),
