@@ -81,7 +81,7 @@ class TxIcon extends ConsumerWidget {
               currentHeight,
               coin.requiredConfirmations,
             ),
-            ref.watch(themeProvider).assets as ThemeAssets,
+            ref.watch(themeProvider).assets,
           ),
           width: size.width,
           height: size.height,
