@@ -1,6 +1,12 @@
+import 'dart:ffi';
+
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
-Uri getBlockExplorerTransactionUrlFor({
+import '../db/hive/db.dart';
+import '../db/isar/main_db.dart';
+import '../models/isar/models/block_explorer.dart';
+
+Uri getDefaultBlockExplorerUrlFor({
   required Coin coin,
   required String txid,
 }) {
@@ -18,7 +24,7 @@ Uri getBlockExplorerTransactionUrlFor({
     case Coin.dogecoinTestNet:
       return Uri.parse("https://chain.so/tx/DOGETEST/$txid");
     case Coin.epicCash:
-      // TODO: Handle this case.
+    // TODO: Handle this case.
       throw UnimplementedError("missing block explorer for epic cash");
     case Coin.ethereum:
       return Uri.parse("https://etherscan.io/tx/$txid");
@@ -39,5 +45,25 @@ Uri getBlockExplorerTransactionUrlFor({
       return Uri.parse("https://chainz.cryptoid.info/nmc/tx.dws?$txid.htm");
     case Coin.particl:
       return Uri.parse("https://chainz.cryptoid.info/part/tx.dws?$txid.htm");
+  }
+}
+
+Future<int> setBlockExplorerForCoin(
+    {required Coin coin, required Uri url}
+    ) async {
+  await MainDB.instance.putTransactionBlockExplorer(TransactionBlockExplorer(ticker: coin.ticker, url: url.toString()));
+  return 0;
+}
+
+Uri getBlockExplorerTransactionUrlFor({
+  required Coin coin,
+  required String txid,
+}) {
+  var url = MainDB.instance.getTransactionBlockExplorer(coin: coin)?.url.toString();
+  if (url == null) {
+    return getDefaultBlockExplorerUrlFor(coin: coin, txid: txid);
+  } else {
+    url =  url.replaceAll("%5BTXID%5D", txid);
+    return Uri.parse(url);
   }
 }

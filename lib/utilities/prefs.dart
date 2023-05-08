@@ -7,6 +7,8 @@ import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:uuid/uuid.dart';
 
+import 'enums/coin_enum.dart';
+
 class Prefs extends ChangeNotifier {
   Prefs._();
   static final Prefs _instance = Prefs._();
