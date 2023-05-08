@@ -52,9 +52,8 @@ class _Step3ViewState extends ConsumerState<Step3View> {
 
   @override
   Widget build(BuildContext context) {
-    final supportsRefund = ref.watch(
-            exchangeFormStateProvider.select((value) => value.exchange.name)) !=
-        MajesticBankExchange.exchangeName;
+    final supportsRefund =
+        ref.watch(efExchangeProvider).name != MajesticBankExchange.exchangeName;
 
     return Background(
       child: Scaffold(
@@ -254,8 +253,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
 
                                     final ExchangeResponse<Trade> response =
                                         await ref
-                                            .read(exchangeFormStateProvider)
-                                            .exchange
+                                            .read(efExchangeProvider)
                                             .createTrade(
                                               from: model.sendTicker,
                                               to: model.receiveTicker,
@@ -271,24 +269,26 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                                   ? model.refundAddress!
                                                   : "",
                                               refundExtraId: "",
-                                              rateId: model.rateId,
+                                              estimate: model.estimate,
                                               reversed: model.reversed,
                                             );
 
                                     if (response.value == null) {
                                       if (mounted) {
                                         Navigator.of(context).pop();
-                                      }
 
-                                      unawaited(showDialog<void>(
-                                        context: context,
-                                        barrierDismissible: true,
-                                        builder: (_) => StackDialog(
-                                          title: "Failed to create trade",
-                                          message:
-                                              response.exception?.toString(),
-                                        ),
-                                      ));
+                                        unawaited(
+                                          showDialog<void>(
+                                            context: context,
+                                            barrierDismissible: true,
+                                            builder: (_) => StackDialog(
+                                              title: "Failed to create trade",
+                                              message: response.exception
+                                                  ?.toString(),
+                                            ),
+                                          ),
+                                        );
+                                      }
                                       return;
                                     }
 

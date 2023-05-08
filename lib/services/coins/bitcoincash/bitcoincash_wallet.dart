@@ -1949,8 +1949,6 @@ class BitcoinCashWallet extends CoinServiceAPI
 
     List<Map<String, dynamic>> allTransactions = [];
 
-    final currentHeight = await chainHeight;
-
     for (final txHash in allTxHashes) {
       final storedTx = await db
           .getTransactions(walletId)
@@ -1958,7 +1956,9 @@ class BitcoinCashWallet extends CoinServiceAPI
           .txidEqualTo(txHash["tx_hash"] as String)
           .findFirst();
 
-      if (storedTx == null || storedTx.address.value == null
+      if (storedTx == null ||
+              storedTx.address.value == null ||
+              storedTx.height == null
           // zero conf messes this up
           // !storedTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)
           ) {

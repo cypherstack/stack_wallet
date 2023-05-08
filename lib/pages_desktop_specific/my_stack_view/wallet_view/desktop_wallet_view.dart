@@ -32,7 +32,11 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/hover_text_field.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -151,6 +155,83 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                 subMessage: "This only needs to run once per wallet",
                 eventBus: null,
                 textColor: Theme.of(context).extension<StackColors>()!.textDark,
+                actionButton: SecondaryButton(
+                  label: "Skip",
+                  buttonHeight: ButtonHeight.l,
+                  onPressed: () async {
+                    await showDialog<void>(
+                      context: context,
+                      builder: (context) => DesktopDialog(
+                        maxWidth: 500,
+                        maxHeight: double.infinity,
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 32),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Warning!",
+                                    style: STextStyles.desktopH3(context),
+                                  ),
+                                  const DesktopDialogCloseButton(),
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 32),
+                              child: Text(
+                                "Skipping this process can completely"
+                                " break your wallet. It is only meant to be done in"
+                                " emergency situations where the migration fails"
+                                " and will not let you continue. Still skip?",
+                                style: STextStyles.desktopTextSmall(context),
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 32,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(32),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: SecondaryButton(
+                                      label: "Cancel",
+                                      buttonHeight: ButtonHeight.l,
+                                      onPressed: Navigator.of(context,
+                                              rootNavigator: true)
+                                          .pop,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    width: 16,
+                                  ),
+                                  Expanded(
+                                    child: PrimaryButton(
+                                      label: "Ok",
+                                      buttonHeight: ButtonHeight.l,
+                                      onPressed: () {
+                                        Navigator.of(context,
+                                                rootNavigator: true)
+                                            .pop();
+                                        setState(
+                                            () => _rescanningOnOpen = false);
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
             )
           ],

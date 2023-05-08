@@ -452,8 +452,6 @@ class EpicCashWallet extends CoinServiceAPI
 
       EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
 
-      print("EPICBOX CONFIG HERE IS $epicboxConfig");
-
       // TODO determine whether it is worth sending change to a change address.
       dynamic message;
 
@@ -521,6 +519,11 @@ class EpicCashWallet extends CoinServiceAPI
       if (sendTx.contains("Error")) {
         throw BadEpicHttpAddressException(message: sendTx);
       }
+
+      Map<String, String> txAddressInfo = {};
+      txAddressInfo['from'] = await currentReceivingAddress;
+      txAddressInfo['to'] = txData['addresss'] as String;
+      await putSendToAddresses(sendTx, txAddressInfo);
 
       Logging.instance.log("CONFIRM_RESULT_IS $sendTx", level: LogLevel.Info);
 
@@ -1247,7 +1250,6 @@ class EpicCashWallet extends CoinServiceAPI
       await _secureStore.write(key: '${_walletId}_config', value: stringConfig);
       await _secureStore.write(key: '${_walletId}_password', value: password);
 
-      print("EPIC BOX MODEL IS ${epicboxConfig.toString()}");
       await _secureStore.write(
           key: '${_walletId}_epicboxConfig', value: epicboxConfig.toString());
 
@@ -1390,7 +1392,8 @@ class EpicCashWallet extends CoinServiceAPI
     }
   }
 
-  Future<bool> putSendToAddresses(String slateMessage) async {
+  Future<bool> putSendToAddresses(
+      String slateMessage, Map<String, String> txAddressInfo) async {
     try {
       var slatesToCommits = await getSlatesToCommits();
       final slate0 = jsonDecode(slateMessage);
@@ -1400,19 +1403,19 @@ class EpicCashWallet extends CoinServiceAPI
       final slateId = part1[0]['tx_slate_id'];
       final commitId = part2['tx']['body']['outputs'][0]['commit'];
 
-      final toFromInfoString = jsonDecode(slateMessage);
-      final toFromInfo = jsonDecode(toFromInfoString[1] as String);
-      final from = toFromInfo['from'];
-      final to = toFromInfo['to'];
+      final from = txAddressInfo['from'];
+      final to = txAddressInfo['to'];
       slatesToCommits[slateId] = {
         "commitId": commitId,
         "from": from,
         "to": to,
       };
+
       await epicUpdateSlatesToCommits(slatesToCommits);
       return true;
     } catch (e, s) {
-      Logging.instance.log("$e $s", level: LogLevel.Error);
+      Logging.instance
+          .log("ERROR STORING ADDRESS $e $s", level: LogLevel.Error);
       return false;
     }
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -140,15 +141,19 @@ class _BackspaceKeyState extends State<BackspaceKey> {
             }
           });
         },
-        child: Center(
-          child: SvgPicture.asset(
-            Assets.svg.delete,
-            width: 20,
-            height: 20,
-            color:
-                Theme.of(context).extension<StackColors>()!.numpadTextDefault,
+        child: Semantics(
+          label: "Backspace Button. Deletes The Last Digit.",
+          excludeSemantics: true,
+          child: Center(
+            child: SvgPicture.asset(
+              Assets.svg.delete,
+              width: 20,
+              height: 20,
+              color:
+              Theme.of(context).extension<StackColors>()!.numpadTextDefault,
+            ),
           ),
-        ),
+        )
       ),
     );
   }
@@ -198,10 +203,12 @@ class CustomKey extends StatelessWidget {
     Key? key,
     required this.onPressed,
     this.iconAssetName,
+    this.semanticsLabel = "Button",
   }) : super(key: key);
 
   final VoidCallback onPressed;
   final String? iconAssetName;
+  final String semanticsLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -213,32 +220,197 @@ class CustomKey extends StatelessWidget {
         color: Theme.of(context).extension<StackColors>()!.numpadBackDefault,
         shadows: const [],
       ),
-      child: MaterialButton(
-        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        shape: const StadiumBorder(),
-        onPressed: () {
-          onPressed.call();
-        },
-        child: Center(
-          child: iconAssetName == null
-              ? null
-              : SvgPicture.asset(
-                  iconAssetName!,
-                  width: 20,
-                  height: 20,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .numpadTextDefault,
-                ),
+      child: Semantics(
+        label: semanticsLabel,
+        excludeSemantics: true,
+        child: MaterialButton(
+          // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          shape: const StadiumBorder(),
+          onPressed: () {
+            onPressed.call();
+          },
+          child: Center(
+            child: iconAssetName == null
+                ? null
+                : SvgPicture.asset(
+              iconAssetName!,
+              width: 20,
+              height: 20,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .numpadTextDefault,
+            ),
+          ),
         ),
+      )
+    );
+  }
+}
+
+class PinKeyboard extends ConsumerWidget {
+  const PinKeyboard({
+    Key? key,
+    required this.onNumberKeyPressed,
+    required this.onBackPressed,
+    required this.onSubmitPressed,
+    required this.isRandom,
+    this.backgroundColor,
+    this.width = 264,
+    this.height = 360,
+    this.customKey,
+  }) : super(key: key);
+
+  final ValueSetter<String> onNumberKeyPressed;
+  final VoidCallback onBackPressed;
+  final VoidCallback onSubmitPressed;
+  final Color? backgroundColor;
+  final double? width;
+  final double? height;
+  final CustomKey? customKey;
+  final bool isRandom;
+
+  void _backHandler() {
+    onBackPressed.call();
+  }
+
+  void _submitHandler() {
+    onSubmitPressed.call();
+  }
+
+  void _numberHandler(String number) {
+    onNumberKeyPressed.call(number);
+    HapticFeedback.lightImpact();
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final list = [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "0",
+    ];
+
+    // final isRandom = ref.read(prefsChangeNotifierProvider).randomizePIN;
+
+    if (isRandom) list.shuffle();
+
+    return Container(
+      width: width,
+      height: height,
+      color: backgroundColor ?? Colors.transparent,
+      child: Column(
+        children: [
+          Row(
+            children: [
+              NumberKey(
+                number: list[0],
+                onPressed: _numberHandler,
+              ),
+              const SizedBox(
+                width: 24,
+              ),
+              NumberKey(
+                number: list[1],
+                onPressed: _numberHandler,
+              ),
+              const SizedBox(
+                width: 24,
+              ),
+              NumberKey(
+                number: list[2],
+                onPressed: _numberHandler,
+              ),
+            ],
+          ),
+          const SizedBox(
+            height: 24,
+          ),
+          Row(
+            children: [
+              NumberKey(
+                number: list[3],
+                onPressed: _numberHandler,
+              ),
+              const SizedBox(
+                width: 24,
+              ),
+              NumberKey(
+                number: list[4],
+                onPressed: _numberHandler,
+              ),
+              const SizedBox(
+                width: 24,
+              ),
+              NumberKey(
+                number: list[5],
+                onPressed: _numberHandler,
+              ),
+            ],
+          ),
+          const SizedBox(
+            height: 24,
+          ),
+          Row(
+            children: [
+              NumberKey(
+                number: list[6],
+                onPressed: _numberHandler,
+              ),
+              const SizedBox(
+                width: 24,
+              ),
+              NumberKey(
+                number: list[7],
+                onPressed: _numberHandler,
+              ),
+              const SizedBox(
+                width: 24,
+              ),
+              NumberKey(
+                number: list[8],
+                onPressed: _numberHandler,
+              ),
+            ],
+          ),
+          const SizedBox(
+            height: 24,
+          ),
+          Row(
+            children: [
+              BackspaceKey(
+                onPressed: _backHandler,
+              ),
+              const SizedBox(
+                width: 24,
+              ),
+              NumberKey(
+                number: list[9],
+                onPressed: _numberHandler,
+              ),
+              const SizedBox(
+                width: 24,
+              ),
+              SubmitKey(
+                onPressed: _submitHandler,
+              ),
+            ],
+          )
+        ],
       ),
     );
   }
 }
 
-class PinKeyboard extends StatelessWidget {
-  const PinKeyboard({
+class RandomKeyboard extends StatelessWidget {
+  const RandomKeyboard({
     Key? key,
     required this.onNumberKeyPressed,
     required this.onBackPressed,
@@ -268,10 +440,24 @@ class PinKeyboard extends StatelessWidget {
   void _numberHandler(String number) {
     onNumberKeyPressed.call(number);
     HapticFeedback.lightImpact();
+    debugPrint("NUMBER: $number");
   }
 
   @override
   Widget build(BuildContext context) {
+    final list = [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "0",
+    ];
+    list.shuffle();
     return Container(
       width: width,
       height: height,
@@ -281,21 +467,21 @@ class PinKeyboard extends StatelessWidget {
           Row(
             children: [
               NumberKey(
-                number: "1",
+                number: list[0],
                 onPressed: _numberHandler,
               ),
               const SizedBox(
                 width: 24,
               ),
               NumberKey(
-                number: "2",
+                number: list[1],
                 onPressed: _numberHandler,
               ),
               const SizedBox(
                 width: 24,
               ),
               NumberKey(
-                number: "3",
+                number: list[2],
                 onPressed: _numberHandler,
               ),
             ],
@@ -306,21 +492,21 @@ class PinKeyboard extends StatelessWidget {
           Row(
             children: [
               NumberKey(
-                number: "4",
+                number: list[3],
                 onPressed: _numberHandler,
               ),
               const SizedBox(
                 width: 24,
               ),
               NumberKey(
-                number: "5",
+                number: list[4],
                 onPressed: _numberHandler,
               ),
               const SizedBox(
                 width: 24,
               ),
               NumberKey(
-                number: "6",
+                number: list[5],
                 onPressed: _numberHandler,
               ),
             ],
@@ -331,21 +517,21 @@ class PinKeyboard extends StatelessWidget {
           Row(
             children: [
               NumberKey(
-                number: "7",
+                number: list[6],
                 onPressed: _numberHandler,
               ),
               const SizedBox(
                 width: 24,
               ),
               NumberKey(
-                number: "8",
+                number: list[7],
                 onPressed: _numberHandler,
               ),
               const SizedBox(
                 width: 24,
               ),
               NumberKey(
-                number: "9",
+                number: list[8],
                 onPressed: _numberHandler,
               ),
             ],
@@ -355,28 +541,22 @@ class PinKeyboard extends StatelessWidget {
           ),
           Row(
             children: [
-              customKey == null
-                  ? const SizedBox(
-                      height: 72,
-                      width: 72,
-                    )
-                  : customKey!,
-              const SizedBox(
-                width: 24,
-              ),
-              NumberKey(
-                number: "0",
-                onPressed: _numberHandler,
-              ),
-              const SizedBox(
-                width: 24,
-              ),
               BackspaceKey(
                 onPressed: _backHandler,
               ),
-              // SubmitKey(
-              //   onPressed: _submitHandler,
-              // ),
+              const SizedBox(
+                width: 24,
+              ),
+              NumberKey(
+                number: list[9],
+                onPressed: _numberHandler,
+              ),
+              const SizedBox(
+                width: 24,
+              ),
+              SubmitKey(
+                onPressed: _submitHandler,
+              ),
             ],
           )
         ],
