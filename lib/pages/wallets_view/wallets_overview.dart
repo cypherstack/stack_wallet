@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/coin_entity.dart';
 import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
+import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/dialogs/desktop_expanding_wallet_card.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -174,6 +176,27 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
               "${widget.coin.prettyName} (${widget.coin.ticker}) wallets",
               style: STextStyles.navBarTitle(context),
             ),
+            actions: [
+              AspectRatio(
+                aspectRatio: 1,
+                child: AppBarIconButton(
+                  icon: SvgPicture.asset(
+                    Assets.svg.plus,
+                    width: 18,
+                    height: 18,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .topNavIconPrimary,
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pushNamed(
+                      CreateOrRestoreWalletView.routeName,
+                      arguments: CoinEntity(widget.coin),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
           body: SafeArea(
             child: Padding(
