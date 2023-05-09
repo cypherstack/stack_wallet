@@ -2019,6 +2019,17 @@ class ThemeAssets {
   final String wowneroImage;
   final String namecoinImage;
   final String particlImage;
+  final String bitcoinImageSecondary;
+  final String bitcoincashImageSecondary;
+  final String dogecoinImageSecondary;
+  final String epicCashImageSecondary;
+  final String ethereumImageSecondary;
+  final String firoImageSecondary;
+  final String litecoinImageSecondary;
+  final String moneroImageSecondary;
+  final String wowneroImageSecondary;
+  final String namecoinImageSecondary;
+  final String particlImageSecondary;
 
   // todo: add all assets expected in json
 
@@ -2060,6 +2071,17 @@ class ThemeAssets {
     required this.wowneroImage,
     required this.namecoinImage,
     required this.particlImage,
+    required this.bitcoinImageSecondary,
+    required this.bitcoincashImageSecondary,
+    required this.dogecoinImageSecondary,
+    required this.epicCashImageSecondary,
+    required this.ethereumImageSecondary,
+    required this.firoImageSecondary,
+    required this.litecoinImageSecondary,
+    required this.moneroImageSecondary,
+    required this.wowneroImageSecondary,
+    required this.namecoinImageSecondary,
+    required this.particlImageSecondary,
   });
 
   factory ThemeAssets.fromJson({
@@ -2142,6 +2164,28 @@ class ThemeAssets {
           "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["namecoin_image"] as String}",
       particlImage:
           "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["particl_image"] as String}",
+      bitcoinImageSecondary:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["bitcoinImageSecondary"] as String}",
+      bitcoincashImageSecondary:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["bitcoincashImageSecondary"] as String}",
+      dogecoinImageSecondary:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["dogecoinImageSecondary"] as String}",
+      epicCashImageSecondary:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["epicCashImageSecondary"] as String}",
+      ethereumImageSecondary:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["ethereumImageSecondary"] as String}",
+      firoImageSecondary:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["firoImageSecondary"] as String}",
+      litecoinImageSecondary:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["litecoinImageSecondary"] as String}",
+      moneroImageSecondary:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["moneroImageSecondary"] as String}",
+      wowneroImageSecondary:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["wowneroImageSecondary"] as String}",
+      namecoinImageSecondary:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["namecoinImageSecondary"] as String}",
+      particlImageSecondary:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["particlImageSecondary"] as String}",
     );
   }
 }
