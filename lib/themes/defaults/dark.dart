@@ -215,5 +215,8 @@ final Map<String, dynamic> darkJson = {
     "send_pending": "svg/tx-icon-send-pending.svg",
     "send_cancelled": "svg/tx-icon-send-failed.svg",
     "theme_preview": "svg/dark-theme.svg",
+    "txExchange": "svg/tx-exchange-icon.svg",
+    "txExchangePending": "svg/tx-exchange-icon-pending.svg",
+    "txExchangeFailed": "svg/tx-exchange-icon-failed.svg",
   }
 };

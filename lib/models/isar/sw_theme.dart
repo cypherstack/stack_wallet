@@ -1994,6 +1994,9 @@ class ThemeAssets {
   final String sendPending;
   final String sendCancelled;
   final String themePreview;
+  final String txExchange;
+  final String txExchangePending;
+  final String txExchangeFailed;
   final String bitcoin;
   final String litecoin;
   final String bitcoincash;
@@ -2032,6 +2035,9 @@ class ThemeAssets {
     required this.sendPending,
     required this.sendCancelled,
     required this.themePreview,
+    required this.txExchange,
+    required this.txExchangePending,
+    required this.txExchangeFailed,
     required this.bitcoin,
     required this.litecoin,
     required this.bitcoincash,
@@ -2086,6 +2092,12 @@ class ThemeAssets {
           "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["send_cancelled"] as String}",
       themePreview:
           "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["theme_preview"] as String}",
+      txExchange:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["txExchange"] as String}",
+      txExchangePending:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["txExchangePending"] as String}",
+      txExchangeFailed:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["txExchangeFailed"] as String}",
       bitcoin:
           "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["bitcoin"] as String}",
       litecoin:
