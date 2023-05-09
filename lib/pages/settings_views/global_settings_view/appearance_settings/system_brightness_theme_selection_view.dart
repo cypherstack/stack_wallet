@@ -19,12 +19,13 @@ class SystemBrightnessThemeSelectionView extends ConsumerWidget {
   void _setTheme({
     required BuildContext context,
     required bool isDark,
-    required ThemeType type,
+    required String themeId,
     required WidgetRef ref,
   }) {
     final brightness = MediaQuery.of(context).platformBrightness;
     if (isDark) {
-      ref.read(prefsChangeNotifierProvider).systemBrightnessDarkThemeId = type;
+      ref.read(prefsChangeNotifierProvider).systemBrightnessDarkThemeId =
+          themeId;
       if (brightness == Brightness.dark) {
         throw Exception("aaaaaaaaaaaaaaaa");
         // ref.read(themeProvider.notifier).state =
@@ -33,7 +34,8 @@ class SystemBrightnessThemeSelectionView extends ConsumerWidget {
         // );
       }
     } else {
-      ref.read(prefsChangeNotifierProvider).systemBrightnessLightThemeId = type;
+      ref.read(prefsChangeNotifierProvider).systemBrightnessLightThemeId =
+          themeId;
       if (brightness == Brightness.light) {
         throw Exception("aaaaaaaaaaaaaaaa");
         // ref.read(colorThemeProvider.notifier).state =
