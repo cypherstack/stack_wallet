@@ -212,11 +212,16 @@ class _NewContactAddressEntryFormState
                             : Row(
                                 children: [
                                   SvgPicture.asset(
-                                    Assets.svg.iconFor(
-                                        coin: ref.watch(
-                                            addressEntryDataProvider(widget.id)
-                                                .select(
-                                                    (value) => value.coin))!),
+                                    ref.watch(
+                                      coinIconProvider(
+                                        ref.watch(
+                                          addressEntryDataProvider(widget.id)
+                                              .select(
+                                            (value) => value.coin,
+                                          ),
+                                        )!,
+                                      ),
+                                    ),
                                     height: 20,
                                     width: 20,
                                   ),

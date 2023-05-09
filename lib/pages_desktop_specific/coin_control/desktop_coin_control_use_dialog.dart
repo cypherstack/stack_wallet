@@ -6,6 +6,7 @@ import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/pages_desktop_specific/coin_control/utxo_row.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -359,7 +360,7 @@ class _DesktopCoinControlUseDialogState
                                   child: Row(
                                     children: [
                                       SvgPicture.asset(
-                                        Assets.svg.iconFor(coin: coin),
+                                        ref.watch(coinIconProvider(coin)),
                                         width: 24,
                                         height: 24,
                                       ),

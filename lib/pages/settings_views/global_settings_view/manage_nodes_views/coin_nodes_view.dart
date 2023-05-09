@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:stackwallet/pages/settings_views/sub_widgets/nodes_list.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -54,7 +55,9 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
                   width: 32,
                 ),
                 SvgPicture.asset(
-                  Assets.svg.iconFor(coin: widget.coin),
+                  ref.watch(
+                    coinIconProvider(widget.coin),
+                  ),
                   width: 24,
                   height: 24,
                 ),

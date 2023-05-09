@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/startup_preferences/startup_wallet_selection_view.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
@@ -237,22 +237,22 @@ class _StartupPreferencesViewState
                                                         child: Row(
                                                           children: [
                                                             SvgPicture.asset(
-                                                              Assets.svg
-                                                                  .iconFor(
-                                                                coin: ref
-                                                                    .watch(
-                                                                      walletsChangeNotifierProvider
-                                                                          .select(
-                                                                        (value) =>
-                                                                            value.getManager(
-                                                                          ref.watch(
-                                                                            prefsChangeNotifierProvider.select((value) =>
-                                                                                value.startupWalletId!),
+                                                              ref.watch(
+                                                                coinIconProvider(
+                                                                  ref
+                                                                      .watch(
+                                                                        walletsChangeNotifierProvider
+                                                                            .select(
+                                                                          (value) =>
+                                                                              value.getManager(
+                                                                            ref.watch(
+                                                                              prefsChangeNotifierProvider.select((value) => value.startupWalletId!),
+                                                                            ),
                                                                           ),
                                                                         ),
-                                                                      ),
-                                                                    )
-                                                                    .coin,
+                                                                      )
+                                                                      .coin,
+                                                                ),
                                                               ),
                                                             ),
                                                             const SizedBox(

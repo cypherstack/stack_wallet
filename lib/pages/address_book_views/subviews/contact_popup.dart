@@ -9,6 +9,7 @@ import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_2_view.
 import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
@@ -211,7 +212,9 @@ class ContactPopUp extends ConsumerWidget {
                                             height: 2,
                                           ),
                                           SvgPicture.asset(
-                                            Assets.svg.iconFor(coin: e.coin),
+                                            ref.watch(
+                                              coinIconProvider(e.coin),
+                                            ),
                                             height: 24,
                                           ),
                                         ],

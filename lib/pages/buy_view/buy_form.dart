@@ -407,18 +407,6 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     }
   }
 
-  Widget? getIconForTicker(String ticker) {
-    String iconAsset = /*isStackCoin(ticker)
-        ?*/
-        Assets.svg.iconFor(coin: coinFromTickerCaseInsensitive(ticker));
-    // : Assets.svg.buyIconFor(ticker);
-    // return (iconAsset != null)
-    //     ? SvgPicture.asset(iconAsset, height: 20, width: 20)
-    //     : null;
-
-    return SvgPicture.asset(iconAsset, height: 20, width: 20);
-  }
-
   Future<void> previewQuote(SimplexQuote quote) async {
     bool shouldPop = false;
     unawaited(
@@ -833,8 +821,10 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                     padding: const EdgeInsets.all(12),
                     child: Row(
                       children: <Widget>[
-                        getIconForTicker(selectedCrypto?.ticker ?? "BTC")
-                            as Widget,
+                        CoinIconForTicker(
+                          ticker: selectedCrypto?.ticker ?? "BTC",
+                          size: 20,
+                        ),
                         const SizedBox(
                           width: 10,
                         ),
@@ -1049,8 +1039,10 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                         .accentColorDark),
                               ),
                             )
-                          : getIconForTicker(selectedCrypto?.ticker ?? "BTC")
-                              as Widget,
+                          : CoinIconForTicker(
+                              ticker: selectedCrypto?.ticker ?? "BTC",
+                              size: 20,
+                            ),
                       SizedBox(
                           width: buyWithFiat
                               ? 8

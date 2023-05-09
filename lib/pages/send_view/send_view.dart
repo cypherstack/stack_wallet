@@ -24,6 +24,7 @@ import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -758,7 +759,9 @@ class _SendViewState extends ConsumerState<SendView> {
                               child: Row(
                                 children: [
                                   SvgPicture.asset(
-                                    Assets.svg.iconFor(coin: coin),
+                                    ref.watch(
+                                      coinIconProvider(coin),
+                                    ),
                                     width: 22,
                                     height: 22,
                                   ),
@@ -981,7 +984,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                         children: [
                                           _addressToggleFlag
                                               ? TextFieldIconButton(
-                                            semanticsLabel: "Clear Button. Clears The Address Field Input.",
+                                                  semanticsLabel:
+                                                      "Clear Button. Clears The Address Field Input.",
                                                   key: const Key(
                                                       "sendViewClearAddressFieldButtonKey"),
                                                   onTap: () {
@@ -998,7 +1002,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                   child: const XIcon(),
                                                 )
                                               : TextFieldIconButton(
-                                            semanticsLabel: "Paste Button. Pastes From Clipboard To Address Field Input.",
+                                                  semanticsLabel:
+                                                      "Paste Button. Pastes From Clipboard To Address Field Input.",
                                                   key: const Key(
                                                       "sendViewPasteAddressFieldButtonKey"),
                                                   onTap: () async {
@@ -1048,7 +1053,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                 ),
                                           if (sendToController.text.isEmpty)
                                             TextFieldIconButton(
-                                              semanticsLabel: "Address Book Button. Opens Address Book For Address Field.",
+                                              semanticsLabel:
+                                                  "Address Book Button. Opens Address Book For Address Field.",
                                               key: const Key(
                                                   "sendViewAddressBookButtonKey"),
                                               onTap: () {
@@ -1061,7 +1067,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                             ),
                                           if (sendToController.text.isEmpty)
                                             TextFieldIconButton(
-                                              semanticsLabel: "Scan QR Button. Opens Camera For Scanning QR Code.",
+                                              semanticsLabel:
+                                                  "Scan QR Button. Opens Camera For Scanning QR Code.",
                                               key: const Key(
                                                   "sendViewScanQrButtonKey"),
                                               onTap: () async {

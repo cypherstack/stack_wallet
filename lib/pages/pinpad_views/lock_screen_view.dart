@@ -163,7 +163,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
   @override
   void didChangeDependencies() {
     if (widget.isInitialAppLogin) {
-      unawaited(Assets.precache(context));
+      // unawaited(Assets.precache(context));
     }
     super.didChangeDependencies();
   }

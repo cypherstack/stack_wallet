@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -82,7 +82,7 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
                 child: Padding(
                   padding: EdgeInsets.all(isDesktop ? 6 : 4),
                   child: SvgPicture.asset(
-                    Assets.svg.iconFor(coin: manager.coin),
+                    ref.watch(coinIconProvider(manager.coin)),
                     width: 20,
                     height: 20,
                   ),

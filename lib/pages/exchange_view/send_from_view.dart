@@ -12,6 +12,7 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -575,7 +576,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                 child: Padding(
                   padding: const EdgeInsets.all(6),
                   child: SvgPicture.asset(
-                    Assets.svg.iconFor(coin: coin),
+                    ref.watch(
+                      coinIconProvider(coin),
+                    ),
                     width: 24,
                     height: 24,
                   ),

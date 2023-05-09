@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/password/forgot_password_desktop_view.dart';
@@ -11,7 +12,9 @@ import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/db_version_migration.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -20,10 +23,6 @@ import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
-
-import '../../db/hive/db.dart';
-import '../../utilities/db_version_migration.dart';
-import '../../utilities/logger.dart';
 
 class DesktopLoginView extends ConsumerStatefulWidget {
   const DesktopLoginView({
@@ -132,7 +131,8 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
 
   @override
   void didChangeDependencies() {
-    unawaited(Assets.precache(context));
+    // TODO: check if we still need to do this with new theming
+    // unawaited(Assets.precache(context));
 
     super.didChangeDependencies();
   }

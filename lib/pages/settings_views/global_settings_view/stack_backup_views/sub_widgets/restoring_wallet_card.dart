@@ -223,8 +223,8 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                       .colorForCoin(coin),
                   child: Center(
                     child: SvgPicture.asset(
-                      Assets.svg.iconFor(
-                        coin: coin,
+                      ref.watch(
+                        coinIconProvider(coin),
                       ),
                       height: 20,
                       width: 20,

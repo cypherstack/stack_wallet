@@ -1,12 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/receive_view/addresses/address_tag.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -14,7 +15,7 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
-class AddressCard extends StatefulWidget {
+class AddressCard extends ConsumerStatefulWidget {
   const AddressCard({
     Key? key,
     required this.addressId,
@@ -31,10 +32,10 @@ class AddressCard extends StatefulWidget {
   final VoidCallback? onPressed;
 
   @override
-  State<AddressCard> createState() => _AddressCardState();
+  ConsumerState<AddressCard> createState() => _AddressCardState();
 }
 
-class _AddressCardState extends State<AddressCard> {
+class _AddressCardState extends ConsumerState<AddressCard> {
   final isDesktop = Util.isDesktop;
 
   late Stream<AddressLabel?> stream;
@@ -86,7 +87,9 @@ class _AddressCardState extends State<AddressCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SvgPicture.asset(
-                  Assets.svg.iconFor(coin: widget.coin),
+                  ref.watch(
+                    coinIconProvider(widget.coin),
+                  ),
                   width: 32,
                   height: 32,
                 ),
