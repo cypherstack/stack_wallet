@@ -2033,6 +2033,7 @@ class ThemeAssets {
   final String namecoinImageSecondary;
   final String particlImageSecondary;
   final String? loadingGif;
+  final String? background;
 
   // todo: add all assets expected in json
 
@@ -2088,6 +2089,7 @@ class ThemeAssets {
     required this.namecoinImageSecondary,
     required this.particlImageSecondary,
     required this.loadingGif,
+    required this.background,
   });
 
   factory ThemeAssets.fromJson({
@@ -2198,6 +2200,9 @@ class ThemeAssets {
           "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["particlImageSecondary"] as String}",
       loadingGif: json["assets"]["loadingGif"] is String
           ? "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["loadingGif"] as String}"
+          : null,
+      background: json["assets"]["background"] is String
+          ? "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["background"] as String}"
           : null,
     );
   }
