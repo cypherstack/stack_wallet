@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,7 +14,6 @@ import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -307,10 +307,11 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
 
   @override
   Widget build(BuildContext context) {
-    final bool lightChan =
-        ref.read(themeProvider.state).state.themeType == ThemeType.chan;
-    final bool darkChan =
-        ref.read(themeProvider.state).state.themeType == ThemeType.darkChans;
+    final easyFile =
+        ref.watch(themeProvider.select((value) => value.assets.personaEasy));
+    final incognitoFile = ref
+        .watch(themeProvider.select((value) => value.assets.personaIncognito));
+
     return Row(
       children: [
         Expanded(
@@ -347,15 +348,15 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      (lightChan || darkChan)
-                          ? Image(
-                              image: AssetImage(Assets.png.chanEasy),
+                      (easyFile.endsWith(".png"))
+                          ? Image.file(
+                              File(
+                                easyFile,
+                              ),
                             )
-                          : SvgPicture.asset(
-                              ref.watch(
-                                themeProvider.select(
-                                  (value) => value.assets.personaEasy,
-                                ),
+                          : SvgPicture.file(
+                              File(
+                                easyFile,
                               ),
                               width: 140,
                               height: 140,
@@ -456,15 +457,15 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                         const SizedBox(
                           height: 10,
                         ),
-                      (lightChan || darkChan)
-                          ? Image(
-                              image: AssetImage(Assets.png.chanIncognito),
+                      (incognitoFile.endsWith(".png"))
+                          ? Image.file(
+                              File(
+                                incognitoFile,
+                              ),
                             )
-                          : SvgPicture.asset(
-                              ref.watch(
-                                themeProvider.select(
-                                  (value) => value.assets.personaIncognito,
-                                ),
+                          : SvgPicture.file(
+                              File(
+                                incognitoFile,
                               ),
                               width: 140,
                               height: 140,

@@ -60,7 +60,6 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/crypto_notifications.dart';
 import 'package:window_size/window_size.dart';
@@ -343,25 +342,22 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   @override
   void initState() {
-    StackColorTheme colorTheme;
+    String themeId;
     if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
       final brightness = WidgetsBinding.instance.window.platformBrightness;
       switch (brightness) {
         case Brightness.dark:
-          colorTheme = ref
-              .read(prefsChangeNotifierProvider)
-              .systemBrightnessDarkTheme
-              .colorTheme;
+          themeId =
+              ref.read(prefsChangeNotifierProvider).systemBrightnessDarkThemeId;
           break;
         case Brightness.light:
-          colorTheme = ref
+          themeId = ref
               .read(prefsChangeNotifierProvider)
-              .systemBrightnessLightTheme
-              .colorTheme;
+              .systemBrightnessLightThemeId;
           break;
       }
     } else {
-      colorTheme = ref.read(prefsChangeNotifierProvider).theme.colorTheme;
+      themeId = ref.read(prefsChangeNotifierProvider).themeId;
     }
 
     loadingCompleter = Completer();
@@ -401,19 +397,16 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     });
 
     WidgetsBinding.instance.window.onPlatformBrightnessChanged = () {
-      StackColorTheme colorTheme;
+      String themeId;
       switch (WidgetsBinding.instance.window.platformBrightness) {
         case Brightness.dark:
-          colorTheme = ref
-              .read(prefsChangeNotifierProvider)
-              .systemBrightnessDarkTheme
-              .colorTheme;
+          themeId =
+              ref.read(prefsChangeNotifierProvider).systemBrightnessDarkThemeId;
           break;
         case Brightness.light:
-          colorTheme = ref
+          themeId = ref
               .read(prefsChangeNotifierProvider)
-              .systemBrightnessLightTheme
-              .colorTheme;
+              .systemBrightnessLightThemeId;
           break;
       }
 

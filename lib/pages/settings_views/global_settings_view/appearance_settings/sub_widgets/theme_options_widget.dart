@@ -39,12 +39,12 @@ class _ThemeOptionsWidgetState extends ConsumerState<ThemeOptionsWidget> {
         case Brightness.dark:
           theme = ref
               .read(prefsChangeNotifierProvider.notifier)
-              .systemBrightnessDarkTheme;
+              .systemBrightnessDarkThemeId;
           break;
         case Brightness.light:
           theme = ref
               .read(prefsChangeNotifierProvider.notifier)
-              .systemBrightnessLightTheme;
+              .systemBrightnessLightThemeId;
           break;
       }
 
@@ -70,7 +70,7 @@ class _ThemeOptionsWidgetState extends ConsumerState<ThemeOptionsWidget> {
       final theme = ThemeType.values[index];
 
       // save theme setting
-      ref.read(prefsChangeNotifierProvider.notifier).theme = theme;
+      ref.read(prefsChangeNotifierProvider.notifier).themeId = theme;
 
       // apply theme
       // ref.read(colorThemeProvider.notifier).state =
@@ -88,8 +88,8 @@ class _ThemeOptionsWidgetState extends ConsumerState<ThemeOptionsWidget> {
     if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
       _current = ThemeType.values.length;
     } else {
-      _current =
-          ThemeType.values.indexOf(ref.read(prefsChangeNotifierProvider).theme);
+      _current = ThemeType.values
+          .indexOf(ref.read(prefsChangeNotifierProvider).themeId);
     }
 
     super.initState();

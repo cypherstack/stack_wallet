@@ -2520,12 +2520,12 @@ class MockPrefs extends _i1.Mock implements _i24.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i34.ThemeType get theme => (super.noSuchMethod(
+  _i34.ThemeType get themeId => (super.noSuchMethod(
         Invocation.getter(#theme),
         returnValue: _i34.ThemeType.light,
       ) as _i34.ThemeType);
   @override
-  set theme(_i34.ThemeType? theme) => super.noSuchMethod(
+  set themeId(_i34.ThemeType? theme) => super.noSuchMethod(
         Invocation.setter(
           #theme,
           theme,
@@ -2533,12 +2533,13 @@ class MockPrefs extends _i1.Mock implements _i24.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i34.ThemeType get systemBrightnessLightTheme => (super.noSuchMethod(
+  _i34.ThemeType get systemBrightnessLightThemeId => (super.noSuchMethod(
         Invocation.getter(#systemBrightnessLightTheme),
         returnValue: _i34.ThemeType.light,
       ) as _i34.ThemeType);
   @override
-  set systemBrightnessLightTheme(_i34.ThemeType? systemBrightnessLightTheme) =>
+  set systemBrightnessLightThemeId(
+          _i34.ThemeType? systemBrightnessLightTheme) =>
       super.noSuchMethod(
         Invocation.setter(
           #systemBrightnessLightTheme,
@@ -2547,12 +2548,12 @@ class MockPrefs extends _i1.Mock implements _i24.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i34.ThemeType get systemBrightnessDarkTheme => (super.noSuchMethod(
+  _i34.ThemeType get systemBrightnessDarkThemeId => (super.noSuchMethod(
         Invocation.getter(#systemBrightnessDarkTheme),
         returnValue: _i34.ThemeType.light,
       ) as _i34.ThemeType);
   @override
-  set systemBrightnessDarkTheme(_i34.ThemeType? systemBrightnessDarkTheme) =>
+  set systemBrightnessDarkThemeId(_i34.ThemeType? systemBrightnessDarkTheme) =>
       super.noSuchMethod(
         Invocation.setter(
           #systemBrightnessDarkTheme,

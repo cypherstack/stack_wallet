@@ -235,7 +235,7 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
                 onTap: () {
                   if (ref.read(themeProvider.notifier).state.themeType !=
                       ThemeType.values[i]) {
-                    ref.read(prefsChangeNotifierProvider.notifier).theme =
+                    ref.read(prefsChangeNotifierProvider.notifier).themeId =
                         ThemeType.values[i];
 
                     throw Exception(

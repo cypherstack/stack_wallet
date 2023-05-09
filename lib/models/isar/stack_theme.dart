@@ -14,7 +14,7 @@ class StackTheme {
 
   /// id of theme on themes server
   @Index(unique: true, replace: true)
-  final String idOnServer;
+  final String themeId;
 
   /// the theme name that will be displayed in app
   final String name;
@@ -1472,7 +1472,7 @@ class StackTheme {
   // ===========================================================================
 
   StackTheme({
-    required this.idOnServer,
+    required this.themeId,
     required this.name,
     required this.assets,
     required this.brightnessString,
@@ -1637,7 +1637,7 @@ class StackTheme {
     required String applicationThemesDirectoryPath,
   }) {
     return StackTheme(
-      idOnServer: json["id"] as String,
+      themeId: json["id"] as String,
       name: json["name"] as String,
       brightnessString: json["brightness"] as String,
       backgroundInt: parseColor(json["colors"]["background"] as String),

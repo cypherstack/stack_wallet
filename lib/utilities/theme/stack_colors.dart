@@ -362,7 +362,7 @@ class StackColors extends ThemeExtension<StackColors> {
 
   factory StackColors.fromStackColorTheme(StackTheme colorTheme) {
     return StackColors(
-      themeId: colorTheme.idOnServer,
+      themeId: colorTheme.themeId,
       brightness: colorTheme.brightness,
       background: colorTheme.background,
       backgroundAppBar: colorTheme.backgroundAppBar,

@@ -1,304 +1,207 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/theme/chan_colors.dart';
-import 'package:stackwallet/utilities/theme/dark_colors.dart';
-import 'package:stackwallet/utilities/theme/forest_colors.dart';
-import 'package:stackwallet/utilities/theme/fruit_sorbet_colors.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
-import 'package:stackwallet/utilities/theme/ocean_breeze_colors.dart';
-import 'package:stackwallet/utilities/theme/oled_black_colors.dart';
-import 'package:stackwallet/utilities/theme/oled_chans_colors.dart';
-import 'package:stackwallet/utilities/theme/orange_colors.dart';
 
-enum ThemeType {
-  light,
-  dark,
-  oceanBreeze,
-  oledBlack,
-  orange,
-  fruitSorbet,
-  forest,
-  chan,
-  darkChans;
-}
-
-// adjust this file
-
-extension ThemeTypeExt on ThemeType {
-  static ThemeType fromName(String name) {
-    switch (name) {
-      case "light":
-        return ThemeType.light;
-      case "chan":
-        return ThemeType.chan;
-      case "dark":
-        return ThemeType.dark;
-      case "oceanBreeze":
-        return ThemeType.oceanBreeze;
-      case "oledBlack":
-        return ThemeType.oledBlack;
-      case "orange":
-        return ThemeType.orange;
-      case "fruitSorbet":
-        return ThemeType.fruitSorbet;
-      case "forest":
-        return ThemeType.forest;
-      case "darkChans":
-        return ThemeType.darkChans;
-      default:
-        throw ArgumentError("Invalid theme name");
-    }
-  }
-
-  StackColorTheme get colorTheme {
-    switch (this) {
-      case ThemeType.light:
-        return LightColors();
-      case ThemeType.chan:
-        return ChanColors();
-      case ThemeType.dark:
-        return DarkColors();
-      case ThemeType.oceanBreeze:
-        return OceanBreezeColors();
-      case ThemeType.oledBlack:
-        return OledBlackColors();
-      case ThemeType.orange:
-        return OrangeColors();
-      case ThemeType.fruitSorbet:
-        return FruitSorbetColors();
-      case ThemeType.forest:
-        return ForestColors();
-      case ThemeType.darkChans:
-        return DarkChansColors();
-    }
-  }
-
-  String get prettyName {
-    switch (this) {
-      case ThemeType.light:
-        return "Light";
-      case ThemeType.chan:
-        return "Crypto Chans";
-      case ThemeType.dark:
-        return "Dark";
-      case ThemeType.oceanBreeze:
-        return "Ocean Breeze";
-      case ThemeType.oledBlack:
-        return "OLED Black";
-      case ThemeType.orange:
-        return "Orange";
-      case ThemeType.fruitSorbet:
-        return "Fruit Sorbet";
-      case ThemeType.forest:
-        return "Forest";
-      case ThemeType.darkChans:
-        return "Dark Chans";
-    }
-  }
-}
-
-abstract class StackColorTheme {
-  ThemeType get themeType;
-  Brightness get brightness;
-
-  Color get background;
-  Color get backgroundAppBar;
-
-  Gradient? get gradientBackground;
-
-  Color get overlay;
-
-  Color get accentColorBlue;
-  Color get accentColorGreen;
-  Color get accentColorYellow;
-  Color get accentColorRed;
-  Color get accentColorOrange;
-  Color get accentColorDark;
-
-  Color get shadow;
-
-  Color get textDark;
-  Color get textDark2;
-  Color get textDark3;
-  Color get textSubtitle1;
-  Color get textSubtitle2;
-  Color get textSubtitle3;
-  Color get textSubtitle4;
-  Color get textSubtitle5;
-  Color get textSubtitle6;
-  Color get textWhite;
-  Color get textFavoriteCard;
-  Color get textError;
-  Color get textRestore;
-
-// button background
-  Color get buttonBackPrimary;
-  Color get buttonBackSecondary;
-  Color get buttonBackPrimaryDisabled;
-  Color get buttonBackSecondaryDisabled;
-  Color get buttonBackBorder;
-  Color get buttonBackBorderDisabled;
-  Color get buttonBackBorderSecondary;
-  Color get buttonBackBorderSecondaryDisabled;
-  Color get numberBackDefault;
-  Color get numpadBackDefault;
-  Color get bottomNavBack;
-
-// button text/element
-  Color get buttonTextPrimary;
-  Color get buttonTextSecondary;
-  Color get buttonTextPrimaryDisabled;
-  Color get buttonTextSecondaryDisabled;
-  Color get buttonTextBorder;
-  Color get buttonTextDisabled;
-  Color get buttonTextBorderless;
-  Color get buttonTextBorderlessDisabled;
-  Color get numberTextDefault;
-  Color get numpadTextDefault;
-  Color get bottomNavText;
-  Color get customTextButtonEnabledText;
-  Color get customTextButtonDisabledText;
-
-// switch background
-  Color get switchBGOn;
-  Color get switchBGOff;
-  Color get switchBGDisabled;
-
-// switch circle
-  Color get switchCircleOn;
-  Color get switchCircleOff;
-  Color get switchCircleDisabled;
-
-// step indicator background
-  Color get stepIndicatorBGCheck;
-  Color get stepIndicatorBGNumber;
-  Color get stepIndicatorBGInactive;
-  Color get stepIndicatorBGLines;
-  Color get stepIndicatorBGLinesInactive;
-  Color get stepIndicatorIconText;
-  Color get stepIndicatorIconNumber;
-  Color get stepIndicatorIconInactive;
-
-// checkbox
-  Color get checkboxBGChecked;
-  Color get checkboxBorderEmpty;
-  Color get checkboxBGDisabled;
-  Color get checkboxIconChecked;
-  Color get checkboxIconDisabled;
-  Color get checkboxTextLabel;
-
-// snack bar
-  Color get snackBarBackSuccess;
-  Color get snackBarBackError;
-  Color get snackBarBackInfo;
-  Color get snackBarTextSuccess;
-  Color get snackBarTextError;
-  Color get snackBarTextInfo;
-
-// icons
-  Color get bottomNavIconBack;
-  Color get bottomNavIconIcon;
-  Color get topNavIconPrimary;
-  Color get topNavIconGreen;
-  Color get topNavIconYellow;
-  Color get topNavIconRed;
-  Color get settingsIconBack;
-  Color get settingsIconIcon;
-  Color get settingsIconBack2;
-  Color get settingsIconElement;
-
-// text field
-  Color get textFieldActiveBG;
-  Color get textFieldDefaultBG;
-  Color get textFieldErrorBG;
-  Color get textFieldSuccessBG;
-  Color get textFieldErrorBorder;
-  Color get textFieldSuccessBorder;
-  Color get textFieldActiveSearchIconLeft;
-  Color get textFieldDefaultSearchIconLeft;
-  Color get textFieldErrorSearchIconLeft;
-  Color get textFieldSuccessSearchIconLeft;
-  Color get textFieldActiveText;
-  Color get textFieldDefaultText;
-  Color get textFieldErrorText;
-  Color get textFieldSuccessText;
-  Color get textFieldActiveLabel;
-  Color get textFieldErrorLabel;
-  Color get textFieldSuccessLabel;
-  Color get textFieldActiveSearchIconRight;
-  Color get textFieldDefaultSearchIconRight;
-  Color get textFieldErrorSearchIconRight;
-  Color get textFieldSuccessSearchIconRight;
-
-// settings item level2
-  Color get settingsItem2ActiveBG;
-  Color get settingsItem2ActiveText;
-  Color get settingsItem2ActiveSub;
-
-// radio buttons
-  Color get radioButtonIconBorder;
-  Color get radioButtonIconBorderDisabled;
-  Color get radioButtonBorderEnabled;
-  Color get radioButtonBorderDisabled;
-  Color get radioButtonIconCircle;
-  Color get radioButtonIconEnabled;
-  Color get radioButtonTextEnabled;
-  Color get radioButtonTextDisabled;
-  Color get radioButtonLabelEnabled;
-  Color get radioButtonLabelDisabled;
-
-// info text
-  Color get infoItemBG;
-  Color get infoItemLabel;
-  Color get infoItemText;
-  Color get infoItemIcons;
-
-// popup
-  Color get popupBG;
-
-// currency list
-  Color get currencyListItemBG;
-
-// bottom nav
-  Color get stackWalletBG;
-  Color get stackWalletMid;
-  Color get stackWalletBottom;
-  Color get bottomNavShadow;
-
-  Color get favoriteStarActive;
-  Color get favoriteStarInactive;
-
-  Color get splash;
-  Color get highlight;
-  Color get warningForeground;
-  Color get warningBackground;
-
-  Color get loadingOverlayTextColor;
-  Color get myStackContactIconBG;
-  Color get textConfirmTotalAmount;
-  Color get textSelectedWordTableItem;
-
-// rate type toggle
-  Color get rateTypeToggleColorOn;
-  Color get rateTypeToggleColorOff;
-  Color get rateTypeToggleDesktopColorOn;
-  Color get rateTypeToggleDesktopColorOff;
-
-  // token view colors
-  Color get ethTagText;
-  Color get ethTagBG;
-  Color get ethWalletTagText;
-  Color get ethWalletTagBG;
-  Color get tokenSummaryTextPrimary;
-  Color get tokenSummaryTextSecondary;
-  Color get tokenSummaryBG;
-  Color get tokenSummaryButtonBG;
-  Color get tokenSummaryIcon;
-
-  BoxShadow get standardBoxShadow;
-  BoxShadow? get homeViewButtonBarBoxShadow;
-}
-// 0xFFFFD8CE
+// abstract class StackColorTheme {
+//   String get themeId;
+//   Brightness get brightness;
+//
+//   Color get background;
+//   Color get backgroundAppBar;
+//
+//   Gradient? get gradientBackground;
+//
+//   Color get overlay;
+//
+//   Color get accentColorBlue;
+//   Color get accentColorGreen;
+//   Color get accentColorYellow;
+//   Color get accentColorRed;
+//   Color get accentColorOrange;
+//   Color get accentColorDark;
+//
+//   Color get shadow;
+//
+//   Color get textDark;
+//   Color get textDark2;
+//   Color get textDark3;
+//   Color get textSubtitle1;
+//   Color get textSubtitle2;
+//   Color get textSubtitle3;
+//   Color get textSubtitle4;
+//   Color get textSubtitle5;
+//   Color get textSubtitle6;
+//   Color get textWhite;
+//   Color get textFavoriteCard;
+//   Color get textError;
+//   Color get textRestore;
+//
+// // button background
+//   Color get buttonBackPrimary;
+//   Color get buttonBackSecondary;
+//   Color get buttonBackPrimaryDisabled;
+//   Color get buttonBackSecondaryDisabled;
+//   Color get buttonBackBorder;
+//   Color get buttonBackBorderDisabled;
+//   Color get buttonBackBorderSecondary;
+//   Color get buttonBackBorderSecondaryDisabled;
+//   Color get numberBackDefault;
+//   Color get numpadBackDefault;
+//   Color get bottomNavBack;
+//
+// // button text/element
+//   Color get buttonTextPrimary;
+//   Color get buttonTextSecondary;
+//   Color get buttonTextPrimaryDisabled;
+//   Color get buttonTextSecondaryDisabled;
+//   Color get buttonTextBorder;
+//   Color get buttonTextDisabled;
+//   Color get buttonTextBorderless;
+//   Color get buttonTextBorderlessDisabled;
+//   Color get numberTextDefault;
+//   Color get numpadTextDefault;
+//   Color get bottomNavText;
+//   Color get customTextButtonEnabledText;
+//   Color get customTextButtonDisabledText;
+//
+// // switch background
+//   Color get switchBGOn;
+//   Color get switchBGOff;
+//   Color get switchBGDisabled;
+//
+// // switch circle
+//   Color get switchCircleOn;
+//   Color get switchCircleOff;
+//   Color get switchCircleDisabled;
+//
+// // step indicator background
+//   Color get stepIndicatorBGCheck;
+//   Color get stepIndicatorBGNumber;
+//   Color get stepIndicatorBGInactive;
+//   Color get stepIndicatorBGLines;
+//   Color get stepIndicatorBGLinesInactive;
+//   Color get stepIndicatorIconText;
+//   Color get stepIndicatorIconNumber;
+//   Color get stepIndicatorIconInactive;
+//
+// // checkbox
+//   Color get checkboxBGChecked;
+//   Color get checkboxBorderEmpty;
+//   Color get checkboxBGDisabled;
+//   Color get checkboxIconChecked;
+//   Color get checkboxIconDisabled;
+//   Color get checkboxTextLabel;
+//
+// // snack bar
+//   Color get snackBarBackSuccess;
+//   Color get snackBarBackError;
+//   Color get snackBarBackInfo;
+//   Color get snackBarTextSuccess;
+//   Color get snackBarTextError;
+//   Color get snackBarTextInfo;
+//
+// // icons
+//   Color get bottomNavIconBack;
+//   Color get bottomNavIconIcon;
+//   Color get topNavIconPrimary;
+//   Color get topNavIconGreen;
+//   Color get topNavIconYellow;
+//   Color get topNavIconRed;
+//   Color get settingsIconBack;
+//   Color get settingsIconIcon;
+//   Color get settingsIconBack2;
+//   Color get settingsIconElement;
+//
+// // text field
+//   Color get textFieldActiveBG;
+//   Color get textFieldDefaultBG;
+//   Color get textFieldErrorBG;
+//   Color get textFieldSuccessBG;
+//   Color get textFieldErrorBorder;
+//   Color get textFieldSuccessBorder;
+//   Color get textFieldActiveSearchIconLeft;
+//   Color get textFieldDefaultSearchIconLeft;
+//   Color get textFieldErrorSearchIconLeft;
+//   Color get textFieldSuccessSearchIconLeft;
+//   Color get textFieldActiveText;
+//   Color get textFieldDefaultText;
+//   Color get textFieldErrorText;
+//   Color get textFieldSuccessText;
+//   Color get textFieldActiveLabel;
+//   Color get textFieldErrorLabel;
+//   Color get textFieldSuccessLabel;
+//   Color get textFieldActiveSearchIconRight;
+//   Color get textFieldDefaultSearchIconRight;
+//   Color get textFieldErrorSearchIconRight;
+//   Color get textFieldSuccessSearchIconRight;
+//
+// // settings item level2
+//   Color get settingsItem2ActiveBG;
+//   Color get settingsItem2ActiveText;
+//   Color get settingsItem2ActiveSub;
+//
+// // radio buttons
+//   Color get radioButtonIconBorder;
+//   Color get radioButtonIconBorderDisabled;
+//   Color get radioButtonBorderEnabled;
+//   Color get radioButtonBorderDisabled;
+//   Color get radioButtonIconCircle;
+//   Color get radioButtonIconEnabled;
+//   Color get radioButtonTextEnabled;
+//   Color get radioButtonTextDisabled;
+//   Color get radioButtonLabelEnabled;
+//   Color get radioButtonLabelDisabled;
+//
+// // info text
+//   Color get infoItemBG;
+//   Color get infoItemLabel;
+//   Color get infoItemText;
+//   Color get infoItemIcons;
+//
+// // popup
+//   Color get popupBG;
+//
+// // currency list
+//   Color get currencyListItemBG;
+//
+// // bottom nav
+//   Color get stackWalletBG;
+//   Color get stackWalletMid;
+//   Color get stackWalletBottom;
+//   Color get bottomNavShadow;
+//
+//   Color get favoriteStarActive;
+//   Color get favoriteStarInactive;
+//
+//   Color get splash;
+//   Color get highlight;
+//   Color get warningForeground;
+//   Color get warningBackground;
+//
+//   Color get loadingOverlayTextColor;
+//   Color get myStackContactIconBG;
+//   Color get textConfirmTotalAmount;
+//   Color get textSelectedWordTableItem;
+//
+// // rate type toggle
+//   Color get rateTypeToggleColorOn;
+//   Color get rateTypeToggleColorOff;
+//   Color get rateTypeToggleDesktopColorOn;
+//   Color get rateTypeToggleDesktopColorOff;
+//
+//   // token view colors
+//   Color get ethTagText;
+//   Color get ethTagBG;
+//   Color get ethWalletTagText;
+//   Color get ethWalletTagBG;
+//   Color get tokenSummaryTextPrimary;
+//   Color get tokenSummaryTextSecondary;
+//   Color get tokenSummaryBG;
+//   Color get tokenSummaryButtonBG;
+//   Color get tokenSummaryIcon;
+//
+//   BoxShadow get standardBoxShadow;
+//   BoxShadow? get homeViewButtonBarBoxShadow;
+// }
 
 const kCoinThemeColorDefaults = CoinThemeColorDefault();
 

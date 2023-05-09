@@ -24,7 +24,7 @@ class SystemBrightnessThemeSelectionView extends ConsumerWidget {
   }) {
     final brightness = MediaQuery.of(context).platformBrightness;
     if (isDark) {
-      ref.read(prefsChangeNotifierProvider).systemBrightnessDarkTheme = type;
+      ref.read(prefsChangeNotifierProvider).systemBrightnessDarkThemeId = type;
       if (brightness == Brightness.dark) {
         throw Exception("aaaaaaaaaaaaaaaa");
         // ref.read(themeProvider.notifier).state =
@@ -33,7 +33,7 @@ class SystemBrightnessThemeSelectionView extends ConsumerWidget {
         // );
       }
     } else {
-      ref.read(prefsChangeNotifierProvider).systemBrightnessLightTheme = type;
+      ref.read(prefsChangeNotifierProvider).systemBrightnessLightThemeId = type;
       if (brightness == Brightness.light) {
         throw Exception("aaaaaaaaaaaaaaaa");
         // ref.read(colorThemeProvider.notifier).state =
@@ -123,7 +123,7 @@ class SystemBrightnessThemeSelectionView extends ConsumerWidget {
                                               ref
                                                       .read(
                                                           prefsChangeNotifierProvider)
-                                                      .systemBrightnessLightTheme !=
+                                                      .systemBrightnessLightThemeId !=
                                                   value) {
                                             _setTheme(
                                               context: context,
@@ -137,7 +137,7 @@ class SystemBrightnessThemeSelectionView extends ConsumerWidget {
                                         groupValue: ref.watch(
                                             prefsChangeNotifierProvider.select(
                                                 (value) => value
-                                                    .systemBrightnessLightTheme)),
+                                                    .systemBrightnessLightThemeId)),
                                       ),
                             ],
                           ),
@@ -181,7 +181,7 @@ class SystemBrightnessThemeSelectionView extends ConsumerWidget {
                                               ref
                                                       .read(
                                                           prefsChangeNotifierProvider)
-                                                      .systemBrightnessDarkTheme !=
+                                                      .systemBrightnessDarkThemeId !=
                                                   value) {
                                             _setTheme(
                                               context: context,
@@ -195,7 +195,7 @@ class SystemBrightnessThemeSelectionView extends ConsumerWidget {
                                         groupValue: ref.watch(
                                             prefsChangeNotifierProvider.select(
                                                 (value) => value
-                                                    .systemBrightnessDarkTheme)),
+                                                    .systemBrightnessDarkThemeId)),
                                       ),
                             ],
                           ),
