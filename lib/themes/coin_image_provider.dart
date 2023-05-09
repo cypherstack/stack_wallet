@@ -38,3 +38,40 @@ final coinImageProvider = Provider.family<String, Coin>((ref, coin) {
       return assets.ethereumImage;
   }
 });
+
+final coinImageSecondaryProvider = Provider.family<String, Coin>((ref, coin) {
+  final assets = ref.watch(themeProvider).assets;
+  switch (coin) {
+    case Coin.bitcoin:
+      return assets.bitcoinImageSecondary;
+    case Coin.litecoin:
+    case Coin.litecoinTestNet:
+      return assets.litecoinImageSecondary;
+    case Coin.bitcoincash:
+      return assets.bitcoincashImageSecondary;
+    case Coin.dogecoin:
+      return assets.dogecoinImageSecondary;
+    case Coin.epicCash:
+      return assets.epicCashImageSecondary;
+    case Coin.firo:
+      return assets.firoImageSecondary;
+    case Coin.monero:
+      return assets.moneroImageSecondary;
+    case Coin.wownero:
+      return assets.wowneroImageSecondary;
+    case Coin.namecoin:
+      return assets.namecoinImageSecondary;
+    case Coin.particl:
+      return assets.particlImageSecondary;
+    case Coin.bitcoinTestNet:
+      return assets.bitcoinImageSecondary;
+    case Coin.bitcoincashTestnet:
+      return assets.bitcoincashImageSecondary;
+    case Coin.firoTestNet:
+      return assets.firoImageSecondary;
+    case Coin.dogecoinTestNet:
+      return assets.dogecoinImageSecondary;
+    case Coin.ethereum:
+      return assets.ethereumImageSecondary;
+  }
+});
