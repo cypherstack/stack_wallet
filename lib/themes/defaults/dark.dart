@@ -181,7 +181,6 @@ final Map<String, dynamic> darkJson = {
     },
   },
   "assets": {
-    "background": "",
     "bitcoin": "svg/coin_icons/small/Bitcoin.svg",
     "litecoin": "svg/coin_icons/small/Litecoin.svg",
     "bitcoincash": "svg/coin_icons/small/Bitcoincash.svg",
