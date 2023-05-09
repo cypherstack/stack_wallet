@@ -151,6 +151,7 @@ dependencies:
   dart_bs58check: ^3.0.2
   hex: ^0.2.0
   rational: ^2.2.2
+  archive: ^3.3.2
 
 dev_dependencies:
   flutter_test:
