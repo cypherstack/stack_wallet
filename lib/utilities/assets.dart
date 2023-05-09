@@ -3,7 +3,6 @@ import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dar
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 abstract class Assets {
   static const svg = _SVG();
@@ -12,7 +11,6 @@ abstract class Assets {
   static const socials = _SOCIALS();
   static const exchange = _EXCHANGE();
   static const buy = _BUY();
-  static const gif = _GIF();
 }
 
 class _SOCIALS {
@@ -252,18 +250,4 @@ class _ANIMATIONS {
   String get iconSend => "assets/lottie/icon_send.json";
   String get loaderAndCheckmark => "assets/lottie/loader_and_checkmark.json";
   String get arrowRotate => "assets/lottie/arrow_rotate.json";
-}
-
-class _GIF {
-  const _GIF();
-
-  String get stacyPlain => "assets/gif/stacy-plain.gif";
-
-  String plain(Coin coin) {
-    return "assets/gif/coins/${coin.mainNetVersion.name}/plain.gif";
-  }
-
-  String kiss(Coin coin) {
-    return "assets/gif/coins/${coin.mainNetVersion.name}/kiss.gif";
-  }
 }
