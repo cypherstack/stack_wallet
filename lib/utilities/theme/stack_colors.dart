@@ -4,7 +4,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 
 class StackColors extends ThemeExtension<StackColors> {
-  final ThemeType themeType;
+  final String themeId;
   final Brightness brightness;
 
   final Color background;
@@ -203,7 +203,7 @@ class StackColors extends ThemeExtension<StackColors> {
   final BoxShadow? homeViewButtonBarBoxShadow;
 
   StackColors({
-    required this.themeType,
+    required this.themeId,
     required this.brightness,
     required this.background,
     required this.backgroundAppBar,
@@ -362,7 +362,7 @@ class StackColors extends ThemeExtension<StackColors> {
 
   factory StackColors.fromStackColorTheme(StackTheme colorTheme) {
     return StackColors(
-      themeType: colorTheme.themeType,
+      themeId: colorTheme.idOnServer,
       brightness: colorTheme.brightness,
       background: colorTheme.background,
       backgroundAppBar: colorTheme.backgroundAppBar,
@@ -525,7 +525,7 @@ class StackColors extends ThemeExtension<StackColors> {
 
   @override
   ThemeExtension<StackColors> copyWith({
-    ThemeType? themeType,
+    String? themeId,
     Brightness? brightness,
     Color? background,
     Color? backgroundAppBar,
@@ -682,7 +682,7 @@ class StackColors extends ThemeExtension<StackColors> {
     BoxShadow? standardBoxShadow,
   }) {
     return StackColors(
-      themeType: themeType ?? this.themeType,
+      themeId: themeId ?? this.themeId,
       brightness: brightness ?? this.brightness,
       background: background ?? this.background,
       backgroundAppBar: backgroundAppBar ?? this.backgroundAppBar,
@@ -899,7 +899,7 @@ class StackColors extends ThemeExtension<StackColors> {
     }
 
     return StackColors(
-      themeType: other.themeType,
+      themeId: other.themeId,
       brightness: other.brightness,
       gradientBackground: other.gradientBackground,
       homeViewButtonBarBoxShadow: other.homeViewButtonBarBoxShadow,
