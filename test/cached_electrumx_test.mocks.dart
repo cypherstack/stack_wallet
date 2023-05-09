@@ -4,7 +4,7 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i4;
-import 'dart:ui' as _i9;
+import 'dart:ui' as _i8;
 
 import 'package:decimal/decimal.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
@@ -12,7 +12,6 @@ import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i3;
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i7;
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i6;
 import 'package:stackwallet/utilities/prefs.dart' as _i5;
-import 'package:stackwallet/utilities/theme/color_theme.dart' as _i8;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -510,6 +509,19 @@ class MockPrefs extends _i1.Mock implements _i5.Prefs {
         returnValueForMissingStub: null,
       );
   @override
+  bool get randomizePIN => (super.noSuchMethod(
+        Invocation.getter(#randomizePIN),
+        returnValue: false,
+      ) as bool);
+  @override
+  set randomizePIN(bool? randomizePIN) => super.noSuchMethod(
+        Invocation.setter(
+          #randomizePIN,
+          randomizePIN,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   bool get useBiometrics => (super.noSuchMethod(
         Invocation.getter(#useBiometrics),
         returnValue: false,
@@ -680,43 +692,43 @@ class MockPrefs extends _i1.Mock implements _i5.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i8.ThemeType get themeId => (super.noSuchMethod(
-        Invocation.getter(#theme),
-        returnValue: _i8.ThemeType.light,
-      ) as _i8.ThemeType);
+  String get themeId => (super.noSuchMethod(
+        Invocation.getter(#themeId),
+        returnValue: '',
+      ) as String);
   @override
-  set themeId(_i8.ThemeType? theme) => super.noSuchMethod(
+  set themeId(String? themeId) => super.noSuchMethod(
         Invocation.setter(
-          #theme,
-          theme,
+          #themeId,
+          themeId,
         ),
         returnValueForMissingStub: null,
       );
   @override
-  _i8.ThemeType get systemBrightnessLightThemeId => (super.noSuchMethod(
-        Invocation.getter(#systemBrightnessLightTheme),
-        returnValue: _i8.ThemeType.light,
-      ) as _i8.ThemeType);
+  String get systemBrightnessLightThemeId => (super.noSuchMethod(
+        Invocation.getter(#systemBrightnessLightThemeId),
+        returnValue: '',
+      ) as String);
   @override
-  set systemBrightnessLightThemeId(_i8.ThemeType? systemBrightnessLightTheme) =>
+  set systemBrightnessLightThemeId(String? systemBrightnessLightThemeId) =>
       super.noSuchMethod(
         Invocation.setter(
-          #systemBrightnessLightTheme,
-          systemBrightnessLightTheme,
+          #systemBrightnessLightThemeId,
+          systemBrightnessLightThemeId,
         ),
         returnValueForMissingStub: null,
       );
   @override
-  _i8.ThemeType get systemBrightnessDarkThemeId => (super.noSuchMethod(
-        Invocation.getter(#systemBrightnessDarkTheme),
-        returnValue: _i8.ThemeType.light,
-      ) as _i8.ThemeType);
+  String get systemBrightnessDarkThemeId => (super.noSuchMethod(
+        Invocation.getter(#systemBrightnessDarkThemeId),
+        returnValue: '',
+      ) as String);
   @override
-  set systemBrightnessDarkThemeId(_i8.ThemeType? systemBrightnessDarkTheme) =>
+  set systemBrightnessDarkThemeId(String? systemBrightnessDarkThemeId) =>
       super.noSuchMethod(
         Invocation.setter(
-          #systemBrightnessDarkTheme,
-          systemBrightnessDarkTheme,
+          #systemBrightnessDarkThemeId,
+          systemBrightnessDarkThemeId,
         ),
         returnValueForMissingStub: null,
       );
@@ -770,7 +782,7 @@ class MockPrefs extends _i1.Mock implements _i5.Prefs {
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
-  void addListener(_i9.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i8.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -778,7 +790,7 @@ class MockPrefs extends _i1.Mock implements _i5.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  void removeListener(_i9.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i8.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],
