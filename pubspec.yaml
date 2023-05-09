@@ -356,22 +356,6 @@ flutter:
     - assets/lottie/loader_and_checkmark.json
     - assets/lottie/arrow_rotate.json
 
-    # gifs
-    - assets/gif/
-
-    # coin gifs
-    - assets/gif/coins/bitcoin/
-    - assets/gif/coins/bitcoincash/
-    - assets/gif/coins/dogecoin/
-    - assets/gif/coins/epicCash/
-    - assets/gif/coins/ethereum/
-    - assets/gif/coins/firo/
-    - assets/gif/coins/litecoin/
-    - assets/gif/coins/monero/
-    - assets/gif/coins/namecoin/
-    - assets/gif/coins/particl/
-    - assets/gif/coins/wownero/
-
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
   # For details regarding adding assets from package dependencies, see
