@@ -17,6 +17,7 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -347,7 +348,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
             width: buttonWidth,
             buttonHeight: ButtonHeight.l,
             icon: SvgPicture.asset(
-              Assets.svg.buy(context),
+              ref.watch(themeProvider.select((value) => value.assets.buy)),
               height: 20,
               width: 20,
               color: Theme.of(context)

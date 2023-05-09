@@ -18,8 +18,8 @@ import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -515,7 +515,11 @@ class _ConfirmTransactionViewState
                           child: Row(
                             children: [
                               SvgPicture.asset(
-                                Assets.svg.send(context),
+                                ref.watch(
+                                  themeProvider.select(
+                                    (value) => value.assets.send,
+                                  ),
+                                ),
                                 width: 32,
                                 height: 32,
                               ),

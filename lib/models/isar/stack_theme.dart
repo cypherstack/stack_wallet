@@ -1983,6 +1983,7 @@ class StackTheme {
 @Embedded(inheritance: false)
 class ThemeAssets {
   final String bellNew;
+  final String buy;
   final String personaIncognito;
   final String personaEasy;
   final String stack;
@@ -2035,6 +2036,7 @@ class ThemeAssets {
 
   ThemeAssets({
     required this.bellNew,
+    required this.buy,
     required this.personaIncognito,
     required this.personaEasy,
     required this.stack,
@@ -2092,6 +2094,8 @@ class ThemeAssets {
     return ThemeAssets(
       bellNew:
           "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["bell_new"] as String}",
+      buy:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["buy"] as String}",
       personaIncognito:
           "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["persona_incognito"] as String}",
       personaEasy:
