@@ -203,9 +203,7 @@ class MyApp extends StatelessWidget {
     localeService.loadLocale();
 
     return const KeyboardDismisser(
-      child: CryptoNotifications(
-        child: MaterialAppWithTheme(),
-      ),
+      child: MaterialAppWithTheme(),
     );
   }
 }
@@ -659,70 +657,74 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
               _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
         ),
       ),
-      home: Util.isDesktop
-          ? FutureBuilder(
-              future: loadShared(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  if (_desktopHasPassword) {
-                    String? startupWalletId;
-                    if (ref
-                        .read(prefsChangeNotifierProvider)
-                        .gotoWalletOnStartup) {
-                      startupWalletId =
-                          ref.read(prefsChangeNotifierProvider).startupWalletId;
+      home: CryptoNotifications(
+        child: Util.isDesktop
+            ? FutureBuilder(
+                future: loadShared(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    if (_desktopHasPassword) {
+                      String? startupWalletId;
+                      if (ref
+                          .read(prefsChangeNotifierProvider)
+                          .gotoWalletOnStartup) {
+                        startupWalletId = ref
+                            .read(prefsChangeNotifierProvider)
+                            .startupWalletId;
+                      }
+
+                      return DesktopLoginView(
+                        startupWalletId: startupWalletId,
+                        load: load,
+                      );
+                    } else {
+                      return const IntroView();
                     }
-
-                    return DesktopLoginView(
-                      startupWalletId: startupWalletId,
-                      load: load,
-                    );
                   } else {
-                    return const IntroView();
+                    return const LoadingView();
                   }
-                } else {
-                  return const LoadingView();
-                }
-              },
-            )
-          : FutureBuilder(
-              future: load(),
-              builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  // FlutterNativeSplash.remove();
-                  if (ref.read(walletsChangeNotifierProvider).hasWallets ||
-                      ref.read(prefsChangeNotifierProvider).hasPin) {
-                    // return HomeView();
+                },
+              )
+            : FutureBuilder(
+                future: load(),
+                builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    // FlutterNativeSplash.remove();
+                    if (ref.read(walletsChangeNotifierProvider).hasWallets ||
+                        ref.read(prefsChangeNotifierProvider).hasPin) {
+                      // return HomeView();
 
-                    String? startupWalletId;
-                    if (ref
-                        .read(prefsChangeNotifierProvider)
-                        .gotoWalletOnStartup) {
-                      startupWalletId =
-                          ref.read(prefsChangeNotifierProvider).startupWalletId;
+                      String? startupWalletId;
+                      if (ref
+                          .read(prefsChangeNotifierProvider)
+                          .gotoWalletOnStartup) {
+                        startupWalletId = ref
+                            .read(prefsChangeNotifierProvider)
+                            .startupWalletId;
+                      }
+
+                      return LockscreenView(
+                        isInitialAppLogin: true,
+                        routeOnSuccess: HomeView.routeName,
+                        routeOnSuccessArguments: startupWalletId,
+                        biometricsAuthenticationTitle: "Unlock Stack",
+                        biometricsLocalizedReason:
+                            "Unlock your stack wallet using biometrics",
+                        biometricsCancelButtonString: "Cancel",
+                      );
+                    } else {
+                      return const IntroView();
                     }
-
-                    return LockscreenView(
-                      isInitialAppLogin: true,
-                      routeOnSuccess: HomeView.routeName,
-                      routeOnSuccessArguments: startupWalletId,
-                      biometricsAuthenticationTitle: "Unlock Stack",
-                      biometricsLocalizedReason:
-                          "Unlock your stack wallet using biometrics",
-                      biometricsCancelButtonString: "Cancel",
-                    );
                   } else {
-                    return const IntroView();
+                    // CURRENTLY DISABLED as cannot be animated
+                    // technically not needed as FlutterNativeSplash will overlay
+                    // anything returned here until the future completes but
+                    // FutureBuilder requires you to return something
+                    return const LoadingView();
                   }
-                } else {
-                  // CURRENTLY DISABLED as cannot be animated
-                  // technically not needed as FlutterNativeSplash will overlay
-                  // anything returned here until the future completes but
-                  // FutureBuilder requires you to return something
-                  return const LoadingView();
-                }
-              },
-            ),
+                },
+              ),
+      ),
     );
   }
 }
