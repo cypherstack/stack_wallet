@@ -62,6 +62,7 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/crypto_notifications.dart';
 import 'package:window_size/window_size.dart';
 
 final openedFromSWBFileStringStateProvider =
@@ -202,7 +203,9 @@ class MyApp extends StatelessWidget {
     localeService.loadLocale();
 
     return const KeyboardDismisser(
-      child: MaterialAppWithTheme(),
+      child: CryptoNotifications(
+        child: MaterialAppWithTheme(),
+      ),
     );
   }
 }
