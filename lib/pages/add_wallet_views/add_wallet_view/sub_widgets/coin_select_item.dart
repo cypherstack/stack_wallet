@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -8,8 +10,8 @@ import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -76,8 +78,10 @@ class CoinSelectItem extends ConsumerWidget {
                       width: 26,
                       height: 26,
                     )
-                  : SvgPicture.asset(
-                      ref.watch(coinIconProvider(entity.coin)),
+                  : SvgPicture.file(
+                      File(
+                        ref.watch(coinIconProvider(entity.coin)),
+                      ),
                       width: 26,
                       height: 26,
                     ),

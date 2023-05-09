@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -86,9 +87,11 @@ class _AddressCardState extends ConsumerState<AddressCard> {
             builder: (child) => Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SvgPicture.asset(
-                  ref.watch(
-                    coinIconProvider(widget.coin),
+                SvgPicture.file(
+                  File(
+                    ref.watch(
+                      coinIconProvider(widget.coin),
+                    ),
                   ),
                   width: 32,
                   height: 32,

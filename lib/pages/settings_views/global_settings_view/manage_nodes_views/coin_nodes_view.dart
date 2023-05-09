@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -54,9 +56,11 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
                 const SizedBox(
                   width: 32,
                 ),
-                SvgPicture.asset(
-                  ref.watch(
-                    coinIconProvider(widget.coin),
+                SvgPicture.file(
+                  File(
+                    ref.watch(
+                      coinIconProvider(widget.coin),
+                    ),
                   ),
                   width: 24,
                   height: 24,

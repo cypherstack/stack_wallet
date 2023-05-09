@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
@@ -19,8 +20,8 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
@@ -265,8 +266,10 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                 const SizedBox(
                   width: 15,
                 ),
-                SvgPicture.asset(
-                  ref.watch(coinIconProvider(coin)),
+                SvgPicture.file(
+                  File(
+                    ref.watch(coinIconProvider(coin)),
+                  ),
                   width: 32,
                   height: 32,
                 ),
@@ -321,8 +324,10 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                 padding: const EdgeInsets.all(20),
                 child: Row(
                   children: [
-                    SvgPicture.asset(
-                      ref.watch(coinIconProvider(coin)),
+                    SvgPicture.file(
+                      File(
+                        ref.watch(coinIconProvider(coin)),
+                      ),
                       width: 40,
                       height: 40,
                     ),

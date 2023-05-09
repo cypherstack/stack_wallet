@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -53,10 +55,12 @@ class _IntroViewState extends ConsumerState<IntroView> {
                         constraints: const BoxConstraints(
                           maxWidth: 300,
                         ),
-                        child: SvgPicture.asset(
-                          ref.watch(
-                            themeProvider.select(
-                              (value) => value.assets.stack,
+                        child: SvgPicture.file(
+                          File(
+                            ref.watch(
+                              themeProvider.select(
+                                (value) => value.assets.stack,
+                              ),
                             ),
                           ),
                           width: isDesktop ? 324 : 266,
@@ -120,10 +124,12 @@ class _IntroViewState extends ConsumerState<IntroView> {
                       SizedBox(
                         width: 130,
                         height: 130,
-                        child: SvgPicture.asset(
-                          ref.watch(
-                            themeProvider.select(
-                              (value) => value.assets.stackIcon,
+                        child: SvgPicture.file(
+                          File(
+                            ref.watch(
+                              themeProvider.select(
+                                (value) => value.assets.stackIcon,
+                              ),
                             ),
                           ),
                         ),

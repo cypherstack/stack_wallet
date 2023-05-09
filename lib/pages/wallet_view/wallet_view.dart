@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
@@ -37,8 +38,8 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -471,8 +472,10 @@ class _WalletViewState extends ConsumerState<WalletView> {
                   titleSpacing: 0,
                   title: Row(
                     children: [
-                      SvgPicture.asset(
-                        ref.watch(coinIconProvider(coin)),
+                      SvgPicture.file(
+                        File(
+                          ref.watch(coinIconProvider(coin)),
+                        ),
                         width: 24,
                         height: 24,
                       ),
@@ -538,25 +541,41 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           color: Theme.of(context)
                               .extension<StackColors>()!
                               .background,
-                          icon: SvgPicture.asset(
-                            ref.watch(notificationsProvider.select((value) =>
-                                    value.hasUnreadNotificationsFor(walletId)))
-                                ? ref.watch(
-                                    themeProvider.select(
-                                      (value) => value.assets.bellNew,
+                          icon: ref.watch(notificationsProvider.select(
+                                  (value) => value
+                                      .hasUnreadNotificationsFor(walletId)))
+                              ? SvgPicture.file(
+                                  File(
+                                    ref.watch(
+                                      themeProvider.select(
+                                        (value) => value.assets.bellNew,
+                                      ),
                                     ),
-                                  )
-                                : Assets.svg.bell,
-                            width: 20,
-                            height: 20,
-                            color: ref.watch(notificationsProvider.select(
-                                    (value) => value
-                                        .hasUnreadNotificationsFor(walletId)))
-                                ? null
-                                : Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .topNavIconPrimary,
-                          ),
+                                  ),
+                                  width: 20,
+                                  height: 20,
+                                  color: ref.watch(notificationsProvider.select(
+                                          (value) =>
+                                              value.hasUnreadNotificationsFor(
+                                                  walletId)))
+                                      ? null
+                                      : Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .topNavIconPrimary,
+                                )
+                              : SvgPicture.asset(
+                                  Assets.svg.bell,
+                                  width: 20,
+                                  height: 20,
+                                  color: ref.watch(notificationsProvider.select(
+                                          (value) =>
+                                              value.hasUnreadNotificationsFor(
+                                                  walletId)))
+                                      ? null
+                                      : Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .topNavIconPrimary,
+                                ),
                           onPressed: () {
                             // reset unread state
                             ref.refresh(unreadNotificationsStateProvider);

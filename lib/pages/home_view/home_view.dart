@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -163,10 +164,12 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 GestureDetector(
                   onTap: _hiddenOptions,
                   child: RotateIcon(
-                    icon: SvgPicture.asset(
-                      ref.watch(
-                        themeProvider.select(
-                          (value) => value.assets.stackIcon,
+                    icon: SvgPicture.file(
+                      File(
+                        ref.watch(
+                          themeProvider.select(
+                            (value) => value.assets.stackIcon,
+                          ),
                         ),
                       ),
                       width: 24,
@@ -204,24 +207,36 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     color: Theme.of(context)
                         .extension<StackColors>()!
                         .backgroundAppBar,
-                    icon: SvgPicture.asset(
-                      ref.watch(notificationsProvider
-                              .select((value) => value.hasUnreadNotifications))
-                          ? ref.watch(
-                              themeProvider.select(
-                                (value) => value.assets.bellNew,
+                    icon: ref.watch(notificationsProvider
+                            .select((value) => value.hasUnreadNotifications))
+                        ? SvgPicture.file(
+                            File(
+                              ref.watch(
+                                themeProvider.select(
+                                  (value) => value.assets.bellNew,
+                                ),
                               ),
-                            )
-                          : Assets.svg.bell,
-                      width: 20,
-                      height: 20,
-                      color: ref.watch(notificationsProvider
-                              .select((value) => value.hasUnreadNotifications))
-                          ? null
-                          : Theme.of(context)
-                              .extension<StackColors>()!
-                              .topNavIconPrimary,
-                    ),
+                            ),
+                            width: 20,
+                            height: 20,
+                            color: ref.watch(notificationsProvider.select(
+                                    (value) => value.hasUnreadNotifications))
+                                ? null
+                                : Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .topNavIconPrimary,
+                          )
+                        : SvgPicture.asset(
+                            Assets.svg.bell,
+                            width: 20,
+                            height: 20,
+                            color: ref.watch(notificationsProvider.select(
+                                    (value) => value.hasUnreadNotifications))
+                                ? null
+                                : Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .topNavIconPrimary,
+                          ),
                     onPressed: () {
                       // reset unread state
                       ref.refresh(unreadNotificationsStateProvider);

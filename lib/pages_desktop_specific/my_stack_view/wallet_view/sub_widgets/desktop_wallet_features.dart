@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -347,8 +348,10 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
             label: "Buy",
             width: buttonWidth,
             buttonHeight: ButtonHeight.l,
-            icon: SvgPicture.asset(
-              ref.watch(themeProvider.select((value) => value.assets.buy)),
+            icon: SvgPicture.file(
+              File(
+                ref.watch(themeProvider.select((value) => value.assets.buy)),
+              ),
               height: 20,
               width: 20,
               color: Theme.of(context)

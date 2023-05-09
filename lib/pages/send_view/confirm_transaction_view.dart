@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
@@ -514,10 +515,12 @@ class _ConfirmTransactionViewState
                           ),
                           child: Row(
                             children: [
-                              SvgPicture.asset(
-                                ref.watch(
-                                  themeProvider.select(
-                                    (value) => value.assets.send,
+                              SvgPicture.file(
+                                File(
+                                  ref.watch(
+                                    themeProvider.select(
+                                      (value) => value.assets.send,
+                                    ),
                                   ),
                                 ),
                                 width: 32,

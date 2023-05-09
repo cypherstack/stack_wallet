@@ -1,9 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/buy/response_objects/crypto.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -289,8 +291,10 @@ class CoinIconForTicker extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     try {
       final coin = coinFromTickerCaseInsensitive(ticker);
-      return SvgPicture.asset(
-        ref.watch(coinIconProvider(coin)),
+      return SvgPicture.file(
+        File(
+          ref.watch(coinIconProvider(coin)),
+        ),
         width: size,
         height: size,
       );

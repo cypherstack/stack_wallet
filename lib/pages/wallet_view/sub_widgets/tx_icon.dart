@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -69,24 +71,35 @@ class TxIcon extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final txIsReceived = transaction.type == TransactionType.incoming;
 
+    final assetName = _getAssetName(
+      transaction.isCancelled,
+      txIsReceived,
+      !transaction.isConfirmed(
+        currentHeight,
+        coin.requiredConfirmations,
+      ),
+      ref.watch(themeProvider).assets,
+    );
+
     return SizedBox(
       width: size.width,
       height: size.height,
       child: Center(
-        child: SvgPicture.asset(
-          _getAssetName(
-            transaction.isCancelled,
-            txIsReceived,
-            !transaction.isConfirmed(
-              currentHeight,
-              coin.requiredConfirmations,
-            ),
-            ref.watch(themeProvider).assets,
-          ),
-          width: size.width,
-          height: size.height,
-        ),
-      ),
+          // if it starts with "assets" we assume its local
+          // TODO: a more thorough check
+          child: assetName.startsWith("assets")
+              ? SvgPicture.asset(
+                  assetName,
+                  width: size.width,
+                  height: size.height,
+                )
+              : SvgPicture.file(
+                  File(
+                    assetName,
+                  ),
+                  width: size.width,
+                  height: size.height,
+                )),
     );
   }
 }

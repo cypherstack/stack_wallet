@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,8 +13,8 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -575,9 +576,11 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(6),
-                  child: SvgPicture.asset(
-                    ref.watch(
-                      coinIconProvider(coin),
+                  child: SvgPicture.file(
+                    File(
+                      ref.watch(
+                        coinIconProvider(coin),
+                      ),
                     ),
                     width: 24,
                     height: 24,
