@@ -12,10 +12,10 @@ import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/services/wallets_service.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/defaults/dark.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/table_view/table_view_cell.dart';
 import 'package:stackwallet/widgets/table_view/table_view_row.dart';
 

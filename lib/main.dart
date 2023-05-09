@@ -51,8 +51,8 @@ import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/notifications_service.dart';
 import 'package:stackwallet/services/trade_service.dart';
-import 'package:stackwallet/themes/defaults/dark.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
+import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/db_version_migration.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
@@ -189,6 +189,18 @@ void main() async {
   //     overlays: [SystemUiOverlay.bottom]);
   await NotificationApi.init();
 
+  await MainDB.instance.initMainDB();
+  ThemeService.instance.init(MainDB.instance);
+
+  if (MainDB.instance.isar.stackThemes.countSync() < 2) {
+    // install default themes
+    final lightZip = await rootBundle.load("assets/default_themes/light.zip");
+    final darkZip = await rootBundle.load("assets/default_themes/light.zip");
+
+    await ThemeService.instance.install(themeArchive: lightZip);
+    await ThemeService.instance.install(themeArchive: darkZip);
+  }
+
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -254,7 +266,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       _desktopHasPassword =
           await ref.read(storageCryptoHandlerProvider).hasPassword();
     }
-    await MainDB.instance.initMainDB();
+
     ref
         .read(priceAnd24hChangeNotifierProvider)
         .tokenContractAddressesToCheck
@@ -372,12 +384,9 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       ref.read(applicationThemesDirectoryPathProvider.notifier).state =
           (await StackFileSystem.applicationThemesDirectory()).path;
 
-      ref.read(themeProvider.state).state = StackTheme.fromJson(
-        json: darkJson,
-        applicationThemesDirectoryPath: ref.read(
-          applicationThemesDirectoryPathProvider,
-        ),
-      );
+      ref.read(themeProvider.state).state = ref.read(pThemeService).getTheme(
+            themeId: themeId,
+          )!;
 
       if (Platform.isAndroid) {
         // fetch open file if it exists
@@ -412,12 +421,10 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
-          ref.read(themeProvider.state).state = StackTheme.fromJson(
-            json: darkJson,
-            applicationThemesDirectoryPath: ref.read(
-              applicationThemesDirectoryPathProvider,
-            ),
-          );
+          ref.read(themeProvider.state).state =
+              ref.read(pThemeService).getTheme(
+                    themeId: themeId,
+                  )!;
         }
       });
     };

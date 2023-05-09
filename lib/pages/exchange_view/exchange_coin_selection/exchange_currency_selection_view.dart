@@ -10,11 +10,11 @@ import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dar
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -373,7 +373,8 @@ class _ExchangeCurrencySelectionViewState
                                   width: 24,
                                   height: 24,
                                   child: isStackCoin(items[index].ticker)
-                              ? CoinIconForTicker(ticker: items[index].ticker, size: 24)
+                                      ? CoinIconForTicker(
+                                          ticker: items[index].ticker, size: 24)
                                       // ? getIconForTicker(
                                       //     items[index].ticker,
                                       //     size: 24,

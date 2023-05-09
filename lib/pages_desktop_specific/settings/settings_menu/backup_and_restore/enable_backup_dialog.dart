@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/backup_and_restore/create_auto_backup.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';

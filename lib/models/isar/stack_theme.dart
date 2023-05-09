@@ -6,7 +6,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/extensions/impl/box_shadow.dart';
 import 'package:stackwallet/utilities/extensions/impl/gradient.dart';
 import 'package:stackwallet/utilities/extensions/impl/string.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
+import 'package:stackwallet/themes/color_theme.dart';
 
 part 'stack_theme.g.dart';
 

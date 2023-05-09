@@ -16,12 +16,12 @@ import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/e
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/next_button.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_eth_tokens.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -330,61 +330,63 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                     height: 16,
                   ),
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
-                    ),
-                    child: Semantics(
-                      label: "Search Text Field. Inputs Text To Search In Wallets.",
-                      excludeSemantics: true,
-                      child: TextField(
-                        autofocus: isDesktop,
-                        autocorrect: !isDesktop,
-                        enableSuggestions: !isDesktop,
-                        controller: _searchFieldController,
-                        focusNode: _searchFocusNode,
-                        onChanged: (value) => setState(() => _searchTerm = value),
-                        style: STextStyles.field(context),
-                        decoration: standardInputDecoration(
-                          "Search",
-                          _searchFocusNode,
-                          context,
-                          desktopMed: isDesktop,
-                        ).copyWith(
-                          prefixIcon: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 16,
-                            ),
-                            child: SvgPicture.asset(
-                              Assets.svg.search,
-                              width: 16,
-                              height: 16,
-                            ),
-                          ),
-                          suffixIcon: _searchFieldController.text.isNotEmpty
-                              ? Padding(
-                            padding: const EdgeInsets.only(right: 0),
-                            child: UnconstrainedBox(
-                              child: Row(
-                                children: [
-                                  TextFieldIconButton(
-                                    child: const XIcon(),
-                                    onTap: () async {
-                                      setState(() {
-                                        _searchFieldController.text = "";
-                                        _searchTerm = "";
-                                      });
-                                    },
-                                  ),
-                                ],
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
+                      ),
+                      child: Semantics(
+                        label:
+                            "Search Text Field. Inputs Text To Search In Wallets.",
+                        excludeSemantics: true,
+                        child: TextField(
+                          autofocus: isDesktop,
+                          autocorrect: !isDesktop,
+                          enableSuggestions: !isDesktop,
+                          controller: _searchFieldController,
+                          focusNode: _searchFocusNode,
+                          onChanged: (value) =>
+                              setState(() => _searchTerm = value),
+                          style: STextStyles.field(context),
+                          decoration: standardInputDecoration(
+                            "Search",
+                            _searchFocusNode,
+                            context,
+                            desktopMed: isDesktop,
+                          ).copyWith(
+                            prefixIcon: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 16,
+                              ),
+                              child: SvgPicture.asset(
+                                Assets.svg.search,
+                                width: 16,
+                                height: 16,
                               ),
                             ),
-                          )
-                              : null,
+                            suffixIcon: _searchFieldController.text.isNotEmpty
+                                ? Padding(
+                                    padding: const EdgeInsets.only(right: 0),
+                                    child: UnconstrainedBox(
+                                      child: Row(
+                                        children: [
+                                          TextFieldIconButton(
+                                            child: const XIcon(),
+                                            onTap: () async {
+                                              setState(() {
+                                                _searchFieldController.text =
+                                                    "";
+                                                _searchTerm = "";
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                : null,
+                          ),
                         ),
-                      ),
-                    )
-                  ),
+                      )),
                   const SizedBox(
                     height: 10,
                   ),

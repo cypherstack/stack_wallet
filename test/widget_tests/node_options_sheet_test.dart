@@ -10,10 +10,10 @@ import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/defaults/dark.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/node_options_sheet.dart';
 import 'package:tuple/tuple.dart';
 

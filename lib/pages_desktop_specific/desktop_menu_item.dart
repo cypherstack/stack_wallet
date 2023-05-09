@@ -4,10 +4,10 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_menu.dart';
 import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
 import 'package:stackwallet/providers/global/notifications_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class DMIController {
   VoidCallback? toggle;

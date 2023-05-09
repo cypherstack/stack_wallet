@@ -356,6 +356,9 @@ flutter:
     - assets/lottie/loader_and_checkmark.json
     - assets/lottie/arrow_rotate.json
 
+    # default themes_testing
+    - assets/default_themes/
+
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
   # For details regarding adding assets from package dependencies, see

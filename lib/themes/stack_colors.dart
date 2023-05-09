@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
+import 'package:stackwallet/themes/color_theme.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
 
 class StackColors extends ThemeExtension<StackColors> {
   final String themeId;
