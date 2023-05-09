@@ -82,16 +82,6 @@ class _SVG {
 
   final coinControl = const _COIN_CONTROL();
 
-  String get themeFruit => "assets/svg/fruit-sorbet-theme.svg";
-  String get themeForest => "assets/svg/forest-theme.svg";
-  String get themeOledBlack => "assets/svg/oled-black-theme.svg";
-  String get themeOcean => "assets/svg/ocean-breeze-theme.svg";
-  String get orange => "assets/svg/orange-theme.svg";
-  String get themeLight => "assets/svg/light-mode.svg";
-  String get themeDark => "assets/svg/dark-theme.svg";
-  String get themeChan => "assets/svg/chanstheme.svg";
-  String get themeDarkChan => "assets/svg/darkChansTheme.svg";
-
   String get circleSliders => "assets/svg/configuration.svg";
   String get circlePlus => "assets/svg/plus-circle.svg";
   String get circlePlusFilled => "assets/svg/circle-plus-filled.svg";
@@ -238,9 +228,6 @@ class _PNG {
 
   String get glasses => "assets/images/glasses.png";
   String get glassesHidden => "assets/images/glasses-hidden.png";
-
-  String get chanEasy => "assets/images/chan-persona-easy.png";
-  String get chanIncognito => "assets/images/chan-persona-incognito.png";
 }
 
 class _ANIMATIONS {
