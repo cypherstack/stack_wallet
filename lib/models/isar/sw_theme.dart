@@ -7,17 +7,18 @@ import 'package:stackwallet/utilities/extensions/impl/box_shadow.dart';
 import 'package:stackwallet/utilities/extensions/impl/gradient.dart';
 import 'package:stackwallet/utilities/extensions/impl/string.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
-import 'package:uuid/uuid.dart';
 
 @Collection(inheritance: false)
 class StackTheme {
+  Id id = Isar.autoIncrement;
+
+  /// id of theme on themes server
+  @Index(unique: true, replace: true)
+  final String idOnServer;
+
   final String assetBundleUrl;
 
   final ThemeType themeType = ThemeType.dark;
-
-  /// should be a uuid
-  @Index(unique: true, replace: true)
-  final String internalId;
 
   /// the theme name that will be displayed in app
   final String name;
@@ -1475,7 +1476,7 @@ class StackTheme {
   // ===========================================================================
 
   StackTheme({
-    required this.internalId,
+    required this.idOnServer,
     required this.assetBundleUrl,
     required this.name,
     required this.assets,
@@ -1640,9 +1641,8 @@ class StackTheme {
     required Map<String, dynamic> json,
     required String applicationThemesDirectoryPath,
   }) {
-    final _id = const Uuid().v1();
     return StackTheme(
-      internalId: _id,
+      idOnServer: json["id"] as String,
       name: json["name"] as String,
       assetBundleUrl: json["asset_bundle_url"] as String,
       brightnessString: json["brightness"] as String,

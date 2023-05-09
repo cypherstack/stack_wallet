@@ -1,5 +1,6 @@
 final Map<String, dynamic> darkJson = {
   "name": "Dark",
+  "id": "dark",
   "asset_bundle_url": "",
   "brightness": "dark",
   "colors": {
