@@ -332,10 +332,6 @@ flutter:
     - assets/svg/trocador_rating_c.svg
     - assets/svg/trocador_rating_d.svg
 
-
-    # coin icons
-    - assets/svg/coin_icons/
-
     # coin control icons
     - assets/svg/coin_control/
 
@@ -346,36 +342,8 @@ flutter:
     - assets/svg/exchange_icons/
 
     # theme selectors
-    - assets/svg/dark-theme.svg
-    - assets/svg/light-mode.svg
-    - assets/svg/ocean-breeze-theme.svg
-    - assets/svg/oled-black-theme.svg
-    - assets/svg/fruit-sorbet-theme.svg
-    - assets/svg/forest-theme.svg
-    - assets/svg/chanstheme.svg
-    - assets/svg/darkChansTheme.svg
-    - assets/svg/orange-theme.svg
-
-    # light theme specific
-    - assets/svg/themed/light/
-
-    # dark theme specific
-    - assets/svg/themed/dark/
-
-    # ocean theme specific
-    - assets/svg/themed/oceanBreeze/
-
-    # OLED black theme specific
-    - assets/svg/themed/oledBlack/
-
-    # fruit sorbet theme specific
-    - assets/svg/themed/fruitSorbet/
-
-    # forest theme specific
-    - assets/svg/themed/forest/
-
-    # orange theme specific
-    - assets/svg/themed/orange/
+#    - assets/svg/dark-theme.svg
+#    - assets/svg/light-mode.svg
 
     # buy
     - assets/svg/buy/
