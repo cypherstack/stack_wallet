@@ -24,7 +24,6 @@ import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/models/models.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/notification_model.dart';
@@ -192,14 +191,14 @@ void main() async {
   await MainDB.instance.initMainDB();
   ThemeService.instance.init(MainDB.instance);
 
-  if (MainDB.instance.isar.stackThemes.countSync() < 2) {
-    // install default themes
-    final lightZip = await rootBundle.load("assets/default_themes/light.zip");
-    final darkZip = await rootBundle.load("assets/default_themes/light.zip");
+  // if (MainDB.instance.isar.stackThemes.countSync() < 2) {
+  // install default themes
+  final lightZip = await rootBundle.load("assets/default_themes/light.zip");
+  final darkZip = await rootBundle.load("assets/default_themes/dark.zip");
 
-    await ThemeService.instance.install(themeArchive: lightZip);
-    await ThemeService.instance.install(themeArchive: darkZip);
-  }
+  await ThemeService.instance.install(themeArchive: lightZip);
+  await ThemeService.instance.install(themeArchive: darkZip);
+  // }
 
   runApp(const ProviderScope(child: MyApp()));
 }
