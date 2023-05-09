@@ -16,10 +16,6 @@ class StackTheme {
   @Index(unique: true, replace: true)
   final String idOnServer;
 
-  final String assetBundleUrl;
-
-  final ThemeType themeType = ThemeType.dark;
-
   /// the theme name that will be displayed in app
   final String name;
 
@@ -1477,7 +1473,6 @@ class StackTheme {
 
   StackTheme({
     required this.idOnServer,
-    required this.assetBundleUrl,
     required this.name,
     required this.assets,
     required this.brightnessString,
@@ -1644,7 +1639,6 @@ class StackTheme {
     return StackTheme(
       idOnServer: json["id"] as String,
       name: json["name"] as String,
-      assetBundleUrl: json["asset_bundle_url"] as String,
       brightnessString: json["brightness"] as String,
       backgroundInt: parseColor(json["colors"]["background"] as String),
       backgroundAppBarInt:
@@ -1659,10 +1653,9 @@ class StackTheme {
                   json["colors"]["box_shadows"]["home_view_button_bar"] as Map),
       coinColorsJsonString: jsonEncode(json["colors"]['coin'] as Map),
       assets: ThemeAssets.fromJson(
-        json: json,
+        json: Map<String, dynamic>.from(json["assets"] as Map),
         applicationThemesDirectoryPath: applicationThemesDirectoryPath,
-        internalThemeUuid:
-            "dark", //TODO - Replace this with the uuid (_id) once setup
+        themeId: json["id"] as String,
       ),
       overlayInt: parseColor(json["colors"]["overlay"] as String),
       accentColorBlueInt:
@@ -2095,114 +2088,114 @@ class ThemeAssets {
   factory ThemeAssets.fromJson({
     required Map<String, dynamic> json,
     required String applicationThemesDirectoryPath,
-    required String internalThemeUuid,
+    required String themeId,
   }) {
     return ThemeAssets(
       bellNew:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["bell_new"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["bell_new"] as String}",
       buy:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["buy"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["buy"] as String}",
       exchange:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["exchange"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["exchange"] as String}",
       personaIncognito:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["persona_incognito"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["persona_incognito"] as String}",
       personaEasy:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["persona_easy"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["persona_easy"] as String}",
       stack:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["stack"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["stack"] as String}",
       stackIcon:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["stack_icon"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["stack_icon"] as String}",
       receive:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["receive"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["receive"] as String}",
       receivePending:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["receive_pending"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["receive_pending"] as String}",
       receiveCancelled:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["receive_cancelled"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["receive_cancelled"] as String}",
       send:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["send"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["send"] as String}",
       sendPending:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["send_pending"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["send_pending"] as String}",
       sendCancelled:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["send_cancelled"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["send_cancelled"] as String}",
       themePreview:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["theme_preview"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["theme_preview"] as String}",
       txExchange:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["txExchange"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["txExchange"] as String}",
       txExchangePending:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["txExchangePending"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["txExchangePending"] as String}",
       txExchangeFailed:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["txExchangeFailed"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["txExchangeFailed"] as String}",
       bitcoin:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["bitcoin"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["bitcoin"] as String}",
       litecoin:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["litecoin"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["litecoin"] as String}",
       bitcoincash:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["bitcoincash"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["bitcoincash"] as String}",
       dogecoin:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["dogecoin"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["dogecoin"] as String}",
       epicCash:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["epicCash"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["epicCash"] as String}",
       ethereum:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["ethereum"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["ethereum"] as String}",
       firo:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["firo"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["firo"] as String}",
       monero:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["monero"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["monero"] as String}",
       wownero:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["wownero"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["wownero"] as String}",
       namecoin:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["namecoin"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["namecoin"] as String}",
       particl:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["particl"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["particl"] as String}",
       bitcoinImage:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["bitcoin_image"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["bitcoin_image"] as String}",
       bitcoincashImage:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["bitcoincash_image"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["bitcoincash_image"] as String}",
       dogecoinImage:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["dogecoin_image"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["dogecoin_image"] as String}",
       epicCashImage:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["epicCash_image"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["epicCash_image"] as String}",
       ethereumImage:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["ethereum_image"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["ethereum_image"] as String}",
       firoImage:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["firo_image"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["firo_image"] as String}",
       litecoinImage:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["litecoin_image"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["litecoin_image"] as String}",
       moneroImage:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["monero_image"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["monero_image"] as String}",
       wowneroImage:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["wownero_image"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["wownero_image"] as String}",
       namecoinImage:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["namecoin_image"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["namecoin_image"] as String}",
       particlImage:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["particl_image"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["particl_image"] as String}",
       bitcoinImageSecondary:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["bitcoinImageSecondary"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["bitcoin_image_secondary"] as String}",
       bitcoincashImageSecondary:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["bitcoincashImageSecondary"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["bitcoincash_image_secondary"] as String}",
       dogecoinImageSecondary:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["dogecoinImageSecondary"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["dogecoin_image_secondary"] as String}",
       epicCashImageSecondary:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["epicCashImageSecondary"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["epicCash_image_secondary"] as String}",
       ethereumImageSecondary:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["ethereumImageSecondary"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["ethereum_image_secondary"] as String}",
       firoImageSecondary:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["firoImageSecondary"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["firo_image_secondary"] as String}",
       litecoinImageSecondary:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["litecoinImageSecondary"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["litecoin_image_secondary"] as String}",
       moneroImageSecondary:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["moneroImageSecondary"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["monero_image_secondary"] as String}",
       wowneroImageSecondary:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["wowneroImageSecondary"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["wownero_image_secondary"] as String}",
       namecoinImageSecondary:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["namecoinImageSecondary"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["namecoin_image_secondary"] as String}",
       particlImageSecondary:
-          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["particlImageSecondary"] as String}",
+          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["particl_image_secondary"] as String}",
       loadingGif: json["assets"]["loadingGif"] is String
-          ? "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["loadingGif"] as String}"
+          ? "$applicationThemesDirectoryPath/$themeId/${json["assets"]["loadingGif"] as String}"
           : null,
       background: json["assets"]["background"] is String
-          ? "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["background"] as String}"
+          ? "$applicationThemesDirectoryPath/$themeId/${json["assets"]["background"] as String}"
           : null,
     );
   }
