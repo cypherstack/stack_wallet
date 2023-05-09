@@ -4,7 +4,7 @@ Here you will find instructions on how to install the necessary tools for buildi
 
 ## Prerequisites
 
-- The only OS supported for building is Ubuntu 20.04.  Advanced users may also be able to build on other Debian-based distributions like Fedora 37.
+- The only OS supported for building is Ubuntu 20.04.  Advanced users may also be able to build on other Debian-based distributions like Linux Mint.
 - Android setup ([Android Studio](https://developer.android.com/studio) and subsequent dependencies)
 - 100 GB of storage
 
@@ -54,6 +54,7 @@ sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-
 Install [Rust](https://www.rust-lang.org/tools/install) with command:
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source ~/.bashrc 
 rustup install 1.67.1
 rustup default 1.67.1
 ```
