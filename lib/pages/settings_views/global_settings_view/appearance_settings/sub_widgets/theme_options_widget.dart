@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/sub_widgets/theme_option.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/system_brightness_theme_selection_view.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/theme/color_theme.dart';
@@ -57,7 +56,7 @@ class _ThemeOptionsWidgetState extends ConsumerState<ThemeOptionsWidget> {
       //   theme.colorTheme,
       // );
 
-      Assets.precache(context);
+      // Assets.precache(context);
     } else {
       if (_current == systemDefault) {
         // disable system brightness setting
@@ -80,7 +79,7 @@ class _ThemeOptionsWidgetState extends ConsumerState<ThemeOptionsWidget> {
       // );
 
       throw Exception("bbbbbbbbbbbbbbbbb");
-      Assets.precache(context);
+      // Assets.precache(context);
     }
   }
 
