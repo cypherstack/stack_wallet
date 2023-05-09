@@ -2,11 +2,11 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
+import 'package:stackwallet/themes/color_theme.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/extensions/impl/box_shadow.dart';
 import 'package:stackwallet/utilities/extensions/impl/gradient.dart';
 import 'package:stackwallet/utilities/extensions/impl/string.dart';
-import 'package:stackwallet/themes/color_theme.dart';
 
 part 'stack_theme.g.dart';
 
@@ -2041,110 +2041,110 @@ class ThemeAssets {
   }) {
     return ThemeAssets()
       ..bellNew =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["bell_new"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["bell_new"] as String}"
       ..buy =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["buy"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["buy"] as String}"
       ..exchange =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["exchange"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["exchange"] as String}"
       ..personaIncognito =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["persona_incognito"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["persona_incognito"] as String}"
       ..personaEasy =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["persona_easy"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["persona_easy"] as String}"
       ..stack =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["stack"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["stack"] as String}"
       ..stackIcon =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["stack_icon"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["stack_icon"] as String}"
       ..receive =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["receive"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["receive"] as String}"
       ..receivePending =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["receive_pending"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["receive_pending"] as String}"
       ..receiveCancelled =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["receive_cancelled"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["receive_cancelled"] as String}"
       ..send =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["send"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["send"] as String}"
       ..sendPending =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["send_pending"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["send_pending"] as String}"
       ..sendCancelled =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["send_cancelled"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["send_cancelled"] as String}"
       ..themePreview =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["theme_preview"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["theme_preview"] as String}"
       ..txExchange =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["txExchange"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["tx_exchange"] as String}"
       ..txExchangePending =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["txExchangePending"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["tx_exchange_pending"] as String}"
       ..txExchangeFailed =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["txExchangeFailed"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["tx_exchange_failed"] as String}"
       ..bitcoin =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["bitcoin"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["bitcoin"] as String}"
       ..litecoin =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["litecoin"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["litecoin"] as String}"
       ..bitcoincash =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["bitcoincash"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["bitcoincash"] as String}"
       ..dogecoin =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["dogecoin"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["dogecoin"] as String}"
       ..epicCash =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["epicCash"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["epicCash"] as String}"
       ..ethereum =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["ethereum"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["ethereum"] as String}"
       ..firo =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["firo"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["firo"] as String}"
       ..monero =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["monero"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["monero"] as String}"
       ..wownero =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["wownero"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["wownero"] as String}"
       ..namecoin =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["namecoin"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["namecoin"] as String}"
       ..particl =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["particl"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["particl"] as String}"
       ..bitcoinImage =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["bitcoin_image"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["bitcoin_image"] as String}"
       ..bitcoincashImage =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["bitcoincash_image"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["bitcoincash_image"] as String}"
       ..dogecoinImage =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["dogecoin_image"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["dogecoin_image"] as String}"
       ..epicCashImage =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["epicCash_image"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["epicCash_image"] as String}"
       ..ethereumImage =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["ethereum_image"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["ethereum_image"] as String}"
       ..firoImage =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["firo_image"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["firo_image"] as String}"
       ..litecoinImage =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["litecoin_image"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["litecoin_image"] as String}"
       ..moneroImage =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["monero_image"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["monero_image"] as String}"
       ..wowneroImage =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["wownero_image"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["wownero_image"] as String}"
       ..namecoinImage =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["namecoin_image"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["namecoin_image"] as String}"
       ..particlImage =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["particl_image"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["particl_image"] as String}"
       ..bitcoinImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["bitcoin_image_secondary"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["bitcoin_image_secondary"] as String}"
       ..bitcoincashImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["bitcoincash_image_secondary"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["bitcoincash_image_secondary"] as String}"
       ..dogecoinImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["dogecoin_image_secondary"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["dogecoin_image_secondary"] as String}"
       ..epicCashImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["epicCash_image_secondary"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["epicCash_image_secondary"] as String}"
       ..ethereumImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["ethereum_image_secondary"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["ethereum_image_secondary"] as String}"
       ..firoImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["firo_image_secondary"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["firo_image_secondary"] as String}"
       ..litecoinImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["litecoin_image_secondary"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["litecoin_image_secondary"] as String}"
       ..moneroImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["monero_image_secondary"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["monero_image_secondary"] as String}"
       ..wowneroImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["wownero_image_secondary"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["wownero_image_secondary"] as String}"
       ..namecoinImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["namecoin_image_secondary"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["namecoin_image_secondary"] as String}"
       ..particlImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/${json["assets"]["particl_image_secondary"] as String}"
-      ..loadingGif = json["assets"]["loadingGif"] is String
-          ? "$applicationThemesDirectoryPath/$themeId/${json["assets"]["loading_gif"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["particl_image_secondary"] as String}"
+      ..loadingGif = json["loading_gif"] is String
+          ? "$applicationThemesDirectoryPath/$themeId/assets/${json["loading_gif"] as String}"
           : null
-      ..background = json["assets"]["background"] is String
-          ? "$applicationThemesDirectoryPath/$themeId/${json["assets"]["background"] as String}"
+      ..background = json["background"] is String
+          ? "$applicationThemesDirectoryPath/$themeId/assets/${json["background"] as String}"
           : null;
   }
 }
