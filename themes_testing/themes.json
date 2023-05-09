@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Chan",
+    "id": "chan"
+  },
+  {
+    "name": "Chan Dark",
+    "id": "chan_dark"
+  },
+  {
+    "name": "Dark",
+    "id": "dark"
+  },
+  {
+    "name": "Forest",
+    "id": "forest"
+  },
+  {
+    "name": "Fruit Sorbet",
+    "id": "fruit_sorbet"
+  },
+  {
+    "name": "Light",
+    "id": "light"
+  },
+  {
+    "name": "Ocean Breeze",
+    "id": "ocean_breeze"
+  },
+  {
+    "name": "OLED Black",
+    "id": "oled_black"
+  },
+  {
+    "name": "Orange",
+    "id": "orange"
+  }
+]
