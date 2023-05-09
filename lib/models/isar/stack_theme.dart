@@ -1984,6 +1984,7 @@ class StackTheme {
 class ThemeAssets {
   final String bellNew;
   final String buy;
+  final String exchange;
   final String personaIncognito;
   final String personaEasy;
   final String stack;
@@ -2031,12 +2032,14 @@ class ThemeAssets {
   final String wowneroImageSecondary;
   final String namecoinImageSecondary;
   final String particlImageSecondary;
+  final String? loadingGif;
 
   // todo: add all assets expected in json
 
   ThemeAssets({
     required this.bellNew,
     required this.buy,
+    required this.exchange,
     required this.personaIncognito,
     required this.personaEasy,
     required this.stack,
@@ -2084,6 +2087,7 @@ class ThemeAssets {
     required this.wowneroImageSecondary,
     required this.namecoinImageSecondary,
     required this.particlImageSecondary,
+    required this.loadingGif,
   });
 
   factory ThemeAssets.fromJson({
@@ -2096,6 +2100,8 @@ class ThemeAssets {
           "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["bell_new"] as String}",
       buy:
           "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["buy"] as String}",
+      exchange:
+          "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["exchange"] as String}",
       personaIncognito:
           "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["persona_incognito"] as String}",
       personaEasy:
@@ -2190,6 +2196,9 @@ class ThemeAssets {
           "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["namecoinImageSecondary"] as String}",
       particlImageSecondary:
           "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["particlImageSecondary"] as String}",
+      loadingGif: json["assets"]["loadingGif"] is String
+          ? "$applicationThemesDirectoryPath/$internalThemeUuid/${json["assets"]["loadingGif"] as String}"
+          : null,
     );
   }
 }

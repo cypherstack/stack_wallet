@@ -843,7 +843,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         ),
         ExchangeTextField(
           key: Key("exchangeTextFieldKeyFor_"
-              "${Theme.of(context).extension<StackColors>()!.themeType.name}"
+              "${Theme.of(context).extension<StackColors>()!.themeId}"
               "${ref.watch(efCurrencyPairProvider.select((value) => value.send?.ticker))}"),
           controller: _sendController,
           focusNode: _sendFocusNode,
@@ -925,7 +925,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         ),
         ExchangeTextField(
           key: Key(
-              "exchangeTextFieldKeyFor1_${Theme.of(context).extension<StackColors>()!.themeType.name}"),
+              "exchangeTextFieldKeyFor1_${Theme.of(context).extension<StackColors>()!.themeId}"),
           focusNode: _receiveFocusNode,
           controller: _receiveController,
           textStyle: STextStyles.smallMed14(context).copyWith(
