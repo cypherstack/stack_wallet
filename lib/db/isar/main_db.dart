@@ -2,6 +2,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/exceptions/main_db/main_db_exception.dart';
+import 'package:stackwallet/models/isar/models/block_explorer.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -34,6 +35,7 @@ class MainDB {
         AddressSchema,
         AddressLabelSchema,
         EthContractSchema,
+        TransactionBlockExplorerSchema,
         StackThemeSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
@@ -43,6 +45,25 @@ class MainDB {
       maxSizeMiB: 512,
     );
     return true;
+  }
+
+  // tx block explorers
+  TransactionBlockExplorer? getTransactionBlockExplorer({required Coin coin}) {
+    return isar.transactionBlockExplorers
+        .where()
+        .tickerEqualTo(coin.ticker)
+        .findFirstSync();
+  }
+
+  Future<int> putTransactionBlockExplorer(
+      TransactionBlockExplorer explorer) async {
+    try {
+      return await isar.writeTxn(() async {
+        return await isar.transactionBlockExplorers.put(explorer);
+      });
+    } catch (e) {
+      throw MainDBException("failed putTransactionBlockExplorer: $explorer", e);
+    }
   }
 
   // addresses

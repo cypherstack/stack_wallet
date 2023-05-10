@@ -112,10 +112,11 @@ class _TransactionDetailsViewState
     super.dispose();
   }
 
-  String whatIsIt(TransactionType type, int height) {
+  String whatIsIt(Transaction tx, int height) {
+    final type = tx.type;
     if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      if (_transaction.subType == TransactionSubType.mint) {
-        if (_transaction.isConfirmed(height, coin.requiredConfirmations)) {
+      if (tx.subType == TransactionSubType.mint) {
+        if (tx.isConfirmed(height, coin.requiredConfirmations)) {
           return "Minted";
         } else {
           return "Minting";
@@ -127,13 +128,13 @@ class _TransactionDetailsViewState
       // if (_transaction.isMinting) {
       //   return "Minting";
       // } else
-      if (_transaction.isConfirmed(height, coin.requiredConfirmations)) {
+      if (tx.isConfirmed(height, coin.requiredConfirmations)) {
         return "Received";
       } else {
         return "Receiving";
       }
     } else if (type == TransactionType.outgoing) {
-      if (_transaction.isConfirmed(height, coin.requiredConfirmations)) {
+      if (tx.isConfirmed(height, coin.requiredConfirmations)) {
         return "Sent";
       } else {
         return "Sending";
@@ -428,7 +429,7 @@ class _TransactionDetailsViewState
                                               _transaction.isCancelled
                                                   ? "Cancelled"
                                                   : whatIsIt(
-                                                      _transaction.type,
+                                                      _transaction,
                                                       currentHeight,
                                                     ),
                                               style:
@@ -545,7 +546,7 @@ class _TransactionDetailsViewState
                                     _transaction.isCancelled
                                         ? "Cancelled"
                                         : whatIsIt(
-                                            _transaction.type,
+                                            _transaction,
                                             currentHeight,
                                           ),
                                     style: isDesktop
