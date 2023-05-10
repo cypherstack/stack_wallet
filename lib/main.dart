@@ -191,14 +191,31 @@ void main() async {
   await MainDB.instance.initMainDB();
   ThemeService.instance.init(MainDB.instance);
 
-  // if (MainDB.instance.isar.stackThemes.countSync() < 2) {
   // install default themes
-  final lightZip = await rootBundle.load("assets/default_themes/light.zip");
-  final darkZip = await rootBundle.load("assets/default_themes/dark.zip");
-
-  await ThemeService.instance.install(themeArchive: lightZip);
-  await ThemeService.instance.install(themeArchive: darkZip);
-  // }
+  if (!(await ThemeService.instance.verifyInstalled(themeId: "light"))) {
+    Logging.instance.log(
+      "Installing default light theme...",
+      level: LogLevel.Info,
+    );
+    final lightZip = await rootBundle.load("assets/default_themes/light.zip");
+    await ThemeService.instance.install(themeArchive: lightZip);
+    Logging.instance.log(
+      "Installing default light theme... finished",
+      level: LogLevel.Info,
+    );
+  }
+  if (!(await ThemeService.instance.verifyInstalled(themeId: "dark"))) {
+    Logging.instance.log(
+      "Installing default dark theme... ",
+      level: LogLevel.Info,
+    );
+    final darkZip = await rootBundle.load("assets/default_themes/dark.zip");
+    await ThemeService.instance.install(themeArchive: darkZip);
+    Logging.instance.log(
+      "Installing default dark theme... finished",
+      level: LogLevel.Info,
+    );
+  }
 
   runApp(const ProviderScope(child: MyApp()));
 }

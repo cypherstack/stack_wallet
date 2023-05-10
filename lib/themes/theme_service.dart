@@ -89,6 +89,30 @@ class ThemeService {
     }
   }
 
+  // TODO more thorough check/verification of theme
+  Future<bool> verifyInstalled({required String themeId}) async {
+    final dbHasTheme =
+        await db.isar.stackThemes.where().themeIdEqualTo(themeId).count() > 0;
+    if (dbHasTheme) {
+      final themesDir = await StackFileSystem.applicationThemesDirectory();
+      final jsonFileExists =
+          await File("${themesDir.path}/$themeId/theme.json").exists();
+      final assetsDirExists =
+          await Directory("${themesDir.path}/$themeId/assets").exists();
+
+      if (!jsonFileExists || !assetsDirExists) {
+        Logging.instance.log(
+          "Theme $themeId found in DB but is missing files",
+          level: LogLevel.Warning,
+        );
+      }
+
+      return jsonFileExists && assetsDirExists;
+    } else {
+      return false;
+    }
+  }
+
   Future<List<Map<String, dynamic>>> fetchThemeList() async {
     // todo fetch actual themes from server
     throw UnimplementedError();
