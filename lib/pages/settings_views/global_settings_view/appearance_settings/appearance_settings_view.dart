@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/manage_themes.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/sub_widgets/theme_options_widget.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -10,8 +11,6 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-
-import 'manage_themes.dart';
 
 class AppearanceSettingsView extends ConsumerWidget {
   const AppearanceSettingsView({Key? key}) : super(key: key);
