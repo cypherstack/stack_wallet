@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:archive/archive_io.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
@@ -18,6 +19,8 @@ class ThemeService {
   ThemeService._();
   static ThemeService? _instance;
   static ThemeService get instance => _instance ??= ThemeService._();
+
+  static const String baseServerUrl = "https://themes.stackwallet.com";
 
   MainDB? _db;
   MainDB get db => _db!;
@@ -113,14 +116,42 @@ class ThemeService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchThemeList() async {
-    // todo fetch actual themes from server
-    throw UnimplementedError();
+  Future<List<StackThemeMetaData>> fetchThemeList() async {
+    try {
+      final response = await get(Uri.parse("$baseServerUrl/themes"));
+
+      final jsonList = jsonDecode(response.body) as List;
+
+      final result = List<Map<String, dynamic>>.from(jsonList)
+          .map((e) => StackThemeMetaData.fromMap(e))
+          .toList();
+
+      return result;
+    } catch (e, s) {
+      Logging.instance.log(
+        "Failed to fetch themes list: $e\n$s",
+        level: LogLevel.Warning,
+      );
+      rethrow;
+    }
   }
 
   Future<ByteData> fetchTheme({required String themeId}) async {
-    // todo fetch theme archive from server
-    throw UnimplementedError();
+    try {
+      final response = await get(Uri.parse("$baseServerUrl/theme/$themeId"));
+
+      final bytes = response.bodyBytes;
+
+      final result = ByteData.view(bytes.buffer);
+
+      return result;
+    } catch (e, s) {
+      Logging.instance.log(
+        "Failed to fetch themes list: $e\n$s",
+        level: LogLevel.Warning,
+      );
+      rethrow;
+    }
   }
 
   StackTheme? getTheme({required String themeId}) =>
@@ -128,4 +159,34 @@ class ThemeService {
 
   List<StackTheme> get installedThemes =>
       db.isar.stackThemes.where().findAllSync();
+}
+
+class StackThemeMetaData {
+  final String name;
+  final String id;
+
+  StackThemeMetaData({
+    required this.name,
+    required this.id,
+  });
+
+  static StackThemeMetaData fromMap(Map<String, dynamic> map) {
+    try {
+      return StackThemeMetaData(
+        name: map["name"] as String,
+        id: map["id"] as String,
+      );
+    } catch (e, s) {
+      Logging.instance.log(
+        "Failed to create instance of StackThemeMetaData using $map: \n$e\n$s",
+        level: LogLevel.Fatal,
+      );
+      rethrow;
+    }
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(name: $name, id: $id)";
+  }
 }
