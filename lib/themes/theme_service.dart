@@ -178,11 +178,13 @@ class StackThemeMetaData {
   final String name;
   final String id;
   final String sha256;
+  final String previewImageUrl;
 
   StackThemeMetaData({
     required this.name,
     required this.id,
     required this.sha256,
+    required this.previewImageUrl,
   });
 
   static StackThemeMetaData fromMap(Map<String, dynamic> map) {
@@ -191,6 +193,7 @@ class StackThemeMetaData {
         name: map["name"] as String,
         id: map["id"] as String,
         sha256: map["sha256"] as String,
+        previewImageUrl: map["previewImageUrl"] as String,
       );
     } catch (e, s) {
       Logging.instance.log(
@@ -203,6 +206,11 @@ class StackThemeMetaData {
 
   @override
   String toString() {
-    return "$runtimeType(name: $name, id: $id, sha256: $sha256)";
+    return "$runtimeType("
+        "name: $name, "
+        "id: $id, "
+        "sha256: $sha256, "
+        "previewImageUrl: $previewImageUrl"
+        ")";
   }
 }
