@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:archive/archive_io.dart';
+import 'package:crypto/crypto.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart';
 import 'package:isar/isar.dart';
@@ -136,15 +137,27 @@ class ThemeService {
     }
   }
 
-  Future<ByteData> fetchTheme({required String themeId}) async {
+  Future<ByteData> fetchTheme({
+    required StackThemeMetaData themeMetaData,
+  }) async {
     try {
-      final response = await get(Uri.parse("$baseServerUrl/theme/$themeId"));
+      final response =
+          await get(Uri.parse("$baseServerUrl/theme/${themeMetaData.id}"));
 
       final bytes = response.bodyBytes;
 
-      final result = ByteData.view(bytes.buffer);
+      // verify hash
+      final digest = sha256.convert(bytes);
+      if (digest.toString() == themeMetaData.sha256) {
+        final result = ByteData.view(bytes.buffer);
 
-      return result;
+        return result;
+      } else {
+        throw Exception(
+          "Fetched theme archive sha256 hash ($digest) does not"
+          " match requested $themeMetaData",
+        );
+      }
     } catch (e, s) {
       Logging.instance.log(
         "Failed to fetch themes list: $e\n$s",
@@ -164,10 +177,12 @@ class ThemeService {
 class StackThemeMetaData {
   final String name;
   final String id;
+  final String sha256;
 
   StackThemeMetaData({
     required this.name,
     required this.id,
+    required this.sha256,
   });
 
   static StackThemeMetaData fromMap(Map<String, dynamic> map) {
@@ -175,6 +190,7 @@ class StackThemeMetaData {
       return StackThemeMetaData(
         name: map["name"] as String,
         id: map["id"] as String,
+        sha256: map["sha256"] as String,
       );
     } catch (e, s) {
       Logging.instance.log(
@@ -187,6 +203,6 @@ class StackThemeMetaData {
 
   @override
   String toString() {
-    return "$runtimeType(name: $name, id: $id)";
+    return "$runtimeType(name: $name, id: $id, sha256: $sha256)";
   }
 }
