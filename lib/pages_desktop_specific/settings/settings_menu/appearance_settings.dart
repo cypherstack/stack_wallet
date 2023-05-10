@@ -1,12 +1,18 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
+import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:tuple/tuple.dart';
 
 class AppearanceOptionSettings extends ConsumerStatefulWidget {
   const AppearanceOptionSettings({Key? key}) : super(key: key);
@@ -194,28 +200,90 @@ class ThemeToggle extends ConsumerStatefulWidget {
 }
 
 class _ThemeToggle extends ConsumerState<ThemeToggle> {
-  // String assetNameFor(ThemeType type) {
-  //   switch (type) {
-  //     case ThemeType.light:
-  //       return Assets.svg.themeLight;
-  //     case ThemeType.dark:
-  //       return ref.watch(themeProvider).assets.themePreview;
-  //     case ThemeType.darkChans:
-  //       return Assets.svg.themeDarkChan;
-  //     case ThemeType.oceanBreeze:
-  //       return Assets.svg.themeOcean;
-  //     case ThemeType.oledBlack:
-  //       return Assets.svg.themeOledBlack;
-  //     case ThemeType.orange:
-  //       return Assets.svg.orange;
-  //     case ThemeType.fruitSorbet:
-  //       return Assets.svg.themeFruit;
-  //     case ThemeType.forest:
-  //       return Assets.svg.themeForest;
-  //     case ThemeType.chan:
-  //       return Assets.svg.themeChan;
-  //   }
-  // }
+  late int _current;
+
+  List<Tuple3<String, String, String>> installedThemeIdNames = [];
+
+  int get systemDefault => installedThemeIdNames.length;
+
+  void setTheme(int index) {
+    if (index == _current) {
+      return;
+    }
+
+    if (index == systemDefault) {
+      // update current index
+      _current = index;
+
+      // enable system brightness setting
+      ref.read(prefsChangeNotifierProvider).enableSystemBrightness = true;
+
+      // get theme
+      final String themeId;
+      switch (MediaQuery.of(context).platformBrightness) {
+        case Brightness.dark:
+          themeId = ref
+              .read(prefsChangeNotifierProvider.notifier)
+              .systemBrightnessDarkThemeId;
+          break;
+        case Brightness.light:
+          themeId = ref
+              .read(prefsChangeNotifierProvider.notifier)
+              .systemBrightnessLightThemeId;
+          break;
+      }
+
+      // apply theme
+      ref.read(themeProvider.notifier).state =
+          ref.read(pThemeService).getTheme(themeId: themeId)!;
+
+      // Assets.precache(context);
+    } else {
+      if (_current == systemDefault) {
+        // disable system brightness setting
+        ref.read(prefsChangeNotifierProvider).enableSystemBrightness = false;
+      }
+
+      // update current index
+      _current = index;
+
+      // get theme
+      final themeId = installedThemeIdNames[index].item1;
+
+      // save theme setting
+      ref.read(prefsChangeNotifierProvider.notifier).themeId = themeId;
+
+      // apply theme
+      ref.read(themeProvider.notifier).state =
+          ref.read(pThemeService).getTheme(themeId: themeId)!;
+
+      // Assets.precache(context);
+    }
+  }
+
+  @override
+  void initState() {
+    installedThemeIdNames = ref
+        .read(pThemeService)
+        .installedThemes
+        .map((e) => Tuple3(e.themeId, e.name, e.assets.themePreview))
+        .toList();
+
+    if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
+      _current = installedThemeIdNames.length;
+    } else {
+      final themeId = ref.read(prefsChangeNotifierProvider).themeId;
+
+      for (int i = 0; i < installedThemeIdNames.length; i++) {
+        if (installedThemeIdNames[i].item1 == themeId) {
+          _current = i;
+          break;
+        }
+      }
+    }
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -223,95 +291,88 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
       spacing: 16,
       runSpacing: 16,
       children: [
-        // for (int i = 0; i < ThemeType.values.length; i++)
-        //   Padding(
-        //     padding: const EdgeInsets.all(8.0),
-        //     child: MouseRegion(
-        //       cursor: SystemMouseCursors.click,
-        //       child: GestureDetector(
-        //         onTap: () {
-        //           if (ref.read(themeProvider.notifier).state.themeType !=
-        //               ThemeType.values[i]) {
-        //             ref.read(prefsChangeNotifierProvider.notifier).themeId =
-        //                 ThemeType.values[i];
-        //
-        //             throw Exception(
-        //                 "TODO: set theme here properly once implemented");
-        //             // ref.read(themeProvider.notifier).state =
-        //             //     StackColors.fromStackColorTheme(
-        //             //         ThemeType.values[i].colorTheme);
-        //           }
-        //         },
-        //         child: Container(
-        //           width: 200,
-        //           color: Colors.transparent,
-        //           child: Column(
-        //             mainAxisSize: MainAxisSize.min,
-        //             children: [
-        //               Container(
-        //                 decoration: BoxDecoration(
-        //                   border: Border.all(
-        //                     width: 2.5,
-        //                     color: ref
-        //                                 .read(themeProvider.notifier)
-        //                                 .state
-        //                                 .themeType ==
-        //                             ThemeType.values[i]
-        //                         ? Theme.of(context)
-        //                             .extension<StackColors>()!
-        //                             .infoItemIcons
-        //                         : Theme.of(context)
-        //                             .extension<StackColors>()!
-        //                             .popupBG,
-        //                   ),
-        //                   borderRadius: BorderRadius.circular(
-        //                     Constants.size.circularBorderRadius,
-        //                   ),
-        //                 ),
-        //                 child: SvgPicture.asset(
-        //                   assetNameFor(ThemeType.values[i]),
-        //                   height: 160,
-        //                   width: 200,
-        //                 ),
-        //               ),
-        //               const SizedBox(
-        //                 height: 12,
-        //               ),
-        //               Row(
-        //                 children: [
-        //                   SizedBox(
-        //                     width: 20,
-        //                     height: 20,
-        //                     child: Radio<ThemeType>(
-        //                       activeColor: Theme.of(context)
-        //                           .extension<StackColors>()!
-        //                           .radioButtonIconEnabled,
-        //                       value: ThemeType.values[i],
-        //                       groupValue:
-        //                           ref.read(themeProvider.state).state.themeType,
-        //                       onChanged: (_) {},
-        //                     ),
-        //                   ),
-        //                   const SizedBox(
-        //                     width: 14,
-        //                   ),
-        //                   Text(
-        //                     ThemeType.values[i].prettyName,
-        //                     style: STextStyles.desktopTextExtraSmall(context)
-        //                         .copyWith(
-        //                       color: Theme.of(context)
-        //                           .extension<StackColors>()!
-        //                           .textDark,
-        //                     ),
-        //                   ),
-        //                 ],
-        //               ),
-        //             ],
-        //           ),
-        //         ),
-        //       ),
-        //     ),
-        //   )
+        for (int i = 0; i < installedThemeIdNames.length; i++)
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () {
+                  if (_current != i) {
+                    setTheme(i);
+                  }
+                },
+                child: Container(
+                  width: 200,
+                  color: Colors.transparent,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            width: 2.5,
+                            color: _current == i
+                                ? Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .infoItemIcons
+                                : Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .popupBG,
+                          ),
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                        ),
+                        child: SvgPicture.file(
+                          File(
+                            installedThemeIdNames[i].item3,
+                          ),
+                          height: 160,
+                          width: 200,
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 12,
+                      ),
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: Radio(
+                              activeColor: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .radioButtonIconEnabled,
+                              value: i,
+                              groupValue: _current,
+                              onChanged: (newValue) {
+                                if (newValue is int) {
+                                  setTheme(newValue);
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 14,
+                          ),
+                          Text(
+                            installedThemeIdNames[i].item2,
+                            style: STextStyles.desktopTextExtraSmall(context)
+                                .copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          )
       ],
     );
   }

@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/sub_widgets/theme_option.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/system_brightness_theme_selection_view.dart';
+import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
+import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:tuple/tuple.dart';
 
 class ThemeOptionsWidget extends ConsumerStatefulWidget {
   const ThemeOptionsWidget({Key? key}) : super(key: key);
@@ -14,82 +20,90 @@ class ThemeOptionsWidget extends ConsumerStatefulWidget {
 }
 
 class _ThemeOptionsWidgetState extends ConsumerState<ThemeOptionsWidget> {
-  // final systemDefault = ThemeType.values.length;
-  // late int _current;
-  //
-  // void setTheme(int index) {
-  //   if (index == _current) {
-  //     return;
-  //   }
-  //
-  //   if (index == systemDefault) {
-  //     // update current index
-  //     _current = index;
-  //
-  //     // enable system brightness setting
-  //     ref.read(prefsChangeNotifierProvider).enableSystemBrightness = true;
-  //
-  //     // get theme
-  //     final ThemeType theme;
-  //     switch (MediaQuery.of(context).platformBrightness) {
-  //       case Brightness.dark:
-  //         theme = ref
-  //             .read(prefsChangeNotifierProvider.notifier)
-  //             .systemBrightnessDarkThemeId;
-  //         break;
-  //       case Brightness.light:
-  //         theme = ref
-  //             .read(prefsChangeNotifierProvider.notifier)
-  //             .systemBrightnessLightThemeId;
-  //         break;
-  //     }
-  //
-  //     // apply theme
-  //
-  //     throw Exception("bbbbbbbbbbbbbbbbb");
-  //     // ref.read(colorThemeProvider.notifier).state =
-  //     //     StackColors.fromStackColorTheme(
-  //     //   theme.colorTheme,
-  //     // );
-  //
-  //     // Assets.precache(context);
-  //   } else {
-  //     if (_current == systemDefault) {
-  //       // disable system brightness setting
-  //       ref.read(prefsChangeNotifierProvider).enableSystemBrightness = false;
-  //     }
-  //
-  //     // update current index
-  //     _current = index;
-  //
-  //     // get theme
-  //     final theme = ThemeType.values[index];
-  //
-  //     // save theme setting
-  //     ref.read(prefsChangeNotifierProvider.notifier).themeId = theme;
-  //
-  //     // apply theme
-  //     // ref.read(colorThemeProvider.notifier).state =
-  //     //     StackColors.fromStackColorTheme(
-  //     //   theme.colorTheme,
-  //     // );
-  //
-  //     throw Exception("bbbbbbbbbbbbbbbbb");
-  //     // Assets.precache(context);
-  //   }
-  // }
-  //
-  // @override
-  // void initState() {
-  //   if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
-  //     _current = ThemeType.values.length;
-  //   } else {
-  //     _current = ThemeType.values
-  //         .indexOf(ref.read(prefsChangeNotifierProvider).themeId);
-  //   }
-  //
-  //   super.initState();
-  // }
+  late int _current;
+
+  List<Tuple2<String, String>> installedThemeIdNames = [];
+
+  int get systemDefault => installedThemeIdNames.length;
+
+  void setTheme(int index) {
+    if (index == _current) {
+      return;
+    }
+
+    if (index == systemDefault) {
+      // update current index
+      _current = index;
+
+      // enable system brightness setting
+      ref.read(prefsChangeNotifierProvider).enableSystemBrightness = true;
+
+      // get theme
+      final String themeId;
+      switch (MediaQuery.of(context).platformBrightness) {
+        case Brightness.dark:
+          themeId = ref
+              .read(prefsChangeNotifierProvider.notifier)
+              .systemBrightnessDarkThemeId;
+          break;
+        case Brightness.light:
+          themeId = ref
+              .read(prefsChangeNotifierProvider.notifier)
+              .systemBrightnessLightThemeId;
+          break;
+      }
+
+      // apply theme
+      ref.read(themeProvider.notifier).state =
+          ref.read(pThemeService).getTheme(themeId: themeId)!;
+
+      // Assets.precache(context);
+    } else {
+      if (_current == systemDefault) {
+        // disable system brightness setting
+        ref.read(prefsChangeNotifierProvider).enableSystemBrightness = false;
+      }
+
+      // update current index
+      _current = index;
+
+      // get theme
+      final themeId = installedThemeIdNames[index].item1;
+
+      // save theme setting
+      ref.read(prefsChangeNotifierProvider.notifier).themeId = themeId;
+
+      // apply theme
+      ref.read(themeProvider.notifier).state =
+          ref.read(pThemeService).getTheme(themeId: themeId)!;
+
+      // Assets.precache(context);
+    }
+  }
+
+  @override
+  void initState() {
+    installedThemeIdNames = ref
+        .read(pThemeService)
+        .installedThemes
+        .map((e) => Tuple2(e.themeId, e.name))
+        .toList();
+
+    if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
+      _current = installedThemeIdNames.length;
+    } else {
+      final themeId = ref.read(prefsChangeNotifierProvider).themeId;
+
+      for (int i = 0; i < installedThemeIdNames.length; i++) {
+        if (installedThemeIdNames[i].item1 == themeId) {
+          _current = i;
+          break;
+        }
+      }
+    }
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,18 +134,18 @@ class _ThemeOptionsWidgetState extends ConsumerState<ThemeOptionsWidget> {
                     SizedBox(
                       width: 20,
                       height: 26,
-                      // child: Radio(
-                      //   activeColor: Theme.of(context)
-                      //       .extension<StackColors>()!
-                      //       .radioButtonIconEnabled,
-                      //   value: ThemeType.values.length,
-                      //   groupValue: _current,
-                      //   onChanged: (newValue) {
-                      //     if (newValue is int) {
-                      //       setTheme(newValue);
-                      //     }
-                      //   },
-                      // ),
+                      child: Radio(
+                        activeColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .radioButtonIconEnabled,
+                        value: installedThemeIdNames.length,
+                        groupValue: _current,
+                        onChanged: (newValue) {
+                          if (newValue is int) {
+                            setTheme(newValue);
+                          }
+                        },
+                      ),
                     ),
                     const SizedBox(
                       width: 14,
@@ -170,27 +184,27 @@ class _ThemeOptionsWidgetState extends ConsumerState<ThemeOptionsWidget> {
         const SizedBox(
           height: 10,
         ),
-        // for (int i = 0; i < ThemeType.values.length; i++)
-        //   ConditionalParent(
-        //     condition: i > 0,
-        //     builder: (child) => Padding(
-        //       padding: const EdgeInsets.only(top: 10),
-        //       child: child,
-        //     ),
-        //     child: ThemeOption(
-        //       label: ThemeType.values[i].prettyName,
-        //       onPressed: () {
-        //         setTheme(i);
-        //       },
-        //       onChanged: (newValue) {
-        //         if (newValue is int) {
-        //           setTheme(newValue);
-        //         }
-        //       },
-        //       value: i,
-        //       groupValue: _current,
-        //     ),
-        //   ),
+        for (int i = 0; i < installedThemeIdNames.length; i++)
+          ConditionalParent(
+            condition: i > 0,
+            builder: (child) => Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: child,
+            ),
+            child: ThemeOption(
+              label: installedThemeIdNames[i].item2,
+              onPressed: () {
+                setTheme(i);
+              },
+              onChanged: (newValue) {
+                if (newValue is int) {
+                  setTheme(newValue);
+                }
+              },
+              value: i,
+              groupValue: _current,
+            ),
+          ),
       ],
     );
   }
