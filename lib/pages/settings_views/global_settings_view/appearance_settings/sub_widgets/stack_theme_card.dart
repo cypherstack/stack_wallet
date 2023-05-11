@@ -5,10 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
+import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
@@ -25,7 +27,7 @@ class StackThemeCard extends ConsumerStatefulWidget {
 }
 
 class _StackThemeCardState extends ConsumerState<StackThemeCard> {
-  String buttonLabel = "Download";
+  late final StreamSubscription<void> _subscription;
 
   late bool _hasTheme;
 
@@ -73,7 +75,18 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
     }
   }
 
-  late final StreamSubscription<void> _subscription;
+  Future<void> _uninstallThemePressed() async {
+    await ref.read(pThemeService).remove(themeId: widget.data.id);
+  }
+
+  bool get themeIsInUse {
+    final prefs = ref.read(prefsChangeNotifierProvider);
+    final themeId = widget.data.id;
+
+    return prefs.themeId == themeId ||
+        prefs.systemBrightnessDarkThemeId == themeId ||
+        prefs.systemBrightnessLightThemeId == themeId;
+  }
 
   @override
   void initState() {
@@ -154,11 +167,22 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
           const SizedBox(
             height: 12,
           ),
-          PrimaryButton(
-            label: buttonLabel,
-            enabled: !_hasTheme,
-            buttonHeight: ButtonHeight.l,
-            onPressed: _downloadPressed,
+          AnimatedCrossFade(
+            duration: const Duration(milliseconds: 300),
+            crossFadeState: _hasTheme
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            firstChild: PrimaryButton(
+              label: "Download",
+              buttonHeight: ButtonHeight.l,
+              onPressed: _downloadPressed,
+            ),
+            secondChild: SecondaryButton(
+              label: themeIsInUse ? "Theme is active" : "Remove from device",
+              enabled: !themeIsInUse,
+              buttonHeight: ButtonHeight.l,
+              onPressed: _uninstallThemePressed,
+            ),
           ),
         ],
       ),
