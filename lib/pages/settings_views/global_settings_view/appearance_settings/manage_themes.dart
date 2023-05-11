@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/sub_widgets/install_theme_from_file_dialog.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/sub_widgets/stack_theme_card.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_service.dart';
@@ -14,6 +18,7 @@ import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:tuple/tuple.dart';
 
 class ManageThemesView extends ConsumerStatefulWidget {
   const ManageThemesView({Key? key}) : super(key: key);
@@ -85,39 +90,51 @@ class _ManageThemesViewState extends ConsumerState<ManageThemesView> {
                     ),
                   ],
                 )
-              : Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    children: [
-                      RoundedWhiteContainer(
-                        child: Text(
-                          "You are using Incognito Mode. Please press the"
-                          " button below to load available themes from our server"
-                          " or upload a theme file manually from your device.",
-                          style: STextStyles.smallMed12(context),
-                        ),
+              : SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        children: [
+                          RoundedWhiteContainer(
+                            child: Text(
+                              "You are using Incognito Mode. Please press the"
+                              " button below to load available themes from our server"
+                              " or upload a theme file manually from your device.",
+                              style: STextStyles.smallMed12(context),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 12,
+                          ),
+                          PrimaryButton(
+                            label: "Load themes",
+                            onPressed: () {
+                              setState(() {
+                                _showThemes = true;
+                                future = ref.watch(pThemeService).fetchThemes();
+                              });
+                            },
+                          ),
+                          const SizedBox(
+                            height: 12,
+                          ),
+                          SecondaryButton(
+                            label: "Install theme file",
+                            onPressed: _onInstallPressed,
+                          ),
+                          const SizedBox(
+                            height: 16,
+                          ),
+                          const Expanded(
+                            child: _IncognitoInstalledThemes(),
+                          ),
+                          const SizedBox(
+                            height: 16,
+                          ),
+                        ],
                       ),
-                      const SizedBox(
-                        height: 12,
-                      ),
-                      PrimaryButton(
-                        label: "Load themes",
-                        onPressed: () {
-                          setState(() {
-                            _showThemes = true;
-                            future = ref.watch(pThemeService).fetchThemes();
-                          });
-                        },
-                      ),
-                      const SizedBox(
-                        height: 12,
-                      ),
-                      SecondaryButton(
-                        label: "Install theme file",
-                        onPressed: _onInstallPressed,
-                      ),
-                      const Spacer(),
-                    ],
+                    ),
                   ),
                 ),
         ),
@@ -158,6 +175,78 @@ class _ManageThemesViewState extends ConsumerState<ManageThemesView> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _IncognitoInstalledThemes extends ConsumerStatefulWidget {
+  const _IncognitoInstalledThemes({Key? key}) : super(key: key);
+
+  @override
+  ConsumerState<_IncognitoInstalledThemes> createState() =>
+      _IncognitoInstalledThemesState();
+}
+
+class _IncognitoInstalledThemesState
+    extends ConsumerState<_IncognitoInstalledThemes> {
+  late final StreamSubscription<void> _subscription;
+
+  List<Tuple2<String, String>> installedThemeIdNames = [];
+
+  void _updateInstalledList() {
+    installedThemeIdNames = ref
+        .read(pThemeService)
+        .installedThemes
+        .where((e) => e.themeId != "light" && e.themeId != "dark")
+        .map((e) => Tuple2(e.themeId, e.name))
+        .toList();
+  }
+
+  @override
+  void initState() {
+    _updateInstalledList();
+
+    _subscription =
+        ref.read(mainDBProvider).isar.stackThemes.watchLazy().listen((_) {
+      if (mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          setState(() {
+            _updateInstalledList();
+          });
+        });
+      }
+    });
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 16,
+      runSpacing: 16,
+      children: installedThemeIdNames
+          .map(
+            (e) => SizedBox(
+              width: (MediaQuery.of(context).size.width - 48) / 2,
+              child: StackThemeCard(
+                data: StackThemeMetaData(
+                  name: e.item2,
+                  id: e.item1,
+                  sha256: "",
+                  size: "",
+                  previewImageUrl: "",
+                ),
+              ),
+            ),
+          )
+          .toList(),
     );
   }
 }

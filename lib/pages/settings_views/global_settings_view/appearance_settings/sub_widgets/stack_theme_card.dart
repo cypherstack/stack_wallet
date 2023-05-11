@@ -1,14 +1,20 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
+import 'package:stackwallet/utilities/stack_file_system.dart';
+import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -30,6 +36,7 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
   late final StreamSubscription<void> _subscription;
 
   late bool _hasTheme;
+  String? _cachedSize;
 
   Future<bool> _downloadAndInstall() async {
     final service = ref.read(pThemeService);
@@ -88,6 +95,34 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
         prefs.systemBrightnessLightThemeId == themeId;
   }
 
+  Future<String> getThemeDirectorySize() async {
+    final themesDir = await StackFileSystem.applicationThemesDirectory();
+    final themeDir = Directory("${themesDir.path}/${widget.data.id}");
+    int bytes = 0;
+    if (await themeDir.exists()) {
+      await for (FileSystemEntity entity in themeDir.list(recursive: true)) {
+        if (entity is File) {
+          bytes += await entity.length();
+        }
+      }
+    } else if (widget.data.size.isNotEmpty) {
+      return widget.data.size;
+    }
+
+    if (bytes < 1024) {
+      return '$bytes B';
+    } else if (bytes < 1048576) {
+      double kbSize = bytes / 1024;
+      return '${kbSize.toStringAsFixed(2)} KB';
+    } else if (bytes < 1073741824) {
+      double mbSize = bytes / 1048576;
+      return '${mbSize.toStringAsFixed(2)} MB';
+    } else {
+      double gbSize = bytes / 1073741824;
+      return '${gbSize.toStringAsFixed(2)} GB';
+    }
+  }
+
   @override
   void initState() {
     _hasTheme = ref
@@ -142,27 +177,77 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
             padding: const EdgeInsets.symmetric(
               horizontal: 18,
             ),
-            child: AspectRatio(
-              aspectRatio: 1,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(100),
-                child: Image.network(
-                  widget.data.previewImageUrl,
-                ),
-              ),
-            ),
+            child: widget.data.previewImageUrl.isNotEmpty
+                ? AspectRatio(
+                    aspectRatio: 1,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(100),
+                      child: Image.network(
+                        widget.data.previewImageUrl,
+                      ),
+                    ),
+                  )
+                : Builder(
+                    builder: (context) {
+                      final incognitoFile = ref.watch(
+                        themeProvider.select(
+                          (value) => value.assets.personaIncognito,
+                        ),
+                      );
+
+                      return (incognitoFile.endsWith(".png"))
+                          ? Image.file(
+                              File(
+                                incognitoFile,
+                              ),
+                              height: 100,
+                            )
+                          : SvgPicture.file(
+                              File(
+                                incognitoFile,
+                              ),
+                              height: 100,
+                            );
+                    },
+                  ),
           ),
           const SizedBox(
             height: 12,
           ),
           Text(
             widget.data.name,
+            style: STextStyles.itemSubtitle12(context),
           ),
           const SizedBox(
             height: 6,
           ),
-          Text(
-            widget.data.size,
+          FutureBuilder(
+            future: getThemeDirectorySize(),
+            builder: (
+              context,
+              AsyncSnapshot<String> snapshot,
+            ) {
+              if (snapshot.connectionState == ConnectionState.done &&
+                  snapshot.hasData) {
+                _cachedSize = snapshot.data;
+              }
+              if (_cachedSize == null) {
+                return AnimatedText(
+                  stringsToLoopThrough: const [
+                    "Calculating size   ",
+                    "Calculating size.  ",
+                    "Calculating size.. ",
+                    "Calculating size...",
+                  ],
+                  style: STextStyles.label(context),
+                );
+              } else {
+                return Text(
+                  _cachedSize!,
+                  style: STextStyles.label(context),
+                );
+              }
+            },
           ),
           const SizedBox(
             height: 12,

@@ -31,12 +31,20 @@ class _InstallThemeFromFileDialogState
 
   Future<bool> _install() async {
     try {
-      final fileBytes = await File(controller.text).readAsBytes();
-      await ref.read(pThemeService).install(
-            themeArchive: ByteData.view(
-              fileBytes.buffer,
-            ),
+      final timedFuture = Future<void>.delayed(const Duration(seconds: 2));
+      final installFuture = File(controller.text).readAsBytes().then(
+            (fileBytes) => ref.read(pThemeService).install(
+                  themeArchive: ByteData.view(
+                    fileBytes.buffer,
+                  ),
+                ),
           );
+
+      // wait for at least 2 seconds to prevent annoying screen flashing
+      await Future.wait([
+        installFuture,
+        timedFuture,
+      ]);
       return true;
     } catch (e, s) {
       Logging.instance.log(
