@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/sub_widgets/theme_option.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/system_brightness_theme_selection_view.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
@@ -20,6 +24,7 @@ class ThemeOptionsWidget extends ConsumerStatefulWidget {
 }
 
 class _ThemeOptionsWidgetState extends ConsumerState<ThemeOptionsWidget> {
+  late final StreamSubscription<void> _subscription;
   late int _current;
 
   List<Tuple2<String, String>> installedThemeIdNames = [];
@@ -81,13 +86,17 @@ class _ThemeOptionsWidgetState extends ConsumerState<ThemeOptionsWidget> {
     }
   }
 
-  @override
-  void initState() {
+  void _updateInstalledList() {
     installedThemeIdNames = ref
         .read(pThemeService)
         .installedThemes
         .map((e) => Tuple2(e.themeId, e.name))
         .toList();
+  }
+
+  @override
+  void initState() {
+    _updateInstalledList();
 
     if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
       _current = installedThemeIdNames.length;
@@ -102,7 +111,24 @@ class _ThemeOptionsWidgetState extends ConsumerState<ThemeOptionsWidget> {
       }
     }
 
+    _subscription =
+        ref.read(mainDBProvider).isar.stackThemes.watchLazy().listen((_) {
+      if (mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          setState(() {
+            _updateInstalledList();
+          });
+        });
+      }
+    });
+
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
   }
 
   @override
