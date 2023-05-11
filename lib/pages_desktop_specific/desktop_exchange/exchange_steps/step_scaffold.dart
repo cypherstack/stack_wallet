@@ -84,8 +84,7 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
     );
 
     final ExchangeResponse<Trade> response = await ref
-        .read(exchangeFormStateProvider)
-        .exchange
+        .read(efExchangeProvider)
         .createTrade(
           from: ref.read(desktopExchangeModelProvider)!.sendTicker,
           to: ref.read(desktopExchangeModelProvider)!.receiveTicker,
@@ -98,24 +97,24 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
           extraId: null,
           addressRefund: ref.read(desktopExchangeModelProvider)!.refundAddress!,
           refundExtraId: "",
-          rateId: ref.read(desktopExchangeModelProvider)!.rateId,
+          estimate: ref.read(desktopExchangeModelProvider)!.estimate,
           reversed: ref.read(desktopExchangeModelProvider)!.reversed,
         );
 
     if (response.value == null) {
       if (mounted) {
         Navigator.of(context).pop();
-      }
 
-      unawaited(
-        showDialog<void>(
-          context: context,
-          barrierDismissible: true,
-          builder: (_) => SimpleDesktopDialog(
-              title: "Failed to create trade",
-              message: response.exception?.toString() ?? ""),
-        ),
-      );
+        unawaited(
+          showDialog<void>(
+            context: context,
+            barrierDismissible: true,
+            builder: (_) => SimpleDesktopDialog(
+                title: "Failed to create trade",
+                message: response.exception?.toString() ?? ""),
+          ),
+        );
+      }
       return false;
     }
 

@@ -299,7 +299,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           await ref.read(prefsChangeNotifierProvider).isExternalCallsSet()) {
         if (Constants.enableExchange) {
           await ExchangeDataLoadingService.instance.setCurrenciesIfEmpty(
-            ref.read(exchangeFormStateProvider),
+            ref.read(efCurrencyPairProvider),
+            ref.read(efRateTypeProvider),
           );
           unawaited(ExchangeDataLoadingService.instance.loadAll());
         }

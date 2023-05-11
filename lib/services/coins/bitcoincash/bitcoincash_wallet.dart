@@ -1958,7 +1958,8 @@ class BitcoinCashWallet extends CoinServiceAPI
 
       if (storedTx == null ||
               storedTx.address.value == null ||
-              storedTx.height == null
+              storedTx.height == null ||
+              (storedTx.height != null && storedTx.height! <= 0)
           // zero conf messes this up
           // !storedTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)
           ) {

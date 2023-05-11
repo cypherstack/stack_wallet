@@ -8,6 +8,7 @@ import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dar
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
+import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
 
 abstract class Exchange {
   static Exchange get defaultExchange => ChangeNowExchange.instance;
@@ -20,7 +21,14 @@ abstract class Exchange {
         return SimpleSwapExchange.instance;
       case MajesticBankExchange.exchangeName:
         return MajesticBankExchange.instance;
+      case TrocadorExchange.exchangeName:
+        return TrocadorExchange.instance;
       default:
+        final split = name.split(" ");
+        if (split.length >= 2) {
+          // silly way to check for 'Trocador ($providerName)'
+          return fromName(split.first);
+        }
         throw ArgumentError("Unknown exchange name");
     }
   }
@@ -52,7 +60,7 @@ abstract class Exchange {
     bool fixedRate,
   );
 
-  Future<ExchangeResponse<Estimate>> getEstimate(
+  Future<ExchangeResponse<List<Estimate>>> getEstimates(
     String from,
     String to,
     Decimal amount,
@@ -69,7 +77,7 @@ abstract class Exchange {
     String? extraId,
     required String addressRefund,
     required String refundExtraId,
-    String? rateId,
+    Estimate? estimate,
     required bool reversed,
   });
 }
