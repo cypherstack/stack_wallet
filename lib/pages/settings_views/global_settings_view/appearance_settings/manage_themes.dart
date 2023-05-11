@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/sub_widgets/install_theme_from_file_dialog.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/sub_widgets/stack_theme_card.dart';
@@ -9,6 +10,7 @@ import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_service.dart';
+import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -65,6 +67,25 @@ class _ManageThemesViewState extends ConsumerState<ManageThemesView> {
               "Add more themes",
               style: STextStyles.navBarTitle(context),
             ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 2),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: AppBarIconButton(
+                    icon: SvgPicture.asset(
+                      Assets.svg.circlePlusFilled,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .topNavIconPrimary,
+                      height: 20,
+                      width: 20,
+                    ),
+                    onPressed: _onInstallPressed,
+                  ),
+                ),
+              ),
+            ],
           ),
           body: _showThemes
               ? Column(
