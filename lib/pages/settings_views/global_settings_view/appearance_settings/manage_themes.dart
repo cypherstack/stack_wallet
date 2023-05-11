@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/sub_widgets/stack_theme_card.dart';
+import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
+import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class ManageThemesView extends ConsumerStatefulWidget {
   const ManageThemesView({Key? key}) : super(key: key);
@@ -20,6 +23,16 @@ class ManageThemesView extends ConsumerStatefulWidget {
 }
 
 class _ManageThemesViewState extends ConsumerState<ManageThemesView> {
+  late bool _showThemes;
+
+  Future<List<StackThemeMetaData>> future = Future(() => []);
+
+  @override
+  void initState() {
+    _showThemes = ref.read(prefsChangeNotifierProvider).externalCalls;
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ConditionalParent(
@@ -37,35 +50,71 @@ class _ManageThemesViewState extends ConsumerState<ManageThemesView> {
             style: STextStyles.navBarTitle(context),
           ),
         ),
-        body: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
+        body: _showThemes
+            ? Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                        ),
+                        child: IntrinsicHeight(
+                          child: child,
+                        ),
+                      ),
+                    ),
                   ),
-                  child: IntrinsicHeight(
-                    child: child,
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: SecondaryButton(
+                      label: "Install theme file",
+                      onPressed: () {},
+                    ),
                   ),
+                ],
+              )
+            : Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  children: [
+                    RoundedWhiteContainer(
+                      child: Text(
+                        "You are using Incognito Mode. Please press the"
+                        " button below to load available themes from our server"
+                        " or upload a theme file manually from your device.",
+                        style: STextStyles.smallMed12(context),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 12,
+                    ),
+                    PrimaryButton(
+                      label: "Load themes",
+                      onPressed: () {
+                        setState(() {
+                          _showThemes = true;
+                          future = ref.watch(pThemeService).fetchThemes();
+                        });
+                      },
+                    ),
+                    const SizedBox(
+                      height: 12,
+                    ),
+                    SecondaryButton(
+                      label: "Install theme file",
+                      onPressed: () {},
+                    ),
+                    const Spacer(),
+                  ],
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: SecondaryButton(
-                label: "Install theme file",
-                onPressed: () {},
-              ),
-            ),
-          ],
-        ),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           FutureBuilder(
-            future: ref.watch(pThemeService).fetchThemes(),
+            future: future,
             builder: (
               context,
               AsyncSnapshot<List<StackThemeMetaData>> snapshot,
