@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/sub_widgets/install_theme_from_file_dialog.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/sub_widgets/stack_theme_card.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -27,6 +28,13 @@ class _ManageThemesViewState extends ConsumerState<ManageThemesView> {
   late bool _showThemes;
 
   Future<List<StackThemeMetaData>> future = Future(() => []);
+
+  void _onInstallPressed() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => const InstallThemeFromFileDialog(),
+    );
+  }
 
   @override
   void initState() {
@@ -72,7 +80,7 @@ class _ManageThemesViewState extends ConsumerState<ManageThemesView> {
                       padding: const EdgeInsets.all(16),
                       child: SecondaryButton(
                         label: "Install theme file",
-                        onPressed: () {},
+                        onPressed: _onInstallPressed,
                       ),
                     ),
                   ],
@@ -106,7 +114,7 @@ class _ManageThemesViewState extends ConsumerState<ManageThemesView> {
                       ),
                       SecondaryButton(
                         label: "Install theme file",
-                        onPressed: () {},
+                        onPressed: _onInstallPressed,
                       ),
                       const Spacer(),
                     ],
