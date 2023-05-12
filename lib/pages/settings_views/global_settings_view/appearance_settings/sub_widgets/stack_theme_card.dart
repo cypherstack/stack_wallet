@@ -196,22 +196,22 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
                   )
                 : Builder(
                     builder: (context) {
-                      final incognitoFile = ref.watch(
+                      final themePreview = ref.watch(
                         themeProvider.select(
-                          (value) => value.assets.personaIncognito,
+                          (value) => value.assets.themePreview,
                         ),
                       );
 
-                      return (incognitoFile.endsWith(".png"))
+                      return (themePreview.endsWith(".png"))
                           ? Image.file(
                               File(
-                                incognitoFile,
+                                themePreview,
                               ),
                               height: 100,
                             )
                           : SvgPicture.file(
                               File(
-                                incognitoFile,
+                                themePreview,
                               ),
                               height: 100,
                             );
