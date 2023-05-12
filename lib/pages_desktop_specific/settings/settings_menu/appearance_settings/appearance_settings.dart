@@ -272,18 +272,6 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
         .installedThemes
         .map((e) => Tuple3(e.themeId, e.name, e.assets.themeSelector))
         .toList();
-  }
-
-  void _manageThemesPressed() {
-    showDialog<void>(
-      context: context,
-      builder: (_) => const DesktopManageThemesDialog(),
-    );
-  }
-
-  @override
-  void initState() {
-    _updateInstalledList();
 
     if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
       _current = installedThemeIdNames.length;
@@ -297,6 +285,18 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
         }
       }
     }
+  }
+
+  void _manageThemesPressed() {
+    showDialog<void>(
+      context: context,
+      builder: (_) => const DesktopManageThemesDialog(),
+    );
+  }
+
+  @override
+  void initState() {
+    _updateInstalledList();
 
     _subscription =
         ref.read(mainDBProvider).isar.stackThemes.watchLazy().listen((_) {
@@ -326,6 +326,7 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
       children: [
         for (int i = 0; i < installedThemeIdNames.length; i++)
           Padding(
+            key: Key("installedTheme_${installedThemeIdNames[i].item1}"),
             padding: const EdgeInsets.all(8.0),
             child: MouseRegion(
               cursor: SystemMouseCursors.click,

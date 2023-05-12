@@ -92,11 +92,6 @@ class _ThemeOptionsWidgetState extends ConsumerState<ThemeOptionsWidget> {
         .installedThemes
         .map((e) => Tuple2(e.themeId, e.name))
         .toList();
-  }
-
-  @override
-  void initState() {
-    _updateInstalledList();
 
     if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
       _current = installedThemeIdNames.length;
@@ -110,6 +105,11 @@ class _ThemeOptionsWidgetState extends ConsumerState<ThemeOptionsWidget> {
         }
       }
     }
+  }
+
+  @override
+  void initState() {
+    _updateInstalledList();
 
     _subscription =
         ref.read(mainDBProvider).isar.stackThemes.watchLazy().listen((_) {
@@ -212,6 +212,7 @@ class _ThemeOptionsWidgetState extends ConsumerState<ThemeOptionsWidget> {
         ),
         for (int i = 0; i < installedThemeIdNames.length; i++)
           ConditionalParent(
+            key: Key("installedTheme_${installedThemeIdNames[i].item1}"),
             condition: i > 0,
             builder: (child) => Padding(
               padding: const EdgeInsets.only(top: 10),
