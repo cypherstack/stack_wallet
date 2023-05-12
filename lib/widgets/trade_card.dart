@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:decimal/decimal.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -83,10 +85,16 @@ class TradeCard extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(32),
                 ),
                 child: Center(
-                  child: SvgPicture.asset(
-                    _fetchIconAssetForStatus(
-                      trade.status,
-                      ref.watch(themeProvider.select((value) => value.assets)),
+                  child: SvgPicture.file(
+                    File(
+                      _fetchIconAssetForStatus(
+                        trade.status,
+                        ref.watch(
+                          themeProvider.select(
+                            (value) => value.assets,
+                          ),
+                        ),
+                      ),
                     ),
                     width: 32,
                     height: 32,

@@ -7,12 +7,12 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/models/contact.dart';
 import 'package:stackwallet/models/contact_address_entry.dart';
-import 'package:stackwallet/models/isar/sw_theme.dart';
+import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/contact_popup.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/services/address_book_service.dart';
+import '../sample_data/theme_json.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/defaults/dark.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/address_book_card.dart';
@@ -54,7 +54,7 @@ void main() {
             extensions: [
               StackColors.fromStackColorTheme(
                 StackTheme.fromJson(
-                  json: darkJson,
+                  json: lightThemeJsonMap,
                   applicationThemesDirectoryPath:
                       applicationThemesDirectoryPath,
                 ),

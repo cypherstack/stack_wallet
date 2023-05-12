@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockingjay/mockingjay.dart' as mockingjay;
-import 'package:stackwallet/models/isar/sw_theme.dart';
+import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/defaults/dark.dart';
 import 'package:stackwallet/widgets/emoji_select_sheet.dart';
+
+import '../sample_data/theme_json.dart';
 
 void main() {
   testWidgets("Widget displays correctly", (tester) async {
@@ -18,8 +19,8 @@ void main() {
           extensions: [
             StackColors.fromStackColorTheme(
               StackTheme.fromJson(
-                json: darkJson,
-                applicationThemesDirectoryPath: "",
+                json: lightThemeJsonMap,
+                applicationThemesDirectoryPath: "test",
               ),
             ),
           ],
@@ -47,8 +48,8 @@ void main() {
             extensions: [
               StackColors.fromStackColorTheme(
                 StackTheme.fromJson(
-                  json: darkJson,
-                  applicationThemesDirectoryPath: "",
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
                 ),
               ),
             ],

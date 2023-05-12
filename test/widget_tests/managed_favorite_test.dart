@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/sw_theme.dart';
+import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
@@ -15,12 +15,13 @@ import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/services/wallets_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/defaults/dark.dart';
+import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/listenable_list.dart';
 import 'package:stackwallet/widgets/managed_favorite.dart';
 
+import '../sample_data/theme_json.dart';
 import 'managed_favorite_test.mocks.dart';
 
 /// quick amount constructor wrapper. Using an int is bad practice but for
@@ -34,6 +35,7 @@ Amount _a(int i) => Amount.fromDecimal(
   Wallets,
   WalletsService,
   BitcoinWallet,
+  ThemeService,
   LocaleService
 ], customMocks: [
   MockSpec<NodeService>(returnNullOnMissingStub: true),
@@ -44,7 +46,14 @@ void main() {
   testWidgets("Test wallet info row displays correctly", (widgetTester) async {
     final wallets = MockWallets();
     final CoinServiceAPI wallet = MockBitcoinWallet();
+    final mockThemeService = MockThemeService();
 
+    when(mockThemeService.getTheme(themeId: "light")).thenAnswer(
+      (_) => StackTheme.fromJson(
+        json: lightThemeJsonMap,
+        applicationThemesDirectoryPath: "test",
+      ),
+    );
     when(wallet.coin).thenAnswer((_) => Coin.bitcoin);
     when(wallet.walletName).thenAnswer((_) => "some wallet");
     when(wallet.walletId).thenAnswer((_) => "some wallet id");
@@ -68,14 +77,15 @@ void main() {
       ProviderScope(
         overrides: [
           walletsChangeNotifierProvider.overrideWithValue(wallets),
+          pThemeService.overrideWithValue(mockThemeService),
         ],
         child: MaterialApp(
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
                 StackTheme.fromJson(
-                  json: darkJson,
-                  applicationThemesDirectoryPath: "",
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
                 ),
               ),
             ],
@@ -98,7 +108,14 @@ void main() {
     final CoinServiceAPI wallet = MockBitcoinWallet();
     final mockLocaleService = MockLocaleService();
     final mockWalletsService = MockWalletsService();
+    final mockThemeService = MockThemeService();
 
+    when(mockThemeService.getTheme(themeId: "light")).thenAnswer(
+      (_) => StackTheme.fromJson(
+        json: lightThemeJsonMap,
+        applicationThemesDirectoryPath: "test",
+      ),
+    );
     when(wallet.coin).thenAnswer((_) => Coin.bitcoin);
     when(wallet.walletName).thenAnswer((_) => "some wallet");
     when(wallet.walletId).thenAnswer((_) => "some wallet id");
@@ -138,6 +155,7 @@ void main() {
               .overrideWithValue(mockLocaleService),
           favoritesProvider.overrideWithValue(favorites),
           nonFavoritesProvider.overrideWithValue(nonfavorites),
+          pThemeService.overrideWithValue(mockThemeService),
           walletsServiceChangeNotifierProvider
               .overrideWithValue(mockWalletsService)
         ],
@@ -146,8 +164,8 @@ void main() {
             extensions: [
               StackColors.fromStackColorTheme(
                 StackTheme.fromJson(
-                  json: darkJson,
-                  applicationThemesDirectoryPath: "",
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
                 ),
               ),
             ],
@@ -169,7 +187,14 @@ void main() {
     final CoinServiceAPI wallet = MockBitcoinWallet();
     final mockLocaleService = MockLocaleService();
     final mockWalletsService = MockWalletsService();
+    final mockThemeService = MockThemeService();
 
+    when(mockThemeService.getTheme(themeId: "light")).thenAnswer(
+      (_) => StackTheme.fromJson(
+        json: lightThemeJsonMap,
+        applicationThemesDirectoryPath: "test",
+      ),
+    );
     when(wallet.coin).thenAnswer((_) => Coin.bitcoin);
     when(wallet.walletName).thenAnswer((_) => "some wallet");
     when(wallet.walletId).thenAnswer((_) => "some wallet id");
@@ -209,6 +234,7 @@ void main() {
               .overrideWithValue(mockLocaleService),
           favoritesProvider.overrideWithValue(favorites),
           nonFavoritesProvider.overrideWithValue(nonfavorites),
+          pThemeService.overrideWithValue(mockThemeService),
           walletsServiceChangeNotifierProvider
               .overrideWithValue(mockWalletsService)
         ],
@@ -217,8 +243,8 @@ void main() {
             extensions: [
               StackColors.fromStackColorTheme(
                 StackTheme.fromJson(
-                  json: darkJson,
-                  applicationThemesDirectoryPath: "",
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
                 ),
               ),
             ],

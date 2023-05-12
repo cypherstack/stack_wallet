@@ -4,17 +4,17 @@ import 'package:flutter_svg/svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/models/isar/sw_theme.dart';
+import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/defaults/dark.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/node_card.dart';
 import 'package:stackwallet/widgets/node_options_sheet.dart';
 
+import '../sample_data/theme_json.dart';
 import 'node_card_test.mocks.dart';
 
 @GenerateMocks([NodeService])
@@ -56,8 +56,8 @@ void main() {
             extensions: [
               StackColors.fromStackColorTheme(
                 StackTheme.fromJson(
-                  json: darkJson,
-                  applicationThemesDirectoryPath: "",
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
                 ),
               ),
             ],
@@ -117,8 +117,8 @@ void main() {
             extensions: [
               StackColors.fromStackColorTheme(
                 StackTheme.fromJson(
-                  json: darkJson,
-                  applicationThemesDirectoryPath: "",
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
                 ),
               ),
             ],
@@ -179,8 +179,8 @@ void main() {
             extensions: [
               StackColors.fromStackColorTheme(
                 StackTheme.fromJson(
-                  json: darkJson,
-                  applicationThemesDirectoryPath: "",
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
                 ),
               ),
             ],

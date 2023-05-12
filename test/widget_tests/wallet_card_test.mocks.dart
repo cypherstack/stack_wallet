@@ -18,6 +18,7 @@ import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i10;
 import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i9;
 import 'package:stackwallet/models/balance.dart' as _i11;
 import 'package:stackwallet/models/isar/models/isar_models.dart' as _i17;
+import 'package:stackwallet/models/isar/stack_theme.dart' as _i31;
 import 'package:stackwallet/models/paymint/fee_object_model.dart' as _i8;
 import 'package:stackwallet/models/signing_data.dart' as _i26;
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart' as _i24;
@@ -28,6 +29,7 @@ import 'package:stackwallet/services/transaction_notification_tracker.dart'
     as _i7;
 import 'package:stackwallet/services/wallets.dart' as _i19;
 import 'package:stackwallet/services/wallets_service.dart' as _i2;
+import 'package:stackwallet/themes/theme_service.dart' as _i30;
 import 'package:stackwallet/utilities/amount/amount.dart' as _i14;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i20;
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart' as _i25;
@@ -1757,4 +1759,94 @@ class MockLocaleService extends _i1.Mock implements _i29.LocaleService {
         ),
         returnValueForMissingStub: null,
       );
+}
+
+/// A class which mocks [ThemeService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockThemeService extends _i1.Mock implements _i30.ThemeService {
+  MockThemeService() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i12.MainDB get db => (super.noSuchMethod(
+        Invocation.getter(#db),
+        returnValue: _FakeMainDB_9(
+          this,
+          Invocation.getter(#db),
+        ),
+      ) as _i12.MainDB);
+  @override
+  List<_i31.StackTheme> get installedThemes => (super.noSuchMethod(
+        Invocation.getter(#installedThemes),
+        returnValue: <_i31.StackTheme>[],
+      ) as List<_i31.StackTheme>);
+  @override
+  void init(_i12.MainDB? db) => super.noSuchMethod(
+        Invocation.method(
+          #init,
+          [db],
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i21.Future<void> install({required _i28.Uint8List? themeArchiveData}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #install,
+          [],
+          {#themeArchiveData: themeArchiveData},
+        ),
+        returnValue: _i21.Future<void>.value(),
+        returnValueForMissingStub: _i21.Future<void>.value(),
+      ) as _i21.Future<void>);
+  @override
+  _i21.Future<void> remove({required String? themeId}) => (super.noSuchMethod(
+        Invocation.method(
+          #remove,
+          [],
+          {#themeId: themeId},
+        ),
+        returnValue: _i21.Future<void>.value(),
+        returnValueForMissingStub: _i21.Future<void>.value(),
+      ) as _i21.Future<void>);
+  @override
+  _i21.Future<bool> verifyInstalled({required String? themeId}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #verifyInstalled,
+          [],
+          {#themeId: themeId},
+        ),
+        returnValue: _i21.Future<bool>.value(false),
+      ) as _i21.Future<bool>);
+  @override
+  _i21.Future<List<_i30.StackThemeMetaData>> fetchThemes() =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #fetchThemes,
+          [],
+        ),
+        returnValue: _i21.Future<List<_i30.StackThemeMetaData>>.value(
+            <_i30.StackThemeMetaData>[]),
+      ) as _i21.Future<List<_i30.StackThemeMetaData>>);
+  @override
+  _i21.Future<_i28.Uint8List> fetchTheme(
+          {required _i30.StackThemeMetaData? themeMetaData}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #fetchTheme,
+          [],
+          {#themeMetaData: themeMetaData},
+        ),
+        returnValue: _i21.Future<_i28.Uint8List>.value(_i28.Uint8List(0)),
+      ) as _i21.Future<_i28.Uint8List>);
+  @override
+  _i31.StackTheme? getTheme({required String? themeId}) =>
+      (super.noSuchMethod(Invocation.method(
+        #getTheme,
+        [],
+        {#themeId: themeId},
+      )) as _i31.StackTheme?);
 }

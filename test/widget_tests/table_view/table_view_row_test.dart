@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/sw_theme.dart';
+import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/coin_wallets_table.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
@@ -13,17 +13,19 @@ import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/services/wallets_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/defaults/dark.dart';
+import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/widgets/table_view/table_view_cell.dart';
 import 'package:stackwallet/widgets/table_view/table_view_row.dart';
 
+import '../../sample_data/theme_json.dart';
 import 'table_view_row_test.mocks.dart';
 
 @GenerateMocks([
   Wallets,
   WalletsService,
+  ThemeService,
   BitcoinWallet
 ], customMocks: [
   MockSpec<Manager>(returnNullOnMissingStub: true),
@@ -34,8 +36,15 @@ void main() {
     widgetTester.binding.window.physicalSizeTestValue = const Size(2500, 1800);
 
     final mockWallet = MockWallets();
+    final mockThemeService = MockThemeService();
     final CoinServiceAPI wallet = MockBitcoinWallet();
     when(wallet.coin).thenAnswer((_) => Coin.bitcoin);
+    when(mockThemeService.getTheme(themeId: "light")).thenAnswer(
+      (_) => StackTheme.fromJson(
+        json: lightThemeJsonMap,
+        applicationThemesDirectoryPath: "test",
+      ),
+    );
 
     when(wallet.walletName).thenAnswer((_) => "some wallet");
     when(wallet.walletId).thenAnswer((_) => "Wallet id 1");
@@ -63,14 +72,15 @@ void main() {
       ProviderScope(
         overrides: [
           walletsChangeNotifierProvider.overrideWithValue(mockWallet),
+          pThemeService.overrideWithValue(mockThemeService),
         ],
         child: MaterialApp(
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
                 StackTheme.fromJson(
-                  json: darkJson,
-                  applicationThemesDirectoryPath: "",
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
                 ),
               ),
             ],
