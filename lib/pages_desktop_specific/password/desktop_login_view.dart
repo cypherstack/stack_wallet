@@ -22,6 +22,7 @@ import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 
 class DesktopLoginView extends ConsumerStatefulWidget {
@@ -194,74 +195,104 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                 const SizedBox(
                   height: 24,
                 ),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
-                  ),
-                  child: TextField(
-                    key: const Key("desktopLoginPasswordFieldKey"),
-                    focusNode: passwordFocusNode,
-                    controller: passwordController,
-                    style: STextStyles.desktopTextMedium(context).copyWith(
-                      height: 2,
+                RoundedContainer(
+                  padding: EdgeInsets.zero,
+                  height: 74,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
                     ),
-                    obscureText: hidePassword,
-                    enableSuggestions: false,
-                    autocorrect: false,
-                    autofocus: true,
-                    onSubmitted: (_) {
-                      if (_continueEnabled) {
-                        login();
-                      }
-                    },
-                    decoration: standardInputDecoration(
-                      "Enter password",
-                      passwordFocusNode,
-                      context,
-                    ).copyWith(
-                      suffixIcon: UnconstrainedBox(
-                        child: SizedBox(
-                          height: 70,
-                          child: Row(
-                            children: [
-                              const SizedBox(
-                                width: 24,
-                              ),
-                              GestureDetector(
-                                key: const Key(
-                                    "restoreFromFilePasswordFieldShowPasswordButtonKey"),
-                                onTap: () async {
-                                  setState(() {
-                                    hidePassword = !hidePassword;
-                                  });
-                                },
-                                child: MouseRegion(
-                                  cursor: SystemMouseCursors.click,
-                                  child: SvgPicture.asset(
-                                    hidePassword
-                                        ? Assets.svg.eye
-                                        : Assets.svg.eyeSlash,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textDark3,
-                                    width: 24,
-                                    height: 24,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: TextField(
+                        key: const Key("desktopLoginPasswordFieldKey"),
+                        focusNode: passwordFocusNode,
+                        controller: passwordController,
+                        style: STextStyles.desktopTextMedium(context),
+                        obscureText: hidePassword,
+                        enableSuggestions: false,
+                        textAlignVertical: TextAlignVertical.bottom,
+                        autocorrect: false,
+                        autofocus: true,
+                        onSubmitted: (_) {
+                          if (_continueEnabled) {
+                            login();
+                          }
+                        },
+                        decoration: standardInputDecoration(
+                          "Enter password",
+                          passwordFocusNode,
+                          context,
+                        ).copyWith(
+                          isDense: true,
+                          fillColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          hoverColor: Colors.transparent,
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                                color: Colors.transparent, width: 1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                                color: Colors.transparent, width: 1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          contentPadding: const EdgeInsets.only(
+                            top: 0,
+                            left: 16,
+                            right: 16,
+                            bottom: 0,
+                          ),
+                          suffixIcon: UnconstrainedBox(
+                            child: SizedBox(
+                              height: 70,
+                              child: Row(
+                                children: [
+                                  const SizedBox(
+                                    width: 20,
                                   ),
-                                ),
+                                  GestureDetector(
+                                    key: const Key(
+                                        "restoreFromFilePasswordFieldShowPasswordButtonKey"),
+                                    onTap: () async {
+                                      setState(() {
+                                        hidePassword = !hidePassword;
+                                      });
+                                    },
+                                    child: MouseRegion(
+                                      cursor: SystemMouseCursors.click,
+                                      child: SvgPicture.asset(
+                                        hidePassword
+                                            ? Assets.svg.eye
+                                            : Assets.svg.eyeSlash,
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark3,
+                                        width: 20,
+                                        height: 20,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    width: 12,
+                                  ),
+                                ],
                               ),
-                              const SizedBox(
-                                width: 12,
-                              ),
-                            ],
+                            ),
                           ),
                         ),
+                        onChanged: (newValue) {
+                          setState(() {
+                            _continueEnabled =
+                                passwordController.text.isNotEmpty;
+                          });
+                        },
                       ),
                     ),
-                    onChanged: (newValue) {
-                      setState(() {
-                        _continueEnabled = passwordController.text.isNotEmpty;
-                      });
-                    },
                   ),
                 ),
                 const SizedBox(
