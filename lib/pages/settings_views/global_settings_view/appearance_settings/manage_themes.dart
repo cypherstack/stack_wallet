@@ -119,6 +119,7 @@ class _ManageThemesViewState extends ConsumerState<ManageThemesView> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: IntrinsicHeight(
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           RoundedWhiteContainer(
                             child: Text(
