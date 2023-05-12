@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/models/isar/stack_theme.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_pin_put/custom_pin_put.dart';
 import 'package:stackwallet/widgets/custom_pin_put/pin_keyboard.dart';
+
+import '../sample_data/theme_json.dart';
 
 void main() {
   group("CustomPinPut tests, non-random PIN", () {
@@ -19,7 +21,12 @@ void main() {
         MaterialApp(
           theme: ThemeData(
             extensions: [
-              StackColors.fromStackColorTheme(LightColors()),
+              StackColors.fromStackColorTheme(
+                StackTheme.fromJson(
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
+                ),
+              ),
             ],
           ),
           home: const Material(
@@ -52,7 +59,12 @@ void main() {
         MaterialApp(
           theme: ThemeData(
             extensions: [
-              StackColors.fromStackColorTheme(LightColors()),
+              StackColors.fromStackColorTheme(
+                StackTheme.fromJson(
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
+                ),
+              ),
             ],
           ),
           home: Material(
@@ -98,7 +110,12 @@ void main() {
         MaterialApp(
           theme: ThemeData(
             extensions: [
-              StackColors.fromStackColorTheme(LightColors()),
+              StackColors.fromStackColorTheme(
+                StackTheme.fromJson(
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
+                ),
+              ),
             ],
           ),
           home: Material(
@@ -131,7 +148,12 @@ void main() {
         MaterialApp(
           theme: ThemeData(
             extensions: [
-              StackColors.fromStackColorTheme(LightColors()),
+              StackColors.fromStackColorTheme(
+                StackTheme.fromJson(
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
+                ),
+              ),
             ],
           ),
           home: Material(
@@ -164,7 +186,12 @@ void main() {
         MaterialApp(
           theme: ThemeData(
             extensions: [
-              StackColors.fromStackColorTheme(LightColors()),
+              StackColors.fromStackColorTheme(
+                StackTheme.fromJson(
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
+                ),
+              ),
             ],
           ),
           home: Material(
@@ -196,7 +223,12 @@ void main() {
       MaterialApp(
         theme: ThemeData(
           extensions: [
-            StackColors.fromStackColorTheme(LightColors()),
+            StackColors.fromStackColorTheme(
+              StackTheme.fromJson(
+                json: lightThemeJsonMap,
+                applicationThemesDirectoryPath: "test",
+              ),
+            ),
           ],
         ),
         home: Material(
@@ -233,7 +265,12 @@ void main() {
         MaterialApp(
           theme: ThemeData(
             extensions: [
-              StackColors.fromStackColorTheme(LightColors()),
+              StackColors.fromStackColorTheme(
+                StackTheme.fromJson(
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
+                ),
+              ),
             ],
           ),
           home: const Material(
@@ -266,7 +303,12 @@ void main() {
         MaterialApp(
           theme: ThemeData(
             extensions: [
-              StackColors.fromStackColorTheme(LightColors()),
+              StackColors.fromStackColorTheme(
+                StackTheme.fromJson(
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
+                ),
+              ),
             ],
           ),
           home: Material(
@@ -312,7 +354,12 @@ void main() {
         MaterialApp(
           theme: ThemeData(
             extensions: [
-              StackColors.fromStackColorTheme(LightColors()),
+              StackColors.fromStackColorTheme(
+                StackTheme.fromJson(
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
+                ),
+              ),
             ],
           ),
           home: Material(
@@ -345,7 +392,12 @@ void main() {
         MaterialApp(
           theme: ThemeData(
             extensions: [
-              StackColors.fromStackColorTheme(LightColors()),
+              StackColors.fromStackColorTheme(
+                StackTheme.fromJson(
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
+                ),
+              ),
             ],
           ),
           home: Material(
@@ -378,7 +430,12 @@ void main() {
         MaterialApp(
           theme: ThemeData(
             extensions: [
-              StackColors.fromStackColorTheme(LightColors()),
+              StackColors.fromStackColorTheme(
+                StackTheme.fromJson(
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
+                ),
+              ),
             ],
           ),
           home: Material(
@@ -410,7 +467,12 @@ void main() {
       MaterialApp(
         theme: ThemeData(
           extensions: [
-            StackColors.fromStackColorTheme(LightColors()),
+            StackColors.fromStackColorTheme(
+              StackTheme.fromJson(
+                json: lightThemeJsonMap,
+                applicationThemesDirectoryPath: "test",
+              ),
+            ),
           ],
         ),
         home: Material(

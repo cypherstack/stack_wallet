@@ -30,11 +30,9 @@ import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/mixins/xpubable.dart';
 import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
@@ -45,6 +43,7 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/widgets/crypto_notifications.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
@@ -2078,39 +2077,39 @@ class FiroWallet extends CoinServiceAPI
 
       switch (tx.type) {
         case isar_models.TransactionType.incoming:
-          unawaited(
-            NotificationApi.showNotification(
+          CryptoNotificationsEventBus.instance.fire(
+            CryptoNotificationEvent(
               title: "Incoming transaction",
-              body: walletName,
               walletId: walletId,
-              iconAssetName: Assets.svg.iconFor(coin: coin),
               date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
               shouldWatchForUpdates: confirmations < MINIMUM_CONFIRMATIONS,
-              coinName: coin.name,
               txid: tx.txid,
               confirmations: confirmations,
               requiredConfirmations: MINIMUM_CONFIRMATIONS,
+              walletName: walletName,
+              coin: coin,
             ),
           );
+
           await txTracker.addNotifiedPending(tx.txid);
           break;
         case isar_models.TransactionType.outgoing:
-          unawaited(
-            NotificationApi.showNotification(
+          CryptoNotificationsEventBus.instance.fire(
+            CryptoNotificationEvent(
               title: tx.subType == isar_models.TransactionSubType.mint
                   ? "Anonymizing"
                   : "Outgoing transaction",
-              body: walletName,
               walletId: walletId,
-              iconAssetName: Assets.svg.iconFor(coin: coin),
               date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
               shouldWatchForUpdates: confirmations < MINIMUM_CONFIRMATIONS,
-              coinName: coin.name,
               txid: tx.txid,
               confirmations: confirmations,
               requiredConfirmations: MINIMUM_CONFIRMATIONS,
+              walletName: walletName,
+              coin: coin,
             ),
           );
+
           await txTracker.addNotifiedPending(tx.txid);
           break;
         default:
@@ -2120,32 +2119,35 @@ class FiroWallet extends CoinServiceAPI
 
     for (final tx in unconfirmedTxnsToNotifyConfirmed) {
       if (tx.type == isar_models.TransactionType.incoming) {
-        unawaited(
-          NotificationApi.showNotification(
+        CryptoNotificationsEventBus.instance.fire(
+          CryptoNotificationEvent(
             title: "Incoming transaction confirmed",
-            body: walletName,
             walletId: walletId,
-            iconAssetName: Assets.svg.iconFor(coin: coin),
             date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
             shouldWatchForUpdates: false,
-            coinName: coin.name,
+            txid: tx.txid,
+            requiredConfirmations: MINIMUM_CONFIRMATIONS,
+            walletName: walletName,
+            coin: coin,
           ),
         );
+
         await txTracker.addNotifiedConfirmed(tx.txid);
       } else if (tx.type == isar_models.TransactionType.outgoing &&
           tx.subType == isar_models.TransactionSubType.join) {
-        unawaited(
-          NotificationApi.showNotification(
+        CryptoNotificationsEventBus.instance.fire(
+          CryptoNotificationEvent(
             title: tx.subType ==
                     isar_models.TransactionSubType.mint // redundant check?
                 ? "Anonymized"
                 : "Outgoing transaction confirmed",
-            body: walletName,
             walletId: walletId,
-            iconAssetName: Assets.svg.iconFor(coin: coin),
             date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
             shouldWatchForUpdates: false,
-            coinName: coin.name,
+            txid: tx.txid,
+            requiredConfirmations: MINIMUM_CONFIRMATIONS,
+            walletName: walletName,
+            coin: coin,
           ),
         );
         await txTracker.addNotifiedConfirmed(tx.txid);

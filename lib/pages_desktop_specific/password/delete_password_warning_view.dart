@@ -8,7 +8,7 @@ import 'package:hive/hive.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/intro_view.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -95,7 +95,11 @@ class _ForgotPasswordDesktopViewState
               mainAxisSize: MainAxisSize.min,
               children: [
                 SvgPicture.asset(
-                  Assets.svg.stackIcon(context),
+                  ref.watch(
+                    themeProvider.select(
+                      (value) => value.assets.stackIcon,
+                    ),
+                  ),
                   width: 100,
                 ),
                 const SizedBox(

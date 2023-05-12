@@ -42,7 +42,7 @@ packages:
     source: hosted
     version: "4.2.0"
   archive:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: archive
       sha256: "80e5141fafcb3361653ce308776cfd7d45e6e9fbb429e14eec571382c0c5fecb"
@@ -458,6 +458,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.2.2"
+  desktop_drop:
+    dependency: "direct main"
+    description:
+      name: desktop_drop
+      sha256: "4ca4d960f4b11c032e9adfd2a0a8ac615bc3fddb4cbe73dcf840dd8077582186"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.1"
   device_info_plus:
     dependency: "direct main"
     description:

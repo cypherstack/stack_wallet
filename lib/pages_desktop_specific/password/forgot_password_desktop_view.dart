@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages_desktop_specific/password/delete_password_warning_view.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 
-class ForgotPasswordDesktopView extends StatefulWidget {
+class ForgotPasswordDesktopView extends ConsumerStatefulWidget {
   const ForgotPasswordDesktopView({
     Key? key,
   }) : super(key: key);
@@ -18,11 +19,12 @@ class ForgotPasswordDesktopView extends StatefulWidget {
   static const String routeName = "/forgotPasswordDesktop";
 
   @override
-  State<ForgotPasswordDesktopView> createState() =>
+  ConsumerState<ForgotPasswordDesktopView> createState() =>
       _ForgotPasswordDesktopViewState();
 }
 
-class _ForgotPasswordDesktopViewState extends State<ForgotPasswordDesktopView> {
+class _ForgotPasswordDesktopViewState
+    extends ConsumerState<ForgotPasswordDesktopView> {
   @override
   Widget build(BuildContext context) {
     return DesktopScaffold(
@@ -46,7 +48,11 @@ class _ForgotPasswordDesktopViewState extends State<ForgotPasswordDesktopView> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 SvgPicture.asset(
-                  Assets.svg.stackIcon(context),
+                  ref.watch(
+                    themeProvider.select(
+                      (value) => value.assets.stackIcon,
+                    ),
+                  ),
                   width: 100,
                 ),
                 const SizedBox(

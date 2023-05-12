@@ -18,18 +18,20 @@ import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i10;
 import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i9;
 import 'package:stackwallet/models/balance.dart' as _i11;
 import 'package:stackwallet/models/isar/models/isar_models.dart' as _i17;
-import 'package:stackwallet/models/node_model.dart' as _i31;
+import 'package:stackwallet/models/isar/stack_theme.dart' as _i31;
+import 'package:stackwallet/models/node_model.dart' as _i33;
 import 'package:stackwallet/models/paymint/fee_object_model.dart' as _i8;
 import 'package:stackwallet/models/signing_data.dart' as _i28;
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart' as _i26;
 import 'package:stackwallet/services/coins/coin_service.dart' as _i20;
 import 'package:stackwallet/services/coins/manager.dart' as _i6;
-import 'package:stackwallet/services/locale_service.dart' as _i30;
+import 'package:stackwallet/services/locale_service.dart' as _i32;
 import 'package:stackwallet/services/node_service.dart' as _i3;
 import 'package:stackwallet/services/transaction_notification_tracker.dart'
     as _i7;
 import 'package:stackwallet/services/wallets.dart' as _i21;
 import 'package:stackwallet/services/wallets_service.dart' as _i2;
+import 'package:stackwallet/themes/theme_service.dart' as _i30;
 import 'package:stackwallet/utilities/amount/amount.dart' as _i14;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i22;
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart' as _i27;
@@ -1955,10 +1957,100 @@ class MockBitcoinWallet extends _i1.Mock implements _i26.BitcoinWallet {
       ) as _i23.Future<void>);
 }
 
+/// A class which mocks [ThemeService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockThemeService extends _i1.Mock implements _i30.ThemeService {
+  MockThemeService() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i12.MainDB get db => (super.noSuchMethod(
+        Invocation.getter(#db),
+        returnValue: _FakeMainDB_9(
+          this,
+          Invocation.getter(#db),
+        ),
+      ) as _i12.MainDB);
+  @override
+  List<_i31.StackTheme> get installedThemes => (super.noSuchMethod(
+        Invocation.getter(#installedThemes),
+        returnValue: <_i31.StackTheme>[],
+      ) as List<_i31.StackTheme>);
+  @override
+  void init(_i12.MainDB? db) => super.noSuchMethod(
+        Invocation.method(
+          #init,
+          [db],
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i23.Future<void> install({required _i29.Uint8List? themeArchiveData}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #install,
+          [],
+          {#themeArchiveData: themeArchiveData},
+        ),
+        returnValue: _i23.Future<void>.value(),
+        returnValueForMissingStub: _i23.Future<void>.value(),
+      ) as _i23.Future<void>);
+  @override
+  _i23.Future<void> remove({required String? themeId}) => (super.noSuchMethod(
+        Invocation.method(
+          #remove,
+          [],
+          {#themeId: themeId},
+        ),
+        returnValue: _i23.Future<void>.value(),
+        returnValueForMissingStub: _i23.Future<void>.value(),
+      ) as _i23.Future<void>);
+  @override
+  _i23.Future<bool> verifyInstalled({required String? themeId}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #verifyInstalled,
+          [],
+          {#themeId: themeId},
+        ),
+        returnValue: _i23.Future<bool>.value(false),
+      ) as _i23.Future<bool>);
+  @override
+  _i23.Future<List<_i30.StackThemeMetaData>> fetchThemes() =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #fetchThemes,
+          [],
+        ),
+        returnValue: _i23.Future<List<_i30.StackThemeMetaData>>.value(
+            <_i30.StackThemeMetaData>[]),
+      ) as _i23.Future<List<_i30.StackThemeMetaData>>);
+  @override
+  _i23.Future<_i29.Uint8List> fetchTheme(
+          {required _i30.StackThemeMetaData? themeMetaData}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #fetchTheme,
+          [],
+          {#themeMetaData: themeMetaData},
+        ),
+        returnValue: _i23.Future<_i29.Uint8List>.value(_i29.Uint8List(0)),
+      ) as _i23.Future<_i29.Uint8List>);
+  @override
+  _i31.StackTheme? getTheme({required String? themeId}) =>
+      (super.noSuchMethod(Invocation.method(
+        #getTheme,
+        [],
+        {#themeId: themeId},
+      )) as _i31.StackTheme?);
+}
+
 /// A class which mocks [LocaleService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockLocaleService extends _i1.Mock implements _i30.LocaleService {
+class MockLocaleService extends _i1.Mock implements _i32.LocaleService {
   MockLocaleService() {
     _i1.throwOnMissingStub(this);
   }
@@ -2030,15 +2122,15 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
         ),
       ) as _i19.SecureStorageInterface);
   @override
-  List<_i31.NodeModel> get primaryNodes => (super.noSuchMethod(
+  List<_i33.NodeModel> get primaryNodes => (super.noSuchMethod(
         Invocation.getter(#primaryNodes),
-        returnValue: <_i31.NodeModel>[],
-      ) as List<_i31.NodeModel>);
+        returnValue: <_i33.NodeModel>[],
+      ) as List<_i33.NodeModel>);
   @override
-  List<_i31.NodeModel> get nodes => (super.noSuchMethod(
+  List<_i33.NodeModel> get nodes => (super.noSuchMethod(
         Invocation.getter(#nodes),
-        returnValue: <_i31.NodeModel>[],
-      ) as List<_i31.NodeModel>);
+        returnValue: <_i33.NodeModel>[],
+      ) as List<_i33.NodeModel>);
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
@@ -2056,7 +2148,7 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
   @override
   _i23.Future<void> setPrimaryNodeFor({
     required _i22.Coin? coin,
-    required _i31.NodeModel? node,
+    required _i33.NodeModel? node,
     bool? shouldNotifyListeners = false,
   }) =>
       (super.noSuchMethod(
@@ -2073,40 +2165,40 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
         returnValueForMissingStub: _i23.Future<void>.value(),
       ) as _i23.Future<void>);
   @override
-  _i31.NodeModel? getPrimaryNodeFor({required _i22.Coin? coin}) =>
+  _i33.NodeModel? getPrimaryNodeFor({required _i22.Coin? coin}) =>
       (super.noSuchMethod(Invocation.method(
         #getPrimaryNodeFor,
         [],
         {#coin: coin},
-      )) as _i31.NodeModel?);
+      )) as _i33.NodeModel?);
   @override
-  List<_i31.NodeModel> getNodesFor(_i22.Coin? coin) => (super.noSuchMethod(
+  List<_i33.NodeModel> getNodesFor(_i22.Coin? coin) => (super.noSuchMethod(
         Invocation.method(
           #getNodesFor,
           [coin],
         ),
-        returnValue: <_i31.NodeModel>[],
-      ) as List<_i31.NodeModel>);
+        returnValue: <_i33.NodeModel>[],
+      ) as List<_i33.NodeModel>);
   @override
-  _i31.NodeModel? getNodeById({required String? id}) =>
+  _i33.NodeModel? getNodeById({required String? id}) =>
       (super.noSuchMethod(Invocation.method(
         #getNodeById,
         [],
         {#id: id},
-      )) as _i31.NodeModel?);
+      )) as _i33.NodeModel?);
   @override
-  List<_i31.NodeModel> failoverNodesFor({required _i22.Coin? coin}) =>
+  List<_i33.NodeModel> failoverNodesFor({required _i22.Coin? coin}) =>
       (super.noSuchMethod(
         Invocation.method(
           #failoverNodesFor,
           [],
           {#coin: coin},
         ),
-        returnValue: <_i31.NodeModel>[],
-      ) as List<_i31.NodeModel>);
+        returnValue: <_i33.NodeModel>[],
+      ) as List<_i33.NodeModel>);
   @override
   _i23.Future<void> add(
-    _i31.NodeModel? node,
+    _i33.NodeModel? node,
     String? password,
     bool? shouldNotifyListeners,
   ) =>
@@ -2158,7 +2250,7 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
       ) as _i23.Future<void>);
   @override
   _i23.Future<void> edit(
-    _i31.NodeModel? editedNode,
+    _i33.NodeModel? editedNode,
     String? password,
     bool? shouldNotifyListeners,
   ) =>

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/languages_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -9,13 +11,10 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
-
-import '../../../../utilities/assets.dart';
-import '../../../../utilities/theme/stack_colors.dart';
-import '../../../../widgets/icon_widgets/x_icon.dart';
-import '../../../../widgets/rounded_container.dart';
-import '../../../../widgets/textfield_icon_button.dart';
+import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 class LanguageDialog extends ConsumerStatefulWidget {
   const LanguageDialog({Key? key}) : super(key: key);
