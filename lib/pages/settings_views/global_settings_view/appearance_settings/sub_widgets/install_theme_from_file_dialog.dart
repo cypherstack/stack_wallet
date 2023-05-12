@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -34,9 +33,7 @@ class _InstallThemeFromFileDialogState
       final timedFuture = Future<void>.delayed(const Duration(seconds: 2));
       final installFuture = File(controller.text).readAsBytes().then(
             (fileBytes) => ref.read(pThemeService).install(
-                  themeArchive: ByteData.view(
-                    fileBytes.buffer,
-                  ),
+                  themeArchiveData: fileBytes,
                 ),
           );
 

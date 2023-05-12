@@ -198,7 +198,8 @@ void main() async {
       level: LogLevel.Info,
     );
     final lightZip = await rootBundle.load("assets/default_themes/light.zip");
-    await ThemeService.instance.install(themeArchive: lightZip);
+    await ThemeService.instance
+        .install(themeArchiveData: lightZip.buffer.asUint8List());
     Logging.instance.log(
       "Installing default light theme... finished",
       level: LogLevel.Info,
@@ -210,7 +211,8 @@ void main() async {
       level: LogLevel.Info,
     );
     final darkZip = await rootBundle.load("assets/default_themes/dark.zip");
-    await ThemeService.instance.install(themeArchive: darkZip);
+    await ThemeService.instance
+        .install(themeArchiveData: darkZip.buffer.asUint8List());
     Logging.instance.log(
       "Installing default dark theme... finished",
       level: LogLevel.Info,

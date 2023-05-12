@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -37,9 +35,7 @@ class _DesktopInstallThemeState extends ConsumerState<DesktopInstallTheme> {
       final timedFuture = Future<void>.delayed(const Duration(seconds: 2));
       final installFuture = _selectedFile!.readAsBytes().then(
             (fileBytes) => ref.read(pThemeService).install(
-                  themeArchive: ByteData.view(
-                    fileBytes.buffer,
-                  ),
+                  themeArchiveData: fileBytes,
                 ),
           );
 

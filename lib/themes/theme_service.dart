@@ -28,11 +28,10 @@ class ThemeService {
 
   void init(MainDB db) => _db ??= db;
 
-  Future<void> install({required ByteData themeArchive}) async {
+  Future<void> install({required Uint8List themeArchiveData}) async {
     final themesDir = await StackFileSystem.applicationThemesDirectory();
 
-    final byteStream = InputStream(themeArchive);
-    final archive = ZipDecoder().decodeBuffer(byteStream);
+    final archive = ZipDecoder().decodeBytes(themeArchiveData);
 
     final themeJsonFiles = archive.files.where((e) => e.name == "theme.json");
 
@@ -138,7 +137,7 @@ class ThemeService {
     }
   }
 
-  Future<ByteData> fetchTheme({
+  Future<Uint8List> fetchTheme({
     required StackThemeMetaData themeMetaData,
   }) async {
     try {
@@ -150,9 +149,7 @@ class ThemeService {
       // verify hash
       final digest = sha256.convert(bytes);
       if (digest.toString() == themeMetaData.sha256) {
-        final result = ByteData.view(bytes.buffer);
-
-        return result;
+        return bytes;
       } else {
         throw Exception(
           "Fetched theme archive sha256 hash ($digest) does not"

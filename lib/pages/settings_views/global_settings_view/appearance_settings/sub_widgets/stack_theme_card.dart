@@ -49,7 +49,7 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
         themeMetaData: widget.data,
       );
 
-      await service.install(themeArchive: data);
+      await service.install(themeArchiveData: data);
       return true;
     } catch (e, s) {
       Logging.instance.log(
