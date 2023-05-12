@@ -152,6 +152,7 @@ dependencies:
   hex: ^0.2.0
   rational: ^2.2.2
   archive: ^3.3.2
+  desktop_drop: ^0.4.1
 
 dev_dependencies:
   flutter_test:

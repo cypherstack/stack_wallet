@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  desktop_drop
   devicelocale
   flutter_libepiccash
   flutter_libmonero
