@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -70,22 +71,37 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
       final message = result
           ? "${widget.data.name} theme installed!"
           : "Failed to install ${widget.data.name} theme";
-      await showDialog<void>(
-        context: context,
-        builder: (_) => StackOkDialog(
-          title: message,
-          onOkPressed: (_) {
-            setState(() {
-              _hasTheme = result;
-            });
-          },
-        ),
-      );
+      if (isDesktop) {
+        await showFloatingFlushBar(
+          type: result ? FlushBarType.success : FlushBarType.warning,
+          message: message,
+          context: context,
+        );
+      } else {
+        await showDialog<void>(
+          context: context,
+          builder: (_) => StackOkDialog(
+            title: message,
+            onOkPressed: (_) {
+              setState(() {
+                _hasTheme = result;
+              });
+            },
+          ),
+        );
+      }
     }
   }
 
   Future<void> _uninstallThemePressed() async {
     await ref.read(pThemeService).remove(themeId: widget.data.id);
+    if (mounted) {
+      await showFloatingFlushBar(
+        type: FlushBarType.success,
+        message: "${widget.data.name} uninstalled",
+        context: context,
+      );
+    }
   }
 
   bool get themeIsInUse {
