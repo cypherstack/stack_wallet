@@ -1749,6 +1749,30 @@ class StackColors extends ThemeExtension<StackColors> {
             ),
           );
 
+  ButtonStyle? getOutlineBlueButtonStyle(BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              Colors.transparent,
+            ),
+            side: MaterialStateProperty.all<BorderSide>(
+              BorderSide(
+                color: customTextButtonEnabledText,
+              ),
+            ),
+          );
+
+  ButtonStyle? getOutlineBlueButtonDisabledStyle(BuildContext context) =>
+      Theme.of(context).textButtonTheme.style?.copyWith(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              Colors.transparent,
+            ),
+            side: MaterialStateProperty.all<BorderSide>(
+              BorderSide(
+                color: customTextButtonDisabledText,
+              ),
+            ),
+          );
+
   ButtonStyle? getSecondaryEnabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
             backgroundColor: MaterialStateProperty.all<Color>(

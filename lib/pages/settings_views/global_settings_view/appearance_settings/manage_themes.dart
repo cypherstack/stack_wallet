@@ -34,7 +34,7 @@ class ManageThemesView extends ConsumerStatefulWidget {
 class _ManageThemesViewState extends ConsumerState<ManageThemesView> {
   late bool _showThemes;
 
-  Future<List<StackThemeMetaData>> future = Future(() => []);
+  Future<List<StackThemeMetaData>> Function() future = () async => [];
 
   void _onInstallPressed() {
     showDialog<void>(
@@ -46,6 +46,9 @@ class _ManageThemesViewState extends ConsumerState<ManageThemesView> {
   @override
   void initState() {
     _showThemes = ref.read(prefsChangeNotifierProvider).externalCalls;
+    if (_showThemes) {
+      future = ref.read(pThemeService).fetchThemes;
+    }
     super.initState();
   }
 
@@ -121,7 +124,7 @@ class _ManageThemesViewState extends ConsumerState<ManageThemesView> {
                             child: Text(
                               "You are using Incognito Mode. Please press the"
                               " button below to load available themes from our server"
-                              " or upload a theme file manually from your device.",
+                              " or install a theme file manually from your device.",
                               style: STextStyles.smallMed12(context),
                             ),
                           ),
@@ -133,7 +136,7 @@ class _ManageThemesViewState extends ConsumerState<ManageThemesView> {
                             onPressed: () {
                               setState(() {
                                 _showThemes = true;
-                                future = ref.watch(pThemeService).fetchThemes();
+                                future = ref.watch(pThemeService).fetchThemes;
                               });
                             },
                           ),
@@ -147,8 +150,11 @@ class _ManageThemesViewState extends ConsumerState<ManageThemesView> {
                           const SizedBox(
                             height: 16,
                           ),
-                          const Expanded(
-                            child: _IncognitoInstalledThemes(),
+                          Expanded(
+                            child: IncognitoInstalledThemes(
+                              cardWidth:
+                                  (MediaQuery.of(context).size.width - 48) / 2,
+                            ),
                           ),
                           const SizedBox(
                             height: 16,
@@ -164,7 +170,7 @@ class _ManageThemesViewState extends ConsumerState<ManageThemesView> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           FutureBuilder(
-            future: future,
+            future: future(),
             builder: (
               context,
               AsyncSnapshot<List<StackThemeMetaData>> snapshot,
@@ -177,6 +183,7 @@ class _ManageThemesViewState extends ConsumerState<ManageThemesView> {
                   children: snapshot.data!
                       .map(
                         (e) => SizedBox(
+                          key: Key("ManageThemesView_card_${e.id}_key"),
                           width: (MediaQuery.of(context).size.width - 48) / 2,
                           child: StackThemeCard(
                             data: e,
@@ -200,16 +207,21 @@ class _ManageThemesViewState extends ConsumerState<ManageThemesView> {
   }
 }
 
-class _IncognitoInstalledThemes extends ConsumerStatefulWidget {
-  const _IncognitoInstalledThemes({Key? key}) : super(key: key);
+class IncognitoInstalledThemes extends ConsumerStatefulWidget {
+  const IncognitoInstalledThemes({
+    Key? key,
+    required this.cardWidth,
+  }) : super(key: key);
+
+  final double cardWidth;
 
   @override
-  ConsumerState<_IncognitoInstalledThemes> createState() =>
+  ConsumerState<IncognitoInstalledThemes> createState() =>
       _IncognitoInstalledThemesState();
 }
 
 class _IncognitoInstalledThemesState
-    extends ConsumerState<_IncognitoInstalledThemes> {
+    extends ConsumerState<IncognitoInstalledThemes> {
   late final StreamSubscription<void> _subscription;
 
   List<Tuple2<String, String>> installedThemeIdNames = [];
@@ -255,7 +267,8 @@ class _IncognitoInstalledThemesState
       children: installedThemeIdNames
           .map(
             (e) => SizedBox(
-              width: (MediaQuery.of(context).size.width - 48) / 2,
+              key: Key("IncognitoInstalledThemes_card_${e.item1}_key"),
+              width: widget.cardWidth,
               child: StackThemeCard(
                 data: StackThemeMetaData(
                   name: e.item2,

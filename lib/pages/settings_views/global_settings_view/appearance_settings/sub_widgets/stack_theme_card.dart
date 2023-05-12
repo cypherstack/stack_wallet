@@ -8,12 +8,14 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
@@ -33,6 +35,7 @@ class StackThemeCard extends ConsumerStatefulWidget {
 }
 
 class _StackThemeCardState extends ConsumerState<StackThemeCard> {
+  final isDesktop = Util.isDesktop;
   late final StreamSubscription<void> _subscription;
 
   late bool _hasTheme;
@@ -170,6 +173,10 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
   @override
   Widget build(BuildContext context) {
     return RoundedWhiteContainer(
+      radiusMultiplier: isDesktop ? 2.5 : 1,
+      borderColor: isDesktop
+          ? Theme.of(context).extension<StackColors>()!.textSubtitle6
+          : null,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -259,13 +266,13 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
                 : CrossFadeState.showFirst,
             firstChild: PrimaryButton(
               label: "Download",
-              buttonHeight: ButtonHeight.l,
+              buttonHeight: isDesktop ? ButtonHeight.s : ButtonHeight.l,
               onPressed: _downloadPressed,
             ),
             secondChild: SecondaryButton(
-              label: themeIsInUse ? "Theme is active" : "Remove from device",
+              label: themeIsInUse ? "Theme is active" : "Remove",
               enabled: !themeIsInUse,
-              buttonHeight: ButtonHeight.l,
+              buttonHeight: isDesktop ? ButtonHeight.s : ButtonHeight.l,
               onPressed: _uninstallThemePressed,
             ),
           ),

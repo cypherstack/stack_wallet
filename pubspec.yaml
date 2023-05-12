@@ -329,6 +329,8 @@ flutter:
     - assets/svg/framed-gear.svg
     - assets/svg/list-ul.svg
     - assets/svg/cc.svg
+    - assets/svg/file.svg
+    - assets/svg/file-upload.svg
     - assets/svg/trocador_rating_a.svg
     - assets/svg/trocador_rating_b.svg
     - assets/svg/trocador_rating_c.svg

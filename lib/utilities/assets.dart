@@ -182,6 +182,8 @@ class _SVG {
   String get tokens => "assets/svg/tokens.svg";
   String get circlePlusDark => "assets/svg/circle-plus.svg";
   String get creditCard => "assets/svg/cc.svg";
+  String get file => "assets/svg/file.svg";
+  String get fileUpload => "assets/svg/file-upload.svg";
 
   String get ellipse1 => "assets/svg/Ellipse-43.svg";
   String get ellipse2 => "assets/svg/Ellipse-42.svg";

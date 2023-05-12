@@ -1,8 +1,12 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/models/isar/stack_theme.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/appearance_settings/sub_widgets/desktop_manage_themes.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
@@ -200,6 +204,7 @@ class ThemeToggle extends ConsumerStatefulWidget {
 }
 
 class _ThemeToggle extends ConsumerState<ThemeToggle> {
+  late final StreamSubscription<void> _subscription;
   late int _current;
 
   List<Tuple3<String, String, String>> installedThemeIdNames = [];
@@ -261,13 +266,24 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
     }
   }
 
-  @override
-  void initState() {
+  void _updateInstalledList() {
     installedThemeIdNames = ref
         .read(pThemeService)
         .installedThemes
         .map((e) => Tuple3(e.themeId, e.name, e.assets.themePreview))
         .toList();
+  }
+
+  void _manageThemesPressed() {
+    showDialog<void>(
+      context: context,
+      builder: (_) => const DesktopManageThemesDialog(),
+    );
+  }
+
+  @override
+  void initState() {
+    _updateInstalledList();
 
     if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
       _current = installedThemeIdNames.length;
@@ -282,7 +298,24 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
       }
     }
 
+    _subscription =
+        ref.read(mainDBProvider).isar.stackThemes.watchLazy().listen((_) {
+      if (mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          setState(() {
+            _updateInstalledList();
+          });
+        });
+      }
+    });
+
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
   }
 
   @override
@@ -372,7 +405,56 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
                 ),
               ),
             ),
-          )
+          ),
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(
+              width: 2.5,
+              color: Theme.of(context).extension<StackColors>()!.popupBG,
+            ),
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Semantics(
+              label: "Manage themes",
+              button: true,
+              excludeSemantics: true,
+              child: RawMaterialButton(
+                onPressed: _manageThemesPressed,
+                elevation: 0,
+                focusElevation: 0,
+                hoverElevation: 0,
+                highlightElevation: 0,
+                fillColor: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveBG,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(
+                    Constants.size.circularBorderRadius,
+                  ),
+                ),
+                child: Container(
+                  color: Colors.transparent,
+                  height: 160,
+                  width: 200,
+                  child: Center(
+                    child: SvgPicture.asset(
+                      Assets.svg.circlePlusFilled,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textSubtitle2,
+                      width: 20,
+                      height: 20,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
