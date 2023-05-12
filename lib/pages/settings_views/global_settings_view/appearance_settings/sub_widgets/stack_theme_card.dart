@@ -9,7 +9,6 @@ import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
@@ -196,11 +195,12 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
                   )
                 : Builder(
                     builder: (context) {
-                      final themePreview = ref.watch(
-                        themeProvider.select(
-                          (value) => value.assets.themePreview,
-                        ),
-                      );
+                      final themePreview = ref
+                              .watch(pThemeService)
+                              .getTheme(themeId: widget.data.id)
+                              ?.assets
+                              .themePreview ??
+                          "";
 
                       return (themePreview.endsWith(".png"))
                           ? Image.file(
