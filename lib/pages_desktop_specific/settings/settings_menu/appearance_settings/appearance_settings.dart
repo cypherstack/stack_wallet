@@ -270,7 +270,7 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
     installedThemeIdNames = ref
         .read(pThemeService)
         .installedThemes
-        .map((e) => Tuple3(e.themeId, e.name, e.assets.themePreview))
+        .map((e) => Tuple3(e.themeId, e.name, e.assets.themeSelector))
         .toList();
   }
 

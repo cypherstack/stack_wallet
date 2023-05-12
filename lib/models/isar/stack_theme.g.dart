@@ -17877,33 +17877,38 @@ const ThemeAssetsSchema = Schema(
       name: r'themePreview',
       type: IsarType.string,
     ),
-    r'txExchange': PropertySchema(
+    r'themeSelector': PropertySchema(
       id: 46,
+      name: r'themeSelector',
+      type: IsarType.string,
+    ),
+    r'txExchange': PropertySchema(
+      id: 47,
       name: r'txExchange',
       type: IsarType.string,
     ),
     r'txExchangeFailed': PropertySchema(
-      id: 47,
+      id: 48,
       name: r'txExchangeFailed',
       type: IsarType.string,
     ),
     r'txExchangePending': PropertySchema(
-      id: 48,
+      id: 49,
       name: r'txExchangePending',
       type: IsarType.string,
     ),
     r'wownero': PropertySchema(
-      id: 49,
+      id: 50,
       name: r'wownero',
       type: IsarType.string,
     ),
     r'wowneroImage': PropertySchema(
-      id: 50,
+      id: 51,
       name: r'wowneroImage',
       type: IsarType.string,
     ),
     r'wowneroImageSecondary': PropertySchema(
-      id: 51,
+      id: 52,
       name: r'wowneroImageSecondary',
       type: IsarType.string,
     )
@@ -17976,6 +17981,7 @@ int _themeAssetsEstimateSize(
   bytesCount += 3 + object.stack.length * 3;
   bytesCount += 3 + object.stackIcon.length * 3;
   bytesCount += 3 + object.themePreview.length * 3;
+  bytesCount += 3 + object.themeSelector.length * 3;
   bytesCount += 3 + object.txExchange.length * 3;
   bytesCount += 3 + object.txExchangeFailed.length * 3;
   bytesCount += 3 + object.txExchangePending.length * 3;
@@ -18037,12 +18043,13 @@ void _themeAssetsSerialize(
   writer.writeString(offsets[43], object.stack);
   writer.writeString(offsets[44], object.stackIcon);
   writer.writeString(offsets[45], object.themePreview);
-  writer.writeString(offsets[46], object.txExchange);
-  writer.writeString(offsets[47], object.txExchangeFailed);
-  writer.writeString(offsets[48], object.txExchangePending);
-  writer.writeString(offsets[49], object.wownero);
-  writer.writeString(offsets[50], object.wowneroImage);
-  writer.writeString(offsets[51], object.wowneroImageSecondary);
+  writer.writeString(offsets[46], object.themeSelector);
+  writer.writeString(offsets[47], object.txExchange);
+  writer.writeString(offsets[48], object.txExchangeFailed);
+  writer.writeString(offsets[49], object.txExchangePending);
+  writer.writeString(offsets[50], object.wownero);
+  writer.writeString(offsets[51], object.wowneroImage);
+  writer.writeString(offsets[52], object.wowneroImageSecondary);
 }
 
 ThemeAssets _themeAssetsDeserialize(
@@ -18098,12 +18105,13 @@ ThemeAssets _themeAssetsDeserialize(
   object.stack = reader.readString(offsets[43]);
   object.stackIcon = reader.readString(offsets[44]);
   object.themePreview = reader.readString(offsets[45]);
-  object.txExchange = reader.readString(offsets[46]);
-  object.txExchangeFailed = reader.readString(offsets[47]);
-  object.txExchangePending = reader.readString(offsets[48]);
-  object.wownero = reader.readString(offsets[49]);
-  object.wowneroImage = reader.readString(offsets[50]);
-  object.wowneroImageSecondary = reader.readString(offsets[51]);
+  object.themeSelector = reader.readString(offsets[46]);
+  object.txExchange = reader.readString(offsets[47]);
+  object.txExchangeFailed = reader.readString(offsets[48]);
+  object.txExchangePending = reader.readString(offsets[49]);
+  object.wownero = reader.readString(offsets[50]);
+  object.wowneroImage = reader.readString(offsets[51]);
+  object.wowneroImageSecondary = reader.readString(offsets[52]);
   return object;
 }
 
@@ -18217,6 +18225,8 @@ P _themeAssetsDeserializeProp<P>(
     case 50:
       return (reader.readString(offset)) as P;
     case 51:
+      return (reader.readString(offset)) as P;
+    case 52:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -24491,6 +24501,142 @@ extension ThemeAssetsQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'themePreview',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      themeSelectorEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      themeSelectorGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      themeSelectorLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      themeSelectorBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'themeSelector',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      themeSelectorStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      themeSelectorEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      themeSelectorContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      themeSelectorMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'themeSelector',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      themeSelectorIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'themeSelector',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      themeSelectorIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'themeSelector',
         value: '',
       ));
     });

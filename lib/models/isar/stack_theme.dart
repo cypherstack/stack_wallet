@@ -1992,6 +1992,7 @@ class ThemeAssets {
   late final String send;
   late final String sendPending;
   late final String sendCancelled;
+  late final String themeSelector;
   late final String themePreview;
   late final String txExchange;
   late final String txExchangePending;
@@ -2068,6 +2069,8 @@ class ThemeAssets {
           "$applicationThemesDirectoryPath/$themeId/assets/${json["send_pending"] as String}"
       ..sendCancelled =
           "$applicationThemesDirectoryPath/$themeId/assets/${json["send_cancelled"] as String}"
+      ..themeSelector =
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["theme_selector"] as String}"
       ..themePreview =
           "$applicationThemesDirectoryPath/$themeId/assets/${json["theme_preview"] as String}"
       ..txExchange =
