@@ -1,17 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/models/notification_model.dart';
 import 'package:stackwallet/notifications/notification_card.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
 
 import '../sample_data/theme_json.dart';
+import 'notification_card_test.mocks.dart';
 
+@GenerateMocks([
+  ThemeService,
+])
 void main() {
   testWidgets("test notification card", (widgetTester) async {
     final key = UniqueKey();
+    final mockThemeService = MockThemeService();
+    final theme = StackTheme.fromJson(
+      json: lightThemeJsonMap,
+      applicationThemesDirectoryPath: "test",
+    );
+
+    when(mockThemeService.getTheme(themeId: "light")).thenAnswer(
+      (_) => theme,
+    );
+
     final notificationCard = NotificationCard(
       key: key,
       notification: NotificationModel(
@@ -27,19 +45,21 @@ void main() {
     );
 
     await widgetTester.pumpWidget(
-      MaterialApp(
-        theme: ThemeData(
-          extensions: [
-            StackColors.fromStackColorTheme(
-              StackTheme.fromJson(
-                json: lightThemeJsonMap,
-                applicationThemesDirectoryPath: "test",
+      ProviderScope(
+        overrides: [
+          pThemeService.overrideWithValue(mockThemeService),
+        ],
+        child: MaterialApp(
+          theme: ThemeData(
+            extensions: [
+              StackColors.fromStackColorTheme(
+                theme,
               ),
-            ),
-          ],
-        ),
-        home: Material(
-          child: notificationCard,
+            ],
+          ),
+          home: Material(
+            child: notificationCard,
+          ),
         ),
       ),
     );
