@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -53,10 +55,12 @@ class DesktopMyStackTitle extends ConsumerWidget {
         SizedBox(
           width: 32,
           height: 32,
-          child: SvgPicture.asset(
-            ref.watch(
-              themeProvider.select(
-                (value) => value.assets.stackIcon,
+          child: SvgPicture.file(
+            File(
+              ref.watch(
+                themeProvider.select(
+                  (value) => value.assets.stackIcon,
+                ),
               ),
             ),
           ),

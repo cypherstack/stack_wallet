@@ -343,13 +343,8 @@ flutter:
     # exchange icons
     - assets/svg/exchange_icons/
 
-    # theme selectors
-#    - assets/svg/dark-theme.svg
-#    - assets/svg/light-mode.svg
-
     # buy
     - assets/svg/buy/
-
 
     # lottie animations
     # basic

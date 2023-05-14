@@ -1,10 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_overview.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -141,8 +143,10 @@ class _DesktopWalletSummaryRowState
                 flex: 4,
                 child: Row(
                   children: [
-                    SvgPicture.asset(
-                      ref.watch(coinIconProvider(widget.coin)),
+                    SvgPicture.file(
+                      File(
+                        ref.watch(coinIconProvider(widget.coin)),
+                      ),
                       width: 28,
                       height: 28,
                     ),
