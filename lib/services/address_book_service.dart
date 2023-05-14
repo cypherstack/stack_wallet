@@ -1,40 +1,92 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:stackwallet/db/hive/db.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/contact.dart';
+import 'package:stackwallet/models/contact_address_entry.dart';
+import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 class AddressBookService extends ChangeNotifier {
-  Contact getContactById(String id) {
-    final json = DB.instance
-        .get<dynamic>(boxName: DB.boxNameAddressBook, key: id) as Map?;
-    if (json == null) {
-      Logging.instance
-          .log("Attempted to get non existing contact", level: LogLevel.Fatal);
-      throw Exception('Contact ID "$id" not found!');
+
+  ContactEntry turnContactToEntry({required Contact contact}) {
+    String? emojiChar = contact.emojiChar;
+    String name = contact.name;
+    List<String> addresses = [];
+    bool isFavorite = contact.isFavorite;
+    String customId = contact.id;
+    for (ContactAddressEntry contactAddressEntry in contact.addresses) {
+      String coin = contactAddressEntry.coin.ticker;
+      String address = contactAddressEntry.address;
+      String label = contactAddressEntry.label;
+      String? other = contactAddressEntry.other;
+      addresses.add("$coin,$address,$label,$other");
     }
-    return Contact.fromJson(Map<String, dynamic>.from(json));
+    return ContactEntry(
+      emojiChar: emojiChar,
+      name: name,
+      addresses: addresses,
+      isFavorite: isFavorite,
+      customId: customId,
+    );
+  }
+
+  Contact turnEntryToContact({required ContactEntry contactEntry}) {
+    String? emojiChar = contactEntry.emojiChar;
+    String name = contactEntry.name;
+    List<ContactAddressEntry> addresses = [];
+    bool isFavorite = contactEntry.isFavorite;
+    String id = contactEntry.customId;
+    for (String addressEntry in contactEntry.addresses) {
+      List<String> addressEntrySplit = addressEntry.split(",");
+      Coin coin = coinFromTickerCaseInsensitive(addressEntrySplit[0]);
+      String address = addressEntrySplit[1];
+      String label = addressEntrySplit[2];
+      String? other = addressEntrySplit[3];
+      addresses.add(ContactAddressEntry(
+        coin: coin,
+        address: address,
+        label: label,
+        other: other,
+      ));
+    }
+    return Contact(
+      emojiChar: emojiChar,
+      name: name,
+      addresses: addresses,
+      isFavorite: isFavorite,
+      id: id,
+    );
+  }
+
+  Contact getContactById(String id) {
+    ContactEntry? contactEntry = MainDB.instance.getContactEntry(id: id);
+    if (contactEntry == null) {
+      return Contact(
+        name: "Contact not found",
+        addresses: [],
+        isFavorite: false,
+      );
+    } else {
+      return turnEntryToContact(contactEntry: contactEntry);
+    }
   }
 
   List<Contact> get contacts {
-    final keys = List<String>.from(
-        DB.instance.keys<dynamic>(boxName: DB.boxNameAddressBook));
-    final _contacts = keys
-        .map((id) => Contact.fromJson(Map<String, dynamic>.from(DB.instance
-            .get<dynamic>(boxName: DB.boxNameAddressBook, key: id) as Map)))
-        .toList(growable: false);
-    _contacts
-        .sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-    return _contacts;
+    List<ContactEntry> contactEntries = MainDB.instance.getContactEntries();
+    List<Contact> contactsList = [];
+    for (ContactEntry contactEntry in contactEntries) {
+      contactsList.add(turnEntryToContact(contactEntry: contactEntry));
+    }
+    return contactsList;
   }
 
-  Future<List<Contact>>? _addressBookEntries;
-  Future<List<Contact>> get addressBookEntries =>
+  List<Contact>? _addressBookEntries;
+  List<Contact> get addressBookEntries =>
       _addressBookEntries ??= _fetchAddressBookEntries();
 
   // Load address book contact entries
-  Future<List<Contact>> _fetchAddressBookEntries() async {
+  List<Contact> _fetchAddressBookEntries() {
     return contacts;
   }
 
@@ -74,43 +126,32 @@ class AddressBookService extends ChangeNotifier {
   /// returns false if it provided [contact]'s id already exists in the database
   /// other true if the [contact] was saved
   Future<bool> addContact(Contact contact) async {
-    if (DB.instance.containsKey<dynamic>(
-        boxName: DB.boxNameAddressBook, key: contact.id)) {
+    if (await MainDB.instance.isContactEntryExists(id: contact.id)) {
       return false;
+    } else {
+      await MainDB.instance.putContactEntry(contactEntry: turnContactToEntry(contact: contact));
+      _refreshAddressBookEntries();
+      return true;
     }
-
-    await DB.instance.put<dynamic>(
-        boxName: DB.boxNameAddressBook,
-        key: contact.id,
-        value: contact.toMap());
-
-    Logging.instance.log("add address book entry saved", level: LogLevel.Info);
-    await _refreshAddressBookEntries();
-    return true;
   }
 
   /// Edit contact
   Future<bool> editContact(Contact editedContact) async {
     // over write the contact with edited version
-    await DB.instance.put<dynamic>(
-        boxName: DB.boxNameAddressBook,
-        key: editedContact.id,
-        value: editedContact.toMap());
-
-    Logging.instance.log("edit address book entry saved", level: LogLevel.Info);
-    await _refreshAddressBookEntries();
+    await MainDB.instance.putContactEntry(contactEntry: turnContactToEntry(contact: editedContact));
+    _refreshAddressBookEntries();
     return true;
   }
 
   /// Remove address book contact entry from db if it exists
   Future<void> removeContact(String id) async {
-    await DB.instance.delete<dynamic>(key: id, boxName: DB.boxNameAddressBook);
-    await _refreshAddressBookEntries();
+    await MainDB.instance.deleteContactEntry(id: id);
+    _refreshAddressBookEntries();
   }
 
-  Future<void> _refreshAddressBookEntries() async {
-    final newAddressBookEntries = await _fetchAddressBookEntries();
-    _addressBookEntries = Future(() => newAddressBookEntries);
+  void _refreshAddressBookEntries() {
+    final newAddressBookEntries = _fetchAddressBookEntries();
+    _addressBookEntries = newAddressBookEntries;
     notifyListeners();
   }
 }
