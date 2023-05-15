@@ -46,6 +46,12 @@ class RoundedContainer extends StatelessWidget {
           borderRadius: BorderRadius.circular(
             Constants.size.circularBorderRadius * radiusMultiplier,
           ),
+          side: borderColor == null
+              ? BorderSide.none
+              : BorderSide(
+                  color: borderColor!,
+                  width: 1.2,
+                ),
         ),
         onPressed: onPressed,
         child: child,
