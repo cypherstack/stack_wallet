@@ -91,6 +91,7 @@ const Map<String, dynamic> lightThemeJsonMap = {
     "snack_bar_text_info": "0xFF002A78",
     "bottom_nav_icon_back": "0xFFA2A2A2",
     "bottom_nav_icon_icon": "0xFF232323",
+    "bottom_nav_icon_icon_highlighted": "0xFF232323",
     "top_nav_icon_primary": "0xFF232323",
     "top_nav_icon_green": "0xFF00A578",
     "top_nav_icon_yellow": "0xFFF4C517",
