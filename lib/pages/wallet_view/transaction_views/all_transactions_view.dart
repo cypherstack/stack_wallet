@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/contact.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
+import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/models/transaction_filter.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
@@ -120,8 +120,8 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
     }).toList();
   }
 
-  bool _isKeywordMatch(Transaction tx, String keyword, List<Contact> contacts,
-      Map<String, String> notes) {
+  bool _isKeywordMatch(Transaction tx, String keyword,
+      List<ContactEntry> contacts, Map<String, String> notes) {
     if (keyword.isEmpty) {
       return true;
     }

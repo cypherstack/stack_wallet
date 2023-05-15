@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/contact.dart';
-import 'package:stackwallet/models/contact_address_entry.dart';
+import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/new_contact_address_entry_form.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/ui/address_book_providers/address_entry_data_provider.dart';
@@ -208,7 +207,7 @@ class _AddNewContactAddressViewState
                         .read(addressEntryDataProvider(0))
                         .buildAddressEntry());
 
-                    Contact editedContact =
+                    ContactEntry editedContact =
                         contact.copyWith(addresses: entries);
 
                     if (await ref

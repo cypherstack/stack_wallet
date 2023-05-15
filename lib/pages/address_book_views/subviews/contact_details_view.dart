@@ -199,7 +199,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                           onPressed: () {
                             ref
                                 .read(addressBookServiceProvider)
-                                .removeContact(_contact.id);
+                                .removeContact(_contact.customId);
                             Navigator.of(context).pop();
                             Navigator.of(context).pop();
                             showFloatingFlushBar(
