@@ -191,7 +191,8 @@ class GlobalSettingsView extends StatelessWidget {
                                   title: "Appearance",
                                   onPressed: () {
                                     Navigator.of(context).pushNamed(
-                                        AppearanceSettingsView.routeName);
+                                      AppearanceSettingsView.routeName,
+                                    );
                                   },
                                 ),
                                 if (Platform.isIOS)

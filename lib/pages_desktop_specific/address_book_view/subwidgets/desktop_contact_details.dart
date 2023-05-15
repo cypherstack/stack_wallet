@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/contact.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/add_new_contact_address_view.dart';
@@ -23,8 +26,6 @@ import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/transaction_card.dart';
 import 'package:tuple/tuple.dart';
-
-import '../../../db/isar/main_db.dart';
 
 class DesktopContactDetails extends ConsumerStatefulWidget {
   const DesktopContactDetails({
@@ -119,10 +120,12 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                           ),
                           child: contact.id == "default"
                               ? Center(
-                                  child: SvgPicture.asset(
-                                    ref.watch(
-                                      themeProvider.select(
-                                        (value) => value.assets.stackIcon,
+                                  child: SvgPicture.file(
+                                    File(
+                                      ref.watch(
+                                        themeProvider.select(
+                                          (value) => value.assets.stackIcon,
+                                        ),
                                       ),
                                     ),
                                     width: 32,

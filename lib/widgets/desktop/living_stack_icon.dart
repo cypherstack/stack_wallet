@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -47,10 +49,12 @@ class _LivingStackIconState extends ConsumerState<LivingStackIcon> {
           child: AnimatedScale(
             duration: const Duration(milliseconds: 200),
             scale: _hovering ? 1.2 : 1,
-            child: SvgPicture.asset(
-              ref.watch(
-                themeProvider.select(
-                  (value) => value.assets.stackIcon,
+            child: SvgPicture.file(
+              File(
+                ref.watch(
+                  themeProvider.select(
+                    (value) => value.assets.stackIcon,
+                  ),
                 ),
               ),
             ),

@@ -68,9 +68,10 @@ class WalletNavigationBarItem extends ConsumerWidget {
                       Text(
                         data.label ?? "",
                         style: STextStyles.buttonSmall(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .bottomNavText),
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .bottomNavText,
+                        ),
                       ),
                 ],
               ),
@@ -112,7 +113,11 @@ class WalletNavigationBarMoreItem extends ConsumerWidget {
                 child: Text(
                   data.label ?? "",
                   textAlign: TextAlign.center,
-                  style: STextStyles.buttonSmall(context),
+                  style: STextStyles.buttonSmall(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .bottomNavText,
+                  ),
                 ),
               ),
               const SizedBox(

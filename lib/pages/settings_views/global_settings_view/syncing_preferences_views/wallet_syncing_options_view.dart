@@ -1,9 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
@@ -116,9 +118,11 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                       ),
                                       child: Padding(
                                         padding: const EdgeInsets.all(4),
-                                        child: SvgPicture.asset(
-                                          ref.watch(
-                                            coinIconProvider(manager.coin),
+                                        child: SvgPicture.file(
+                                          File(
+                                            ref.watch(
+                                              coinIconProvider(manager.coin),
+                                            ),
                                           ),
                                           width: 20,
                                           height: 20,

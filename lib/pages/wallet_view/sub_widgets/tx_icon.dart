@@ -23,19 +23,6 @@ class TxIcon extends ConsumerWidget {
 
   static const Size size = Size(32, 32);
 
-  // String _getBundleAssetName(
-  //     bool isCancelled, bool isReceived, bool isPending, BuildContext context) {
-  //   if (!isReceived && transaction.subType == TransactionSubType.mint) {
-  //     if (isCancelled) {
-  //       return Assets.svg.anonymizeFailed;
-  //     }
-  //     if (isPending) {
-  //       return Assets.svg.anonymizePending;
-  //     }
-  //     return Assets.svg.anonymize;
-  //   }
-  // }
-
   String _getAssetName(
       bool isCancelled, bool isReceived, bool isPending, ThemeAssets assets) {
     if (!isReceived && transaction.subType == TransactionSubType.mint) {

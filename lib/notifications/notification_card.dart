@@ -1,7 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/models/notification_model.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -9,7 +16,7 @@ import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
-class NotificationCard extends StatelessWidget {
+class NotificationCard extends ConsumerWidget {
   const NotificationCard({
     Key? key,
     required this.notification,
@@ -25,8 +32,17 @@ class NotificationCard extends StatelessWidget {
   static const double mobileIconSize = 24;
   static const double desktopIconSize = 30;
 
+  String coinIconPath(ThemeAssets assets, WidgetRef ref) {
+    try {
+      final coin = coinFromPrettyName(notification.coinName);
+      return ref.read(coinIconProvider(coin));
+    } catch (_) {
+      return notification.iconAssetName;
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDesktop = Util.isDesktop;
 
     return Stack(
@@ -41,8 +57,14 @@ class NotificationCard extends StatelessWidget {
           child: Row(
             children: [
               notification.changeNowId == null
-                  ? SvgPicture.asset(
-                      notification.iconAssetName,
+                  ? SvgPicture.file(
+                      File(
+                        coinIconPath(
+                            ref.watch(
+                              themeProvider.select((value) => value.assets),
+                            ),
+                            ref),
+                      ),
                       width: isDesktop ? desktopIconSize : mobileIconSize,
                       height: isDesktop ? desktopIconSize : mobileIconSize,
                     )
@@ -53,8 +75,14 @@ class NotificationCard extends StatelessWidget {
                         color: Colors.transparent,
                         borderRadius: BorderRadius.circular(24),
                       ),
-                      child: SvgPicture.asset(
-                        notification.iconAssetName,
+                      child: SvgPicture.file(
+                        File(
+                          coinIconPath(
+                              ref.watch(
+                                themeProvider.select((value) => value.assets),
+                              ),
+                              ref),
+                        ),
                         color: Theme.of(context)
                             .extension<StackColors>()!
                             .accentColorDark,
