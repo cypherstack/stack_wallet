@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -81,28 +83,36 @@ class DesktopNotificationsIcon extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return SvgPicture.asset(
-      ref.watch(notificationsProvider
-              .select((value) => value.hasUnreadNotifications))
-          ? ref.watch(
-              themeProvider.select(
-                (value) => value.assets.bellNew,
+    return ref.watch(notificationsProvider
+            .select((value) => value.hasUnreadNotifications))
+        ? SvgPicture.file(
+            File(
+              ref.watch(
+                themeProvider.select(
+                  (value) => value.assets.bellNew,
+                ),
               ),
-            )
-          : Assets.svg.bell,
-      width: 20,
-      height: 20,
-      color: ref.watch(notificationsProvider
-              .select((value) => value.hasUnreadNotifications))
-          ? null
-          : DesktopMenuItemId.notifications ==
-                  ref.watch(currentDesktopMenuItemProvider.state).state
-              ? Theme.of(context).extension<StackColors>()!.accentColorDark
-              : Theme.of(context)
-                  .extension<StackColors>()!
-                  .accentColorDark
-                  .withOpacity(0.8),
-    );
+            ),
+            width: 20,
+            height: 20,
+          )
+        : SvgPicture.asset(
+            Assets.svg.bell,
+            width: 20,
+            height: 20,
+            color: ref.watch(notificationsProvider
+                    .select((value) => value.hasUnreadNotifications))
+                ? null
+                : DesktopMenuItemId.notifications ==
+                        ref.watch(currentDesktopMenuItemProvider.state).state
+                    ? Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark
+                    : Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark
+                        .withOpacity(0.8),
+          );
   }
 }
 

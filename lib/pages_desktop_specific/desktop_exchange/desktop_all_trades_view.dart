@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
@@ -522,10 +523,14 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
                   borderRadius: BorderRadius.circular(32),
                 ),
                 child: Center(
-                  child: SvgPicture.asset(
-                    _fetchIconAssetForStatus(
-                      trade.status,
-                      ref.watch(themeProvider.select((value) => value.assets)),
+                  child: SvgPicture.file(
+                    File(
+                      _fetchIconAssetForStatus(
+                        trade.status,
+                        ref.watch(
+                          themeProvider.select((value) => value.assets),
+                        ),
+                      ),
                     ),
                     width: 32,
                     height: 32,

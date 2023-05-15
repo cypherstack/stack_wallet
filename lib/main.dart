@@ -178,9 +178,6 @@ void main() async {
     }
   }
 
-  //Add Themes directory - TODO
-  // await StackFileSystem.applicationThemesDirectory();
-
   monero.onStartup();
   wownero.onStartup();
 

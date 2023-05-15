@@ -6,8 +6,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/coin_nodes_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -250,8 +250,10 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                                   children: [
                                     Row(
                                       children: [
-                                        SvgPicture.asset(
-                                          ref.watch(coinIconProvider(coin)),
+                                        SvgPicture.file(
+                                          File(
+                                            ref.watch(coinIconProvider(coin)),
+                                          ),
                                           width: 24,
                                           height: 24,
                                         ),

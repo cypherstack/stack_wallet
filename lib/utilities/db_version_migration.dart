@@ -293,6 +293,37 @@ class DbVersionMigrator with WalletDB {
         // try to continue migrating
         return await migrate(8, secureStore: secureStore);
 
+      case 8:
+        // migrate
+        await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
+        final walletsService =
+            WalletsService(secureStorageInterface: secureStore);
+        final walletInfoList = await walletsService.walletNames;
+        await MainDB.instance.initMainDB();
+        for (final walletId in walletInfoList.keys) {
+          final info = walletInfoList[walletId]!;
+          if (info.coin == Coin.bitcoincash ||
+              info.coin == Coin.bitcoincashTestnet) {
+            final ids = await MainDB.instance
+                .getAddresses(walletId)
+                .filter()
+                .typeEqualTo(isar_models.AddressType.p2sh)
+                .idProperty()
+                .findAll();
+
+            await MainDB.instance.isar.writeTxn(() async {
+              await MainDB.instance.isar.addresses.deleteAll(ids);
+            });
+          }
+        }
+
+        // update version
+        await DB.instance.put<dynamic>(
+            boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 9);
+
+        // try to continue migrating
+        return await migrate(9, secureStore: secureStore);
+
       case 9:
         // migrate
         await _v9();

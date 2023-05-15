@@ -73,738 +73,743 @@ const StackThemeSchema = CollectionSchema(
       name: r'bottomNavIconBackInt',
       type: IsarType.long,
     ),
-    r'bottomNavIconIconInt': PropertySchema(
+    r'bottomNavIconIconHighlightedInt': PropertySchema(
       id: 11,
+      name: r'bottomNavIconIconHighlightedInt',
+      type: IsarType.long,
+    ),
+    r'bottomNavIconIconInt': PropertySchema(
+      id: 12,
       name: r'bottomNavIconIconInt',
       type: IsarType.long,
     ),
     r'bottomNavShadowInt': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'bottomNavShadowInt',
       type: IsarType.long,
     ),
     r'bottomNavTextInt': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'bottomNavTextInt',
       type: IsarType.long,
     ),
     r'brightnessString': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'brightnessString',
       type: IsarType.string,
     ),
     r'buttonBackBorderDisabledInt': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'buttonBackBorderDisabledInt',
       type: IsarType.long,
     ),
     r'buttonBackBorderInt': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'buttonBackBorderInt',
       type: IsarType.long,
     ),
     r'buttonBackBorderSecondaryDisabledInt': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'buttonBackBorderSecondaryDisabledInt',
       type: IsarType.long,
     ),
     r'buttonBackBorderSecondaryInt': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'buttonBackBorderSecondaryInt',
       type: IsarType.long,
     ),
     r'buttonBackPrimaryDisabledInt': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'buttonBackPrimaryDisabledInt',
       type: IsarType.long,
     ),
     r'buttonBackPrimaryInt': PropertySchema(
-      id: 20,
+      id: 21,
       name: r'buttonBackPrimaryInt',
       type: IsarType.long,
     ),
     r'buttonBackSecondaryDisabledInt': PropertySchema(
-      id: 21,
+      id: 22,
       name: r'buttonBackSecondaryDisabledInt',
       type: IsarType.long,
     ),
     r'buttonBackSecondaryInt': PropertySchema(
-      id: 22,
+      id: 23,
       name: r'buttonBackSecondaryInt',
       type: IsarType.long,
     ),
     r'buttonTextBorderInt': PropertySchema(
-      id: 23,
+      id: 24,
       name: r'buttonTextBorderInt',
       type: IsarType.long,
     ),
     r'buttonTextBorderlessDisabledInt': PropertySchema(
-      id: 24,
+      id: 25,
       name: r'buttonTextBorderlessDisabledInt',
       type: IsarType.long,
     ),
     r'buttonTextBorderlessInt': PropertySchema(
-      id: 25,
+      id: 26,
       name: r'buttonTextBorderlessInt',
       type: IsarType.long,
     ),
     r'buttonTextDisabledInt': PropertySchema(
-      id: 26,
+      id: 27,
       name: r'buttonTextDisabledInt',
       type: IsarType.long,
     ),
     r'buttonTextPrimaryDisabledInt': PropertySchema(
-      id: 27,
+      id: 28,
       name: r'buttonTextPrimaryDisabledInt',
       type: IsarType.long,
     ),
     r'buttonTextPrimaryInt': PropertySchema(
-      id: 28,
+      id: 29,
       name: r'buttonTextPrimaryInt',
       type: IsarType.long,
     ),
     r'buttonTextSecondaryDisabledInt': PropertySchema(
-      id: 29,
+      id: 30,
       name: r'buttonTextSecondaryDisabledInt',
       type: IsarType.long,
     ),
     r'buttonTextSecondaryInt': PropertySchema(
-      id: 30,
+      id: 31,
       name: r'buttonTextSecondaryInt',
       type: IsarType.long,
     ),
     r'checkboxBGCheckedInt': PropertySchema(
-      id: 31,
+      id: 32,
       name: r'checkboxBGCheckedInt',
       type: IsarType.long,
     ),
     r'checkboxBGDisabledInt': PropertySchema(
-      id: 32,
+      id: 33,
       name: r'checkboxBGDisabledInt',
       type: IsarType.long,
     ),
     r'checkboxBorderEmptyInt': PropertySchema(
-      id: 33,
+      id: 34,
       name: r'checkboxBorderEmptyInt',
       type: IsarType.long,
     ),
     r'checkboxIconCheckedInt': PropertySchema(
-      id: 34,
+      id: 35,
       name: r'checkboxIconCheckedInt',
       type: IsarType.long,
     ),
     r'checkboxIconDisabledInt': PropertySchema(
-      id: 35,
+      id: 36,
       name: r'checkboxIconDisabledInt',
       type: IsarType.long,
     ),
     r'checkboxTextLabelInt': PropertySchema(
-      id: 36,
+      id: 37,
       name: r'checkboxTextLabelInt',
       type: IsarType.long,
     ),
     r'coinColorsJsonString': PropertySchema(
-      id: 37,
+      id: 38,
       name: r'coinColorsJsonString',
       type: IsarType.string,
     ),
     r'currencyListItemBGInt': PropertySchema(
-      id: 38,
+      id: 39,
       name: r'currencyListItemBGInt',
       type: IsarType.long,
     ),
     r'customTextButtonDisabledTextInt': PropertySchema(
-      id: 39,
+      id: 40,
       name: r'customTextButtonDisabledTextInt',
       type: IsarType.long,
     ),
     r'customTextButtonEnabledTextInt': PropertySchema(
-      id: 40,
+      id: 41,
       name: r'customTextButtonEnabledTextInt',
       type: IsarType.long,
     ),
     r'ethTagBGInt': PropertySchema(
-      id: 41,
+      id: 42,
       name: r'ethTagBGInt',
       type: IsarType.long,
     ),
     r'ethTagTextInt': PropertySchema(
-      id: 42,
+      id: 43,
       name: r'ethTagTextInt',
       type: IsarType.long,
     ),
     r'ethWalletTagBGInt': PropertySchema(
-      id: 43,
+      id: 44,
       name: r'ethWalletTagBGInt',
       type: IsarType.long,
     ),
     r'ethWalletTagTextInt': PropertySchema(
-      id: 44,
+      id: 45,
       name: r'ethWalletTagTextInt',
       type: IsarType.long,
     ),
     r'favoriteStarActiveInt': PropertySchema(
-      id: 45,
+      id: 46,
       name: r'favoriteStarActiveInt',
       type: IsarType.long,
     ),
     r'favoriteStarInactiveInt': PropertySchema(
-      id: 46,
+      id: 47,
       name: r'favoriteStarInactiveInt',
       type: IsarType.long,
     ),
     r'gradientBackgroundString': PropertySchema(
-      id: 47,
+      id: 48,
       name: r'gradientBackgroundString',
       type: IsarType.string,
     ),
     r'highlightInt': PropertySchema(
-      id: 48,
+      id: 49,
       name: r'highlightInt',
       type: IsarType.long,
     ),
     r'homeViewButtonBarBoxShadowString': PropertySchema(
-      id: 49,
+      id: 50,
       name: r'homeViewButtonBarBoxShadowString',
       type: IsarType.string,
     ),
     r'infoItemBGInt': PropertySchema(
-      id: 50,
+      id: 51,
       name: r'infoItemBGInt',
       type: IsarType.long,
     ),
     r'infoItemIconsInt': PropertySchema(
-      id: 51,
+      id: 52,
       name: r'infoItemIconsInt',
       type: IsarType.long,
     ),
     r'infoItemLabelInt': PropertySchema(
-      id: 52,
+      id: 53,
       name: r'infoItemLabelInt',
       type: IsarType.long,
     ),
     r'infoItemTextInt': PropertySchema(
-      id: 53,
+      id: 54,
       name: r'infoItemTextInt',
       type: IsarType.long,
     ),
     r'loadingOverlayTextColorInt': PropertySchema(
-      id: 54,
+      id: 55,
       name: r'loadingOverlayTextColorInt',
       type: IsarType.long,
     ),
     r'myStackContactIconBGInt': PropertySchema(
-      id: 55,
+      id: 56,
       name: r'myStackContactIconBGInt',
       type: IsarType.long,
     ),
     r'name': PropertySchema(
-      id: 56,
+      id: 57,
       name: r'name',
       type: IsarType.string,
     ),
     r'numberBackDefaultInt': PropertySchema(
-      id: 57,
+      id: 58,
       name: r'numberBackDefaultInt',
       type: IsarType.long,
     ),
     r'numberTextDefaultInt': PropertySchema(
-      id: 58,
+      id: 59,
       name: r'numberTextDefaultInt',
       type: IsarType.long,
     ),
     r'numpadBackDefaultInt': PropertySchema(
-      id: 59,
+      id: 60,
       name: r'numpadBackDefaultInt',
       type: IsarType.long,
     ),
     r'numpadTextDefaultInt': PropertySchema(
-      id: 60,
+      id: 61,
       name: r'numpadTextDefaultInt',
       type: IsarType.long,
     ),
     r'overlayInt': PropertySchema(
-      id: 61,
+      id: 62,
       name: r'overlayInt',
       type: IsarType.long,
     ),
     r'popupBGInt': PropertySchema(
-      id: 62,
+      id: 63,
       name: r'popupBGInt',
       type: IsarType.long,
     ),
     r'radioButtonBorderDisabledInt': PropertySchema(
-      id: 63,
+      id: 64,
       name: r'radioButtonBorderDisabledInt',
       type: IsarType.long,
     ),
     r'radioButtonBorderEnabledInt': PropertySchema(
-      id: 64,
+      id: 65,
       name: r'radioButtonBorderEnabledInt',
       type: IsarType.long,
     ),
     r'radioButtonIconBorderDisabledInt': PropertySchema(
-      id: 65,
+      id: 66,
       name: r'radioButtonIconBorderDisabledInt',
       type: IsarType.long,
     ),
     r'radioButtonIconBorderInt': PropertySchema(
-      id: 66,
+      id: 67,
       name: r'radioButtonIconBorderInt',
       type: IsarType.long,
     ),
     r'radioButtonIconCircleInt': PropertySchema(
-      id: 67,
+      id: 68,
       name: r'radioButtonIconCircleInt',
       type: IsarType.long,
     ),
     r'radioButtonIconEnabledInt': PropertySchema(
-      id: 68,
+      id: 69,
       name: r'radioButtonIconEnabledInt',
       type: IsarType.long,
     ),
     r'radioButtonLabelDisabledInt': PropertySchema(
-      id: 69,
+      id: 70,
       name: r'radioButtonLabelDisabledInt',
       type: IsarType.long,
     ),
     r'radioButtonLabelEnabledInt': PropertySchema(
-      id: 70,
+      id: 71,
       name: r'radioButtonLabelEnabledInt',
       type: IsarType.long,
     ),
     r'radioButtonTextDisabledInt': PropertySchema(
-      id: 71,
+      id: 72,
       name: r'radioButtonTextDisabledInt',
       type: IsarType.long,
     ),
     r'radioButtonTextEnabledInt': PropertySchema(
-      id: 72,
+      id: 73,
       name: r'radioButtonTextEnabledInt',
       type: IsarType.long,
     ),
     r'rateTypeToggleColorOffInt': PropertySchema(
-      id: 73,
+      id: 74,
       name: r'rateTypeToggleColorOffInt',
       type: IsarType.long,
     ),
     r'rateTypeToggleColorOnInt': PropertySchema(
-      id: 74,
+      id: 75,
       name: r'rateTypeToggleColorOnInt',
       type: IsarType.long,
     ),
     r'rateTypeToggleDesktopColorOffInt': PropertySchema(
-      id: 75,
+      id: 76,
       name: r'rateTypeToggleDesktopColorOffInt',
       type: IsarType.long,
     ),
     r'rateTypeToggleDesktopColorOnInt': PropertySchema(
-      id: 76,
+      id: 77,
       name: r'rateTypeToggleDesktopColorOnInt',
       type: IsarType.long,
     ),
     r'settingsIconBack2Int': PropertySchema(
-      id: 77,
+      id: 78,
       name: r'settingsIconBack2Int',
       type: IsarType.long,
     ),
     r'settingsIconBackInt': PropertySchema(
-      id: 78,
+      id: 79,
       name: r'settingsIconBackInt',
       type: IsarType.long,
     ),
     r'settingsIconElementInt': PropertySchema(
-      id: 79,
+      id: 80,
       name: r'settingsIconElementInt',
       type: IsarType.long,
     ),
     r'settingsIconIconInt': PropertySchema(
-      id: 80,
+      id: 81,
       name: r'settingsIconIconInt',
       type: IsarType.long,
     ),
     r'settingsItem2ActiveBGInt': PropertySchema(
-      id: 81,
+      id: 82,
       name: r'settingsItem2ActiveBGInt',
       type: IsarType.long,
     ),
     r'settingsItem2ActiveSubInt': PropertySchema(
-      id: 82,
+      id: 83,
       name: r'settingsItem2ActiveSubInt',
       type: IsarType.long,
     ),
     r'settingsItem2ActiveTextInt': PropertySchema(
-      id: 83,
+      id: 84,
       name: r'settingsItem2ActiveTextInt',
       type: IsarType.long,
     ),
     r'shadowInt': PropertySchema(
-      id: 84,
+      id: 85,
       name: r'shadowInt',
       type: IsarType.long,
     ),
     r'snackBarBackErrorInt': PropertySchema(
-      id: 85,
+      id: 86,
       name: r'snackBarBackErrorInt',
       type: IsarType.long,
     ),
     r'snackBarBackInfoInt': PropertySchema(
-      id: 86,
+      id: 87,
       name: r'snackBarBackInfoInt',
       type: IsarType.long,
     ),
     r'snackBarBackSuccessInt': PropertySchema(
-      id: 87,
+      id: 88,
       name: r'snackBarBackSuccessInt',
       type: IsarType.long,
     ),
     r'snackBarTextErrorInt': PropertySchema(
-      id: 88,
+      id: 89,
       name: r'snackBarTextErrorInt',
       type: IsarType.long,
     ),
     r'snackBarTextInfoInt': PropertySchema(
-      id: 89,
+      id: 90,
       name: r'snackBarTextInfoInt',
       type: IsarType.long,
     ),
     r'snackBarTextSuccessInt': PropertySchema(
-      id: 90,
+      id: 91,
       name: r'snackBarTextSuccessInt',
       type: IsarType.long,
     ),
     r'splashInt': PropertySchema(
-      id: 91,
+      id: 92,
       name: r'splashInt',
       type: IsarType.long,
     ),
     r'stackWalletBGInt': PropertySchema(
-      id: 92,
+      id: 93,
       name: r'stackWalletBGInt',
       type: IsarType.long,
     ),
     r'stackWalletBottomInt': PropertySchema(
-      id: 93,
+      id: 94,
       name: r'stackWalletBottomInt',
       type: IsarType.long,
     ),
     r'stackWalletMidInt': PropertySchema(
-      id: 94,
+      id: 95,
       name: r'stackWalletMidInt',
       type: IsarType.long,
     ),
     r'standardBoxShadowString': PropertySchema(
-      id: 95,
+      id: 96,
       name: r'standardBoxShadowString',
       type: IsarType.string,
     ),
     r'stepIndicatorBGCheckInt': PropertySchema(
-      id: 96,
+      id: 97,
       name: r'stepIndicatorBGCheckInt',
       type: IsarType.long,
     ),
     r'stepIndicatorBGInactiveInt': PropertySchema(
-      id: 97,
+      id: 98,
       name: r'stepIndicatorBGInactiveInt',
       type: IsarType.long,
     ),
     r'stepIndicatorBGLinesInactiveInt': PropertySchema(
-      id: 98,
+      id: 99,
       name: r'stepIndicatorBGLinesInactiveInt',
       type: IsarType.long,
     ),
     r'stepIndicatorBGLinesInt': PropertySchema(
-      id: 99,
+      id: 100,
       name: r'stepIndicatorBGLinesInt',
       type: IsarType.long,
     ),
     r'stepIndicatorBGNumberInt': PropertySchema(
-      id: 100,
+      id: 101,
       name: r'stepIndicatorBGNumberInt',
       type: IsarType.long,
     ),
     r'stepIndicatorIconInactiveInt': PropertySchema(
-      id: 101,
+      id: 102,
       name: r'stepIndicatorIconInactiveInt',
       type: IsarType.long,
     ),
     r'stepIndicatorIconNumberInt': PropertySchema(
-      id: 102,
+      id: 103,
       name: r'stepIndicatorIconNumberInt',
       type: IsarType.long,
     ),
     r'stepIndicatorIconTextInt': PropertySchema(
-      id: 103,
+      id: 104,
       name: r'stepIndicatorIconTextInt',
       type: IsarType.long,
     ),
     r'switchBGDisabledInt': PropertySchema(
-      id: 104,
+      id: 105,
       name: r'switchBGDisabledInt',
       type: IsarType.long,
     ),
     r'switchBGOffInt': PropertySchema(
-      id: 105,
+      id: 106,
       name: r'switchBGOffInt',
       type: IsarType.long,
     ),
     r'switchBGOnInt': PropertySchema(
-      id: 106,
+      id: 107,
       name: r'switchBGOnInt',
       type: IsarType.long,
     ),
     r'switchCircleDisabledInt': PropertySchema(
-      id: 107,
+      id: 108,
       name: r'switchCircleDisabledInt',
       type: IsarType.long,
     ),
     r'switchCircleOffInt': PropertySchema(
-      id: 108,
+      id: 109,
       name: r'switchCircleOffInt',
       type: IsarType.long,
     ),
     r'switchCircleOnInt': PropertySchema(
-      id: 109,
+      id: 110,
       name: r'switchCircleOnInt',
       type: IsarType.long,
     ),
     r'textConfirmTotalAmountInt': PropertySchema(
-      id: 110,
+      id: 111,
       name: r'textConfirmTotalAmountInt',
       type: IsarType.long,
     ),
     r'textDark2Int': PropertySchema(
-      id: 111,
+      id: 112,
       name: r'textDark2Int',
       type: IsarType.long,
     ),
     r'textDark3Int': PropertySchema(
-      id: 112,
+      id: 113,
       name: r'textDark3Int',
       type: IsarType.long,
     ),
     r'textDarkInt': PropertySchema(
-      id: 113,
+      id: 114,
       name: r'textDarkInt',
       type: IsarType.long,
     ),
     r'textErrorInt': PropertySchema(
-      id: 114,
+      id: 115,
       name: r'textErrorInt',
       type: IsarType.long,
     ),
     r'textFavoriteCardInt': PropertySchema(
-      id: 115,
+      id: 116,
       name: r'textFavoriteCardInt',
       type: IsarType.long,
     ),
     r'textFieldActiveBGInt': PropertySchema(
-      id: 116,
+      id: 117,
       name: r'textFieldActiveBGInt',
       type: IsarType.long,
     ),
     r'textFieldActiveLabelInt': PropertySchema(
-      id: 117,
+      id: 118,
       name: r'textFieldActiveLabelInt',
       type: IsarType.long,
     ),
     r'textFieldActiveSearchIconLeftInt': PropertySchema(
-      id: 118,
+      id: 119,
       name: r'textFieldActiveSearchIconLeftInt',
       type: IsarType.long,
     ),
     r'textFieldActiveSearchIconRightInt': PropertySchema(
-      id: 119,
+      id: 120,
       name: r'textFieldActiveSearchIconRightInt',
       type: IsarType.long,
     ),
     r'textFieldActiveTextInt': PropertySchema(
-      id: 120,
+      id: 121,
       name: r'textFieldActiveTextInt',
       type: IsarType.long,
     ),
     r'textFieldDefaultBGInt': PropertySchema(
-      id: 121,
+      id: 122,
       name: r'textFieldDefaultBGInt',
       type: IsarType.long,
     ),
     r'textFieldDefaultSearchIconLeftInt': PropertySchema(
-      id: 122,
+      id: 123,
       name: r'textFieldDefaultSearchIconLeftInt',
       type: IsarType.long,
     ),
     r'textFieldDefaultSearchIconRightInt': PropertySchema(
-      id: 123,
+      id: 124,
       name: r'textFieldDefaultSearchIconRightInt',
       type: IsarType.long,
     ),
     r'textFieldDefaultTextInt': PropertySchema(
-      id: 124,
+      id: 125,
       name: r'textFieldDefaultTextInt',
       type: IsarType.long,
     ),
     r'textFieldErrorBGInt': PropertySchema(
-      id: 125,
+      id: 126,
       name: r'textFieldErrorBGInt',
       type: IsarType.long,
     ),
     r'textFieldErrorBorderInt': PropertySchema(
-      id: 126,
+      id: 127,
       name: r'textFieldErrorBorderInt',
       type: IsarType.long,
     ),
     r'textFieldErrorLabelInt': PropertySchema(
-      id: 127,
+      id: 128,
       name: r'textFieldErrorLabelInt',
       type: IsarType.long,
     ),
     r'textFieldErrorSearchIconLeftInt': PropertySchema(
-      id: 128,
+      id: 129,
       name: r'textFieldErrorSearchIconLeftInt',
       type: IsarType.long,
     ),
     r'textFieldErrorSearchIconRightInt': PropertySchema(
-      id: 129,
+      id: 130,
       name: r'textFieldErrorSearchIconRightInt',
       type: IsarType.long,
     ),
     r'textFieldErrorTextInt': PropertySchema(
-      id: 130,
+      id: 131,
       name: r'textFieldErrorTextInt',
       type: IsarType.long,
     ),
     r'textFieldSuccessBGInt': PropertySchema(
-      id: 131,
+      id: 132,
       name: r'textFieldSuccessBGInt',
       type: IsarType.long,
     ),
     r'textFieldSuccessBorderInt': PropertySchema(
-      id: 132,
+      id: 133,
       name: r'textFieldSuccessBorderInt',
       type: IsarType.long,
     ),
     r'textFieldSuccessLabelInt': PropertySchema(
-      id: 133,
+      id: 134,
       name: r'textFieldSuccessLabelInt',
       type: IsarType.long,
     ),
     r'textFieldSuccessSearchIconLeftInt': PropertySchema(
-      id: 134,
+      id: 135,
       name: r'textFieldSuccessSearchIconLeftInt',
       type: IsarType.long,
     ),
     r'textFieldSuccessSearchIconRightInt': PropertySchema(
-      id: 135,
+      id: 136,
       name: r'textFieldSuccessSearchIconRightInt',
       type: IsarType.long,
     ),
     r'textFieldSuccessTextInt': PropertySchema(
-      id: 136,
+      id: 137,
       name: r'textFieldSuccessTextInt',
       type: IsarType.long,
     ),
     r'textRestoreInt': PropertySchema(
-      id: 137,
+      id: 138,
       name: r'textRestoreInt',
       type: IsarType.long,
     ),
     r'textSelectedWordTableItemInt': PropertySchema(
-      id: 138,
+      id: 139,
       name: r'textSelectedWordTableItemInt',
       type: IsarType.long,
     ),
     r'textSubtitle1Int': PropertySchema(
-      id: 139,
+      id: 140,
       name: r'textSubtitle1Int',
       type: IsarType.long,
     ),
     r'textSubtitle2Int': PropertySchema(
-      id: 140,
+      id: 141,
       name: r'textSubtitle2Int',
       type: IsarType.long,
     ),
     r'textSubtitle3Int': PropertySchema(
-      id: 141,
+      id: 142,
       name: r'textSubtitle3Int',
       type: IsarType.long,
     ),
     r'textSubtitle4Int': PropertySchema(
-      id: 142,
+      id: 143,
       name: r'textSubtitle4Int',
       type: IsarType.long,
     ),
     r'textSubtitle5Int': PropertySchema(
-      id: 143,
+      id: 144,
       name: r'textSubtitle5Int',
       type: IsarType.long,
     ),
     r'textSubtitle6Int': PropertySchema(
-      id: 144,
+      id: 145,
       name: r'textSubtitle6Int',
       type: IsarType.long,
     ),
     r'textWhiteInt': PropertySchema(
-      id: 145,
+      id: 146,
       name: r'textWhiteInt',
       type: IsarType.long,
     ),
     r'themeId': PropertySchema(
-      id: 146,
+      id: 147,
       name: r'themeId',
       type: IsarType.string,
     ),
     r'tokenSummaryBGInt': PropertySchema(
-      id: 147,
+      id: 148,
       name: r'tokenSummaryBGInt',
       type: IsarType.long,
     ),
     r'tokenSummaryButtonBGInt': PropertySchema(
-      id: 148,
+      id: 149,
       name: r'tokenSummaryButtonBGInt',
       type: IsarType.long,
     ),
     r'tokenSummaryIconInt': PropertySchema(
-      id: 149,
+      id: 150,
       name: r'tokenSummaryIconInt',
       type: IsarType.long,
     ),
     r'tokenSummaryTextPrimaryInt': PropertySchema(
-      id: 150,
+      id: 151,
       name: r'tokenSummaryTextPrimaryInt',
       type: IsarType.long,
     ),
     r'tokenSummaryTextSecondaryInt': PropertySchema(
-      id: 151,
+      id: 152,
       name: r'tokenSummaryTextSecondaryInt',
       type: IsarType.long,
     ),
     r'topNavIconGreenInt': PropertySchema(
-      id: 152,
+      id: 153,
       name: r'topNavIconGreenInt',
       type: IsarType.long,
     ),
     r'topNavIconPrimaryInt': PropertySchema(
-      id: 153,
+      id: 154,
       name: r'topNavIconPrimaryInt',
       type: IsarType.long,
     ),
     r'topNavIconRedInt': PropertySchema(
-      id: 154,
+      id: 155,
       name: r'topNavIconRedInt',
       type: IsarType.long,
     ),
     r'topNavIconYellowInt': PropertySchema(
-      id: 155,
+      id: 156,
       name: r'topNavIconYellowInt',
       type: IsarType.long,
     ),
     r'warningBackgroundInt': PropertySchema(
-      id: 156,
+      id: 157,
       name: r'warningBackgroundInt',
       type: IsarType.long,
     ),
     r'warningForegroundInt': PropertySchema(
-      id: 157,
+      id: 158,
       name: r'warningForegroundInt',
       type: IsarType.long,
     )
@@ -888,153 +893,154 @@ void _stackThemeSerialize(
   writer.writeLong(offsets[8], object.backgroundInt);
   writer.writeLong(offsets[9], object.bottomNavBackInt);
   writer.writeLong(offsets[10], object.bottomNavIconBackInt);
-  writer.writeLong(offsets[11], object.bottomNavIconIconInt);
-  writer.writeLong(offsets[12], object.bottomNavShadowInt);
-  writer.writeLong(offsets[13], object.bottomNavTextInt);
-  writer.writeString(offsets[14], object.brightnessString);
-  writer.writeLong(offsets[15], object.buttonBackBorderDisabledInt);
-  writer.writeLong(offsets[16], object.buttonBackBorderInt);
-  writer.writeLong(offsets[17], object.buttonBackBorderSecondaryDisabledInt);
-  writer.writeLong(offsets[18], object.buttonBackBorderSecondaryInt);
-  writer.writeLong(offsets[19], object.buttonBackPrimaryDisabledInt);
-  writer.writeLong(offsets[20], object.buttonBackPrimaryInt);
-  writer.writeLong(offsets[21], object.buttonBackSecondaryDisabledInt);
-  writer.writeLong(offsets[22], object.buttonBackSecondaryInt);
-  writer.writeLong(offsets[23], object.buttonTextBorderInt);
-  writer.writeLong(offsets[24], object.buttonTextBorderlessDisabledInt);
-  writer.writeLong(offsets[25], object.buttonTextBorderlessInt);
-  writer.writeLong(offsets[26], object.buttonTextDisabledInt);
-  writer.writeLong(offsets[27], object.buttonTextPrimaryDisabledInt);
-  writer.writeLong(offsets[28], object.buttonTextPrimaryInt);
-  writer.writeLong(offsets[29], object.buttonTextSecondaryDisabledInt);
-  writer.writeLong(offsets[30], object.buttonTextSecondaryInt);
-  writer.writeLong(offsets[31], object.checkboxBGCheckedInt);
-  writer.writeLong(offsets[32], object.checkboxBGDisabledInt);
-  writer.writeLong(offsets[33], object.checkboxBorderEmptyInt);
-  writer.writeLong(offsets[34], object.checkboxIconCheckedInt);
-  writer.writeLong(offsets[35], object.checkboxIconDisabledInt);
-  writer.writeLong(offsets[36], object.checkboxTextLabelInt);
-  writer.writeString(offsets[37], object.coinColorsJsonString);
-  writer.writeLong(offsets[38], object.currencyListItemBGInt);
-  writer.writeLong(offsets[39], object.customTextButtonDisabledTextInt);
-  writer.writeLong(offsets[40], object.customTextButtonEnabledTextInt);
-  writer.writeLong(offsets[41], object.ethTagBGInt);
-  writer.writeLong(offsets[42], object.ethTagTextInt);
-  writer.writeLong(offsets[43], object.ethWalletTagBGInt);
-  writer.writeLong(offsets[44], object.ethWalletTagTextInt);
-  writer.writeLong(offsets[45], object.favoriteStarActiveInt);
-  writer.writeLong(offsets[46], object.favoriteStarInactiveInt);
-  writer.writeString(offsets[47], object.gradientBackgroundString);
-  writer.writeLong(offsets[48], object.highlightInt);
-  writer.writeString(offsets[49], object.homeViewButtonBarBoxShadowString);
-  writer.writeLong(offsets[50], object.infoItemBGInt);
-  writer.writeLong(offsets[51], object.infoItemIconsInt);
-  writer.writeLong(offsets[52], object.infoItemLabelInt);
-  writer.writeLong(offsets[53], object.infoItemTextInt);
-  writer.writeLong(offsets[54], object.loadingOverlayTextColorInt);
-  writer.writeLong(offsets[55], object.myStackContactIconBGInt);
-  writer.writeString(offsets[56], object.name);
-  writer.writeLong(offsets[57], object.numberBackDefaultInt);
-  writer.writeLong(offsets[58], object.numberTextDefaultInt);
-  writer.writeLong(offsets[59], object.numpadBackDefaultInt);
-  writer.writeLong(offsets[60], object.numpadTextDefaultInt);
-  writer.writeLong(offsets[61], object.overlayInt);
-  writer.writeLong(offsets[62], object.popupBGInt);
-  writer.writeLong(offsets[63], object.radioButtonBorderDisabledInt);
-  writer.writeLong(offsets[64], object.radioButtonBorderEnabledInt);
-  writer.writeLong(offsets[65], object.radioButtonIconBorderDisabledInt);
-  writer.writeLong(offsets[66], object.radioButtonIconBorderInt);
-  writer.writeLong(offsets[67], object.radioButtonIconCircleInt);
-  writer.writeLong(offsets[68], object.radioButtonIconEnabledInt);
-  writer.writeLong(offsets[69], object.radioButtonLabelDisabledInt);
-  writer.writeLong(offsets[70], object.radioButtonLabelEnabledInt);
-  writer.writeLong(offsets[71], object.radioButtonTextDisabledInt);
-  writer.writeLong(offsets[72], object.radioButtonTextEnabledInt);
-  writer.writeLong(offsets[73], object.rateTypeToggleColorOffInt);
-  writer.writeLong(offsets[74], object.rateTypeToggleColorOnInt);
-  writer.writeLong(offsets[75], object.rateTypeToggleDesktopColorOffInt);
-  writer.writeLong(offsets[76], object.rateTypeToggleDesktopColorOnInt);
-  writer.writeLong(offsets[77], object.settingsIconBack2Int);
-  writer.writeLong(offsets[78], object.settingsIconBackInt);
-  writer.writeLong(offsets[79], object.settingsIconElementInt);
-  writer.writeLong(offsets[80], object.settingsIconIconInt);
-  writer.writeLong(offsets[81], object.settingsItem2ActiveBGInt);
-  writer.writeLong(offsets[82], object.settingsItem2ActiveSubInt);
-  writer.writeLong(offsets[83], object.settingsItem2ActiveTextInt);
-  writer.writeLong(offsets[84], object.shadowInt);
-  writer.writeLong(offsets[85], object.snackBarBackErrorInt);
-  writer.writeLong(offsets[86], object.snackBarBackInfoInt);
-  writer.writeLong(offsets[87], object.snackBarBackSuccessInt);
-  writer.writeLong(offsets[88], object.snackBarTextErrorInt);
-  writer.writeLong(offsets[89], object.snackBarTextInfoInt);
-  writer.writeLong(offsets[90], object.snackBarTextSuccessInt);
-  writer.writeLong(offsets[91], object.splashInt);
-  writer.writeLong(offsets[92], object.stackWalletBGInt);
-  writer.writeLong(offsets[93], object.stackWalletBottomInt);
-  writer.writeLong(offsets[94], object.stackWalletMidInt);
-  writer.writeString(offsets[95], object.standardBoxShadowString);
-  writer.writeLong(offsets[96], object.stepIndicatorBGCheckInt);
-  writer.writeLong(offsets[97], object.stepIndicatorBGInactiveInt);
-  writer.writeLong(offsets[98], object.stepIndicatorBGLinesInactiveInt);
-  writer.writeLong(offsets[99], object.stepIndicatorBGLinesInt);
-  writer.writeLong(offsets[100], object.stepIndicatorBGNumberInt);
-  writer.writeLong(offsets[101], object.stepIndicatorIconInactiveInt);
-  writer.writeLong(offsets[102], object.stepIndicatorIconNumberInt);
-  writer.writeLong(offsets[103], object.stepIndicatorIconTextInt);
-  writer.writeLong(offsets[104], object.switchBGDisabledInt);
-  writer.writeLong(offsets[105], object.switchBGOffInt);
-  writer.writeLong(offsets[106], object.switchBGOnInt);
-  writer.writeLong(offsets[107], object.switchCircleDisabledInt);
-  writer.writeLong(offsets[108], object.switchCircleOffInt);
-  writer.writeLong(offsets[109], object.switchCircleOnInt);
-  writer.writeLong(offsets[110], object.textConfirmTotalAmountInt);
-  writer.writeLong(offsets[111], object.textDark2Int);
-  writer.writeLong(offsets[112], object.textDark3Int);
-  writer.writeLong(offsets[113], object.textDarkInt);
-  writer.writeLong(offsets[114], object.textErrorInt);
-  writer.writeLong(offsets[115], object.textFavoriteCardInt);
-  writer.writeLong(offsets[116], object.textFieldActiveBGInt);
-  writer.writeLong(offsets[117], object.textFieldActiveLabelInt);
-  writer.writeLong(offsets[118], object.textFieldActiveSearchIconLeftInt);
-  writer.writeLong(offsets[119], object.textFieldActiveSearchIconRightInt);
-  writer.writeLong(offsets[120], object.textFieldActiveTextInt);
-  writer.writeLong(offsets[121], object.textFieldDefaultBGInt);
-  writer.writeLong(offsets[122], object.textFieldDefaultSearchIconLeftInt);
-  writer.writeLong(offsets[123], object.textFieldDefaultSearchIconRightInt);
-  writer.writeLong(offsets[124], object.textFieldDefaultTextInt);
-  writer.writeLong(offsets[125], object.textFieldErrorBGInt);
-  writer.writeLong(offsets[126], object.textFieldErrorBorderInt);
-  writer.writeLong(offsets[127], object.textFieldErrorLabelInt);
-  writer.writeLong(offsets[128], object.textFieldErrorSearchIconLeftInt);
-  writer.writeLong(offsets[129], object.textFieldErrorSearchIconRightInt);
-  writer.writeLong(offsets[130], object.textFieldErrorTextInt);
-  writer.writeLong(offsets[131], object.textFieldSuccessBGInt);
-  writer.writeLong(offsets[132], object.textFieldSuccessBorderInt);
-  writer.writeLong(offsets[133], object.textFieldSuccessLabelInt);
-  writer.writeLong(offsets[134], object.textFieldSuccessSearchIconLeftInt);
-  writer.writeLong(offsets[135], object.textFieldSuccessSearchIconRightInt);
-  writer.writeLong(offsets[136], object.textFieldSuccessTextInt);
-  writer.writeLong(offsets[137], object.textRestoreInt);
-  writer.writeLong(offsets[138], object.textSelectedWordTableItemInt);
-  writer.writeLong(offsets[139], object.textSubtitle1Int);
-  writer.writeLong(offsets[140], object.textSubtitle2Int);
-  writer.writeLong(offsets[141], object.textSubtitle3Int);
-  writer.writeLong(offsets[142], object.textSubtitle4Int);
-  writer.writeLong(offsets[143], object.textSubtitle5Int);
-  writer.writeLong(offsets[144], object.textSubtitle6Int);
-  writer.writeLong(offsets[145], object.textWhiteInt);
-  writer.writeString(offsets[146], object.themeId);
-  writer.writeLong(offsets[147], object.tokenSummaryBGInt);
-  writer.writeLong(offsets[148], object.tokenSummaryButtonBGInt);
-  writer.writeLong(offsets[149], object.tokenSummaryIconInt);
-  writer.writeLong(offsets[150], object.tokenSummaryTextPrimaryInt);
-  writer.writeLong(offsets[151], object.tokenSummaryTextSecondaryInt);
-  writer.writeLong(offsets[152], object.topNavIconGreenInt);
-  writer.writeLong(offsets[153], object.topNavIconPrimaryInt);
-  writer.writeLong(offsets[154], object.topNavIconRedInt);
-  writer.writeLong(offsets[155], object.topNavIconYellowInt);
-  writer.writeLong(offsets[156], object.warningBackgroundInt);
-  writer.writeLong(offsets[157], object.warningForegroundInt);
+  writer.writeLong(offsets[11], object.bottomNavIconIconHighlightedInt);
+  writer.writeLong(offsets[12], object.bottomNavIconIconInt);
+  writer.writeLong(offsets[13], object.bottomNavShadowInt);
+  writer.writeLong(offsets[14], object.bottomNavTextInt);
+  writer.writeString(offsets[15], object.brightnessString);
+  writer.writeLong(offsets[16], object.buttonBackBorderDisabledInt);
+  writer.writeLong(offsets[17], object.buttonBackBorderInt);
+  writer.writeLong(offsets[18], object.buttonBackBorderSecondaryDisabledInt);
+  writer.writeLong(offsets[19], object.buttonBackBorderSecondaryInt);
+  writer.writeLong(offsets[20], object.buttonBackPrimaryDisabledInt);
+  writer.writeLong(offsets[21], object.buttonBackPrimaryInt);
+  writer.writeLong(offsets[22], object.buttonBackSecondaryDisabledInt);
+  writer.writeLong(offsets[23], object.buttonBackSecondaryInt);
+  writer.writeLong(offsets[24], object.buttonTextBorderInt);
+  writer.writeLong(offsets[25], object.buttonTextBorderlessDisabledInt);
+  writer.writeLong(offsets[26], object.buttonTextBorderlessInt);
+  writer.writeLong(offsets[27], object.buttonTextDisabledInt);
+  writer.writeLong(offsets[28], object.buttonTextPrimaryDisabledInt);
+  writer.writeLong(offsets[29], object.buttonTextPrimaryInt);
+  writer.writeLong(offsets[30], object.buttonTextSecondaryDisabledInt);
+  writer.writeLong(offsets[31], object.buttonTextSecondaryInt);
+  writer.writeLong(offsets[32], object.checkboxBGCheckedInt);
+  writer.writeLong(offsets[33], object.checkboxBGDisabledInt);
+  writer.writeLong(offsets[34], object.checkboxBorderEmptyInt);
+  writer.writeLong(offsets[35], object.checkboxIconCheckedInt);
+  writer.writeLong(offsets[36], object.checkboxIconDisabledInt);
+  writer.writeLong(offsets[37], object.checkboxTextLabelInt);
+  writer.writeString(offsets[38], object.coinColorsJsonString);
+  writer.writeLong(offsets[39], object.currencyListItemBGInt);
+  writer.writeLong(offsets[40], object.customTextButtonDisabledTextInt);
+  writer.writeLong(offsets[41], object.customTextButtonEnabledTextInt);
+  writer.writeLong(offsets[42], object.ethTagBGInt);
+  writer.writeLong(offsets[43], object.ethTagTextInt);
+  writer.writeLong(offsets[44], object.ethWalletTagBGInt);
+  writer.writeLong(offsets[45], object.ethWalletTagTextInt);
+  writer.writeLong(offsets[46], object.favoriteStarActiveInt);
+  writer.writeLong(offsets[47], object.favoriteStarInactiveInt);
+  writer.writeString(offsets[48], object.gradientBackgroundString);
+  writer.writeLong(offsets[49], object.highlightInt);
+  writer.writeString(offsets[50], object.homeViewButtonBarBoxShadowString);
+  writer.writeLong(offsets[51], object.infoItemBGInt);
+  writer.writeLong(offsets[52], object.infoItemIconsInt);
+  writer.writeLong(offsets[53], object.infoItemLabelInt);
+  writer.writeLong(offsets[54], object.infoItemTextInt);
+  writer.writeLong(offsets[55], object.loadingOverlayTextColorInt);
+  writer.writeLong(offsets[56], object.myStackContactIconBGInt);
+  writer.writeString(offsets[57], object.name);
+  writer.writeLong(offsets[58], object.numberBackDefaultInt);
+  writer.writeLong(offsets[59], object.numberTextDefaultInt);
+  writer.writeLong(offsets[60], object.numpadBackDefaultInt);
+  writer.writeLong(offsets[61], object.numpadTextDefaultInt);
+  writer.writeLong(offsets[62], object.overlayInt);
+  writer.writeLong(offsets[63], object.popupBGInt);
+  writer.writeLong(offsets[64], object.radioButtonBorderDisabledInt);
+  writer.writeLong(offsets[65], object.radioButtonBorderEnabledInt);
+  writer.writeLong(offsets[66], object.radioButtonIconBorderDisabledInt);
+  writer.writeLong(offsets[67], object.radioButtonIconBorderInt);
+  writer.writeLong(offsets[68], object.radioButtonIconCircleInt);
+  writer.writeLong(offsets[69], object.radioButtonIconEnabledInt);
+  writer.writeLong(offsets[70], object.radioButtonLabelDisabledInt);
+  writer.writeLong(offsets[71], object.radioButtonLabelEnabledInt);
+  writer.writeLong(offsets[72], object.radioButtonTextDisabledInt);
+  writer.writeLong(offsets[73], object.radioButtonTextEnabledInt);
+  writer.writeLong(offsets[74], object.rateTypeToggleColorOffInt);
+  writer.writeLong(offsets[75], object.rateTypeToggleColorOnInt);
+  writer.writeLong(offsets[76], object.rateTypeToggleDesktopColorOffInt);
+  writer.writeLong(offsets[77], object.rateTypeToggleDesktopColorOnInt);
+  writer.writeLong(offsets[78], object.settingsIconBack2Int);
+  writer.writeLong(offsets[79], object.settingsIconBackInt);
+  writer.writeLong(offsets[80], object.settingsIconElementInt);
+  writer.writeLong(offsets[81], object.settingsIconIconInt);
+  writer.writeLong(offsets[82], object.settingsItem2ActiveBGInt);
+  writer.writeLong(offsets[83], object.settingsItem2ActiveSubInt);
+  writer.writeLong(offsets[84], object.settingsItem2ActiveTextInt);
+  writer.writeLong(offsets[85], object.shadowInt);
+  writer.writeLong(offsets[86], object.snackBarBackErrorInt);
+  writer.writeLong(offsets[87], object.snackBarBackInfoInt);
+  writer.writeLong(offsets[88], object.snackBarBackSuccessInt);
+  writer.writeLong(offsets[89], object.snackBarTextErrorInt);
+  writer.writeLong(offsets[90], object.snackBarTextInfoInt);
+  writer.writeLong(offsets[91], object.snackBarTextSuccessInt);
+  writer.writeLong(offsets[92], object.splashInt);
+  writer.writeLong(offsets[93], object.stackWalletBGInt);
+  writer.writeLong(offsets[94], object.stackWalletBottomInt);
+  writer.writeLong(offsets[95], object.stackWalletMidInt);
+  writer.writeString(offsets[96], object.standardBoxShadowString);
+  writer.writeLong(offsets[97], object.stepIndicatorBGCheckInt);
+  writer.writeLong(offsets[98], object.stepIndicatorBGInactiveInt);
+  writer.writeLong(offsets[99], object.stepIndicatorBGLinesInactiveInt);
+  writer.writeLong(offsets[100], object.stepIndicatorBGLinesInt);
+  writer.writeLong(offsets[101], object.stepIndicatorBGNumberInt);
+  writer.writeLong(offsets[102], object.stepIndicatorIconInactiveInt);
+  writer.writeLong(offsets[103], object.stepIndicatorIconNumberInt);
+  writer.writeLong(offsets[104], object.stepIndicatorIconTextInt);
+  writer.writeLong(offsets[105], object.switchBGDisabledInt);
+  writer.writeLong(offsets[106], object.switchBGOffInt);
+  writer.writeLong(offsets[107], object.switchBGOnInt);
+  writer.writeLong(offsets[108], object.switchCircleDisabledInt);
+  writer.writeLong(offsets[109], object.switchCircleOffInt);
+  writer.writeLong(offsets[110], object.switchCircleOnInt);
+  writer.writeLong(offsets[111], object.textConfirmTotalAmountInt);
+  writer.writeLong(offsets[112], object.textDark2Int);
+  writer.writeLong(offsets[113], object.textDark3Int);
+  writer.writeLong(offsets[114], object.textDarkInt);
+  writer.writeLong(offsets[115], object.textErrorInt);
+  writer.writeLong(offsets[116], object.textFavoriteCardInt);
+  writer.writeLong(offsets[117], object.textFieldActiveBGInt);
+  writer.writeLong(offsets[118], object.textFieldActiveLabelInt);
+  writer.writeLong(offsets[119], object.textFieldActiveSearchIconLeftInt);
+  writer.writeLong(offsets[120], object.textFieldActiveSearchIconRightInt);
+  writer.writeLong(offsets[121], object.textFieldActiveTextInt);
+  writer.writeLong(offsets[122], object.textFieldDefaultBGInt);
+  writer.writeLong(offsets[123], object.textFieldDefaultSearchIconLeftInt);
+  writer.writeLong(offsets[124], object.textFieldDefaultSearchIconRightInt);
+  writer.writeLong(offsets[125], object.textFieldDefaultTextInt);
+  writer.writeLong(offsets[126], object.textFieldErrorBGInt);
+  writer.writeLong(offsets[127], object.textFieldErrorBorderInt);
+  writer.writeLong(offsets[128], object.textFieldErrorLabelInt);
+  writer.writeLong(offsets[129], object.textFieldErrorSearchIconLeftInt);
+  writer.writeLong(offsets[130], object.textFieldErrorSearchIconRightInt);
+  writer.writeLong(offsets[131], object.textFieldErrorTextInt);
+  writer.writeLong(offsets[132], object.textFieldSuccessBGInt);
+  writer.writeLong(offsets[133], object.textFieldSuccessBorderInt);
+  writer.writeLong(offsets[134], object.textFieldSuccessLabelInt);
+  writer.writeLong(offsets[135], object.textFieldSuccessSearchIconLeftInt);
+  writer.writeLong(offsets[136], object.textFieldSuccessSearchIconRightInt);
+  writer.writeLong(offsets[137], object.textFieldSuccessTextInt);
+  writer.writeLong(offsets[138], object.textRestoreInt);
+  writer.writeLong(offsets[139], object.textSelectedWordTableItemInt);
+  writer.writeLong(offsets[140], object.textSubtitle1Int);
+  writer.writeLong(offsets[141], object.textSubtitle2Int);
+  writer.writeLong(offsets[142], object.textSubtitle3Int);
+  writer.writeLong(offsets[143], object.textSubtitle4Int);
+  writer.writeLong(offsets[144], object.textSubtitle5Int);
+  writer.writeLong(offsets[145], object.textSubtitle6Int);
+  writer.writeLong(offsets[146], object.textWhiteInt);
+  writer.writeString(offsets[147], object.themeId);
+  writer.writeLong(offsets[148], object.tokenSummaryBGInt);
+  writer.writeLong(offsets[149], object.tokenSummaryButtonBGInt);
+  writer.writeLong(offsets[150], object.tokenSummaryIconInt);
+  writer.writeLong(offsets[151], object.tokenSummaryTextPrimaryInt);
+  writer.writeLong(offsets[152], object.tokenSummaryTextSecondaryInt);
+  writer.writeLong(offsets[153], object.topNavIconGreenInt);
+  writer.writeLong(offsets[154], object.topNavIconPrimaryInt);
+  writer.writeLong(offsets[155], object.topNavIconRedInt);
+  writer.writeLong(offsets[156], object.topNavIconYellowInt);
+  writer.writeLong(offsets[157], object.warningBackgroundInt);
+  writer.writeLong(offsets[158], object.warningForegroundInt);
 }
 
 StackTheme _stackThemeDeserialize(
@@ -1060,153 +1066,154 @@ StackTheme _stackThemeDeserialize(
     backgroundInt: reader.readLong(offsets[8]),
     bottomNavBackInt: reader.readLong(offsets[9]),
     bottomNavIconBackInt: reader.readLong(offsets[10]),
-    bottomNavIconIconInt: reader.readLong(offsets[11]),
-    bottomNavShadowInt: reader.readLong(offsets[12]),
-    bottomNavTextInt: reader.readLong(offsets[13]),
-    brightnessString: reader.readString(offsets[14]),
-    buttonBackBorderDisabledInt: reader.readLong(offsets[15]),
-    buttonBackBorderInt: reader.readLong(offsets[16]),
-    buttonBackBorderSecondaryDisabledInt: reader.readLong(offsets[17]),
-    buttonBackBorderSecondaryInt: reader.readLong(offsets[18]),
-    buttonBackPrimaryDisabledInt: reader.readLong(offsets[19]),
-    buttonBackPrimaryInt: reader.readLong(offsets[20]),
-    buttonBackSecondaryDisabledInt: reader.readLong(offsets[21]),
-    buttonBackSecondaryInt: reader.readLong(offsets[22]),
-    buttonTextBorderInt: reader.readLong(offsets[23]),
-    buttonTextBorderlessDisabledInt: reader.readLong(offsets[24]),
-    buttonTextBorderlessInt: reader.readLong(offsets[25]),
-    buttonTextDisabledInt: reader.readLong(offsets[26]),
-    buttonTextPrimaryDisabledInt: reader.readLong(offsets[27]),
-    buttonTextPrimaryInt: reader.readLong(offsets[28]),
-    buttonTextSecondaryDisabledInt: reader.readLong(offsets[29]),
-    buttonTextSecondaryInt: reader.readLong(offsets[30]),
-    checkboxBGCheckedInt: reader.readLong(offsets[31]),
-    checkboxBGDisabledInt: reader.readLong(offsets[32]),
-    checkboxBorderEmptyInt: reader.readLong(offsets[33]),
-    checkboxIconCheckedInt: reader.readLong(offsets[34]),
-    checkboxIconDisabledInt: reader.readLong(offsets[35]),
-    checkboxTextLabelInt: reader.readLong(offsets[36]),
-    coinColorsJsonString: reader.readString(offsets[37]),
-    currencyListItemBGInt: reader.readLong(offsets[38]),
-    customTextButtonDisabledTextInt: reader.readLong(offsets[39]),
-    customTextButtonEnabledTextInt: reader.readLong(offsets[40]),
-    ethTagBGInt: reader.readLong(offsets[41]),
-    ethTagTextInt: reader.readLong(offsets[42]),
-    ethWalletTagBGInt: reader.readLong(offsets[43]),
-    ethWalletTagTextInt: reader.readLong(offsets[44]),
-    favoriteStarActiveInt: reader.readLong(offsets[45]),
-    favoriteStarInactiveInt: reader.readLong(offsets[46]),
-    gradientBackgroundString: reader.readStringOrNull(offsets[47]),
-    highlightInt: reader.readLong(offsets[48]),
-    homeViewButtonBarBoxShadowString: reader.readStringOrNull(offsets[49]),
-    infoItemBGInt: reader.readLong(offsets[50]),
-    infoItemIconsInt: reader.readLong(offsets[51]),
-    infoItemLabelInt: reader.readLong(offsets[52]),
-    infoItemTextInt: reader.readLong(offsets[53]),
-    loadingOverlayTextColorInt: reader.readLong(offsets[54]),
-    myStackContactIconBGInt: reader.readLong(offsets[55]),
-    name: reader.readString(offsets[56]),
-    numberBackDefaultInt: reader.readLong(offsets[57]),
-    numberTextDefaultInt: reader.readLong(offsets[58]),
-    numpadBackDefaultInt: reader.readLong(offsets[59]),
-    numpadTextDefaultInt: reader.readLong(offsets[60]),
-    overlayInt: reader.readLong(offsets[61]),
-    popupBGInt: reader.readLong(offsets[62]),
-    radioButtonBorderDisabledInt: reader.readLong(offsets[63]),
-    radioButtonBorderEnabledInt: reader.readLong(offsets[64]),
-    radioButtonIconBorderDisabledInt: reader.readLong(offsets[65]),
-    radioButtonIconBorderInt: reader.readLong(offsets[66]),
-    radioButtonIconCircleInt: reader.readLong(offsets[67]),
-    radioButtonIconEnabledInt: reader.readLong(offsets[68]),
-    radioButtonLabelDisabledInt: reader.readLong(offsets[69]),
-    radioButtonLabelEnabledInt: reader.readLong(offsets[70]),
-    radioButtonTextDisabledInt: reader.readLong(offsets[71]),
-    radioButtonTextEnabledInt: reader.readLong(offsets[72]),
-    rateTypeToggleColorOffInt: reader.readLong(offsets[73]),
-    rateTypeToggleColorOnInt: reader.readLong(offsets[74]),
-    rateTypeToggleDesktopColorOffInt: reader.readLong(offsets[75]),
-    rateTypeToggleDesktopColorOnInt: reader.readLong(offsets[76]),
-    settingsIconBack2Int: reader.readLong(offsets[77]),
-    settingsIconBackInt: reader.readLong(offsets[78]),
-    settingsIconElementInt: reader.readLong(offsets[79]),
-    settingsIconIconInt: reader.readLong(offsets[80]),
-    settingsItem2ActiveBGInt: reader.readLong(offsets[81]),
-    settingsItem2ActiveSubInt: reader.readLong(offsets[82]),
-    settingsItem2ActiveTextInt: reader.readLong(offsets[83]),
-    shadowInt: reader.readLong(offsets[84]),
-    snackBarBackErrorInt: reader.readLong(offsets[85]),
-    snackBarBackInfoInt: reader.readLong(offsets[86]),
-    snackBarBackSuccessInt: reader.readLong(offsets[87]),
-    snackBarTextErrorInt: reader.readLong(offsets[88]),
-    snackBarTextInfoInt: reader.readLong(offsets[89]),
-    snackBarTextSuccessInt: reader.readLong(offsets[90]),
-    splashInt: reader.readLong(offsets[91]),
-    stackWalletBGInt: reader.readLong(offsets[92]),
-    stackWalletBottomInt: reader.readLong(offsets[93]),
-    stackWalletMidInt: reader.readLong(offsets[94]),
-    standardBoxShadowString: reader.readString(offsets[95]),
-    stepIndicatorBGCheckInt: reader.readLong(offsets[96]),
-    stepIndicatorBGInactiveInt: reader.readLong(offsets[97]),
-    stepIndicatorBGLinesInactiveInt: reader.readLong(offsets[98]),
-    stepIndicatorBGLinesInt: reader.readLong(offsets[99]),
-    stepIndicatorBGNumberInt: reader.readLong(offsets[100]),
-    stepIndicatorIconInactiveInt: reader.readLong(offsets[101]),
-    stepIndicatorIconNumberInt: reader.readLong(offsets[102]),
-    stepIndicatorIconTextInt: reader.readLong(offsets[103]),
-    switchBGDisabledInt: reader.readLong(offsets[104]),
-    switchBGOffInt: reader.readLong(offsets[105]),
-    switchBGOnInt: reader.readLong(offsets[106]),
-    switchCircleDisabledInt: reader.readLong(offsets[107]),
-    switchCircleOffInt: reader.readLong(offsets[108]),
-    switchCircleOnInt: reader.readLong(offsets[109]),
-    textConfirmTotalAmountInt: reader.readLong(offsets[110]),
-    textDark2Int: reader.readLong(offsets[111]),
-    textDark3Int: reader.readLong(offsets[112]),
-    textDarkInt: reader.readLong(offsets[113]),
-    textErrorInt: reader.readLong(offsets[114]),
-    textFavoriteCardInt: reader.readLong(offsets[115]),
-    textFieldActiveBGInt: reader.readLong(offsets[116]),
-    textFieldActiveLabelInt: reader.readLong(offsets[117]),
-    textFieldActiveSearchIconLeftInt: reader.readLong(offsets[118]),
-    textFieldActiveSearchIconRightInt: reader.readLong(offsets[119]),
-    textFieldActiveTextInt: reader.readLong(offsets[120]),
-    textFieldDefaultBGInt: reader.readLong(offsets[121]),
-    textFieldDefaultSearchIconLeftInt: reader.readLong(offsets[122]),
-    textFieldDefaultSearchIconRightInt: reader.readLong(offsets[123]),
-    textFieldDefaultTextInt: reader.readLong(offsets[124]),
-    textFieldErrorBGInt: reader.readLong(offsets[125]),
-    textFieldErrorBorderInt: reader.readLong(offsets[126]),
-    textFieldErrorLabelInt: reader.readLong(offsets[127]),
-    textFieldErrorSearchIconLeftInt: reader.readLong(offsets[128]),
-    textFieldErrorSearchIconRightInt: reader.readLong(offsets[129]),
-    textFieldErrorTextInt: reader.readLong(offsets[130]),
-    textFieldSuccessBGInt: reader.readLong(offsets[131]),
-    textFieldSuccessBorderInt: reader.readLong(offsets[132]),
-    textFieldSuccessLabelInt: reader.readLong(offsets[133]),
-    textFieldSuccessSearchIconLeftInt: reader.readLong(offsets[134]),
-    textFieldSuccessSearchIconRightInt: reader.readLong(offsets[135]),
-    textFieldSuccessTextInt: reader.readLong(offsets[136]),
-    textRestoreInt: reader.readLong(offsets[137]),
-    textSelectedWordTableItemInt: reader.readLong(offsets[138]),
-    textSubtitle1Int: reader.readLong(offsets[139]),
-    textSubtitle2Int: reader.readLong(offsets[140]),
-    textSubtitle3Int: reader.readLong(offsets[141]),
-    textSubtitle4Int: reader.readLong(offsets[142]),
-    textSubtitle5Int: reader.readLong(offsets[143]),
-    textSubtitle6Int: reader.readLong(offsets[144]),
-    textWhiteInt: reader.readLong(offsets[145]),
-    themeId: reader.readString(offsets[146]),
-    tokenSummaryBGInt: reader.readLong(offsets[147]),
-    tokenSummaryButtonBGInt: reader.readLong(offsets[148]),
-    tokenSummaryIconInt: reader.readLong(offsets[149]),
-    tokenSummaryTextPrimaryInt: reader.readLong(offsets[150]),
-    tokenSummaryTextSecondaryInt: reader.readLong(offsets[151]),
-    topNavIconGreenInt: reader.readLong(offsets[152]),
-    topNavIconPrimaryInt: reader.readLong(offsets[153]),
-    topNavIconRedInt: reader.readLong(offsets[154]),
-    topNavIconYellowInt: reader.readLong(offsets[155]),
-    warningBackgroundInt: reader.readLong(offsets[156]),
-    warningForegroundInt: reader.readLong(offsets[157]),
+    bottomNavIconIconHighlightedInt: reader.readLong(offsets[11]),
+    bottomNavIconIconInt: reader.readLong(offsets[12]),
+    bottomNavShadowInt: reader.readLong(offsets[13]),
+    bottomNavTextInt: reader.readLong(offsets[14]),
+    brightnessString: reader.readString(offsets[15]),
+    buttonBackBorderDisabledInt: reader.readLong(offsets[16]),
+    buttonBackBorderInt: reader.readLong(offsets[17]),
+    buttonBackBorderSecondaryDisabledInt: reader.readLong(offsets[18]),
+    buttonBackBorderSecondaryInt: reader.readLong(offsets[19]),
+    buttonBackPrimaryDisabledInt: reader.readLong(offsets[20]),
+    buttonBackPrimaryInt: reader.readLong(offsets[21]),
+    buttonBackSecondaryDisabledInt: reader.readLong(offsets[22]),
+    buttonBackSecondaryInt: reader.readLong(offsets[23]),
+    buttonTextBorderInt: reader.readLong(offsets[24]),
+    buttonTextBorderlessDisabledInt: reader.readLong(offsets[25]),
+    buttonTextBorderlessInt: reader.readLong(offsets[26]),
+    buttonTextDisabledInt: reader.readLong(offsets[27]),
+    buttonTextPrimaryDisabledInt: reader.readLong(offsets[28]),
+    buttonTextPrimaryInt: reader.readLong(offsets[29]),
+    buttonTextSecondaryDisabledInt: reader.readLong(offsets[30]),
+    buttonTextSecondaryInt: reader.readLong(offsets[31]),
+    checkboxBGCheckedInt: reader.readLong(offsets[32]),
+    checkboxBGDisabledInt: reader.readLong(offsets[33]),
+    checkboxBorderEmptyInt: reader.readLong(offsets[34]),
+    checkboxIconCheckedInt: reader.readLong(offsets[35]),
+    checkboxIconDisabledInt: reader.readLong(offsets[36]),
+    checkboxTextLabelInt: reader.readLong(offsets[37]),
+    coinColorsJsonString: reader.readString(offsets[38]),
+    currencyListItemBGInt: reader.readLong(offsets[39]),
+    customTextButtonDisabledTextInt: reader.readLong(offsets[40]),
+    customTextButtonEnabledTextInt: reader.readLong(offsets[41]),
+    ethTagBGInt: reader.readLong(offsets[42]),
+    ethTagTextInt: reader.readLong(offsets[43]),
+    ethWalletTagBGInt: reader.readLong(offsets[44]),
+    ethWalletTagTextInt: reader.readLong(offsets[45]),
+    favoriteStarActiveInt: reader.readLong(offsets[46]),
+    favoriteStarInactiveInt: reader.readLong(offsets[47]),
+    gradientBackgroundString: reader.readStringOrNull(offsets[48]),
+    highlightInt: reader.readLong(offsets[49]),
+    homeViewButtonBarBoxShadowString: reader.readStringOrNull(offsets[50]),
+    infoItemBGInt: reader.readLong(offsets[51]),
+    infoItemIconsInt: reader.readLong(offsets[52]),
+    infoItemLabelInt: reader.readLong(offsets[53]),
+    infoItemTextInt: reader.readLong(offsets[54]),
+    loadingOverlayTextColorInt: reader.readLong(offsets[55]),
+    myStackContactIconBGInt: reader.readLong(offsets[56]),
+    name: reader.readString(offsets[57]),
+    numberBackDefaultInt: reader.readLong(offsets[58]),
+    numberTextDefaultInt: reader.readLong(offsets[59]),
+    numpadBackDefaultInt: reader.readLong(offsets[60]),
+    numpadTextDefaultInt: reader.readLong(offsets[61]),
+    overlayInt: reader.readLong(offsets[62]),
+    popupBGInt: reader.readLong(offsets[63]),
+    radioButtonBorderDisabledInt: reader.readLong(offsets[64]),
+    radioButtonBorderEnabledInt: reader.readLong(offsets[65]),
+    radioButtonIconBorderDisabledInt: reader.readLong(offsets[66]),
+    radioButtonIconBorderInt: reader.readLong(offsets[67]),
+    radioButtonIconCircleInt: reader.readLong(offsets[68]),
+    radioButtonIconEnabledInt: reader.readLong(offsets[69]),
+    radioButtonLabelDisabledInt: reader.readLong(offsets[70]),
+    radioButtonLabelEnabledInt: reader.readLong(offsets[71]),
+    radioButtonTextDisabledInt: reader.readLong(offsets[72]),
+    radioButtonTextEnabledInt: reader.readLong(offsets[73]),
+    rateTypeToggleColorOffInt: reader.readLong(offsets[74]),
+    rateTypeToggleColorOnInt: reader.readLong(offsets[75]),
+    rateTypeToggleDesktopColorOffInt: reader.readLong(offsets[76]),
+    rateTypeToggleDesktopColorOnInt: reader.readLong(offsets[77]),
+    settingsIconBack2Int: reader.readLong(offsets[78]),
+    settingsIconBackInt: reader.readLong(offsets[79]),
+    settingsIconElementInt: reader.readLong(offsets[80]),
+    settingsIconIconInt: reader.readLong(offsets[81]),
+    settingsItem2ActiveBGInt: reader.readLong(offsets[82]),
+    settingsItem2ActiveSubInt: reader.readLong(offsets[83]),
+    settingsItem2ActiveTextInt: reader.readLong(offsets[84]),
+    shadowInt: reader.readLong(offsets[85]),
+    snackBarBackErrorInt: reader.readLong(offsets[86]),
+    snackBarBackInfoInt: reader.readLong(offsets[87]),
+    snackBarBackSuccessInt: reader.readLong(offsets[88]),
+    snackBarTextErrorInt: reader.readLong(offsets[89]),
+    snackBarTextInfoInt: reader.readLong(offsets[90]),
+    snackBarTextSuccessInt: reader.readLong(offsets[91]),
+    splashInt: reader.readLong(offsets[92]),
+    stackWalletBGInt: reader.readLong(offsets[93]),
+    stackWalletBottomInt: reader.readLong(offsets[94]),
+    stackWalletMidInt: reader.readLong(offsets[95]),
+    standardBoxShadowString: reader.readString(offsets[96]),
+    stepIndicatorBGCheckInt: reader.readLong(offsets[97]),
+    stepIndicatorBGInactiveInt: reader.readLong(offsets[98]),
+    stepIndicatorBGLinesInactiveInt: reader.readLong(offsets[99]),
+    stepIndicatorBGLinesInt: reader.readLong(offsets[100]),
+    stepIndicatorBGNumberInt: reader.readLong(offsets[101]),
+    stepIndicatorIconInactiveInt: reader.readLong(offsets[102]),
+    stepIndicatorIconNumberInt: reader.readLong(offsets[103]),
+    stepIndicatorIconTextInt: reader.readLong(offsets[104]),
+    switchBGDisabledInt: reader.readLong(offsets[105]),
+    switchBGOffInt: reader.readLong(offsets[106]),
+    switchBGOnInt: reader.readLong(offsets[107]),
+    switchCircleDisabledInt: reader.readLong(offsets[108]),
+    switchCircleOffInt: reader.readLong(offsets[109]),
+    switchCircleOnInt: reader.readLong(offsets[110]),
+    textConfirmTotalAmountInt: reader.readLong(offsets[111]),
+    textDark2Int: reader.readLong(offsets[112]),
+    textDark3Int: reader.readLong(offsets[113]),
+    textDarkInt: reader.readLong(offsets[114]),
+    textErrorInt: reader.readLong(offsets[115]),
+    textFavoriteCardInt: reader.readLong(offsets[116]),
+    textFieldActiveBGInt: reader.readLong(offsets[117]),
+    textFieldActiveLabelInt: reader.readLong(offsets[118]),
+    textFieldActiveSearchIconLeftInt: reader.readLong(offsets[119]),
+    textFieldActiveSearchIconRightInt: reader.readLong(offsets[120]),
+    textFieldActiveTextInt: reader.readLong(offsets[121]),
+    textFieldDefaultBGInt: reader.readLong(offsets[122]),
+    textFieldDefaultSearchIconLeftInt: reader.readLong(offsets[123]),
+    textFieldDefaultSearchIconRightInt: reader.readLong(offsets[124]),
+    textFieldDefaultTextInt: reader.readLong(offsets[125]),
+    textFieldErrorBGInt: reader.readLong(offsets[126]),
+    textFieldErrorBorderInt: reader.readLong(offsets[127]),
+    textFieldErrorLabelInt: reader.readLong(offsets[128]),
+    textFieldErrorSearchIconLeftInt: reader.readLong(offsets[129]),
+    textFieldErrorSearchIconRightInt: reader.readLong(offsets[130]),
+    textFieldErrorTextInt: reader.readLong(offsets[131]),
+    textFieldSuccessBGInt: reader.readLong(offsets[132]),
+    textFieldSuccessBorderInt: reader.readLong(offsets[133]),
+    textFieldSuccessLabelInt: reader.readLong(offsets[134]),
+    textFieldSuccessSearchIconLeftInt: reader.readLong(offsets[135]),
+    textFieldSuccessSearchIconRightInt: reader.readLong(offsets[136]),
+    textFieldSuccessTextInt: reader.readLong(offsets[137]),
+    textRestoreInt: reader.readLong(offsets[138]),
+    textSelectedWordTableItemInt: reader.readLong(offsets[139]),
+    textSubtitle1Int: reader.readLong(offsets[140]),
+    textSubtitle2Int: reader.readLong(offsets[141]),
+    textSubtitle3Int: reader.readLong(offsets[142]),
+    textSubtitle4Int: reader.readLong(offsets[143]),
+    textSubtitle5Int: reader.readLong(offsets[144]),
+    textSubtitle6Int: reader.readLong(offsets[145]),
+    textWhiteInt: reader.readLong(offsets[146]),
+    themeId: reader.readString(offsets[147]),
+    tokenSummaryBGInt: reader.readLong(offsets[148]),
+    tokenSummaryButtonBGInt: reader.readLong(offsets[149]),
+    tokenSummaryIconInt: reader.readLong(offsets[150]),
+    tokenSummaryTextPrimaryInt: reader.readLong(offsets[151]),
+    tokenSummaryTextSecondaryInt: reader.readLong(offsets[152]),
+    topNavIconGreenInt: reader.readLong(offsets[153]),
+    topNavIconPrimaryInt: reader.readLong(offsets[154]),
+    topNavIconRedInt: reader.readLong(offsets[155]),
+    topNavIconYellowInt: reader.readLong(offsets[156]),
+    warningBackgroundInt: reader.readLong(offsets[157]),
+    warningForegroundInt: reader.readLong(offsets[158]),
   );
   object.id = id;
   return object;
@@ -1253,9 +1260,9 @@ P _stackThemeDeserializeProp<P>(
     case 13:
       return (reader.readLong(offset)) as P;
     case 14:
-      return (reader.readString(offset)) as P;
-    case 15:
       return (reader.readLong(offset)) as P;
+    case 15:
+      return (reader.readString(offset)) as P;
     case 16:
       return (reader.readLong(offset)) as P;
     case 17:
@@ -1299,9 +1306,9 @@ P _stackThemeDeserializeProp<P>(
     case 36:
       return (reader.readLong(offset)) as P;
     case 37:
-      return (reader.readString(offset)) as P;
-    case 38:
       return (reader.readLong(offset)) as P;
+    case 38:
+      return (reader.readString(offset)) as P;
     case 39:
       return (reader.readLong(offset)) as P;
     case 40:
@@ -1319,13 +1326,13 @@ P _stackThemeDeserializeProp<P>(
     case 46:
       return (reader.readLong(offset)) as P;
     case 47:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 48:
-      return (reader.readLong(offset)) as P;
-    case 49:
       return (reader.readStringOrNull(offset)) as P;
-    case 50:
+    case 49:
       return (reader.readLong(offset)) as P;
+    case 50:
+      return (reader.readStringOrNull(offset)) as P;
     case 51:
       return (reader.readLong(offset)) as P;
     case 52:
@@ -1337,9 +1344,9 @@ P _stackThemeDeserializeProp<P>(
     case 55:
       return (reader.readLong(offset)) as P;
     case 56:
-      return (reader.readString(offset)) as P;
-    case 57:
       return (reader.readLong(offset)) as P;
+    case 57:
+      return (reader.readString(offset)) as P;
     case 58:
       return (reader.readLong(offset)) as P;
     case 59:
@@ -1415,9 +1422,9 @@ P _stackThemeDeserializeProp<P>(
     case 94:
       return (reader.readLong(offset)) as P;
     case 95:
-      return (reader.readString(offset)) as P;
-    case 96:
       return (reader.readLong(offset)) as P;
+    case 96:
+      return (reader.readString(offset)) as P;
     case 97:
       return (reader.readLong(offset)) as P;
     case 98:
@@ -1517,9 +1524,9 @@ P _stackThemeDeserializeProp<P>(
     case 145:
       return (reader.readLong(offset)) as P;
     case 146:
-      return (reader.readString(offset)) as P;
-    case 147:
       return (reader.readLong(offset)) as P;
+    case 147:
+      return (reader.readString(offset)) as P;
     case 148:
       return (reader.readLong(offset)) as P;
     case 149:
@@ -1539,6 +1546,8 @@ P _stackThemeDeserializeProp<P>(
     case 156:
       return (reader.readLong(offset)) as P;
     case 157:
+      return (reader.readLong(offset)) as P;
+    case 158:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -2288,6 +2297,62 @@ extension StackThemeQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'bottomNavIconBackInt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition>
+      bottomNavIconIconHighlightedIntEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'bottomNavIconIconHighlightedInt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition>
+      bottomNavIconIconHighlightedIntGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'bottomNavIconIconHighlightedInt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition>
+      bottomNavIconIconHighlightedIntLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'bottomNavIconIconHighlightedInt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition>
+      bottomNavIconIconHighlightedIntBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'bottomNavIconIconHighlightedInt',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -11320,6 +11385,20 @@ extension StackThemeQuerySortBy
   }
 
   QueryBuilder<StackTheme, StackTheme, QAfterSortBy>
+      sortByBottomNavIconIconHighlightedInt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'bottomNavIconIconHighlightedInt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterSortBy>
+      sortByBottomNavIconIconHighlightedIntDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'bottomNavIconIconHighlightedInt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterSortBy>
       sortByBottomNavIconIconInt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'bottomNavIconIconInt', Sort.asc);
@@ -13467,6 +13546,20 @@ extension StackThemeQuerySortThenBy
   }
 
   QueryBuilder<StackTheme, StackTheme, QAfterSortBy>
+      thenByBottomNavIconIconHighlightedInt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'bottomNavIconIconHighlightedInt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterSortBy>
+      thenByBottomNavIconIconHighlightedIntDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'bottomNavIconIconHighlightedInt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterSortBy>
       thenByBottomNavIconIconInt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'bottomNavIconIconInt', Sort.asc);
@@ -15558,6 +15651,13 @@ extension StackThemeQueryWhereDistinct
   }
 
   QueryBuilder<StackTheme, StackTheme, QDistinct>
+      distinctByBottomNavIconIconHighlightedInt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'bottomNavIconIconHighlightedInt');
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QDistinct>
       distinctByBottomNavIconIconInt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'bottomNavIconIconInt');
@@ -16640,6 +16740,13 @@ extension StackThemeQueryProperty
       bottomNavIconBackIntProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'bottomNavIconBackInt');
+    });
+  }
+
+  QueryBuilder<StackTheme, int, QQueryOperations>
+      bottomNavIconIconHighlightedIntProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'bottomNavIconIconHighlightedInt');
     });
   }
 

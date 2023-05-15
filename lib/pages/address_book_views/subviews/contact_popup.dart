@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,8 +11,8 @@ import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_2_view.
 import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
@@ -110,11 +112,13 @@ class ContactPopUp extends ConsumerWidget {
                                       ),
                                       child: contact.id == "default"
                                           ? Center(
-                                              child: SvgPicture.asset(
-                                                ref.watch(
-                                                  themeProvider.select(
-                                                    (value) =>
-                                                        value.assets.stackIcon,
+                                              child: SvgPicture.file(
+                                                File(
+                                                  ref.watch(
+                                                    themeProvider.select(
+                                                      (value) => value
+                                                          .assets.stackIcon,
+                                                    ),
                                                   ),
                                                 ),
                                                 width: 20,
@@ -211,9 +215,11 @@ class ContactPopUp extends ConsumerWidget {
                                           const SizedBox(
                                             height: 2,
                                           ),
-                                          SvgPicture.asset(
-                                            ref.watch(
-                                              coinIconProvider(e.coin),
+                                          SvgPicture.file(
+                                            File(
+                                              ref.watch(
+                                                coinIconProvider(e.coin),
+                                              ),
                                             ),
                                             height: 24,
                                           ),

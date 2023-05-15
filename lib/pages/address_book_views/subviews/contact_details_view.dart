@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -334,8 +336,10 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                             padding: const EdgeInsets.all(12),
                             child: Row(
                               children: [
-                                SvgPicture.asset(
-                                  ref.watch(coinIconProvider(e.coin)),
+                                SvgPicture.file(
+                                  File(
+                                    ref.watch(coinIconProvider(e.coin)),
+                                  ),
                                   height: 24,
                                 ),
                                 const SizedBox(

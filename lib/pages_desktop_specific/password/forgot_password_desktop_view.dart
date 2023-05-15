@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -47,10 +49,12 @@ class _ForgotPasswordDesktopViewState
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SvgPicture.asset(
-                  ref.watch(
-                    themeProvider.select(
-                      (value) => value.assets.stackIcon,
+                SvgPicture.file(
+                  File(
+                    ref.watch(
+                      themeProvider.select(
+                        (value) => value.assets.stackIcon,
+                      ),
                     ),
                   ),
                   width: 100,
