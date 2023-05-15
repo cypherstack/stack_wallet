@@ -102,8 +102,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final contacts =
-        ref.watch(addressBookServiceProvider.select((value) => value.contacts));
+    final contacts = ref.watch(addressBookServiceProvider.select((value) => value.contacts));
 
     final isDesktop = Util.isDesktop;
     return ConditionalParent(
