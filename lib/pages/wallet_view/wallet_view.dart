@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
@@ -37,6 +38,9 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
@@ -47,7 +51,6 @@ import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -104,13 +107,10 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
   bool _rescanningOnOpen = false;
 
-  late ClipboardInterface _clipboardInterface;
-
   @override
   void initState() {
     walletId = widget.walletId;
     managerProvider = widget.managerProvider;
-    _clipboardInterface = widget.clipboardInterface;
 
     ref.read(managerProvider).isActiveWallet = true;
     if (!ref.read(managerProvider).shouldAutoSync) {
@@ -472,9 +472,10 @@ class _WalletViewState extends ConsumerState<WalletView> {
                   titleSpacing: 0,
                   title: Row(
                     children: [
-                      SvgPicture.asset(
-                        Assets.svg.iconFor(coin: coin),
-                        // color: Theme.of(context).extension<StackColors>()!.accentColorDark
+                      SvgPicture.file(
+                        File(
+                          ref.watch(coinIconProvider(coin)),
+                        ),
                         width: 24,
                         height: 24,
                       ),
@@ -501,7 +502,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       child: AspectRatio(
                         aspectRatio: 1,
                         child: AppBarIconButton(
-                          semanticsLabel: "Network Button. Takes To Network Status Page.",
+                          semanticsLabel:
+                              "Network Button. Takes To Network Status Page.",
                           key: const Key("walletViewRadioButton"),
                           size: 36,
                           shadows: const [],
@@ -531,28 +533,49 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       child: AspectRatio(
                         aspectRatio: 1,
                         child: AppBarIconButton(
-                          semanticsLabel: "Notifications Button. Takes To Notifications Page.",
+                          semanticsLabel:
+                              "Notifications Button. Takes To Notifications Page.",
                           key: const Key("walletViewAlertsButton"),
                           size: 36,
                           shadows: const [],
                           color: Theme.of(context)
                               .extension<StackColors>()!
                               .background,
-                          icon: SvgPicture.asset(
-                            ref.watch(notificationsProvider.select((value) =>
-                                    value.hasUnreadNotificationsFor(walletId)))
-                                ? Assets.svg.bellNew(context)
-                                : Assets.svg.bell,
-                            width: 20,
-                            height: 20,
-                            color: ref.watch(notificationsProvider.select(
-                                    (value) => value
-                                        .hasUnreadNotificationsFor(walletId)))
-                                ? null
-                                : Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .topNavIconPrimary,
-                          ),
+                          icon: ref.watch(notificationsProvider.select(
+                                  (value) => value
+                                      .hasUnreadNotificationsFor(walletId)))
+                              ? SvgPicture.file(
+                                  File(
+                                    ref.watch(
+                                      themeProvider.select(
+                                        (value) => value.assets.bellNew,
+                                      ),
+                                    ),
+                                  ),
+                                  width: 20,
+                                  height: 20,
+                                  color: ref.watch(notificationsProvider.select(
+                                          (value) =>
+                                              value.hasUnreadNotificationsFor(
+                                                  walletId)))
+                                      ? null
+                                      : Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .topNavIconPrimary,
+                                )
+                              : SvgPicture.asset(
+                                  Assets.svg.bell,
+                                  width: 20,
+                                  height: 20,
+                                  color: ref.watch(notificationsProvider.select(
+                                          (value) =>
+                                              value.hasUnreadNotificationsFor(
+                                                  walletId)))
+                                      ? null
+                                      : Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .topNavIconPrimary,
+                                ),
                           onPressed: () {
                             // reset unread state
                             ref.refresh(unreadNotificationsStateProvider);
@@ -599,7 +622,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       child: AspectRatio(
                         aspectRatio: 1,
                         child: AppBarIconButton(
-                          semanticsLabel: "Settings Button. Takes To Wallet Settings Page.",
+                          semanticsLabel:
+                              "Settings Button. Takes To Wallet Settings Page.",
                           key: const Key("walletViewSettingsButton"),
                           size: 36,
                           shadows: const [],

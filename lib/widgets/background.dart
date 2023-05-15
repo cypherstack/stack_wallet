@@ -1,11 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 
-class Background extends StatelessWidget {
+class Background extends ConsumerWidget {
   const Background({
     Key? key,
     required this.child,
@@ -14,17 +16,17 @@ class Background extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     Color? color;
 
     bool shouldPad = false;
 
-    switch (Theme.of(context).extension<StackColors>()!.themeType) {
-      case ThemeType.oceanBreeze:
+    switch (Theme.of(context).extension<StackColors>()!.themeId) {
+      case "ocean_breeze":
         shouldPad = true;
         color = null;
         break;
-      case ThemeType.fruitSorbet:
+      case "fruit_sorbet":
         color = null;
         break;
       default:
@@ -32,7 +34,11 @@ class Background extends StatelessWidget {
         break;
     }
 
-    final bgAsset = Assets.svg.background(context);
+    final bgAsset = ref.watch(
+      themeProvider.select(
+        (value) => value.assets.background,
+      ),
+    );
 
     return Container(
       decoration: BoxDecoration(
@@ -52,8 +58,10 @@ class Background extends StatelessWidget {
                         bottom: MediaQuery.of(context).size.height * (1 / 12),
                       )
                     : const EdgeInsets.all(0),
-                child: SvgPicture.asset(
-                  bgAsset!,
+                child: SvgPicture.file(
+                  File(
+                    bgAsset!,
+                  ),
                   fit: BoxFit.fill,
                 ),
               ),

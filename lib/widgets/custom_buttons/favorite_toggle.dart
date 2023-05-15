@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/providers/ui/color_theme_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class FavoriteToggle extends ConsumerStatefulWidget {
   const FavoriteToggle({
@@ -37,10 +37,9 @@ class _FavoriteToggleState extends ConsumerState<FavoriteToggle> {
 
   @override
   void initState() {
-    on = widget.on ??
-        ref.read(colorThemeProvider.state).state.favoriteStarActive;
-    off = widget.off ??
-        ref.read(colorThemeProvider.state).state.favoriteStarInactive;
+    on = widget.on ?? ref.read(themeProvider.state).state.favoriteStarActive;
+    off =
+        widget.off ?? ref.read(themeProvider.state).state.favoriteStarInactive;
     _isActive = widget.initialState;
     _color = _isActive ? on : off;
     _onChanged = widget.onChanged;

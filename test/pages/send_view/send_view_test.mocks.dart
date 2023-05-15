@@ -18,6 +18,7 @@ import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i11;
 import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i10;
 import 'package:stackwallet/models/balance.dart' as _i12;
 import 'package:stackwallet/models/isar/models/isar_models.dart' as _i18;
+import 'package:stackwallet/models/isar/stack_theme.dart' as _i33;
 import 'package:stackwallet/models/node_model.dart' as _i26;
 import 'package:stackwallet/models/paymint/fee_object_model.dart' as _i9;
 import 'package:stackwallet/models/signing_data.dart' as _i29;
@@ -30,15 +31,15 @@ import 'package:stackwallet/services/transaction_notification_tracker.dart'
     as _i8;
 import 'package:stackwallet/services/wallets.dart' as _i21;
 import 'package:stackwallet/services/wallets_service.dart' as _i2;
+import 'package:stackwallet/themes/theme_service.dart' as _i32;
 import 'package:stackwallet/utilities/amount/amount.dart' as _i15;
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i33;
+import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i35;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i22;
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart' as _i28;
-import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i32;
+import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i34;
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
     as _i7;
 import 'package:stackwallet/utilities/prefs.dart' as _i24;
-import 'package:stackwallet/utilities/theme/color_theme.dart' as _i34;
 import 'package:tuple/tuple.dart' as _i16;
 
 // ignore_for_file: type=lint
@@ -2226,6 +2227,96 @@ class MockLocaleService extends _i1.Mock implements _i31.LocaleService {
       );
 }
 
+/// A class which mocks [ThemeService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockThemeService extends _i1.Mock implements _i32.ThemeService {
+  MockThemeService() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i13.MainDB get db => (super.noSuchMethod(
+        Invocation.getter(#db),
+        returnValue: _FakeMainDB_10(
+          this,
+          Invocation.getter(#db),
+        ),
+      ) as _i13.MainDB);
+  @override
+  List<_i33.StackTheme> get installedThemes => (super.noSuchMethod(
+        Invocation.getter(#installedThemes),
+        returnValue: <_i33.StackTheme>[],
+      ) as List<_i33.StackTheme>);
+  @override
+  void init(_i13.MainDB? db) => super.noSuchMethod(
+        Invocation.method(
+          #init,
+          [db],
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i23.Future<void> install({required _i30.Uint8List? themeArchiveData}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #install,
+          [],
+          {#themeArchiveData: themeArchiveData},
+        ),
+        returnValue: _i23.Future<void>.value(),
+        returnValueForMissingStub: _i23.Future<void>.value(),
+      ) as _i23.Future<void>);
+  @override
+  _i23.Future<void> remove({required String? themeId}) => (super.noSuchMethod(
+        Invocation.method(
+          #remove,
+          [],
+          {#themeId: themeId},
+        ),
+        returnValue: _i23.Future<void>.value(),
+        returnValueForMissingStub: _i23.Future<void>.value(),
+      ) as _i23.Future<void>);
+  @override
+  _i23.Future<bool> verifyInstalled({required String? themeId}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #verifyInstalled,
+          [],
+          {#themeId: themeId},
+        ),
+        returnValue: _i23.Future<bool>.value(false),
+      ) as _i23.Future<bool>);
+  @override
+  _i23.Future<List<_i32.StackThemeMetaData>> fetchThemes() =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #fetchThemes,
+          [],
+        ),
+        returnValue: _i23.Future<List<_i32.StackThemeMetaData>>.value(
+            <_i32.StackThemeMetaData>[]),
+      ) as _i23.Future<List<_i32.StackThemeMetaData>>);
+  @override
+  _i23.Future<_i30.Uint8List> fetchTheme(
+          {required _i32.StackThemeMetaData? themeMetaData}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #fetchTheme,
+          [],
+          {#themeMetaData: themeMetaData},
+        ),
+        returnValue: _i23.Future<_i30.Uint8List>.value(_i30.Uint8List(0)),
+      ) as _i23.Future<_i30.Uint8List>);
+  @override
+  _i33.StackTheme? getTheme({required String? themeId}) =>
+      (super.noSuchMethod(Invocation.method(
+        #getTheme,
+        [],
+        {#themeId: themeId},
+      )) as _i33.StackTheme?);
+}
+
 /// A class which mocks [Prefs].
 ///
 /// See the documentation for Mockito's code generation for more information.
@@ -2285,12 +2376,12 @@ class MockPrefs extends _i1.Mock implements _i24.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i32.SyncingType get syncType => (super.noSuchMethod(
+  _i34.SyncingType get syncType => (super.noSuchMethod(
         Invocation.getter(#syncType),
-        returnValue: _i32.SyncingType.currentWalletOnly,
-      ) as _i32.SyncingType);
+        returnValue: _i34.SyncingType.currentWalletOnly,
+      ) as _i34.SyncingType);
   @override
-  set syncType(_i32.SyncingType? syncType) => super.noSuchMethod(
+  set syncType(_i34.SyncingType? syncType) => super.noSuchMethod(
         Invocation.setter(
           #syncType,
           syncType,
@@ -2436,12 +2527,12 @@ class MockPrefs extends _i1.Mock implements _i24.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i33.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
+  _i35.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
         Invocation.getter(#backupFrequencyType),
-        returnValue: _i33.BackupFrequencyType.everyTenMinutes,
-      ) as _i33.BackupFrequencyType);
+        returnValue: _i35.BackupFrequencyType.everyTenMinutes,
+      ) as _i35.BackupFrequencyType);
   @override
-  set backupFrequencyType(_i33.BackupFrequencyType? backupFrequencyType) =>
+  set backupFrequencyType(_i35.BackupFrequencyType? backupFrequencyType) =>
       super.noSuchMethod(
         Invocation.setter(
           #backupFrequencyType,
@@ -2533,43 +2624,43 @@ class MockPrefs extends _i1.Mock implements _i24.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i34.ThemeType get theme => (super.noSuchMethod(
-        Invocation.getter(#theme),
-        returnValue: _i34.ThemeType.light,
-      ) as _i34.ThemeType);
+  String get themeId => (super.noSuchMethod(
+        Invocation.getter(#themeId),
+        returnValue: '',
+      ) as String);
   @override
-  set theme(_i34.ThemeType? theme) => super.noSuchMethod(
+  set themeId(String? themeId) => super.noSuchMethod(
         Invocation.setter(
-          #theme,
-          theme,
+          #themeId,
+          themeId,
         ),
         returnValueForMissingStub: null,
       );
   @override
-  _i34.ThemeType get systemBrightnessLightTheme => (super.noSuchMethod(
-        Invocation.getter(#systemBrightnessLightTheme),
-        returnValue: _i34.ThemeType.light,
-      ) as _i34.ThemeType);
+  String get systemBrightnessLightThemeId => (super.noSuchMethod(
+        Invocation.getter(#systemBrightnessLightThemeId),
+        returnValue: '',
+      ) as String);
   @override
-  set systemBrightnessLightTheme(_i34.ThemeType? systemBrightnessLightTheme) =>
+  set systemBrightnessLightThemeId(String? systemBrightnessLightThemeId) =>
       super.noSuchMethod(
         Invocation.setter(
-          #systemBrightnessLightTheme,
-          systemBrightnessLightTheme,
+          #systemBrightnessLightThemeId,
+          systemBrightnessLightThemeId,
         ),
         returnValueForMissingStub: null,
       );
   @override
-  _i34.ThemeType get systemBrightnessDarkTheme => (super.noSuchMethod(
-        Invocation.getter(#systemBrightnessDarkTheme),
-        returnValue: _i34.ThemeType.light,
-      ) as _i34.ThemeType);
+  String get systemBrightnessDarkThemeId => (super.noSuchMethod(
+        Invocation.getter(#systemBrightnessDarkThemeId),
+        returnValue: '',
+      ) as String);
   @override
-  set systemBrightnessDarkTheme(_i34.ThemeType? systemBrightnessDarkTheme) =>
+  set systemBrightnessDarkThemeId(String? systemBrightnessDarkThemeId) =>
       super.noSuchMethod(
         Invocation.setter(
-          #systemBrightnessDarkTheme,
-          systemBrightnessDarkTheme,
+          #systemBrightnessDarkThemeId,
+          systemBrightnessDarkThemeId,
         ),
         returnValueForMissingStub: null,
       );

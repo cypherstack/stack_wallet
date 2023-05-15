@@ -1,15 +1,17 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/coin_image_provider.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/animated_widgets/rotating_arrows.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
-class BuildingTransactionDialog extends StatefulWidget {
+class BuildingTransactionDialog extends ConsumerStatefulWidget {
   const BuildingTransactionDialog({
     Key? key,
     required this.onCancel,
@@ -20,10 +22,11 @@ class BuildingTransactionDialog extends StatefulWidget {
   final Coin coin;
 
   @override
-  State<BuildingTransactionDialog> createState() => _RestoringDialogState();
+  ConsumerState<BuildingTransactionDialog> createState() =>
+      _RestoringDialogState();
 }
 
-class _RestoringDialogState extends State<BuildingTransactionDialog> {
+class _RestoringDialogState extends ConsumerState<BuildingTransactionDialog> {
   late final VoidCallback onCancel;
 
   @override
@@ -35,10 +38,11 @@ class _RestoringDialogState extends State<BuildingTransactionDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final isChans = Theme.of(context).extension<StackColors>()!.themeType ==
-            ThemeType.chan ||
-        Theme.of(context).extension<StackColors>()!.themeType ==
-            ThemeType.darkChans;
+    final assetPath = ref.watch(
+      coinImageSecondaryProvider(
+        widget.coin,
+      ),
+    );
 
     if (Util.isDesktop) {
       return Column(
@@ -51,17 +55,14 @@ class _RestoringDialogState extends State<BuildingTransactionDialog> {
           const SizedBox(
             height: 40,
           ),
-          if (isChans)
-            Image(
-              image: AssetImage(
-                Assets.gif.kiss(widget.coin),
-              ),
-            ),
-          if (!isChans)
-            const RotatingArrows(
-              width: 40,
-              height: 40,
-            ),
+          assetPath.endsWith(".gif")
+              ? Image.file(File(
+                  assetPath,
+                ))
+              : const RotatingArrows(
+                  width: 40,
+                  height: 40,
+                ),
           const SizedBox(
             height: 40,
           ),
@@ -79,17 +80,15 @@ class _RestoringDialogState extends State<BuildingTransactionDialog> {
         onWillPop: () async {
           return false;
         },
-        child: isChans
+        child: assetPath.endsWith(".gif")
             ? StackDialogBase(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image(
-                      image: AssetImage(
-                        Assets.gif.kiss(widget.coin),
-                      ),
-                    ),
+                    Image.file(File(
+                      assetPath,
+                    )),
                     Text(
                       "Generating transaction",
                       textAlign: TextAlign.center,

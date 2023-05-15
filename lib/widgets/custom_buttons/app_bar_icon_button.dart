@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 
 class AppBarIconButton extends StatelessWidget {
@@ -27,28 +27,28 @@ class AppBarIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: size,
-      width: size,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(1000),
-        color: color ?? Theme.of(context).extension<StackColors>()!.background,
-        boxShadow: shadows,
-      ),
-      child: Semantics(
+        height: size,
+        width: size,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(1000),
+          color:
+              color ?? Theme.of(context).extension<StackColors>()!.background,
+          boxShadow: shadows,
+        ),
+        child: Semantics(
           excludeSemantics: true,
           label: semanticsLabel,
           child: MaterialButton(
-          splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-          padding: EdgeInsets.zero,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(1000),
+            splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+            padding: EdgeInsets.zero,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(1000),
+            ),
+            onPressed: onPressed,
+            child: icon,
           ),
-          onPressed: onPressed,
-          child: icon,
-        ),
-      )
-    );
+        ));
   }
 }
 
@@ -72,19 +72,19 @@ class AppBarBackButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
     return Padding(
-      padding: isDesktop
-          ? const EdgeInsets.symmetric(
-              vertical: 20,
-              horizontal: 24,
-            )
-          : const EdgeInsets.all(10),
-      child: AppBarIconButton(
-        semanticsLabel: semanticsLabel,
+        padding: isDesktop
+            ? const EdgeInsets.symmetric(
+                vertical: 20,
+                horizontal: 24,
+              )
+            : const EdgeInsets.all(10),
+        child: AppBarIconButton(
+          semanticsLabel: semanticsLabel,
           size: size ??
               (isDesktop
                   ? isCompact
-                  ? 42
-                  : 56
+                      ? 42
+                      : 56
                   : 32),
           color: isDesktop
               ? Theme.of(context).extension<StackColors>()!.textFieldDefaultBG
@@ -94,10 +94,10 @@ class AppBarBackButton extends StatelessWidget {
             Assets.svg.arrowLeft,
             width: iconSize ?? (isCompact ? 18 : 24),
             height: iconSize ?? (isCompact ? 18 : 24),
-            color: Theme.of(context).extension<StackColors>()!.topNavIconPrimary,
+            color:
+                Theme.of(context).extension<StackColors>()!.topNavIconPrimary,
           ),
           onPressed: onPressed ?? Navigator.of(context).pop,
-      )
-    );
+        ));
   }
 }

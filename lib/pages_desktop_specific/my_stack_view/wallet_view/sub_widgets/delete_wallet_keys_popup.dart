@@ -8,10 +8,10 @@ import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_vi
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/global/wallets_service_provider.dart';
 import 'package:stackwallet/route_generator.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';

@@ -1,15 +1,18 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/coin_image_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
-class SendingTransactionDialog extends StatefulWidget {
+class SendingTransactionDialog extends ConsumerStatefulWidget {
   const SendingTransactionDialog({
     Key? key,
     required this.coin,
@@ -20,10 +23,11 @@ class SendingTransactionDialog extends StatefulWidget {
   final ProgressAndSuccessController controller;
 
   @override
-  State<SendingTransactionDialog> createState() => _RestoringDialogState();
+  ConsumerState<SendingTransactionDialog> createState() =>
+      _RestoringDialogState();
 }
 
-class _RestoringDialogState extends State<SendingTransactionDialog> {
+class _RestoringDialogState extends ConsumerState<SendingTransactionDialog> {
   late ProgressAndSuccessController? _progressAndSuccessController;
 
   @override
@@ -42,10 +46,11 @@ class _RestoringDialogState extends State<SendingTransactionDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final isChans = Theme.of(context).extension<StackColors>()!.themeType ==
-            ThemeType.chan ||
-        Theme.of(context).extension<StackColors>()!.themeType ==
-            ThemeType.darkChans;
+    final assetPath = ref.watch(
+      coinImageSecondaryProvider(
+        widget.coin,
+      ),
+    );
 
     if (Util.isDesktop) {
       return DesktopDialog(
@@ -61,11 +66,9 @@ class _RestoringDialogState extends State<SendingTransactionDialog> {
               const SizedBox(
                 height: 40,
               ),
-              isChans
-                  ? Image(
-                      image: AssetImage(
-                        Assets.gif.kiss(widget.coin),
-                      ),
+              assetPath.endsWith(".gif")
+                  ? Image.file(
+                      File(assetPath),
                     )
                   : ProgressAndSuccess(
                       controller: _progressAndSuccessController!,
@@ -79,16 +82,14 @@ class _RestoringDialogState extends State<SendingTransactionDialog> {
         onWillPop: () async {
           return false;
         },
-        child: isChans
+        child: assetPath.endsWith(".gif")
             ? StackDialogBase(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image(
-                      image: AssetImage(
-                        Assets.gif.kiss(widget.coin),
-                      ),
+                    Image.file(
+                      File(assetPath),
                     ),
                     Text(
                       "Sending transaction",

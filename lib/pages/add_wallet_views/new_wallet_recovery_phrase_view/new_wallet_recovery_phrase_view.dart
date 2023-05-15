@@ -13,11 +13,11 @@ import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -140,7 +140,8 @@ class _NewWalletRecoveryPhraseViewState
                     child: AspectRatio(
                       aspectRatio: 1,
                       child: AppBarIconButton(
-                        semanticsLabel: "Copy Button. Copies The Recovery Phrase To Clipboard.",
+                        semanticsLabel:
+                            "Copy Button. Copies The Recovery Phrase To Clipboard.",
                         color: Theme.of(context)
                             .extension<StackColors>()!
                             .background,
