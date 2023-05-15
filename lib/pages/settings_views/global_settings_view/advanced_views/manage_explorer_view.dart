@@ -36,6 +36,12 @@ class _ManageExplorerViewState extends ConsumerState<ManageExplorerView> {
   }
 
   @override
+  void dispose() {
+    textEditingController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Background(
       child: Scaffold(
@@ -93,13 +99,19 @@ class _ManageExplorerViewState extends ConsumerState<ManageExplorerView> {
                     style: Theme.of(context)
                         .extension<StackColors>()!
                         .getPrimaryEnabledButtonStyle(context),
-                    onPressed: () {
+                    onPressed: () async {
                       textEditingController.text =
                           textEditingController.text.trim();
-                      setBlockExplorerForCoin(
-                              coin: widget.coin,
-                              url: Uri.parse(textEditingController.text))
-                          .then((value) => Navigator.of(context).pop());
+                      await setBlockExplorerForCoin(
+                        coin: widget.coin,
+                        url: Uri.parse(
+                          textEditingController.text,
+                        ),
+                      );
+
+                      if (mounted) {
+                        Navigator.of(context).pop();
+                      }
                     },
                     child: Text(
                       "Save",
