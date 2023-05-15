@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/contact.dart';
-import 'package:stackwallet/models/contact_address_entry.dart';
+import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/add_address_book_entry_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/address_book_filter_view.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
@@ -73,19 +72,18 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
       final managers = ref.read(walletsChangeNotifierProvider).managers;
       for (final manager in managers) {
         addresses.add(
-          ContactAddressEntry(
-            coin: manager.coin,
-            address: await manager.currentReceivingAddress,
-            label: "Current Receiving",
-            other: manager.walletName,
-          ),
+          ContactAddressEntry()
+            ..coinName = manager.coin.name
+            ..address = await manager.currentReceivingAddress
+            ..label = "Current Receiving"
+            ..other = manager.walletName,
         );
       }
-      final self = Contact(
+      final self = ContactEntry(
         name: "My Stack",
         addresses: addresses,
         isFavorite: true,
-        id: "default",
+        customId: "default",
       );
       await ref.read(addressBookServiceProvider).editContact(self);
     });
@@ -306,8 +304,8 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                       .where((element) => element.isFavorite)
                       .map(
                         (e) => AddressBookCard(
-                          key: Key("favContactCard_${e.id}_key"),
-                          contactId: e.id,
+                          key: Key("favContactCard_${e.customId}_key"),
+                          contactId: e.customId,
                         ),
                       ),
                 ],
@@ -352,8 +350,9 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                                 .matches(widget.filterTerm ?? _searchTerm, e))
                             .map(
                               (e) => AddressBookCard(
-                                key: Key("desktopContactCard_${e.id}_key"),
-                                contactId: e.id,
+                                key:
+                                    Key("desktopContactCard_${e.customId}_key"),
+                                contactId: e.customId,
                               ),
                             ),
                       ],

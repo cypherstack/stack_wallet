@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/contact.dart';
-import 'package:stackwallet/models/contact_address_entry.dart';
+import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/add_address_book_entry_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/address_book_filter_view.dart';
 import 'package:stackwallet/pages_desktop_specific/address_book_view/subwidgets/desktop_address_book_scaffold.dart';
@@ -105,19 +104,18 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
       final managers = ref.read(walletsChangeNotifierProvider).managers;
       for (final manager in managers) {
         addresses.add(
-          ContactAddressEntry(
-            coin: manager.coin,
-            address: await manager.currentReceivingAddress,
-            label: "Current Receiving",
-            other: manager.walletName,
-          ),
+          ContactAddressEntry()
+            ..coinName = manager.coin.name
+            ..address = await manager.currentReceivingAddress
+            ..label = "Current Receiving"
+            ..other = manager.walletName,
         );
       }
-      final self = Contact(
+      final self = ContactEntry(
         name: "My Stack",
         addresses: addresses,
         isFavorite: true,
-        id: "default",
+        customId: "default",
       );
       await ref.read(addressBookServiceProvider).editContact(self);
     });
@@ -323,14 +321,14 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                                     .extension<StackColors>()!
                                     .accentColorDark
                                     .withOpacity(
-                                      currentContactId == favorites[i].id
+                                      currentContactId == favorites[i].customId
                                           ? 0.08
                                           : 0,
                                     ),
                                 child: RawMaterialButton(
                                   onPressed: () {
                                     setState(() {
-                                      currentContactId = favorites[i].id;
+                                      currentContactId = favorites[i].customId;
                                     });
                                   },
                                   padding: const EdgeInsets.symmetric(
@@ -346,8 +344,8 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                                   ),
                                   child: AddressBookCard(
                                     key: Key(
-                                        "favContactCard_${favorites[i].id}_key"),
-                                    contactId: favorites[i].id,
+                                        "favContactCard_${favorites[i].customId}_key"),
+                                    contactId: favorites[i].customId,
                                     desktopSendFrom: false,
                                   ),
                                 ),
@@ -393,14 +391,16 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                                         .extension<StackColors>()!
                                         .accentColorDark
                                         .withOpacity(
-                                          currentContactId == allContacts[i].id
+                                          currentContactId ==
+                                                  allContacts[i].customId
                                               ? 0.08
                                               : 0,
                                         ),
                                     child: RawMaterialButton(
                                       onPressed: () {
                                         setState(() {
-                                          currentContactId = allContacts[i].id;
+                                          currentContactId =
+                                              allContacts[i].customId;
                                         });
                                       },
                                       padding: const EdgeInsets.symmetric(
@@ -416,8 +416,8 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                                       ),
                                       child: AddressBookCard(
                                         key: Key(
-                                            "favContactCard_${allContacts[i].id}_key"),
-                                        contactId: allContacts[i].id,
+                                            "favContactCard_${allContacts[i].customId}_key"),
+                                        contactId: allContacts[i].customId,
                                         desktopSendFrom: false,
                                       ),
                                     ),

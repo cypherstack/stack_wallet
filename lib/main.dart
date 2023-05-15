@@ -162,7 +162,7 @@ void main() async {
     int dbVersion = DB.instance.get<dynamic>(
             boxName: DB.boxNameDBInfo, key: "hive_data_version") as int? ??
         0;
-    if (dbVersion < Constants.currentHiveDbVersion) {
+    if (dbVersion < Constants.currentDataVersion) {
       try {
         await DbVersionMigrator().migrate(
           dbVersion,
