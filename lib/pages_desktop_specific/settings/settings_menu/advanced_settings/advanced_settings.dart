@@ -59,7 +59,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                             ),
                             TextSpan(
                               text:
-                                  "\n\nConfigurate these settings only if you know what you are doing!",
+                                  "\n\nConfigure these settings only if you know what you are doing!",
                               style: STextStyles.desktopTextExtraExtraSmall(
                                   context),
                             ),
