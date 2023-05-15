@@ -3,9 +3,12 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/models/contact.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
+import 'package:stackwallet/models/isar/models/contact_entry.dart'
+    as isar_contact;
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/models.dart';
 import 'package:stackwallet/models/node_model.dart';
@@ -290,6 +293,17 @@ class DbVersionMigrator with WalletDB {
         // try to continue migrating
         return await migrate(8, secureStore: secureStore);
 
+      case 9:
+        // migrate
+        await _v9();
+
+        // update version
+        await DB.instance.put<dynamic>(
+            boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 10);
+
+        // try to continue migrating
+        return await migrate(10, secureStore: secureStore);
+
       default:
         // finally return
         return;
@@ -446,5 +460,51 @@ class DbVersionMigrator with WalletDB {
         await MainDB.instance.addNewTransactionData(txnsData, walletId);
       }
     }
+  }
+
+  Future<void> _v9() async {
+    final addressBookBox = await Hive.openBox<dynamic>(DB.boxNameAddressBook);
+    await MainDB.instance.initMainDB();
+
+    final keys = List<String>.from(addressBookBox.keys);
+    final contacts = keys
+        .map((id) => Contact.fromJson(
+              Map<String, dynamic>.from(
+                addressBookBox.get(id) as Map,
+              ),
+            ))
+        .toList(growable: false);
+
+    final List<isar_contact.ContactEntry> newContacts = [];
+
+    for (final contact in contacts) {
+      final List<isar_contact.ContactAddressEntry> newContactAddressEntries =
+          [];
+
+      for (final entry in contact.addresses) {
+        newContactAddressEntries.add(
+          isar_contact.ContactAddressEntry()
+            ..coinName = entry.coin.name
+            ..address = entry.address
+            ..label = entry.label
+            ..other = entry.other,
+        );
+      }
+
+      final newContact = isar_contact.ContactEntry(
+        name: contact.name,
+        addresses: newContactAddressEntries,
+        isFavorite: contact.isFavorite,
+        customId: contact.id,
+      );
+
+      newContacts.add(newContact);
+    }
+
+    await MainDB.instance.isar.writeTxn(() async {
+      await MainDB.instance.isar.contactEntrys.putAll(newContacts);
+    });
+
+    await addressBookBox.deleteFromDisk();
   }
 }

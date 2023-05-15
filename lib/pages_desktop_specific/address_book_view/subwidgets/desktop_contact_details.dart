@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/contact.dart';
+import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/add_new_contact_address_view.dart';
 import 'package:stackwallet/pages_desktop_specific/address_book_view/subwidgets/desktop_address_card.dart';
@@ -42,7 +42,7 @@ class DesktopContactDetails extends ConsumerStatefulWidget {
 class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
   List<Tuple2<String, Transaction>> _cachedTransactions = [];
 
-  bool _contactHasAddress(String address, Contact contact) {
+  bool _contactHasAddress(String address, ContactEntry contact) {
     for (final entry in contact.addresses) {
       if (entry.address == address) {
         return true;
@@ -82,7 +82,7 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
   @override
   Widget build(BuildContext context) {
     // provider hack to prevent trying to update widget with deleted contact
-    Contact? _contact;
+    ContactEntry? _contact;
     try {
       _contact = ref.watch(addressBookServiceProvider
           .select((value) => value.getContactById(widget.contactId)));
@@ -159,7 +159,7 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                             barrierColor: Colors.transparent,
                             builder: (context) {
                               return DesktopContactOptionsMenuPopup(
-                                contactId: contact.id,
+                                contactId: contact.customId,
                               );
                             },
                           );
@@ -261,7 +261,7 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                                     padding: const EdgeInsets.all(18),
                                     child: DesktopAddressCard(
                                       entry: contact.addresses[i],
-                                      contactId: contact.id,
+                                      contactId: contact.customId,
                                     ),
                                   ),
                                 ],
