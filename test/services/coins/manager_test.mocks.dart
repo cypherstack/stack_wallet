@@ -658,28 +658,6 @@ class MockFiroWallet extends _i1.Mock implements _i10.FiroWallet {
         returnValueForMissingStub: _i11.Future<void>.value(),
       ) as _i11.Future<void>);
   @override
-  _i11.Future<void> fillAddresses(
-    String? suppliedMnemonic,
-    String? mnemonicPassphrase, {
-    int? perBatch = 50,
-    int? numberOfThreads = 4,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #fillAddresses,
-          [
-            suppliedMnemonic,
-            mnemonicPassphrase,
-          ],
-          {
-            #perBatch: perBatch,
-            #numberOfThreads: numberOfThreads,
-          },
-        ),
-        returnValue: _i11.Future<void>.value(),
-        returnValueForMissingStub: _i11.Future<void>.value(),
-      ) as _i11.Future<void>);
-  @override
   _i11.Future<void> fullRescan(
     int? maxUnusedAddressGap,
     int? maxNumberOfIndexesToCheck,
@@ -728,6 +706,16 @@ class MockFiroWallet extends _i1.Mock implements _i10.FiroWallet {
         returnValue: _i11.Future<Map<int, dynamic>>.value(<int, dynamic>{}),
       ) as _i11.Future<Map<int, dynamic>>);
   @override
+  _i11.Future<void> getTransactionCacheEarly(List<String>? allAddresses) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getTransactionCacheEarly,
+          [allAddresses],
+        ),
+        returnValue: _i11.Future<void>.value(),
+        returnValueForMissingStub: _i11.Future<void>.value(),
+      ) as _i11.Future<void>);
+  @override
   _i11.Future<List<Map<String, dynamic>>> fetchAnonymitySets() =>
       (super.noSuchMethod(
         Invocation.method(
@@ -746,13 +734,13 @@ class MockFiroWallet extends _i1.Mock implements _i10.FiroWallet {
         returnValue: _i11.Future<int>.value(0),
       ) as _i11.Future<int>);
   @override
-  _i11.Future<List<dynamic>> getUsedCoinSerials() => (super.noSuchMethod(
+  _i11.Future<List<String>> getUsedCoinSerials() => (super.noSuchMethod(
         Invocation.method(
           #getUsedCoinSerials,
           [],
         ),
-        returnValue: _i11.Future<List<dynamic>>.value(<dynamic>[]),
-      ) as _i11.Future<List<dynamic>>);
+        returnValue: _i11.Future<List<String>>.value(<String>[]),
+      ) as _i11.Future<List<String>>);
   @override
   _i11.Future<void> exit() => (super.noSuchMethod(
         Invocation.method(
