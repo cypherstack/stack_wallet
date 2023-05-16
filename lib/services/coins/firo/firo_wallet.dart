@@ -223,39 +223,51 @@ Future<Map<String, dynamic>> isolateRestore(
         _derivePath,
       );
       final String mintTag = CreateTag(
-          Format.uint8listToString(mintKeyPair.privateKey!),
-          currentIndex,
-          Format.uint8listToString(mintKeyPair.identifier),
-          isTestnet: coin == Coin.firoTestNet);
+        Format.uint8listToString(mintKeyPair.privateKey!),
+        currentIndex,
+        Format.uint8listToString(mintKeyPair.identifier),
+        isTestnet: coin == Coin.firoTestNet,
+      );
 
       for (var setId = 1; setId <= _latestSetId; setId++) {
-        final setData = _setDataMap[setId];
-        final foundCoin = setData["coins"].firstWhere(
-            (dynamic e) => e[1] == mintTag,
-            orElse: () => <Object>[]);
+        final setData = _setDataMap[setId] as Map;
+        final foundCoin = (setData["coins"] as List).firstWhere(
+          (e) => e[1] == mintTag,
+          orElse: () => <Object>[],
+        );
 
         if (foundCoin.length == 4) {
           lastFoundIndex = currentIndex;
-          if (foundCoin[2] is int) {
-            final int amount = foundCoin[2] as int;
+
+          final String publicCoin = foundCoin[0] as String;
+          final String txId = foundCoin[3] as String;
+
+          // this value will either be an int or a String
+          final dynamic thirdValue = foundCoin[2];
+
+          if (thirdValue is int) {
+            final int amount = thirdValue;
             final String serialNumber = GetSerialNumber(
               amount,
               Format.uint8listToString(mintKeyPair.privateKey!),
               currentIndex,
               isTestnet: coin == Coin.firoTestNet,
             );
-            final String publicCoin = foundCoin[0] as String;
-            final String txId = foundCoin[3] as String;
             final bool isUsed = usedSerialNumbersSet.contains(serialNumber);
-            final duplicateCoin = lelantusCoins.firstWhere((element) {
-              final coin = element.values.first;
-              return coin.txId == txId &&
-                  coin.index == currentIndex &&
-                  coin.anonymitySetId != setId;
-            }, orElse: () => {});
+            final duplicateCoin = lelantusCoins.firstWhere(
+              (element) {
+                final coin = element.values.first;
+                return coin.txId == txId &&
+                    coin.index == currentIndex &&
+                    coin.anonymitySetId != setId;
+              },
+              orElse: () => {},
+            );
             if (duplicateCoin.isNotEmpty) {
-              //todo: check if print needed
-              // debugPrint("removing duplicate: $duplicateCoin");
+              Logging.instance.log(
+                "Firo isolateRestore removing duplicate coin: $duplicateCoin",
+                level: LogLevel.Info,
+              );
               lelantusCoins.remove(duplicateCoin);
             }
             lelantusCoins.add({
@@ -270,22 +282,25 @@ Future<Map<String, dynamic>> isolateRestore(
             });
             Logging.instance
                 .log("amount $amount used $isUsed", level: LogLevel.Info);
-          } else {
-            final keyPath = GetAesKeyPath(foundCoin[0] as String);
+          } else if (thirdValue is String) {
+            final keyPath = GetAesKeyPath(publicCoin);
             final derivePath = constructDerivePath(
               networkWIF: network.wif,
               chain: JMINT_INDEX,
               index: keyPath,
             );
-            final aesKeyPair =
-                await Bip32Utils.getBip32NodeFromRoot(root, derivePath);
+            final aesKeyPair = await Bip32Utils.getBip32NodeFromRoot(
+              root,
+              derivePath,
+            );
 
             if (aesKeyPair.privateKey != null) {
-              final aesPrivateKey =
-                  Format.uint8listToString(aesKeyPair.privateKey!);
+              final aesPrivateKey = Format.uint8listToString(
+                aesKeyPair.privateKey!,
+              );
               final amount = decryptMintAmount(
                 aesPrivateKey,
-                foundCoin[2] as String,
+                thirdValue,
               );
 
               final serialNumber = GetSerialNumber(
@@ -293,8 +308,6 @@ Future<Map<String, dynamic>> isolateRestore(
                   Format.uint8listToString(mintKeyPair.privateKey!),
                   currentIndex,
                   isTestnet: coin == Coin.firoTestNet);
-              String publicCoin = foundCoin[0] as String;
-              String txId = foundCoin[3] as String;
               bool isUsed = usedSerialNumbersSet.contains(serialNumber);
               final duplicateCoin = lelantusCoins.firstWhere((element) {
                 final coin = element.values.first;
@@ -308,7 +321,7 @@ Future<Map<String, dynamic>> isolateRestore(
                 lelantusCoins.remove(duplicateCoin);
               }
               lelantusCoins.add({
-                '${foundCoin[3]!}': LelantusCoin(
+                txId: LelantusCoin(
                   currentIndex,
                   amount,
                   publicCoin,
@@ -319,7 +332,7 @@ Future<Map<String, dynamic>> isolateRestore(
               });
               jindexes.add(currentIndex);
 
-              spendTxIds.add(foundCoin[3] as String);
+              spendTxIds.add(txId);
             }
           }
         }
@@ -2169,6 +2182,10 @@ class FiroWallet extends CoinServiceAPI
           coin,
         ),
       );
+
+      await cachedElectrumXClient.getAnonymitySet(groupId: "1", coin: coin);
+      await cachedElectrumXClient.getAnonymitySet(groupId: "2", coin: coin);
+      await cachedElectrumXClient.getAnonymitySet(groupId: "3", coin: coin);
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.0, walletId));
 
