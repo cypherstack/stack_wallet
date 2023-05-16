@@ -115,8 +115,9 @@ class CachedElectrumX {
             key: groupId,
             value: set);
         Logging.instance.log(
-            "Updated currently anonymity set for ${coin.name} with group ID $groupId",
-            level: LogLevel.Info);
+          "Updated current anonymity set for ${coin.name} with group ID $groupId",
+          level: LogLevel.Info,
+        );
       }
 
       return set;
