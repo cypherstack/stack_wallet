@@ -2447,7 +2447,7 @@ class FiroWallet extends CoinServiceAPI
         element.forEach((key, value) {
           isar_models.Transaction? tx;
           try {
-            tx == data.firstWhere((e) => e.txid == value.txId);
+            tx = data.firstWhere((e) => e.txid == value.txId);
           } catch (_) {
             tx = null;
           }
