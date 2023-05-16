@@ -2354,12 +2354,6 @@ class FiroWallet extends CoinServiceAPI
           element.values.any((elementCoin) => elementCoin.value == 0));
     }
     final jindexes = firoGetJIndex();
-    final transactions = await _txnData;
-    final lelantusTransactionsd = await db
-        .getTransactions(walletId)
-        .filter()
-        .isLelantusEqualTo(true)
-        .findAll();
 
     List<LelantusCoin> coins = [];
 
@@ -2373,42 +2367,26 @@ class FiroWallet extends CoinServiceAPI
 
     for (int i = 0; i < lelantusCoinsList.length; i++) {
       // Logging.instance.log("lelantusCoinsList[$i]: ${lelantusCoinsList[i]}");
+      final txid = lelantusCoinsList[i].txId;
       final txn = await cachedElectrumXClient.getTransaction(
-        txHash: lelantusCoinsList[i].txId,
+        txHash: txid,
         verbose: true,
         coin: coin,
       );
       final confirmations = txn["confirmations"];
       bool isUnconfirmed = confirmations is int && confirmations < 1;
+
+      final tx = await db.getTransaction(walletId, txid);
+
       if (!jindexes!.contains(lelantusCoinsList[i].index) &&
-          transactions
-              .where((e) => e.txid == lelantusCoinsList[i].txId)
-              .isEmpty &&
-          !(lelantusTransactionsd
-                  .where((e) => e.txid == lelantusCoinsList[i].txId)
-                  .isNotEmpty &&
-              lelantusTransactionsd
-                  .where((e) => e.txid == lelantusCoinsList[i].txId)
-                  .first
-                  .isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS))) {
+          tx != null &&
+          tx.isLelantus == true &&
+          !(tx.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS))) {
         isUnconfirmed = true;
       }
 
-      // TODO: optimize the following
-      if ((transactions
-                  .where((e) => e.txid == lelantusCoinsList[i].txId)
-                  .isNotEmpty &&
-              !transactions
-                  .where((e) => e.txid == lelantusCoinsList[i].txId)
-                  .first
-                  .isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) ||
-          (lelantusTransactionsd
-                  .where((e) => e.txid == lelantusCoinsList[i].txId)
-                  .isNotEmpty &&
-              !lelantusTransactionsd
-                  .where((e) => e.txid == lelantusCoinsList[i].txId)
-                  .first
-                  .isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS))) {
+      if (tx != null &&
+          !tx.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
         continue;
       }
       if (!lelantusCoinsList[i].isUsed &&
