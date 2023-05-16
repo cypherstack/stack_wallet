@@ -342,7 +342,17 @@ Future<Map<String, dynamic>> isolateRestore(
 
               spendTxIds.add(txId);
             }
+          } else {
+            Logging.instance.log(
+              "Unexpected coin found: $foundCoin",
+              level: LogLevel.Warning,
+            );
           }
+        } else {
+          Logging.instance.log(
+            "Coin not found in data with the mint tag: $mintTag",
+            level: LogLevel.Warning,
+          );
         }
       }
 
