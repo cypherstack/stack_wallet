@@ -70,7 +70,7 @@ void main() {
         Coin.firo,
         1,
         setData,
-        usedSerials,
+        List<String>.from(usedSerials),
         firoNetwork,
       );
       const currentHeight = 100000000000;
@@ -130,7 +130,7 @@ void main() {
                 Coin.firo,
                 1,
                 setData,
-                usedSerials,
+                List<String>.from(usedSerials),
                 firoNetwork,
               ),
           throwsA(isA<Error>()));
@@ -2277,8 +2277,8 @@ void main() {
               groupId: "1", blockhash: "", coin: Coin.firo))
           .thenAnswer((_) async => GetAnonymitySetSampleData.data);
       when(cachedClient.getUsedCoinSerials(startNumber: 0, coin: Coin.firo))
-          .thenAnswer(
-              (_) async => GetUsedSerialsSampleData.serials['serials'] as List);
+          .thenAnswer((_) async => List<String>.from(
+              GetUsedSerialsSampleData.serials['serials'] as List));
 
       final firo = FiroWallet(
         walletId: "${testWalletId}getUsedCoinSerials",

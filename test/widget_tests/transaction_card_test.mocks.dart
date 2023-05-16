@@ -1723,13 +1723,13 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
         returnValue: _i18.Future<int>.value(0),
       ) as _i18.Future<int>);
   @override
-  _i18.Future<List<dynamic>> getUsedCoinSerials() => (super.noSuchMethod(
+  _i18.Future<List<String>> getUsedCoinSerials() => (super.noSuchMethod(
         Invocation.method(
           #getUsedCoinSerials,
           [],
         ),
-        returnValue: _i18.Future<List<dynamic>>.value(<dynamic>[]),
-      ) as _i18.Future<List<dynamic>>);
+        returnValue: _i18.Future<List<String>>.value(<String>[]),
+      ) as _i18.Future<List<String>>);
   @override
   _i18.Future<void> exit() => (super.noSuchMethod(
         Invocation.method(
