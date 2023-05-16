@@ -8,6 +8,7 @@ import 'package:hive/hive.dart';
 import 'package:hive_test/hive_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
@@ -17,7 +18,6 @@ import 'package:stackwallet/models/lelantus_fee_data.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart' as old;
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
-import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -34,16 +34,10 @@ import 'sample_data/transaction_data_samples.dart';
   ElectrumX,
   CachedElectrumX,
   TransactionNotificationTracker,
+  MainDB,
 ])
 void main() {
   group("isolate functions", () {
-    test("isolateDerive", () async {
-      final result = await isolateDerive(
-          IsolateDeriveParams.mnemonic, "", 0, 2, firoNetwork);
-      expect(result, isA<Map<String, dynamic>>());
-      expect(result.toString(), IsolateDeriveParams.expected);
-    });
-
     test("isolateRestore success", () async {
       final cachedClient = MockCachedElectrumX();
       final txDataOLD = old.TransactionData.fromJson(dateTimeChunksJson);
@@ -1169,42 +1163,6 @@ void main() {
           "b36161c6e619395b3d40a851c45c1fef7a5c541eed911b5524a66c5703a689c9");
     });
 
-    test("fillAddresses", () async {
-      final client = MockElectrumX();
-      final cachedClient = MockCachedElectrumX();
-      final secureStore = FakeSecureStorage();
-
-      final firo = FiroWallet(
-        walletName: testWalletName,
-        walletId: "${testWalletId}fillAddresses",
-        coin: Coin.firo,
-        client: client,
-        cachedClient: cachedClient,
-        secureStore: secureStore,
-        tracker: MockTransactionNotificationTracker(),
-      );
-
-      await firo.fillAddresses(
-        FillAddressesParams.mnemonic,
-        "",
-      );
-
-      final rcv = await secureStore.read(
-          key: "${testWalletId}fillAddresses_receiveDerivations");
-      final chg = await secureStore.read(
-          key: "${testWalletId}fillAddresses_changeDerivations");
-      final receiveDerivations =
-          Map<String, dynamic>.from(jsonDecode(rcv as String) as Map);
-      final changeDerivations =
-          Map<String, dynamic>.from(jsonDecode(chg as String) as Map);
-
-      expect(receiveDerivations.toString(),
-          FillAddressesParams.expectedReceiveDerivationsString);
-
-      expect(changeDerivations.toString(),
-          FillAddressesParams.expectedChangeDerivationsString);
-    });
-
     // the above test needs to pass in order for this test to pass
     test("buildMintTransaction", () async {
       TestWidgetsFlutterBinding.ensureInitialized();
@@ -1230,6 +1188,7 @@ void main() {
       final client = MockElectrumX();
       final cachedClient = MockCachedElectrumX();
       final secureStore = FakeSecureStorage();
+      final mainDB = MockMainDB();
 
       await secureStore.write(
           key: "${testWalletId}buildMintTransaction_mnemonic",
@@ -1246,6 +1205,9 @@ void main() {
       when(client.getBlockHeadTip()).thenAnswer(
           (_) async => {"height": 455873, "hex": "this value not used here"});
 
+      when(mainDB.getAddress("${testWalletId}buildMintTransaction", any))
+          .thenAnswer((realInvocation) async => null);
+
       final firo = FiroWallet(
         walletName: testWalletName,
         walletId: "${testWalletId}buildMintTransaction",
@@ -1254,6 +1216,7 @@ void main() {
         cachedClient: cachedClient,
         secureStore: secureStore,
         tracker: MockTransactionNotificationTracker(),
+        mockableOverride: mainDB,
       );
 
       final wallet =
@@ -2810,169 +2773,6 @@ void main() {
     //           satoshiAmount: 100),
     //       throwsA(isA<Exception>()));
     // }, timeout: const Timeout(Duration(minutes: 3)));
-
-    test("send fails due to bad transaction created", () async {
-      TestWidgetsFlutterBinding.ensureInitialized();
-      const MethodChannel('uk.spiralarm.flutter/devicelocale')
-          .setMockMethodCallHandler((methodCall) async => 'en_US');
-
-      final client = MockElectrumX();
-      final cachedClient = MockCachedElectrumX();
-      final secureStore = FakeSecureStorage();
-
-      when(client.getLatestCoinId()).thenAnswer((_) async => 1);
-      when(client.getBlockHeadTip()).thenAnswer(
-          (_) async => {"height": 459185, "hex": "... some block hex ..."});
-
-      when(client.broadcastTransaction(rawTx: anyNamed("rawTx")))
-          .thenAnswer((_) async {
-        return "some bad txid";
-      });
-
-      when(client.getBatchHistory(args: batchHistoryRequest0))
-          .thenAnswer((realInvocation) async => batchHistoryResponse0);
-
-      when(cachedClient.getAnonymitySet(
-        groupId: "1",
-        coin: Coin.firo,
-      )).thenAnswer((_) async => GetAnonymitySetSampleData.data);
-
-      // mock transaction calls
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash0,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData0);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash1,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData1);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash2,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData2);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash3,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData3);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash4,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData4);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash5,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData5);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash6,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData6);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash7,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData7);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash8,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData8);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash9,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData9);
-      when(cachedClient.getTransaction(
-        txHash: SampleGetTransactionData.txHash10,
-        coin: Coin.firo,
-      )).thenAnswer((_) async => SampleGetTransactionData.txData10);
-
-      final firo = FiroWallet(
-        walletId: "${testWalletId}send",
-        coin: Coin.firo,
-        walletName: testWalletName,
-        client: client,
-        cachedClient: cachedClient,
-        secureStore: secureStore,
-        tracker: MockTransactionNotificationTracker(),
-      );
-
-      // set mnemonic
-      await secureStore.write(
-          key: "${testWalletId}send_mnemonic", value: TEST_MNEMONIC);
-
-      // set timer to non null so a periodic timer isn't created
-      firo.timer = Timer(const Duration(), () {});
-
-      // build sending wallet
-      await firo.fillAddresses(
-        TEST_MNEMONIC,
-        "",
-      );
-      final wallet = await Hive.openBox<dynamic>("${testWalletId}send");
-
-      final rcv =
-          await secureStore.read(key: "${testWalletId}send_receiveDerivations");
-      final chg =
-          await secureStore.read(key: "${testWalletId}send_changeDerivations");
-      final receiveDerivations =
-          Map<String, dynamic>.from(jsonDecode(rcv as String) as Map);
-      final changeDerivations =
-          Map<String, dynamic>.from(jsonDecode(chg as String) as Map);
-
-      for (int i = 0; i < receiveDerivations.length; i++) {
-        final receiveHash = AddressUtils.convertToScriptHash(
-            receiveDerivations["$i"]!["address"] as String, firoNetwork);
-        final changeHash = AddressUtils.convertToScriptHash(
-            changeDerivations["$i"]!["address"] as String, firoNetwork);
-        List<Map<String, dynamic>> data;
-        switch (receiveHash) {
-          case SampleGetHistoryData.scripthash0:
-            data = SampleGetHistoryData.data0;
-            break;
-          case SampleGetHistoryData.scripthash1:
-            data = SampleGetHistoryData.data1;
-            break;
-          case SampleGetHistoryData.scripthash2:
-            data = SampleGetHistoryData.data2;
-            break;
-          case SampleGetHistoryData.scripthash3:
-            data = SampleGetHistoryData.data3;
-            break;
-          default:
-            data = [];
-        }
-        when(client.getHistory(scripthash: receiveHash))
-            .thenAnswer((_) async => data);
-
-        switch (changeHash) {
-          case SampleGetHistoryData.scripthash0:
-            data = SampleGetHistoryData.data0;
-            break;
-          case SampleGetHistoryData.scripthash1:
-            data = SampleGetHistoryData.data1;
-            break;
-          case SampleGetHistoryData.scripthash2:
-            data = SampleGetHistoryData.data2;
-            break;
-          case SampleGetHistoryData.scripthash3:
-            data = SampleGetHistoryData.data3;
-            break;
-          default:
-            data = [];
-        }
-
-        when(client.getHistory(scripthash: changeHash))
-            .thenAnswer((_) async => data);
-      }
-
-      await wallet.put('_lelantus_coins', SampleLelantus.lelantusCoins);
-      await wallet.put('jindex', [2, 4, 6]);
-      await wallet.put('mintIndex', 8);
-      await wallet.put('receivingAddresses', [
-        "a8VV7vMzJdTQj1eLEJNskhLEBUxfNWhpAg",
-        "aPjLWDTPQsoPHUTxKBNRzoebDALj3eTcfh",
-        "aKmXfS7nEZdqWBGRdAXcyMoEoKhZQDPBoq"
-      ]);
-      await wallet
-          .put('changeAddresses', ["a5V5r6We6mNZzWJwGwEeRML3mEYLjvK39w"]);
-    }, timeout: const Timeout(Duration(minutes: 3)));
 
     // test("wallet balances", () async {
     //   TestWidgetsFlutterBinding.ensureInitialized();

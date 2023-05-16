@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
 
+import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:bitcoindart/bitcoindart.dart';
 import 'package:decimal/decimal.dart';
@@ -163,19 +164,8 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
         sendPort.send(restoreData);
         return;
       }
-    } else if (function == "isolateDerive") {
-      final mnemonic = arguments['mnemonic'] as String;
-      final mnemonicPassphrase = arguments['mnemonicPassphrase'] as String;
-      final from = arguments['from'] as int;
-      final to = arguments['to'] as int;
-      final network = arguments['network'] as NetworkType?;
-      if (!(network == null)) {
-        var derived = await isolateDerive(
-            mnemonic, mnemonicPassphrase, from, to, network);
-        sendPort.send(derived);
-        return;
-      }
     }
+
     Logging.instance.log(
         "Error Arguments for $function not formatted correctly",
         level: LogLevel.Fatal);
@@ -197,69 +187,6 @@ void stop(ReceivePort port) {
     isolate.kill(priority: Isolate.immediate);
     isolate = null;
   }
-}
-
-Future<Map<String, dynamic>> isolateDerive(
-  String mnemonic,
-  String mnemonicPassphrase,
-  int from,
-  int to,
-  NetworkType _network,
-) async {
-  Map<String, dynamic> result = {};
-  Map<String, dynamic> allReceive = {};
-  Map<String, dynamic> allChange = {};
-  final root = await Bip32Utils.getBip32Root(
-    mnemonic,
-    mnemonicPassphrase,
-    _network,
-  );
-
-  for (int i = from; i < to; i++) {
-    final derivePathReceiving = constructDerivePath(
-      networkWIF: _network.wif,
-      chain: 0,
-      index: i,
-    );
-    var currentNode = await Bip32Utils.getBip32NodeFromRoot(
-      root,
-      derivePathReceiving,
-    );
-    var address = P2PKH(
-            network: _network, data: PaymentData(pubkey: currentNode.publicKey))
-        .data
-        .address!;
-    allReceive["$i"] = {
-      "publicKey": Format.uint8listToString(currentNode.publicKey),
-      "wif": currentNode.toWIF(),
-      "address": address,
-    };
-
-    final derivePathChange = constructDerivePath(
-      networkWIF: _network.wif,
-      chain: 1,
-      index: i,
-    );
-    currentNode = await Bip32Utils.getBip32NodeFromRoot(
-      root,
-      derivePathChange,
-    );
-    address = P2PKH(
-            network: _network, data: PaymentData(pubkey: currentNode.publicKey))
-        .data
-        .address!;
-    allChange["$i"] = {
-      "publicKey": Format.uint8listToString(currentNode.publicKey),
-      "wif": currentNode.toWIF(),
-      "address": address,
-    };
-    if (i % 50 == 0) {
-      Logging.instance.log("thread at $i", level: LogLevel.Info);
-    }
-  }
-  result['receive'] = allReceive;
-  result['change'] = allChange;
-  return result;
 }
 
 Future<Map<String, dynamic>> isolateRestore(
@@ -900,6 +827,7 @@ class FiroWallet extends CoinServiceAPI
       .or()
       .isLelantusEqualTo(false)
       .findAll();
+
   // _transactionData ??= _refreshTransactions();
 
   // models.TransactionData? cachedTxData;
@@ -943,10 +871,12 @@ class FiroWallet extends CoinServiceAPI
 
   /// Holds the max fee that can be sent
   Future<int>? _maxFee;
+
   @override
   Future<int> get maxFee => _maxFee ??= _fetchMaxFee();
 
   Future<FeeObject>? _feeObject;
+
   @override
   Future<FeeObject> get fees => _feeObject ??= _getFees();
 
@@ -978,6 +908,7 @@ class FiroWallet extends CoinServiceAPI
       await _generateAddressForChain(1, 0);
 
   late String _walletName;
+
   @override
   String get walletName => _walletName;
 
@@ -987,6 +918,7 @@ class FiroWallet extends CoinServiceAPI
 
   /// unique wallet id
   late final String _walletId;
+
   @override
   String get walletId => _walletId;
 
@@ -1287,9 +1219,11 @@ class FiroWallet extends CoinServiceAPI
   }
 
   late ElectrumX _electrumXClient;
+
   ElectrumX get electrumXClient => _electrumXClient;
 
   late CachedElectrumX _cachedElectrumXClient;
+
   CachedElectrumX get cachedElectrumXClient => _cachedElectrumXClient;
 
   late SecureStorageInterface _secureStore;
@@ -1703,66 +1637,65 @@ class FiroWallet extends CoinServiceAPI
         String? pubKey;
         String? wif;
 
-        // fetch receiving derivations if null
-        receiveDerivations[sd.derivePathType] ??= Map<String, dynamic>.from(
-          jsonDecode((await _secureStore.read(
-                key: "${walletId}_receiveDerivations",
-              )) ??
-              "{}") as Map,
-        );
+        final address = await db.getAddress(walletId, sd.utxo.address!);
+        if (address?.derivationPath != null) {
+          final node = await Bip32Utils.getBip32Node(
+            (await mnemonicString)!,
+            (await mnemonicPassphrase)!,
+            _network,
+            address!.derivationPath!.value,
+          );
 
-        dynamic receiveDerivation;
-        for (int j = 0;
-            j < receiveDerivations[sd.derivePathType]!.length &&
-                receiveDerivation == null;
-            j++) {
-          if (receiveDerivations[sd.derivePathType]!["$j"]["address"] ==
-              sd.utxo.address!) {
-            receiveDerivation = receiveDerivations[sd.derivePathType]!["$j"];
-          }
+          wif = node.toWIF();
+          pubKey = Format.uint8listToString(node.publicKey);
         }
-
-        if (receiveDerivation != null) {
-          pubKey = receiveDerivation["publicKey"] as String;
-          wif = receiveDerivation["wif"] as String;
-        } else {
-          // fetch change derivations if null
-          changeDerivations[sd.derivePathType] ??= Map<String, dynamic>.from(
+        if (wif == null || pubKey == null) {
+          // fetch receiving derivations if null
+          receiveDerivations[sd.derivePathType] ??= Map<String, dynamic>.from(
             jsonDecode((await _secureStore.read(
-                  key: "${walletId}_changeDerivations",
+                  key: "${walletId}_receiveDerivations",
                 )) ??
                 "{}") as Map,
           );
 
-          dynamic changeDerivation;
+          dynamic receiveDerivation;
           for (int j = 0;
-              j < changeDerivations[sd.derivePathType]!.length &&
-                  changeDerivation == null;
+              j < receiveDerivations[sd.derivePathType]!.length &&
+                  receiveDerivation == null;
               j++) {
-            if (changeDerivations[sd.derivePathType]!["$j"]["address"] ==
+            if (receiveDerivations[sd.derivePathType]!["$j"]["address"] ==
                 sd.utxo.address!) {
-              changeDerivation = changeDerivations[sd.derivePathType]!["$j"];
+              receiveDerivation = receiveDerivations[sd.derivePathType]!["$j"];
             }
           }
 
-          if (changeDerivation != null) {
-            pubKey = changeDerivation["publicKey"] as String;
-            wif = changeDerivation["wif"] as String;
-          }
-        }
-
-        if (wif == null || pubKey == null) {
-          final address = await db.getAddress(walletId, sd.utxo.address!);
-          if (address?.derivationPath != null) {
-            final node = await Bip32Utils.getBip32Node(
-              (await mnemonicString)!,
-              (await mnemonicPassphrase)!,
-              _network,
-              address!.derivationPath!.value,
+          if (receiveDerivation != null) {
+            pubKey = receiveDerivation["publicKey"] as String;
+            wif = receiveDerivation["wif"] as String;
+          } else {
+            // fetch change derivations if null
+            changeDerivations[sd.derivePathType] ??= Map<String, dynamic>.from(
+              jsonDecode((await _secureStore.read(
+                    key: "${walletId}_changeDerivations",
+                  )) ??
+                  "{}") as Map,
             );
 
-            wif = node.toWIF();
-            pubKey = Format.uint8listToString(node.publicKey);
+            dynamic changeDerivation;
+            for (int j = 0;
+                j < changeDerivations[sd.derivePathType]!.length &&
+                    changeDerivation == null;
+                j++) {
+              if (changeDerivations[sd.derivePathType]!["$j"]["address"] ==
+                  sd.utxo.address!) {
+                changeDerivation = changeDerivations[sd.derivePathType]!["$j"];
+              }
+            }
+
+            if (changeDerivation != null) {
+              pubKey = changeDerivation["publicKey"] as String;
+              wif = changeDerivation["wif"] as String;
+            }
           }
         }
 
@@ -1793,6 +1726,8 @@ class FiroWallet extends CoinServiceAPI
           sd.redeemScript = redeemScript;
           sd.output = data.output;
           sd.keyPair = keyPair;
+        } else {
+          throw Exception("key or wif not found for ${sd.utxo}");
         }
       }
 
@@ -2210,6 +2145,7 @@ class FiroWallet extends CoinServiceAPI
   }
 
   bool refreshMutex = false;
+
   @override
   bool get isRefreshing => refreshMutex;
 
@@ -2235,28 +2171,6 @@ class FiroWallet extends CoinServiceAPI
       );
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.0, walletId));
-
-      final receiveDerivationsString =
-          await _secureStore.read(key: "${walletId}_receiveDerivations");
-      if (receiveDerivationsString == null ||
-          receiveDerivationsString == "{}") {
-        GlobalEventBus.instance
-            .fire(RefreshPercentChangedEvent(0.05, walletId));
-        final mnemonic = await mnemonicString;
-        final mnemonicPassphrase =
-            await _secureStore.read(key: '${_walletId}_mnemonicPassphrase');
-        if (mnemonicPassphrase == null) {
-          Logging.instance.log(
-              "Exception in _generateAddressForChain: mnemonic passphrase null, possible migration issue; if using internal builds, delete wallet and restore from seed, if using a release build, please file bug report",
-              level: LogLevel.Error);
-        }
-
-        await fillAddresses(
-          mnemonic!,
-          mnemonicPassphrase!,
-          numberOfThreads: Platform.numberOfProcessors - isolates.length - 1,
-        );
-      }
 
       await checkReceivingAddressForTransactions();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.1, walletId));
@@ -2721,12 +2635,13 @@ class FiroWallet extends CoinServiceAPI
 
   /// Builds and signs a transaction
   Future<Map<String, dynamic>> buildMintTransaction(
-      List<isar_models.UTXO> utxosToUse,
-      int satoshisPerRecipient,
-      List<Map<String, dynamic>> mintsMap) async {
+    List<isar_models.UTXO> utxosToUse,
+    int satoshisPerRecipient,
+    List<Map<String, dynamic>> mintsMap,
+  ) async {
     //todo: check if print needed
     // debugPrint(utxosToUse.toString());
-    List<String> addressesToDerive = [];
+    List<String> addressStringsToGet = [];
 
     // Populating the addresses to derive
     for (var i = 0; i < utxosToUse.length; i++) {
@@ -2745,64 +2660,95 @@ class FiroWallet extends CoinServiceAPI
         final address =
             vouts[outputIndex]["scriptPubKey"]["addresses"][0] as String?;
         if (address != null) {
-          addressesToDerive.add(address);
+          addressStringsToGet.add(address);
         }
       }
     }
 
-    List<ECPair> elipticCurvePairArray = [];
+    final List<isar_models.Address> addresses = [];
+    for (final addressString in addressStringsToGet) {
+      final address = await db.getAddress(walletId, addressString);
+      if (address == null) {
+        Logging.instance.log(
+          "Failed to fetch the corresponding address object for $addressString",
+          level: LogLevel.Fatal,
+        );
+      } else {
+        addresses.add(address);
+      }
+    }
+
+    List<ECPair> ellipticCurvePairArray = [];
     List<Uint8List> outputDataArray = [];
 
-    final receiveDerivationsString =
-        await _secureStore.read(key: "${walletId}_receiveDerivations");
-    final changeDerivationsString =
-        await _secureStore.read(key: "${walletId}_changeDerivations");
+    Map<String, dynamic>? receiveDerivations;
+    Map<String, dynamic>? changeDerivations;
 
-    final receiveDerivations = Map<String, dynamic>.from(
-        jsonDecode(receiveDerivationsString ?? "{}") as Map);
-    final changeDerivations = Map<String, dynamic>.from(
-        jsonDecode(changeDerivationsString ?? "{}") as Map);
+    for (final addressString in addressStringsToGet) {
+      String? pubKey;
+      String? wif;
 
-    for (var i = 0; i < addressesToDerive.length; i++) {
-      final addressToCheckFor = addressesToDerive[i];
+      final address = await db.getAddress(walletId, addressString);
 
-      for (var i = 0; i < receiveDerivations.length; i++) {
-        final receive = receiveDerivations["$i"];
-        final change = changeDerivations["$i"];
+      if (address?.derivationPath != null) {
+        final node = await Bip32Utils.getBip32Node(
+          (await mnemonicString)!,
+          (await mnemonicPassphrase)!,
+          _network,
+          address!.derivationPath!.value,
+        );
+        wif = node.toWIF();
+        pubKey = Format.uint8listToString(node.publicKey);
+      }
 
-        if (receive['address'] == addressToCheckFor) {
-          Logging.instance
-              .log('Receiving found on loop $i', level: LogLevel.Info);
-          // Logging.instance.log(
-          //     'decoded receive[\'wif\'] version: ${wif.decode(receive['wif'] as String)}, _network: $_network');
-          elipticCurvePairArray
-              .add(ECPair.fromWIF(receive['wif'] as String, network: _network));
-          outputDataArray.add(P2PKH(
-                  network: _network,
-                  data: PaymentData(
-                      pubkey: Format.stringToUint8List(
-                          receive['publicKey'] as String)))
-              .data
-              .output!);
-          break;
+      if (wif == null || pubKey == null) {
+        receiveDerivations ??= Map<String, dynamic>.from(
+          jsonDecode((await _secureStore.read(
+                  key: "${walletId}_receiveDerivations")) ??
+              "{}") as Map,
+        );
+        for (var i = 0; i < receiveDerivations.length; i++) {
+          final receive = receiveDerivations["$i"];
+          if (receive['address'] == addressString) {
+            wif = receive['wif'] as String;
+            pubKey = receive['publicKey'] as String;
+            break;
+          }
         }
-        if (change['address'] == addressToCheckFor) {
-          Logging.instance.log('Change found on loop $i', level: LogLevel.Info);
-          // Logging.instance.log(
-          //     'decoded change[\'wif\'] version: ${wif.decode(change['wif'] as String)}, _network: $_network');
-          elipticCurvePairArray
-              .add(ECPair.fromWIF(change['wif'] as String, network: _network));
 
-          outputDataArray.add(P2PKH(
-                  network: _network,
-                  data: PaymentData(
-                      pubkey: Format.stringToUint8List(
-                          change['publicKey'] as String)))
-              .data
-              .output!);
-          break;
+        if (wif == null || pubKey == null) {
+          changeDerivations ??= Map<String, dynamic>.from(
+            jsonDecode((await _secureStore.read(
+                    key: "${walletId}_changeDerivations")) ??
+                "{}") as Map,
+          );
+
+          for (var i = 0; i < changeDerivations.length; i++) {
+            final change = changeDerivations["$i"];
+            if (change['address'] == addressString) {
+              wif = change['wif'] as String;
+              pubKey = change['publicKey'] as String;
+
+              break;
+            }
+          }
         }
       }
+
+      ellipticCurvePairArray.add(
+        ECPair.fromWIF(
+          wif!,
+          network: _network,
+        ),
+      );
+      outputDataArray.add(P2PKH(
+        network: _network,
+        data: PaymentData(
+          pubkey: Format.stringToUint8List(
+            pubKey!,
+          ),
+        ),
+      ).data.output!);
     }
 
     final txb = TransactionBuilder(network: _network);
@@ -2831,7 +2777,7 @@ class FiroWallet extends CoinServiceAPI
     for (var i = 0; i < utxosToUse.length; i++) {
       txb.sign(
         vin: i,
-        keyPair: elipticCurvePairArray[i],
+        keyPair: ellipticCurvePairArray[i],
         witnessValue: utxosToUse[i].value,
       );
     }
@@ -3859,72 +3805,6 @@ class FiroWallet extends CoinServiceAPI
     return address!.value;
   }
 
-  Future<void> fillAddresses(
-    String suppliedMnemonic,
-    String mnemonicPassphrase, {
-    int perBatch = 50,
-    int numberOfThreads = 4,
-  }) async {
-    if (numberOfThreads <= 0) {
-      numberOfThreads = 1;
-    }
-    if (Platform.environment["FLUTTER_TEST"] == "true" || integrationTestFlag) {
-      perBatch = 10;
-      numberOfThreads = 4;
-    }
-
-    final receiveDerivationsString =
-        await _secureStore.read(key: "${walletId}_receiveDerivations");
-    final changeDerivationsString =
-        await _secureStore.read(key: "${walletId}_changeDerivations");
-
-    var receiveDerivations = Map<String, dynamic>.from(
-        jsonDecode(receiveDerivationsString ?? "{}") as Map);
-    var changeDerivations = Map<String, dynamic>.from(
-        jsonDecode(changeDerivationsString ?? "{}") as Map);
-
-    final int start = receiveDerivations.length;
-
-    List<ReceivePort> ports = List.empty(growable: true);
-    for (int i = 0; i < numberOfThreads; i++) {
-      ReceivePort receivePort = await getIsolate({
-        "function": "isolateDerive",
-        "mnemonic": suppliedMnemonic,
-        "mnemonicPassphrase": mnemonicPassphrase,
-        "from": start + i * perBatch,
-        "to": start + (i + 1) * perBatch,
-        "network": _network,
-      });
-      ports.add(receivePort);
-    }
-    for (int i = 0; i < numberOfThreads; i++) {
-      ReceivePort receivePort = ports.elementAt(i);
-      var message = await receivePort.first;
-      if (message is String) {
-        Logging.instance.log("this is a string", level: LogLevel.Error);
-        stop(receivePort);
-        throw Exception("isolateDerive isolate failed");
-      }
-      stop(receivePort);
-      Logging.instance.log('Closing isolateDerive!', level: LogLevel.Info);
-      receiveDerivations.addAll(message['receive'] as Map<String, dynamic>);
-      changeDerivations.addAll(message['change'] as Map<String, dynamic>);
-    }
-    Logging.instance.log("isolate derives", level: LogLevel.Info);
-    // Logging.instance.log(receiveDerivations);
-    // Logging.instance.log(changeDerivations);
-
-    final newReceiveDerivationsString = jsonEncode(receiveDerivations);
-    final newChangeDerivationsString = jsonEncode(changeDerivations);
-
-    await _secureStore.write(
-        key: "${walletId}_receiveDerivations",
-        value: newReceiveDerivationsString);
-    await _secureStore.write(
-        key: "${walletId}_changeDerivations",
-        value: newChangeDerivationsString);
-  }
-
   /// Generates a new internal or external chain address for the wallet using a BIP84 derivation path.
   /// [chain] - Use 0 for receiving (external), 1 for change (internal). Should not be any other value!
   /// [index] - This can be any integer >= 0
@@ -3934,75 +3814,44 @@ class FiroWallet extends CoinServiceAPI
     final _mnemonicPassphrase = await mnemonicPassphrase;
     if (_mnemonicPassphrase == null) {
       Logging.instance.log(
-          "Exception in _generateAddressForChain: mnemonic passphrase null, possible migration issue; if using internal builds, delete wallet and restore from seed, if using a release build, please file bug report",
+          "Exception in _generateAddressForChain: mnemonic passphrase null,"
+          " possible migration issue; if using internal builds, delete "
+          "wallet and restore from seed, if using a release build, "
+          "please file bug report",
           level: LogLevel.Error);
     }
 
-    Map<String, dynamic>? derivations;
-    if (chain == 0) {
-      final receiveDerivationsString =
-          await _secureStore.read(key: "${walletId}_receiveDerivations");
-      derivations = Map<String, dynamic>.from(
-          jsonDecode(receiveDerivationsString ?? "{}") as Map);
-    } else if (chain == 1) {
-      final changeDerivationsString =
-          await _secureStore.read(key: "${walletId}_changeDerivations");
-      derivations = Map<String, dynamic>.from(
-          jsonDecode(changeDerivationsString ?? "{}") as Map);
-    }
     final derivePath = constructDerivePath(
       networkWIF: _network.wif,
       chain: chain,
       index: index,
     );
-    if (derivations!.isNotEmpty) {
-      if (derivations["$index"] == null) {
-        await fillAddresses(
-          _mnemonic!,
-          _mnemonicPassphrase!,
-          numberOfThreads: Platform.numberOfProcessors - isolates.length - 1,
-        );
-        Logging.instance.log("calling _generateAddressForChain recursively",
-            level: LogLevel.Info);
-        return _generateAddressForChain(chain, index);
-      }
-      return isar_models.Address(
-        walletId: walletId,
-        value: derivations["$index"]['address'] as String,
-        publicKey: Format.stringToUint8List(
-            derivations["$index"]['publicKey'] as String),
-        type: isar_models.AddressType.p2pkh,
-        derivationIndex: index,
-        derivationPath: isar_models.DerivationPath()..value = derivePath,
-        subType: chain == 0
-            ? isar_models.AddressSubType.receiving
-            : isar_models.AddressSubType.change,
-      );
-    } else {
-      final node = await Bip32Utils.getBip32Node(
-        _mnemonic!,
-        _mnemonicPassphrase!,
-        _network,
-        derivePath,
-      );
 
-      final address =
-          P2PKH(network: _network, data: PaymentData(pubkey: node.publicKey))
-              .data
-              .address!;
+    final node = await Bip32Utils.getBip32Node(
+      _mnemonic!,
+      _mnemonicPassphrase!,
+      _network,
+      derivePath,
+    );
 
-      return isar_models.Address(
-        walletId: walletId,
-        value: address,
-        publicKey: node.publicKey,
-        type: isar_models.AddressType.p2pkh,
-        derivationIndex: index,
-        derivationPath: isar_models.DerivationPath()..value = derivePath,
-        subType: chain == 0
-            ? isar_models.AddressSubType.receiving
-            : isar_models.AddressSubType.change,
-      );
-    }
+    final address = P2PKH(
+      network: _network,
+      data: PaymentData(
+        pubkey: node.publicKey,
+      ),
+    ).data.address!;
+
+    return isar_models.Address(
+      walletId: walletId,
+      value: address,
+      publicKey: node.publicKey,
+      type: isar_models.AddressType.p2pkh,
+      derivationIndex: index,
+      derivationPath: isar_models.DerivationPath()..value = derivePath,
+      subType: chain == 0
+          ? isar_models.AddressSubType.receiving
+          : isar_models.AddressSubType.change,
+    );
   }
 
   // /// Takes in a list of isar_models.UTXOs and adds a name (dependent on object index within list)
@@ -4087,6 +3936,8 @@ class FiroWallet extends CoinServiceAPI
         _mnemonic!,
         _mnemonicPassphrase!,
         maxUnusedAddressGap,
+        maxNumberOfIndexesToCheck,
+        true,
       );
 
       longMutex = false;
@@ -4123,151 +3974,6 @@ class FiroWallet extends CoinServiceAPI
     await _secureStore.delete(key: "${walletId}_receiveDerivations");
     await _secureStore.delete(key: "${walletId}_changeDerivations");
   }
-
-  // Future<void> _rescanBackup() async {
-  //   Logging.instance.log("starting rescan backup", level: LogLevel.Info);
-  //
-  //   // backup current and clear data
-  //   final tempReceivingAddresses =
-  //       DB.instance.get<dynamic>(boxName: walletId, key: 'receivingAddresses');
-  //   await DB.instance.delete<dynamic>(
-  //     key: 'receivingAddresses',
-  //     boxName: walletId,
-  //   );
-  //   await DB.instance.put<dynamic>(
-  //       boxName: walletId,
-  //       key: 'receivingAddresses_BACKUP',
-  //       value: tempReceivingAddresses);
-  //
-  //   final tempChangeAddresses =
-  //       DB.instance.get<dynamic>(boxName: walletId, key: 'changeAddresses');
-  //   await DB.instance.delete<dynamic>(
-  //     key: 'changeAddresses',
-  //     boxName: walletId,
-  //   );
-  //   await DB.instance.put<dynamic>(
-  //       boxName: walletId,
-  //       key: 'changeAddresses_BACKUP',
-  //       value: tempChangeAddresses);
-  //
-  //   final tempReceivingIndex =
-  //       DB.instance.get<dynamic>(boxName: walletId, key: 'receivingIndex');
-  //   await DB.instance.delete<dynamic>(
-  //     key: 'receivingIndex',
-  //     boxName: walletId,
-  //   );
-  //   await DB.instance.put<dynamic>(
-  //       boxName: walletId,
-  //       key: 'receivingIndex_BACKUP',
-  //       value: tempReceivingIndex);
-  //
-  //   final tempChangeIndex =
-  //       DB.instance.get<dynamic>(boxName: walletId, key: 'changeIndex');
-  //   await DB.instance.delete<dynamic>(
-  //     key: 'changeIndex',
-  //     boxName: walletId,
-  //   );
-  //   await DB.instance.put<dynamic>(
-  //       boxName: walletId, key: 'changeIndex_BACKUP', value: tempChangeIndex);
-  //
-  //   final receiveDerivationsString =
-  //       await _secureStore.read(key: "${walletId}_receiveDerivations");
-  //   final changeDerivationsString =
-  //       await _secureStore.read(key: "${walletId}_changeDerivations");
-  //
-  //   await _secureStore.write(
-  //       key: "${walletId}_receiveDerivations_BACKUP",
-  //       value: receiveDerivationsString);
-  //   await _secureStore.write(
-  //       key: "${walletId}_changeDerivations_BACKUP",
-  //       value: changeDerivationsString);
-  //
-  //   await _secureStore.write(
-  //       key: "${walletId}_receiveDerivations", value: null);
-  //   await _secureStore.write(key: "${walletId}_changeDerivations", value: null);
-  //
-  //   // back up but no need to delete
-  //   final tempMintIndex =
-  //       DB.instance.get<dynamic>(boxName: walletId, key: 'mintIndex');
-  //   await DB.instance.put<dynamic>(
-  //       boxName: walletId, key: 'mintIndex_BACKUP', value: tempMintIndex);
-  //
-  //   final tempLelantusCoins =
-  //       DB.instance.get<dynamic>(boxName: walletId, key: '_lelantus_coins');
-  //   await DB.instance.put<dynamic>(
-  //       boxName: walletId,
-  //       key: '_lelantus_coins_BACKUP',
-  //       value: tempLelantusCoins);
-  //
-  //   final tempJIndex =
-  //       DB.instance.get<dynamic>(boxName: walletId, key: 'jindex');
-  //   await DB.instance.put<dynamic>(
-  //       boxName: walletId, key: 'jindex_BACKUP', value: tempJIndex);
-  //
-  //   final tempLelantusTxModel = DB.instance
-  //       .get<dynamic>(boxName: walletId, key: 'latest_lelantus_tx_model');
-  //   await DB.instance.put<dynamic>(
-  //       boxName: walletId,
-  //       key: 'latest_lelantus_tx_model_BACKUP',
-  //       value: tempLelantusTxModel);
-  //
-  //   Logging.instance.log("rescan backup complete", level: LogLevel.Info);
-  // }
-  //
-  // Future<void> _rescanRestore() async {
-  //   Logging.instance.log("starting rescan restore", level: LogLevel.Info);
-  //
-  //   // restore from backup
-  //   final tempReceivingAddresses = DB.instance
-  //       .get<dynamic>(boxName: walletId, key: 'receivingAddresses_BACKUP');
-  //   final tempChangeAddresses = DB.instance
-  //       .get<dynamic>(boxName: walletId, key: 'changeAddresses_BACKUP');
-  //   final tempReceivingIndex = DB.instance
-  //       .get<dynamic>(boxName: walletId, key: 'receivingIndex_BACKUP');
-  //   final tempChangeIndex =
-  //       DB.instance.get<dynamic>(boxName: walletId, key: 'changeIndex_BACKUP');
-  //   final tempMintIndex =
-  //       DB.instance.get<dynamic>(boxName: walletId, key: 'mintIndex_BACKUP');
-  //   final tempLelantusCoins = DB.instance
-  //       .get<dynamic>(boxName: walletId, key: '_lelantus_coins_BACKUP');
-  //   final tempJIndex =
-  //       DB.instance.get<dynamic>(boxName: walletId, key: 'jindex_BACKUP');
-  //   final tempLelantusTxModel = DB.instance.get<dynamic>(
-  //       boxName: walletId, key: 'latest_lelantus_tx_model_BACKUP');
-  //
-  //   final receiveDerivationsString =
-  //       await _secureStore.read(key: "${walletId}_receiveDerivations_BACKUP");
-  //   final changeDerivationsString =
-  //       await _secureStore.read(key: "${walletId}_changeDerivations_BACKUP");
-  //
-  //   await _secureStore.write(
-  //       key: "${walletId}_receiveDerivations", value: receiveDerivationsString);
-  //   await _secureStore.write(
-  //       key: "${walletId}_changeDerivations", value: changeDerivationsString);
-  //
-  //   await DB.instance.put<dynamic>(
-  //       boxName: walletId,
-  //       key: 'receivingAddresses',
-  //       value: tempReceivingAddresses);
-  //   await DB.instance.put<dynamic>(
-  //       boxName: walletId, key: 'changeAddresses', value: tempChangeAddresses);
-  //   await DB.instance.put<dynamic>(
-  //       boxName: walletId, key: 'receivingIndex', value: tempReceivingIndex);
-  //   await DB.instance.put<dynamic>(
-  //       boxName: walletId, key: 'changeIndex', value: tempChangeIndex);
-  //   await DB.instance.put<dynamic>(
-  //       boxName: walletId, key: 'mintIndex', value: tempMintIndex);
-  //   await DB.instance.put<dynamic>(
-  //       boxName: walletId, key: '_lelantus_coins', value: tempLelantusCoins);
-  //   await DB.instance
-  //       .put<dynamic>(boxName: walletId, key: 'jindex', value: tempJIndex);
-  //   await DB.instance.put<dynamic>(
-  //       boxName: walletId,
-  //       key: 'latest_lelantus_tx_model',
-  //       value: tempLelantusTxModel);
-  //
-  //   Logging.instance.log("rescan restore  complete", level: LogLevel.Info);
-  // }
 
   /// wrapper for _recoverWalletFromBIP32SeedPhrase()
   @override
@@ -4329,6 +4035,8 @@ class FiroWallet extends CoinServiceAPI
         mnemonic.trim(),
         mnemonicPassphrase ?? "",
         maxUnusedAddressGap,
+        maxNumberOfIndexesToCheck,
+        false,
       );
 
       await compute(
@@ -4363,142 +4071,270 @@ class FiroWallet extends CoinServiceAPI
     return setDataMap;
   }
 
-  Future<void> _makeDerivations(
+  Future<Map<String, int>> _getBatchTxCount({
+    required Map<String, String> addresses,
+  }) async {
+    try {
+      final Map<String, List<dynamic>> args = {};
+      for (final entry in addresses.entries) {
+        args[entry.key] = [
+          AddressUtils.convertToScriptHash(entry.value, _network)
+        ];
+      }
+      final response = await electrumXClient.getBatchHistory(args: args);
+
+      final Map<String, int> result = {};
+      for (final entry in response.entries) {
+        result[entry.key] = entry.value.length;
+      }
+      return result;
+    } catch (e, s) {
+      Logging.instance.log(
+          "Exception rethrown in _getBatchTxCount(address: $addresses: $e\n$s",
+          level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
+  Future<Tuple2<List<isar_models.Address>, int>> _checkGaps(
+    int maxNumberOfIndexesToCheck,
+    int maxUnusedAddressGap,
+    int txCountBatchSize,
+    bip32.BIP32 root,
+    int chain,
+  ) async {
+    List<isar_models.Address> addressArray = [];
+    int gapCounter = 0;
+    int highestIndexWithHistory = 0;
+
+    for (int index = 0;
+        index < maxNumberOfIndexesToCheck && gapCounter < maxUnusedAddressGap;
+        index += txCountBatchSize) {
+      List<String> iterationsAddressArray = [];
+      Logging.instance.log(
+        "index: $index, \t GapCounter $chain: $gapCounter",
+        level: LogLevel.Info,
+      );
+
+      final _id = "k_$index";
+      Map<String, String> txCountCallArgs = {};
+
+      for (int j = 0; j < txCountBatchSize; j++) {
+        final derivePath = constructDerivePath(
+          networkWIF: root.network.wif,
+          chain: chain,
+          index: index + j,
+        );
+        final node = await Bip32Utils.getBip32NodeFromRoot(root, derivePath);
+
+        final data = PaymentData(pubkey: node.publicKey);
+        final String addressString = P2PKH(
+          data: data,
+          network: _network,
+        ).data.address!;
+        const isar_models.AddressType addrType = isar_models.AddressType.p2pkh;
+
+        final address = isar_models.Address(
+          walletId: walletId,
+          value: addressString,
+          publicKey: node.publicKey,
+          type: addrType,
+          derivationIndex: index + j,
+          derivationPath: isar_models.DerivationPath()..value = derivePath,
+          subType: chain == 0
+              ? isar_models.AddressSubType.receiving
+              : isar_models.AddressSubType.change,
+        );
+
+        addressArray.add(address);
+
+        txCountCallArgs.addAll({
+          "${_id}_$j": addressString,
+        });
+      }
+
+      // get address tx counts
+      final counts = await _getBatchTxCount(addresses: txCountCallArgs);
+
+      // check and add appropriate addresses
+      for (int k = 0; k < txCountBatchSize; k++) {
+        int count = counts["${_id}_$k"]!;
+        if (count > 0) {
+          iterationsAddressArray.add(txCountCallArgs["${_id}_$k"]!);
+
+          // update highest
+          highestIndexWithHistory = index + k;
+
+          // reset counter
+          gapCounter = 0;
+        }
+
+        // increase counter when no tx history found
+        if (count == 0) {
+          gapCounter++;
+        }
+      }
+      // cache all the transactions while waiting for the current function to finish.
+      unawaited(getTransactionCacheEarly(iterationsAddressArray));
+    }
+    return Tuple2(addressArray, highestIndexWithHistory);
+  }
+
+  Future<void> getTransactionCacheEarly(List<String> allAddresses) async {
+    try {
+      final List<Map<String, dynamic>> allTxHashes =
+          await _fetchHistory(allAddresses);
+      for (final txHash in allTxHashes) {
+        try {
+          unawaited(cachedElectrumXClient.getTransaction(
+            txHash: txHash["tx_hash"] as String,
+            verbose: true,
+            coin: coin,
+          ));
+        } catch (e) {
+          continue;
+        }
+      }
+    } catch (e) {
+      //
+    }
+  }
+
+  Future<void> _recoverHistory(
     String suppliedMnemonic,
     String mnemonicPassphrase,
     int maxUnusedAddressGap,
+    int maxNumberOfIndexesToCheck,
+    bool isRescan,
   ) async {
-    List<isar_models.Address> receivingAddressArray = [];
-    List<isar_models.Address> changeAddressArray = [];
+    final root = await Bip32Utils.getBip32Root(
+      suppliedMnemonic,
+      mnemonicPassphrase,
+      _network,
+    );
 
-    int receivingIndex = -1;
-    int changeIndex = -1;
+    final List<Future<Tuple2<List<isar_models.Address>, int>>> receiveFutures =
+        [];
+    final List<Future<Tuple2<List<isar_models.Address>, int>>> changeFutures =
+        [];
 
-    // The gap limit will be capped at 20
-    int receivingGapCounter = 0;
-    int changeGapCounter = 0;
+    const receiveChain = 0;
+    const changeChain = 1;
+    const indexZero = 0;
 
-    await fillAddresses(suppliedMnemonic, mnemonicPassphrase,
-        numberOfThreads: Platform.numberOfProcessors - isolates.length - 1);
+    // actual size is 36 due to p2pkh, p2sh, and p2wpkh so 12x3
+    const txCountBatchSize = 12;
 
-    final receiveDerivationsString =
-        await _secureStore.read(key: "${walletId}_receiveDerivations");
-    final changeDerivationsString =
-        await _secureStore.read(key: "${walletId}_changeDerivations");
+    try {
+      // receiving addresses
+      Logging.instance.log(
+        "checking receiving addresses...",
+        level: LogLevel.Info,
+      );
 
-    final receiveDerivations = Map<String, dynamic>.from(
-        jsonDecode(receiveDerivationsString ?? "{}") as Map);
-    final changeDerivations = Map<String, dynamic>.from(
-        jsonDecode(changeDerivationsString ?? "{}") as Map);
+      receiveFutures.add(
+        _checkGaps(
+          maxNumberOfIndexesToCheck,
+          maxUnusedAddressGap,
+          txCountBatchSize,
+          root,
+          receiveChain,
+        ),
+      );
 
-    // log("rcv: $receiveDerivations");
-    // log("chg: $changeDerivations");
+      // change addresses
+      Logging.instance.log(
+        "checking change addresses...",
+        level: LogLevel.Info,
+      );
+      changeFutures.add(
+        _checkGaps(
+          maxNumberOfIndexesToCheck,
+          maxUnusedAddressGap,
+          txCountBatchSize,
+          root,
+          changeChain,
+        ),
+      );
 
-    // Deriving and checking for receiving addresses
-    for (var i = 0; i < receiveDerivations.length; i++) {
-      // Break out of loop when receivingGapCounter hits maxUnusedAddressGap
-      // Same gap limit for change as for receiving, breaks when it hits maxUnusedAddressGap
-      if (receivingGapCounter >= maxUnusedAddressGap &&
-          changeGapCounter >= maxUnusedAddressGap) {
-        break;
-      }
+      // io limitations may require running these linearly instead
+      final futuresResult = await Future.wait([
+        Future.wait(receiveFutures),
+        Future.wait(changeFutures),
+      ]);
 
-      final receiveDerivation = receiveDerivations["$i"];
-      final address = receiveDerivation['address'] as String;
+      final receiveResults = futuresResult[0];
+      final changeResults = futuresResult[1];
 
-      final changeDerivation = changeDerivations["$i"];
-      final _address = changeDerivation['address'] as String;
-      Future<int>? futureNumTxs;
-      Future<int>? _futureNumTxs;
-      if (receivingGapCounter < maxUnusedAddressGap) {
-        futureNumTxs = _getReceivedTxCount(address: address);
-      }
-      if (changeGapCounter < maxUnusedAddressGap) {
-        _futureNumTxs = _getReceivedTxCount(address: _address);
-      }
-      try {
-        if (futureNumTxs != null) {
-          int numTxs = await futureNumTxs;
-          if (numTxs >= 1) {
-            receivingIndex = i;
-            final derivePath = constructDerivePath(
-              networkWIF: _network.wif,
-              chain: 0,
-              index: receivingIndex,
-            );
-            final addr = isar_models.Address(
-              walletId: walletId,
-              value: address,
-              publicKey: Format.stringToUint8List(
-                  receiveDerivation['publicKey'] as String),
-              type: isar_models.AddressType.p2pkh,
-              derivationIndex: i,
-              derivationPath: isar_models.DerivationPath()..value = derivePath,
-              subType: isar_models.AddressSubType.receiving,
-            );
-            receivingAddressArray.add(addr);
-          } else if (numTxs == 0) {
-            receivingGapCounter += 1;
-          }
+      final List<isar_models.Address> addressesToStore = [];
+
+      int highestReceivingIndexWithHistory = 0;
+      // If restoring a wallet that never received any funds, then set receivingArray manually
+      // If we didn't do this, it'd store an empty array
+      for (final tuple in receiveResults) {
+        if (tuple.item1.isEmpty) {
+          final address = await _generateAddressForChain(
+            receiveChain,
+            indexZero,
+          );
+          addressesToStore.add(address);
+        } else {
+          highestReceivingIndexWithHistory =
+              max(tuple.item2, highestReceivingIndexWithHistory);
+          addressesToStore.addAll(tuple.item1);
         }
-      } catch (e, s) {
-        Logging.instance.log(
-            "Exception rethrown from recoverWalletFromBIP32SeedPhrase(): $e\n$s",
-            level: LogLevel.Error);
-        rethrow;
       }
 
-      try {
-        if (_futureNumTxs != null) {
-          int numTxs = await _futureNumTxs;
-          if (numTxs >= 1) {
-            changeIndex = i;
-            final derivePath = constructDerivePath(
-              networkWIF: _network.wif,
-              chain: 1,
-              index: changeIndex,
-            );
-            final addr = isar_models.Address(
-              walletId: walletId,
-              value: _address,
-              publicKey: Format.stringToUint8List(
-                  changeDerivation['publicKey'] as String),
-              type: isar_models.AddressType.p2pkh,
-              derivationIndex: i,
-              derivationPath: isar_models.DerivationPath()..value = derivePath,
-              subType: isar_models.AddressSubType.change,
-            );
-            changeAddressArray.add(addr);
-          } else if (numTxs == 0) {
-            changeGapCounter += 1;
-          }
+      int highestChangeIndexWithHistory = 0;
+      // If restoring a wallet that never sent any funds with change, then set changeArray
+      // manually. If we didn't do this, it'd store an empty array.
+      for (final tuple in changeResults) {
+        if (tuple.item1.isEmpty) {
+          final address = await _generateAddressForChain(
+            changeChain,
+            indexZero,
+          );
+          addressesToStore.add(address);
+        } else {
+          highestChangeIndexWithHistory =
+              max(tuple.item2, highestChangeIndexWithHistory);
+          addressesToStore.addAll(tuple.item1);
         }
-      } catch (e, s) {
-        Logging.instance.log(
-            "Exception rethrown from recoverWalletFromBIP32SeedPhrase(): $e\n$s",
-            level: LogLevel.Error);
-        rethrow;
       }
-    }
 
-    // If restoring a wallet that never received any funds, then set receivingArray manually
-    // If we didn't do this, it'd store an empty array
-    if (receivingIndex == -1) {
-      final receivingAddress = await _generateAddressForChain(0, 0);
-      receivingAddressArray.add(receivingAddress);
-    }
+      // remove extra addresses to help minimize risk of creating a large gap
+      addressesToStore.removeWhere((e) =>
+          e.subType == isar_models.AddressSubType.change &&
+          e.derivationIndex > highestChangeIndexWithHistory);
+      addressesToStore.removeWhere((e) =>
+          e.subType == isar_models.AddressSubType.receiving &&
+          e.derivationIndex > highestReceivingIndexWithHistory);
 
-    // If restoring a wallet that never sent any funds with change, then set changeArray
-    // manually. If we didn't do this, it'd store an empty array.
-    if (changeIndex == -1) {
-      final changeAddress = await _generateAddressForChain(1, 0);
-      changeAddressArray.add(changeAddress);
-    }
+      if (isRescan) {
+        await db.updateOrPutAddresses(addressesToStore);
+      } else {
+        await db.putAddresses(addressesToStore);
+      }
 
-    await db.updateOrPutAddresses([
-      ...receivingAddressArray,
-      ...changeAddressArray,
-    ]);
+      await Future.wait([
+        _refreshTransactions(),
+        _refreshUTXOs(),
+      ]);
+
+      await Future.wait([
+        updateCachedId(walletId),
+        updateCachedIsFavorite(false),
+      ]);
+
+      longMutex = false;
+    } catch (e, s) {
+      Logging.instance.log(
+          "Exception rethrown from _recoverWalletFromBIP32SeedPhrase(): $e\n$s",
+          level: LogLevel.Error);
+
+      longMutex = false;
+      rethrow;
+    }
   }
 
   /// Recovers wallet from [suppliedMnemonic]. Expects a valid mnemonic.
@@ -4506,6 +4342,8 @@ class FiroWallet extends CoinServiceAPI
     String suppliedMnemonic,
     String mnemonicPassphrase,
     int maxUnusedAddressGap,
+    int maxNumberOfIndexesToCheck,
+    bool isRescan,
   ) async {
     longMutex = true;
     Logging.instance
@@ -4513,16 +4351,26 @@ class FiroWallet extends CoinServiceAPI
     try {
       final latestSetId = await getLatestSetId();
       final setDataMap = getSetDataMap(latestSetId);
+
       final usedSerialNumbers = getUsedCoinSerials();
-      final makeDerivations = _makeDerivations(
-          suppliedMnemonic, mnemonicPassphrase, maxUnusedAddressGap);
+      final generateAndCheckAddresses = _recoverHistory(
+        suppliedMnemonic,
+        mnemonicPassphrase,
+        maxUnusedAddressGap,
+        maxNumberOfIndexesToCheck,
+        isRescan,
+      );
 
       await Future.wait([
         updateCachedId(walletId),
         updateCachedIsFavorite(false),
       ]);
 
-      await Future.wait([usedSerialNumbers, setDataMap, makeDerivations]);
+      await Future.wait([
+        usedSerialNumbers,
+        setDataMap,
+        generateAndCheckAddresses,
+      ]);
 
       await _restore(latestSetId, await setDataMap, await usedSerialNumbers);
       longMutex = false;

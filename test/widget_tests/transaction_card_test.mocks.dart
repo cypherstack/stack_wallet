@@ -1647,28 +1647,6 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
         returnValueForMissingStub: _i18.Future<void>.value(),
       ) as _i18.Future<void>);
   @override
-  _i18.Future<void> fillAddresses(
-    String? suppliedMnemonic,
-    String? mnemonicPassphrase, {
-    int? perBatch = 50,
-    int? numberOfThreads = 4,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #fillAddresses,
-          [
-            suppliedMnemonic,
-            mnemonicPassphrase,
-          ],
-          {
-            #perBatch: perBatch,
-            #numberOfThreads: numberOfThreads,
-          },
-        ),
-        returnValue: _i18.Future<void>.value(),
-        returnValueForMissingStub: _i18.Future<void>.value(),
-      ) as _i18.Future<void>);
-  @override
   _i18.Future<void> fullRescan(
     int? maxUnusedAddressGap,
     int? maxNumberOfIndexesToCheck,
@@ -1716,6 +1694,16 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
         ),
         returnValue: _i18.Future<Map<int, dynamic>>.value(<int, dynamic>{}),
       ) as _i18.Future<Map<int, dynamic>>);
+  @override
+  _i18.Future<void> getTransactionCacheEarly(List<String>? allAddresses) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getTransactionCacheEarly,
+          [allAddresses],
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
   @override
   _i18.Future<List<Map<String, dynamic>>> fetchAnonymitySets() =>
       (super.noSuchMethod(
