@@ -271,7 +271,7 @@ Future<Map<String, dynamic>> isolateRestore(
               lelantusCoins.remove(duplicateCoin);
             }
             lelantusCoins.add({
-              publicCoin: LelantusCoin(
+              txId: LelantusCoin(
                 currentIndex,
                 amount,
                 publicCoin,
