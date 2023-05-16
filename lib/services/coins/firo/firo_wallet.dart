@@ -2432,61 +2432,54 @@ class FiroWallet extends CoinServiceAPI
         lelantusCoins.removeWhere((element) =>
             element.values.any((elementCoin) => elementCoin.value == 0));
       }
-      final data = await _txnData;
-      final lData = await db
-          .getTransactions(walletId)
-          .filter()
-          .isLelantusEqualTo(true)
-          .findAll();
+
       final currentChainHeight = await chainHeight;
       final jindexes = firoGetJIndex();
       int intLelantusBalance = 0;
       int unconfirmedLelantusBalance = 0;
 
-      for (var element in lelantusCoins) {
-        element.forEach((key, value) {
-          isar_models.Transaction? tx;
-          try {
-            tx = data.firstWhere((e) => e.txid == value.txId);
-          } catch (_) {
-            tx = null;
-          }
+      for (final element in lelantusCoins) {
+        element.forEach((key, lelantusCoin) {
+          isar_models.Transaction? txn = db.isar.transactions
+              .where()
+              .txidWalletIdEqualTo(
+                lelantusCoin.txId,
+                walletId,
+              )
+              .findFirstSync();
 
-          isar_models.Transaction? ltx;
-          try {
-            ltx = lData.firstWhere((e) => e.txid == value.txId);
-          } catch (_) {
-            ltx = null;
-          }
-
-          // Logging.instance.log("$value $tx $ltx");
-          if (!jindexes!.contains(value.index) && tx == null) {
-            if (!value.isUsed &&
-                ltx != null &&
-                ltx.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
-              // mint tx, add value to balance
-              intLelantusBalance += value.value;
-            } /* else {
+          if (txn == null) {
+            // TODO: ??????????????????????????????????????
+          } else {
+            bool isLelantus = txn.isLelantus == true;
+            if (!jindexes!.contains(lelantusCoin.index) && isLelantus) {
+              if (!lelantusCoin.isUsed &&
+                  txn.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
+                // mint tx, add value to balance
+                intLelantusBalance += lelantusCoin.value;
+              } /* else {
             // This coin is not confirmed and may be replaced
             }*/
-          } else if (jindexes.contains(value.index) &&
-              tx == null &&
-              !value.isUsed &&
-              ltx != null &&
-              !ltx.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
-            unconfirmedLelantusBalance += value.value;
-          } else if (jindexes.contains(value.index) && !value.isUsed) {
-            intLelantusBalance += value.value;
-          } else if (!value.isUsed &&
-              (tx == null
-                  ? true
-                  : tx.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS) !=
-                      false)) {
-            intLelantusBalance += value.value;
-          } else if (tx != null &&
-              tx.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS) ==
-                  false) {
-            unconfirmedLelantusBalance += value.value;
+            } else if (jindexes.contains(lelantusCoin.index) &&
+                isLelantus &&
+                !lelantusCoin.isUsed &&
+                !txn.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
+              unconfirmedLelantusBalance += lelantusCoin.value;
+            } else if (jindexes.contains(lelantusCoin.index) &&
+                !lelantusCoin.isUsed) {
+              intLelantusBalance += lelantusCoin.value;
+            } else if (!lelantusCoin.isUsed &&
+                (txn.isLelantus == true
+                    ? true
+                    : txn.isConfirmed(
+                            currentChainHeight, MINIMUM_CONFIRMATIONS) !=
+                        false)) {
+              intLelantusBalance += lelantusCoin.value;
+            } else if (!isLelantus &&
+                txn.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS) ==
+                    false) {
+              unconfirmedLelantusBalance += lelantusCoin.value;
+            }
           }
         });
       }
