@@ -146,24 +146,23 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
     } else if (function == "restore") {
       final latestSetId = arguments['latestSetId'] as int;
       final setDataMap = arguments['setDataMap'] as Map;
-      final usedSerialNumbers = arguments['usedSerialNumbers'] as List?;
+      final usedSerialNumbers = arguments['usedSerialNumbers'] as List<String>;
       final mnemonic = arguments['mnemonic'] as String;
       final mnemonicPassphrase = arguments['mnemonicPassphrase'] as String;
       final coin = arguments['coin'] as Coin;
-      final network = arguments['network'] as NetworkType?;
-      if (!(usedSerialNumbers == null || network == null)) {
-        var restoreData = await isolateRestore(
-          mnemonic,
-          mnemonicPassphrase,
-          coin,
-          latestSetId,
-          setDataMap,
-          usedSerialNumbers,
-          network,
-        );
-        sendPort.send(restoreData);
-        return;
-      }
+      final network = arguments['network'] as NetworkType;
+
+      final restoreData = await isolateRestore(
+        mnemonic,
+        mnemonicPassphrase,
+        coin,
+        latestSetId,
+        setDataMap,
+        usedSerialNumbers,
+        network,
+      );
+      sendPort.send(restoreData);
+      return;
     }
 
     Logging.instance.log(
@@ -195,7 +194,7 @@ Future<Map<String, dynamic>> isolateRestore(
   Coin coin,
   int _latestSetId,
   Map<dynamic, dynamic> _setDataMap,
-  List<dynamic> _usedSerialNumbers,
+  List<String> _usedSerialNumbers,
   NetworkType network,
 ) async {
   List<int> jindexes = [];
@@ -206,11 +205,7 @@ Future<Map<String, dynamic>> isolateRestore(
   var currentIndex = 0;
 
   try {
-    final usedSerialNumbers = _usedSerialNumbers;
-    Set<dynamic> usedSerialNumbersSet = {};
-    for (int ind = 0; ind < usedSerialNumbers.length; ind++) {
-      usedSerialNumbersSet.add(usedSerialNumbers[ind]);
-    }
+    Set<String> usedSerialNumbersSet = _usedSerialNumbers.toSet();
 
     final root = await Bip32Utils.getBip32Root(
       mnemonic,
@@ -223,9 +218,11 @@ Future<Map<String, dynamic>> isolateRestore(
         chain: MINT_INDEX,
         index: currentIndex,
       );
-      final mintKeyPair =
-          await Bip32Utils.getBip32NodeFromRoot(root, _derivePath);
-      final mintTag = CreateTag(
+      final bip32.BIP32 mintKeyPair = await Bip32Utils.getBip32NodeFromRoot(
+        root,
+        _derivePath,
+      );
+      final String mintTag = CreateTag(
           Format.uint8listToString(mintKeyPair.privateKey!),
           currentIndex,
           Format.uint8listToString(mintKeyPair.identifier),
@@ -240,13 +237,16 @@ Future<Map<String, dynamic>> isolateRestore(
         if (foundCoin.length == 4) {
           lastFoundIndex = currentIndex;
           if (foundCoin[2] is int) {
-            final amount = foundCoin[2] as int;
-            final serialNumber = GetSerialNumber(amount,
-                Format.uint8listToString(mintKeyPair.privateKey!), currentIndex,
-                isTestnet: coin == Coin.firoTestNet);
-            String publicCoin = foundCoin[0] as String;
-            String txId = foundCoin[3] as String;
-            bool isUsed = usedSerialNumbersSet.contains(serialNumber);
+            final int amount = foundCoin[2] as int;
+            final String serialNumber = GetSerialNumber(
+              amount,
+              Format.uint8listToString(mintKeyPair.privateKey!),
+              currentIndex,
+              isTestnet: coin == Coin.firoTestNet,
+            );
+            final String publicCoin = foundCoin[0] as String;
+            final String txId = foundCoin[3] as String;
+            final bool isUsed = usedSerialNumbersSet.contains(serialNumber);
             final duplicateCoin = lelantusCoins.firstWhere((element) {
               final coin = element.values.first;
               return coin.txId == txId &&
@@ -4383,8 +4383,11 @@ class FiroWallet extends CoinServiceAPI
     }
   }
 
-  Future<void> _restore(int latestSetId, Map<dynamic, dynamic> setDataMap,
-      dynamic usedSerialNumbers) async {
+  Future<void> _restore(
+    int latestSetId,
+    Map<dynamic, dynamic> setDataMap,
+    List<String> usedSerialNumbers,
+  ) async {
     final _mnemonic = await mnemonicString;
     final _mnemonicPassphrase = await mnemonicPassphrase;
 
@@ -4555,7 +4558,7 @@ class FiroWallet extends CoinServiceAPI
     }
   }
 
-  Future<List<dynamic>> getUsedCoinSerials() async {
+  Future<List<String>> getUsedCoinSerials() async {
     try {
       final response = await cachedElectrumXClient.getUsedCoinSerials(
         coin: coin,

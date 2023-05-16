@@ -188,16 +188,17 @@ class CachedElectrumX {
     }
   }
 
-  Future<List<dynamic>> getUsedCoinSerials({
+  Future<List<String>> getUsedCoinSerials({
     required Coin coin,
     int startNumber = 0,
   }) async {
     try {
-      List<dynamic>? cachedSerials = DB.instance.get<dynamic>(
+      final _list = DB.instance.get<dynamic>(
           boxName: DB.instance.boxNameUsedSerialsCache(coin: coin),
           key: "serials") as List?;
 
-      cachedSerials ??= [];
+      List<String> cachedSerials =
+          _list == null ? [] : List<String>.from(_list);
 
       final startNumber = cachedSerials.length;
 
@@ -211,8 +212,9 @@ class CachedElectrumX {
           );
 
       final serials = await client.getUsedCoinSerials(startNumber: startNumber);
-      List newSerials = [];
-      for (var element in (serials["serials"] as List)) {
+      List<String> newSerials = [];
+
+      for (final element in (serials["serials"] as List)) {
         if (!isHexadecimal(element as String)) {
           newSerials.add(base64ToHex(element));
         } else {
@@ -222,9 +224,10 @@ class CachedElectrumX {
       cachedSerials.addAll(newSerials);
 
       await DB.instance.put<dynamic>(
-          boxName: DB.instance.boxNameUsedSerialsCache(coin: coin),
-          key: "serials",
-          value: cachedSerials);
+        boxName: DB.instance.boxNameUsedSerialsCache(coin: coin),
+        key: "serials",
+        value: cachedSerials,
+      );
 
       return cachedSerials;
     } catch (e, s) {
