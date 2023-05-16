@@ -270,7 +270,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                         onPressed: () {
                           Navigator.of(context).pushNamed(
                             EditContactNameEmojiView.routeName,
-                            arguments: _contact.id,
+                            arguments: _contact.customId,
                           );
                         },
                         style: Theme.of(context)
@@ -318,7 +318,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                         onTap: () {
                           Navigator.of(context).pushNamed(
                             AddNewContactAddressView.routeName,
-                            arguments: _contact.id,
+                            arguments: _contact.customId,
                           );
                         },
                       ),
@@ -385,7 +385,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
 
                                     Navigator.of(context).pushNamed(
                                       EditContactAddressView.routeName,
-                                      arguments: Tuple2(_contact.id, e),
+                                      arguments: Tuple2(_contact.customId, e),
                                     );
                                   },
                                   child: RoundedContainer(

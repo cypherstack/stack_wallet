@@ -111,7 +111,7 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                           width: 32,
                           height: 32,
                           decoration: BoxDecoration(
-                            color: contact.id == "default"
+                            color: contact.customId == "default"
                                 ? Colors.transparent
                                 : Theme.of(context)
                                     .extension<StackColors>()!
