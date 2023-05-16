@@ -341,6 +341,11 @@ Future<Map<String, dynamic>> isolateRestore(
               jindexes.add(currentIndex);
 
               spendTxIds.add(txId);
+            } else {
+              Logging.instance.log(
+                "AES keypair derivation issue for derive path: $derivePath",
+                level: LogLevel.Warning,
+              );
             }
           } else {
             Logging.instance.log(
@@ -4594,6 +4599,8 @@ class FiroWallet extends CoinServiceAPI
       final response = await cachedElectrumXClient.getUsedCoinSerials(
         coin: coin,
       );
+      print("getUsedCoinSerials");
+      print(response);
       return response;
     } catch (e, s) {
       Logging.instance.log("Exception rethrown in firo_wallet.dart: $e\n$s",
