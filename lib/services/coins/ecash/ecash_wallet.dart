@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:bech32/bech32.dart';
 import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
+import 'package:bitbox/bitbox.dart' as bitbox;
 import 'package:bitcoindart/bitcoindart.dart';
 import 'package:bs58check/bs58check.dart' as bs58check;
 import 'package:decimal/decimal.dart';
@@ -55,7 +56,7 @@ const String GENESIS_HASH_TESTNET =
 
 final Amount DUST_LIMIT = Amount(
   rawValue: BigInt.from(546),
-  fractionDigits: Coin.particl.decimals,
+  fractionDigits: Coin.eCash.decimals,
 );
 
 final eCashNetwork = NetworkType(
@@ -88,11 +89,7 @@ String constructDerivePath({
     case 0x80: //   mainnet wif
       switch (derivePathType) {
         case DerivePathType.bip44:
-        case DerivePathType.bip49:
           coinType = "0";
-          break;
-        case DerivePathType.bch44:
-          coinType = "144";
           break;
         case DerivePathType.eCash44:
           coinType = "899";
@@ -112,12 +109,8 @@ String constructDerivePath({
   int purpose;
   switch (derivePathType) {
     case DerivePathType.bip44:
-    case DerivePathType.bch44:
     case DerivePathType.eCash44:
       purpose = 44;
-      break;
-    case DerivePathType.bip49:
-      purpose = 49;
       break;
     default:
       throw Exception("DerivePathType $derivePathType not supported");
@@ -305,6 +298,18 @@ class ECashWallet extends CoinServiceAPI
     Uint8List? decodeBase58;
     Segwit? decodeBech32;
     try {
+      if (bitbox.Address.detectFormat(address) ==
+          bitbox.Address.formatCashAddr) {
+        if (validateCashAddr(address)) {
+          address = bitbox.Address.toLegacyAddress(address);
+        } else {
+          throw ArgumentError('$address is not currently supported');
+        }
+      }
+    } catch (_) {
+      // invalid cash addr format
+    }
+    try {
       decodeBase58 = bs58check.decode(address);
     } catch (err) {
       // Base58check decode fail
@@ -338,9 +343,36 @@ class ECashWallet extends CoinServiceAPI
 
   bool longMutex = false;
 
+  bool validateCashAddr(String cashAddr) {
+    String addr = cashAddr;
+    if (cashAddr.contains(":")) {
+      addr = cashAddr.split(":").last;
+    }
+
+    return addr.startsWith("q");
+  }
+
   @override
   bool validateAddress(String address) {
-    return Address.validateAddress(address, _network);
+    try {
+      // 0 for bitcoincash: address scheme, 1 for legacy address
+      final format = bitbox.Address.detectFormat(address);
+      if (kDebugMode) {
+        print("format $format");
+      }
+
+      if (_coin == Coin.bitcoincashTestnet) {
+        return true;
+      }
+
+      if (format == bitbox.Address.formatCashAddr) {
+        return validateCashAddr(address);
+      } else {
+        return address.startsWith("1");
+      }
+    } catch (e) {
+      return false;
+    }
   }
 
   @override
@@ -536,28 +568,6 @@ class ECashWallet extends CoinServiceAPI
         startingIndex,
         DerivePathType.bip44,
       ),
-      _generateAddressForChain(
-        receiveChain,
-        startingIndex,
-        DerivePathType.bch44,
-      ),
-      _generateAddressForChain(
-        changeChain,
-        startingIndex,
-        DerivePathType.bch44,
-      ),
-
-      // // P2SH
-      _generateAddressForChain(
-        receiveChain,
-        startingIndex,
-        DerivePathType.bip49,
-      ),
-      _generateAddressForChain(
-        changeChain,
-        startingIndex,
-        DerivePathType.bip49,
-      ),
     ]);
 
     await db.putAddresses(initialAddresses);
@@ -600,19 +610,10 @@ class ECashWallet extends CoinServiceAPI
 
     switch (derivePathType) {
       case DerivePathType.bip44:
-      case DerivePathType.bch44:
       case DerivePathType.eCash44:
         address = P2PKH(data: data, network: _network).data.address!;
         addrType = isar_models.AddressType.p2pkh;
-        break;
-      case DerivePathType.bip49:
-        address = P2SH(
-                data: PaymentData(
-                    redeem: P2WPKH(data: data, network: _network).data),
-                network: _network)
-            .data
-            .address!;
-        addrType = isar_models.AddressType.p2sh;
+        address = bitbox.Address.toECashAddress(address);
         break;
       default:
         throw Exception("DerivePathType $derivePathType not supported");
@@ -660,20 +661,10 @@ class ECashWallet extends CoinServiceAPI
         coinType = "0";
         purpose = "44";
         break;
-      case DerivePathType.bch44:
-        type = isar_models.AddressType.p2pkh;
-        coinType = "145";
-        purpose = "44";
-        break;
       case DerivePathType.eCash44:
         type = isar_models.AddressType.p2pkh;
         coinType = "899";
         purpose = "44";
-        break;
-      case DerivePathType.bip49:
-        type = isar_models.AddressType.p2sh;
-        coinType = "0";
-        purpose = "49";
         break;
       default:
         throw Exception("DerivePathType unsupported");
@@ -749,6 +740,23 @@ class ECashWallet extends CoinServiceAPI
     return result;
   }
 
+  /// attempts to convert a string to a valid scripthash
+  ///
+  /// Returns the scripthash or throws an exception on invalid bch address
+  String _convertToScriptHash(String address, NetworkType network) {
+    try {
+      if (bitbox.Address.detectFormat(address) ==
+              bitbox.Address.formatCashAddr &&
+          validateCashAddr(address)) {
+        final addressLegacy = bitbox.Address.toLegacyAddress(address);
+        return AddressUtils.convertToScriptHash(addressLegacy, network);
+      }
+      return AddressUtils.convertToScriptHash(address, network);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> _updateUTXOs() async {
     final allAddresses = await _fetchAllOwnAddresses();
 
@@ -763,7 +771,7 @@ class ECashWallet extends CoinServiceAPI
           if (batches[batchNumber] == null) {
             batches[batchNumber] = {};
           }
-          final scriptHash = AddressUtils.convertToScriptHash(
+          final scriptHash = _convertToScriptHash(
             allAddresses[i].value,
             _network,
           );
@@ -787,7 +795,7 @@ class ECashWallet extends CoinServiceAPI
         }
       } else {
         for (int i = 0; i < allAddresses.length; i++) {
-          final scriptHash = AddressUtils.convertToScriptHash(
+          final scriptHash = _convertToScriptHash(
             allAddresses[i].value,
             _network,
           );
@@ -872,7 +880,7 @@ class ECashWallet extends CoinServiceAPI
   Future<int> getTxCount({required String address}) async {
     String? scripthash;
     try {
-      scripthash = AddressUtils.convertToScriptHash(address, _network);
+      scripthash = _convertToScriptHash(address, _network);
       final transactions =
           await electrumXClient.getHistory(scripthash: scripthash);
       return transactions.length;
@@ -901,9 +909,7 @@ class ECashWallet extends CoinServiceAPI
     try {
       final Map<String, List<dynamic>> args = {};
       for (final entry in addresses.entries) {
-        args[entry.key] = [
-          AddressUtils.convertToScriptHash(entry.value, _network)
-        ];
+        args[entry.key] = [_convertToScriptHash(entry.value, _network)];
       }
       final response = await electrumXClient.getBatchHistory(args: args);
 
@@ -1043,7 +1049,7 @@ class ECashWallet extends CoinServiceAPI
           if (batches[batchNumber] == null) {
             batches[batchNumber] = {};
           }
-          final scriptHash = AddressUtils.convertToScriptHash(
+          final scriptHash = _convertToScriptHash(
             allAddresses[i],
             _network,
           );
@@ -1071,7 +1077,7 @@ class ECashWallet extends CoinServiceAPI
         }
       } else {
         for (int i = 0; i < allAddresses.length; i++) {
-          final scriptHash = AddressUtils.convertToScriptHash(
+          final scriptHash = _convertToScriptHash(
             allAddresses[i],
             _network,
           );
@@ -1107,23 +1113,36 @@ class ECashWallet extends CoinServiceAPI
   }
 
   Future<void> _refreshTransactions() async {
-    final List<isar_models.Address> allAddresses =
-        await _fetchAllOwnAddresses();
+    List<isar_models.Address> allAddressesOld = await _fetchAllOwnAddresses();
 
-    final Set<Map<String, dynamic>> allTxHashes =
-        (await _fetchHistory(allAddresses.map((e) => e.value).toList()))
-            .toSet();
+    Set<String> receivingAddresses = allAddressesOld
+        .where((e) => e.subType == isar_models.AddressSubType.receiving)
+        .map((e) {
+      if (bitbox.Address.detectFormat(e.value) == bitbox.Address.formatLegacy &&
+          (addressType(address: e.value) == DerivePathType.bip44 ||
+              addressType(address: e.value) == DerivePathType.eCash44)) {
+        return bitbox.Address.toECashAddress(e.value);
+      } else {
+        return e.value;
+      }
+    }).toSet();
 
-    // // prefetch/cache
-    // Set<String> hashes = {};
-    // for (var element in allReceivingTxHashes) {
-    //   hashes.add(element['tx_hash'] as String);
-    // }
-    // await fastFetch(hashes.toList());
+    Set<String> changeAddresses = allAddressesOld
+        .where((e) => e.subType == isar_models.AddressSubType.change)
+        .map((e) {
+      if (bitbox.Address.detectFormat(e.value) == bitbox.Address.formatLegacy &&
+          (addressType(address: e.value) == DerivePathType.bip44 ||
+              addressType(address: e.value) == DerivePathType.eCash44)) {
+        return bitbox.Address.toECashAddress(e.value);
+      } else {
+        return e.value;
+      }
+    }).toSet();
+
+    final List<Map<String, dynamic>> allTxHashes =
+        await _fetchHistory([...receivingAddresses, ...changeAddresses]);
 
     List<Map<String, dynamic>> allTransactions = [];
-
-    final currentHeight = await chainHeight;
 
     for (final txHash in allTxHashes) {
       final storedTx = await db
@@ -1133,7 +1152,9 @@ class ECashWallet extends CoinServiceAPI
           .findFirst();
 
       if (storedTx == null ||
-          !storedTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)) {
+          storedTx.address.value == null ||
+          storedTx.height == null ||
+          (storedTx.height != null && storedTx.height! <= 0)) {
         final tx = await cachedElectrumXClient.getTransaction(
           txHash: txHash["tx_hash"] as String,
           verbose: true,
@@ -1152,37 +1173,210 @@ class ECashWallet extends CoinServiceAPI
       }
     }
 
-    // // prefetch/cache
-    // Set<String> vHashes = {};
-    // for (final txObject in allTransactions) {
-    //   for (int i = 0; i < (txObject["vin"] as List).length; i++) {
-    //     final input = txObject["vin"]![i] as Map;
-    //     final prevTxid = input["txid"] as String;
-    //     vHashes.add(prevTxid);
-    //   }
-    // }
-    // await fastFetch(vHashes.toList());
+    final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txns = [];
 
-    final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
-        [];
+    for (final txData in allTransactions) {
+      Set<String> inputAddresses = {};
+      Set<String> outputAddresses = {};
 
-    for (final txObject in allTransactions) {
-      final data = await parseTransaction(
-        txObject,
-        cachedElectrumXClient,
-        allAddresses,
-        coin,
-        MINIMUM_CONFIRMATIONS,
-        walletId,
+      Logging.instance.log(txData, level: LogLevel.Fatal);
+
+      Amount totalInputValue = Amount(
+        rawValue: BigInt.from(0),
+        fractionDigits: coin.decimals,
+      );
+      Amount totalOutputValue = Amount(
+        rawValue: BigInt.from(0),
+        fractionDigits: coin.decimals,
       );
 
-      txnsData.add(data);
+      Amount amountSentFromWallet = Amount(
+        rawValue: BigInt.from(0),
+        fractionDigits: coin.decimals,
+      );
+      Amount amountReceivedInWallet = Amount(
+        rawValue: BigInt.from(0),
+        fractionDigits: coin.decimals,
+      );
+      Amount changeAmount = Amount(
+        rawValue: BigInt.from(0),
+        fractionDigits: coin.decimals,
+      );
+
+      // parse inputs
+      for (final input in txData["vin"] as List) {
+        final prevTxid = input["txid"] as String;
+        final prevOut = input["vout"] as int;
+
+        // fetch input tx to get address
+        final inputTx = await cachedElectrumXClient.getTransaction(
+          txHash: prevTxid,
+          coin: coin,
+        );
+
+        for (final output in inputTx["vout"] as List) {
+          // check matching output
+          if (prevOut == output["n"]) {
+            // get value
+            final value = Amount.fromDecimal(
+              Decimal.parse(output["value"].toString()),
+              fractionDigits: coin.decimals,
+            );
+
+            // add value to total
+            totalInputValue = totalInputValue + value;
+
+            // get input(prevOut) address
+            final address =
+                output["scriptPubKey"]?["addresses"]?[0] as String? ??
+                    output["scriptPubKey"]?["address"] as String?;
+
+            if (address != null) {
+              inputAddresses.add(address);
+
+              // if input was from my wallet, add value to amount sent
+              if (receivingAddresses.contains(address) ||
+                  changeAddresses.contains(address)) {
+                amountSentFromWallet = amountSentFromWallet + value;
+              }
+            }
+          }
+        }
+      }
+
+      // parse outputs
+      for (final output in txData["vout"] as List) {
+        // get value
+        final value = Amount.fromDecimal(
+          Decimal.parse(output["value"].toString()),
+          fractionDigits: coin.decimals,
+        );
+
+        // add value to total
+        totalOutputValue += value;
+
+        // get output address
+        final address = output["scriptPubKey"]?["addresses"]?[0] as String? ??
+            output["scriptPubKey"]?["address"] as String?;
+        if (address != null) {
+          outputAddresses.add(address);
+
+          // if output was to my wallet, add value to amount received
+          if (receivingAddresses.contains(address)) {
+            amountReceivedInWallet += value;
+          } else if (changeAddresses.contains(address)) {
+            changeAmount += value;
+          }
+        }
+      }
+
+      final mySentFromAddresses = [
+        ...receivingAddresses.intersection(inputAddresses),
+        ...changeAddresses.intersection(inputAddresses)
+      ];
+      final myReceivedOnAddresses =
+          receivingAddresses.intersection(outputAddresses);
+      final myChangeReceivedOnAddresses =
+          changeAddresses.intersection(outputAddresses);
+
+      final fee = totalInputValue - totalOutputValue;
+
+      // this is the address initially used to fetch the txid
+      isar_models.Address transactionAddress =
+          txData["address"] as isar_models.Address;
+
+      isar_models.TransactionType type;
+      Amount amount;
+      if (mySentFromAddresses.isNotEmpty && myReceivedOnAddresses.isNotEmpty) {
+        // tx is sent to self
+        type = isar_models.TransactionType.sentToSelf;
+        amount =
+            amountSentFromWallet - amountReceivedInWallet - fee - changeAmount;
+      } else if (mySentFromAddresses.isNotEmpty) {
+        // outgoing tx
+        type = isar_models.TransactionType.outgoing;
+        amount = amountSentFromWallet - changeAmount - fee;
+        final possible =
+            outputAddresses.difference(myChangeReceivedOnAddresses).first;
+
+        if (transactionAddress.value != possible) {
+          transactionAddress = isar_models.Address(
+            walletId: walletId,
+            value: possible,
+            publicKey: [],
+            type: isar_models.AddressType.nonWallet,
+            derivationIndex: -1,
+            derivationPath: null,
+            subType: isar_models.AddressSubType.nonWallet,
+          );
+        }
+      } else {
+        // incoming tx
+        type = isar_models.TransactionType.incoming;
+        amount = amountReceivedInWallet;
+      }
+
+      List<isar_models.Input> inputs = [];
+      List<isar_models.Output> outputs = [];
+
+      for (final json in txData["vin"] as List) {
+        bool isCoinBase = json['coinbase'] != null;
+        final input = isar_models.Input(
+          txid: json['txid'] as String,
+          vout: json['vout'] as int? ?? -1,
+          scriptSig: json['scriptSig']?['hex'] as String?,
+          scriptSigAsm: json['scriptSig']?['asm'] as String?,
+          isCoinbase: isCoinBase ? isCoinBase : json['is_coinbase'] as bool?,
+          sequence: json['sequence'] as int?,
+          innerRedeemScriptAsm: json['innerRedeemscriptAsm'] as String?,
+        );
+        inputs.add(input);
+      }
+
+      for (final json in txData["vout"] as List) {
+        final output = isar_models.Output(
+          scriptPubKey: json['scriptPubKey']?['hex'] as String?,
+          scriptPubKeyAsm: json['scriptPubKey']?['asm'] as String?,
+          scriptPubKeyType: json['scriptPubKey']?['type'] as String?,
+          scriptPubKeyAddress:
+              json["scriptPubKey"]?["addresses"]?[0] as String? ??
+                  json['scriptPubKey']['type'] as String,
+          value: Amount.fromDecimal(
+            Decimal.parse(json["value"].toString()),
+            fractionDigits: coin.decimals,
+          ).raw.toInt(),
+        );
+        outputs.add(output);
+      }
+
+      final tx = isar_models.Transaction(
+        walletId: walletId,
+        txid: txData["txid"] as String,
+        timestamp: txData["blocktime"] as int? ??
+            (DateTime.now().millisecondsSinceEpoch ~/ 1000),
+        type: type,
+        subType: isar_models.TransactionSubType.none,
+        amount: amount.raw.toInt(),
+        amountString: amount.toJsonString(),
+        fee: fee.raw.toInt(),
+        height: txData["height"] as int?,
+        isCancelled: false,
+        isLelantus: false,
+        slateId: null,
+        otherData: null,
+        nonce: null,
+        inputs: inputs,
+        outputs: outputs,
+      );
+
+      txns.add(Tuple2(tx, transactionAddress));
     }
-    await db.addNewTransactionData(txnsData, walletId);
+
+    await db.addNewTransactionData(txns, walletId);
 
     // quick hack to notify manager to call notifyListeners if
     // transactions changed
-    if (txnsData.isNotEmpty) {
+    if (txns.isNotEmpty) {
       GlobalEventBus.instance.fire(
         UpdatedInBackgroundEvent(
           "Transactions updated/added for: $walletId $walletName  ",
@@ -1309,6 +1503,7 @@ class ECashWallet extends CoinServiceAPI
           .log("Attempting to send all $coin", level: LogLevel.Info);
 
       final int vSizeForOneOutput = (await buildTransaction(
+        utxosToUse: utxoObjectsToUse,
         utxoSigningData: utxoSigningData,
         recipients: [recipientAddress],
         satoshiAmounts: [satoshisBeingUsed - 1],
@@ -1329,6 +1524,7 @@ class ECashWallet extends CoinServiceAPI
 
       final int amount = satoshiAmountToSend - feeForOneOutput;
       dynamic txn = await buildTransaction(
+        utxosToUse: utxoObjectsToUse,
         utxoSigningData: utxoSigningData,
         recipients: recipientsArray,
         satoshiAmounts: [amount],
@@ -1350,6 +1546,7 @@ class ECashWallet extends CoinServiceAPI
     final int vSizeForOneOutput;
     try {
       vSizeForOneOutput = (await buildTransaction(
+        utxosToUse: utxoObjectsToUse,
         utxoSigningData: utxoSigningData,
         recipients: [recipientAddress],
         satoshiAmounts: [satoshisBeingUsed - 1],
@@ -1362,6 +1559,7 @@ class ECashWallet extends CoinServiceAPI
     final int vSizeForTwoOutPuts;
     try {
       vSizeForTwoOutPuts = (await buildTransaction(
+        utxosToUse: utxoObjectsToUse,
         utxoSigningData: utxoSigningData,
         recipients: [
           recipientAddress,
@@ -1432,6 +1630,7 @@ class ECashWallet extends CoinServiceAPI
           Logging.instance
               .log('Estimated fee: $feeForTwoOutputs', level: LogLevel.Info);
           dynamic txn = await buildTransaction(
+            utxosToUse: utxoObjectsToUse,
             utxoSigningData: utxoSigningData,
             recipients: recipientsArray,
             satoshiAmounts: recipientsAmtArray,
@@ -1459,6 +1658,7 @@ class ECashWallet extends CoinServiceAPI
             Logging.instance.log('Adjusted Estimated fee: $feeForTwoOutputs',
                 level: LogLevel.Info);
             txn = await buildTransaction(
+              utxosToUse: utxoObjectsToUse,
               utxoSigningData: utxoSigningData,
               recipients: recipientsArray,
               satoshiAmounts: recipientsAmtArray,
@@ -1491,6 +1691,7 @@ class ECashWallet extends CoinServiceAPI
           Logging.instance
               .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
           dynamic txn = await buildTransaction(
+            utxosToUse: utxoObjectsToUse,
             utxoSigningData: utxoSigningData,
             recipients: recipientsArray,
             satoshiAmounts: recipientsAmtArray,
@@ -1523,6 +1724,7 @@ class ECashWallet extends CoinServiceAPI
         Logging.instance
             .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
         dynamic txn = await buildTransaction(
+          utxosToUse: utxoObjectsToUse,
           utxoSigningData: utxoSigningData,
           recipients: recipientsArray,
           satoshiAmounts: recipientsAmtArray,
@@ -1555,6 +1757,7 @@ class ECashWallet extends CoinServiceAPI
       Logging.instance
           .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
       dynamic txn = await buildTransaction(
+        utxosToUse: utxoObjectsToUse,
         utxoSigningData: utxoSigningData,
         recipients: recipientsArray,
         satoshiAmounts: recipientsAmtArray,
@@ -1603,20 +1806,28 @@ class ECashWallet extends CoinServiceAPI
     try {
       // Populating the addresses to check
       for (var i = 0; i < utxosToUse.length; i++) {
-        if (utxosToUse[i].address == null) {
-          final txid = utxosToUse[i].txid;
-          final tx = await _cachedElectrumXClient.getTransaction(
-            txHash: txid,
-            coin: coin,
-          );
-          for (final output in tx["vout"] as List) {
-            final n = output["n"];
-            if (n != null && n == utxosToUse[i].vout) {
-              utxosToUse[i] = utxosToUse[i].copyWith(
-                address: output["scriptPubKey"]?["addresses"]?[0] as String? ??
-                    output["scriptPubKey"]["address"] as String,
-              );
+        final txid = utxosToUse[i].txid;
+        final tx = await _cachedElectrumXClient.getTransaction(
+          txHash: txid,
+          coin: coin,
+        );
+
+        for (final output in tx["vout"] as List) {
+          final n = output["n"];
+          if (n != null && n == utxosToUse[i].vout) {
+            String address =
+                output["scriptPubKey"]?["addresses"]?[0] as String? ??
+                    output["scriptPubKey"]["address"] as String;
+            if (bitbox.Address.detectFormat(address) !=
+                bitbox.Address.formatCashAddr) {
+              try {
+                address = bitbox.Address.toECashAddress(address);
+              } catch (_) {
+                rethrow;
+              }
             }
+
+            utxosToUse[i] = utxosToUse[i].copyWith(address: address);
           }
         }
 
@@ -1650,27 +1861,8 @@ class ECashWallet extends CoinServiceAPI
 
         switch (sd.derivePathType) {
           case DerivePathType.bip44:
+          case DerivePathType.eCash44:
             data = P2PKH(
-              data: paymentData,
-              network: _network,
-            ).data;
-            redeemScript = null;
-            break;
-
-          case DerivePathType.bip49:
-            final p2wpkh = P2WPKH(
-              data: paymentData,
-              network: _network,
-            ).data;
-            redeemScript = p2wpkh.output;
-            data = P2SH(
-              data: PaymentData(redeem: p2wpkh),
-              network: _network,
-            ).data;
-            break;
-
-          case DerivePathType.bip84:
-            data = P2WPKH(
               data: paymentData,
               network: _network,
             ).data;
@@ -1701,52 +1893,85 @@ class ECashWallet extends CoinServiceAPI
 
   /// Builds and signs a transaction
   Future<Map<String, dynamic>> buildTransaction({
+    required List<isar_models.UTXO> utxosToUse,
     required List<SigningData> utxoSigningData,
     required List<String> recipients,
     required List<int> satoshiAmounts,
   }) async {
-    Logging.instance
-        .log("Starting buildTransaction ----------", level: LogLevel.Info);
+    final builder = bitbox.Bitbox.transactionBuilder(
+      testnet: coin == Coin.bitcoincashTestnet,
+    );
 
-    final txb = TransactionBuilder(network: _network);
-    txb.setVersion(1);
+    // retrieve address' utxos from the rest api
+    List<bitbox.Utxo> _utxos =
+        []; // await Bitbox.Address.utxo(address) as List<Bitbox.Utxo>;
+    for (var element in utxosToUse) {
+      _utxos.add(bitbox.Utxo(
+          element.txid,
+          element.vout,
+          bitbox.BitcoinCash.fromSatoshi(element.value),
+          element.value,
+          0,
+          MINIMUM_CONFIRMATIONS + 1));
+    }
+    Logger.print("bch utxos: $_utxos");
 
-    // Add transaction inputs
-    for (var i = 0; i < utxoSigningData.length; i++) {
-      final txid = utxoSigningData[i].utxo.txid;
-      txb.addInput(
-        txid,
-        utxoSigningData[i].utxo.vout,
-        null,
-        utxoSigningData[i].output!,
-      );
+    // placeholder for input signatures
+    final List<Map<dynamic, dynamic>> signatures = [];
+
+    // placeholder for total input balance
+    // int totalBalance = 0;
+
+    // iterate through the list of address _utxos and use them as inputs for the
+    // withdrawal transaction
+    for (var utxo in _utxos) {
+      // add the utxo as an input for the transaction
+      builder.addInput(utxo.txid, utxo.vout);
+      final ec =
+          utxoSigningData.firstWhere((e) => e.utxo.txid == utxo.txid).keyPair!;
+
+      final bitboxEC = bitbox.ECPair.fromWIF(ec.toWIF());
+
+      // add a signature to the list to be used later
+      signatures.add({
+        "vin": signatures.length,
+        "key_pair": bitboxEC,
+        "original_amount": utxo.satoshis
+      });
+
+      // totalBalance += utxo.satoshis;
     }
 
-    // Add transaction output
-    for (var i = 0; i < recipients.length; i++) {
-      txb.addOutput(recipients[i], satoshiAmounts[i]);
+    // calculate the fee based on number of inputs and one expected output
+    // final fee =
+    //     bitbox.BitcoinCash.getByteCount(signatures.length, recipients.length);
+
+    // calculate how much balance will be left over to spend after the fee
+    // final sendAmount = totalBalance - fee;
+
+    // add the output based on the address provided in the testing data
+    for (int i = 0; i < recipients.length; i++) {
+      String recipient = recipients[i];
+      int satoshiAmount = satoshiAmounts[i];
+      builder.addOutput(recipient, satoshiAmount);
     }
 
-    try {
-      // Sign the transaction accordingly
-      for (var i = 0; i < utxoSigningData.length; i++) {
-        txb.sign(
-          vin: i,
-          keyPair: utxoSigningData[i].keyPair!,
-          witnessValue: utxoSigningData[i].utxo.value,
-          redeemScript: utxoSigningData[i].redeemScript,
-        );
-      }
-    } catch (e, s) {
-      Logging.instance.log("Caught exception while signing transaction: $e\n$s",
-          level: LogLevel.Error);
-      rethrow;
+    // sign all inputs
+    for (var signature in signatures) {
+      builder.sign(
+          signature["vin"] as int,
+          signature["key_pair"] as bitbox.ECPair,
+          signature["original_amount"] as int);
     }
 
-    final builtTx = txb.build();
-    final vSize = builtTx.virtualSize();
+    // build the transaction
+    final tx = builder.build();
+    final txHex = tx.toHex();
+    final vSize = tx.virtualSize();
+    //todo: check if print needed
+    Logger.print("ecash raw hex: $txHex");
 
-    return {"hex": builtTx.toHex(), "vSize": vSize};
+    return {"hex": txHex, "vSize": vSize};
   }
 
   @override
@@ -1835,9 +2060,7 @@ class ECashWallet extends CoinServiceAPI
 
     final deriveTypes = [
       DerivePathType.eCash44,
-      DerivePathType.bch44,
       DerivePathType.bip44,
-      DerivePathType.bip49,
     ];
 
     final List<Future<Tuple2<List<isar_models.Address>, DerivePathType>>>
@@ -2011,19 +2234,10 @@ class ECashWallet extends CoinServiceAPI
       isar_models.AddressType addressType;
       switch (type) {
         case DerivePathType.bip44:
-        case DerivePathType.bch44:
         case DerivePathType.eCash44:
           addressString = P2PKH(data: data, network: _network).data.address!;
           addressType = isar_models.AddressType.p2pkh;
-          break;
-        case DerivePathType.bip49:
-          addressString = P2SH(
-                  data: PaymentData(
-                      redeem: P2WPKH(data: data, network: _network).data),
-                  network: _network)
-              .data
-              .address!;
-          addressType = isar_models.AddressType.p2sh;
+          addressString = bitbox.Address.toECashAddress(addressString);
           break;
         default:
           throw Exception("DerivePathType $type not supported");
@@ -2096,19 +2310,10 @@ class ECashWallet extends CoinServiceAPI
         isar_models.AddressType addrType;
         switch (type) {
           case DerivePathType.bip44:
-          case DerivePathType.bch44:
           case DerivePathType.eCash44:
             addressString = P2PKH(data: data, network: _network).data.address!;
             addrType = isar_models.AddressType.p2pkh;
-            break;
-          case DerivePathType.bip49:
-            addressString = P2SH(
-                    data: PaymentData(
-                        redeem: P2WPKH(data: data, network: _network).data),
-                    network: _network)
-                .data
-                .address!;
-            addrType = isar_models.AddressType.p2sh;
+            addressString = bitbox.Address.toECashAddress(addressString);
             break;
           default:
             throw Exception("DerivePathType $type not supported");
