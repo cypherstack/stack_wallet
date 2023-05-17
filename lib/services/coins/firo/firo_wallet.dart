@@ -3215,17 +3215,18 @@ class FiroWallet extends CoinServiceAPI
     );
   }
 
-  //TODO call get transaction and check each tx to see if it is a "received" tx?
-  Future<int> _getReceivedTxCount({required String address}) async {
+  Future<int> _getTxCount({required String address}) async {
     try {
-      final scripthash = AddressUtils.convertToScriptHash(address, _network);
-      final transactions =
-          await electrumXClient.getHistory(scripthash: scripthash);
+      final scriptHash = AddressUtils.convertToScriptHash(address, _network);
+      final transactions = await electrumXClient.getHistory(
+        scripthash: scriptHash,
+      );
       return transactions.length;
     } catch (e) {
       Logging.instance.log(
-          "Exception rethrown in _getReceivedTxCount(address: $address): $e",
-          level: LogLevel.Error);
+        "Exception rethrown in _getReceivedTxCount(address: $address): $e",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }
@@ -3234,8 +3235,7 @@ class FiroWallet extends CoinServiceAPI
     try {
       final currentReceiving = await _currentReceivingAddress;
 
-      final int txCount =
-          await _getReceivedTxCount(address: currentReceiving.value);
+      final int txCount = await _getTxCount(address: currentReceiving.value);
       Logging.instance.log(
           'Number of txs for current receiving address $currentReceiving: $txCount',
           level: LogLevel.Info);
@@ -3281,8 +3281,7 @@ class FiroWallet extends CoinServiceAPI
   Future<void> checkChangeAddressForTransactions() async {
     try {
       final currentChange = await _currentChangeAddress;
-      final int txCount =
-          await _getReceivedTxCount(address: currentChange.value);
+      final int txCount = await _getTxCount(address: currentChange.value);
       Logging.instance.log(
           'Number of txs for current change address: $currentChange: $txCount',
           level: LogLevel.Info);
