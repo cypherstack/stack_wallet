@@ -1930,12 +1930,13 @@ class FiroWallet extends CoinServiceAPI
           if ((await db
                   .getTransactions(walletId)
                   .filter()
-                  .txidMatches(txid)
-                  .findFirst()) ==
-              null) {
+                  .txidEqualTo(txid)
+                  .count()) ==
+              0) {
             Logging.instance.log(
-                " txid not found in address history already ${transaction['tx_hash']}",
-                level: LogLevel.Info);
+              " txid not found in address history already ${transaction['tx_hash']}",
+              level: LogLevel.Info,
+            );
             needsRefresh = true;
             break;
           }
@@ -1958,79 +1959,27 @@ class FiroWallet extends CoinServiceAPI
 
     final currentChainHeight = await chainHeight;
 
-    final txTxns = await db
-        .getTransactions(walletId)
-        .filter()
-        .isLelantusIsNull()
-        .or()
-        .isLelantusEqualTo(false)
-        .findAll();
-    final ltxTxns = await db
-        .getTransactions(walletId)
-        .filter()
-        .isLelantusEqualTo(true)
-        .findAll();
+    final txCount = await db.getTransactions(walletId).count();
 
-    for (isar_models.Transaction tx in txTxns) {
-      isar_models.Transaction? lTx;
-      try {
-        lTx = ltxTxns.firstWhere((e) => e.txid == tx.txid);
-      } catch (_) {
-        lTx = null;
-      }
+    const paginateLimit = 50;
 
-      if (tx.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
-        if (txTracker.wasNotifiedPending(tx.txid) &&
-            !txTracker.wasNotifiedConfirmed(tx.txid)) {
+    for (int i = 0; i < txCount; i += paginateLimit) {
+      final transactions = await db
+          .getTransactions(walletId)
+          .offset(i)
+          .limit(paginateLimit)
+          .findAll();
+      for (final tx in transactions) {
+        if (tx.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
           // get all transactions that were notified as pending but not as confirmed
-          unconfirmedTxnsToNotifyConfirmed.add(tx);
-        }
-        if (lTx != null &&
-            (lTx.inputs.isEmpty || lTx.inputs.first.txid.isEmpty) &&
-            lTx.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS) ==
-                false &&
-            tx.type == isar_models.TransactionType.incoming) {
-          // If this is a received that is past 1 or more confirmations and has not been minted,
-          if (!txTracker.wasNotifiedPending(tx.txid)) {
-            unconfirmedTxnsToNotifyPending.add(tx);
-          }
-        }
-      } else {
-        if (!txTracker.wasNotifiedPending(tx.txid)) {
-          // get all transactions that were not notified as pending yet
-          unconfirmedTxnsToNotifyPending.add(tx);
-        }
-      }
-    }
-
-    for (isar_models.Transaction tx in txTxns) {
-      if (!tx.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS) &&
-          tx.inputs.first.txid.isNotEmpty) {
-        // Get all normal txs that are at 0 confirmations
-        unconfirmedTxnsToNotifyPending
-            .removeWhere((e) => e.txid == tx.inputs.first.txid);
-        Logging.instance.log("removed tx: ${tx.txid}", level: LogLevel.Info);
-      }
-    }
-
-    for (isar_models.Transaction lTX in ltxTxns) {
-      isar_models.Transaction? tx;
-      try {
-        tx = ltxTxns.firstWhere((e) => e.txid == lTX.txid);
-      } catch (_) {
-        tx = null;
-      }
-
-      if (tx == null) {
-        // if this is a ltx transaction that is unconfirmed and not represented in the normal transaction set.
-        if (!lTX.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
-          if (!txTracker.wasNotifiedPending(lTX.txid)) {
-            unconfirmedTxnsToNotifyPending.add(lTX);
+          if (txTracker.wasNotifiedPending(tx.txid) &&
+              !txTracker.wasNotifiedConfirmed(tx.txid)) {
+            unconfirmedTxnsToNotifyConfirmed.add(tx);
           }
         } else {
-          if (txTracker.wasNotifiedPending(lTX.txid) &&
-              !txTracker.wasNotifiedConfirmed(lTX.txid)) {
-            unconfirmedTxnsToNotifyConfirmed.add(lTX);
+          // get all transactions that were not notified as pending yet
+          if (!txTracker.wasNotifiedPending(tx.txid)) {
+            unconfirmedTxnsToNotifyPending.add(tx);
           }
         }
       }
@@ -3329,27 +3278,13 @@ class FiroWallet extends CoinServiceAPI
         .getAddresses(walletId)
         .filter()
         .not()
-        .typeEqualTo(isar_models.AddressType.nonWallet)
-        .and()
-        .group((q) => q
-            .subTypeEqualTo(isar_models.AddressSubType.receiving)
-            .or()
-            .subTypeEqualTo(isar_models.AddressSubType.change))
+        .group(
+          (q) => q
+              .typeEqualTo(isar_models.AddressType.nonWallet)
+              .or()
+              .subTypeEqualTo(isar_models.AddressSubType.nonWallet),
+        )
         .findAll();
-    // final List<String> allAddresses = [];
-    // final receivingAddresses =
-    //     DB.instance.get<dynamic>(boxName: walletId, key: 'receivingAddresses')
-    //         as List<dynamic>;
-    // final changeAddresses =
-    //     DB.instance.get<dynamic>(boxName: walletId, key: 'changeAddresses')
-    //         as List<dynamic>;
-    //
-    // for (var i = 0; i < receivingAddresses.length; i++) {
-    //   allAddresses.add(receivingAddresses[i] as String);
-    // }
-    // for (var i = 0; i < changeAddresses.length; i++) {
-    //   allAddresses.add(changeAddresses[i] as String);
-    // }
     return allAddresses;
   }
 
@@ -3647,7 +3582,7 @@ class FiroWallet extends CoinServiceAPI
           fractionDigits: Coin.firo.decimals,
         ).toJsonString(),
         fee: fees,
-        height: txObject["height"] as int? ?? 0,
+        height: txObject["height"] as int?,
         isCancelled: false,
         isLelantus: false,
         slateId: null,
@@ -4569,8 +4504,6 @@ class FiroWallet extends CoinServiceAPI
       final response = await cachedElectrumXClient.getUsedCoinSerials(
         coin: coin,
       );
-      print("getUsedCoinSerials");
-      print(response);
       return response;
     } catch (e, s) {
       Logging.instance.log("Exception rethrown in firo_wallet.dart: $e\n$s",
