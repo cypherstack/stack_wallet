@@ -1,10 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/startup_preferences/startup_wallet_selection_view.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -236,22 +238,24 @@ class _StartupPreferencesViewState
                                                                 .only(top: 12),
                                                         child: Row(
                                                           children: [
-                                                            SvgPicture.asset(
-                                                              ref.watch(
-                                                                coinIconProvider(
-                                                                  ref
-                                                                      .watch(
-                                                                        walletsChangeNotifierProvider
-                                                                            .select(
-                                                                          (value) =>
-                                                                              value.getManager(
-                                                                            ref.watch(
-                                                                              prefsChangeNotifierProvider.select((value) => value.startupWalletId!),
+                                                            SvgPicture.file(
+                                                              File(
+                                                                ref.watch(
+                                                                  coinIconProvider(
+                                                                    ref
+                                                                        .watch(
+                                                                          walletsChangeNotifierProvider
+                                                                              .select(
+                                                                            (value) =>
+                                                                                value.getManager(
+                                                                              ref.watch(
+                                                                                prefsChangeNotifierProvider.select((value) => value.startupWalletId!),
+                                                                              ),
                                                                             ),
                                                                           ),
-                                                                        ),
-                                                                      )
-                                                                      .coin,
+                                                                        )
+                                                                        .coin,
+                                                                  ),
                                                                 ),
                                                               ),
                                                             ),

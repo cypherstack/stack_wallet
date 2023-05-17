@@ -5,7 +5,6 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
-import 'package:stackwallet/models/contact_address_entry.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
@@ -152,6 +151,8 @@ import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/widgets/choose_coin_view.dart';
 import 'package:tuple/tuple.dart';
+
+import 'models/isar/models/contact_entry.dart';
 
 class RouteGenerator {
   static const bool useMaterialPageRoute = true;

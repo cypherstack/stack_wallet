@@ -175,7 +175,7 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                                             height: 20,
                                             color: Theme.of(context)
                                                 .extension<StackColors>()!
-                                                .infoItemIcons,
+                                                .bottomNavIconIconHighlighted,
                                           ),
                                           crossFadeState: ref
                                                   .watch(walletNavBarMore.state)
@@ -190,10 +190,10 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                                             style:
                                                 STextStyles.buttonSmall(context)
                                                     .copyWith(
-                                                        color: Theme.of(context)
-                                                            .extension<
-                                                                StackColors>()!
-                                                            .bottomNavText),
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .bottomNavText,
+                                            ),
                                           ),
                                           secondChild: Text(
                                             "More",
@@ -202,7 +202,7 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                                                     .copyWith(
                                               color: Theme.of(context)
                                                   .extension<StackColors>()!
-                                                  .infoItemIcons,
+                                                  .bottomNavIconIconHighlighted,
                                             ),
                                           ),
                                           crossFadeState: ref

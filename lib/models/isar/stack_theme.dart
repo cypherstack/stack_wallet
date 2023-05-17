@@ -794,6 +794,15 @@ class StackTheme {
   Color? _bottomNavIconIcon;
   final int bottomNavIconIconInt;
 
+  // ==== bottomNavIconIcon highlighted =====================================================
+
+  @ignore
+  Color get bottomNavIconIconHighlighted =>
+      _bottomNavIconIconHighlighted ??= Color(bottomNavIconIconHighlightedInt);
+  @ignore
+  Color? _bottomNavIconIconHighlighted;
+  final int bottomNavIconIconHighlightedInt;
+
   // ==== topNavIconPrimary =====================================================
 
   @ignore
@@ -1556,6 +1565,7 @@ class StackTheme {
     required this.snackBarTextInfoInt,
     required this.bottomNavIconBackInt,
     required this.bottomNavIconIconInt,
+    required this.bottomNavIconIconHighlightedInt,
     required this.topNavIconPrimaryInt,
     required this.topNavIconGreenInt,
     required this.topNavIconYellowInt,
@@ -1795,6 +1805,8 @@ class StackTheme {
           parseColor(json["colors"]["bottom_nav_icon_back"] as String),
       bottomNavIconIconInt:
           parseColor(json["colors"]["bottom_nav_icon_icon"] as String),
+      bottomNavIconIconHighlightedInt: parseColor(
+          json["colors"]["bottom_nav_icon_icon_highlighted"] as String),
       topNavIconPrimaryInt:
           parseColor(json["colors"]["top_nav_icon_primary"] as String),
       topNavIconGreenInt:
