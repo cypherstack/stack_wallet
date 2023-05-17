@@ -1,12 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/themes/coin_image_provider.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
-
-import '../../../../utilities/util.dart';
+import 'package:stackwallet/utilities/util.dart';
 
 class CoinImage extends ConsumerWidget {
   const CoinImage({
@@ -22,26 +21,21 @@ class CoinImage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isChans = Theme.of(context).extension<StackColors>()!.themeType ==
-            ThemeType.chan ||
-        Theme.of(context).extension<StackColors>()!.themeType ==
-            ThemeType.darkChans;
+    final assetPath = ref.watch(coinImageProvider(coin));
 
     final isDesktop = Util.isDesktop;
 
-    if (isChans) {
+    if (!assetPath.endsWith(".svg")) {
       return SizedBox(
         width: isDesktop ? width : MediaQuery.of(context).size.width,
         height: isDesktop ? height : MediaQuery.of(context).size.width,
-        child: Image(
-          image: AssetImage(
-            Assets.gif.plain(coin),
-          ),
+        child: Image.file(
+          File(assetPath),
         ),
       );
     } else {
-      return SvgPicture.asset(
-        Assets.svg.imageFor(coin: coin, context: context),
+      return SvgPicture.file(
+        File(assetPath),
         width: width,
         height: height,
       );

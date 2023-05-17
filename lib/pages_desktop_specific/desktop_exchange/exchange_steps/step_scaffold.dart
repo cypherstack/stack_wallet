@@ -17,12 +17,12 @@ import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/notifications_api.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -84,8 +84,7 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
     );
 
     final ExchangeResponse<Trade> response = await ref
-        .read(exchangeFormStateProvider)
-        .exchange
+        .read(efExchangeProvider)
         .createTrade(
           from: ref.read(desktopExchangeModelProvider)!.sendTicker,
           to: ref.read(desktopExchangeModelProvider)!.receiveTicker,
@@ -98,24 +97,24 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
           extraId: null,
           addressRefund: ref.read(desktopExchangeModelProvider)!.refundAddress!,
           refundExtraId: "",
-          rateId: ref.read(desktopExchangeModelProvider)!.rateId,
+          estimate: ref.read(desktopExchangeModelProvider)!.estimate,
           reversed: ref.read(desktopExchangeModelProvider)!.reversed,
         );
 
     if (response.value == null) {
       if (mounted) {
         Navigator.of(context).pop();
-      }
 
-      unawaited(
-        showDialog<void>(
-          context: context,
-          barrierDismissible: true,
-          builder: (_) => SimpleDesktopDialog(
-              title: "Failed to create trade",
-              message: response.exception?.toString() ?? ""),
-        ),
-      );
+        unawaited(
+          showDialog<void>(
+            context: context,
+            barrierDismissible: true,
+            builder: (_) => SimpleDesktopDialog(
+                title: "Failed to create trade",
+                message: response.exception?.toString() ?? ""),
+          ),
+        );
+      }
       return false;
     }
 

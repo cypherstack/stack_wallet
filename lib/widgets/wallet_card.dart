@@ -19,6 +19,8 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/dialogs/basic_dialog.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/wallet_info_row/wallet_info_row.dart';
 import 'package:tuple/tuple.dart';
@@ -37,7 +39,7 @@ class SimpleWalletCard extends ConsumerWidget {
   final bool popPrevious;
   final NavigatorState? desktopNavigatorState;
 
-  Future<void> _loadTokenWallet(
+  Future<bool> _loadTokenWallet(
     BuildContext context,
     WidgetRef ref,
     Manager manager,
@@ -52,7 +54,31 @@ class SimpleWalletCard extends ConsumerWidget {
       ),
     );
 
-    await ref.read(tokenServiceProvider)!.initialize();
+    try {
+      await ref.read(tokenServiceProvider)!.initialize();
+      return true;
+    } catch (_) {
+      await showDialog<void>(
+        barrierDismissible: false,
+        context: context,
+        builder: (context) => BasicDialog(
+          title: "Failed to load token data",
+          desktopHeight: double.infinity,
+          desktopWidth: 450,
+          rightButton: PrimaryButton(
+            label: "OK",
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+              if (desktopNavigatorState == null) {
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+        ),
+      );
+      return false;
+    }
   }
 
   void _openWallet(BuildContext context, WidgetRef ref) async {
@@ -91,12 +117,20 @@ class SimpleWalletCard extends ConsumerWidget {
         final contract =
             ref.read(mainDBProvider).getEthContractSync(contractAddress!)!;
 
-        await showLoading<void>(
-          whileFuture: _loadTokenWallet(context, ref, manager, contract),
-          context: context,
+        final success = await showLoading<bool>(
+          whileFuture: _loadTokenWallet(
+              desktopNavigatorState?.context ?? context,
+              ref,
+              manager,
+              contract),
+          context: desktopNavigatorState?.context ?? context,
           opaqueBG: true,
           message: "Loading ${contract.name}",
         );
+
+        if (!success) {
+          return;
+        }
 
         if (desktopNavigatorState == null) {
           // pop loading

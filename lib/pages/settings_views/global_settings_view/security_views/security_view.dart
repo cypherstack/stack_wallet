@@ -4,9 +4,9 @@ import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/security_views/change_pin_view/change_pin_view.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/route_generator.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
@@ -136,6 +136,53 @@ class SecurityView extends StatelessWidget {
                                   ref
                                       .read(prefsChangeNotifierProvider)
                                       .useBiometrics = newValue;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(
+                height: 8,
+              ),
+              RoundedWhiteContainer(
+                child: Consumer(
+                  builder: (_, ref, __) {
+                    return RawMaterialButton(
+                      // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                      ),
+                      onPressed: null,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Randomize PIN Pad",
+                              style: STextStyles.titleBold12(context),
+                              textAlign: TextAlign.left,
+                            ),
+                            SizedBox(
+                              height: 20,
+                              width: 40,
+                              child: DraggableSwitchButton(
+                                isOn: ref.watch(
+                                  prefsChangeNotifierProvider
+                                      .select((value) => value.randomizePIN),
+                                ),
+                                onValueChanged: (newValue) {
+                                  ref
+                                      .read(prefsChangeNotifierProvider)
+                                      .randomizePIN = newValue;
                                 },
                               ),
                             ),

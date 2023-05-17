@@ -10,9 +10,8 @@ import 'package:stackwallet/providers/global/paynym_api_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
@@ -68,8 +67,7 @@ class _PaynymFollowToggleButtonState
         .read(paynymAPIProvider)
         .nym(widget.paymentCodeStringToFollow, true);
 
-    final myPCode =
-        await wallet.getPaymentCode(DerivePathTypeExt.primaryFor(manager.coin));
+    final myPCode = await wallet.getPaymentCode(isSegwit: false);
 
     PaynymResponse<String> token =
         await ref.read(paynymAPIProvider).token(myPCode.toString());
@@ -77,8 +75,8 @@ class _PaynymFollowToggleButtonState
     // sign token with notification private key
     String signature = await wallet.signStringWithNotificationKey(token.value!);
 
-    var result = await ref.read(paynymAPIProvider).follow(
-        token.value!, signature, followedAccount.value!.codes.first.code);
+    var result = await ref.read(paynymAPIProvider).follow(token.value!,
+        signature, followedAccount.value!.nonSegwitPaymentCode.code);
 
     int i = 0;
     for (;
@@ -90,8 +88,8 @@ class _PaynymFollowToggleButtonState
       // sign token with notification private key
       signature = await wallet.signStringWithNotificationKey(token.value!);
 
-      result = await ref.read(paynymAPIProvider).follow(
-          token.value!, signature, followedAccount.value!.codes.first.code);
+      result = await ref.read(paynymAPIProvider).follow(token.value!, signature,
+          followedAccount.value!.nonSegwitPaymentCode.code);
       await Future<void>.delayed(const Duration(milliseconds: 200));
 
       print("RRR result: $result");
@@ -118,8 +116,8 @@ class _PaynymFollowToggleButtonState
         PaynymAccountLite(
           followedAccount.value!.nymID,
           followedAccount.value!.nymName,
-          followedAccount.value!.codes.first.code,
-          followedAccount.value!.codes.first.segwit,
+          followedAccount.value!.nonSegwitPaymentCode.code,
+          followedAccount.value!.segwit,
         ),
       );
 
@@ -169,8 +167,7 @@ class _PaynymFollowToggleButtonState
         .read(paynymAPIProvider)
         .nym(widget.paymentCodeStringToFollow, true);
 
-    final myPCode =
-        await wallet.getPaymentCode(DerivePathTypeExt.primaryFor(manager.coin));
+    final myPCode = await wallet.getPaymentCode(isSegwit: false);
 
     PaynymResponse<String> token =
         await ref.read(paynymAPIProvider).token(myPCode.toString());
@@ -178,8 +175,8 @@ class _PaynymFollowToggleButtonState
     // sign token with notification private key
     String signature = await wallet.signStringWithNotificationKey(token.value!);
 
-    var result = await ref.read(paynymAPIProvider).unfollow(
-        token.value!, signature, followedAccount.value!.codes.first.code);
+    var result = await ref.read(paynymAPIProvider).unfollow(token.value!,
+        signature, followedAccount.value!.nonSegwitPaymentCode.code);
 
     int i = 0;
     for (;
@@ -191,8 +188,8 @@ class _PaynymFollowToggleButtonState
       // sign token with notification private key
       signature = await wallet.signStringWithNotificationKey(token.value!);
 
-      result = await ref.read(paynymAPIProvider).unfollow(
-          token.value!, signature, followedAccount.value!.codes.first.code);
+      result = await ref.read(paynymAPIProvider).unfollow(token.value!,
+          signature, followedAccount.value!.nonSegwitPaymentCode.code);
       await Future<void>.delayed(const Duration(milliseconds: 200));
       print("unfollow RRR result: $result");
     }

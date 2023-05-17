@@ -41,7 +41,6 @@ import 'package:stackwallet/providers/global/base_currencies_provider.dart';
 // import 'package:stackwallet/providers/global/has_authenticated_start_state_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 // import 'package:stackwallet/services/buy/buy_data_loading_service.dart';
 import 'package:stackwallet/services/debug_service.dart';
@@ -51,6 +50,8 @@ import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/notifications_service.dart';
 import 'package:stackwallet/services/trade_service.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
+import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/db_version_migration.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
@@ -58,9 +59,8 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/crypto_notifications.dart';
 import 'package:window_size/window_size.dart';
 
 final openedFromSWBFileStringStateProvider =
@@ -162,7 +162,7 @@ void main() async {
     int dbVersion = DB.instance.get<dynamic>(
             boxName: DB.boxNameDBInfo, key: "hive_data_version") as int? ??
         0;
-    if (dbVersion < Constants.currentHiveDbVersion) {
+    if (dbVersion < Constants.currentDataVersion) {
       try {
         await DbVersionMigrator().migrate(
           dbVersion,
@@ -184,6 +184,37 @@ void main() async {
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
   //     overlays: [SystemUiOverlay.bottom]);
   await NotificationApi.init();
+
+  await MainDB.instance.initMainDB();
+  ThemeService.instance.init(MainDB.instance);
+
+  // install default themes
+  if (!(await ThemeService.instance.verifyInstalled(themeId: "light"))) {
+    Logging.instance.log(
+      "Installing default light theme...",
+      level: LogLevel.Info,
+    );
+    final lightZip = await rootBundle.load("assets/default_themes/light.zip");
+    await ThemeService.instance
+        .install(themeArchiveData: lightZip.buffer.asUint8List());
+    Logging.instance.log(
+      "Installing default light theme... finished",
+      level: LogLevel.Info,
+    );
+  }
+  if (!(await ThemeService.instance.verifyInstalled(themeId: "dark"))) {
+    Logging.instance.log(
+      "Installing default dark theme... ",
+      level: LogLevel.Info,
+    );
+    final darkZip = await rootBundle.load("assets/default_themes/dark.zip");
+    await ThemeService.instance
+        .install(themeArchiveData: darkZip.buffer.asUint8List());
+    Logging.instance.log(
+      "Installing default dark theme... finished",
+      level: LogLevel.Info,
+    );
+  }
 
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -250,7 +281,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       _desktopHasPassword =
           await ref.read(storageCryptoHandlerProvider).hasPassword();
     }
-    await MainDB.instance.initMainDB();
+
     ref
         .read(priceAnd24hChangeNotifierProvider)
         .tokenContractAddressesToCheck
@@ -269,6 +300,9 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       if (!Util.isDesktop) {
         await loadShared();
       }
+
+      ref.read(applicationThemesDirectoryPathProvider.notifier).state =
+          (await StackFileSystem.applicationThemesDirectory()).path;
 
       _notificationsService = ref.read(notificationsProvider);
       _nodeService = ref.read(nodeServiceChangeNotifierProvider);
@@ -293,13 +327,14 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
       //  unawaited(_nodeService.updateCommunityNodes());
 
+      await ExchangeDataLoadingService.instance.initDB();
       // run without awaiting
       if (ref.read(prefsChangeNotifierProvider).externalCalls &&
           await ref.read(prefsChangeNotifierProvider).isExternalCallsSet()) {
         if (Constants.enableExchange) {
-          await ExchangeDataLoadingService.instance.init();
           await ExchangeDataLoadingService.instance.setCurrenciesIfEmpty(
-            ref.read(exchangeFormStateProvider),
+            ref.read(efCurrencyPairProvider),
+            ref.read(efRateTypeProvider),
           );
           unawaited(ExchangeDataLoadingService.instance.loadAll());
         }
@@ -334,25 +369,22 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   @override
   void initState() {
-    StackColorTheme colorTheme;
+    String themeId;
     if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
       final brightness = WidgetsBinding.instance.window.platformBrightness;
       switch (brightness) {
         case Brightness.dark:
-          colorTheme = ref
-              .read(prefsChangeNotifierProvider)
-              .systemBrightnessDarkTheme
-              .colorTheme;
+          themeId =
+              ref.read(prefsChangeNotifierProvider).systemBrightnessDarkThemeId;
           break;
         case Brightness.light:
-          colorTheme = ref
+          themeId = ref
               .read(prefsChangeNotifierProvider)
-              .systemBrightnessLightTheme
-              .colorTheme;
+              .systemBrightnessLightThemeId;
           break;
       }
     } else {
-      colorTheme = ref.read(prefsChangeNotifierProvider).theme.colorTheme;
+      themeId = ref.read(prefsChangeNotifierProvider).themeId;
     }
 
     loadingCompleter = Completer();
@@ -363,8 +395,13 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         .loadLocale(notify: false);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      ref.read(colorThemeProvider.state).state =
-          StackColors.fromStackColorTheme(colorTheme);
+      //Add themes path to provider
+      ref.read(applicationThemesDirectoryPathProvider.notifier).state =
+          (await StackFileSystem.applicationThemesDirectory()).path;
+
+      ref.read(themeProvider.state).state = ref.read(pThemeService).getTheme(
+            themeId: themeId,
+          )!;
 
       if (Platform.isAndroid) {
         // fetch open file if it exists
@@ -384,26 +421,25 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     });
 
     WidgetsBinding.instance.window.onPlatformBrightnessChanged = () {
-      StackColorTheme colorTheme;
+      String themeId;
       switch (WidgetsBinding.instance.window.platformBrightness) {
         case Brightness.dark:
-          colorTheme = ref
-              .read(prefsChangeNotifierProvider)
-              .systemBrightnessDarkTheme
-              .colorTheme;
+          themeId =
+              ref.read(prefsChangeNotifierProvider).systemBrightnessDarkThemeId;
           break;
         case Brightness.light:
-          colorTheme = ref
+          themeId = ref
               .read(prefsChangeNotifierProvider)
-              .systemBrightnessLightTheme
-              .colorTheme;
+              .systemBrightnessLightThemeId;
           break;
       }
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
-          ref.read(colorThemeProvider.notifier).state =
-              StackColors.fromStackColorTheme(colorTheme);
+          ref.read(themeProvider.state).state =
+              ref.read(pThemeService).getTheme(
+                    themeId: themeId,
+                  )!;
         }
       });
     };
@@ -538,7 +574,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     //       addToDebugMessagesDB: false);
     // });
 
-    final colorScheme = ref.watch(colorThemeProvider.state).state;
+    final colorScheme = ref.watch(colorProvider.state).state;
 
     return MaterialApp(
       key: GlobalKey(),
@@ -636,70 +672,74 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
               _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
         ),
       ),
-      home: Util.isDesktop
-          ? FutureBuilder(
-              future: loadShared(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  if (_desktopHasPassword) {
-                    String? startupWalletId;
-                    if (ref
-                        .read(prefsChangeNotifierProvider)
-                        .gotoWalletOnStartup) {
-                      startupWalletId =
-                          ref.read(prefsChangeNotifierProvider).startupWalletId;
+      home: CryptoNotifications(
+        child: Util.isDesktop
+            ? FutureBuilder(
+                future: loadShared(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    if (_desktopHasPassword) {
+                      String? startupWalletId;
+                      if (ref
+                          .read(prefsChangeNotifierProvider)
+                          .gotoWalletOnStartup) {
+                        startupWalletId = ref
+                            .read(prefsChangeNotifierProvider)
+                            .startupWalletId;
+                      }
+
+                      return DesktopLoginView(
+                        startupWalletId: startupWalletId,
+                        load: load,
+                      );
+                    } else {
+                      return const IntroView();
                     }
-
-                    return DesktopLoginView(
-                      startupWalletId: startupWalletId,
-                      load: load,
-                    );
                   } else {
-                    return const IntroView();
+                    return const LoadingView();
                   }
-                } else {
-                  return const LoadingView();
-                }
-              },
-            )
-          : FutureBuilder(
-              future: load(),
-              builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  // FlutterNativeSplash.remove();
-                  if (ref.read(walletsChangeNotifierProvider).hasWallets ||
-                      ref.read(prefsChangeNotifierProvider).hasPin) {
-                    // return HomeView();
+                },
+              )
+            : FutureBuilder(
+                future: load(),
+                builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    // FlutterNativeSplash.remove();
+                    if (ref.read(walletsChangeNotifierProvider).hasWallets ||
+                        ref.read(prefsChangeNotifierProvider).hasPin) {
+                      // return HomeView();
 
-                    String? startupWalletId;
-                    if (ref
-                        .read(prefsChangeNotifierProvider)
-                        .gotoWalletOnStartup) {
-                      startupWalletId =
-                          ref.read(prefsChangeNotifierProvider).startupWalletId;
+                      String? startupWalletId;
+                      if (ref
+                          .read(prefsChangeNotifierProvider)
+                          .gotoWalletOnStartup) {
+                        startupWalletId = ref
+                            .read(prefsChangeNotifierProvider)
+                            .startupWalletId;
+                      }
+
+                      return LockscreenView(
+                        isInitialAppLogin: true,
+                        routeOnSuccess: HomeView.routeName,
+                        routeOnSuccessArguments: startupWalletId,
+                        biometricsAuthenticationTitle: "Unlock Stack",
+                        biometricsLocalizedReason:
+                            "Unlock your stack wallet using biometrics",
+                        biometricsCancelButtonString: "Cancel",
+                      );
+                    } else {
+                      return const IntroView();
                     }
-
-                    return LockscreenView(
-                      isInitialAppLogin: true,
-                      routeOnSuccess: HomeView.routeName,
-                      routeOnSuccessArguments: startupWalletId,
-                      biometricsAuthenticationTitle: "Unlock Stack",
-                      biometricsLocalizedReason:
-                          "Unlock your stack wallet using biometrics",
-                      biometricsCancelButtonString: "Cancel",
-                    );
                   } else {
-                    return const IntroView();
+                    // CURRENTLY DISABLED as cannot be animated
+                    // technically not needed as FlutterNativeSplash will overlay
+                    // anything returned here until the future completes but
+                    // FutureBuilder requires you to return something
+                    return const LoadingView();
                   }
-                } else {
-                  // CURRENTLY DISABLED as cannot be animated
-                  // technically not needed as FlutterNativeSplash will overlay
-                  // anything returned here until the future completes but
-                  // FutureBuilder requires you to return something
-                  return const LoadingView();
-                }
-              },
-            ),
+                },
+              ),
+      ),
     );
   }
 }

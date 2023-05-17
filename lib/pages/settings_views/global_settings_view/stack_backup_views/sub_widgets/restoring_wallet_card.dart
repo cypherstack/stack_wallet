@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -6,11 +8,12 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/stack_back
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_widgets/restoring_item_card.dart';
 import 'package:stackwallet/providers/stack_restore/stack_restoring_ui_state_provider.dart';
 import 'package:stackwallet/route_generator.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/stack_restoring_status.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
@@ -80,9 +83,9 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                     .extension<StackColors>()!
                     .colorForCoin(coin),
                 child: Center(
-                  child: SvgPicture.asset(
-                    Assets.svg.iconFor(
-                      coin: coin,
+                  child: SvgPicture.file(
+                    File(
+                      ref.watch(coinIconProvider(coin)),
                     ),
                     height: 20,
                     width: 20,
@@ -223,9 +226,11 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                       .extension<StackColors>()!
                       .colorForCoin(coin),
                   child: Center(
-                    child: SvgPicture.asset(
-                      Assets.svg.iconFor(
-                        coin: coin,
+                    child: SvgPicture.file(
+                      File(
+                        ref.watch(
+                          coinIconProvider(coin),
+                        ),
                       ),
                       height: 20,
                       width: 20,

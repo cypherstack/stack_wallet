@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 
 class STextStyles {
   static StackColors _theme(BuildContext context) =>
       Theme.of(context).extension<StackColors>()!;
 
   static TextStyle sectionLabelMedium12(BuildContext context) {
-    switch (_theme(context).themeType) {
-      case ThemeType.forest:
+    switch (_theme(context).themeId) {
+      case "forest":
         return GoogleFonts.inter(
           color: _theme(context).textDark3,
           fontWeight: FontWeight.w500,
@@ -25,7 +24,7 @@ class STextStyles {
   }
 
   static TextStyle pageTitleH1(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -36,7 +35,7 @@ class STextStyles {
   }
 
   static TextStyle pageTitleH2(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -47,7 +46,7 @@ class STextStyles {
   }
 
   static TextStyle navBarTitle(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -58,7 +57,7 @@ class STextStyles {
   }
 
   static TextStyle titleBold12(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -69,7 +68,7 @@ class STextStyles {
   }
 
   static TextStyle subtitle(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -80,7 +79,7 @@ class STextStyles {
   }
 
   static TextStyle subtitle500(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -91,7 +90,7 @@ class STextStyles {
   }
 
   static TextStyle subtitle600(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -102,7 +101,7 @@ class STextStyles {
   }
 
   static TextStyle button(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextPrimary,
@@ -113,7 +112,7 @@ class STextStyles {
   }
 
   static TextStyle largeMedium14(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -124,7 +123,7 @@ class STextStyles {
   }
 
   static TextStyle smallMed14(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark3,
@@ -135,7 +134,7 @@ class STextStyles {
   }
 
   static TextStyle smallMed12(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark3,
@@ -146,7 +145,7 @@ class STextStyles {
   }
 
   static TextStyle label(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textSubtitle1,
@@ -157,7 +156,7 @@ class STextStyles {
   }
 
   static TextStyle labelExtraExtraSmall(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textFieldActiveSearchIconRight,
@@ -169,7 +168,7 @@ class STextStyles {
   }
 
   static TextStyle label700(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textSubtitle1,
@@ -180,7 +179,7 @@ class STextStyles {
   }
 
   static TextStyle itemSubtitle(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).infoItemLabel,
@@ -191,7 +190,7 @@ class STextStyles {
   }
 
   static TextStyle itemSubtitle12(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -202,7 +201,7 @@ class STextStyles {
   }
 
   static TextStyle fieldLabel(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textSubtitle2,
@@ -214,7 +213,7 @@ class STextStyles {
   }
 
   static TextStyle field(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -226,7 +225,7 @@ class STextStyles {
   }
 
   static TextStyle baseXS(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -237,7 +236,7 @@ class STextStyles {
   }
 
   static TextStyle link(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).accentColorRed,
@@ -248,8 +247,8 @@ class STextStyles {
   }
 
   static TextStyle link2(BuildContext context) {
-    switch (_theme(context).themeType) {
-      case ThemeType.oledBlack:
+    switch (_theme(context).themeId) {
+      case "oled_black":
         return GoogleFonts.inter(
           color: _theme(context).checkboxBGChecked,
           fontWeight: FontWeight.w500,
@@ -265,7 +264,7 @@ class STextStyles {
   }
 
   static TextStyle richLink(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).accentColorBlue,
@@ -276,7 +275,7 @@ class STextStyles {
   }
 
   static TextStyle w600_12(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -287,7 +286,7 @@ class STextStyles {
   }
 
   static TextStyle w600_14(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -298,7 +297,7 @@ class STextStyles {
   }
 
   static TextStyle w500_14(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -309,7 +308,7 @@ class STextStyles {
   }
 
   static TextStyle w500_12(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -320,7 +319,7 @@ class STextStyles {
   }
 
   static TextStyle w500_10(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -331,7 +330,7 @@ class STextStyles {
   }
 
   static TextStyle w600_20(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -343,7 +342,7 @@ class STextStyles {
   }
 
   static TextStyle syncPercent(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -354,8 +353,8 @@ class STextStyles {
   }
 
   static TextStyle buttonSmall(BuildContext context) {
-    switch (_theme(context).themeType) {
-      case ThemeType.fruitSorbet:
+    switch (_theme(context).themeId) {
+      case "fruit_sorbet":
         return GoogleFonts.inter(
           color: _theme(context).bottomNavIconIcon,
           fontWeight: FontWeight.w500,
@@ -371,7 +370,7 @@ class STextStyles {
   }
 
   static TextStyle errorSmall(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textError,
@@ -382,7 +381,7 @@ class STextStyles {
   }
 
   static TextStyle infoSmall(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textSubtitle1,
@@ -395,7 +394,7 @@ class STextStyles {
 // Desktop
 
   static TextStyle desktopH1(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -407,7 +406,7 @@ class STextStyles {
   }
 
   static TextStyle desktopH2(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -419,7 +418,7 @@ class STextStyles {
   }
 
   static TextStyle desktopH3(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -431,7 +430,7 @@ class STextStyles {
   }
 
   static TextStyle w500_24(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -443,7 +442,7 @@ class STextStyles {
   }
 
   static TextStyle desktopTextMedium(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -455,7 +454,7 @@ class STextStyles {
   }
 
   static TextStyle desktopTextMediumRegular(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -467,7 +466,7 @@ class STextStyles {
   }
 
   static TextStyle desktopSubtitleH2(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -479,7 +478,7 @@ class STextStyles {
   }
 
   static TextStyle desktopSubtitleH1(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -491,7 +490,7 @@ class STextStyles {
   }
 
   static TextStyle desktopButtonEnabled(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextPrimary,
@@ -503,7 +502,7 @@ class STextStyles {
   }
 
   static TextStyle desktopButtonDisabled(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextPrimaryDisabled,
@@ -515,7 +514,7 @@ class STextStyles {
   }
 
   static TextStyle desktopButtonSecondaryEnabled(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextSecondary,
@@ -527,7 +526,7 @@ class STextStyles {
   }
 
   static TextStyle desktopButtonSecondaryDisabled(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextSecondaryDisabled,
@@ -539,8 +538,8 @@ class STextStyles {
   }
 
   static TextStyle desktopTextSmall(BuildContext context) {
-    switch (_theme(context).themeType) {
-      case ThemeType.dark:
+    switch (_theme(context).themeId) {
+      case "dark":
         return GoogleFonts.inter(
           color: _theme(context).buttonTextPrimaryDisabled,
           fontWeight: FontWeight.w500,
@@ -559,9 +558,9 @@ class STextStyles {
   }
 
   static TextStyle desktopTextSmallBold(BuildContext context) {
-    switch (_theme(context).themeType) {
-      case ThemeType.dark:
-      case ThemeType.oledBlack:
+    switch (_theme(context).themeId) {
+      case "dark":
+      case "oled_black":
         return GoogleFonts.inter(
           color: _theme(context).buttonTextPrimaryDisabled,
           fontWeight: FontWeight.w700,
@@ -580,7 +579,7 @@ class STextStyles {
   }
 
   static TextStyle desktopTextExtraSmall(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextPrimaryDisabled,
@@ -592,7 +591,7 @@ class STextStyles {
   }
 
   static TextStyle desktopTextExtraExtraSmall(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textSubtitle1,
@@ -604,7 +603,7 @@ class STextStyles {
   }
 
   static TextStyle desktopTextExtraExtraSmall600(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -616,7 +615,7 @@ class STextStyles {
   }
 
   static TextStyle desktopButtonSmallSecondaryEnabled(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).buttonTextSecondary,
@@ -628,7 +627,7 @@ class STextStyles {
   }
 
   static TextStyle desktopTextFieldLabel(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textSubtitle2,
@@ -640,7 +639,7 @@ class STextStyles {
   }
 
   static TextStyle desktopMenuItem(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark.withOpacity(0.8),
@@ -652,7 +651,7 @@ class STextStyles {
   }
 
   static TextStyle desktopMenuItemSelected(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -664,7 +663,7 @@ class STextStyles {
   }
 
   static TextStyle settingsMenuItem(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark.withOpacity(0.5),
@@ -676,7 +675,7 @@ class STextStyles {
   }
 
   static TextStyle settingsMenuItemSelected(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           color: _theme(context).textDark,
@@ -688,7 +687,7 @@ class STextStyles {
   }
 
   static TextStyle stepIndicator(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.roboto(
           color: _theme(context).textDark,
@@ -699,7 +698,7 @@ class STextStyles {
   }
 
   static TextStyle numberDefault(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.roboto(
           color: _theme(context).numberTextDefault,
@@ -710,7 +709,7 @@ class STextStyles {
   }
 
   static TextStyle datePicker400(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           letterSpacing: 0.5,
@@ -722,7 +721,7 @@ class STextStyles {
   }
 
   static TextStyle datePicker600(BuildContext context) {
-    switch (_theme(context).themeType) {
+    switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
           letterSpacing: 0.5,

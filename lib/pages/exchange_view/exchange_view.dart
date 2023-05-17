@@ -3,21 +3,20 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_form.dart';
 import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/trade_card.dart';
 import 'package:tuple/tuple.dart';
-
-import '../../db/isar/main_db.dart';
 
 class ExchangeView extends ConsumerStatefulWidget {
   const ExchangeView({Key? key}) : super(key: key);
@@ -38,7 +37,8 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
         ExchangeDataLoadingService.instance.onLoadingComplete = () {
           WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
             await ExchangeDataLoadingService.instance.setCurrenciesIfEmpty(
-              ref.read(exchangeFormStateProvider),
+              ref.read(efCurrencyPairProvider),
+              ref.read(efRateTypeProvider),
             );
             setState(() {
               _initialCachePopulationUnderway = false;
@@ -46,9 +46,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
           });
         };
       }
-      ExchangeDataLoadingService.instance
-          .init()
-          .then((_) => ExchangeDataLoadingService.instance.loadAll());
+      ExchangeDataLoadingService.instance.loadAll();
     } else if (ExchangeDataLoadingService.instance.isLoading &&
         ExchangeDataLoadingService.currentCacheVersion <
             ExchangeDataLoadingService.cacheVersion) {
@@ -56,7 +54,8 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
       ExchangeDataLoadingService.instance.onLoadingComplete = () {
         WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
           await ExchangeDataLoadingService.instance.setCurrenciesIfEmpty(
-            ref.read(exchangeFormStateProvider),
+            ref.read(efCurrencyPairProvider),
+            ref.read(efRateTypeProvider),
           );
           setState(() {
             _initialCachePopulationUnderway = false;

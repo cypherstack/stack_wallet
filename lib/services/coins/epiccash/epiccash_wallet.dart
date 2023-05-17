@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -54,6 +55,10 @@ class BadEpicHttpAddressException implements Exception {
   String toString() {
     return "BadEpicHttpAddressException: $message";
   }
+}
+
+abstract class ListenerManager {
+  static Pointer<Void>? pointer;
 }
 
 // isolate
@@ -178,18 +183,8 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
         sendPort.send(result);
         return;
       }
-    } else if (function == "listenForSlates") {
-      final wallet = arguments['wallet'] as String?;
-      final epicboxConfig = arguments['epicboxConfig'] as String?;
-
-      Map<String, dynamic> result = {};
-      if (!(wallet == null || epicboxConfig == null)) {
-        var res = await epicboxListen(wallet, epicboxConfig);
-        result['result'] = res;
-        sendPort.send(result);
-        return;
-      }
     }
+
     Logging.instance.log(
         "Error Arguments for $function not formatted correctly",
         level: LogLevel.Fatal);
@@ -452,8 +447,6 @@ class EpicCashWallet extends CoinServiceAPI
 
       EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
 
-      print("EPICBOX CONFIG HERE IS $epicboxConfig");
-
       // TODO determine whether it is worth sending change to a change address.
       dynamic message;
 
@@ -521,6 +514,11 @@ class EpicCashWallet extends CoinServiceAPI
       if (sendTx.contains("Error")) {
         throw BadEpicHttpAddressException(message: sendTx);
       }
+
+      Map<String, String> txAddressInfo = {};
+      txAddressInfo['from'] = await currentReceivingAddress;
+      txAddressInfo['to'] = txData['addresss'] as String;
+      await putSendToAddresses(sendTx, txAddressInfo);
 
       Logging.instance.log("CONFIRM_RESULT_IS $sendTx", level: LogLevel.Info);
 
@@ -711,8 +709,6 @@ class EpicCashWallet extends CoinServiceAPI
     await _prefs.init();
     await updateNode(false);
     await _refreshBalance();
-    //Open Epicbox listener in the background
-    await listenForSlates();
     // TODO: is there anything else that should be set up here whenever this wallet is first loaded again?
   }
 
@@ -806,9 +802,6 @@ class EpicCashWallet extends CoinServiceAPI
       epicUpdateReceivingIndex(0),
       epicUpdateChangeIndex(0),
     ]);
-
-    //Open Epicbox listener in the background
-    await listenForSlates();
 
     final initialReceivingAddress = await _getReceivingAddressForIndex(0);
 
@@ -1159,6 +1152,14 @@ class EpicCashWallet extends CoinServiceAPI
 
   Future<bool> startScans() async {
     try {
+      if (ListenerManager.pointer != null) {
+        Logging.instance
+            .log("LISTENER HANDLER IS NOT NULL ....", level: LogLevel.Info);
+        Logging.instance
+            .log("STOPPING ANY WALLET LISTENER ....", level: LogLevel.Info);
+        epicboxListenerStop(ListenerManager.pointer!);
+      }
+
       final wallet = await _secureStore.read(key: '${_walletId}_wallet');
 
       var restoreHeight = epicGetRestoreHeight();
@@ -1200,6 +1201,7 @@ class EpicCashWallet extends CoinServiceAPI
         await getSyncPercent;
       }
       Logging.instance.log("successfully at the tip", level: LogLevel.Info);
+      await listenToEpicbox();
       return true;
     } catch (e, s) {
       Logging.instance.log("$e, $s", level: LogLevel.Warning);
@@ -1247,7 +1249,6 @@ class EpicCashWallet extends CoinServiceAPI
       await _secureStore.write(key: '${_walletId}_config', value: stringConfig);
       await _secureStore.write(key: '${_walletId}_password', value: password);
 
-      print("EPIC BOX MODEL IS ${epicboxConfig.toString()}");
       await _secureStore.write(
           key: '${_walletId}_epicboxConfig', value: epicboxConfig.toString());
 
@@ -1275,14 +1276,20 @@ class EpicCashWallet extends CoinServiceAPI
 
       //Store Epic box address info
       await storeEpicboxInfo();
-
-      //Open Epicbox listener in the background
-      await listenForSlates();
     } catch (e, s) {
       Logging.instance
           .log("Error recovering wallet $e\n$s", level: LogLevel.Error);
       rethrow;
     }
+  }
+
+  Future<void> listenToEpicbox() async {
+    Logging.instance.log("STARTING WALLET LISTENER ....", level: LogLevel.Info);
+    final wallet = await _secureStore.read(key: '${_walletId}_wallet');
+    EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
+
+    ListenerManager.pointer =
+        epicboxListenerStart(wallet!, epicboxConfig.toString());
   }
 
   Future<int> getRestoreHeight() async {
@@ -1390,7 +1397,8 @@ class EpicCashWallet extends CoinServiceAPI
     }
   }
 
-  Future<bool> putSendToAddresses(String slateMessage) async {
+  Future<bool> putSendToAddresses(
+      String slateMessage, Map<String, String> txAddressInfo) async {
     try {
       var slatesToCommits = await getSlatesToCommits();
       final slate0 = jsonDecode(slateMessage);
@@ -1400,19 +1408,19 @@ class EpicCashWallet extends CoinServiceAPI
       final slateId = part1[0]['tx_slate_id'];
       final commitId = part2['tx']['body']['outputs'][0]['commit'];
 
-      final toFromInfoString = jsonDecode(slateMessage);
-      final toFromInfo = jsonDecode(toFromInfoString[1] as String);
-      final from = toFromInfo['from'];
-      final to = toFromInfo['to'];
+      final from = txAddressInfo['from'];
+      final to = txAddressInfo['to'];
       slatesToCommits[slateId] = {
         "commitId": commitId,
         "from": from,
         "to": to,
       };
+
       await epicUpdateSlatesToCommits(slatesToCommits);
       return true;
     } catch (e, s) {
-      Logging.instance.log("$e $s", level: LogLevel.Error);
+      Logging.instance
+          .log("ERROR STORING ADDRESS $e $s", level: LogLevel.Error);
       return false;
     }
   }
@@ -1446,29 +1454,6 @@ class EpicCashWallet extends CoinServiceAPI
       Logging.instance.log("$e $s", level: LogLevel.Error);
       return false;
     }
-  }
-
-  Future<void> listenForSlates() async {
-    final wallet = await _secureStore.read(key: '${_walletId}_wallet');
-    EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
-
-    await m.protect(() async {
-      Logging.instance.log("CALLING LISTEN FOR SLATES", level: LogLevel.Info);
-      ReceivePort receivePort = await getIsolate({
-        "function": "listenForSlates",
-        "wallet": wallet,
-        "epicboxConfig": epicboxConfig.toString(),
-      }, name: walletName);
-
-      var result = await receivePort.first;
-      if (result is String) {
-        Logging.instance
-            .log("this is a message $result", level: LogLevel.Error);
-        stop(receivePort);
-        throw Exception("subscribeRequest isolate failed");
-      }
-      stop(receivePort);
-    });
   }
 
   /// Refreshes display data for the wallet

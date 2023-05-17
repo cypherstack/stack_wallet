@@ -25,14 +25,18 @@ class PaynymIsApi {
         version +
         (endpoint.startsWith("/") ? endpoint : "/$endpoint");
     final uri = Uri.parse(url);
+    final headers = {
+      'Content-Type': 'application/json; charset=UTF-8',
+    }..addAll(additionalHeaders);
     final response = await http.post(
       uri,
-      headers: {
-        'Content-Type': 'application/json; charset=UTF-8',
-      }..addAll(additionalHeaders),
+      headers: headers,
       body: jsonEncode(body),
     );
 
+    debugPrint("Paynym request uri: $uri");
+    debugPrint("Paynym request body: $body");
+    debugPrint("Paynym request headers: $headers");
     debugPrint("Paynym response code: ${response.statusCode}");
     debugPrint("Paynym response body: ${response.body}");
 
@@ -543,24 +547,44 @@ class PaynymIsApi {
   // | 401  | Unauthorized token or signature or Unclaimed payment code |
   //
   // ------
+  Future<PaynymResponse<bool>> add(
+    String token,
+    String signature,
+    String nym,
+    String code,
+  ) async {
+    final result = await _post(
+      "/nym/add",
+      {
+        "nym": nym,
+        "code": code,
+        "signature": signature,
+      },
+      {
+        "auth-token": token,
+      },
+    );
 
-// NOT USED
-  // Future<Map<String, dynamic>> add(
-  //   String token,
-  //   String signature,
-  //   String nym,
-  //   String code,
-  // ) async {
-  //   return _post(
-  //     "/add",
-  //     {
-  //       "nym": nym,
-  //       "code": code,
-  //       "signature": signature,
-  //     },
-  //     {
-  //       "auth-token": token,
-  //     },
-  //   );
-  // }
+    String message;
+    bool value = false;
+
+    switch (result.item2) {
+      case 200:
+        message = "Code added successfully";
+        value = true;
+        break;
+      case 400:
+        message = "Bad request";
+        break;
+      case 401:
+        message = "Unauthorized token or signature or Unclaimed payment code";
+        break;
+      case 404:
+        message = "Nym not found";
+        break;
+      default:
+        message = result.item1["message"] as String? ?? "Unknown error";
+    }
+    return PaynymResponse(value, result.item2, message);
+  }
 }

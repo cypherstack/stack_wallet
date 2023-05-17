@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/contact.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
+import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/models/transaction_filter.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
@@ -13,13 +13,13 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_sear
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -120,8 +120,8 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
     }).toList();
   }
 
-  bool _isKeywordMatch(Transaction tx, String keyword, List<Contact> contacts,
-      Map<String, String> notes) {
+  bool _isKeywordMatch(Transaction tx, String keyword,
+      List<ContactEntry> contacts, Map<String, String> notes) {
     if (keyword.isEmpty) {
       return true;
     }
@@ -852,6 +852,8 @@ class _DesktopTransactionCardRowState
         prefix = "-";
       } else if (_transaction.type == TransactionType.incoming) {
         prefix = "+";
+      } else {
+        prefix = "";
       }
     } else {
       prefix = "";

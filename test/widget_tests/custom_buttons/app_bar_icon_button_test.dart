@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/models/isar/stack_theme.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+
+import '../../sample_data/theme_json.dart';
 
 void main() {
   testWidgets("AppBarIconButton test", (tester) async {
@@ -23,7 +25,12 @@ void main() {
       MaterialApp(
         theme: ThemeData(
           extensions: [
-            StackColors.fromStackColorTheme(LightColors()),
+            StackColors.fromStackColorTheme(
+              StackTheme.fromJson(
+                json: lightThemeJsonMap,
+                applicationThemesDirectoryPath: "test",
+              ),
+            ),
           ],
         ),
         home: Material(

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
 import 'package:stackwallet/pages/token_view/my_tokens_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_wallet_features.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_wallet_summary.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/my_wallet.dart';
@@ -18,19 +20,24 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/hover_text_field.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -149,6 +156,83 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                 subMessage: "This only needs to run once per wallet",
                 eventBus: null,
                 textColor: Theme.of(context).extension<StackColors>()!.textDark,
+                actionButton: SecondaryButton(
+                  label: "Skip",
+                  buttonHeight: ButtonHeight.l,
+                  onPressed: () async {
+                    await showDialog<void>(
+                      context: context,
+                      builder: (context) => DesktopDialog(
+                        maxWidth: 500,
+                        maxHeight: double.infinity,
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 32),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Warning!",
+                                    style: STextStyles.desktopH3(context),
+                                  ),
+                                  const DesktopDialogCloseButton(),
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 32),
+                              child: Text(
+                                "Skipping this process can completely"
+                                " break your wallet. It is only meant to be done in"
+                                " emergency situations where the migration fails"
+                                " and will not let you continue. Still skip?",
+                                style: STextStyles.desktopTextSmall(context),
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 32,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(32),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: SecondaryButton(
+                                      label: "Cancel",
+                                      buttonHeight: ButtonHeight.l,
+                                      onPressed: Navigator.of(context,
+                                              rootNavigator: true)
+                                          .pop,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    width: 16,
+                                  ),
+                                  Expanded(
+                                    child: PrimaryButton(
+                                      label: "Ok",
+                                      buttonHeight: ButtonHeight.l,
+                                      onPressed: () {
+                                        Navigator.of(context,
+                                                rootNavigator: true)
+                                            .pop();
+                                        setState(
+                                            () => _rescanningOnOpen = false);
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
             )
           ],
@@ -182,8 +266,10 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                 const SizedBox(
                   width: 15,
                 ),
-                SvgPicture.asset(
-                  Assets.svg.iconFor(coin: coin),
+                SvgPicture.file(
+                  File(
+                    ref.watch(coinIconProvider(coin)),
+                  ),
                   width: 32,
                   height: 32,
                 ),
@@ -238,8 +324,10 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                 padding: const EdgeInsets.all(20),
                 child: Row(
                   children: [
-                    SvgPicture.asset(
-                      Assets.svg.iconFor(coin: coin),
+                    SvgPicture.file(
+                      File(
+                        ref.watch(coinIconProvider(coin)),
+                      ),
                       width: 40,
                       height: 40,
                     ),
@@ -285,7 +373,12 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Tokens",
+                          ref.watch(walletsChangeNotifierProvider.select(
+                                  (value) => value
+                                      .getManager(widget.walletId)
+                                      .hasTokenSupport))
+                              ? "Tokens"
+                              : "Recent transactions",
                           style: STextStyles.desktopTextExtraSmall(context)
                               .copyWith(
                             color: Theme.of(context)
@@ -294,21 +387,36 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                           ),
                         ),
                         CustomTextButton(
-                          text: "Edit",
-                          onTap: () async {
-                            final result = await showDialog<int?>(
-                              context: context,
-                              builder: (context) => EditWalletTokensView(
-                                walletId: widget.walletId,
-                                isDesktopPopup: true,
-                              ),
-                            );
+                          text: ref.watch(walletsChangeNotifierProvider.select(
+                                  (value) => value
+                                      .getManager(widget.walletId)
+                                      .hasTokenSupport))
+                              ? "Edit"
+                              : "See all",
+                          onTap: ref.watch(walletsChangeNotifierProvider.select(
+                                  (value) => value
+                                      .getManager(widget.walletId)
+                                      .hasTokenSupport))
+                              ? () async {
+                                  final result = await showDialog<int?>(
+                                    context: context,
+                                    builder: (context) => EditWalletTokensView(
+                                      walletId: widget.walletId,
+                                      isDesktopPopup: true,
+                                    ),
+                                  );
 
-                            if (result == 42) {
-                              // wallet tokens were edited so update ui
-                              setState(() {});
-                            }
-                          },
+                                  if (result == 42) {
+                                    // wallet tokens were edited so update ui
+                                    setState(() {});
+                                  }
+                                }
+                              : () {
+                                  Navigator.of(context).pushNamed(
+                                    AllTransactionsView.routeName,
+                                    arguments: widget.walletId,
+                                  );
+                                },
                         ),
                       ],
                     ),

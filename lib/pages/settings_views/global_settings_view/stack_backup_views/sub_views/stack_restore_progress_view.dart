@@ -15,11 +15,11 @@ import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/stack_restore/stack_restoring_ui_state_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/stack_restoring_status.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -214,7 +214,7 @@ class _StackRestoreProgressViewState
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      _restore();
+      unawaited(_restore());
     });
     super.initState();
   }
@@ -325,7 +325,7 @@ class _StackRestoreProgressViewState
                               : null,
                         )
                       : RoundedContainer(
-                          padding: EdgeInsets.all(0),
+                          padding: EdgeInsets.zero,
                           color: Theme.of(context)
                               .extension<StackColors>()!
                               .popupBG,
@@ -411,7 +411,7 @@ class _StackRestoreProgressViewState
                               : null,
                         )
                       : RoundedContainer(
-                          padding: EdgeInsets.all(0),
+                          padding: EdgeInsets.zero,
                           color: Theme.of(context)
                               .extension<StackColors>()!
                               .popupBG,
@@ -497,7 +497,7 @@ class _StackRestoreProgressViewState
                               : null,
                         )
                       : RoundedContainer(
-                          padding: EdgeInsets.all(0),
+                          padding: EdgeInsets.zero,
                           color: Theme.of(context)
                               .extension<StackColors>()!
                               .popupBG,
@@ -548,44 +548,42 @@ class _StackRestoreProgressViewState
                   final state = ref.watch(stackRestoringUIStateProvider
                       .select((value) => value.trades));
                   return !isDesktop
-                      ? Container(
-                          child: RestoringItemCard(
-                            left: SizedBox(
-                              width: 32,
-                              height: 32,
-                              child: RoundedContainer(
-                                padding: const EdgeInsets.all(0),
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .buttonBackSecondary,
-                                child: Center(
-                                  child: SvgPicture.asset(
-                                    Assets.svg.arrowRotate2,
-                                    width: 16,
-                                    height: 16,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorDark,
-                                  ),
+                      ? RestoringItemCard(
+                          left: SizedBox(
+                            width: 32,
+                            height: 32,
+                            child: RoundedContainer(
+                              padding: const EdgeInsets.all(0),
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .buttonBackSecondary,
+                              child: Center(
+                                child: SvgPicture.asset(
+                                  Assets.svg.arrowsTwoWay,
+                                  width: 16,
+                                  height: 16,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorDark,
                                 ),
                               ),
                             ),
-                            right: SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: _getIconForState(state),
-                            ),
-                            title: "Exchange history",
-                            subTitle: state == StackRestoringStatus.failed
-                                ? Text(
-                                    "Something went wrong",
-                                    style: STextStyles.errorSmall(context),
-                                  )
-                                : null,
                           ),
+                          right: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: _getIconForState(state),
+                          ),
+                          title: "Exchange history",
+                          subTitle: state == StackRestoringStatus.failed
+                              ? Text(
+                                  "Something went wrong",
+                                  style: STextStyles.errorSmall(context),
+                                )
+                              : null,
                         )
                       : RoundedContainer(
-                          padding: EdgeInsets.all(0),
+                          padding: EdgeInsets.zero,
                           color: Theme.of(context)
                               .extension<StackColors>()!
                               .popupBG,
@@ -603,7 +601,7 @@ class _StackRestoreProgressViewState
                                     .buttonBackSecondary,
                                 child: Center(
                                   child: SvgPicture.asset(
-                                    Assets.svg.arrowRotate2,
+                                    Assets.svg.arrowsTwoWay,
                                     width: 16,
                                     height: 16,
                                     color: Theme.of(context)

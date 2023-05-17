@@ -10,10 +10,10 @@ import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
@@ -94,7 +94,10 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
             TransactionCard(
               // this may mess with combined firo transactions
               key: isConfirmed
-                  ? Key(tx.txid + tx.type.name + tx.address.value.toString())
+                  ? Key(tx.txid +
+                      tx.type.name +
+                      tx.address.value.toString() +
+                      tx.height.toString())
                   : UniqueKey(), //
               transaction: tx,
               walletId: widget.walletId,
@@ -191,7 +194,10 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
         child: TransactionCard(
           // this may mess with combined firo transactions
           key: isConfirmed
-              ? Key(tx.txid + tx.type.name + tx.address.value.toString())
+              ? Key(tx.txid +
+                  tx.type.name +
+                  tx.address.value.toString() +
+                  tx.height.toString())
               : UniqueKey(),
           transaction: tx,
           walletId: widget.walletId,

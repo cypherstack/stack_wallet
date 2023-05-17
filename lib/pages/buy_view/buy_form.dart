@@ -20,6 +20,7 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/buy/buy_response.dart';
 import 'package:stackwallet/services/buy/simplex/simplex_api.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
@@ -28,7 +29,6 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -405,18 +405,6 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     } on ArgumentError catch (_) {
       return false;
     }
-  }
-
-  Widget? getIconForTicker(String ticker) {
-    String iconAsset = /*isStackCoin(ticker)
-        ?*/
-        Assets.svg.iconFor(coin: coinFromTickerCaseInsensitive(ticker));
-    // : Assets.svg.buyIconFor(ticker);
-    // return (iconAsset != null)
-    //     ? SvgPicture.asset(iconAsset, height: 20, width: 20)
-    //     : null;
-
-    return SvgPicture.asset(iconAsset, height: 20, width: 20);
   }
 
   Future<void> previewQuote(SimplexQuote quote) async {
@@ -833,8 +821,10 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                     padding: const EdgeInsets.all(12),
                     child: Row(
                       children: <Widget>[
-                        getIconForTicker(selectedCrypto?.ticker ?? "BTC")
-                            as Widget,
+                        CoinIconForTicker(
+                          ticker: selectedCrypto?.ticker ?? "BTC",
+                          size: 20,
+                        ),
                         const SizedBox(
                           width: 10,
                         ),
@@ -1049,8 +1039,10 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                         .accentColorDark),
                               ),
                             )
-                          : getIconForTicker(selectedCrypto?.ticker ?? "BTC")
-                              as Widget,
+                          : CoinIconForTicker(
+                              ticker: selectedCrypto?.ticker ?? "BTC",
+                              size: 20,
+                            ),
                       SizedBox(
                           width: buyWithFiat
                               ? 8

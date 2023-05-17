@@ -7,6 +7,7 @@ class CustomPinPut extends StatefulWidget {
   const CustomPinPut({
     Key? key,
     required this.fieldsCount,
+    required this.isRandom,
     this.height,
     this.width,
     this.onSubmit,
@@ -59,6 +60,8 @@ class CustomPinPut extends StatefulWidget {
   final double? height;
 
   final CustomKey? customKey;
+
+  final bool isRandom;
 
   /// Displayed fields count. PIN code length.
   final int fieldsCount;

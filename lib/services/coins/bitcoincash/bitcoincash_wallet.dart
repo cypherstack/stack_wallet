@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:bech32/bech32.dart';
 import 'package:bip32/bip32.dart' as bip32;
@@ -18,6 +19,7 @@ import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
+import 'package:stackwallet/models/signing_data.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
@@ -29,11 +31,9 @@ import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/mixins/xpubable.dart';
 import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
@@ -44,6 +44,7 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/widgets/crypto_notifications.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
@@ -70,7 +71,6 @@ String constructDerivePath({
     case 0x80: // bch mainnet wif
       switch (derivePathType) {
         case DerivePathType.bip44:
-        case DerivePathType.bip49:
           coinType = 145; // bch mainnet
           break;
         case DerivePathType.bch44: // bitcoin.com wallet specific
@@ -93,9 +93,6 @@ String constructDerivePath({
     case DerivePathType.bip44:
     case DerivePathType.bch44:
       purpose = 44;
-      break;
-    case DerivePathType.bip49:
-      purpose = 49;
       break;
     default:
       throw Exception("DerivePathType $derivePathType not supported");
@@ -282,10 +279,6 @@ class BitcoinCashWallet extends CoinServiceAPI
         return DerivePathType.bip44;
       }
 
-      if (decodeBase58[0] == _network.scriptHash) {
-        // P2SH
-        return DerivePathType.bip49;
-      }
       throw ArgumentError('Invalid version or Network mismatch');
     } else {
       try {
@@ -376,17 +369,18 @@ class BitcoinCashWallet extends CoinServiceAPI
         level: LogLevel.Info);
   }
 
-  Future<Map<String, dynamic>> _checkGaps(
-      int maxNumberOfIndexesToCheck,
-      int maxUnusedAddressGap,
-      int txCountBatchSize,
-      bip32.BIP32 root,
-      DerivePathType type,
-      int chain) async {
+  Future<Tuple3<List<isar_models.Address>, DerivePathType, int>> _checkGaps(
+    int maxNumberOfIndexesToCheck,
+    int maxUnusedAddressGap,
+    int txCountBatchSize,
+    bip32.BIP32 root,
+    DerivePathType type,
+    int chain,
+  ) async {
     List<isar_models.Address> addressArray = [];
-    int returningIndex = -1;
-    Map<String, Map<String, String>> derivations = {};
     int gapCounter = 0;
+    int highestIndexWithHistory = 0;
+
     for (int index = 0;
         index < maxNumberOfIndexesToCheck && gapCounter < maxUnusedAddressGap;
         index += txCountBatchSize) {
@@ -397,7 +391,6 @@ class BitcoinCashWallet extends CoinServiceAPI
 
       final _id = "k_$index";
       Map<String, String> txCountCallArgs = {};
-      final Map<String, dynamic> receivingNodes = {};
 
       for (int j = 0; j < txCountBatchSize; j++) {
         final derivePath = constructDerivePath(
@@ -418,15 +411,6 @@ class BitcoinCashWallet extends CoinServiceAPI
             addrType = isar_models.AddressType.p2pkh;
             addressString = bitbox.Address.toCashAddress(addressString);
             break;
-          case DerivePathType.bip49:
-            addressString = P2SH(
-                    data: PaymentData(
-                        redeem: P2WPKH(data: data, network: _network).data),
-                    network: _network)
-                .data
-                .address!;
-            addrType = isar_models.AddressType.p2sh;
-            break;
           default:
             throw Exception("DerivePathType $type not supported");
         }
@@ -443,12 +427,8 @@ class BitcoinCashWallet extends CoinServiceAPI
               : isar_models.AddressSubType.change,
         );
 
-        receivingNodes.addAll({
-          "${_id}_$j": {
-            "node": node,
-            "address": address,
-          }
-        });
+        addressArray.add(address);
+
         txCountCallArgs.addAll({
           "${_id}_$j": addressString,
         });
@@ -463,21 +443,13 @@ class BitcoinCashWallet extends CoinServiceAPI
       for (int k = 0; k < txCountBatchSize; k++) {
         int count = counts["${_id}_$k"]!;
         if (count > 0) {
-          final node = receivingNodes["${_id}_$k"];
-          final address = node["address"] as isar_models.Address;
-          // add address to array
-          addressArray.add(address);
-          iterationsAddressArray.add(address.value);
-          // set current index
-          returningIndex = index + k;
+          iterationsAddressArray.add(txCountCallArgs["${_id}_$k"]!);
+
+          // update highest
+          highestIndexWithHistory = index + k;
+
           // reset counter
           gapCounter = 0;
-          // add info to derivations
-          derivations[address.value] = {
-            "pubKey": Format.uint8listToString(
-                (node["node"] as bip32.BIP32).publicKey),
-            "wif": (node["node"] as bip32.BIP32).toWIF(),
-          };
         }
 
         // increase counter when no tx history found
@@ -488,11 +460,7 @@ class BitcoinCashWallet extends CoinServiceAPI
       // cache all the transactions while waiting for the current function to finish.
       unawaited(getTransactionCacheEarly(iterationsAddressArray));
     }
-    return {
-      "addressArray": addressArray,
-      "index": returningIndex,
-      "derivations": derivations
-    };
+    return Tuple3(addressArray, type, highestIndexWithHistory);
   }
 
   Future<void> getTransactionCacheEarly(List<String> allAddresses) async {
@@ -525,213 +493,128 @@ class BitcoinCashWallet extends CoinServiceAPI
   }) async {
     longMutex = true;
 
-    Map<String, Map<String, String>> bip44P2pkhReceiveDerivations = {};
-    Map<String, Map<String, String>> bch44P2pkhReceiveDerivations = {};
-    Map<String, Map<String, String>> p2shReceiveDerivations = {};
-    Map<String, Map<String, String>> bip44P2pkhChangeDerivations = {};
-    Map<String, Map<String, String>> bch44P2pkhChangeDerivations = {};
-    Map<String, Map<String, String>> p2shChangeDerivations = {};
-
     final root = await Bip32Utils.getBip32Root(
       mnemonic,
       mnemonicPassphrase,
       _network,
     );
 
-    List<isar_models.Address> bip44P2pkhReceiveAddressArray = [];
-    List<isar_models.Address> bch44P2pkhReceiveAddressArray = [];
-    List<isar_models.Address> p2shReceiveAddressArray = [];
-    int bch44P2pkhReceiveIndex = -1;
-    int bip44P2pkhReceiveIndex = -1;
-    int p2shReceiveIndex = -1;
+    final deriveTypes = [
+      DerivePathType.bip44,
+    ];
 
-    List<isar_models.Address> bip44P2pkhChangeAddressArray = [];
-    List<isar_models.Address> bch44P2pkhChangeAddressArray = [];
-    List<isar_models.Address> p2shChangeAddressArray = [];
-    int bch44P2pkhChangeIndex = -1;
-    int bip44P2pkhChangeIndex = -1;
-    int p2shChangeIndex = -1;
+    if (coin != Coin.bitcoincashTestnet) {
+      deriveTypes.add(DerivePathType.bch44);
+    }
 
-    // The gap limit will be capped at [maxUnusedAddressGap]
-    // int receivingGapCounter = 0;
-    // int changeGapCounter = 0;
+    final List<Future<Tuple3<List<isar_models.Address>, DerivePathType, int>>>
+        receiveFutures = [];
+    final List<Future<Tuple3<List<isar_models.Address>, DerivePathType, int>>>
+        changeFutures = [];
+
+    const receiveChain = 0;
+    const changeChain = 1;
+    const indexZero = 0;
 
     // actual size is 24 due to p2pkh and p2sh so 12x2
     const txCountBatchSize = 12;
 
     try {
-      bool testnet = ((coin) == Coin.bitcoincashTestnet) ? true : false;
       // receiving addresses
-      Logging.instance
-          .log("checking receiving addresses...", level: LogLevel.Info);
-      final resultReceiveBip44 = _checkGaps(maxNumberOfIndexesToCheck,
-          maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip44, 0);
+      Logging.instance.log(
+        "checking receiving addresses...",
+        level: LogLevel.Info,
+      );
 
-      final resultReceive49 = _checkGaps(maxNumberOfIndexesToCheck,
-          maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip49, 0);
+      for (final type in deriveTypes) {
+        receiveFutures.add(
+          _checkGaps(
+            maxNumberOfIndexesToCheck,
+            maxUnusedAddressGap,
+            txCountBatchSize,
+            root,
+            type,
+            receiveChain,
+          ),
+        );
+      }
 
-      Logging.instance
-          .log("checking change addresses...", level: LogLevel.Info);
       // change addresses
-      final bip44ResultChange = _checkGaps(maxNumberOfIndexesToCheck,
-          maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip44, 1);
+      Logging.instance.log(
+        "checking change addresses...",
+        level: LogLevel.Info,
+      );
+      for (final type in deriveTypes) {
+        changeFutures.add(
+          _checkGaps(
+            maxNumberOfIndexesToCheck,
+            maxUnusedAddressGap,
+            txCountBatchSize,
+            root,
+            type,
+            changeChain,
+          ),
+        );
+      }
 
-      final resultChange49 = _checkGaps(maxNumberOfIndexesToCheck,
-          maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip49, 1);
-
-      await Future.wait([
-        resultReceiveBip44,
-        resultReceive49,
-        bip44ResultChange,
-        resultChange49,
+      // io limitations may require running these linearly instead
+      final futuresResult = await Future.wait([
+        Future.wait(receiveFutures),
+        Future.wait(changeFutures),
       ]);
 
-      bip44P2pkhReceiveAddressArray = (await resultReceiveBip44)['addressArray']
-          as List<isar_models.Address>;
-      bip44P2pkhReceiveIndex = (await resultReceiveBip44)['index'] as int;
-      bip44P2pkhReceiveDerivations = (await resultReceiveBip44)['derivations']
-          as Map<String, Map<String, String>>;
+      final receiveResults = futuresResult[0];
+      final changeResults = futuresResult[1];
 
-      p2shReceiveAddressArray =
-          (await resultReceive49)['addressArray'] as List<isar_models.Address>;
-      p2shReceiveIndex = (await resultReceive49)['index'] as int;
-      p2shReceiveDerivations = (await resultReceive49)['derivations']
-          as Map<String, Map<String, String>>;
+      final List<isar_models.Address> addressesToStore = [];
 
-      bip44P2pkhChangeAddressArray = (await bip44ResultChange)['addressArray']
-          as List<isar_models.Address>;
-      bip44P2pkhChangeIndex = (await bip44ResultChange)['index'] as int;
-      bip44P2pkhChangeDerivations = (await bip44ResultChange)['derivations']
-          as Map<String, Map<String, String>>;
-
-      p2shChangeAddressArray =
-          (await resultChange49)['addressArray'] as List<isar_models.Address>;
-      p2shChangeIndex = (await resultChange49)['index'] as int;
-      p2shChangeDerivations = (await resultChange49)['derivations']
-          as Map<String, Map<String, String>>;
-
-      // save the derivations (if any)
-      if (bip44P2pkhReceiveDerivations.isNotEmpty) {
-        await addDerivations(
-            chain: 0,
-            derivePathType: DerivePathType.bip44,
-            derivationsToAdd: bip44P2pkhReceiveDerivations);
-      }
-      if (p2shReceiveDerivations.isNotEmpty) {
-        await addDerivations(
-            chain: 0,
-            derivePathType: DerivePathType.bip49,
-            derivationsToAdd: p2shReceiveDerivations);
-      }
-      if (bip44P2pkhChangeDerivations.isNotEmpty) {
-        await addDerivations(
-            chain: 1,
-            derivePathType: DerivePathType.bip44,
-            derivationsToAdd: bip44P2pkhChangeDerivations);
-      }
-      if (p2shChangeDerivations.isNotEmpty) {
-        await addDerivations(
-            chain: 1,
-            derivePathType: DerivePathType.bip49,
-            derivationsToAdd: p2shChangeDerivations);
-      }
-
+      int highestReceivingIndexWithHistory = 0;
       // If restoring a wallet that never received any funds, then set receivingArray manually
       // If we didn't do this, it'd store an empty array
-      if (bip44P2pkhReceiveIndex == -1) {
-        final address =
-            await _generateAddressForChain(0, 0, DerivePathType.bip44);
-        bip44P2pkhReceiveAddressArray.add(address);
-      }
-      if (p2shReceiveIndex == -1) {
-        final address =
-            await _generateAddressForChain(0, 0, DerivePathType.bip49);
-        p2shReceiveAddressArray.add(address);
+      for (final tuple in receiveResults) {
+        if (tuple.item1.isEmpty) {
+          final address = await _generateAddressForChain(
+            receiveChain,
+            indexZero,
+            tuple.item2,
+          );
+          addressesToStore.add(address);
+        } else {
+          highestReceivingIndexWithHistory = max(
+            tuple.item3,
+            highestReceivingIndexWithHistory,
+          );
+          addressesToStore.addAll(tuple.item1);
+        }
       }
 
+      int highestChangeIndexWithHistory = 0;
       // If restoring a wallet that never sent any funds with change, then set changeArray
       // manually. If we didn't do this, it'd store an empty array.
-      if (bip44P2pkhChangeIndex == -1) {
-        final address =
-            await _generateAddressForChain(1, 0, DerivePathType.bip44);
-        bip44P2pkhChangeAddressArray.add(address);
+      for (final tuple in changeResults) {
+        if (tuple.item1.isEmpty) {
+          final address = await _generateAddressForChain(
+            changeChain,
+            indexZero,
+            tuple.item2,
+          );
+          addressesToStore.add(address);
+        } else {
+          highestChangeIndexWithHistory = max(
+            tuple.item3,
+            highestChangeIndexWithHistory,
+          );
+          addressesToStore.addAll(tuple.item1);
+        }
       }
-      if (p2shChangeIndex == -1) {
-        final address =
-            await _generateAddressForChain(1, 0, DerivePathType.bip49);
-        p2shChangeAddressArray.add(address);
-      }
 
-      final addressesToStore = [
-        ...bip44P2pkhReceiveAddressArray,
-        ...bip44P2pkhChangeAddressArray,
-        ...p2shReceiveAddressArray,
-        ...p2shChangeAddressArray,
-      ];
-
-      if (!testnet) {
-        final resultReceiveBch44 = _checkGaps(
-            maxNumberOfIndexesToCheck,
-            maxUnusedAddressGap,
-            txCountBatchSize,
-            root,
-            DerivePathType.bch44,
-            0);
-        final Future<Map<String, dynamic>> bch44ResultChange = _checkGaps(
-            maxNumberOfIndexesToCheck,
-            maxUnusedAddressGap,
-            txCountBatchSize,
-            root,
-            DerivePathType.bch44,
-            1);
-        await Future.wait([
-          resultReceiveBch44,
-          bch44ResultChange,
-        ]);
-
-        bch44P2pkhReceiveAddressArray =
-            (await resultReceiveBch44)['addressArray']
-                as List<isar_models.Address>;
-        bch44P2pkhReceiveIndex = (await resultReceiveBch44)['index'] as int;
-        bch44P2pkhReceiveDerivations = (await resultReceiveBch44)['derivations']
-            as Map<String, Map<String, String>>;
-
-        bch44P2pkhChangeAddressArray = (await bch44ResultChange)['addressArray']
-            as List<isar_models.Address>;
-        bch44P2pkhChangeIndex = (await bch44ResultChange)['index'] as int;
-        bch44P2pkhChangeDerivations = (await bch44ResultChange)['derivations']
-            as Map<String, Map<String, String>>;
-
-        if (bch44P2pkhReceiveDerivations.isNotEmpty) {
-          await addDerivations(
-              chain: 0,
-              derivePathType: DerivePathType.bch44,
-              derivationsToAdd: bch44P2pkhReceiveDerivations);
-        }
-        if (bch44P2pkhChangeDerivations.isNotEmpty) {
-          await addDerivations(
-              chain: 1,
-              derivePathType: DerivePathType.bch44,
-              derivationsToAdd: bch44P2pkhChangeDerivations);
-        }
-
-        if (bch44P2pkhReceiveIndex == -1) {
-          final address =
-              await _generateAddressForChain(0, 0, DerivePathType.bch44);
-          bch44P2pkhReceiveAddressArray.add(address);
-        }
-
-        if (bch44P2pkhChangeIndex == -1) {
-          final address =
-              await _generateAddressForChain(1, 0, DerivePathType.bch44);
-          bch44P2pkhChangeAddressArray.add(address);
-        }
-
-        addressesToStore.addAll([
-          ...bch44P2pkhReceiveAddressArray,
-          ...bch44P2pkhChangeAddressArray,
-        ]);
-      }
+      // remove extra addresses to help minimize risk of creating a large gap
+      addressesToStore.removeWhere((e) =>
+          e.subType == isar_models.AddressSubType.change &&
+          e.derivationIndex > highestChangeIndexWithHistory);
+      addressesToStore.removeWhere((e) =>
+          e.subType == isar_models.AddressSubType.receiving &&
+          e.derivationIndex > highestReceivingIndexWithHistory);
 
       if (isRescan) {
         await db.updateOrPutAddresses(addressesToStore);
@@ -739,7 +622,10 @@ class BitcoinCashWallet extends CoinServiceAPI
         await db.putAddresses(addressesToStore);
       }
 
-      await _updateUTXOs();
+      await Future.wait([
+        _refreshTransactions(),
+        _updateUTXOs(),
+      ]);
 
       await Future.wait([
         updateCachedId(walletId),
@@ -851,36 +737,36 @@ class BitcoinCashWallet extends CoinServiceAPI
       final confirmations = tx.getConfirmations(currentChainHeight);
 
       if (tx.type == isar_models.TransactionType.incoming) {
-        unawaited(
-          NotificationApi.showNotification(
+        CryptoNotificationsEventBus.instance.fire(
+          CryptoNotificationEvent(
             title: "Incoming transaction",
-            body: walletName,
             walletId: walletId,
-            iconAssetName: Assets.svg.iconFor(coin: coin),
             date: DateTime.now(),
             shouldWatchForUpdates: confirmations < MINIMUM_CONFIRMATIONS,
-            coinName: coin.name,
             txid: tx.txid,
             confirmations: confirmations,
             requiredConfirmations: MINIMUM_CONFIRMATIONS,
+            walletName: walletName,
+            coin: coin,
           ),
         );
+
         await txTracker.addNotifiedPending(tx.txid);
       } else if (tx.type == isar_models.TransactionType.outgoing) {
-        unawaited(
-          NotificationApi.showNotification(
+        CryptoNotificationsEventBus.instance.fire(
+          CryptoNotificationEvent(
             title: "Sending transaction",
-            body: walletName,
             walletId: walletId,
-            iconAssetName: Assets.svg.iconFor(coin: coin),
             date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
             shouldWatchForUpdates: confirmations < MINIMUM_CONFIRMATIONS,
-            coinName: coin.name,
             txid: tx.txid,
             confirmations: confirmations,
             requiredConfirmations: MINIMUM_CONFIRMATIONS,
+            walletName: walletName,
+            coin: coin,
           ),
         );
+
         await txTracker.addNotifiedPending(tx.txid);
       }
     }
@@ -888,31 +774,34 @@ class BitcoinCashWallet extends CoinServiceAPI
     // notify on confirmed
     for (final tx in unconfirmedTxnsToNotifyConfirmed) {
       if (tx.type == isar_models.TransactionType.incoming) {
-        unawaited(
-          NotificationApi.showNotification(
+        CryptoNotificationsEventBus.instance.fire(
+          CryptoNotificationEvent(
             title: "Incoming transaction confirmed",
-            body: walletName,
             walletId: walletId,
-            iconAssetName: Assets.svg.iconFor(coin: coin),
             date: DateTime.now(),
             shouldWatchForUpdates: false,
-            coinName: coin.name,
+            txid: tx.txid,
+            requiredConfirmations: MINIMUM_CONFIRMATIONS,
+            walletName: walletName,
+            coin: coin,
           ),
         );
 
         await txTracker.addNotifiedConfirmed(tx.txid);
       } else if (tx.type == isar_models.TransactionType.outgoing) {
-        unawaited(
-          NotificationApi.showNotification(
+        CryptoNotificationsEventBus.instance.fire(
+          CryptoNotificationEvent(
             title: "Outgoing transaction confirmed",
-            body: walletName,
             walletId: walletId,
-            iconAssetName: Assets.svg.iconFor(coin: coin),
             date: DateTime.now(),
             shouldWatchForUpdates: false,
-            coinName: coin.name,
+            txid: tx.txid,
+            requiredConfirmations: MINIMUM_CONFIRMATIONS,
+            walletName: walletName,
+            coin: coin,
           ),
         );
+
         await txTracker.addNotifiedConfirmed(tx.txid);
       }
     }
@@ -1490,10 +1379,6 @@ class BitcoinCashWallet extends CoinServiceAPI
       // P2PKH
       _generateAddressForChain(0, 0, DerivePathType.bip44),
       _generateAddressForChain(1, 0, DerivePathType.bip44),
-
-      // P2SH
-      _generateAddressForChain(0, 0, DerivePathType.bip49),
-      _generateAddressForChain(1, 0, DerivePathType.bip49),
     ]);
 
     await db.putAddresses(initialAddresses);
@@ -1501,7 +1386,7 @@ class BitcoinCashWallet extends CoinServiceAPI
     Logging.instance.log("_generateNewWalletFinished", level: LogLevel.Info);
   }
 
-  /// Generates a new internal or external chain address for the wallet using a BIP44 or BIP49 derivation path.
+  /// Generates a new internal or external chain address for the wallet using a BIP44 derivation path.
   /// [chain] - Use 0 for receiving (external), 1 for change (internal). Should not be any other value!
   /// [index] - This can be any integer >= 0
   Future<isar_models.Address> _generateAddressForChain(
@@ -1542,29 +1427,9 @@ class BitcoinCashWallet extends CoinServiceAPI
         addrType = isar_models.AddressType.p2pkh;
         address = bitbox.Address.toCashAddress(address);
         break;
-      case DerivePathType.bip49:
-        address = P2SH(
-                data: PaymentData(
-                    redeem: P2WPKH(data: data, network: _network).data),
-                network: _network)
-            .data
-            .address!;
-        addrType = isar_models.AddressType.p2sh;
-        break;
-      case DerivePathType.bip84:
-        throw UnsupportedError("bip84 not supported by BCH");
       default:
         throw Exception("DerivePathType $derivePathType not supported");
     }
-
-    // add generated address & info to derivations
-    await addDerivation(
-      chain: chain,
-      address: address,
-      pubKey: Format.uint8listToString(node.publicKey),
-      wif: node.toWIF(),
-      derivePathType: derivePathType,
-    );
 
     return isar_models.Address(
       walletId: walletId,
@@ -1604,13 +1469,6 @@ class BitcoinCashWallet extends CoinServiceAPI
         coinType = coin == Coin.bitcoincash ? "0" : "1";
         purpose = "44";
         break;
-      case DerivePathType.bip49:
-        type = isar_models.AddressType.p2sh;
-        coinType = coin == Coin.bitcoincash ? "145" : "1";
-        purpose = "49";
-        break;
-      case DerivePathType.bip84:
-        throw UnsupportedError("bip84 not supported by BCH");
       default:
         throw Exception("DerivePathType $derivePathType not supported");
     }
@@ -1639,9 +1497,6 @@ class BitcoinCashWallet extends CoinServiceAPI
       case DerivePathType.bch44:
         key = "${walletId}_${chainId}DerivationsBch44P2PKH";
         break;
-      case DerivePathType.bip49:
-        key = "${walletId}_${chainId}DerivationsP2SH";
-        break;
       default:
         throw UnsupportedError(
             "${derivePathType.name} not supported by ${coin.prettyName}");
@@ -1659,74 +1514,6 @@ class BitcoinCashWallet extends CoinServiceAPI
     final derivationsString = await _secureStore.read(key: key);
     return Map<String, dynamic>.from(
         jsonDecode(derivationsString ?? "{}") as Map);
-  }
-
-  /// Add a single derivation to the local secure storage for [chain] and
-  /// [derivePathType] where [chain] must either be 1 for change or 0 for receive.
-  /// This will overwrite a previous entry where the address of the new derivation
-  /// matches a derivation currently stored.
-  Future<void> addDerivation({
-    required int chain,
-    required String address,
-    required String pubKey,
-    required String wif,
-    required DerivePathType derivePathType,
-  }) async {
-    // build lookup key
-    final key = _buildDerivationStorageKey(
-        chain: chain, derivePathType: derivePathType);
-
-    // fetch current derivations
-    final derivationsString = await _secureStore.read(key: key);
-    final derivations =
-        Map<String, dynamic>.from(jsonDecode(derivationsString ?? "{}") as Map);
-
-    // add derivation
-    derivations[address] = {
-      "pubKey": pubKey,
-      "wif": wif,
-    };
-
-    // save derivations
-    final newReceiveDerivationsString = jsonEncode(derivations);
-    await _secureStore.write(key: key, value: newReceiveDerivationsString);
-  }
-
-  /// Add multiple derivations to the local secure storage for [chain] and
-  /// [derivePathType] where [chain] must either be 1 for change or 0 for receive.
-  /// This will overwrite any previous entries where the address of the new derivation
-  /// matches a derivation currently stored.
-  /// The [derivationsToAdd] must be in the format of:
-  /// {
-  ///   addressA : {
-  ///     "pubKey": <the pubKey string>,
-  ///     "wif": <the wif string>,
-  ///   },
-  ///   addressB : {
-  ///     "pubKey": <the pubKey string>,
-  ///     "wif": <the wif string>,
-  ///   },
-  /// }
-  Future<void> addDerivations({
-    required int chain,
-    required DerivePathType derivePathType,
-    required Map<String, dynamic> derivationsToAdd,
-  }) async {
-    // build lookup key
-    final key = _buildDerivationStorageKey(
-        chain: chain, derivePathType: derivePathType);
-
-    // fetch current derivations
-    final derivationsString = await _secureStore.read(key: key);
-    final derivations =
-        Map<String, dynamic>.from(jsonDecode(derivationsString ?? "{}") as Map);
-
-    // add derivation
-    derivations.addAll(derivationsToAdd);
-
-    // save derivations
-    final newReceiveDerivationsString = jsonEncode(derivations);
-    await _secureStore.write(key: key, value: newReceiveDerivationsString);
   }
 
   Future<void> _updateUTXOs() async {
@@ -2121,8 +1908,6 @@ class BitcoinCashWallet extends CoinServiceAPI
 
     List<Map<String, dynamic>> allTransactions = [];
 
-    final currentHeight = await chainHeight;
-
     for (final txHash in allTxHashes) {
       final storedTx = await db
           .getTransactions(walletId)
@@ -2130,7 +1915,10 @@ class BitcoinCashWallet extends CoinServiceAPI
           .txidEqualTo(txHash["tx_hash"] as String)
           .findFirst();
 
-      if (storedTx == null || storedTx.address.value == null
+      if (storedTx == null ||
+              storedTx.address.value == null ||
+              storedTx.height == null ||
+              (storedTx.height != null && storedTx.height! <= 0)
           // zero conf messes this up
           // !storedTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)
           ) {
@@ -2783,16 +2571,11 @@ class BitcoinCashWallet extends CoinServiceAPI
     }
   }
 
-  Future<Map<String, dynamic>> fetchBuildTxData(
+  Future<List<SigningData>> fetchBuildTxData(
     List<isar_models.UTXO> utxosToUse,
   ) async {
     // return data
-    Map<String, dynamic> results = {};
-    Map<String, List<String>> addressTxid = {};
-
-    // addresses to check
-    List<String> addressesP2PKH = [];
-    List<String> addressesP2SH = [];
+    List<SigningData> signingData = [];
 
     try {
       // Populating the addresses to check
@@ -2806,7 +2589,9 @@ class BitcoinCashWallet extends CoinServiceAPI
         for (final output in tx["vout"] as List) {
           final n = output["n"];
           if (n != null && n == utxosToUse[i].vout) {
-            String address = output["scriptPubKey"]["addresses"][0] as String;
+            String address =
+                output["scriptPubKey"]?["addresses"]?[0] as String? ??
+                    output["scriptPubKey"]["address"] as String;
             if (bitbox.Address.detectFormat(address) !=
                 bitbox.Address.formatCashAddr) {
               try {
@@ -2815,169 +2600,100 @@ class BitcoinCashWallet extends CoinServiceAPI
                 rethrow;
               }
             }
-            if (!addressTxid.containsKey(address)) {
-              addressTxid[address] = <String>[];
-            }
-            (addressTxid[address] as List).add(txid);
-            final deriveType = addressType(address: address);
-            switch (deriveType) {
-              case DerivePathType.bip44:
-              case DerivePathType.bch44:
-                addressesP2PKH.add(address);
-                break;
-              case DerivePathType.bip49:
-                addressesP2SH.add(address);
-                break;
-              default:
-                throw UnsupportedError(
-                    "${deriveType.name} not supported by ${coin.prettyName}");
-            }
+
+            utxosToUse[i] = utxosToUse[i].copyWith(address: address);
           }
         }
+
+        final derivePathType = addressType(address: utxosToUse[i].address!);
+
+        signingData.add(
+          SigningData(
+            derivePathType: derivePathType,
+            utxo: utxosToUse[i],
+          ),
+        );
       }
 
-      // p2pkh / bip44
-      final p2pkhLength = addressesP2PKH.length;
-      if (p2pkhLength > 0) {
-        final receiveDerivationsBip44 = await _fetchDerivations(
-          chain: 0,
-          derivePathType: DerivePathType.bip44,
-        );
-        final changeDerivationsBip44 = await _fetchDerivations(
-          chain: 1,
-          derivePathType: DerivePathType.bip44,
-        );
-        final receiveDerivationsBch44 = await _fetchDerivations(
-          chain: 0,
-          derivePathType: DerivePathType.bch44,
-        );
-        final changeDerivationsBch44 = await _fetchDerivations(
-          chain: 1,
-          derivePathType: DerivePathType.bch44,
-        );
-        for (int i = 0; i < p2pkhLength; i++) {
-          String address = addressesP2PKH[i];
+      Map<DerivePathType, Map<String, dynamic>> receiveDerivations = {};
+      Map<DerivePathType, Map<String, dynamic>> changeDerivations = {};
 
-          // receives
-          final receiveDerivation = receiveDerivationsBip44[address] ??
-              receiveDerivationsBch44[address];
-          // if a match exists it will not be null
-          if (receiveDerivation != null) {
-            final data = P2PKH(
-              data: PaymentData(
-                  pubkey: Format.stringToUint8List(
-                      receiveDerivation["pubKey"] as String)),
-              network: _network,
-            ).data;
+      for (final sd in signingData) {
+        String? pubKey;
+        String? wif;
 
-            for (String tx in addressTxid[address]!) {
-              results[tx] = {
-                "output": data.output,
-                "keyPair": ECPair.fromWIF(
-                  receiveDerivation["wif"] as String,
-                  network: _network,
-                ),
-              };
-            }
-          } else {
-            // if its not a receive, check change
-            final changeDerivation = changeDerivationsBip44[address] ??
-                changeDerivationsBch44[address];
-            // if a match exists it will not be null
-            if (changeDerivation != null) {
-              final data = P2PKH(
+        // fetch receiving derivations if null
+        receiveDerivations[sd.derivePathType] ??= await _fetchDerivations(
+          chain: 0,
+          derivePathType: sd.derivePathType,
+        );
+        final receiveDerivation =
+            receiveDerivations[sd.derivePathType]![sd.utxo.address!];
+
+        if (receiveDerivation != null) {
+          pubKey = receiveDerivation["pubKey"] as String;
+          wif = receiveDerivation["wif"] as String;
+        } else {
+          // fetch change derivations if null
+          changeDerivations[sd.derivePathType] ??= await _fetchDerivations(
+            chain: 1,
+            derivePathType: sd.derivePathType,
+          );
+          final changeDerivation =
+              changeDerivations[sd.derivePathType]![sd.utxo.address!];
+          if (changeDerivation != null) {
+            pubKey = changeDerivation["pubKey"] as String;
+            wif = changeDerivation["wif"] as String;
+          }
+        }
+
+        if (wif == null || pubKey == null) {
+          final address = await db.getAddress(walletId, sd.utxo.address!);
+          if (address?.derivationPath != null) {
+            final node = await Bip32Utils.getBip32Node(
+              (await mnemonicString)!,
+              (await mnemonicPassphrase)!,
+              _network,
+              address!.derivationPath!.value,
+            );
+
+            wif = node.toWIF();
+            pubKey = Format.uint8listToString(node.publicKey);
+          }
+        }
+
+        if (wif != null && pubKey != null) {
+          final PaymentData data;
+          final Uint8List? redeemScript;
+
+          switch (sd.derivePathType) {
+            case DerivePathType.bip44:
+            case DerivePathType.bch44:
+              data = P2PKH(
                 data: PaymentData(
-                    pubkey: Format.stringToUint8List(
-                        changeDerivation["pubKey"] as String)),
+                  pubkey: Format.stringToUint8List(pubKey),
+                ),
                 network: _network,
               ).data;
+              redeemScript = null;
+              break;
 
-              for (String tx in addressTxid[address]!) {
-                results[tx] = {
-                  "output": data.output,
-                  "keyPair": ECPair.fromWIF(
-                    changeDerivation["wif"] as String,
-                    network: _network,
-                  ),
-                };
-              }
-            }
+            default:
+              throw Exception("DerivePathType unsupported");
           }
+
+          final keyPair = ECPair.fromWIF(
+            wif,
+            network: _network,
+          );
+
+          sd.redeemScript = redeemScript;
+          sd.output = data.output;
+          sd.keyPair = keyPair;
         }
       }
 
-      // p2sh / bip49
-      final p2shLength = addressesP2SH.length;
-      if (p2shLength > 0) {
-        final receiveDerivations = await _fetchDerivations(
-          chain: 0,
-          derivePathType: DerivePathType.bip49,
-        );
-        final changeDerivations = await _fetchDerivations(
-          chain: 1,
-          derivePathType: DerivePathType.bip49,
-        );
-        for (int i = 0; i < p2shLength; i++) {
-          // receives
-          final receiveDerivation = receiveDerivations[addressesP2SH[i]];
-          // if a match exists it will not be null
-          if (receiveDerivation != null) {
-            final p2wpkh = P2WPKH(
-                    data: PaymentData(
-                        pubkey: Format.stringToUint8List(
-                            receiveDerivation["pubKey"] as String)),
-                    network: _network)
-                .data;
-
-            final redeemScript = p2wpkh.output;
-
-            final data =
-                P2SH(data: PaymentData(redeem: p2wpkh), network: _network).data;
-
-            for (String tx in addressTxid[addressesP2SH[i]]!) {
-              results[tx] = {
-                "output": data.output,
-                "keyPair": ECPair.fromWIF(
-                  receiveDerivation["wif"] as String,
-                  network: _network,
-                ),
-                "redeemScript": redeemScript,
-              };
-            }
-          } else {
-            // if its not a receive, check change
-            final changeDerivation = changeDerivations[addressesP2SH[i]];
-            // if a match exists it will not be null
-            if (changeDerivation != null) {
-              final p2wpkh = P2WPKH(
-                      data: PaymentData(
-                          pubkey: Format.stringToUint8List(
-                              changeDerivation["pubKey"] as String)),
-                      network: _network)
-                  .data;
-
-              final redeemScript = p2wpkh.output;
-
-              final data =
-                  P2SH(data: PaymentData(redeem: p2wpkh), network: _network)
-                      .data;
-
-              for (String tx in addressTxid[addressesP2SH[i]]!) {
-                results[tx] = {
-                  "output": data.output,
-                  "keyPair": ECPair.fromWIF(
-                    changeDerivation["wif"] as String,
-                    network: _network,
-                  ),
-                  "redeemScript": redeemScript,
-                };
-              }
-            }
-          }
-        }
-      }
-
-      return results;
+      return signingData;
     } catch (e, s) {
       Logging.instance
           .log("fetchBuildTxData() threw: $e,\n$s", level: LogLevel.Error);
@@ -2988,11 +2704,13 @@ class BitcoinCashWallet extends CoinServiceAPI
   /// Builds and signs a transaction
   Future<Map<String, dynamic>> buildTransaction({
     required List<isar_models.UTXO> utxosToUse,
-    required Map<String, dynamic> utxoSigningData,
+    required List<SigningData> utxoSigningData,
     required List<String> recipients,
     required List<int> satoshiAmounts,
   }) async {
-    final builder = bitbox.Bitbox.transactionBuilder();
+    final builder = bitbox.Bitbox.transactionBuilder(
+      testnet: coin == Coin.bitcoincashTestnet,
+    );
 
     // retrieve address' utxos from the rest api
     List<bitbox.Utxo> _utxos =
@@ -3019,7 +2737,8 @@ class BitcoinCashWallet extends CoinServiceAPI
     for (var utxo in _utxos) {
       // add the utxo as an input for the transaction
       builder.addInput(utxo.txid, utxo.vout);
-      final ec = utxoSigningData[utxo.txid]["keyPair"] as ECPair;
+      final ec =
+          utxoSigningData.firstWhere((e) => e.utxo.txid == utxo.txid).keyPair!;
 
       final bitboxEC = bitbox.ECPair.fromWIF(ec.toWIF());
 

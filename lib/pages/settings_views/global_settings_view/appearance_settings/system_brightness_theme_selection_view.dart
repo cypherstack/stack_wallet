@@ -2,49 +2,68 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/sub_widgets/theme_option.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/providers/ui/color_theme_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
+import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:tuple/tuple.dart';
 
-class SystemBrightnessThemeSelectionView extends ConsumerWidget {
-  const SystemBrightnessThemeSelectionView({
-    Key? key,
-  }) : super(key: key);
+class SystemBrightnessThemeSelectionView extends ConsumerStatefulWidget {
+  const SystemBrightnessThemeSelectionView({Key? key}) : super(key: key);
 
   static const String routeName = "/chooseSystemTheme";
+
+  @override
+  ConsumerState<SystemBrightnessThemeSelectionView> createState() =>
+      _SystemBrightnessThemeSelectionViewState();
+}
+
+class _SystemBrightnessThemeSelectionViewState
+    extends ConsumerState<SystemBrightnessThemeSelectionView> {
+  List<Tuple2<String, String>> installedThemeIdNames = [];
 
   void _setTheme({
     required BuildContext context,
     required bool isDark,
-    required ThemeType type,
+    required String themeId,
     required WidgetRef ref,
   }) {
     final brightness = MediaQuery.of(context).platformBrightness;
     if (isDark) {
-      ref.read(prefsChangeNotifierProvider).systemBrightnessDarkTheme = type;
+      ref.read(prefsChangeNotifierProvider).systemBrightnessDarkThemeId =
+          themeId;
       if (brightness == Brightness.dark) {
-        ref.read(colorThemeProvider.notifier).state =
-            StackColors.fromStackColorTheme(
-          type.colorTheme,
-        );
+        // apply theme
+        ref.read(themeProvider.notifier).state =
+            ref.read(pThemeService).getTheme(themeId: themeId)!;
       }
     } else {
-      ref.read(prefsChangeNotifierProvider).systemBrightnessLightTheme = type;
+      ref.read(prefsChangeNotifierProvider).systemBrightnessLightThemeId =
+          themeId;
       if (brightness == Brightness.light) {
-        ref.read(colorThemeProvider.notifier).state =
-            StackColors.fromStackColorTheme(
-          type.colorTheme,
-        );
+        // apply theme
+        ref.read(themeProvider.notifier).state =
+            ref.read(pThemeService).getTheme(themeId: themeId)!;
       }
     }
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void initState() {
+    installedThemeIdNames = ref
+        .read(pThemeService)
+        .installedThemes
+        .map((e) => Tuple2(e.themeId, e.name))
+        .toList();
+
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -98,7 +117,7 @@ class SystemBrightnessThemeSelectionView extends ConsumerWidget {
                                 height: 18,
                               ),
                               for (int i = 0;
-                                  i < (2 * ThemeType.values.length) - 1;
+                                  i < (2 * installedThemeIdNames.length) - 1;
                                   i++)
                                 (i % 2 == 1)
                                     ? const SizedBox(
@@ -106,37 +125,41 @@ class SystemBrightnessThemeSelectionView extends ConsumerWidget {
                                       )
                                     : ThemeOption(
                                         label:
-                                            ThemeType.values[i ~/ 2].prettyName,
+                                            installedThemeIdNames[i ~/ 2].item2,
                                         onPressed: () {
                                           _setTheme(
                                             context: context,
                                             isDark: false,
-                                            type: ThemeType.values[i ~/ 2],
+                                            themeId:
+                                                installedThemeIdNames[i ~/ 2]
+                                                    .item1,
                                             ref: ref,
                                           );
                                         },
                                         onChanged: (newValue) {
                                           final value =
-                                              ThemeType.values[i ~/ 2];
+                                              installedThemeIdNames[i ~/ 2]
+                                                  .item1;
                                           if (newValue == value &&
                                               ref
                                                       .read(
                                                           prefsChangeNotifierProvider)
-                                                      .systemBrightnessLightTheme !=
+                                                      .systemBrightnessLightThemeId !=
                                                   value) {
                                             _setTheme(
                                               context: context,
                                               isDark: false,
-                                              type: value,
+                                              themeId: value,
                                               ref: ref,
                                             );
                                           }
                                         },
-                                        value: ThemeType.values[i ~/ 2],
+                                        value:
+                                            installedThemeIdNames[i ~/ 2].item1,
                                         groupValue: ref.watch(
                                             prefsChangeNotifierProvider.select(
                                                 (value) => value
-                                                    .systemBrightnessLightTheme)),
+                                                    .systemBrightnessLightThemeId)),
                                       ),
                             ],
                           ),
@@ -156,7 +179,7 @@ class SystemBrightnessThemeSelectionView extends ConsumerWidget {
                                 height: 18,
                               ),
                               for (int i = 0;
-                                  i < (2 * ThemeType.values.length) - 1;
+                                  i < (2 * installedThemeIdNames.length) - 1;
                                   i++)
                                 (i % 2 == 1)
                                     ? const SizedBox(
@@ -164,37 +187,41 @@ class SystemBrightnessThemeSelectionView extends ConsumerWidget {
                                       )
                                     : ThemeOption(
                                         label:
-                                            ThemeType.values[i ~/ 2].prettyName,
+                                            installedThemeIdNames[i ~/ 2].item2,
                                         onPressed: () {
                                           _setTheme(
                                             context: context,
                                             isDark: true,
-                                            type: ThemeType.values[i ~/ 2],
+                                            themeId:
+                                                installedThemeIdNames[i ~/ 2]
+                                                    .item1,
                                             ref: ref,
                                           );
                                         },
                                         onChanged: (newValue) {
                                           final value =
-                                              ThemeType.values[i ~/ 2];
+                                              installedThemeIdNames[i ~/ 2]
+                                                  .item1;
                                           if (newValue == value &&
                                               ref
                                                       .read(
                                                           prefsChangeNotifierProvider)
-                                                      .systemBrightnessDarkTheme !=
+                                                      .systemBrightnessDarkThemeId !=
                                                   value) {
                                             _setTheme(
                                               context: context,
                                               isDark: true,
-                                              type: value,
+                                              themeId: value,
                                               ref: ref,
                                             );
                                           }
                                         },
-                                        value: ThemeType.values[i ~/ 2],
+                                        value:
+                                            installedThemeIdNames[i ~/ 2].item1,
                                         groupValue: ref.watch(
                                             prefsChangeNotifierProvider.select(
                                                 (value) => value
-                                                    .systemBrightnessDarkTheme)),
+                                                    .systemBrightnessDarkThemeId)),
                                       ),
                             ],
                           ),

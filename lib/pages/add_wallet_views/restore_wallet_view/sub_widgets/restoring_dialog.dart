@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/animated_widgets/rotating_arrows.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
@@ -21,35 +20,13 @@ class RestoringDialog extends StatefulWidget {
   State<RestoringDialog> createState() => _RestoringDialogState();
 }
 
-class _RestoringDialogState extends State<RestoringDialog>
-    with TickerProviderStateMixin {
-  late AnimationController? _spinController;
-  late Animation<double> _spinAnimation;
-
+class _RestoringDialogState extends State<RestoringDialog> {
   late final Future<void> Function() onCancel;
   @override
   void initState() {
     onCancel = widget.onCancel;
 
-    _spinController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat();
-
-    _spinAnimation = CurvedAnimation(
-      parent: _spinController!,
-      curve: Curves.linear,
-    );
-
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    _spinController?.dispose();
-    _spinController = null;
-
-    super.dispose();
   }
 
   @override
@@ -69,14 +46,9 @@ class _RestoringDialogState extends State<RestoringDialog>
             const Spacer(
               flex: 1,
             ),
-            RotationTransition(
-              turns: _spinAnimation,
-              child: SvgPicture.asset(Assets.svg.arrowRotate3,
-                  width: 40,
-                  height: 40,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorDark),
+            const RotatingArrows(
+              width: 40,
+              height: 40,
             ),
             const Spacer(
               flex: 2,
@@ -127,14 +99,9 @@ class _RestoringDialogState extends State<RestoringDialog>
         child: StackDialog(
           title: "Restoring wallet",
           message: "This may take a while. Please do not exit this screen.",
-          icon: RotationTransition(
-            turns: _spinAnimation,
-            child: SvgPicture.asset(Assets.svg.arrowRotate3,
-                width: 24,
-                height: 24,
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .accentColorDark),
+          icon: const RotatingArrows(
+            width: 24,
+            height: 24,
           ),
           rightButton: TextButton(
             style: Theme.of(context)

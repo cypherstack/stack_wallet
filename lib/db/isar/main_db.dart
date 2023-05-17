@@ -2,7 +2,10 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/exceptions/main_db/main_db_exception.dart';
+import 'package:stackwallet/models/isar/models/block_explorer.dart';
+import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
@@ -33,6 +36,9 @@ class MainDB {
         AddressSchema,
         AddressLabelSchema,
         EthContractSchema,
+        TransactionBlockExplorerSchema,
+        StackThemeSchema,
+        ContactEntrySchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       // inspector: kDebugMode,
@@ -41,6 +47,64 @@ class MainDB {
       maxSizeMiB: 512,
     );
     return true;
+  }
+
+  // contact entries
+  List<ContactEntry> getContactEntries(){
+    return isar.contactEntrys.where().findAllSync();
+  }
+
+  Future<bool> deleteContactEntry({required String id}) {
+    try {
+      return isar.writeTxn(() async {
+        await isar.contactEntrys.deleteByCustomId(id);
+        return true;
+      });
+    } catch (e) {
+      throw MainDBException("failed deleteContactEntry: $id", e);
+    }
+  }
+
+  Future<bool> isContactEntryExists({required String id}) async {
+    return isar.contactEntrys
+        .where()
+        .customIdEqualTo(id)
+        .count()
+        .then((value) => value > 0);
+  }
+
+  ContactEntry? getContactEntry({required String id}) {
+    return isar.contactEntrys.where().customIdEqualTo(id).findFirstSync();
+  }
+
+  Future<bool> putContactEntry({required ContactEntry contactEntry}) async {
+    try {
+      return await isar.writeTxn(() async {
+        await isar.contactEntrys.put(contactEntry);
+        return true;
+      });
+    } catch (e) {
+      throw MainDBException("failed putContactEntry: $contactEntry", e);
+    }
+  }
+
+  // tx block explorers
+  TransactionBlockExplorer? getTransactionBlockExplorer({required Coin coin}) {
+    return isar.transactionBlockExplorers
+        .where()
+        .tickerEqualTo(coin.ticker)
+        .findFirstSync();
+  }
+
+  Future<int> putTransactionBlockExplorer(
+      TransactionBlockExplorer explorer) async {
+    try {
+      return await isar.writeTxn(() async {
+        return await isar.transactionBlockExplorers.put(explorer);
+      });
+    } catch (e) {
+      throw MainDBException("failed putTransactionBlockExplorer: $explorer", e);
+    }
   }
 
   // addresses

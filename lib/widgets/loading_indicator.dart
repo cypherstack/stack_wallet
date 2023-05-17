@@ -1,10 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'dart:io';
 
-class LoadingIndicator extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lottie/lottie.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
+import 'package:stackwallet/utilities/assets.dart';
+
+class LoadingIndicator extends ConsumerWidget {
   const LoadingIndicator({
     Key? key,
     this.width,
@@ -15,11 +17,10 @@ class LoadingIndicator extends StatelessWidget {
   final double? height;
 
   @override
-  Widget build(BuildContext context) {
-    final isChan = Theme.of(context).extension<StackColors>()!.themeType ==
-            ThemeType.chan ||
-        Theme.of(context).extension<StackColors>()!.themeType ==
-            ThemeType.darkChans;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final assetPath = ref.watch(
+      themeProvider.select((value) => value.assets.loadingGif),
+    );
 
     return Container(
       color: Colors.transparent,
@@ -27,10 +28,10 @@ class LoadingIndicator extends StatelessWidget {
         child: SizedBox(
           width: width,
           height: height,
-          child: isChan
-              ? Image(
-                  image: AssetImage(
-                    Assets.gif.stacyPlain,
+          child: assetPath != null
+              ? Image.file(
+                  File(
+                    assetPath,
                   ),
                 )
               : Lottie.asset(

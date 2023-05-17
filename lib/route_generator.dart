@@ -5,7 +5,6 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
-import 'package:stackwallet/models/contact_address_entry.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
@@ -63,7 +62,9 @@ import 'package:stackwallet/pages/send_view/token_send_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/about_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/advanced_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/manage_explorer_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/appearance_settings_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/manage_themes.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/system_brightness_theme_selection_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/currency_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/delete_account_view.dart';
@@ -133,7 +134,7 @@ import 'package:stackwallet/pages_desktop_specific/password/forgot_password_desk
 import 'package:stackwallet/pages_desktop_specific/password/forgotten_passphrase_restore_from_swb.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/desktop_settings_view.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/advanced_settings/advanced_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/appearance_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/appearance_settings/appearance_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/backup_and_restore/backup_and_restore_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/currency_settings/currency_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/desktop_about_view.dart';
@@ -148,7 +149,10 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/widgets/choose_coin_view.dart';
 import 'package:tuple/tuple.dart';
+
+import 'models/isar/models/contact_entry.dart';
 
 class RouteGenerator {
   static const bool useMaterialPageRoute = true;
@@ -205,6 +209,36 @@ class RouteGenerator {
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const StackPrivacyCalls(isSettings: false),
             settings: RouteSettings(name: settings.name));
+
+      case ChooseCoinView.routeName:
+        if (args is Tuple3<String, String, String>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ChooseCoinView(
+              title: args.item1,
+              coinAdditional: args.item2,
+              nextRouteName: args.item3,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ManageExplorerView.routeName:
+        if (args is Coin) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ManageExplorerView(
+              coin: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case WalletsView.routeName:
         return getRoute(
@@ -1558,6 +1592,12 @@ class RouteGenerator {
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => const AppearanceOptionSettings(),
+            settings: RouteSettings(name: settings.name));
+
+      case ManageThemesView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const ManageThemesView(),
             settings: RouteSettings(name: settings.name));
 
       case AdvancedSettings.routeName:

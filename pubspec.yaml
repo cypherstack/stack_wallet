@@ -11,7 +11,7 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.7.1+161
+version: 1.7.8+172
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
@@ -60,7 +60,7 @@ dependencies:
   bip47:
     git:
       url: https://github.com/cypherstack/bip47.git
-      ref: 48dd65f88822fba8543826274f6d51c17f735f93
+      ref: 38847255d035c0f6ec5bc93d19130ec804cf90e9
 
   # Utility plugins
 #  provider: ^6.0.1
@@ -151,6 +151,8 @@ dependencies:
   dart_bs58check: ^3.0.2
   hex: ^0.2.0
   rational: ^2.2.2
+  archive: ^3.3.2
+  desktop_drop: ^0.4.1
 
 dev_dependencies:
   flutter_test:
@@ -211,8 +213,6 @@ flutter:
   #  - images/a_dot_burr.jpeg
   #  - images/a_dot_ham.jpeg
   assets:
-    - assets/images/chan-persona-incognito.png
-    - assets/images/chan-persona-easy.png
     - assets/images/splash.png
     - assets/icon/icon.png
     - google_fonts/
@@ -248,7 +248,6 @@ flutter:
     - assets/svg/chevron-up.svg
     - assets/svg/lock-keyhole.svg
     - assets/svg/lock-open.svg
-    - assets/svg/rotate-exclamation.svg
     - assets/svg/folder-down.svg
     - assets/svg/network-wired.svg
     - assets/svg/network-wired-2.svg
@@ -328,10 +327,12 @@ flutter:
     - assets/svg/framed-gear.svg
     - assets/svg/list-ul.svg
     - assets/svg/cc.svg
-
-
-    # coin icons
-    - assets/svg/coin_icons/
+    - assets/svg/file.svg
+    - assets/svg/file-upload.svg
+    - assets/svg/trocador_rating_a.svg
+    - assets/svg/trocador_rating_b.svg
+    - assets/svg/trocador_rating_c.svg
+    - assets/svg/trocador_rating_d.svg
 
     # coin control icons
     - assets/svg/coin_control/
@@ -342,61 +343,18 @@ flutter:
     # exchange icons
     - assets/svg/exchange_icons/
 
-    # theme selectors
-    - assets/svg/dark-theme.svg
-    - assets/svg/light-mode.svg
-    - assets/svg/ocean-breeze-theme.svg
-    - assets/svg/oled-black-theme.svg
-    - assets/svg/fruit-sorbet-theme.svg
-    - assets/svg/forest-theme.svg
-    - assets/svg/chanstheme.svg
-    - assets/svg/darkChansTheme.svg
-    - assets/svg/orange-theme.svg
-
-    # light theme specific
-    - assets/svg/themed/light/
-
-    # dark theme specific
-    - assets/svg/themed/dark/
-
-    # ocean theme specific
-    - assets/svg/themed/oceanBreeze/
-
-    # OLED black theme specific
-    - assets/svg/themed/oledBlack/
-
-    # fruit sorbet theme specific
-    - assets/svg/themed/fruitSorbet/
-
-    # forest theme specific
-    - assets/svg/themed/forest/
-
-    # orange theme specific
-    - assets/svg/themed/orange/
-
     # buy
     - assets/svg/buy/
-
 
     # lottie animations
     # basic
     - assets/lottie/test2.json
+    - assets/lottie/icon_send.json
+    - assets/lottie/loader_and_checkmark.json
+    - assets/lottie/arrow_rotate.json
 
-    # gifs
-    - assets/gif/
-
-    # coin gifs
-    - assets/gif/coins/bitcoin/
-    - assets/gif/coins/bitcoincash/
-    - assets/gif/coins/dogecoin/
-    - assets/gif/coins/epicCash/
-    - assets/gif/coins/ethereum/
-    - assets/gif/coins/firo/
-    - assets/gif/coins/litecoin/
-    - assets/gif/coins/monero/
-    - assets/gif/coins/namecoin/
-    - assets/gif/coins/particl/
-    - assets/gif/coins/wownero/
+    # default themes_testing
+    - assets/default_themes/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

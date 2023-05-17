@@ -1,9 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/contact.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
+import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/add_new_contact_address_view.dart';
 import 'package:stackwallet/pages_desktop_specific/address_book_view/subwidgets/desktop_address_card.dart';
@@ -12,9 +14,10 @@ import 'package:stackwallet/providers/global/address_book_service_provider.dart'
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/ui/address_book_providers/address_entry_data_provider.dart';
 import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -23,8 +26,6 @@ import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/transaction_card.dart';
 import 'package:tuple/tuple.dart';
-
-import '../../../db/isar/main_db.dart';
 
 class DesktopContactDetails extends ConsumerStatefulWidget {
   const DesktopContactDetails({
@@ -42,7 +43,7 @@ class DesktopContactDetails extends ConsumerStatefulWidget {
 class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
   List<Tuple2<String, Transaction>> _cachedTransactions = [];
 
-  bool _contactHasAddress(String address, Contact contact) {
+  bool _contactHasAddress(String address, ContactEntry contact) {
     for (final entry in contact.addresses) {
       if (entry.address == address) {
         return true;
@@ -82,7 +83,7 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
   @override
   Widget build(BuildContext context) {
     // provider hack to prevent trying to update widget with deleted contact
-    Contact? _contact;
+    ContactEntry? _contact;
     try {
       _contact = ref.watch(addressBookServiceProvider
           .select((value) => value.getContactById(widget.contactId)));
@@ -110,17 +111,23 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                           width: 32,
                           height: 32,
                           decoration: BoxDecoration(
-                            color: contact.id == "default"
+                            color: contact.customId == "default"
                                 ? Colors.transparent
                                 : Theme.of(context)
                                     .extension<StackColors>()!
                                     .textFieldDefaultBG,
                             borderRadius: BorderRadius.circular(32),
                           ),
-                          child: contact.id == "default"
+                          child: contact.customId == "default"
                               ? Center(
-                                  child: SvgPicture.asset(
-                                    Assets.svg.stackIcon(context),
+                                  child: SvgPicture.file(
+                                    File(
+                                      ref.watch(
+                                        themeProvider.select(
+                                          (value) => value.assets.stackIcon,
+                                        ),
+                                      ),
+                                    ),
                                     width: 32,
                                   ),
                                 )
@@ -155,7 +162,7 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                             barrierColor: Colors.transparent,
                             builder: (context) {
                               return DesktopContactOptionsMenuPopup(
-                                contactId: contact.id,
+                                contactId: contact.customId,
                               );
                             },
                           );
@@ -257,7 +264,7 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                                     padding: const EdgeInsets.all(18),
                                     child: DesktopAddressCard(
                                       entry: contact.addresses[i],
-                                      contactId: contact.id,
+                                      contactId: contact.customId,
                                     ),
                                   ),
                                 ],

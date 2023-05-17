@@ -1,13 +1,15 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_overview.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
@@ -58,7 +60,7 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
   }
 }
 
-class DesktopWalletSummaryRow extends StatefulWidget {
+class DesktopWalletSummaryRow extends ConsumerStatefulWidget {
   const DesktopWalletSummaryRow({
     Key? key,
     required this.coin,
@@ -69,11 +71,12 @@ class DesktopWalletSummaryRow extends StatefulWidget {
   final int walletCount;
 
   @override
-  State<DesktopWalletSummaryRow> createState() =>
+  ConsumerState<DesktopWalletSummaryRow> createState() =>
       _DesktopWalletSummaryRowState();
 }
 
-class _DesktopWalletSummaryRowState extends State<DesktopWalletSummaryRow> {
+class _DesktopWalletSummaryRowState
+    extends ConsumerState<DesktopWalletSummaryRow> {
   bool _hovering = false;
 
   void _onPressed() {
@@ -140,8 +143,10 @@ class _DesktopWalletSummaryRowState extends State<DesktopWalletSummaryRow> {
                 flex: 4,
                 child: Row(
                   children: [
-                    SvgPicture.asset(
-                      Assets.svg.iconFor(coin: widget.coin),
+                    SvgPicture.file(
+                      File(
+                        ref.watch(coinIconProvider(widget.coin)),
+                      ),
                       width: 28,
                       height: 28,
                     ),

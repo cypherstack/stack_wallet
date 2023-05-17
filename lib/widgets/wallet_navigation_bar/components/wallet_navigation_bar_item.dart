@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/wallet_navigation_bar.dart';
 
@@ -68,9 +68,10 @@ class WalletNavigationBarItem extends ConsumerWidget {
                       Text(
                         data.label ?? "",
                         style: STextStyles.buttonSmall(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .bottomNavText),
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .bottomNavText,
+                        ),
                       ),
                 ],
               ),
@@ -112,7 +113,11 @@ class WalletNavigationBarMoreItem extends ConsumerWidget {
                 child: Text(
                   data.label ?? "",
                   textAlign: TextAlign.center,
-                  style: STextStyles.buttonSmall(context),
+                  style: STextStyles.buttonSmall(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .bottomNavText,
+                  ),
                 ),
               ),
               const SizedBox(

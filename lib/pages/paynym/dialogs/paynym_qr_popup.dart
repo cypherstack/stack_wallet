@@ -6,9 +6,9 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/models/paynym/paynym_account.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/paynym/subwidgets/paynym_bot.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -55,7 +55,7 @@ class PaynymQrPopup extends StatelessWidget {
             child: Row(
               children: [
                 PayNymBot(
-                  paymentCodeString: paynymAccount.codes.first.code,
+                  paymentCodeString: paynymAccount.nonSegwitPaymentCode.code,
                   size: isDesktop ? 56 : 36,
                 ),
                 const SizedBox(
@@ -108,7 +108,7 @@ class PaynymQrPopup extends StatelessWidget {
                           height: 6,
                         ),
                         Text(
-                          paynymAccount.codes.first.code,
+                          paynymAccount.nonSegwitPaymentCode.code,
                           style: isDesktop
                               ? STextStyles.desktopTextSmall(context)
                               : STextStyles.infoSmall(context).copyWith(
@@ -127,7 +127,7 @@ class PaynymQrPopup extends StatelessWidget {
                           onTap: () async {
                             await Clipboard.setData(
                               ClipboardData(
-                                text: paynymAccount.codes.first.code,
+                                text: paynymAccount.nonSegwitPaymentCode.code,
                               ),
                             );
                             unawaited(
@@ -150,7 +150,7 @@ class PaynymQrPopup extends StatelessWidget {
                 QrImage(
                   padding: const EdgeInsets.all(0),
                   size: 130,
-                  data: paynymAccount.codes.first.code,
+                  data: paynymAccount.nonSegwitPaymentCode.code,
                   foregroundColor:
                       Theme.of(context).extension<StackColors>()!.textDark,
                 ),

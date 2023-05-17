@@ -11,13 +11,13 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -87,6 +87,8 @@ class _NewWalletRecoveryPhraseWarningViewState
                     right: 10,
                   ),
                   child: AppBarIconButton(
+                    semanticsLabel:
+                        "Question Button. Opens A Dialog For Recovery Phrase Explanation.",
                     icon: SvgPicture.asset(
                       Assets.svg.circleQuestion,
                       width: 20,
