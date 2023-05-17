@@ -89,7 +89,7 @@ String constructDerivePath({
     case 0x80: //   mainnet wif
       switch (derivePathType) {
         case DerivePathType.bip44:
-          coinType = "0";
+          coinType = "145";
           break;
         case DerivePathType.eCash44:
           coinType = "899";
@@ -558,16 +558,16 @@ class ECashWallet extends CoinServiceAPI
         startingIndex,
         DerivePathType.eCash44,
       ),
-      _generateAddressForChain(
-        receiveChain,
-        startingIndex,
-        DerivePathType.bip44,
-      ),
-      _generateAddressForChain(
-        changeChain,
-        startingIndex,
-        DerivePathType.bip44,
-      ),
+      // _generateAddressForChain(
+      //   receiveChain,
+      //   startingIndex,
+      //   DerivePathType.bip44,
+      // ),
+      // _generateAddressForChain(
+      //   changeChain,
+      //   startingIndex,
+      //   DerivePathType.bip44,
+      // ),
     ]);
 
     await db.putAddresses(initialAddresses);
