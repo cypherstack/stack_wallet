@@ -62,6 +62,9 @@ dependencies:
       url: https://github.com/cypherstack/bip47.git
       ref: 38847255d035c0f6ec5bc93d19130ec804cf90e9
 
+  tor:
+    path: ./crypto_plugins/tor
+
   # Utility plugins
 #  provider: ^6.0.1
   http: ^0.13.4
