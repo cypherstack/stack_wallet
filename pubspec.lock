@@ -1699,6 +1699,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.1.5"
+  tor:
+    dependency: "direct main"
+    description:
+      path: "crypto_plugins/tor"
+      relative: true
+    source: path
+    version: "0.0.1"
   tuple:
     dependency: "direct main"
     description:
@@ -1957,5 +1964,5 @@ packages:
     source: hosted
     version: "1.0.0"
 sdks:
-  dart: ">=2.18.5 <3.0.0"
+  dart: ">=2.19.4 <3.0.0"
   flutter: ">=3.3.0"
