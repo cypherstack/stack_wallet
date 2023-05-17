@@ -55,4 +55,6 @@ libcw_monero.dll
 libcw_wownero.dll
 libepic_cash_wallet.dll
 libmobileliblelantus.dll
+libtor_ffi.dll
 /libisar.so
+libtor_ffi.so
