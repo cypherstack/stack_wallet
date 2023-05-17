@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_libmonero/monero/monero.dart';
 import 'package:flutter_libmonero/wownero/wownero.dart';
+import 'package:tor/tor.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -180,6 +181,9 @@ void main() async {
 
   monero.onStartup();
   wownero.onStartup();
+
+  dynamic tor = Tor();
+  tor.start();
 
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
   //     overlays: [SystemUiOverlay.bottom]);
