@@ -424,6 +424,8 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.dogecoin;
     case "epic":
       return Coin.epicCash;
+    case "xec":
+      return Coin.eCash;
     case "eth":
       return Coin.ethereum;
     case "firo":
