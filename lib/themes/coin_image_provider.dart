@@ -43,7 +43,7 @@ final coinImageProvider = Provider.family<String, Coin>((ref, coin) {
         return assets.ethereumImage;
     }
   } else {
-    return (assets as ThemeAssetsV2).coinImages[coin]!;
+    return (assets as ThemeAssetsV2).coinImages[coin.mainNetVersion]!;
   }
 });
 
@@ -87,6 +87,6 @@ final coinImageSecondaryProvider = Provider.family<String, Coin>((ref, coin) {
         return assets.ethereumImageSecondary;
     }
   } else {
-    return (assets as ThemeAssetsV2).coinSecondaryImages[coin]!;
+    return (assets as ThemeAssetsV2).coinSecondaryImages[coin.mainNetVersion]!;
   }
 });

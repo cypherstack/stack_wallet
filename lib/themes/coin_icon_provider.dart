@@ -39,6 +39,6 @@ final coinIconProvider = Provider.family<String, Coin>((ref, coin) {
         return assets.ethereum;
     }
   } else {
-    return (assets as ThemeAssetsV2).coinIcons[coin]!;
+    return (assets as ThemeAssetsV2).coinIcons[coin.mainNetVersion]!;
   }
 });
