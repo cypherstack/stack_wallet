@@ -2014,7 +2014,6 @@ class ThemeAssets {
   late final String bitcoincash;
   late final String dogecoin;
   late final String epicCash;
-  late final String? eCash;
   late final String ethereum;
   late final String firo;
   late final String monero;
@@ -2025,7 +2024,6 @@ class ThemeAssets {
   late final String bitcoincashImage;
   late final String dogecoinImage;
   late final String epicCashImage;
-  late final String? eCashImage;
   late final String ethereumImage;
   late final String firoImage;
   late final String litecoinImage;
@@ -2037,7 +2035,6 @@ class ThemeAssets {
   late final String bitcoincashImageSecondary;
   late final String dogecoinImageSecondary;
   late final String epicCashImageSecondary;
-  late final String? eCashImageSecondary;
   late final String ethereumImageSecondary;
   late final String firoImageSecondary;
   late final String litecoinImageSecondary;
@@ -2104,8 +2101,6 @@ class ThemeAssets {
           "$applicationThemesDirectoryPath/$themeId/assets/${json["dogecoin"] as String}"
       ..epicCash =
           "$applicationThemesDirectoryPath/$themeId/assets/${json["epicCash"] as String}"
-      ..eCash =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["ecash"] as String}"
       ..ethereum =
           "$applicationThemesDirectoryPath/$themeId/assets/${json["ethereum"] as String}"
       ..firo =
@@ -2126,9 +2121,6 @@ class ThemeAssets {
           "$applicationThemesDirectoryPath/$themeId/assets/${json["dogecoin_image"] as String}"
       ..epicCashImage =
           "$applicationThemesDirectoryPath/$themeId/assets/${json["epicCash_image"] as String}"
-      ..eCashImage =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["ecash_image"] as String}"
-              "$applicationThemesDirectoryPath/$themeId/assets/${json["ecash_image"] as String}"
       ..ethereumImage =
           "$applicationThemesDirectoryPath/$themeId/assets/${json["ethereum_image"] as String}"
       ..firoImage =
@@ -2151,8 +2143,6 @@ class ThemeAssets {
           "$applicationThemesDirectoryPath/$themeId/assets/${json["dogecoin_image_secondary"] as String}"
       ..epicCashImageSecondary =
           "$applicationThemesDirectoryPath/$themeId/assets/${json["epicCash_image_secondary"] as String}"
-      ..eCashImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["ecash_image_secondary"] as String?}"
       ..ethereumImageSecondary =
           "$applicationThemesDirectoryPath/$themeId/assets/${json["ethereum_image_secondary"] as String}"
       ..firoImageSecondary =
