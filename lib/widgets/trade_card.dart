@@ -24,7 +24,7 @@ class TradeCard extends ConsumerWidget {
   final Trade trade;
   final VoidCallback onTap;
 
-  String _fetchIconAssetForStatus(String statusString, ThemeAssets assets) {
+  String _fetchIconAssetForStatus(String statusString, IThemeAssets assets) {
     ChangeNowTransactionStatus? status;
     try {
       if (statusString.toLowerCase().startsWith("waiting")) {
@@ -89,11 +89,7 @@ class TradeCard extends ConsumerWidget {
                     File(
                       _fetchIconAssetForStatus(
                         trade.status,
-                        ref.watch(
-                          themeProvider.select(
-                            (value) => value.assets,
-                          ),
-                        ),
+                        ref.watch(themeAssetsProvider),
                       ),
                     ),
                     width: 32,

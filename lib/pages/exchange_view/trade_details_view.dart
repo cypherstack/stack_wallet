@@ -113,7 +113,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
     super.initState();
   }
 
-  String _fetchIconAssetForStatus(String statusString, ThemeAssets assets) {
+  String _fetchIconAssetForStatus(String statusString, IThemeAssets assets) {
     ChangeNowTransactionStatus? status;
     try {
       if (statusString.toLowerCase().startsWith("waiting")) {
@@ -322,11 +322,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                               File(
                                 _fetchIconAssetForStatus(
                                   trade.status,
-                                  ref.watch(
-                                    themeProvider.select(
-                                      (value) => value.assets,
-                                    ),
-                                  ),
+                                  ref.watch(themeAssetsProvider),
                                 ),
                               ),
                               width: 32,
@@ -393,11 +389,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                               File(
                                 _fetchIconAssetForStatus(
                                   trade.status,
-                                  ref.watch(
-                                    themeProvider.select(
-                                      (value) => value.assets,
-                                    ),
-                                  ),
+                                  ref.watch(themeAssetsProvider),
                                 ),
                               ),
                               width: 32,
