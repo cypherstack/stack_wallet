@@ -2105,7 +2105,7 @@ class ThemeAssets {
       ..epicCash =
           "$applicationThemesDirectoryPath/$themeId/assets/${json["epicCash"] as String}"
       ..eCash =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["eCash"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["ecash"] as String}"
       ..ethereum =
           "$applicationThemesDirectoryPath/$themeId/assets/${json["ethereum"] as String}"
       ..firo =
@@ -2127,7 +2127,8 @@ class ThemeAssets {
       ..epicCashImage =
           "$applicationThemesDirectoryPath/$themeId/assets/${json["epicCash_image"] as String}"
       ..eCashImage =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["eCash_image"] as String}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["ecash_image"] as String}"
+              "$applicationThemesDirectoryPath/$themeId/assets/${json["ecash_image"] as String}"
       ..ethereumImage =
           "$applicationThemesDirectoryPath/$themeId/assets/${json["ethereum_image"] as String}"
       ..firoImage =
@@ -2151,7 +2152,7 @@ class ThemeAssets {
       ..epicCashImageSecondary =
           "$applicationThemesDirectoryPath/$themeId/assets/${json["epicCash_image_secondary"] as String}"
       ..eCashImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["eCash_image_secondary"] as String?}"
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["ecash_image_secondary"] as String?}"
       ..ethereumImageSecondary =
           "$applicationThemesDirectoryPath/$themeId/assets/${json["ethereum_image_secondary"] as String}"
       ..firoImageSecondary =
