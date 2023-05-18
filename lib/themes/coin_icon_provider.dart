@@ -18,7 +18,7 @@ final coinIconProvider = Provider.family<String, Coin>((ref, coin) {
     case Coin.dogecoinTestNet:
       return assets.dogecoin;
     case Coin.eCash:
-      return assets.ecash;
+      return assets.eCash!;
     case Coin.epicCash:
       return assets.epicCash;
     case Coin.firo:

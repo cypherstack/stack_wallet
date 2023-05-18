@@ -34,7 +34,7 @@ class CoinThemeColorDefault {
       case Coin.dogecoinTestNet:
         return dogecoin;
       case Coin.eCash:
-        return epicCash;
+        return eCash;
       case Coin.epicCash:
         return epicCash;
       case Coin.ethereum:
