@@ -2,11 +2,11 @@ import 'dart:convert';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_libepiccash/git_versions.dart' as EPIC_VERSIONS;
-import 'package:flutter_libmonero/git_versions.dart' as MONERO_VERSIONS;
+// import 'package:flutter_libepiccash/git_versions.dart' as EPIC_VERSIONS;
+// import 'package:flutter_libmonero/git_versions.dart' as MONERO_VERSIONS;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart';
-import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
+// import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -98,9 +98,9 @@ class DesktopAboutView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    String firoCommit = FIRO_VERSIONS.getPluginVersion();
-    String epicCashCommit = EPIC_VERSIONS.getPluginVersion();
-    String moneroCommit = MONERO_VERSIONS.getPluginVersion();
+    String firoCommit ="lololololo"; // FIRO_VERSIONS.getPluginVersion();
+    String epicCashCommit ="lololololo"; // EPIC_VERSIONS.getPluginVersion();
+    String moneroCommit = "lololololo"; //MONERO_VERSIONS.getPluginVersion();
     List<Future> futureFiroList = [
       doesCommitExist("cypherstack", "flutter_liblelantus", firoCommit),
       isHeadCommit("cypherstack", "flutter_liblelantus", "main", firoCommit),
