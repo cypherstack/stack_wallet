@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
+import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/languages_enum.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
+import 'package:uuid/uuid.dart';
 
 class Prefs extends ChangeNotifier {
   Prefs._();
@@ -17,7 +17,8 @@ class Prefs extends ChangeNotifier {
   Future<void> init() async {
     if (!_initialized) {
       _currency = await _getPreferredCurrency();
-      _exchangeRateType = await _getExchangeRateType();
+      // _exchangeRateType = await _getExchangeRateType();
+      _randomizePIN = await _getRandomizePIN();
       _useBiometrics = await _getUseBiometrics();
       _hasPin = await _getHasPin();
       _language = await _getPreferredLanguage();
@@ -38,6 +39,13 @@ class Prefs extends ChangeNotifier {
       _startupWalletId = await _getStartupWalletId();
       _externalCalls = await _getHasExternalCalls();
       _familiarity = await _getHasFamiliarity();
+      _userId = await _getUserId();
+      _signupEpoch = await _getSignupEpoch();
+      _enableCoinControl = await _getEnableCoinControl();
+      _enableSystemBrightness = await _getEnableSystemBrightness();
+      _themeId = await _getThemeId();
+      _systemBrightnessLightThemeId = await _getSystemBrightnessLightThemeId();
+      _systemBrightnessDarkThemeId = await _getSystemBrightnessDarkTheme();
 
       _initialized = true;
     }
@@ -248,43 +256,64 @@ class Prefs extends ChangeNotifier {
 
   // exchange rate type
 
-  ExchangeRateType _exchangeRateType = ExchangeRateType.estimated;
+  // ExchangeRateType _exchangeRateType = ExchangeRateType.estimated;
+  //
+  // ExchangeRateType get exchangeRateType => _exchangeRateType;
+  //
+  // set exchangeRateType(ExchangeRateType exchangeRateType) {
+  //   if (_exchangeRateType != exchangeRateType) {
+  //     switch (exchangeRateType) {
+  //       case ExchangeRateType.estimated:
+  //         DB.instance.put<dynamic>(
+  //             boxName: DB.boxNamePrefs,
+  //             key: "exchangeRateType",
+  //             value: "estimated");
+  //         break;
+  //       case ExchangeRateType.fixed:
+  //         DB.instance.put<dynamic>(
+  //             boxName: DB.boxNamePrefs,
+  //             key: "exchangeRateType",
+  //             value: "fixed");
+  //         break;
+  //     }
+  //     _exchangeRateType = exchangeRateType;
+  //     notifyListeners();
+  //   }
+  // }
+  //
+  // Future<ExchangeRateType> _getExchangeRateType() async {
+  //   String? rate = await DB.instance.get<dynamic>(
+  //       boxName: DB.boxNamePrefs, key: "exchangeRateType") as String?;
+  //   rate ??= "estimated";
+  //   switch (rate) {
+  //     case "estimated":
+  //       return ExchangeRateType.estimated;
+  //     case "fixed":
+  //       return ExchangeRateType.fixed;
+  //     default:
+  //       throw Exception("Invalid exchange rate type found in prefs!");
+  //   }
+  // }
 
-  ExchangeRateType get exchangeRateType => _exchangeRateType;
+  // randomize PIN
 
-  set exchangeRateType(ExchangeRateType exchangeRateType) {
-    if (_exchangeRateType != exchangeRateType) {
-      switch (exchangeRateType) {
-        case ExchangeRateType.estimated:
-          DB.instance.put<dynamic>(
-              boxName: DB.boxNamePrefs,
-              key: "exchangeRateType",
-              value: "estimated");
-          break;
-        case ExchangeRateType.fixed:
-          DB.instance.put<dynamic>(
-              boxName: DB.boxNamePrefs,
-              key: "exchangeRateType",
-              value: "fixed");
-          break;
-      }
-      _exchangeRateType = exchangeRateType;
+  bool _randomizePIN = false;
+
+  bool get randomizePIN => _randomizePIN;
+
+  set randomizePIN(bool randomizePIN) {
+    if (_randomizePIN != randomizePIN) {
+      DB.instance.put<dynamic>(
+          boxName: DB.boxNamePrefs, key: "randomizePIN", value: randomizePIN);
+      _randomizePIN = randomizePIN;
       notifyListeners();
     }
   }
 
-  Future<ExchangeRateType> _getExchangeRateType() async {
-    String? rate = await DB.instance.get<dynamic>(
-        boxName: DB.boxNamePrefs, key: "exchangeRateType") as String?;
-    rate ??= "estimated";
-    switch (rate) {
-      case "estimated":
-        return ExchangeRateType.estimated;
-      case "fixed":
-        return ExchangeRateType.fixed;
-      default:
-        throw Exception("Invalid exchange rate type found in prefs!");
-    }
+  Future<bool> _getRandomizePIN() async {
+    return await DB.instance.get<dynamic>(
+            boxName: DB.boxNamePrefs, key: "randomizePIN") as bool? ??
+        false;
   }
 
   // use biometrics
@@ -601,5 +630,170 @@ class Prefs extends ChangeNotifier {
       return false;
     }
     return true;
+  }
+
+  String? _userId;
+  String? get userID => _userId;
+
+  Future<String?> _getUserId() async {
+    String? userID = await DB.instance
+        .get<dynamic>(boxName: DB.boxNamePrefs, key: "userID") as String?;
+    if (userID == null) {
+      userID = const Uuid().v4();
+      await saveUserID(userID);
+    }
+    return userID;
+  }
+
+  Future<void> saveUserID(String userId) async {
+    _userId = userId;
+    await DB.instance
+        .put<dynamic>(boxName: DB.boxNamePrefs, key: "userID", value: _userId);
+    // notifyListeners();
+  }
+
+  int? _signupEpoch;
+  int? get signupEpoch => _signupEpoch;
+
+  Future<int?> _getSignupEpoch() async {
+    int? signupEpoch = await DB.instance
+        .get<dynamic>(boxName: DB.boxNamePrefs, key: "signupEpoch") as int?;
+    if (signupEpoch == null) {
+      signupEpoch = DateTime.now().millisecondsSinceEpoch ~/
+          Duration.millisecondsPerSecond;
+      await saveSignupEpoch(signupEpoch);
+    }
+    return signupEpoch;
+  }
+
+  Future<void> saveSignupEpoch(int signupEpoch) async {
+    _signupEpoch = signupEpoch;
+    await DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs, key: "signupEpoch", value: _signupEpoch);
+    // notifyListeners();
+  }
+
+  // show testnet coins
+
+  bool _enableCoinControl = false;
+
+  bool get enableCoinControl => _enableCoinControl;
+
+  set enableCoinControl(bool enableCoinControl) {
+    if (_enableCoinControl != enableCoinControl) {
+      DB.instance.put<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "enableCoinControl",
+          value: enableCoinControl);
+      _enableCoinControl = enableCoinControl;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getEnableCoinControl() async {
+    return await DB.instance.get<dynamic>(
+            boxName: DB.boxNamePrefs, key: "enableCoinControl") as bool? ??
+        false;
+  }
+
+  // follow system brightness
+
+  bool _enableSystemBrightness = false;
+
+  bool get enableSystemBrightness => _enableSystemBrightness;
+
+  set enableSystemBrightness(bool enableSystemBrightness) {
+    if (_enableSystemBrightness != enableSystemBrightness) {
+      DB.instance.put<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "enableSystemBrightness",
+          value: enableSystemBrightness);
+      _enableSystemBrightness = enableSystemBrightness;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getEnableSystemBrightness() async {
+    return await DB.instance.get<dynamic>(
+            boxName: DB.boxNamePrefs, key: "enableSystemBrightness") as bool? ??
+        false;
+  }
+
+  // current theme id
+
+  String _themeId = "light";
+
+  String get themeId => _themeId;
+
+  set themeId(String themeId) {
+    if (this.themeId != themeId) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "themeId",
+        value: themeId,
+      );
+      _themeId = themeId;
+      notifyListeners();
+    }
+  }
+
+  Future<String> _getThemeId() async {
+    return await DB.instance.get<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "themeId",
+        ) as String? ??
+        "light";
+  }
+
+  // current system brightness light theme id
+
+  String _systemBrightnessLightThemeId = "light";
+
+  String get systemBrightnessLightThemeId => _systemBrightnessLightThemeId;
+
+  set systemBrightnessLightThemeId(String systemBrightnessLightThemeId) {
+    if (this.systemBrightnessLightThemeId != systemBrightnessLightThemeId) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "systemBrightnessLightThemeId",
+        value: systemBrightnessLightThemeId,
+      );
+      _systemBrightnessLightThemeId = systemBrightnessLightThemeId;
+      notifyListeners();
+    }
+  }
+
+  Future<String> _getSystemBrightnessLightThemeId() async {
+    return await DB.instance.get<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "systemBrightnessLightThemeId",
+        ) as String? ??
+        "light";
+  }
+
+  // current system brightness dark theme id
+
+  String _systemBrightnessDarkThemeId = "dark";
+
+  String get systemBrightnessDarkThemeId => _systemBrightnessDarkThemeId;
+
+  set systemBrightnessDarkThemeId(String systemBrightnessDarkThemeId) {
+    if (this.systemBrightnessDarkThemeId != systemBrightnessDarkThemeId) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "systemBrightnessDarkThemeId",
+        value: systemBrightnessDarkThemeId,
+      );
+      _systemBrightnessDarkThemeId = systemBrightnessDarkThemeId;
+      notifyListeners();
+    }
+  }
+
+  Future<String> _getSystemBrightnessDarkTheme() async {
+    return await DB.instance.get<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "systemBrightnessDarkThemeId",
+        ) as String? ??
+        "dark";
   }
 }

@@ -7,15 +7,15 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
+import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
@@ -28,10 +28,12 @@ class DesktopReceive extends ConsumerStatefulWidget {
   const DesktopReceive({
     Key? key,
     required this.walletId,
+    this.contractAddress,
     this.clipboard = const ClipboardWrapper(),
   }) : super(key: key);
 
   final String walletId;
+  final String? contractAddress;
   final ClipboardInterface clipboard;
 
   @override
@@ -149,7 +151,11 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                     Row(
                       children: [
                         Text(
-                          "Your ${coin.ticker} address",
+                          "Your ${widget.contractAddress == null ? coin.ticker : ref.watch(
+                              tokenServiceProvider.select(
+                                (value) => value!.tokenContract.symbol,
+                              ),
+                            )} address",
                           style: STextStyles.itemSubtitle(context),
                         ),
                         const Spacer(),
@@ -199,11 +205,11 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             ),
           ),
         ),
-        if (coin != Coin.epicCash)
+        if (coin != Coin.epicCash && coin != Coin.ethereum)
           const SizedBox(
             height: 20,
           ),
-        if (coin != Coin.epicCash)
+        if (coin != Coin.epicCash && coin != Coin.ethereum)
           SecondaryButton(
             buttonHeight: ButtonHeight.l,
             onPressed: generateNewAddress,

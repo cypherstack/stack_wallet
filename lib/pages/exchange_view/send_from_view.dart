@@ -1,6 +1,6 @@
 import 'dart:async';
+import 'dart:io';
 
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -13,15 +13,15 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -45,7 +45,7 @@ class SendFromView extends ConsumerStatefulWidget {
   static const String routeName = "/sendFrom";
 
   final Coin coin;
-  final Decimal amount;
+  final Amount amount;
   final String address;
   final Trade trade;
   final bool shouldPopRoot;
@@ -57,13 +57,9 @@ class SendFromView extends ConsumerStatefulWidget {
 
 class _SendFromViewState extends ConsumerState<SendFromView> {
   late final Coin coin;
-  late final Decimal amount;
+  late final Amount amount;
   late final String address;
   late final Trade trade;
-
-  String formatAmount(Decimal amount, Coin coin) {
-    return amount.toStringAsFixed(Constants.decimalPlacesForCoin(coin));
-  }
 
   @override
   void initState() {
@@ -151,7 +147,13 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
             Row(
               children: [
                 Text(
-                  "You need to send ${formatAmount(amount, coin)} ${coin.ticker}",
+                  "You need to send ${amount.localizedStringAsFixed(
+                    locale: ref.watch(
+                      localeServiceChangeNotifierProvider.select(
+                        (value) => value.locale,
+                      ),
+                    ),
+                  )} ${coin.ticker}",
                   style: isDesktop
                       ? STextStyles.desktopTextExtraExtraSmall(context)
                       : STextStyles.itemSubtitle(context),
@@ -202,7 +204,7 @@ class SendFromCard extends ConsumerStatefulWidget {
   }) : super(key: key);
 
   final String walletId;
-  final Decimal amount;
+  final Amount amount;
   final String address;
   final Trade trade;
   final bool fromDesktopStep4;
@@ -213,13 +215,11 @@ class SendFromCard extends ConsumerStatefulWidget {
 
 class _SendFromCardState extends ConsumerState<SendFromCard> {
   late final String walletId;
-  late final Decimal amount;
+  late final Amount amount;
   late final String address;
   late final Trade trade;
 
   Future<void> _send(Manager manager, {bool? shouldSendPublicFiroFunds}) async {
-    final _amount = Format.decimalAmountToSatoshis(amount, manager.coin);
-
     try {
       bool wasCancelled = false;
 
@@ -240,6 +240,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                 ),
               ),
               child: BuildingTransactionDialog(
+                coin: manager.coin,
                 onCancel: () {
                   wasCancelled = true;
 
@@ -251,13 +252,20 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
         ),
       );
 
-      late Map<String, dynamic> txData;
+      final time = Future<dynamic>.delayed(
+        const Duration(
+          milliseconds: 2500,
+        ),
+      );
+
+      Map<String, dynamic> txData;
+      Future<Map<String, dynamic>> txDataFuture;
 
       // if not firo then do normal send
       if (shouldSendPublicFiroFunds == null) {
-        txData = await manager.prepareSend(
+        txDataFuture = manager.prepareSend(
           address: address,
-          satoshiAmount: _amount,
+          amount: amount,
           args: {
             "feeRate": FeeRateType.average,
             // ref.read(feeRateTypeStateProvider)
@@ -267,18 +275,18 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
         final firoWallet = manager.wallet as FiroWallet;
         // otherwise do firo send based on balance selected
         if (shouldSendPublicFiroFunds) {
-          txData = await firoWallet.prepareSendPublic(
+          txDataFuture = firoWallet.prepareSendPublic(
             address: address,
-            satoshiAmount: _amount,
+            amount: amount,
             args: {
               "feeRate": FeeRateType.average,
               // ref.read(feeRateTypeStateProvider)
             },
           );
         } else {
-          txData = await firoWallet.prepareSend(
+          txDataFuture = firoWallet.prepareSend(
             address: address,
-            satoshiAmount: _amount,
+            amount: amount,
             args: {
               "feeRate": FeeRateType.average,
               // ref.read(feeRateTypeStateProvider)
@@ -286,6 +294,13 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
           );
         }
       }
+
+      final results = await Future.wait([
+        txDataFuture,
+        time,
+      ]);
+
+      txData = results.first as Map<String, dynamic>;
 
       if (!wasCancelled) {
         // pop building dialog
@@ -338,7 +353,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
             rightButton: TextButton(
               style: Theme.of(context)
                   .extension<StackColors>()!
-                  .getSecondaryEnabledButtonColor(context),
+                  .getSecondaryEnabledButtonStyle(context),
               child: Text(
                 "Ok",
                 style: STextStyles.button(context).copyWith(
@@ -437,35 +452,11 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                               "Use private balance",
                               style: STextStyles.itemSubtitle(context),
                             ),
-                            FutureBuilder(
-                              future: (manager.wallet as FiroWallet)
-                                  .availablePrivateBalance(),
-                              builder: (builderContext,
-                                  AsyncSnapshot<Decimal> snapshot) {
-                                if (snapshot.connectionState ==
-                                        ConnectionState.done &&
-                                    snapshot.hasData) {
-                                  return Text(
-                                    "${Format.localizedStringAsFixed(
-                                      value: snapshot.data!,
-                                      locale: locale,
-                                      decimalPlaces:
-                                          Constants.decimalPlacesForCoin(coin),
-                                    )} ${coin.ticker}",
-                                    style: STextStyles.itemSubtitle(context),
-                                  );
-                                } else {
-                                  return AnimatedText(
-                                    stringsToLoopThrough: const [
-                                      "Loading balance",
-                                      "Loading balance.",
-                                      "Loading balance..",
-                                      "Loading balance..."
-                                    ],
-                                    style: STextStyles.itemSubtitle(context),
-                                  );
-                                }
-                              },
+                            Text(
+                              "${(manager.wallet as FiroWallet).availablePrivateBalance().localizedStringAsFixed(
+                                    locale: locale,
+                                  )} ${coin.ticker}",
+                              style: STextStyles.itemSubtitle(context),
                             ),
                           ],
                         ),
@@ -523,35 +514,11 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                               "Use public balance",
                               style: STextStyles.itemSubtitle(context),
                             ),
-                            FutureBuilder(
-                              future: (manager.wallet as FiroWallet)
-                                  .availablePublicBalance(),
-                              builder: (builderContext,
-                                  AsyncSnapshot<Decimal> snapshot) {
-                                if (snapshot.connectionState ==
-                                        ConnectionState.done &&
-                                    snapshot.hasData) {
-                                  return Text(
-                                    "${Format.localizedStringAsFixed(
-                                      value: snapshot.data!,
-                                      locale: locale,
-                                      decimalPlaces:
-                                          Constants.decimalPlacesForCoin(coin),
-                                    )} ${coin.ticker}",
-                                    style: STextStyles.itemSubtitle(context),
-                                  );
-                                } else {
-                                  return AnimatedText(
-                                    stringsToLoopThrough: const [
-                                      "Loading balance",
-                                      "Loading balance.",
-                                      "Loading balance..",
-                                      "Loading balance..."
-                                    ],
-                                    style: STextStyles.itemSubtitle(context),
-                                  );
-                                }
-                              },
+                            Text(
+                              "${(manager.wallet as FiroWallet).availablePublicBalance().localizedStringAsFixed(
+                                    locale: locale,
+                                  )} ${coin.ticker}",
+                              style: STextStyles.itemSubtitle(context),
                             ),
                           ],
                         ),
@@ -609,8 +576,12 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(6),
-                  child: SvgPicture.asset(
-                    Assets.svg.iconFor(coin: coin),
+                  child: SvgPicture.file(
+                    File(
+                      ref.watch(
+                        coinIconProvider(coin),
+                      ),
+                    ),
                     width: 24,
                     height: 24,
                   ),
@@ -633,34 +604,11 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                         height: 2,
                       ),
                     if (!isFiro)
-                      FutureBuilder(
-                        future: manager.totalBalance,
-                        builder:
-                            (builderContext, AsyncSnapshot<Decimal> snapshot) {
-                          if (snapshot.connectionState ==
-                                  ConnectionState.done &&
-                              snapshot.hasData) {
-                            return Text(
-                              "${Format.localizedStringAsFixed(
-                                value: snapshot.data!,
-                                locale: locale,
-                                decimalPlaces:
-                                    Constants.decimalPlacesForCoin(coin),
-                              )} ${coin.ticker}",
-                              style: STextStyles.itemSubtitle(context),
-                            );
-                          } else {
-                            return AnimatedText(
-                              stringsToLoopThrough: const [
-                                "Loading balance",
-                                "Loading balance.",
-                                "Loading balance..",
-                                "Loading balance..."
-                              ],
-                              style: STextStyles.itemSubtitle(context),
-                            );
-                          }
-                        },
+                      Text(
+                        "${manager.balance.spendable.localizedStringAsFixed(
+                          locale: locale,
+                        )} ${coin.ticker}",
+                        style: STextStyles.itemSubtitle(context),
                       ),
                   ],
                 ),

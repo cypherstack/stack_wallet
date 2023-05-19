@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -29,7 +31,7 @@
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>App requires access to the Camera to scan QR codes from other people's installed app in order to coordinate sending Firo.</string>
+	<string>App requires access to the Camera to scan QR codes from other people's installed app in order to coordinate sending.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>This app requires Face ID permissions so that the user can securely lock their wallet if their device uses Face ID. It will be useful feature for all users, and especially those prone to forget their login pin on iPhones where Touch ID is not available.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
@@ -57,5 +59,7 @@
 	<true/>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
 </dict>
 </plist>

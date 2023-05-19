@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
@@ -96,7 +96,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
           leftButton: TextButton(
             style: Theme.of(context)
                 .extension<StackColors>()!
-                .getSecondaryEnabledButtonColor(context),
+                .getSecondaryEnabledButtonStyle(context),
             child: Text(
               "Cancel",
               style: STextStyles.itemSubtitle12(context),
@@ -108,7 +108,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
           rightButton: TextButton(
             style: Theme.of(context)
                 .extension<StackColors>()!
-                .getPrimaryEnabledButtonColor(context),
+                .getPrimaryEnabledButtonStyle(context),
             child: Text(
               "Rescan",
               style: STextStyles.button(context),

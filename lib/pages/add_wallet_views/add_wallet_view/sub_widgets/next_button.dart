@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
+import 'package:stackwallet/pages/add_wallet_views/select_wallet_for_token_view.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class AddWalletNextButton extends ConsumerWidget {
   const AddWalletNextButton({
@@ -17,7 +19,7 @@ class AddWalletNextButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: NextButton");
     final selectedCoin =
-        ref.watch(addWalletSelectedCoinStateProvider.state).state;
+        ref.watch(addWalletSelectedEntityStateProvider.state).state;
 
     final enabled = selectedCoin != null;
 
@@ -25,23 +27,25 @@ class AddWalletNextButton extends ConsumerWidget {
       onPressed: !enabled
           ? null
           : () {
-              final selectedCoin =
-                  ref.read(addWalletSelectedCoinStateProvider.state).state;
-
-              //todo: check if print needed
-              // debugPrint("Next pressed with ${selectedCoin!.name} selected!");
-              Navigator.of(context).pushNamed(
-                CreateOrRestoreWalletView.routeName,
-                arguments: selectedCoin,
-              );
+              if (selectedCoin is EthTokenEntity) {
+                Navigator.of(context).pushNamed(
+                  SelectWalletForTokenView.routeName,
+                  arguments: selectedCoin,
+                );
+              } else {
+                Navigator.of(context).pushNamed(
+                  CreateOrRestoreWalletView.routeName,
+                  arguments: selectedCoin,
+                );
+              }
             },
       style: enabled
           ? Theme.of(context)
               .extension<StackColors>()!
-              .getPrimaryEnabledButtonColor(context)
+              .getPrimaryEnabledButtonStyle(context)
           : Theme.of(context)
               .extension<StackColors>()!
-              .getPrimaryDisabledButtonColor(context),
+              .getPrimaryDisabledButtonStyle(context),
       child: Text(
         "Next",
         style: isDesktop

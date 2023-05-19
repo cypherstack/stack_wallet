@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/wallet_info_row/wallet_info_row.dart';
 
@@ -40,6 +40,7 @@ class CoinWalletsTable extends ConsumerWidget {
           children: [
             for (int i = 0; i < walletIds.length; i++)
               Column(
+                key: Key("${coin.name}_$runtimeType${walletIds[i]}_key"),
                 children: [
                   if (i != 0)
                     const SizedBox(
@@ -59,6 +60,14 @@ class CoinWalletsTable extends ConsumerWidget {
                           onPressed: () async {
                             ref.read(currentWalletIdProvider.state).state =
                                 walletIds[i];
+
+                            final manager = ref
+                                .read(walletsChangeNotifierProvider)
+                                .getManager(walletIds[i]);
+                            if (manager.coin == Coin.monero ||
+                                manager.coin == Coin.wownero) {
+                              await manager.initializeExisting();
+                            }
 
                             await Navigator.of(context).pushNamed(
                               DesktopWalletView.routeName,

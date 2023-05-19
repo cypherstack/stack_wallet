@@ -1,4 +1,4 @@
-import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/db/hive/db.dart';
 
 class TransactionNotificationTracker {
   final String walletId;
@@ -53,5 +53,26 @@ class TransactionNotificationTracker {
         boxName: walletId,
         key: "notifiedConfirmedTransactions",
         value: notifiedConfirmedTransactions);
+  }
+
+  Future<void> deleteTransaction(String txid) async {
+    final notifiedPendingTransactions = DB.instance.get<dynamic>(
+            boxName: walletId, key: "notifiedPendingTransactions") as Map? ??
+        {};
+    final notifiedConfirmedTransactions = DB.instance.get<dynamic>(
+            boxName: walletId, key: "notifiedConfirmedTransactions") as Map? ??
+        {};
+
+    notifiedPendingTransactions.remove(txid);
+    notifiedConfirmedTransactions.remove(txid);
+
+    await DB.instance.put<dynamic>(
+        boxName: walletId,
+        key: "notifiedConfirmedTransactions",
+        value: notifiedConfirmedTransactions);
+    await DB.instance.put<dynamic>(
+        boxName: walletId,
+        key: "notifiedPendingTransactions",
+        value: notifiedPendingTransactions);
   }
 }

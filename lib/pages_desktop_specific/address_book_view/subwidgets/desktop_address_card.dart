@@ -2,21 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/models/contact_address_entry.dart';
+import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/edit_contact_address_view.dart';
 import 'package:stackwallet/providers/ui/address_book_providers/address_entry_data_provider.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 
-class DesktopAddressCard extends StatelessWidget {
+class DesktopAddressCard extends ConsumerWidget {
   const DesktopAddressCard({
     Key? key,
     required this.entry,
@@ -29,14 +29,12 @@ class DesktopAddressCard extends StatelessWidget {
   final ClipboardInterface clipboard;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SvgPicture.asset(
-          Assets.svg.iconFor(
-            coin: entry.coin,
-          ),
+          ref.watch(coinIconProvider(entry.coin)),
           height: 32,
           width: 32,
         ),
@@ -66,7 +64,7 @@ class DesktopAddressCard extends StatelessWidget {
               ),
               Row(
                 children: [
-                  BlueTextButton(
+                  CustomTextButton(
                     text: "Copy",
                     onTap: () {
                       clipboard.setData(
@@ -87,7 +85,7 @@ class DesktopAddressCard extends StatelessWidget {
                   if (contactId != "default")
                     Consumer(
                       builder: (context, ref, child) {
-                        return BlueTextButton(
+                        return CustomTextButton(
                           text: "Edit",
                           onTap: () async {
                             ref.refresh(

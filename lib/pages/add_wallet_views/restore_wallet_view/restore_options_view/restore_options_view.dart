@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_rounded_date_picker/flutter_rounded_date_picker.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/coin_image.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/mobile_mnemonic_length_selector.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/restore_from_date_picker.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/restore_options_next_button.dart';
@@ -11,21 +12,22 @@ import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_o
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/mnemonic_word_count_select_sheet.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
-import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/rounded_date_picker/flutter_rounded_date_picker_widget.dart'
-    as datePicker;
+import 'package:stackwallet/widgets/expandable.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:tuple/tuple.dart';
 
 class RestoreOptionsView extends ConsumerStatefulWidget {
@@ -51,20 +53,29 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
 
   late TextEditingController _dateController;
   late FocusNode textFieldFocusNode;
+  late final FocusNode passwordFocusNode;
+  late final TextEditingController passwordController;
 
   final bool _nextEnabled = true;
   DateTime _restoreFromDate = DateTime.fromMillisecondsSinceEpoch(0);
   late final Color baseColor;
+  bool hidePassword = true;
+  bool _expandedAdavnced = false;
+
+  bool get supportsMnemonicPassphrase =>
+      !(coin == Coin.monero || coin == Coin.wownero || coin == Coin.epicCash);
 
   @override
   void initState() {
-    baseColor = ref.read(colorThemeProvider.state).state.textSubtitle2;
+    baseColor = ref.read(themeProvider.state).state.textSubtitle2;
     walletName = widget.walletName;
     coin = widget.coin;
     isDesktop = Util.isDesktop;
 
     _dateController = TextEditingController();
     textFieldFocusNode = FocusNode();
+    passwordController = TextEditingController();
+    passwordFocusNode = FocusNode();
 
     super.initState();
   }
@@ -73,6 +84,8 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   void dispose() {
     _dateController.dispose();
     textFieldFocusNode.dispose();
+    passwordController.dispose();
+    passwordFocusNode.dispose();
     super.dispose();
   }
 
@@ -134,11 +147,12 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
     if (mounted) {
       await Navigator.of(context).pushNamed(
         RestoreWalletView.routeName,
-        arguments: Tuple4(
+        arguments: Tuple5(
           walletName,
           coin,
           ref.read(mnemonicWordCountStateProvider.state).state,
           _restoreFromDate,
+          passwordController.text,
         ),
       );
     }
@@ -154,10 +168,44 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
       await Future<void>.delayed(const Duration(milliseconds: 125));
     }
 
-    final date = await datePicker.showRoundedDatePicker(
+    final date = await showRoundedDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      height: height * 0.5,
+      height: height / 3.0,
+      theme: ThemeData(
+        primarySwatch: Util.createMaterialColor(fetchedColor),
+      ),
+      //TODO pick a better initial date
+      // 2007 chosen as that is just before bitcoin launched
+      firstDate: DateTime(2007),
+      lastDate: DateTime.now(),
+      borderRadius: Constants.size.circularBorderRadius * 2,
+
+      textPositiveButton: "SELECT",
+
+      styleDatePicker: _buildDatePickerStyle(),
+      styleYearPicker: _buildYearPickerStyle(),
+    );
+    if (date != null) {
+      _restoreFromDate = date;
+      _dateController.text = Format.formatDate(date);
+    }
+  }
+
+  Future<void> chooseDesktopDate() async {
+    final height = MediaQuery.of(context).size.height;
+    final fetchedColor =
+        Theme.of(context).extension<StackColors>()!.accentColorDark;
+    // check and hide keyboard
+    if (FocusScope.of(context).hasFocus) {
+      FocusScope.of(context).unfocus();
+      await Future<void>.delayed(const Duration(milliseconds: 125));
+    }
+
+    final date = await showRoundedDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      height: height / 3.0,
       theme: ThemeData(
         primarySwatch: Util.createMaterialColor(fetchedColor),
       ),
@@ -235,11 +283,10 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 flex: isDesktop ? 10 : 1,
               ),
               if (!isDesktop)
-                Image(
-                  image: AssetImage(
-                    Assets.png.imageFor(coin: coin),
-                  ),
+                CoinImage(
+                  coin: coin,
                   height: 100,
+                  width: 100,
                 ),
               SizedBox(
                 height: isDesktop ? 0 : 16,
@@ -283,15 +330,22 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                   (coin == Coin.wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
                           25))
-
-                // if (!isDesktop)
-                RestoreFromDatePicker(
-                  onTap: chooseDate,
-                  controller: _dateController,
-                ),
-
-              // if (isDesktop)
-              //   // TODO desktop date picker
+                if (!isDesktop)
+                  RestoreFromDatePicker(
+                    onTap: chooseDate,
+                    controller: _dateController,
+                  ),
+              if (coin == Coin.monero ||
+                  coin == Coin.epicCash ||
+                  (coin == Coin.wownero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25))
+                if (isDesktop)
+                  // TODO desktop date picker
+                  RestoreFromDatePicker(
+                    onTap: chooseDesktopDate,
+                    controller: _dateController,
+                  ),
               if (coin == Coin.monero ||
                   coin == Coin.epicCash ||
                   (coin == Coin.wownero &&
@@ -400,6 +454,144 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 MobileMnemonicLengthSelector(
                   chooseMnemonicLength: chooseMnemonicLength,
                 ),
+              if (supportsMnemonicPassphrase)
+                SizedBox(
+                  height: isDesktop ? 24 : 16,
+                ),
+              if (supportsMnemonicPassphrase)
+                Expandable(
+                  onExpandChanged: (state) {
+                    setState(() {
+                      _expandedAdavnced = state == ExpandableState.expanded;
+                    });
+                  },
+                  header: Container(
+                    color: Colors.transparent,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        top: 8.0,
+                        bottom: 8.0,
+                        right: 10,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Advanced",
+                            style: isDesktop
+                                ? STextStyles.desktopTextExtraExtraSmall(
+                                        context)
+                                    .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark3,
+                                  )
+                                : STextStyles.smallMed12(context),
+                            textAlign: TextAlign.left,
+                          ),
+                          SvgPicture.asset(
+                            _expandedAdavnced
+                                ? Assets.svg.chevronUp
+                                : Assets.svg.chevronDown,
+                            width: 12,
+                            height: 6,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFieldActiveSearchIconRight,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  body: Container(
+                    color: Colors.transparent,
+                    child: Column(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                          child: TextField(
+                            key: const Key("mnemonicPassphraseFieldKey1"),
+                            focusNode: passwordFocusNode,
+                            controller: passwordController,
+                            style: isDesktop
+                                ? STextStyles.desktopTextMedium(context)
+                                    .copyWith(
+                                    height: 2,
+                                  )
+                                : STextStyles.field(context),
+                            obscureText: hidePassword,
+                            enableSuggestions: false,
+                            autocorrect: false,
+                            decoration: standardInputDecoration(
+                              "Recovery phrase password",
+                              passwordFocusNode,
+                              context,
+                            ).copyWith(
+                              suffixIcon: UnconstrainedBox(
+                                child: ConditionalParent(
+                                  condition: isDesktop,
+                                  builder: (child) => SizedBox(
+                                    height: 70,
+                                    child: child,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      SizedBox(
+                                        width: isDesktop ? 24 : 16,
+                                      ),
+                                      GestureDetector(
+                                        key: const Key(
+                                            "mnemonicPassphraseFieldShowPasswordButtonKey"),
+                                        onTap: () async {
+                                          setState(() {
+                                            hidePassword = !hidePassword;
+                                          });
+                                        },
+                                        child: SvgPicture.asset(
+                                          hidePassword
+                                              ? Assets.svg.eye
+                                              : Assets.svg.eyeSlash,
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textDark3,
+                                          width: isDesktop ? 24 : 16,
+                                          height: isDesktop ? 24 : 16,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        width: 12,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 8,
+                        ),
+                        RoundedWhiteContainer(
+                          child: Center(
+                            child: Text(
+                              "If the recovery phrase you are about to restore was created with an optional passphrase you can enter it here.",
+                              style: isDesktop
+                                  ? STextStyles.desktopTextExtraSmall(context)
+                                      .copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textSubtitle1,
+                                    )
+                                  : STextStyles.itemSubtitle(context),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               if (!isDesktop)
                 const Spacer(
                   flex: 3,
@@ -412,7 +604,6 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 isDesktop: isDesktop,
                 onPressed: _nextEnabled ? nextPressed : null,
               ),
-
               if (isDesktop)
                 const Spacer(
                   flex: 15,

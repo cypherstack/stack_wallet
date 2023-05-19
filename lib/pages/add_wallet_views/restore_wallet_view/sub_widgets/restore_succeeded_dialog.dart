@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
@@ -80,7 +80,7 @@ class RestoreSucceededDialog extends StatelessWidget {
         rightButton: TextButton(
           style: Theme.of(context)
               .extension<StackColors>()!
-              .getSecondaryEnabledButtonColor(context),
+              .getSecondaryEnabledButtonStyle(context),
           child: Text(
             "Ok",
             style: STextStyles.itemSubtitle12(context),

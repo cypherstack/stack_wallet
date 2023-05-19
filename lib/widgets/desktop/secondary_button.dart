@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/custom_text_button.dart';
 
@@ -13,9 +13,12 @@ class SecondaryButton extends StatelessWidget {
     this.height,
     this.label,
     this.icon,
+    this.trailingIcon,
     this.onPressed,
     this.enabled = true,
     this.buttonHeight,
+    this.iconSpacing = 10,
+    this.padding = EdgeInsets.zero,
   }) : super(key: key);
 
   final double? width;
@@ -24,7 +27,10 @@ class SecondaryButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool enabled;
   final Widget? icon;
+  final Widget? trailingIcon;
   final ButtonHeight? buttonHeight;
+  final double iconSpacing;
+  final EdgeInsets padding;
 
   TextStyle getStyle(bool isDesktop, BuildContext context) {
     if (isDesktop) {
@@ -66,6 +72,26 @@ class SecondaryButton extends StatelessWidget {
               : STextStyles.desktopButtonSecondaryDisabled(context);
       }
     } else {
+      if (buttonHeight == ButtonHeight.l) {
+        return STextStyles.button(context).copyWith(
+          fontSize: 10,
+          color: enabled
+              ? Theme.of(context).extension<StackColors>()!.buttonTextSecondary
+              : Theme.of(context)
+                  .extension<StackColors>()!
+                  .buttonTextSecondaryDisabled,
+        );
+      }
+      if (buttonHeight == ButtonHeight.xl) {
+        return STextStyles.button(context).copyWith(
+          fontSize: 14,
+          color: enabled
+              ? Theme.of(context).extension<StackColors>()!.buttonTextSecondary
+              : Theme.of(context)
+                  .extension<StackColors>()!
+                  .buttonTextSecondaryDisabled,
+        );
+      }
       return STextStyles.button(context).copyWith(
         color: enabled
             ? Theme.of(context).extension<StackColors>()!.buttonTextSecondary
@@ -127,24 +153,44 @@ class SecondaryButton extends StatelessWidget {
         style: enabled
             ? Theme.of(context)
                 .extension<StackColors>()!
-                .getSecondaryEnabledButtonColor(context)
+                .getSecondaryEnabledButtonStyle(context)
             : Theme.of(context)
                 .extension<StackColors>()!
-                .getSecondaryDisabledButtonColor(context),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (icon != null) icon!,
-            if (icon != null && label != null)
-              const SizedBox(
-                width: 10,
-              ),
-            if (label != null)
-              Text(
-                label!,
-                style: getStyle(isDesktop, context),
-              ),
-          ],
+                .getSecondaryDisabledButtonStyle(context),
+        child: Padding(
+          padding: padding,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (icon != null) icon!,
+              if (icon != null && label != null)
+                SizedBox(
+                  width: iconSpacing,
+                ),
+              if (label != null)
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      label!,
+                      style: getStyle(isDesktop, context),
+                    ),
+                    if (buttonHeight != null && buttonHeight == ButtonHeight.s)
+                      const SizedBox(
+                        height: 2,
+                      ),
+                  ],
+                ),
+              if (trailingIcon != null)
+                SizedBox(
+                  width: iconSpacing,
+                ),
+              if (trailingIcon != null) trailingIcon!,
+            ],
+          ),
         ),
       ),
     );

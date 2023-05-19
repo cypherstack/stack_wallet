@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/animated_widgets/rotating_arrows.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class RescanningDialog extends StatefulWidget {
@@ -21,9 +22,12 @@ class _RescanningDialogState extends State<RescanningDialog>
   late AnimationController? _spinController;
   late Animation<double> _spinAnimation;
 
+  late final bool isDesktop;
+
   // late final VoidCallback onCancel;
   @override
   void initState() {
+    isDesktop = Util.isDesktop;
     // onCancel = widget.onCancel;
 
     _spinController = AnimationController(
@@ -53,33 +57,36 @@ class _RescanningDialogState extends State<RescanningDialog>
       onWillPop: () async {
         return false;
       },
-      child: StackDialog(
-        title: "Rescanning blockchain",
-        message: "This may take a while. Please do not exit this screen.",
-        icon: RotationTransition(
-          turns: _spinAnimation,
-          child: SvgPicture.asset(
-            Assets.svg.arrowRotate3,
+      child: ConditionalParent(
+        condition: isDesktop,
+        builder: (child) => DesktopDialog(
+          maxHeight: 200,
+          maxWidth: 500,
+          child: child,
+        ),
+        child: const StackDialog(
+          title: "Rescanning blockchain",
+          message: "This may take a while. Please do not exit this screen.",
+          icon: RotatingArrows(
             width: 24,
             height: 24,
-            color: Theme.of(context).extension<StackColors>()!.accentColorDark,
           ),
+          // rightButton: TextButton(
+          //   style: Theme.of(context).textButtonTheme.style?.copyWith(
+          //     backgroundColor: MaterialStateProperty.all<Color>(
+          //       CFColors.buttonGray,
+          //     ),
+          //   ),
+          //   child: Text(
+          //     "Cancel",
+          //     style: STextStyles.itemSubtitle12(context),
+          //   ),
+          //   onPressed: () {
+          //     Navigator.of(context).pop();
+          //     onCancel.call();
+          //   },
+          // ),
         ),
-        // rightButton: TextButton(
-        //   style: Theme.of(context).textButtonTheme.style?.copyWith(
-        //     backgroundColor: MaterialStateProperty.all<Color>(
-        //       CFColors.buttonGray,
-        //     ),
-        //   ),
-        //   child: Text(
-        //     "Cancel",
-        //     style: STextStyles.itemSubtitle12(context),
-        //   ),
-        //   onPressed: () {
-        //     Navigator.of(context).pop();
-        //     onCancel.call();
-        //   },
-        // ),
       ),
     );
   }

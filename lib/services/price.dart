@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
-import 'package:stackwallet/hive/db.dart';
+import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
@@ -86,10 +86,12 @@ class PriceAPI {
     }
     Map<Coin, Tuple2<Decimal, double>> result = {};
     try {
-      final uri = Uri.parse(
-          "https://api.coingecko.com/api/v3/coins/markets?vs_currency=${baseCurrency.toLowerCase()}&ids=monero,bitcoin,litecoin,epic-cash,zcoin,dogecoin,bitcoin-cash,namecoin,wownero,particl&order=market_cap_desc&per_page=10&page=1&sparkline=false");
-      // final uri = Uri.parse(
-      //     "https://api.coingecko.com/api/v3/coins/markets?vs_currency=${baseCurrency.toLowerCase()}&ids=monero%2Cbitcoin%2Cepic-cash%2Czcoin%2Cdogecoin&order=market_cap_desc&per_page=10&page=1&sparkline=false");
+      final uri =
+          Uri.parse("https://api.coingecko.com/api/v3/coins/markets?vs_currency"
+              "=${baseCurrency.toLowerCase()}"
+              "&ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
+              "bitcoin-cash,namecoin,wownero,ethereum,particl"
+              "&order=market_cap_desc&per_page=50&page=1&sparkline=false");
 
       final coinGeckoResponse = await client.get(
         uri,
@@ -144,6 +146,61 @@ class PriceAPI {
       Logging.instance.log("availableBaseCurrencies() using $uriString: $e\n$s",
           level: LogLevel.Error);
       return null;
+    }
+  }
+
+  Future<Map<String, Tuple2<Decimal, double>>>
+      getPricesAnd24hChangeForEthTokens({
+    required Set<String> contractAddresses,
+    required String baseCurrency,
+  }) async {
+    final Map<String, Tuple2<Decimal, double>> tokenPrices = {};
+
+    if (contractAddresses.isEmpty) return tokenPrices;
+
+    final externalCalls = Prefs.instance.externalCalls;
+    if ((!Logger.isTestEnv && !externalCalls) ||
+        !(await Prefs.instance.isExternalCallsSet())) {
+      Logging.instance.log("User does not want to use external calls",
+          level: LogLevel.Info);
+      return tokenPrices;
+    }
+
+    try {
+      final contractAddressesString =
+          contractAddresses.reduce((value, element) => "$value,$element");
+      final uri = Uri.parse(
+          "https://api.coingecko.com/api/v3/simple/token_price/ethereum"
+          "?vs_currencies=${baseCurrency.toLowerCase()}&contract_addresses"
+          "=$contractAddressesString&include_24hr_change=true");
+
+      final coinGeckoResponse = await client.get(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      final coinGeckoData = jsonDecode(coinGeckoResponse.body) as Map;
+
+      for (final key in coinGeckoData.keys) {
+        final contractAddress = key as String;
+
+        final map = coinGeckoData[contractAddress] as Map;
+
+        final price = Decimal.parse(map[baseCurrency.toLowerCase()].toString());
+        final change24h = double.parse(
+            map["${baseCurrency.toLowerCase()}_24h_change"].toString());
+
+        tokenPrices[contractAddress] = Tuple2(price, change24h);
+      }
+
+      return tokenPrices;
+    } catch (e, s) {
+      Logging.instance.log(
+        "getPricesAnd24hChangeForEthTokens($baseCurrency,$contractAddresses): $e\n$s",
+        level: LogLevel.Error,
+      );
+      // return previous cached values
+      return tokenPrices;
     }
   }
 }

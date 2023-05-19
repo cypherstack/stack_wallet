@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_2_view.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
+import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -56,7 +56,7 @@ class _Step1ViewState extends State<Step1View> {
             },
           ),
           title: Text(
-            "Exchange",
+            "Swap",
             style: STextStyles.navBarTitle(context),
           ),
         ),
@@ -188,7 +188,7 @@ class _Step1ViewState extends State<Step1View> {
                             },
                             style: Theme.of(context)
                                 .extension<StackColors>()!
-                                .getPrimaryEnabledButtonColor(context),
+                                .getPrimaryEnabledButtonStyle(context),
                             child: Text(
                               "Next",
                               style: STextStyles.button(context),

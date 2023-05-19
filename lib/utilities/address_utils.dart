@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_libepiccash/epic_cash.dart';
 import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
+import 'package:stackwallet/services/coins/ecash/ecash_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart';
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
@@ -20,9 +21,14 @@ class AddressUtils {
   /// attempts to convert a string to a valid scripthash
   ///
   /// Returns the scripthash or throws an exception on invalid firo address
-  static String convertToScriptHash(String address, NetworkType network) {
+  static String convertToScriptHash(
+    String address,
+    NetworkType network, [
+    String overridePrefix = "",
+  ]) {
     try {
-      final output = Address.addressToOutputScript(address, network);
+      final output =
+          Address.addressToOutputScript(address, network, overridePrefix);
       final hash = sha256.convert(output.toList(growable: false)).toString();
 
       final chars = hash.split("");
@@ -52,8 +58,12 @@ class AddressUtils {
         return Address.validateAddress(address, dogecoin);
       case Coin.epicCash:
         return validateSendAddress(address) == "1";
+      case Coin.ethereum:
+        return true; //TODO - validate ETH address
       case Coin.firo:
         return Address.validateAddress(address, firoNetwork);
+      case Coin.eCash:
+        return Address.validateAddress(address, eCashNetwork);
       case Coin.monero:
         return RegExp("[a-zA-Z0-9]{95}").hasMatch(address) ||
             RegExp("[a-zA-Z0-9]{106}").hasMatch(address);

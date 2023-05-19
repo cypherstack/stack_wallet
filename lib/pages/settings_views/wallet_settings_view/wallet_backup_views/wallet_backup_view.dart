@@ -8,13 +8,12 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -140,7 +139,7 @@ class WalletBackupView extends ConsumerWidget {
               TextButton(
                 style: Theme.of(context)
                     .extension<StackColors>()!
-                    .getPrimaryEnabledButtonColor(context),
+                    .getPrimaryEnabledButtonStyle(context),
                 onPressed: () {
                   String data = AddressUtils.encodeQRSeedData(mnemonic);
 
@@ -194,7 +193,7 @@ class WalletBackupView extends ConsumerWidget {
                                   },
                                   style: Theme.of(context)
                                       .extension<StackColors>()!
-                                      .getSecondaryEnabledButtonColor(context),
+                                      .getSecondaryEnabledButtonStyle(context),
                                   child: Text(
                                     "Cancel",
                                     style: STextStyles.button(context).copyWith(

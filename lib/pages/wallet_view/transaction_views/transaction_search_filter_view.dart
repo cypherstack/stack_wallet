@@ -6,14 +6,15 @@ import 'package:flutter_rounded_date_picker/flutter_rounded_date_picker.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/transaction_filter.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/providers/ui/color_theme_provider.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -60,7 +61,7 @@ class _TransactionSearchViewState
 
   @override
   initState() {
-    baseColor = ref.read(colorThemeProvider.state).state.textSubtitle2;
+    baseColor = ref.read(themeProvider.state).state.textSubtitle2;
     final filterState = ref.read(transactionFilterProvider.state).state;
     if (filterState != null) {
       _isActiveReceivedCheckbox = filterState.received;
@@ -75,13 +76,12 @@ class _TransactionSearchViewState
       _toDateString =
           _selectedToDate == null ? "" : Format.formatDate(_selectedToDate!);
 
-      // TODO: Fix XMR (modify Format.funcs to take optional Coin parameter)
-      // final amt = Format.satoshisToAmount(widget.coin == Coin.monero ? )
-      String amount = "";
-      if (filterState.amount != null) {
-        amount = Format.satoshiAmountToPrettyString(filterState.amount!,
-            ref.read(localeServiceChangeNotifierProvider).locale, widget.coin);
-      }
+      final String amount = filterState.amount?.localizedStringAsFixed(
+            locale: ref.read(localeServiceChangeNotifierProvider).locale,
+            decimalPlaces: widget.coin.decimals,
+          ) ??
+          "";
+
       _amountTextEditingController.text = amount;
     }
 
@@ -739,10 +739,12 @@ class _TransactionSearchViewState
               controller: _amountTextEditingController,
               focusNode: amountTextFieldFocusNode,
               onChanged: (_) => setState(() {}),
-              keyboardType: const TextInputType.numberWithOptions(
-                signed: false,
-                decimal: true,
-              ),
+              keyboardType: Util.isDesktop
+                  ? null
+                  : const TextInputType.numberWithOptions(
+                      signed: false,
+                      decimal: true,
+                    ),
               inputFormatters: [
                 // regex to validate a crypto amount with 8 decimal places
                 TextInputFormatter.withFunction((oldValue, newValue) =>
@@ -964,15 +966,13 @@ class _TransactionSearchViewState
 
   Future<void> _onApplyPressed() async {
     final amountText = _amountTextEditingController.text;
-    Decimal? amountDecimal;
+    Amount? amount;
     if (amountText.isNotEmpty && !(amountText == "," || amountText == ".")) {
-      amountDecimal = amountText.contains(",")
+      amount = amountText.contains(",")
           ? Decimal.parse(amountText.replaceFirst(",", "."))
-          : Decimal.parse(amountText);
-    }
-    int? amount;
-    if (amountDecimal != null) {
-      amount = Format.decimalAmountToSatoshis(amountDecimal, widget.coin);
+              .toAmount(fractionDigits: widget.coin.decimals)
+          : Decimal.parse(amountText)
+              .toAmount(fractionDigits: widget.coin.decimals);
     }
 
     final TransactionFilter filter = TransactionFilter(

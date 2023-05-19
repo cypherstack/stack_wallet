@@ -1,15 +1,4 @@
-enum ExchangeExceptionType { generic, serializeResponseError }
-
-class ExchangeException implements Exception {
-  String errorMessage;
-  ExchangeExceptionType type;
-  ExchangeException(this.errorMessage, this.type);
-
-  @override
-  String toString() {
-    return errorMessage;
-  }
-}
+import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
 
 class ExchangeResponse<T> {
   late final T? value;

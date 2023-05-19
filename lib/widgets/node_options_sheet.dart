@@ -9,17 +9,16 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
 import 'package:stackwallet/utilities/test_monero_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
 
@@ -132,6 +131,7 @@ class NodeOptionsSheet extends ConsumerWidget {
       case Coin.litecoin:
       case Coin.dogecoin:
       case Coin.firo:
+      case Coin.particl:
       case Coin.bitcoinTestNet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
@@ -307,7 +307,7 @@ class NodeOptionsSheet extends ConsumerWidget {
                       child: TextButton(
                         style: Theme.of(context)
                             .extension<StackColors>()!
-                            .getSecondaryEnabledButtonColor(context),
+                            .getSecondaryEnabledButtonStyle(context),
                         onPressed: () {
                           Navigator.pop(context);
                           Navigator.of(context).pushNamed(
@@ -337,10 +337,10 @@ class NodeOptionsSheet extends ConsumerWidget {
                         style: status == "Connected"
                             ? Theme.of(context)
                                 .extension<StackColors>()!
-                                .getPrimaryDisabledButtonColor(context)
+                                .getPrimaryDisabledButtonStyle(context)
                             : Theme.of(context)
                                 .extension<StackColors>()!
-                                .getPrimaryEnabledButtonColor(context),
+                                .getPrimaryEnabledButtonStyle(context),
                         onPressed: status == "Connected"
                             ? null
                             : () async {

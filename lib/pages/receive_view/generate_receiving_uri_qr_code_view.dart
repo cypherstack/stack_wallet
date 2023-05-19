@@ -13,15 +13,14 @@ import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -218,46 +217,19 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
               Center(
                 child: SizedBox(
                   width: width,
-                  child: TextButton(
-                    onPressed: () async {
-                      // TODO: add save button as well
-                      await _capturePng(true);
-                    },
-                    style: Theme.of(context)
-                        .extension<StackColors>()!
-                        .getSecondaryEnabledButtonColor(context),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Center(
-                          child: SvgPicture.asset(
-                            Assets.svg.share,
-                            width: 14,
-                            height: 14,
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 4,
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              "Share",
-                              textAlign: TextAlign.center,
-                              style: STextStyles.button(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .buttonTextSecondary,
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 2,
-                            ),
-                          ],
-                        ),
-                      ],
+                  child: SecondaryButton(
+                    label: "Share",
+                    icon: SvgPicture.asset(
+                      Assets.svg.share,
+                      width: 14,
+                      height: 14,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .buttonTextSecondary,
                     ),
+                    onPressed: () async {
+                      await _capturePng(false);
+                    },
                   ),
                 ),
               ),
@@ -409,8 +381,9 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                         height: 1.8,
                       )
                     : STextStyles.field(context),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: Util.isDesktop
+                    ? null
+                    : const TextInputType.numberWithOptions(decimal: true),
                 onChanged: (_) => setState(() {}),
                 decoration: standardInputDecoration(
                   "Amount",

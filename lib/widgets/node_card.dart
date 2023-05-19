@@ -9,17 +9,16 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
 import 'package:stackwallet/utilities/test_monero_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -149,6 +148,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
       case Coin.litecoin:
       case Coin.dogecoin:
       case Coin.firo:
+      case Coin.particl:
       case Coin.bitcoinTestNet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
@@ -261,7 +261,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                     const SizedBox(
                       width: 66,
                     ),
-                    BlueTextButton(
+                    CustomTextButton(
                       text: "Connect",
                       enabled: _status == "Disconnected",
                       onTap: () async {
@@ -285,7 +285,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                     const SizedBox(
                       width: 48,
                     ),
-                    BlueTextButton(
+                    CustomTextButton(
                       text: "Details",
                       onTap: () {
                         Navigator.of(context).pushNamed(

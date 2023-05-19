@@ -8,6 +8,7 @@ class TextFieldIconButton extends StatefulWidget {
     this.onTap,
     required this.child,
     this.color = Colors.transparent,
+    this.semanticsLabel = "Button",
   }) : super(key: key);
 
   final double width;
@@ -15,6 +16,7 @@ class TextFieldIconButton extends StatefulWidget {
   final VoidCallback? onTap;
   final Widget child;
   final Color color;
+  final String semanticsLabel;
 
   @override
   State<TextFieldIconButton> createState() => _TextFieldIconButtonState();
@@ -36,21 +38,25 @@ class _TextFieldIconButtonState extends State<TextFieldIconButton> {
       width: widget.width,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(100),
-        child: RawMaterialButton(
-          constraints: BoxConstraints(
-            minWidth: widget.width,
-            minHeight: widget.height,
-          ),
-          onPressed: onTap,
-          child: Container(
-            width: widget.width,
-            height: widget.height,
-            color: widget.color,
-            child: Center(
-              child: widget.child,
+        child: Semantics(
+          label: widget.semanticsLabel,
+          excludeSemantics: true,
+          child: RawMaterialButton(
+            constraints: BoxConstraints(
+              minWidth: widget.width,
+              minHeight: widget.height,
+            ),
+            onPressed: onTap,
+            child: Container(
+              width: widget.width,
+              height: widget.height,
+              color: widget.color,
+              child: Center(
+                child: widget.child,
+              ),
             ),
           ),
-        ),
+        )
       ),
     );
   }

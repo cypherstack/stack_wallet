@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class SettingsListButton extends StatelessWidget {
   const SettingsListButton({
@@ -70,9 +70,7 @@ class SettingsListButton extends StatelessWidget {
               child: Text(
                 title,
                 style: STextStyles.smallMed14(context).copyWith(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorDark,
+                  color: Theme.of(context).extension<StackColors>()!.textDark,
                 ),
               ),
             ),

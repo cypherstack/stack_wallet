@@ -9,16 +9,18 @@ import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 // import 'package:stackwallet/providers/global/should_show_lockscreen_on_resume_state_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/biometrics.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_pin_put/custom_pin_put.dart';
 import 'package:stackwallet/widgets/shake/shake.dart';
 import 'package:tuple/tuple.dart';
@@ -36,6 +38,7 @@ class LockscreenView extends ConsumerStatefulWidget {
     this.routeOnSuccessArguments,
     this.biometrics = const Biometrics(),
     this.onSuccess,
+    this.customKeyLabel = "Button",
   }) : super(key: key);
 
   static const String routeName = "/lockscreen";
@@ -50,6 +53,7 @@ class LockscreenView extends ConsumerStatefulWidget {
   final String biometricsCancelButtonString;
   final Biometrics biometrics;
   final VoidCallback? onSuccess;
+  final String customKeyLabel;
 
   @override
   ConsumerState<LockscreenView> createState() => _LockscreenViewState();
@@ -79,19 +83,47 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
     if (widget.popOnSuccess) {
       Navigator.of(context).pop(widget.routeOnSuccessArguments);
     } else {
-      unawaited(Navigator.of(context).pushReplacementNamed(
-        widget.routeOnSuccess,
-        arguments: widget.routeOnSuccessArguments,
-      ));
-      if (widget.routeOnSuccess == HomeView.routeName &&
-          widget.routeOnSuccessArguments is String) {
+      final loadIntoWallet = widget.routeOnSuccess == HomeView.routeName &&
+          widget.routeOnSuccessArguments is String;
+
+      if (loadIntoWallet) {
         final walletId = widget.routeOnSuccessArguments as String;
-        unawaited(Navigator.of(context).pushNamed(WalletView.routeName,
-            arguments: Tuple2(
+
+        final manager =
+            ref.read(walletsChangeNotifierProvider).getManager(walletId);
+        if (manager.coin == Coin.monero) {
+          await showLoading(
+            opaqueBG: true,
+            whileFuture: manager.initializeExisting(),
+            context: context,
+            message: "Loading ${manager.coin.prettyName} wallet...",
+          );
+        }
+      }
+
+      if (mounted) {
+        unawaited(
+          Navigator.of(context).pushReplacementNamed(
+            widget.routeOnSuccess,
+            arguments: widget.routeOnSuccessArguments,
+          ),
+        );
+
+        if (loadIntoWallet) {
+          final walletId = widget.routeOnSuccessArguments as String;
+
+          unawaited(
+            Navigator.of(context).pushNamed(
+              WalletView.routeName,
+              arguments: Tuple2(
                 walletId,
                 ref
                     .read(walletsChangeNotifierProvider)
-                    .getManagerProvider(walletId))));
+                    .getManagerProvider(walletId),
+              ),
+            ),
+          );
+        }
       }
     }
   }
@@ -126,6 +158,14 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
       //   Navigator.pop(context);
       // }
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    if (widget.isInitialAppLogin) {
+      // unawaited(Assets.precache(context));
+    }
+    super.didChangeDependencies();
   }
 
   @override
@@ -164,27 +204,56 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
   late Biometrics biometrics;
 
   Widget get _body => Background(
-        child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: widget.showBackButton
-                ? AppBarBackButton(
-                    onPressed: () async {
-                      if (FocusScope.of(context).hasFocus) {
-                        FocusScope.of(context).unfocus();
-                        await Future<void>.delayed(
-                            const Duration(milliseconds: 70));
-                      }
-                      if (mounted) {
-                        Navigator.of(context).pop();
-                      }
-                    },
-                  )
-                : Container(),
-          ),
-          body: SafeArea(
-            child: Column(
+        child: SafeArea(
+          child: Scaffold(
+            extendBodyBehindAppBar: true,
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.background,
+            appBar: AppBar(
+              leading: widget.showBackButton
+                  ? AppBarBackButton(
+                      onPressed: () async {
+                        if (FocusScope.of(context).hasFocus) {
+                          FocusScope.of(context).unfocus();
+                          await Future<void>.delayed(
+                              const Duration(milliseconds: 70));
+                        }
+                        if (mounted) {
+                          Navigator.of(context).pop();
+                        }
+                      },
+                    )
+                  : Container(),
+              actions: [
+                // check prefs and hide if user has biometrics toggle off?
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        right: 16.0,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          if (ref
+                                  .read(prefsChangeNotifierProvider)
+                                  .useBiometrics ==
+                              true)
+                            CustomTextButton(
+                              text: "Use biometrics",
+                              onTap: () async {
+                                await _checkUseBiometrics();
+                              },
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            body: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Shake(
@@ -205,6 +274,12 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                           height: 52,
                         ),
                         CustomPinPut(
+                          // customKey: CustomKey(
+                          //   onPressed: _checkUseBiometrics,
+                          //   iconAssetName: Platform.isIOS
+                          //       ? Assets.svg.faceId
+                          //       : Assets.svg.fingerprint,
+                          // ),
                           fieldsCount: Constants.pinLength,
                           eachFieldHeight: 12,
                           eachFieldWidth: 12,
@@ -240,6 +315,9 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                           ),
                           selectedFieldDecoration: _pinPutDecoration,
                           followingFieldDecoration: _pinPutDecoration,
+                          isRandom: ref
+                              .read(prefsChangeNotifierProvider)
+                              .randomizePIN,
                           onSubmit: (String pin) async {
                             _attempts++;
 

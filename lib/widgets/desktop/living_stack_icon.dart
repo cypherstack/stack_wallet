@@ -1,17 +1,23 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import 'dart:io';
 
-class LivingStackIcon extends StatefulWidget {
-  const LivingStackIcon({Key? key, this.onPressed,}) : super(key: key);
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
+
+class LivingStackIcon extends ConsumerStatefulWidget {
+  const LivingStackIcon({
+    Key? key,
+    this.onPressed,
+  }) : super(key: key);
 
   final VoidCallback? onPressed;
 
   @override
-  State<LivingStackIcon> createState() => _LivingStackIconState();
+  ConsumerState<LivingStackIcon> createState() => _LivingStackIconState();
 }
 
-class _LivingStackIconState extends State<LivingStackIcon> {
+class _LivingStackIconState extends ConsumerState<LivingStackIcon> {
   bool _hovering = false;
 
   late final VoidCallback? onPressed;
@@ -43,8 +49,14 @@ class _LivingStackIconState extends State<LivingStackIcon> {
           child: AnimatedScale(
             duration: const Duration(milliseconds: 200),
             scale: _hovering ? 1.2 : 1,
-            child: SvgPicture.asset(
-              Assets.svg.stackIcon(context),
+            child: SvgPicture.file(
+              File(
+                ref.watch(
+                  themeProvider.select(
+                    (value) => value.assets.stackIcon,
+                  ),
+                ),
+              ),
             ),
           ),
         ),

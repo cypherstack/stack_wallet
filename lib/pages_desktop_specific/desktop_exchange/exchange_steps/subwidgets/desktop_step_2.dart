@@ -7,12 +7,12 @@ import 'package:stackwallet/pages_desktop_specific/desktop_exchange/subwidgets/d
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/address_book_address_chooser.dart';
 import 'package:stackwallet/providers/exchange/exchange_send_from_wallet_id_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
@@ -300,8 +300,8 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
             ),
             if (isStackCoin(ref.watch(desktopExchangeModelProvider
                 .select((value) => value!.receiveTicker))))
-              BlueTextButton(
-                text: "Choose from stack",
+              CustomTextButton(
+                text: "Choose from Stack",
                 onTap: selectRecipientAddressFromStack,
               ),
           ],
@@ -432,8 +432,8 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
             ),
             if (isStackCoin(ref.watch(desktopExchangeModelProvider
                 .select((value) => value!.sendTicker))))
-              BlueTextButton(
-                text: "Choose from stack",
+              CustomTextButton(
+                text: "Choose from Stack",
                 onTap: selectRefundAddressFromStack,
               ),
           ],

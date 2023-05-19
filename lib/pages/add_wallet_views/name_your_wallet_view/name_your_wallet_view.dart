@@ -3,18 +3,19 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/coin_image.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_warning_view/new_wallet_recovery_phrase_warning_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/restore_options_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/global/wallets_service_provider.dart';
 import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/name_generator.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -165,11 +166,10 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
               flex: 1,
             ),
           if (!isDesktop)
-            Image(
-              image: AssetImage(
-                Assets.png.imageFor(coin: coin),
-              ),
+            CoinImage(
+              coin: coin,
               height: 100,
+              width: 100,
             ),
           SizedBox(
             height: isDesktop ? 0 : 16,
@@ -238,13 +238,23 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                         TextFieldIconButton(
                           key: const Key("genRandomWalletNameButtonKey"),
                           child: _showDiceIcon
-                              ? DiceIcon(
-                                  width: isDesktop ? 20 : 17,
-                                  height: isDesktop ? 20 : 17,
+                              ? Semantics(
+                                  label:
+                                      "Generate Random Wallet Name Button. Generates A Random Name For Wallet.",
+                                  excludeSemantics: true,
+                                  child: DiceIcon(
+                                    width: isDesktop ? 20 : 17,
+                                    height: isDesktop ? 20 : 17,
+                                  ),
                                 )
-                              : XIcon(
-                                  width: isDesktop ? 21 : 18,
-                                  height: isDesktop ? 21 : 18,
+                              : Semantics(
+                                  label:
+                                      "Generate Random Wallet Name Button. Generates A Random Name For Wallet.",
+                                  excludeSemantics: true,
+                                  child: XIcon(
+                                    width: isDesktop ? 21 : 18,
+                                    height: isDesktop ? 21 : 18,
+                                  ),
                                 ),
                           onTap: () async {
                             if (_showDiceIcon) {
@@ -364,10 +374,10 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
               style: _nextEnabled
                   ? Theme.of(context)
                       .extension<StackColors>()!
-                      .getPrimaryEnabledButtonColor(context)
+                      .getPrimaryEnabledButtonStyle(context)
                   : Theme.of(context)
                       .extension<StackColors>()!
-                      .getPrimaryDisabledButtonColor(context),
+                      .getPrimaryDisabledButtonStyle(context),
               child: Text(
                 "Next",
                 style: isDesktop

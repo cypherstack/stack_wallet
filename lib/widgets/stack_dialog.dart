@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 
 class StackDialogBase extends StatelessWidget {
@@ -21,20 +21,24 @@ class StackDialogBase extends StatelessWidget {
         mainAxisAlignment:
             !Util.isDesktop ? MainAxisAlignment.end : MainAxisAlignment.center,
         children: [
-          Material(
-            borderRadius: BorderRadius.circular(
-              20,
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).extension<StackColors>()!.popupBG,
+          Flexible(
+            child: SingleChildScrollView(
+              child: Material(
                 borderRadius: BorderRadius.circular(
                   20,
                 ),
-              ),
-              child: Padding(
-                padding: padding,
-                child: child,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).extension<StackColors>()!.popupBG,
+                    borderRadius: BorderRadius.circular(
+                      20,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: padding,
+                    child: child,
+                  ),
+                ),
               ),
             ),
           ),
@@ -193,7 +197,7 @@ class StackOkDialog extends StatelessWidget {
                         },
                   style: Theme.of(context)
                       .extension<StackColors>()!
-                      .getPrimaryEnabledButtonColor(context),
+                      .getPrimaryEnabledButtonStyle(context),
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context),

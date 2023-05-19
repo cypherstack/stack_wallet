@@ -4,16 +4,14 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
-import 'package:stackwallet/hive/db.dart';
-import 'package:stackwallet/models/contact.dart';
-import 'package:stackwallet/models/contact_address_entry.dart';
+import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
+import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/stack_restoring_ui_state.dart';
 import 'package:stackwallet/models/trade_wallet_lookup.dart';
 import 'package:stackwallet/models/wallet_restore_state.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/services/address_book_service.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/coins/manager.dart';
@@ -133,9 +131,9 @@ abstract class SWB {
   static Future<bool> encryptStackWalletWithADK(
     String fileToSave,
     String adk,
-    String plaintext, {
-    int? adkVersion,
-  }) async {
+    String plaintext,
+    int adkVersion,
+  ) async {
     try {
       File backupFile = File(fileToSave);
       if (!backupFile.existsSync()) {
@@ -246,7 +244,6 @@ abstract class SWB {
       final _prefs = Prefs.instance;
       await _prefs.init();
       prefs['currency'] = _prefs.currency;
-      prefs['exchangeRateType'] = _prefs.exchangeRateType.name;
       prefs['useBiometrics'] = _prefs.useBiometrics;
       prefs['hasPin'] = _prefs.hasPin;
       prefs['language'] = _prefs.language;
@@ -268,7 +265,7 @@ abstract class SWB {
       );
 
       AddressBookService addressBookService = AddressBookService();
-      var addresses = await addressBookService.addressBookEntries;
+      var addresses = addressBookService.contacts;
       backupJson['addressBookEntries'] =
           addresses.map((e) => e.toMap()).toList();
 
@@ -284,6 +281,7 @@ abstract class SWB {
         backupWallet['id'] = manager.walletId;
         backupWallet['isFavorite'] = manager.isFavorite;
         backupWallet['mnemonic'] = await manager.mnemonic;
+        backupWallet['mnemonicPassphrase'] = await manager.mnemonicPassphrase;
         backupWallet['coinName'] = manager.coin.name;
         backupWallet['storedChainHeight'] = DB.instance
             .get<dynamic>(boxName: manager.walletId, key: 'storedChainHeight');
@@ -357,12 +355,15 @@ abstract class SWB {
     List<String> mnemonicList = (walletbackup['mnemonic'] as List<dynamic>)
         .map<String>((e) => e as String)
         .toList();
-    String mnemonic = mnemonicList.join(" ").trim();
+    final String mnemonic = mnemonicList.join(" ").trim();
+    final String mnemonicPassphrase =
+        walletbackup['mnemonicPassphrase'] as String? ?? "";
 
     uiState?.update(
       walletId: manager.walletId,
       restoringStatus: StackRestoringStatus.restoring,
       mnemonic: mnemonic,
+      mnemonicPassphrase: mnemonicPassphrase,
     );
 
     if (_shouldCancelRestore) {
@@ -403,6 +404,7 @@ abstract class SWB {
       // without using them
       await manager.recoverFromMnemonic(
         mnemonic: mnemonic,
+        mnemonicPassphrase: mnemonicPassphrase,
         maxUnusedAddressGap: manager.coin == Coin.firo ? 50 : 20,
         maxNumberOfIndexesToCheck: 1000,
         height: restoreHeight,
@@ -431,6 +433,7 @@ abstract class SWB {
         address: currentAddress,
         height: restoreHeight,
         mnemonic: mnemonic,
+        mnemonicPassphrase: mnemonicPassphrase,
       );
     } catch (e, s) {
       Logging.instance.log("$e $s", level: LogLevel.Warning);
@@ -439,6 +442,7 @@ abstract class SWB {
         restoringStatus: StackRestoringStatus.failed,
         manager: manager,
         mnemonic: mnemonic,
+        mnemonicPassphrase: mnemonicPassphrase,
       );
       return false;
     }
@@ -794,7 +798,7 @@ abstract class SWB {
 
     // contacts
     final addressBookService = AddressBookService();
-    final allContactIds = addressBookService.contacts.map((e) => e.id);
+    final allContactIds = addressBookService.contacts.map((e) => e.customId);
 
     if (addressBookEntries == null) {
       // if no contacts were present before attempted restore then delete any that
@@ -818,21 +822,20 @@ abstract class SWB {
           List<ContactAddressEntry> addresses = [];
           for (var address in (contact['addresses'] as List<dynamic>)) {
             addresses.add(
-              ContactAddressEntry(
-                coin: Coin.values
-                    .firstWhere((element) => element.name == address['coin']),
-                address: address['address'] as String,
-                label: address['label'] as String,
-              ),
+              ContactAddressEntry()
+                ..coinName = address['coin'] as String
+                ..address = address['address'] as String
+                ..label = address['label'] as String
+                ..other = address['other'] as String?,
             );
           }
           await addressBookService.editContact(
-            Contact(
+            ContactEntry(
               emojiChar: contact['emoji'] as String?,
               name: contact['name'] as String,
               addresses: addresses,
               isFavorite: contact['isFavorite'] as bool,
-              id: contact['id'] as String,
+              customId: contact['id'] as String,
             ),
           );
         } else {
@@ -989,9 +992,6 @@ abstract class SWB {
     final _prefs = Prefs.instance;
     await _prefs.init();
     _prefs.currency = prefs['currency'] as String;
-    _prefs.exchangeRateType = prefs['exchangeRateType'] == "estimated"
-        ? ExchangeRateType.estimated
-        : ExchangeRateType.fixed;
     // _prefs.useBiometrics = prefs['useBiometrics'] as bool;
     // _prefs.hasPin = prefs['hasPin'] as bool;
     _prefs.language = prefs['language'] as String;
@@ -1024,21 +1024,20 @@ abstract class SWB {
       List<ContactAddressEntry> addresses = [];
       for (var address in (contact['addresses'] as List<dynamic>)) {
         addresses.add(
-          ContactAddressEntry(
-            coin: Coin.values
-                .firstWhere((element) => element.name == address['coin']),
-            address: address['address'] as String,
-            label: address['label'] as String,
-          ),
+          ContactAddressEntry()
+            ..coinName = address['coin'] as String
+            ..address = address['address'] as String
+            ..label = address['label'] as String
+            ..other = address['other'] as String?,
         );
       }
       await addressBookService.addContact(
-        Contact(
+        ContactEntry(
           emojiChar: contact['emoji'] as String?,
           name: contact['name'] as String,
           addresses: addresses,
           isFavorite: contact['isFavorite'] as bool,
-          id: contact['id'] as String,
+          customId: contact['id'] as String,
         ),
       );
     }

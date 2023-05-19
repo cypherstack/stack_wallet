@@ -6,13 +6,12 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/biometrics.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_pin_put/custom_pin_put.dart';
@@ -139,6 +138,8 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                           .background,
                       counterText: "",
                     ),
+                    isRandom:
+                        ref.read(prefsChangeNotifierProvider).randomizePIN,
                     submittedFieldDecoration: _pinPutDecoration.copyWith(
                       color: Theme.of(context)
                           .extension<StackColors>()!
@@ -221,6 +222,8 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                     ),
                     selectedFieldDecoration: _pinPutDecoration,
                     followingFieldDecoration: _pinPutDecoration,
+                    isRandom:
+                        ref.read(prefsChangeNotifierProvider).randomizePIN,
                     onSubmit: (String pin) async {
                       // _onSubmitCount++;
                       // if (_onSubmitCount - _onSubmitFailCount > 1) return;

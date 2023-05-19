@@ -4,10 +4,12 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus_windows
+  desktop_drop
   flutter_libepiccash
   flutter_secure_storage_windows
   isar_flutter_libs
   permission_handler_windows
+  share_plus
   stack_wallet_backup
   url_launcher_windows
   window_size

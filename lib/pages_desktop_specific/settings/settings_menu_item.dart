@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class SettingsMenuItem<T> extends StatelessWidget {
   const SettingsMenuItem({
@@ -25,10 +25,10 @@ class SettingsMenuItem<T> extends StatelessWidget {
       style: value == group
           ? Theme.of(context)
               .extension<StackColors>()!
-              .getDesktopSettingsButtonColor(context)
+              .getDesktopSettingsButtonStyle(context)
           : Theme.of(context)
               .extension<StackColors>()!
-              .getDesktopSettingsButtonColor(context),
+              .getDesktopSettingsButtonStyle(context),
       onPressed: () {
         onChanged(value);
       },

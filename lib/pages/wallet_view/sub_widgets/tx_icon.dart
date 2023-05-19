@@ -1,17 +1,31 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import 'dart:io';
 
-class TxIcon extends StatelessWidget {
-  const TxIcon({Key? key, required this.transaction}) : super(key: key);
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/models/isar/stack_theme.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
+import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
+
+class TxIcon extends ConsumerWidget {
+  const TxIcon({
+    Key? key,
+    required this.transaction,
+    required this.currentHeight,
+    required this.coin,
+  }) : super(key: key);
+
   final Transaction transaction;
+  final int currentHeight;
+  final Coin coin;
 
   static const Size size = Size(32, 32);
 
   String _getAssetName(
-      bool isCancelled, bool isReceived, bool isPending, BuildContext context) {
-    if (!isReceived && transaction.subType == "mint") {
+      bool isCancelled, bool isReceived, bool isPending, IThemeAssets assets) {
+    if (!isReceived && transaction.subType == TransactionSubType.mint) {
       if (isCancelled) {
         return Assets.svg.anonymizeFailed;
       }
@@ -23,42 +37,56 @@ class TxIcon extends StatelessWidget {
 
     if (isReceived) {
       if (isCancelled) {
-        return Assets.svg.receiveCancelled(context);
+        return assets.receive;
       }
       if (isPending) {
-        return Assets.svg.receivePending(context);
+        return assets.receivePending;
       }
-      return Assets.svg.receive(context);
+      return assets.receive;
     } else {
       if (isCancelled) {
-        return Assets.svg.sendCancelled(context);
+        return assets.sendCancelled;
       }
       if (isPending) {
-        return Assets.svg.sendPending(context);
+        return assets.sendPending;
       }
-      return Assets.svg.send(context);
+      return assets.send;
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    final txIsReceived = transaction.txType == "Received";
+  Widget build(BuildContext context, WidgetRef ref) {
+    final txIsReceived = transaction.type == TransactionType.incoming;
+
+    final assetName = _getAssetName(
+      transaction.isCancelled,
+      txIsReceived,
+      !transaction.isConfirmed(
+        currentHeight,
+        coin.requiredConfirmations,
+      ),
+      ref.watch(themeAssetsProvider),
+    );
 
     return SizedBox(
       width: size.width,
       height: size.height,
       child: Center(
-        child: SvgPicture.asset(
-          _getAssetName(
-            transaction.isCancelled,
-            txIsReceived,
-            !transaction.confirmedStatus,
-            context,
-          ),
-          width: size.width,
-          height: size.height,
-        ),
-      ),
+          // if it starts with "assets" we assume its local
+          // TODO: a more thorough check
+          child: assetName.startsWith("assets")
+              ? SvgPicture.asset(
+                  assetName,
+                  width: size.width,
+                  height: size.height,
+                )
+              : SvgPicture.file(
+                  File(
+                    assetName,
+                  ),
+                  width: size.width,
+                  height: size.height,
+                )),
     );
   }
 }

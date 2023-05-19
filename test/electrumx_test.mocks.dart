@@ -4,13 +4,11 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i3;
-import 'dart:ui' as _i8;
+import 'dart:ui' as _i7;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/electrumx_rpc/rpc.dart' as _i2;
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart'
-    as _i6;
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i7;
+import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i6;
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i5;
 import 'package:stackwallet/utilities/prefs.dart' as _i4;
 
@@ -232,16 +230,15 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i6.ExchangeRateType get exchangeRateType => (super.noSuchMethod(
-        Invocation.getter(#exchangeRateType),
-        returnValue: _i6.ExchangeRateType.estimated,
-      ) as _i6.ExchangeRateType);
+  bool get randomizePIN => (super.noSuchMethod(
+        Invocation.getter(#randomizePIN),
+        returnValue: false,
+      ) as bool);
   @override
-  set exchangeRateType(_i6.ExchangeRateType? exchangeRateType) =>
-      super.noSuchMethod(
+  set randomizePIN(bool? randomizePIN) => super.noSuchMethod(
         Invocation.setter(
-          #exchangeRateType,
-          exchangeRateType,
+          #randomizePIN,
+          randomizePIN,
         ),
         returnValueForMissingStub: null,
       );
@@ -319,12 +316,12 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i7.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
+  _i6.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
         Invocation.getter(#backupFrequencyType),
-        returnValue: _i7.BackupFrequencyType.everyTenMinutes,
-      ) as _i7.BackupFrequencyType);
+        returnValue: _i6.BackupFrequencyType.everyTenMinutes,
+      ) as _i6.BackupFrequencyType);
   @override
-  set backupFrequencyType(_i7.BackupFrequencyType? backupFrequencyType) =>
+  set backupFrequencyType(_i6.BackupFrequencyType? backupFrequencyType) =>
       super.noSuchMethod(
         Invocation.setter(
           #backupFrequencyType,
@@ -389,6 +386,74 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValueForMissingStub: null,
       );
   @override
+  bool get enableCoinControl => (super.noSuchMethod(
+        Invocation.getter(#enableCoinControl),
+        returnValue: false,
+      ) as bool);
+  @override
+  set enableCoinControl(bool? enableCoinControl) => super.noSuchMethod(
+        Invocation.setter(
+          #enableCoinControl,
+          enableCoinControl,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  bool get enableSystemBrightness => (super.noSuchMethod(
+        Invocation.getter(#enableSystemBrightness),
+        returnValue: false,
+      ) as bool);
+  @override
+  set enableSystemBrightness(bool? enableSystemBrightness) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #enableSystemBrightness,
+          enableSystemBrightness,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  String get themeId => (super.noSuchMethod(
+        Invocation.getter(#themeId),
+        returnValue: '',
+      ) as String);
+  @override
+  set themeId(String? themeId) => super.noSuchMethod(
+        Invocation.setter(
+          #themeId,
+          themeId,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  String get systemBrightnessLightThemeId => (super.noSuchMethod(
+        Invocation.getter(#systemBrightnessLightThemeId),
+        returnValue: '',
+      ) as String);
+  @override
+  set systemBrightnessLightThemeId(String? systemBrightnessLightThemeId) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #systemBrightnessLightThemeId,
+          systemBrightnessLightThemeId,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  String get systemBrightnessDarkThemeId => (super.noSuchMethod(
+        Invocation.getter(#systemBrightnessDarkThemeId),
+        returnValue: '',
+      ) as String);
+  @override
+  set systemBrightnessDarkThemeId(String? systemBrightnessDarkThemeId) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #systemBrightnessDarkThemeId,
+          systemBrightnessDarkThemeId,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
@@ -420,7 +485,25 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValue: _i3.Future<bool>.value(false),
       ) as _i3.Future<bool>);
   @override
-  void addListener(_i8.VoidCallback? listener) => super.noSuchMethod(
+  _i3.Future<void> saveUserID(String? userId) => (super.noSuchMethod(
+        Invocation.method(
+          #saveUserID,
+          [userId],
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+  @override
+  _i3.Future<void> saveSignupEpoch(int? signupEpoch) => (super.noSuchMethod(
+        Invocation.method(
+          #saveSignupEpoch,
+          [signupEpoch],
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+  @override
+  void addListener(_i7.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -428,7 +511,7 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  void removeListener(_i8.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i7.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],

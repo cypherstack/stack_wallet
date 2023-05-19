@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/address_book_card.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/expandable.dart';
@@ -42,6 +42,9 @@ class _ContactListItemState extends ConsumerState<ContactListItem> {
     final contact = ref.watch(addressBookServiceProvider
         .select((value) => value.getContactById(contactId)));
 
+    // hack fix until we use a proper database (not Hive)
+    int i = 0;
+
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(0),
       borderColor: Theme.of(context).extension<StackColors>()!.background,
@@ -70,7 +73,8 @@ class _ContactListItemState extends ConsumerState<ContactListItem> {
                     filterByCoin != null ? e.coin == filterByCoin! : true)
                 .map(
                   (e) => Column(
-                    key: Key("contactAddress_${e.address}_${e.label}_key"),
+                    key: Key(
+                        "contactAddress_${e.address}_${e.label}_${++i}_key"),
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
@@ -129,7 +133,7 @@ class _ContactListItemState extends ConsumerState<ContactListItem> {
                                 ],
                               ),
                             ),
-                            BlueTextButton(
+                            CustomTextButton(
                               text: "Select wallet",
                               onTap: () {
                                 Navigator.of(context).pop(e);

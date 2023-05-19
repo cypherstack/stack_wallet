@@ -15,6 +15,7 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/stack_back
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_views/backup_frequency_type_select_sheet.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
@@ -22,7 +23,6 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -187,7 +187,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
       fileToSave,
       adkString,
       jsonEncode(backup),
-      adkVersion: adkVersion,
+      adkVersion,
     );
 
     // this future should already be complete unless there was an error encrypting
@@ -781,10 +781,10 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
               style: shouldEnableCreate
                   ? Theme.of(context)
                       .extension<StackColors>()!
-                      .getPrimaryEnabledButtonColor(context)
+                      .getPrimaryEnabledButtonStyle(context)
                   : Theme.of(context)
                       .extension<StackColors>()!
-                      .getPrimaryDisabledButtonColor(context),
+                      .getPrimaryDisabledButtonStyle(context),
               onPressed: !shouldEnableCreate ? null : onSavePressed,
               child: Text(
                 "Save",

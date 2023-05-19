@@ -6,7 +6,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockingjay/mockingjay.dart' as mockingjay;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/models/models.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
+import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
@@ -16,14 +18,16 @@ import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/notes_service.dart';
 import 'package:stackwallet/services/price_service.dart';
 import 'package:stackwallet/services/wallets.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_service.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/transaction_card.dart';
 import 'package:tuple/tuple.dart';
 
+import '../sample_data/theme_json.dart';
 import 'transaction_card_test.mocks.dart';
 
 @GenerateMocks([
@@ -34,7 +38,8 @@ import 'transaction_card_test.mocks.dart';
   LocaleService,
   Prefs,
   PriceService,
-  NotesService
+  NotesService,
+  ThemeService,
 ], customMocks: [])
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -44,29 +49,45 @@ void main() {
     final wallets = MockWallets();
     final mockPrefs = MockPrefs();
     final mockPriceService = MockPriceService();
+    final mockThemeService = MockThemeService();
 
     final tx = Transaction(
-        txid: "some txid",
-        confirmedStatus: true,
-        timestamp: 1648595998,
-        txType: "Sent",
-        amount: 100000000,
-        aliens: [],
-        worthNow: "0.01",
-        worthAtBlockTimestamp: "0.01",
-        fees: 3794,
-        inputSize: 1,
-        outputSize: 1,
-        inputs: [],
-        outputs: [],
-        address: "",
-        height: 450123,
-        subType: "",
-        confirmations: 10,
-        isCancelled: false);
+      txid: "some txid",
+      timestamp: 1648595998,
+      type: TransactionType.outgoing,
+      amount: 100000000,
+      amountString: Amount(
+        rawValue: BigInt.from(100000000),
+        fractionDigits: Coin.firo.decimals,
+      ).toJsonString(),
+      fee: 3794,
+      height: 450123,
+      subType: TransactionSubType.none,
+      isCancelled: false,
+      walletId: '',
+      isLelantus: null,
+      slateId: '',
+      otherData: '',
+      nonce: null,
+      inputs: [],
+      outputs: [],
+    )..address.value = Address(
+        walletId: "walletId",
+        value: "",
+        publicKey: [],
+        derivationIndex: 0,
+        derivationPath: null,
+        type: AddressType.p2pkh,
+        subType: AddressSubType.receiving);
 
     final CoinServiceAPI wallet = MockFiroWallet();
 
+    when(mockThemeService.getTheme(themeId: "light")).thenAnswer(
+      (_) => StackTheme.fromJson(
+        json: lightThemeJsonMap,
+        applicationThemesDirectoryPath: "test",
+      ),
+    );
     when(wallet.coin.ticker).thenAnswer((_) => "FIRO");
     when(mockLocaleService.locale).thenAnswer((_) => "en_US");
     when(mockPrefs.currency).thenAnswer((_) => "USD");
@@ -78,6 +99,8 @@ void main() {
 
     when(wallets.getManager("wallet-id"))
         .thenAnswer((realInvocation) => Manager(wallet));
+
+    when(wallet.storedChainHeight).thenAnswer((_) => 6000000);
     //
     await tester.pumpWidget(
       ProviderScope(
@@ -85,6 +108,7 @@ void main() {
           walletsChangeNotifierProvider.overrideWithValue(wallets),
           localeServiceChangeNotifierProvider
               .overrideWithValue(mockLocaleService),
+          pThemeService.overrideWithValue(mockThemeService),
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
           priceAnd24hChangeNotifierProvider.overrideWithValue(mockPriceService)
         ],
@@ -92,7 +116,10 @@ void main() {
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
-                LightColors(),
+                StackTheme.fromJson(
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
+                ),
               ),
             ],
           ),
@@ -139,29 +166,45 @@ void main() {
     final wallets = MockWallets();
     final mockPrefs = MockPrefs();
     final mockPriceService = MockPriceService();
+    final mockThemeService = MockThemeService();
 
     final tx = Transaction(
-        txid: "some txid",
-        confirmedStatus: true,
-        timestamp: 1648595998,
-        txType: "Anonymized",
-        amount: 100000000,
-        aliens: [],
-        worthNow: "0.01",
-        worthAtBlockTimestamp: "0.01",
-        fees: 3794,
-        inputSize: 1,
-        outputSize: 1,
-        inputs: [],
-        outputs: [],
-        address: "",
-        height: 450123,
-        subType: "mint",
-        confirmations: 10,
-        isCancelled: false);
+      txid: "some txid",
+      timestamp: 1648595998,
+      type: TransactionType.outgoing,
+      amount: 9659,
+      amountString: Amount(
+        rawValue: BigInt.from(9659),
+        fractionDigits: Coin.firo.decimals,
+      ).toJsonString(),
+      fee: 3794,
+      height: 450123,
+      subType: TransactionSubType.mint,
+      isCancelled: false,
+      walletId: '',
+      isLelantus: null,
+      slateId: '',
+      otherData: '',
+      nonce: null,
+      inputs: [],
+      outputs: [],
+    )..address.value = Address(
+        walletId: "walletId",
+        value: "",
+        publicKey: [],
+        derivationIndex: 0,
+        derivationPath: null,
+        type: AddressType.p2pkh,
+        subType: AddressSubType.receiving);
 
     final CoinServiceAPI wallet = MockFiroWallet();
 
+    when(mockThemeService.getTheme(themeId: "light")).thenAnswer(
+      (_) => StackTheme.fromJson(
+        json: lightThemeJsonMap,
+        applicationThemesDirectoryPath: "test",
+      ),
+    );
     when(wallet.coin.ticker).thenAnswer((_) => "FIRO");
     when(mockLocaleService.locale).thenAnswer((_) => "en_US");
     when(mockPrefs.currency).thenAnswer((_) => "USD");
@@ -170,6 +213,7 @@ void main() {
         .thenAnswer((realInvocation) => Tuple2(Decimal.ten, 0.00));
 
     when(wallet.coin).thenAnswer((_) => Coin.firo);
+    when(wallet.storedChainHeight).thenAnswer((_) => 6000000);
 
     when(wallets.getManager("wallet-id"))
         .thenAnswer((realInvocation) => Manager(wallet));
@@ -181,13 +225,17 @@ void main() {
           localeServiceChangeNotifierProvider
               .overrideWithValue(mockLocaleService),
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
+          pThemeService.overrideWithValue(mockThemeService),
           priceAnd24hChangeNotifierProvider.overrideWithValue(mockPriceService)
         ],
         child: MaterialApp(
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
-                LightColors(),
+                StackTheme.fromJson(
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
+                ),
               ),
             ],
           ),
@@ -199,7 +247,7 @@ void main() {
     //
     final title = find.text("Anonymized");
     // final price1 = find.text("0.00 USD");
-    final amount = find.text("1.00000000 FIRO");
+    final amount = find.text("-0.00009659 FIRO");
 
     final icon = find.byIcon(FeatherIcons.arrowUp);
 
@@ -232,29 +280,45 @@ void main() {
     final wallets = MockWallets();
     final mockPrefs = MockPrefs();
     final mockPriceService = MockPriceService();
+    final mockThemeService = MockThemeService();
 
     final tx = Transaction(
       txid: "some txid",
-      confirmedStatus: false,
       timestamp: 1648595998,
-      txType: "Received",
+      type: TransactionType.incoming,
       amount: 100000000,
-      aliens: [],
-      worthNow: "0.01",
-      worthAtBlockTimestamp: "0.01",
-      fees: 3794,
-      inputSize: 1,
-      outputSize: 1,
+      amountString: Amount(
+        rawValue: BigInt.from(100000000),
+        fractionDigits: Coin.firo.decimals,
+      ).toJsonString(),
+      fee: 3794,
+      height: 450123,
+      subType: TransactionSubType.none,
+      isCancelled: false,
+      walletId: '',
+      isLelantus: null,
+      slateId: '',
+      otherData: '',
+      nonce: null,
       inputs: [],
       outputs: [],
-      address: "",
-      height: 0,
-      subType: "",
-      confirmations: 0,
-    );
+    )..address.value = Address(
+        walletId: "walletId",
+        value: "",
+        publicKey: [],
+        derivationIndex: 0,
+        derivationPath: null,
+        type: AddressType.p2pkh,
+        subType: AddressSubType.receiving);
 
     final CoinServiceAPI wallet = MockFiroWallet();
 
+    when(mockThemeService.getTheme(themeId: "light")).thenAnswer(
+      (_) => StackTheme.fromJson(
+        json: lightThemeJsonMap,
+        applicationThemesDirectoryPath: "test",
+      ),
+    );
     when(wallet.coin.ticker).thenAnswer((_) => "FIRO");
     when(mockLocaleService.locale).thenAnswer((_) => "en_US");
     when(mockPrefs.currency).thenAnswer((_) => "USD");
@@ -267,6 +331,8 @@ void main() {
     when(wallets.getManager("wallet-id"))
         .thenAnswer((realInvocation) => Manager(wallet));
 
+    when(wallet.storedChainHeight).thenAnswer((_) => 6000000);
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -274,13 +340,17 @@ void main() {
           localeServiceChangeNotifierProvider
               .overrideWithValue(mockLocaleService),
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
+          pThemeService.overrideWithValue(mockThemeService),
           priceAnd24hChangeNotifierProvider.overrideWithValue(mockPriceService)
         ],
         child: MaterialApp(
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
-                LightColors(),
+                StackTheme.fromJson(
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
+                ),
               ),
             ],
           ),
@@ -289,7 +359,7 @@ void main() {
       ),
     );
 
-    final title = find.text("Receiving");
+    final title = find.text("Received");
     final amount = Util.isDesktop
         ? find.text("+1.00000000 FIRO")
         : find.text("1.00000000 FIRO");
@@ -317,30 +387,46 @@ void main() {
     final wallets = MockWallets();
     final mockPrefs = MockPrefs();
     final mockPriceService = MockPriceService();
+    final mockThemeService = MockThemeService();
     final navigator = mockingjay.MockNavigator();
 
     final tx = Transaction(
       txid: "some txid",
-      confirmedStatus: false,
       timestamp: 1648595998,
-      txType: "Received",
+      type: TransactionType.outgoing,
       amount: 100000000,
-      aliens: [],
-      worthNow: "0.01",
-      worthAtBlockTimestamp: "0.01",
-      fees: 3794,
-      inputSize: 1,
-      outputSize: 1,
+      amountString: Amount(
+        rawValue: BigInt.from(100000000),
+        fractionDigits: Coin.firo.decimals,
+      ).toJsonString(),
+      fee: 3794,
+      height: 450123,
+      subType: TransactionSubType.none,
+      isCancelled: false,
+      walletId: '',
+      isLelantus: null,
+      slateId: '',
+      otherData: '',
+      nonce: null,
       inputs: [],
       outputs: [],
-      address: "",
-      height: 250,
-      subType: "",
-      confirmations: 10,
-    );
+    )..address.value = Address(
+        walletId: "walletId",
+        value: "",
+        publicKey: [],
+        derivationIndex: 0,
+        derivationPath: null,
+        type: AddressType.p2pkh,
+        subType: AddressSubType.receiving);
 
     final CoinServiceAPI wallet = MockFiroWallet();
 
+    when(mockThemeService.getTheme(themeId: "light")).thenAnswer(
+      (_) => StackTheme.fromJson(
+        json: lightThemeJsonMap,
+        applicationThemesDirectoryPath: "test",
+      ),
+    );
     when(wallet.coin.ticker).thenAnswer((_) => "FIRO");
     when(mockLocaleService.locale).thenAnswer((_) => "en_US");
     when(mockPrefs.currency).thenAnswer((_) => "USD");
@@ -352,6 +438,8 @@ void main() {
 
     when(wallets.getManager("wallet id"))
         .thenAnswer((realInvocation) => Manager(wallet));
+
+    when(wallet.storedChainHeight).thenAnswer((_) => 6000000);
 
     mockingjay
         .when(() => navigator.pushNamed("/transactionDetails",
@@ -365,12 +453,18 @@ void main() {
           localeServiceChangeNotifierProvider
               .overrideWithValue(mockLocaleService),
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
+          pThemeService.overrideWithValue(mockThemeService),
           priceAnd24hChangeNotifierProvider.overrideWithValue(mockPriceService)
         ],
         child: MaterialApp(
           theme: ThemeData(
             extensions: [
-              StackColors.fromStackColorTheme(LightColors()),
+              StackColors.fromStackColorTheme(
+                StackTheme.fromJson(
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
+                ),
+              ),
             ],
           ),
           home: mockingjay.MockNavigatorProvider(
@@ -390,6 +484,7 @@ void main() {
     verify(mockPrefs.currency).called(2);
     verify(mockLocaleService.locale).called(4);
     verify(wallet.coin.ticker).called(1);
+    verify(wallet.storedChainHeight).called(2);
 
     verifyNoMoreInteractions(wallet);
     verifyNoMoreInteractions(mockLocaleService);

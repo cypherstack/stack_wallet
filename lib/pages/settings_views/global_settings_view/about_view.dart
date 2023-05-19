@@ -8,9 +8,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart';
 // import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -40,15 +40,17 @@ Future<bool> doesCommitExist(
     );
 
     final response = jsonDecode(commitQuery.body.toString());
-    Logging.instance.log("doesCommitExist $project $commit $response",
+    Logging.instance.log("doesCommitExist $project $commit", // $response",
         level: LogLevel.Info);
     bool isThereCommit;
     try {
       isThereCommit = response['sha'] == commit;
-      Logging.instance
-          .log("isThereCommit $isThereCommit", level: LogLevel.Info);
+      Logging.instance.log(
+        "$commit isThereCommit=$isThereCommit",
+        level: LogLevel.Info,
+      );
       return isThereCommit;
-    } catch (e, s) {
+    } catch (_) {
       return false;
     }
   } catch (e, s) {
@@ -75,14 +77,19 @@ Future<bool> isHeadCommit(
     );
 
     final response = jsonDecode(commitQuery.body.toString());
-    Logging.instance.log("isHeadCommit $project $commit $branch $response",
-        level: LogLevel.Info);
+    Logging.instance.log(
+      "isHeadCommit $project $commit $branch", //$response",
+      level: LogLevel.Info,
+    );
     bool isHead;
     try {
       isHead = response['sha'] == commit;
-      Logging.instance.log("isHead $isHead", level: LogLevel.Info);
+      Logging.instance.log(
+        "$commit isHead=$isHead",
+        level: LogLevel.Info,
+      );
       return isHead;
-    } catch (e, s) {
+    } catch (_) {
       return false;
     }
   } catch (e, s) {
@@ -484,7 +491,7 @@ class AboutView extends ConsumerWidget {
                               const SizedBox(
                                 height: 4,
                               ),
-                              BlueTextButton(
+                              CustomTextButton(
                                 text: "https://stackwallet.com",
                                 onTap: () {
                                   launchUrl(

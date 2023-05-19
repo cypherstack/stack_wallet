@@ -10,11 +10,11 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/stack_back
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/swb_file_system.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_views/stack_restore_progress_view.dart';
 import 'package:stackwallet/route_generator.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -280,10 +280,10 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                               fileLocationController.text.isEmpty
                           ? Theme.of(context)
                               .extension<StackColors>()!
-                              .getPrimaryDisabledButtonColor(context)
+                              .getPrimaryDisabledButtonStyle(context)
                           : Theme.of(context)
                               .extension<StackColors>()!
-                              .getPrimaryEnabledButtonColor(context),
+                              .getPrimaryEnabledButtonStyle(context),
                       onPressed: passwordController.text.isEmpty ||
                               fileLocationController.text.isEmpty
                           ? null

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 
 class Toggle extends StatefulWidget {
@@ -186,29 +186,31 @@ class ToggleState extends State<Toggle> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            SvgPicture.asset(
-                              widget.onIcon ?? "",
-                              width: 12,
-                              height: 14,
-                              color: isDesktop
-                                  ? !_isOn
-                                      ? Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorBlue
-                                      : Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .buttonTextSecondary
-                                  : !_isOn
-                                      ? Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textDark
-                                      : Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textSubtitle1,
-                            ),
-                            const SizedBox(
-                              width: 5,
-                            ),
+                            if (widget.onIcon != null)
+                              SvgPicture.asset(
+                                widget.onIcon ?? "",
+                                width: 12,
+                                height: 14,
+                                color: isDesktop
+                                    ? !_isOn
+                                        ? Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorBlue
+                                        : Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .buttonTextSecondary
+                                    : !_isOn
+                                        ? Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark
+                                        : Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textSubtitle1,
+                              ),
+                            if (widget.onIcon != null)
+                              const SizedBox(
+                                width: 5,
+                              ),
                             Text(
                               widget.onText ?? "",
                               style: isDesktop
@@ -243,29 +245,31 @@ class ToggleState extends State<Toggle> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            SvgPicture.asset(
-                              widget.offIcon ?? "",
-                              width: 12,
-                              height: 14,
-                              color: isDesktop
-                                  ? _isOn
-                                      ? Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorBlue
-                                      : Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .buttonTextSecondary
-                                  : _isOn
-                                      ? Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textDark
-                                      : Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textSubtitle1,
-                            ),
-                            const SizedBox(
-                              width: 5,
-                            ),
+                            if (widget.offIcon != null)
+                              SvgPicture.asset(
+                                widget.offIcon ?? "",
+                                width: 12,
+                                height: 14,
+                                color: isDesktop
+                                    ? _isOn
+                                        ? Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorBlue
+                                        : Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .buttonTextSecondary
+                                    : _isOn
+                                        ? Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark
+                                        : Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textSubtitle1,
+                              ),
+                            if (widget.offIcon != null)
+                              const SizedBox(
+                                width: 5,
+                              ),
                             Text(
                               widget.offText ?? "",
                               style: isDesktop

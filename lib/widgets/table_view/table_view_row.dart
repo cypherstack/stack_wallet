@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/widgets/expandable.dart';
 import 'package:stackwallet/widgets/table_view/table_view_cell.dart';
 
@@ -10,6 +10,7 @@ class TableViewRow extends StatefulWidget {
     required this.expandingChild,
     this.decoration,
     this.onExpandChanged,
+    this.expandOverride,
     this.padding = const EdgeInsets.all(0),
     this.spacing = 0.0,
     this.crossAxisAlignment = CrossAxisAlignment.center,
@@ -19,6 +20,7 @@ class TableViewRow extends StatefulWidget {
   final Widget? expandingChild;
   final BoxDecoration? decoration;
   final void Function(ExpandableState)? onExpandChanged;
+  final VoidCallback? expandOverride;
   final EdgeInsetsGeometry padding;
   final double spacing;
   final CrossAxisAlignment crossAxisAlignment;
@@ -74,6 +76,7 @@ class _TableViewRowState extends State<TableViewRow> {
               ),
             )
           : Expandable(
+              expandOverride: widget.expandOverride,
               onExpandChanged: widget.onExpandChanged,
               header: MouseRegion(
                 onEnter: (_) {

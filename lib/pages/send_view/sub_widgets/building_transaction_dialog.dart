@@ -1,57 +1,49 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/coin_image_provider.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/animated_widgets/rotating_arrows.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
-class BuildingTransactionDialog extends StatefulWidget {
+class BuildingTransactionDialog extends ConsumerStatefulWidget {
   const BuildingTransactionDialog({
     Key? key,
     required this.onCancel,
+    required this.coin,
   }) : super(key: key);
 
   final VoidCallback onCancel;
+  final Coin coin;
 
   @override
-  State<BuildingTransactionDialog> createState() => _RestoringDialogState();
+  ConsumerState<BuildingTransactionDialog> createState() =>
+      _RestoringDialogState();
 }
 
-class _RestoringDialogState extends State<BuildingTransactionDialog>
-    with TickerProviderStateMixin {
-  late AnimationController? _spinController;
-  late Animation<double> _spinAnimation;
-
+class _RestoringDialogState extends ConsumerState<BuildingTransactionDialog> {
   late final VoidCallback onCancel;
+
   @override
   void initState() {
     onCancel = widget.onCancel;
-
-    _spinController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat();
-
-    _spinAnimation = CurvedAnimation(
-      parent: _spinController!,
-      curve: Curves.linear,
-    );
 
     super.initState();
   }
 
   @override
-  void dispose() {
-    _spinController?.dispose();
-    _spinController = null;
-
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final assetPath = ref.watch(
+      coinImageSecondaryProvider(
+        widget.coin,
+      ),
+    );
+
     if (Util.isDesktop) {
       return Column(
         mainAxisSize: MainAxisSize.min,
@@ -63,16 +55,14 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
           const SizedBox(
             height: 40,
           ),
-          RotationTransition(
-            turns: _spinAnimation,
-            child: SvgPicture.asset(
-              Assets.svg.arrowRotate,
-              color:
-                  Theme.of(context).extension<StackColors>()!.accentColorDark,
-              width: 24,
-              height: 24,
-            ),
-          ),
+          assetPath.endsWith(".gif")
+              ? Image.file(File(
+                  assetPath,
+                ))
+              : const RotatingArrows(
+                  width: 40,
+                  height: 40,
+                ),
           const SizedBox(
             height: 40,
           ),
@@ -90,34 +80,66 @@ class _RestoringDialogState extends State<BuildingTransactionDialog>
         onWillPop: () async {
           return false;
         },
-        child: StackDialog(
-          title: "Generating transaction",
-          // // TODO get message from design team
-          // message: "<PLACEHOLDER>",
-          icon: RotationTransition(
-            turns: _spinAnimation,
-            child: SvgPicture.asset(
-              Assets.svg.arrowRotate,
-              color:
-                  Theme.of(context).extension<StackColors>()!.accentColorDark,
-              width: 24,
-              height: 24,
-            ),
-          ),
-          rightButton: TextButton(
-            style: Theme.of(context)
-                .extension<StackColors>()!
-                .getSecondaryEnabledButtonColor(context),
-            child: Text(
-              "Cancel",
-              style: STextStyles.itemSubtitle12(context),
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-              onCancel.call();
-            },
-          ),
-        ),
+        child: assetPath.endsWith(".gif")
+            ? StackDialogBase(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.file(File(
+                      assetPath,
+                    )),
+                    Text(
+                      "Generating transaction",
+                      textAlign: TextAlign.center,
+                      style: STextStyles.pageTitleH2(context),
+                    ),
+                    const SizedBox(
+                      height: 32,
+                    ),
+                    Row(
+                      children: [
+                        const Spacer(),
+                        Expanded(
+                          child: TextButton(
+                            style: Theme.of(context)
+                                .extension<StackColors>()!
+                                .getSecondaryEnabledButtonStyle(context),
+                            child: Text(
+                              "Cancel",
+                              style: STextStyles.itemSubtitle12(context),
+                            ),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              onCancel.call();
+                            },
+                          ),
+                        )
+                      ],
+                    ),
+                  ],
+                ),
+              )
+            : StackDialog(
+                title: "Generating transaction",
+                icon: const RotatingArrows(
+                  width: 24,
+                  height: 24,
+                ),
+                rightButton: TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getSecondaryEnabledButtonStyle(context),
+                  child: Text(
+                    "Cancel",
+                    style: STextStyles.itemSubtitle12(context),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    onCancel.call();
+                  },
+                ),
+              ),
       );
     }
   }

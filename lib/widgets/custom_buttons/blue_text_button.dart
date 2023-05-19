@@ -1,17 +1,17 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/providers/ui/color_theme_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 
-class BlueTextButton extends ConsumerStatefulWidget {
-  const BlueTextButton({
+class _CustomTextButton extends StatefulWidget {
+  const _CustomTextButton({
     Key? key,
     required this.text,
+    required this.enabledColor,
+    required this.disabledColor,
     this.onTap,
     this.enabled = true,
     this.textSize,
@@ -21,12 +21,14 @@ class BlueTextButton extends ConsumerStatefulWidget {
   final VoidCallback? onTap;
   final bool enabled;
   final double? textSize;
+  final Color enabledColor;
+  final Color disabledColor;
 
   @override
-  ConsumerState<BlueTextButton> createState() => _BlueTextButtonState();
+  State<_CustomTextButton> createState() => _CustomTextButtonState();
 }
 
-class _BlueTextButtonState extends ConsumerState<BlueTextButton>
+class _CustomTextButtonState extends State<_CustomTextButton>
     with SingleTickerProviderStateMixin {
   AnimationController? controller;
   Animation<dynamic>? animation;
@@ -37,18 +39,14 @@ class _BlueTextButtonState extends ConsumerState<BlueTextButton>
   @override
   void initState() {
     if (widget.enabled) {
-      color = ref.read(colorThemeProvider.state).state.buttonTextBorderless;
+      color = widget.enabledColor;
       controller = AnimationController(
         vsync: this,
         duration: const Duration(milliseconds: 100),
       );
       animation = ColorTween(
-        begin: ref.read(colorThemeProvider.state).state.buttonTextBorderless,
-        end: ref
-            .read(colorThemeProvider.state)
-            .state
-            .buttonTextBorderless
-            .withOpacity(0.4),
+        begin: widget.enabledColor,
+        end: widget.enabledColor.withOpacity(0.4),
       ).animate(controller!);
 
       animation!.addListener(() {
@@ -57,7 +55,7 @@ class _BlueTextButtonState extends ConsumerState<BlueTextButton>
         });
       });
     } else {
-      color = ref.read(colorThemeProvider.state).state.textSubtitle1;
+      color = widget.disabledColor;
     }
 
     super.initState();
@@ -66,6 +64,7 @@ class _BlueTextButtonState extends ConsumerState<BlueTextButton>
   @override
   void dispose() {
     controller?.dispose();
+    controller = null;
     super.dispose();
   }
 
@@ -113,6 +112,38 @@ class _BlueTextButtonState extends ConsumerState<BlueTextButton>
               : null,
         ),
       ),
+    );
+  }
+}
+
+class CustomTextButton extends StatelessWidget {
+  const CustomTextButton({
+    Key? key,
+    required this.text,
+    this.onTap,
+    this.enabled = true,
+    this.textSize,
+  }) : super(key: key);
+
+  final String text;
+  final VoidCallback? onTap;
+  final bool enabled;
+  final double? textSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return _CustomTextButton(
+      key: UniqueKey(),
+      text: text,
+      enabledColor: Theme.of(context)
+          .extension<StackColors>()!
+          .customTextButtonEnabledText,
+      disabledColor: Theme.of(context)
+          .extension<StackColors>()!
+          .customTextButtonDisabledText,
+      enabled: enabled,
+      textSize: textSize,
+      onTap: onTap,
     );
   }
 }

@@ -11,11 +11,11 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -61,33 +61,58 @@ class _ConfirmChangeNowSendViewState
   late final String routeOnSuccessName;
   late final Trade trade;
 
+  final isDesktop = Util.isDesktop;
+
   Future<void> _attemptSend(BuildContext context) async {
+    final manager =
+        ref.read(walletsChangeNotifierProvider).getManager(walletId);
+
+    final sendProgressController = ProgressAndSuccessController();
+
     unawaited(
       showDialog<void>(
         context: context,
         useSafeArea: false,
         barrierDismissible: false,
         builder: (context) {
-          return const SendingTransactionDialog();
+          return SendingTransactionDialog(
+            coin: manager.coin,
+            controller: sendProgressController,
+          );
         },
       ),
     );
 
+    final time = Future<dynamic>.delayed(
+      const Duration(
+        milliseconds: 2500,
+      ),
+    );
+
+    late String txid;
+    Future<String> txidFuture;
+
     final String note = transactionInfo["note"] as String? ?? "";
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId);
 
     try {
-      late final String txid;
-
       if (widget.shouldSendPublicFiroFunds == true) {
-        txid = await (manager.wallet as FiroWallet)
+        txidFuture = (manager.wallet as FiroWallet)
             .confirmSendPublic(txData: transactionInfo);
       } else {
-        txid = await manager.confirmSend(txData: transactionInfo);
+        txidFuture = manager.confirmSend(txData: transactionInfo);
       }
 
       unawaited(manager.refresh());
+
+      final results = await Future.wait([
+        txidFuture,
+        time,
+      ]);
+
+      sendProgressController.triggerSuccess?.call();
+      await Future<void>.delayed(const Duration(seconds: 5));
+
+      txid = results.first as String;
 
       // save note
       await ref
@@ -135,7 +160,7 @@ class _ConfirmChangeNowSendViewState
             rightButton: TextButton(
               style: Theme.of(context)
                   .extension<StackColors>()!
-                  .getSecondaryEnabledButtonColor(context),
+                  .getSecondaryEnabledButtonStyle(context),
               child: Text(
                 "Ok",
                 style: STextStyles.button(context).copyWith(
@@ -227,8 +252,6 @@ class _ConfirmChangeNowSendViewState
     final managerProvider = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManagerProvider(walletId)));
 
-    final isDesktop = Util.isDesktop;
-
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) {
@@ -238,7 +261,7 @@ class _ConfirmChangeNowSendViewState
                 Theme.of(context).extension<StackColors>()!.background,
             appBar: AppBar(
               backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
+                  Theme.of(context).extension<StackColors>()!.backgroundAppBar,
               leading: AppBarBackButton(
                 onPressed: () async {
                   // if (FocusScope.of(context).hasFocus) {
@@ -343,14 +366,16 @@ class _ConfirmChangeNowSendViewState
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           Text(
-                            "${Format.satoshiAmountToPrettyString(
-                              (transactionInfo["fee"] as int),
-                              ref.watch(
-                                localeServiceChangeNotifierProvider
-                                    .select((value) => value.locale),
-                              ),
-                              ref.watch(
-                                managerProvider.select((value) => value.coin),
+                            "${(transactionInfo["fee"] is Amount ? transactionInfo["fee"] as Amount : (transactionInfo["fee"] as int).toAmountAsRaw(
+                                fractionDigits: ref.watch(
+                                  managerProvider
+                                      .select((value) => value.coin.decimals),
+                                ),
+                              )).localizedStringAsFixed(
+                              locale: ref.watch(
+                                localeServiceChangeNotifierProvider.select(
+                                  (value) => value.locale,
+                                ),
                               ),
                             )} ${ref.watch(
                                   managerProvider.select((value) => value.coin),
@@ -384,26 +409,39 @@ class _ConfirmChangeNowSendViewState
                                   .textConfirmTotalAmount,
                             ),
                           ),
-                          Text(
-                            "${Format.satoshiAmountToPrettyString(
-                              (transactionInfo["fee"] as int) +
-                                  (transactionInfo["recipientAmt"] as int),
-                              ref.watch(
-                                localeServiceChangeNotifierProvider
-                                    .select((value) => value.locale),
-                              ),
-                              ref.watch(
+                          Builder(
+                            builder: (context) {
+                              final coin = ref.watch(
                                 managerProvider.select((value) => value.coin),
-                              ),
-                            )} ${ref.watch(
-                                  managerProvider.select((value) => value.coin),
-                                ).ticker}",
-                            style: STextStyles.itemSubtitle12(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textConfirmTotalAmount,
-                            ),
-                            textAlign: TextAlign.right,
+                              );
+                              final fee = transactionInfo["fee"] is Amount
+                                  ? transactionInfo["fee"] as Amount
+                                  : (transactionInfo["fee"] as int)
+                                      .toAmountAsRaw(
+                                      fractionDigits: coin.decimals,
+                                    );
+                              final amount =
+                                  transactionInfo["recipientAmt"] as Amount;
+                              final total = amount + fee;
+                              final locale = ref.watch(
+                                localeServiceChangeNotifierProvider.select(
+                                  (value) => value.locale,
+                                ),
+                              );
+                              return Text(
+                                "${total.localizedStringAsFixed(
+                                  locale: locale,
+                                )}"
+                                " ${coin.ticker}",
+                                style: STextStyles.itemSubtitle12(context)
+                                    .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textConfirmTotalAmount,
+                                ),
+                                textAlign: TextAlign.right,
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -554,16 +592,20 @@ class _ConfirmChangeNowSendViewState
                           final price = ref.watch(
                               priceAnd24hChangeNotifierProvider
                                   .select((value) => value.getPrice(coin)));
-                          final amount = Format.satoshisToAmount(
-                            transactionInfo["recipientAmt"] as int,
-                            coin: coin,
-                          );
-                          final value = price.item1 * amount;
+                          final amount =
+                              transactionInfo["recipientAmt"] as Amount;
+                          final value = (price.item1 * amount.decimal)
+                              .toAmount(fractionDigits: 2);
                           final currency = ref.watch(prefsChangeNotifierProvider
                               .select((value) => value.currency));
+                          final locale = ref.watch(
+                            localeServiceChangeNotifierProvider.select(
+                              (value) => value.locale,
+                            ),
+                          );
 
                           return Text(
-                            " | ${value.toStringAsFixed(Constants.decimalPlacesForCoin(coin))} $currency",
+                            " | ${value.localizedStringAsFixed(locale: locale)} $currency",
                             style:
                                 STextStyles.desktopTextExtraExtraSmall(context)
                                     .copyWith(
@@ -576,12 +618,13 @@ class _ConfirmChangeNowSendViewState
                       ],
                     ),
                     child: Text(
-                      "${Format.satoshiAmountToPrettyString(transactionInfo["recipientAmt"] as int, ref.watch(
-                            localeServiceChangeNotifierProvider
-                                .select((value) => value.locale),
-                          ), ref.watch(
-                            managerProvider.select((value) => value.coin),
-                          ))} ${ref.watch(
+                      "${(transactionInfo["recipientAmt"] as Amount).localizedStringAsFixed(
+                        locale: ref.watch(
+                          localeServiceChangeNotifierProvider.select(
+                            (value) => value.locale,
+                          ),
+                        ),
+                      )} ${ref.watch(
                             managerProvider.select((value) => value.coin),
                           ).ticker}",
                       style: STextStyles.itemSubtitle12(context),
@@ -609,12 +652,17 @@ class _ConfirmChangeNowSendViewState
                     style: STextStyles.smallMed12(context),
                   ),
                   Text(
-                    "${Format.satoshiAmountToPrettyString(transactionInfo["fee"] as int, ref.watch(
-                          localeServiceChangeNotifierProvider
-                              .select((value) => value.locale),
-                        ), ref.watch(
-                          managerProvider.select((value) => value.coin),
-                        ))} ${ref.watch(
+                    "${(transactionInfo["fee"] is Amount ? transactionInfo["fee"] as Amount : (transactionInfo["fee"] as int).toAmountAsRaw(fractionDigits: ref.watch(
+                        managerProvider.select(
+                          (value) => value.coin.decimals,
+                        ),
+                      ))).localizedStringAsFixed(
+                      locale: ref.watch(
+                        localeServiceChangeNotifierProvider.select(
+                          (value) => value.locale,
+                        ),
+                      ),
+                    )} ${ref.watch(
                           managerProvider.select((value) => value.coin),
                         ).ticker}",
                     style: STextStyles.itemSubtitle12(context),
@@ -695,21 +743,37 @@ class _ConfirmChangeNowSendViewState
                             .textConfirmTotalAmount,
                       ),
                     ),
-                    Text(
-                      "${Format.satoshiAmountToPrettyString((transactionInfo["fee"] as int) + (transactionInfo["recipientAmt"] as int), ref.watch(
-                            localeServiceChangeNotifierProvider
-                                .select((value) => value.locale),
-                          ), ref.watch(
-                            managerProvider.select((value) => value.coin),
-                          ))} ${ref.watch(
-                            managerProvider.select((value) => value.coin),
-                          ).ticker}",
-                      style: STextStyles.itemSubtitle12(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textConfirmTotalAmount,
-                      ),
-                      textAlign: TextAlign.right,
+                    Builder(
+                      builder: (context) {
+                        final coin = ref.watch(
+                          managerProvider.select((value) => value.coin),
+                        );
+                        final fee = transactionInfo["fee"] is Amount
+                            ? transactionInfo["fee"] as Amount
+                            : (transactionInfo["fee"] as int).toAmountAsRaw(
+                                fractionDigits: coin.decimals,
+                              );
+                        final amount =
+                            transactionInfo["recipientAmt"] as Amount;
+                        final total = amount + fee;
+                        final locale = ref.watch(
+                          localeServiceChangeNotifierProvider.select(
+                            (value) => value.locale,
+                          ),
+                        );
+                        return Text(
+                          "${total.localizedStringAsFixed(
+                            locale: locale,
+                          )}"
+                          " ${coin.ticker}",
+                          style: STextStyles.itemSubtitle12(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textConfirmTotalAmount,
+                          ),
+                          textAlign: TextAlign.right,
+                        );
+                      },
                     ),
                   ],
                 ),

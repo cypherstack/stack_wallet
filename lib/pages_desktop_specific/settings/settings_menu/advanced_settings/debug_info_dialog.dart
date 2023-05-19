@@ -6,12 +6,11 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/isar/models/log.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/enums/log_level_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
@@ -73,7 +72,6 @@ class _DebugInfoDialog extends ConsumerState<DebugInfoDialog> {
     searchDebugController = TextEditingController();
     searchDebugFocusNode = FocusNode();
 
-    ref.read(debugServiceProvider).updateRecentLogs();
     super.initState();
   }
 
@@ -109,7 +107,7 @@ class _DebugInfoDialog extends ConsumerState<DebugInfoDialog> {
             ],
           ),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 32),
+            padding: const EdgeInsets.symmetric(horizontal: 32),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(
                 Constants.size.circularBorderRadius,
@@ -319,8 +317,8 @@ class _DebugInfoDialog extends ConsumerState<DebugInfoDialog> {
                   child: SecondaryButton(
                     label: "Clear logs",
                     onPressed: () async {
-                      await ref.read(debugServiceProvider).deleteAllMessages();
-                      await ref.read(debugServiceProvider).updateRecentLogs();
+                      await ref.read(debugServiceProvider).deleteAllLogs();
+                      setState(() {});
 
                       if (mounted) {
                         Navigator.pop(context);
@@ -338,7 +336,9 @@ class _DebugInfoDialog extends ConsumerState<DebugInfoDialog> {
                 Expanded(
                   child: PrimaryButton(
                     label: "Save logs to file",
-                    onPressed: () {},
+                    onPressed: () {
+                      // TODO: save file dialog
+                    },
                   ),
                 )
               ],

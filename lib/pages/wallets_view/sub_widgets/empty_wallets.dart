@@ -1,16 +1,20 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 
-class EmptyWallets extends StatelessWidget {
+class EmptyWallets extends ConsumerWidget {
   const EmptyWallets({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: $runtimeType");
 
     final isDesktop = Util.isDesktop;
@@ -29,9 +33,13 @@ class EmptyWallets extends StatelessWidget {
               const Spacer(
                 flex: 2,
               ),
-              Image(
-                image: AssetImage(
-                  Assets.png.stack,
+              SvgPicture.file(
+                File(
+                  ref.watch(
+                    themeProvider.select(
+                      (value) => value.assets.stack,
+                    ),
+                  ),
                 ),
                 width: isDesktop ? 324 : MediaQuery.of(context).size.width / 3,
               ),
@@ -84,17 +92,19 @@ class EmptyWallets extends StatelessWidget {
   }
 }
 
-class AddWalletButton extends StatelessWidget {
+class AddWalletButton extends ConsumerWidget {
   const AddWalletButton({Key? key, required this.isDesktop}) : super(key: key);
 
   final bool isDesktop;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bool isOLED = ref.watch(themeProvider).themeId == "oled_black";
+
     return TextButton(
       style: Theme.of(context)
           .extension<StackColors>()!
-          .getPrimaryEnabledButtonColor(context),
+          .getPrimaryEnabledButtonStyle(context),
       onPressed: () {
         if (isDesktop) {
           Navigator.of(
@@ -113,11 +123,20 @@ class AddWalletButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SvgPicture.asset(
-                Assets.svg.plus,
-                width: isDesktop ? 18 : null,
-                height: isDesktop ? 18 : null,
-              ),
+              isOLED
+                  ? SvgPicture.asset(
+                      Assets.svg.plus,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .buttonTextPrimary,
+                      width: isDesktop ? 18 : null,
+                      height: isDesktop ? 18 : null,
+                    )
+                  : SvgPicture.asset(
+                      Assets.svg.plus,
+                      width: isDesktop ? 18 : null,
+                      height: isDesktop ? 18 : null,
+                    ),
               SizedBox(
                 width: isDesktop ? 8 : 5,
               ),

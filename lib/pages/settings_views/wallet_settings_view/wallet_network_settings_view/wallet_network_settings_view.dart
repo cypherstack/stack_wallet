@@ -19,11 +19,11 @@ import 'package:stackwallet/services/event_bus/events/global/node_connection_sta
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -76,6 +76,8 @@ class _WalletNetworkSettingsViewState
   StreamSubscription<dynamic>? _blocksRemainingSubscription;
   // late StreamSubscription _nodeStatusSubscription;
 
+  late final bool isDesktop;
+
   late double _percent;
   late int _blocksRemaining;
   bool _advancedIsExpanded = false;
@@ -114,7 +116,7 @@ class _WalletNetworkSettingsViewState
 
       if (mounted) {
         // pop rescanning dialog
-        Navigator.pop(context);
+        Navigator.of(context, rootNavigator: isDesktop).pop();
 
         // show success
         await showDialog<dynamic>(
@@ -126,13 +128,13 @@ class _WalletNetworkSettingsViewState
             rightButton: TextButton(
               style: Theme.of(context)
                   .extension<StackColors>()!
-                  .getSecondaryEnabledButtonColor(context),
+                  .getSecondaryEnabledButtonStyle(context),
               child: Text(
                 "Ok",
                 style: STextStyles.itemSubtitle12(context),
               ),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context, rootNavigator: isDesktop).pop();
               },
             ),
           ),
@@ -143,7 +145,7 @@ class _WalletNetworkSettingsViewState
 
       if (mounted) {
         // pop rescanning dialog
-        Navigator.pop(context);
+        Navigator.of(context, rootNavigator: isDesktop).pop();
 
         // show error
         await showDialog<dynamic>(
@@ -156,13 +158,13 @@ class _WalletNetworkSettingsViewState
             rightButton: TextButton(
               style: Theme.of(context)
                   .extension<StackColors>()!
-                  .getSecondaryEnabledButtonColor(context),
+                  .getSecondaryEnabledButtonStyle(context),
               child: Text(
                 "Ok",
                 style: STextStyles.itemSubtitle12(context),
               ),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context, rootNavigator: isDesktop).pop();
               },
             ),
           ),
@@ -183,6 +185,7 @@ class _WalletNetworkSettingsViewState
 
   @override
   void initState() {
+    isDesktop = Util.isDesktop;
     _currentSyncStatus = widget.initialSyncStatus;
     // _currentNodeStatus = widget.initialNodeStatus;
     if (_currentSyncStatus == WalletSyncStatus.synced) {
@@ -270,7 +273,6 @@ class _WalletNetworkSettingsViewState
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final bool isDesktop = Util.isDesktop;
 
     final progressLength = isDesktop
         ? 430.0
@@ -507,7 +509,7 @@ class _WalletNetworkSettingsViewState
                           children: [
                             Text(
                               "Synchronized",
-                              style: STextStyles.w600_10(context),
+                              style: STextStyles.w600_12(context),
                             ),
                             Text(
                               "100%",
@@ -581,7 +583,7 @@ class _WalletNetworkSettingsViewState
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             AnimatedText(
-                              style: STextStyles.w600_10(context),
+                              style: STextStyles.w600_12(context),
                               stringsToLoopThrough: const [
                                 "Synchronizing",
                                 "Synchronizing.",
@@ -679,7 +681,7 @@ class _WalletNetworkSettingsViewState
                           children: [
                             Text(
                               "Unable to synchronize",
-                              style: STextStyles.w600_10(context).copyWith(
+                              style: STextStyles.w600_12(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .accentColorRed,
@@ -747,7 +749,7 @@ class _WalletNetworkSettingsViewState
                     ? STextStyles.desktopTextExtraExtraSmall(context)
                     : STextStyles.smallMed12(context),
               ),
-              BlueTextButton(
+              CustomTextButton(
                 text: "Add new node",
                 onTap: () {
                   Navigator.of(context).pushNamed(
@@ -878,7 +880,7 @@ class _WalletNetworkSettingsViewState
                         top: 16,
                         bottom: 6,
                       ),
-                      child: BlueTextButton(
+                      child: CustomTextButton(
                         text: "Rescan",
                         onTap: () async {
                           await Navigator.of(context).push(

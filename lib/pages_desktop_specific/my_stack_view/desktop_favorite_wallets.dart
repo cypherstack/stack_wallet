@@ -4,10 +4,10 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/manage_favorites_view/manage_favorites_view.dart';
 import 'package:stackwallet/pages/wallets_view/sub_widgets/favorite_card.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 
 class DesktopFavoriteWallets extends ConsumerWidget {
@@ -39,7 +39,7 @@ class DesktopFavoriteWallets extends ConsumerWidget {
                     .textFieldActiveSearchIconRight,
               ),
             ),
-            BlueTextButton(
+            CustomTextButton(
               text: "Edit",
               onTap: () {
                 Navigator.of(context).pushNamed(ManageFavoritesView.routeName);
@@ -64,12 +64,14 @@ class DesktopFavoriteWallets extends ConsumerWidget {
                     children: [
                       ...favorites.map((p0) {
                         final walletId = ref.read(p0).walletId;
+                        final walletName = ref.read(p0).walletName;
                         final managerProvider = ref
                             .read(walletsChangeNotifierProvider)
                             .getManagerProvider(walletId);
 
                         return FavoriteCard(
                           walletId: walletId,
+                          key: Key(walletName),
                           width: cardWidth,
                           height: cardHeight,
                           managerProvider: managerProvider,

@@ -5,16 +5,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_4_view.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
-import 'package:stackwallet/providers/exchange/exchange_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
+import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
+import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/services/notifications_api.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
+import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
@@ -51,6 +52,9 @@ class _Step3ViewState extends ConsumerState<Step3View> {
 
   @override
   Widget build(BuildContext context) {
+    final supportsRefund =
+        ref.watch(efExchangeProvider).name != MajesticBankExchange.exchangeName;
+
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -67,7 +71,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
             },
           ),
           title: Text(
-            "Exchange",
+            "Swap",
             style: STextStyles.navBarTitle(context),
           ),
         ),
@@ -174,27 +178,29 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                               ],
                             ),
                           ),
-                          const SizedBox(
-                            height: 8,
-                          ),
-                          RoundedWhiteContainer(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Refund ${model.sendTicker.toUpperCase()} address",
-                                  style: STextStyles.itemSubtitle(context),
-                                ),
-                                const SizedBox(
-                                  height: 4,
-                                ),
-                                Text(
-                                  model.refundAddress!,
-                                  style: STextStyles.itemSubtitle12(context),
-                                )
-                              ],
+                          if (supportsRefund)
+                            const SizedBox(
+                              height: 8,
                             ),
-                          ),
+                          if (supportsRefund)
+                            RoundedWhiteContainer(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Refund ${model.sendTicker.toUpperCase()} address",
+                                    style: STextStyles.itemSubtitle(context),
+                                  ),
+                                  const SizedBox(
+                                    height: 4,
+                                  ),
+                                  Text(
+                                    model.refundAddress!,
+                                    style: STextStyles.itemSubtitle12(context),
+                                  )
+                                ],
+                              ),
+                            ),
                           const SizedBox(
                             height: 8,
                           ),
@@ -208,7 +214,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                   },
                                   style: Theme.of(context)
                                       .extension<StackColors>()!
-                                      .getSecondaryEnabledButtonColor(context),
+                                      .getSecondaryEnabledButtonStyle(context),
                                   child: Text(
                                     "Back",
                                     style: STextStyles.button(context).copyWith(
@@ -247,7 +253,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
 
                                     final ExchangeResponse<Trade> response =
                                         await ref
-                                            .read(exchangeProvider)
+                                            .read(efExchangeProvider)
                                             .createTrade(
                                               from: model.sendTicker,
                                               to: model.receiveTicker,
@@ -259,27 +265,30 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                               addressTo:
                                                   model.recipientAddress!,
                                               extraId: null,
-                                              addressRefund:
-                                                  model.refundAddress!,
+                                              addressRefund: supportsRefund
+                                                  ? model.refundAddress!
+                                                  : "",
                                               refundExtraId: "",
-                                              rateId: model.rateId,
+                                              estimate: model.estimate,
                                               reversed: model.reversed,
                                             );
 
                                     if (response.value == null) {
                                       if (mounted) {
                                         Navigator.of(context).pop();
-                                      }
 
-                                      unawaited(showDialog<void>(
-                                        context: context,
-                                        barrierDismissible: true,
-                                        builder: (_) => StackDialog(
-                                          title: "Failed to create trade",
-                                          message:
-                                              response.exception?.toString(),
-                                        ),
-                                      ));
+                                        unawaited(
+                                          showDialog<void>(
+                                            context: context,
+                                            barrierDismissible: true,
+                                            builder: (_) => StackDialog(
+                                              title: "Failed to create trade",
+                                              message: response.exception
+                                                  ?.toString(),
+                                            ),
+                                          ),
+                                        );
+                                      }
                                       return;
                                     }
 
@@ -322,7 +331,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                   },
                                   style: Theme.of(context)
                                       .extension<StackColors>()!
-                                      .getPrimaryEnabledButtonColor(context),
+                                      .getPrimaryEnabledButtonStyle(context),
                                   child: Text(
                                     "Next",
                                     style: STextStyles.button(context),

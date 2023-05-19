@@ -1,4 +1,5 @@
-import 'package:decimal/decimal.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -6,12 +7,13 @@ import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:tuple/tuple.dart';
@@ -38,8 +40,8 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
   late final String walletId;
   late final ChangeNotifierProvider<Manager> managerProvider;
 
-  Decimal _cachedBalance = Decimal.zero;
-  Decimal _cachedFiatValue = Decimal.zero;
+  Amount _cachedBalance = Amount.zero;
+  Amount _cachedFiatValue = Amount.zero;
 
   @override
   void initState() {
@@ -105,20 +107,25 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
         ),
       ),
       child: GestureDetector(
-        onTap: () {
-          if (Util.isDesktop) {
-            Navigator.of(context).pushNamed(
-              DesktopWalletView.routeName,
-              arguments: walletId,
-            );
-          } else {
-            Navigator.of(context).pushNamed(
-              WalletView.routeName,
-              arguments: Tuple2(
-                walletId,
-                managerProvider,
-              ),
-            );
+        onTap: () async {
+          if (coin == Coin.monero || coin == Coin.wownero) {
+            await ref.read(managerProvider).initializeExisting();
+          }
+          if (mounted) {
+            if (Util.isDesktop) {
+              await Navigator.of(context).pushNamed(
+                DesktopWalletView.routeName,
+                arguments: walletId,
+              );
+            } else {
+              await Navigator.of(context).pushNamed(
+                WalletView.routeName,
+                arguments: Tuple2(
+                  walletId,
+                  managerProvider,
+                ),
+              );
+            }
           }
         },
         child: SizedBox(
@@ -208,8 +215,10 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                             overflow: TextOverflow.fade,
                           ),
                         ),
-                        SvgPicture.asset(
-                          Assets.svg.iconFor(coin: coin),
+                        SvgPicture.file(
+                          File(
+                            ref.watch(coinIconProvider(coin)),
+                          ),
                           width: 24,
                           height: 24,
                         ),
@@ -217,22 +226,24 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                     ),
                   ),
                   FutureBuilder(
-                    future: ref.watch(
-                        managerProvider.select((value) => value.totalBalance)),
-                    builder: (builderContext, AsyncSnapshot<Decimal> snapshot) {
+                    future: Future(() => ref.watch(managerProvider
+                        .select((value) => value.balance.total))),
+                    builder: (builderContext, AsyncSnapshot<Amount> snapshot) {
                       if (snapshot.connectionState == ConnectionState.done &&
                           snapshot.hasData) {
                         if (snapshot.data != null) {
                           _cachedBalance = snapshot.data!;
-                          if (externalCalls) {
-                            _cachedFiatValue = _cachedBalance *
-                                ref
-                                    .watch(
-                                      priceAnd24hChangeNotifierProvider.select(
-                                        (value) => value.getPrice(coin),
-                                      ),
-                                    )
-                                    .item1;
+                          if (externalCalls && _cachedBalance > Amount.zero) {
+                            _cachedFiatValue = (_cachedBalance.decimal *
+                                    ref
+                                        .watch(
+                                          priceAnd24hChangeNotifierProvider
+                                              .select(
+                                            (value) => value.getPrice(coin),
+                                          ),
+                                        )
+                                        .item1)
+                                .toAmount(fractionDigits: 2);
                           }
                         }
                       }
@@ -242,13 +253,13 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                           FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
-                              "${Format.localizedStringAsFixed(
-                                decimalPlaces: 8,
-                                value: _cachedBalance,
+                              "${_cachedBalance.localizedStringAsFixed(
                                 locale: ref.watch(
                                   localeServiceChangeNotifierProvider
                                       .select((value) => value.locale),
                                 ),
+                                decimalPlaces: ref.watch(managerProvider
+                                    .select((value) => value.coin.decimals)),
                               )} ${coin.ticker}",
                               style: STextStyles.titleBold12(context).copyWith(
                                 fontSize: 16,
@@ -264,13 +275,12 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                             ),
                           if (externalCalls)
                             Text(
-                              "${Format.localizedStringAsFixed(
-                                decimalPlaces: 2,
-                                value: _cachedFiatValue,
+                              "${_cachedFiatValue.localizedStringAsFixed(
                                 locale: ref.watch(
                                   localeServiceChangeNotifierProvider
                                       .select((value) => value.locale),
                                 ),
+                                decimalPlaces: 2,
                               )} ${ref.watch(
                                 prefsChangeNotifierProvider
                                     .select((value) => value.currency),

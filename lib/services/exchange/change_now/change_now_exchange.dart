@@ -1,16 +1,21 @@
 import 'package:decimal/decimal.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
-import 'package:stackwallet/models/exchange/response_objects/currency.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
-import 'package:stackwallet/models/exchange/response_objects/pair.dart';
 import 'package:stackwallet/models/exchange/response_objects/range.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
+import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
+import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_api.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:uuid/uuid.dart';
 
 class ChangeNowExchange extends Exchange {
+  ChangeNowExchange._();
+
+  static ChangeNowExchange? _instance;
+  static ChangeNowExchange get instance => _instance ??= ChangeNowExchange._();
+
   static const exchangeName = "ChangeNOW";
 
   @override
@@ -26,7 +31,7 @@ class ChangeNowExchange extends Exchange {
     String? extraId,
     required String addressRefund,
     required String refundExtraId,
-    String? rateId,
+    Estimate? estimate,
     required bool reversed,
   }) async {
     late final ExchangeResponse<ExchangeTransaction> response;
@@ -36,7 +41,7 @@ class ChangeNowExchange extends Exchange {
         toTicker: to,
         receivingAddress: addressTo,
         amount: amount,
-        rateId: rateId!,
+        rateId: estimate!.rateId!,
         extraId: extraId ?? "",
         refundAddress: addressRefund,
         refundExtraId: refundExtraId,
@@ -77,20 +82,53 @@ class ChangeNowExchange extends Exchange {
   Future<ExchangeResponse<List<Currency>>> getAllCurrencies(
     bool fixedRate,
   ) async {
-    return await ChangeNowAPI.instance.getAvailableCurrencies(
-      fixedRate: fixedRate ? true : null,
-      active: true,
+    return await ChangeNowAPI.instance.getCurrenciesV2();
+    // return await ChangeNowAPI.instance.getAvailableCurrencies(
+    //   fixedRate: fixedRate ? true : null,
+    //   active: true,
+    // );
+  }
+
+  @override
+  Future<ExchangeResponse<List<Currency>>> getPairedCurrencies(
+    String forCurrency,
+    bool fixedRate,
+  ) async {
+    return await ChangeNowAPI.instance.getPairedCurrencies(
+      ticker: forCurrency,
+      fixedRate: fixedRate,
     );
   }
 
   @override
   Future<ExchangeResponse<List<Pair>>> getAllPairs(bool fixedRate) async {
-    // TODO: implement getAllPairs
-    throw UnimplementedError();
+    if (fixedRate) {
+      final markets =
+          await ChangeNowAPI.instance.getAvailableFixedRateMarkets();
+
+      if (markets.value == null) {
+        return ExchangeResponse(exception: markets.exception);
+      }
+
+      final List<Pair> pairs = [];
+      for (final market in markets.value!) {
+        pairs.add(
+          Pair(
+            exchangeName: ChangeNowExchange.exchangeName,
+            from: market.from,
+            to: market.to,
+            rateType: SupportedRateType.fixed,
+          ),
+        );
+      }
+      return ExchangeResponse(value: pairs);
+    } else {
+      return await ChangeNowAPI.instance.getAvailableFloatingRatePairs();
+    }
   }
 
   @override
-  Future<ExchangeResponse<Estimate>> getEstimate(
+  Future<ExchangeResponse<List<Estimate>>> getEstimates(
     String from,
     String to,
     Decimal amount,
@@ -113,7 +151,10 @@ class ChangeNowExchange extends Exchange {
         fromAmount: amount,
       );
     }
-    return response;
+    return ExchangeResponse(
+      value: response.value == null ? null : [response.value!],
+      exception: response.exception,
+    );
   }
 
   @override

@@ -17,14 +17,13 @@ import 'package:stackwallet/models/isar/models/log.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/swb_file_system.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -86,7 +85,6 @@ class _DebugViewState extends ConsumerState<DebugView> {
 
   @override
   void initState() {
-    ref.read(debugServiceProvider).updateRecentLogs();
     super.initState();
   }
 
@@ -145,7 +143,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                         leftButton: TextButton(
                           style: Theme.of(context)
                               .extension<StackColors>()!
-                              .getSecondaryEnabledButtonColor(context),
+                              .getSecondaryEnabledButtonStyle(context),
                           child: Text(
                             "Cancel",
                             style: STextStyles.itemSubtitle12(context),
@@ -157,7 +155,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                         rightButton: TextButton(
                           style: Theme.of(context)
                               .extension<StackColors>()!
-                              .getPrimaryEnabledButtonColor(context),
+                              .getPrimaryEnabledButtonStyle(context),
                           child: Text(
                             "Delete logs",
                             style: STextStyles.button(context),
@@ -182,10 +180,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
 
                             await ref
                                 .read(debugServiceProvider)
-                                .deleteAllMessages();
-                            await ref
-                                .read(debugServiceProvider)
-                                .updateRecentLogs();
+                                .deleteAllLogs();
 
                             shouldPop = true;
 
@@ -195,6 +190,8 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                   type: FlushBarType.info,
                                   context: context,
                                   message: 'Logs cleared!'));
+
+                              setState(() {});
                             }
                           },
                         ),
@@ -283,7 +280,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              BlueTextButton(
+                              CustomTextButton(
                                 text: "Save Debug Info to clipboard",
                                 onTap: () async {
                                   try {
@@ -311,7 +308,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                             _searchTerm)
                                         .reversed
                                         .toList(growable: false);
-                                    List errorLogs = [];
+                                    List<String> errorLogs = [];
                                     for (var log in logs) {
                                       if (log.logLevel == LogLevel.Error ||
                                           log.logLevel == LogLevel.Fatal) {
@@ -348,7 +345,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                 },
                               ),
                               const Spacer(),
-                              BlueTextButton(
+                              CustomTextButton(
                                 text: "Save logs to file",
                                 onTap: () async {
                                   final systemfile = SWBFileSystem();
@@ -404,14 +401,14 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                       ),
                                     ));
 
-                                    bool logssaved = true;
-                                    var filename;
+                                    bool logsSaved = true;
+                                    String? filename;
                                     try {
                                       filename = await ref
                                           .read(debugServiceProvider)
                                           .exportToFile(path, eventBus);
                                     } catch (e, s) {
-                                      logssaved = false;
+                                      logsSaved = false;
                                       Logging.instance
                                           .log("$e $s", level: LogLevel.Error);
                                     }
@@ -426,7 +423,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                           showDialog(
                                             context: context,
                                             builder: (context) => StackOkDialog(
-                                              title: logssaved
+                                              title: logsSaved
                                                   ? "Logs saved to"
                                                   : "Error Saving Logs",
                                               message: "${path!}/$filename",
@@ -438,7 +435,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                           showFloatingFlushBar(
                                             type: FlushBarType.info,
                                             context: context,
-                                            message: logssaved
+                                            message: logsSaved
                                                 ? 'Logs file saved'
                                                 : "Error Saving Logs",
                                           ),

@@ -1,44 +1,45 @@
 import 'dart:async';
+import 'dart:io';
 
-import 'package:decimal/decimal.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_rate_sheet.dart';
-import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/delete_wallet_button.dart';
+import 'package:stackwallet/pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
+import 'package:stackwallet/pages/token_view/my_tokens_view.dart';
+import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_wallet_features.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_wallet_summary.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/my_wallet.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/network_info_button.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/recent_desktop_transactions.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/wallet_keys_button.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/wallet_options_button.dart';
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
-import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/widgets/background.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/hover_text_field.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:tuple/tuple.dart';
 
 /// [eventBus] should only be set during testing
 class DesktopWalletView extends ConsumerStatefulWidget {
@@ -58,12 +59,13 @@ class DesktopWalletView extends ConsumerStatefulWidget {
 }
 
 class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
+  static const double sendReceiveColumnWidth = 460;
+
   late final TextEditingController controller;
   late final EventBus eventBus;
 
   late final bool _shouldDisableAutoSyncOnLogOut;
-
-  final _cnLoadingService = ExchangeDataLoadingService();
+  bool _rescanningOnOpen = false;
 
   Future<void> onBackPressed() async {
     await _logout();
@@ -89,198 +91,6 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
     ref.read(managerProvider.notifier).isActiveWallet = false;
   }
 
-  void _loadCNData() {
-    // unawaited future
-    if (ref.read(prefsChangeNotifierProvider).externalCalls) {
-      _cnLoadingService.loadAll(ref,
-          coin: ref
-              .read(walletsChangeNotifierProvider)
-              .getManager(widget.walletId)
-              .coin);
-    } else {
-      Logging.instance.log("User does not want to use external calls",
-          level: LogLevel.Info);
-    }
-  }
-
-  void _onExchangePressed(BuildContext context) async {
-    final managerProvider = ref
-        .read(walletsChangeNotifierProvider)
-        .getManagerProvider(widget.walletId);
-    unawaited(_cnLoadingService.loadAll(ref));
-
-    final coin = ref.read(managerProvider).coin;
-
-    if (coin == Coin.epicCash) {
-      await showDialog<void>(
-        context: context,
-        builder: (_) => const StackOkDialog(
-          title: "Exchange not available for Epic Cash",
-        ),
-      );
-    } else if (coin.name.endsWith("TestNet")) {
-      await showDialog<void>(
-        context: context,
-        builder: (_) => const StackOkDialog(
-          title: "Exchange not available for test net coins",
-        ),
-      );
-    } else {
-      ref.read(currentExchangeNameStateProvider.state).state =
-          ChangeNowExchange.exchangeName;
-      ref.read(prefsChangeNotifierProvider).exchangeRateType =
-          ExchangeRateType.estimated;
-
-      ref.read(exchangeFormStateProvider).exchange = ref.read(exchangeProvider);
-      ref.read(exchangeFormStateProvider).exchangeType =
-          ExchangeRateType.estimated;
-
-      final currencies = ref
-          .read(availableChangeNowCurrenciesProvider)
-          .currencies
-          .where((element) =>
-              element.ticker.toLowerCase() == coin.ticker.toLowerCase());
-
-      if (currencies.isNotEmpty) {
-        ref.read(exchangeFormStateProvider).setCurrencies(
-              currencies.first,
-              ref
-                  .read(availableChangeNowCurrenciesProvider)
-                  .currencies
-                  .firstWhere(
-                    (element) =>
-                        element.ticker.toLowerCase() !=
-                        coin.ticker.toLowerCase(),
-                  ),
-            );
-      }
-
-      if (mounted) {
-        unawaited(
-          Navigator.of(context).pushNamed(
-            WalletInitiatedExchangeView.routeName,
-            arguments: Tuple3(
-              widget.walletId,
-              coin,
-              _loadCNData,
-            ),
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> attemptAnonymize() async {
-    final managerProvider = ref
-        .read(walletsChangeNotifierProvider)
-        .getManagerProvider(widget.walletId);
-
-    bool shouldPop = false;
-    unawaited(
-      showDialog(
-        context: context,
-        builder: (context) => WillPopScope(
-          child: const CustomLoadingOverlay(
-            message: "Anonymizing balance",
-            eventBus: null,
-          ),
-          onWillPop: () async => shouldPop,
-        ),
-      ),
-    );
-    final firoWallet = ref.read(managerProvider).wallet as FiroWallet;
-
-    final publicBalance = await firoWallet.availablePublicBalance();
-    if (publicBalance <= Decimal.zero) {
-      shouldPop = true;
-      if (mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
-        Navigator.of(context).popUntil(
-          ModalRoute.withName(DesktopWalletView.routeName),
-        );
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.info,
-            message: "No funds available to anonymize!",
-            context: context,
-          ),
-        );
-      }
-      return;
-    }
-
-    try {
-      await firoWallet.anonymizeAllPublicFunds();
-      shouldPop = true;
-      if (mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
-        Navigator.of(context).popUntil(
-          ModalRoute.withName(DesktopWalletView.routeName),
-        );
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.success,
-            message: "Anonymize transaction submitted",
-            context: context,
-          ),
-        );
-      }
-    } catch (e) {
-      shouldPop = true;
-      if (mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
-        Navigator.of(context).popUntil(
-          ModalRoute.withName(DesktopWalletView.routeName),
-        );
-        await showDialog<dynamic>(
-          context: context,
-          builder: (_) => DesktopDialog(
-            maxWidth: 400,
-            maxHeight: 300,
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Anonymize all failed",
-                    style: STextStyles.desktopH3(context),
-                  ),
-                  const Spacer(
-                    flex: 1,
-                  ),
-                  Text(
-                    "Reason: $e",
-                    style: STextStyles.desktopTextSmall(context),
-                  ),
-                  const Spacer(
-                    flex: 2,
-                  ),
-                  Row(
-                    children: [
-                      const Spacer(),
-                      const SizedBox(
-                        width: 16,
-                      ),
-                      Expanded(
-                        child: PrimaryButton(
-                          label: "Ok",
-                          buttonHeight: ButtonHeight.l,
-                          onPressed:
-                              Navigator.of(context, rootNavigator: true).pop,
-                        ),
-                      ),
-                    ],
-                  )
-                ],
-              ),
-            ),
-          ),
-        );
-      }
-    }
-  }
-
   @override
   void initState() {
     controller = TextEditingController();
@@ -302,7 +112,19 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
       _shouldDisableAutoSyncOnLogOut = false;
     }
 
-    ref.read(managerProvider).refresh();
+    if (ref.read(managerProvider).coin != Coin.ethereum &&
+        ref.read(managerProvider).rescanOnOpenVersion == Constants.rescanV1) {
+      _rescanningOnOpen = true;
+      ref.read(managerProvider).fullRescan(20, 1000).then(
+            (_) => ref.read(managerProvider).resetRescanOnOpen().then(
+                  (_) => WidgetsBinding.instance.addPostFrameCallback(
+                    (_) => setState(() => _rescanningOnOpen = false),
+                  ),
+                ),
+          );
+    } else {
+      ref.read(managerProvider).refresh();
+    }
 
     super.initState();
   }
@@ -321,224 +143,323 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
     final managerProvider = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManagerProvider(widget.walletId)));
 
-    return DesktopScaffold(
-      appBar: DesktopAppBar(
-        background: Theme.of(context).extension<StackColors>()!.popupBG,
-        leading: Expanded(
-          child: Row(
-            children: [
-              const SizedBox(
-                width: 32,
-              ),
-              AppBarIconButton(
-                size: 32,
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultBG,
-                shadows: const [],
-                icon: SvgPicture.asset(
-                  Assets.svg.arrowLeft,
-                  width: 18,
-                  height: 18,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .topNavIconPrimary,
-                ),
-                onPressed: onBackPressed,
-              ),
-              const SizedBox(
-                width: 15,
-              ),
-              SvgPicture.asset(
-                Assets.svg.iconFor(coin: coin),
-                width: 32,
-                height: 32,
-              ),
-              const SizedBox(
-                width: 12,
-              ),
-              ConstrainedBox(
-                constraints: const BoxConstraints(
-                  minWidth: 48,
-                ),
-                child: IntrinsicWidth(
-                  child: DesktopWalletNameField(
-                    walletId: widget.walletId,
-                  ),
-                ),
-              ),
-              const Spacer(),
-              Row(
-                children: [
-                  NetworkInfoButton(
-                    walletId: widget.walletId,
-                    eventBus: eventBus,
-                  ),
-                  const SizedBox(
-                    width: 2,
-                  ),
-                  WalletKeysButton(
-                    walletId: widget.walletId,
-                  ),
-                  const SizedBox(
-                    width: 2,
-                  ),
-                  DeleteWalletButton(
-                    walletId: widget.walletId,
-                  ),
-                  const SizedBox(
-                    width: 12,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        useSpacers: false,
-        isCompactHeight: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
+    return ConditionalParent(
+      condition: _rescanningOnOpen,
+      builder: (child) {
+        return Stack(
           children: [
-            RoundedWhiteContainer(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                children: [
-                  SvgPicture.asset(
-                    Assets.svg.iconFor(coin: coin),
-                    width: 40,
-                    height: 40,
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  DesktopWalletSummary(
-                    walletId: widget.walletId,
-                    managerProvider: managerProvider,
-                    initialSyncStatus: ref.watch(managerProvider
-                            .select((value) => value.isRefreshing))
-                        ? WalletSyncStatus.syncing
-                        : WalletSyncStatus.synced,
-                  ),
-                  const Spacer(),
-                  if (coin == Coin.firo) const SizedBox(width: 10),
-                  if (coin == Coin.firo)
-                    SecondaryButton(
-                      width: 180,
-                      buttonHeight: ButtonHeight.l,
-                      label: "Anonymize funds",
-                      onPressed: () async {
-                        await showDialog<void>(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (context) => DesktopDialog(
-                            maxWidth: 500,
-                            maxHeight: 210,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 32, vertical: 20),
-                              child: Column(
+            child,
+            Background(
+              child: CustomLoadingOverlay(
+                message:
+                    "Migration in progress\nThis could take a while\nPlease don't leave this screen",
+                subMessage: "This only needs to run once per wallet",
+                eventBus: null,
+                textColor: Theme.of(context).extension<StackColors>()!.textDark,
+                actionButton: SecondaryButton(
+                  label: "Skip",
+                  buttonHeight: ButtonHeight.l,
+                  onPressed: () async {
+                    await showDialog<void>(
+                      context: context,
+                      builder: (context) => DesktopDialog(
+                        maxWidth: 500,
+                        maxHeight: double.infinity,
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 32),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    "Attention!",
-                                    style: STextStyles.desktopH2(context),
+                                    "Warning!",
+                                    style: STextStyles.desktopH3(context),
                                   ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    "You're about to anonymize all of your public funds.",
-                                    style:
-                                        STextStyles.desktopTextSmall(context),
-                                  ),
-                                  const SizedBox(height: 32),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      SecondaryButton(
-                                        width: 200,
-                                        buttonHeight: ButtonHeight.l,
-                                        label: "Cancel",
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                      const SizedBox(width: 20),
-                                      PrimaryButton(
-                                        width: 200,
-                                        buttonHeight: ButtonHeight.l,
-                                        label: "Continue",
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-
-                                          unawaited(attemptAnonymize());
-                                        },
-                                      )
-                                    ],
-                                  ),
+                                  const DesktopDialogCloseButton(),
                                 ],
                               ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                  // if (coin == Coin.firo) const SizedBox(width: 16),
-                  // SecondaryButton(
-                  //   width: 180,
-                  //   buttonHeight: ButtonHeight.l,
-                  //   onPressed: () {
-                  //     _onExchangePressed(context);
-                  //   },
-                  //   label: "Exchange",
-                  //   icon: Container(
-                  //     width: 24,
-                  //     height: 24,
-                  //     decoration: BoxDecoration(
-                  //       borderRadius: BorderRadius.circular(24),
-                  //       color: Theme.of(context)
-                  //           .extension<StackColors>()!
-                  //           .buttonBackPrimary
-                  //           .withOpacity(0.2),
-                  //     ),
-                  //     child: Center(
-                  //       child: SvgPicture.asset(
-                  //         Assets.svg.arrowRotate2,
-                  //         width: 14,
-                  //         height: 14,
-                  //         color: Theme.of(context)
-                  //             .extension<StackColors>()!
-                  //             .buttonTextSecondary,
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
-                ],
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 32),
+                              child: Text(
+                                "Skipping this process can completely"
+                                " break your wallet. It is only meant to be done in"
+                                " emergency situations where the migration fails"
+                                " and will not let you continue. Still skip?",
+                                style: STextStyles.desktopTextSmall(context),
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 32,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(32),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: SecondaryButton(
+                                      label: "Cancel",
+                                      buttonHeight: ButtonHeight.l,
+                                      onPressed: Navigator.of(context,
+                                              rootNavigator: true)
+                                          .pop,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    width: 16,
+                                  ),
+                                  Expanded(
+                                    child: PrimaryButton(
+                                      label: "Ok",
+                                      buttonHeight: ButtonHeight.l,
+                                      onPressed: () {
+                                        Navigator.of(context,
+                                                rootNavigator: true)
+                                            .pop();
+                                        setState(
+                                            () => _rescanningOnOpen = false);
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
+            )
+          ],
+        );
+      },
+      child: DesktopScaffold(
+        appBar: DesktopAppBar(
+          background: Theme.of(context).extension<StackColors>()!.popupBG,
+          leading: Expanded(
+            child: Row(
+              children: [
+                const SizedBox(
+                  width: 32,
+                ),
+                AppBarIconButton(
+                  size: 32,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
+                  shadows: const [],
+                  icon: SvgPicture.asset(
+                    Assets.svg.arrowLeft,
+                    width: 18,
+                    height: 18,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .topNavIconPrimary,
+                  ),
+                  onPressed: onBackPressed,
+                ),
+                const SizedBox(
+                  width: 15,
+                ),
+                SvgPicture.file(
+                  File(
+                    ref.watch(coinIconProvider(coin)),
+                  ),
+                  width: 32,
+                  height: 32,
+                ),
+                const SizedBox(
+                  width: 12,
+                ),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minWidth: 48,
+                  ),
+                  child: IntrinsicWidth(
+                    child: DesktopWalletNameField(
+                      walletId: widget.walletId,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                Row(
+                  children: [
+                    NetworkInfoButton(
+                      walletId: widget.walletId,
+                      eventBus: eventBus,
+                    ),
+                    const SizedBox(
+                      width: 2,
+                    ),
+                    WalletKeysButton(
+                      walletId: widget.walletId,
+                    ),
+                    const SizedBox(
+                      width: 2,
+                    ),
+                    WalletOptionsButton(
+                      walletId: widget.walletId,
+                    ),
+                    const SizedBox(
+                      width: 12,
+                    ),
+                  ],
+                ),
+              ],
             ),
-            const SizedBox(
-              height: 24,
-            ),
-            Expanded(
-              child: Row(
+          ),
+          useSpacers: false,
+          isCompactHeight: true,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              RoundedWhiteContainer(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    SvgPicture.file(
+                      File(
+                        ref.watch(coinIconProvider(coin)),
+                      ),
+                      width: 40,
+                      height: 40,
+                    ),
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    DesktopWalletSummary(
+                      walletId: widget.walletId,
+                      initialSyncStatus: ref.watch(managerProvider
+                              .select((value) => value.isRefreshing))
+                          ? WalletSyncStatus.syncing
+                          : WalletSyncStatus.synced,
+                    ),
+                    const Spacer(),
+                    DesktopWalletFeatures(
+                      walletId: widget.walletId,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(
+                height: 24,
+              ),
+              Row(
                 children: [
                   SizedBox(
-                    width: 450,
-                    child: MyWallet(
-                      walletId: widget.walletId,
+                    width: sendReceiveColumnWidth,
+                    child: Text(
+                      "My wallet",
+                      style:
+                          STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldActiveSearchIconLeft,
+                      ),
                     ),
                   ),
                   const SizedBox(
                     width: 16,
                   ),
                   Expanded(
-                    child: RecentDesktopTransactions(
-                      walletId: widget.walletId,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          ref.watch(walletsChangeNotifierProvider.select(
+                                  (value) => value
+                                      .getManager(widget.walletId)
+                                      .hasTokenSupport))
+                              ? "Tokens"
+                              : "Recent transactions",
+                          style: STextStyles.desktopTextExtraSmall(context)
+                              .copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFieldActiveSearchIconLeft,
+                          ),
+                        ),
+                        CustomTextButton(
+                          text: ref.watch(walletsChangeNotifierProvider.select(
+                                  (value) => value
+                                      .getManager(widget.walletId)
+                                      .hasTokenSupport))
+                              ? "Edit"
+                              : "See all",
+                          onTap: ref.watch(walletsChangeNotifierProvider.select(
+                                  (value) => value
+                                      .getManager(widget.walletId)
+                                      .hasTokenSupport))
+                              ? () async {
+                                  final result = await showDialog<int?>(
+                                    context: context,
+                                    builder: (context) => EditWalletTokensView(
+                                      walletId: widget.walletId,
+                                      isDesktopPopup: true,
+                                    ),
+                                  );
+
+                                  if (result == 42) {
+                                    // wallet tokens were edited so update ui
+                                    setState(() {});
+                                  }
+                                }
+                              : () {
+                                  Navigator.of(context).pushNamed(
+                                    AllTransactionsView.routeName,
+                                    arguments: widget.walletId,
+                                  );
+                                },
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(
+                height: 14,
+              ),
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: sendReceiveColumnWidth,
+                      child: MyWallet(
+                        walletId: widget.walletId,
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 16,
+                    ),
+                    Expanded(
+                      child: ref.watch(walletsChangeNotifierProvider.select(
+                              (value) => value
+                                  .getManager(widget.walletId)
+                                  .hasTokenSupport))
+                          ? MyTokensView(
+                              walletId: widget.walletId,
+                            )
+                          : TransactionsList(
+                              managerProvider: ref.watch(
+                                  walletsChangeNotifierProvider.select(
+                                      (value) => value.getManagerProvider(
+                                          widget.walletId))),
+                              walletId: widget.walletId,
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -7,7 +7,7 @@ part of 'encrypted_string_value.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetEncryptedStringValueCollection on Isar {
   IsarCollection<EncryptedStringValue> get encryptedStringValues =>
@@ -30,12 +30,9 @@ const EncryptedStringValueSchema = CollectionSchema(
     )
   },
   estimateSize: _encryptedStringValueEstimateSize,
-  serializeNative: _encryptedStringValueSerializeNative,
-  deserializeNative: _encryptedStringValueDeserializeNative,
-  deserializePropNative: _encryptedStringValueDeserializePropNative,
-  serializeWeb: _encryptedStringValueSerializeWeb,
-  deserializeWeb: _encryptedStringValueDeserializeWeb,
-  deserializePropWeb: _encryptedStringValueDeserializePropWeb,
+  serialize: _encryptedStringValueSerialize,
+  deserialize: _encryptedStringValueDeserialize,
+  deserializeProp: _encryptedStringValueDeserializeProp,
   idName: r'id',
   indexes: {
     r'key': IndexSchema(
@@ -57,7 +54,7 @@ const EncryptedStringValueSchema = CollectionSchema(
   getId: _encryptedStringValueGetId,
   getLinks: _encryptedStringValueGetLinks,
   attach: _encryptedStringValueAttach,
-  version: 5,
+  version: '3.0.5',
 );
 
 int _encryptedStringValueEstimateSize(
@@ -71,20 +68,19 @@ int _encryptedStringValueEstimateSize(
   return bytesCount;
 }
 
-int _encryptedStringValueSerializeNative(
+void _encryptedStringValueSerialize(
   EncryptedStringValue object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.key);
   writer.writeString(offsets[1], object.value);
-  return writer.usedBytes;
 }
 
-EncryptedStringValue _encryptedStringValueDeserializeNative(
-  int id,
-  IsarBinaryReader reader,
+EncryptedStringValue _encryptedStringValueDeserialize(
+  Id id,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -95,9 +91,8 @@ EncryptedStringValue _encryptedStringValueDeserializeNative(
   return object;
 }
 
-P _encryptedStringValueDeserializePropNative<P>(
-  Id id,
-  IsarBinaryReader reader,
+P _encryptedStringValueDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -112,33 +107,8 @@ P _encryptedStringValueDeserializePropNative<P>(
   }
 }
 
-Object _encryptedStringValueSerializeWeb(
-    IsarCollection<EncryptedStringValue> collection,
-    EncryptedStringValue object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-EncryptedStringValue _encryptedStringValueDeserializeWeb(
-    IsarCollection<EncryptedStringValue> collection, Object jsObj) {
-  /*final object = EncryptedStringValue();object.id = IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);object.key = IsarNative.jsObjectGet(jsObj, r'key') ?? '';object.value = IsarNative.jsObjectGet(jsObj, r'value') ?? '';*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _encryptedStringValueDeserializePropWeb<P>(
-    Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
-  }
-}
-
-int? _encryptedStringValueGetId(EncryptedStringValue object) {
-  if (object.id == Isar.autoIncrement) {
-    return null;
-  } else {
-    return object.id;
-  }
+Id _encryptedStringValueGetId(EncryptedStringValue object) {
+  return object.id;
 }
 
 List<IsarLinkBase<dynamic>> _encryptedStringValueGetLinks(
@@ -188,19 +158,19 @@ extension EncryptedStringValueByIndex on IsarCollection<EncryptedStringValue> {
     return deleteAllByIndexSync(r'key', values);
   }
 
-  Future<int> putByKey(EncryptedStringValue object) {
+  Future<Id> putByKey(EncryptedStringValue object) {
     return putByIndex(r'key', object);
   }
 
-  int putByKeySync(EncryptedStringValue object, {bool saveLinks = true}) {
+  Id putByKeySync(EncryptedStringValue object, {bool saveLinks = true}) {
     return putByIndexSync(r'key', object, saveLinks: saveLinks);
   }
 
-  Future<List<int>> putAllByKey(List<EncryptedStringValue> objects) {
+  Future<List<Id>> putAllByKey(List<EncryptedStringValue> objects) {
     return putAllByIndex(r'key', objects);
   }
 
-  List<int> putAllByKeySync(List<EncryptedStringValue> objects,
+  List<Id> putAllByKeySync(List<EncryptedStringValue> objects,
       {bool saveLinks = true}) {
     return putAllByIndexSync(r'key', objects, saveLinks: saveLinks);
   }
@@ -219,7 +189,7 @@ extension EncryptedStringValueQueryWhereSort
 extension EncryptedStringValueQueryWhere
     on QueryBuilder<EncryptedStringValue, EncryptedStringValue, QWhereClause> {
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QAfterWhereClause>
-      idEqualTo(int id) {
+      idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -229,7 +199,7 @@ extension EncryptedStringValueQueryWhere
   }
 
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QAfterWhereClause>
-      idNotEqualTo(int id) {
+      idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -252,7 +222,7 @@ extension EncryptedStringValueQueryWhere
   }
 
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QAfterWhereClause>
-      idGreaterThan(int id, {bool include = false}) {
+      idGreaterThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -261,7 +231,7 @@ extension EncryptedStringValueQueryWhere
   }
 
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QAfterWhereClause>
-      idLessThan(int id, {bool include = false}) {
+      idLessThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -271,8 +241,8 @@ extension EncryptedStringValueQueryWhere
 
   QueryBuilder<EncryptedStringValue, EncryptedStringValue, QAfterWhereClause>
       idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -335,7 +305,7 @@ extension EncryptedStringValueQueryWhere
 extension EncryptedStringValueQueryFilter on QueryBuilder<EncryptedStringValue,
     EncryptedStringValue, QFilterCondition> {
   QueryBuilder<EncryptedStringValue, EncryptedStringValue,
-      QAfterFilterCondition> idEqualTo(int value) {
+      QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -346,7 +316,7 @@ extension EncryptedStringValueQueryFilter on QueryBuilder<EncryptedStringValue,
 
   QueryBuilder<EncryptedStringValue, EncryptedStringValue,
       QAfterFilterCondition> idGreaterThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -360,7 +330,7 @@ extension EncryptedStringValueQueryFilter on QueryBuilder<EncryptedStringValue,
 
   QueryBuilder<EncryptedStringValue, EncryptedStringValue,
       QAfterFilterCondition> idLessThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -374,8 +344,8 @@ extension EncryptedStringValueQueryFilter on QueryBuilder<EncryptedStringValue,
 
   QueryBuilder<EncryptedStringValue, EncryptedStringValue,
       QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -509,6 +479,26 @@ extension EncryptedStringValueQueryFilter on QueryBuilder<EncryptedStringValue,
   }
 
   QueryBuilder<EncryptedStringValue, EncryptedStringValue,
+      QAfterFilterCondition> keyIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'key',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
+      QAfterFilterCondition> keyIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'key',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
       QAfterFilterCondition> valueEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -622,6 +612,26 @@ extension EncryptedStringValueQueryFilter on QueryBuilder<EncryptedStringValue,
         property: r'value',
         wildcard: pattern,
         caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
+      QAfterFilterCondition> valueIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'value',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<EncryptedStringValue, EncryptedStringValue,
+      QAfterFilterCondition> valueIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'value',
+        value: '',
       ));
     });
   }

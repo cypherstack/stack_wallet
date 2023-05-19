@@ -7,12 +7,11 @@ import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_vi
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -156,7 +155,7 @@ class _DeleteWalletRecoveryPhraseViewState
               TextButton(
                 style: Theme.of(context)
                     .extension<StackColors>()!
-                    .getPrimaryEnabledButtonColor(context),
+                    .getPrimaryEnabledButtonStyle(context),
                 onPressed: () {
                   showDialog<dynamic>(
                     barrierDismissible: true,
@@ -166,7 +165,7 @@ class _DeleteWalletRecoveryPhraseViewState
                       leftButton: TextButton(
                         style: Theme.of(context)
                             .extension<StackColors>()!
-                            .getSecondaryEnabledButtonColor(context),
+                            .getSecondaryEnabledButtonStyle(context),
                         onPressed: () {
                           Navigator.pop(context);
                         },
@@ -181,7 +180,7 @@ class _DeleteWalletRecoveryPhraseViewState
                       rightButton: TextButton(
                         style: Theme.of(context)
                             .extension<StackColors>()!
-                            .getPrimaryEnabledButtonColor(context),
+                            .getPrimaryEnabledButtonStyle(context),
                         onPressed: () async {
                           final walletId = _manager.walletId;
                           final walletsInstance =

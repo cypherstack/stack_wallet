@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_recovery_phrase_view.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
@@ -57,7 +57,7 @@ class DeleteWalletWarningView extends ConsumerWidget {
                     .extension<StackColors>()!
                     .warningBackground,
                 child: Text(
-                  "You are going to permanently delete you wallet.\n\nIf you delete your wallet, the only way you can have access to your funds is by using your backup key.\n\nStack Wallet does not keep nor is able to restore your backup key or your wallet.\n\nPLEASE SAVE YOUR BACKUP KEY.",
+                  "You are going to permanently delete your wallet.\n\nIf you delete your wallet, the only way you can have access to your funds is by using your backup key.\n\nStack Wallet does not keep nor is able to restore your backup key or your wallet.\n\nPLEASE SAVE YOUR BACKUP KEY.",
                   style: STextStyles.baseXS(context).copyWith(
                     color: Theme.of(context)
                         .extension<StackColors>()!
@@ -69,7 +69,7 @@ class DeleteWalletWarningView extends ConsumerWidget {
               TextButton(
                 style: Theme.of(context)
                     .extension<StackColors>()!
-                    .getSecondaryEnabledButtonColor(context),
+                    .getSecondaryEnabledButtonStyle(context),
                 onPressed: () {
                   Navigator.pop(context);
                 },
@@ -87,7 +87,7 @@ class DeleteWalletWarningView extends ConsumerWidget {
               TextButton(
                 style: Theme.of(context)
                     .extension<StackColors>()!
-                    .getPrimaryEnabledButtonColor(context),
+                    .getPrimaryEnabledButtonStyle(context),
                 onPressed: () async {
                   final manager = ref
                       .read(walletsChangeNotifierProvider)

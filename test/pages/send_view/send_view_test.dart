@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -13,10 +14,12 @@ import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/services/wallets_service.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+
+import '../../sample_data/theme_json.dart';
 import 'send_view_test.mocks.dart';
 
 @GenerateMocks([
@@ -25,6 +28,7 @@ import 'send_view_test.mocks.dart';
   NodeService,
   BitcoinWallet,
   LocaleService,
+  ThemeService,
   Prefs,
 ], customMocks: [
   MockSpec<Manager>(returnNullOnMissingStub: true),
@@ -37,6 +41,7 @@ void main() {
     final mockNodeService = MockNodeService();
     final CoinServiceAPI wallet = MockBitcoinWallet();
     final mockLocaleService = MockLocaleService();
+    final mockThemeService = MockThemeService();
     final mockPrefs = MockPrefs();
 
     when(wallet.coin).thenAnswer((_) => Coin.bitcoin);
@@ -50,7 +55,14 @@ void main() {
         .thenAnswer((realInvocation) => manager);
 
     when(mockLocaleService.locale).thenAnswer((_) => "en_US");
+    when(mockThemeService.getTheme(themeId: "light")).thenAnswer(
+      (_) => StackTheme.fromJson(
+        json: lightThemeJsonMap,
+        applicationThemesDirectoryPath: "test",
+      ),
+    );
     when(mockPrefs.currency).thenAnswer((_) => "USD");
+    when(mockPrefs.enableCoinControl).thenAnswer((_) => false);
     when(wallet.validateAddress("send to address"))
         .thenAnswer((realInvocation) => true);
 
@@ -64,13 +76,17 @@ void main() {
           localeServiceChangeNotifierProvider
               .overrideWithValue(mockLocaleService),
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
+          pThemeService.overrideWithValue(mockThemeService),
           // previewTxButtonStateProvider
         ],
         child: MaterialApp(
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
-                LightColors(),
+                StackTheme.fromJson(
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
+                ),
               ),
             ],
           ),
@@ -83,6 +99,8 @@ void main() {
         ),
       ),
     );
+
+    await widgetTester.pumpAndSettle();
 
     expect(find.text("Send to"), findsOneWidget);
     expect(find.text("Amount"), findsOneWidget);
@@ -98,6 +116,7 @@ void main() {
     final CoinServiceAPI wallet = MockBitcoinWallet();
     final mockLocaleService = MockLocaleService();
     final mockPrefs = MockPrefs();
+    final mockThemeService = MockThemeService();
 
     when(wallet.coin).thenAnswer((_) => Coin.bitcoin);
     when(wallet.walletName).thenAnswer((_) => "some wallet");
@@ -111,8 +130,15 @@ void main() {
 
     when(mockLocaleService.locale).thenAnswer((_) => "en_US");
     when(mockPrefs.currency).thenAnswer((_) => "USD");
+    when(mockPrefs.enableCoinControl).thenAnswer((_) => false);
     when(wallet.validateAddress("send to address"))
         .thenAnswer((realInvocation) => false);
+    when(mockThemeService.getTheme(themeId: "light")).thenAnswer(
+      (_) => StackTheme.fromJson(
+        json: lightThemeJsonMap,
+        applicationThemesDirectoryPath: "test",
+      ),
+    );
 
     // when(manager.isOwnAddress("send to address"))
     //     .thenAnswer((realInvocation) => Future(() => true));
@@ -127,13 +153,17 @@ void main() {
           localeServiceChangeNotifierProvider
               .overrideWithValue(mockLocaleService),
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
+          pThemeService.overrideWithValue(mockThemeService)
           // previewTxButtonStateProvider
         ],
         child: MaterialApp(
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
-                LightColors(),
+                StackTheme.fromJson(
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
+                ),
               ),
             ],
           ),
@@ -146,6 +176,8 @@ void main() {
         ),
       ),
     );
+
+    await widgetTester.pumpAndSettle();
 
     expect(find.text("Send to"), findsOneWidget);
     expect(find.text("Amount"), findsOneWidget);

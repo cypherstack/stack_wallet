@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/contact.dart';
-import 'package:stackwallet/models/paymint/transactions_model.dart';
+import 'package:isar/isar.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/add_new_contact_address_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/edit_contact_address_view.dart';
@@ -12,12 +15,12 @@ import 'package:stackwallet/providers/global/address_book_service_provider.dart'
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/address_book_providers/address_entry_data_provider.dart';
 import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -50,15 +53,6 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
 
   List<Tuple2<String, Transaction>> _cachedTransactions = [];
 
-  bool _contactHasAddress(String address, Contact contact) {
-    for (final entry in contact.addresses) {
-      if (entry.address == address) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   Future<List<Tuple2<String, Transaction>>> _filteredTransactionsByContact(
     List<Manager> managers,
   ) async {
@@ -69,18 +63,18 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
 
     List<Tuple2<String, Transaction>> result = [];
     for (final manager in managers) {
-      final transactions = (await manager.transactionData)
-          .getAllTransactions()
-          .values
-          .toList()
-          .where((e) => _contactHasAddress(e.address, contact));
+      final transactions = await MainDB.instance
+          .getTransactions(manager.walletId)
+          .filter()
+          .anyOf(contact.addresses.map((e) => e.address),
+              (q, String e) => q.address((q) => q.valueEqualTo(e)))
+          .sortByTimestampDesc()
+          .findAll();
 
       for (final tx in transactions) {
         result.add(Tuple2(manager.walletId, tx));
       }
     }
-    // sort by date
-    result.sort((a, b) => b.item2.timestamp - a.item2.timestamp);
 
     return result;
   }
@@ -185,7 +179,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                         leftButton: TextButton(
                           style: Theme.of(context)
                               .extension<StackColors>()!
-                              .getSecondaryEnabledButtonColor(context),
+                              .getSecondaryEnabledButtonStyle(context),
                           child: Text(
                             "Cancel",
                             style: STextStyles.itemSubtitle12(context),
@@ -197,7 +191,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                         rightButton: TextButton(
                           style: Theme.of(context)
                               .extension<StackColors>()!
-                              .getPrimaryEnabledButtonColor(context),
+                              .getPrimaryEnabledButtonStyle(context),
                           child: Text(
                             "Delete",
                             style: STextStyles.button(context),
@@ -205,7 +199,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                           onPressed: () {
                             ref
                                 .read(addressBookServiceProvider)
-                                .removeContact(_contact.id);
+                                .removeContact(_contact.customId);
                             Navigator.of(context).pop();
                             Navigator.of(context).pop();
                             showFloatingFlushBar(
@@ -276,12 +270,12 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                         onPressed: () {
                           Navigator.of(context).pushNamed(
                             EditContactNameEmojiView.routeName,
-                            arguments: _contact.id,
+                            arguments: _contact.customId,
                           );
                         },
                         style: Theme.of(context)
                             .extension<StackColors>()!
-                            .getSecondaryEnabledButtonColor(context)!
+                            .getSecondaryEnabledButtonStyle(context)!
                             .copyWith(
                               minimumSize: MaterialStateProperty.all<Size>(
                                   const Size(46, 32)),
@@ -319,12 +313,12 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                         "Addresses",
                         style: STextStyles.itemSubtitle(context),
                       ),
-                      BlueTextButton(
+                      CustomTextButton(
                         text: "Add new",
                         onTap: () {
                           Navigator.of(context).pushNamed(
                             AddNewContactAddressView.routeName,
-                            arguments: _contact.id,
+                            arguments: _contact.customId,
                           );
                         },
                       ),
@@ -342,8 +336,10 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                             padding: const EdgeInsets.all(12),
                             child: Row(
                               children: [
-                                SvgPicture.asset(
-                                  Assets.svg.iconFor(coin: e.coin),
+                                SvgPicture.file(
+                                  File(
+                                    ref.watch(coinIconProvider(e.coin)),
+                                  ),
                                   height: 24,
                                 ),
                                 const SizedBox(
@@ -389,7 +385,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
 
                                     Navigator.of(context).pushNamed(
                                       EditContactAddressView.routeName,
-                                      arguments: Tuple2(_contact.id, e),
+                                      arguments: Tuple2(_contact.customId, e),
                                     );
                                   },
                                   child: RoundedContainer(

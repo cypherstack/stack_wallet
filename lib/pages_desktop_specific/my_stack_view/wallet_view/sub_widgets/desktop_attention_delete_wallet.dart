@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/delete_wallet_keys_popup.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -66,7 +66,7 @@ class _DesktopAttentionDeleteWallet
                   child: Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: Text(
-                      "You are going to permanently delete you wallet.\n\nIf you delete your wallet, "
+                      "You are going to permanently delete your wallet.\n\nIf you delete your wallet, "
                       "the only way you can have access to your funds is by using your backup key."
                       "\n\nStack Wallet does not keep nor is able to restore your backup key or your wallet."
                       "\n\nPLEASE SAVE YOUR BACKUP KEY.",
@@ -74,7 +74,7 @@ class _DesktopAttentionDeleteWallet
                           .copyWith(
                         color: Theme.of(context)
                             .extension<StackColors>()!
-                            .textDark3,
+                            .snackBarTextError,
                       ),
                     ),
                   ),
