@@ -69,7 +69,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
             _MoreFeaturesItem(
               label: "Anonymize funds",
               detail: "Anonymize funds",
-              iconAsset: Assets.svg.anonymize,
+              iconAsset: Assets.svg.recycle,
               onPressed: () => widget.onAnonymizeAllPressed?.call(),
             ),
           if (manager.hasWhirlpoolSupport)
@@ -143,15 +143,11 @@ class _MoreFeaturesItem extends StatelessWidget {
               child: Center(
                 child: SvgPicture.asset(
                   iconAsset,
-                  width:
-                      iconAsset == Assets.svg.anonymize ? iconSizeBG : iconSize,
-                  height:
-                      iconAsset == Assets.svg.anonymize ? iconSizeBG : iconSize,
-                  color: iconAsset == Assets.svg.anonymize
-                      ? null
-                      : Theme.of(context)
-                          .extension<StackColors>()!
-                          .settingsIconIcon,
+                  width: iconSize,
+                  height: iconSize,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .settingsIconIcon,
                 ),
               ),
             ),
