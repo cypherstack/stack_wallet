@@ -1224,7 +1224,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           if (trade.exchangeName
                               .startsWith(TrocadorExchange.exchangeName)) {
                             url =
-                                "https://trocador.app/en/checkout${trade.tradeId}";
+                                "https://trocador.app/en/checkout/${trade.tradeId}";
                           }
                       }
                       return ConditionalParent(
