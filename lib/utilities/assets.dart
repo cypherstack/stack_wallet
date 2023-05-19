@@ -193,7 +193,7 @@ class _SVG {
   String get exchange3 => "assets/svg/exchange-3.svg";
   String get messageQuestion => "assets/svg/message-question-1.svg";
   String get list => "assets/svg/list-ul.svg";
-  String get unclaimedPaynym => "assets/svg/unclaimed.png";
+  String get unclaimedPaynym => "assets/svg/unclaimed.svg";
 
   String get trocadorRatingA => "assets/svg/trocador_rating_a.svg";
   String get trocadorRatingB => "assets/svg/trocador_rating_b.svg";
