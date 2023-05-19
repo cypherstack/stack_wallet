@@ -17807,108 +17807,123 @@ const ThemeAssetsSchema = Schema(
       name: r'namecoinImageSecondary',
       type: IsarType.string,
     ),
-    r'particl': PropertySchema(
+    r'nano': PropertySchema(
       id: 32,
+      name: r'nano',
+      type: IsarType.string,
+    ),
+    r'nanoImage': PropertySchema(
+      id: 33,
+      name: r'nanoImage',
+      type: IsarType.string,
+    ),
+    r'nanoImageSecondary': PropertySchema(
+      id: 34,
+      name: r'nanoImageSecondary',
+      type: IsarType.string,
+    ),
+    r'particl': PropertySchema(
+      id: 35,
       name: r'particl',
       type: IsarType.string,
     ),
     r'particlImage': PropertySchema(
-      id: 33,
+      id: 36,
       name: r'particlImage',
       type: IsarType.string,
     ),
     r'particlImageSecondary': PropertySchema(
-      id: 34,
+      id: 37,
       name: r'particlImageSecondary',
       type: IsarType.string,
     ),
     r'personaEasy': PropertySchema(
-      id: 35,
+      id: 38,
       name: r'personaEasy',
       type: IsarType.string,
     ),
     r'personaIncognito': PropertySchema(
-      id: 36,
+      id: 39,
       name: r'personaIncognito',
       type: IsarType.string,
     ),
     r'receive': PropertySchema(
-      id: 37,
+      id: 40,
       name: r'receive',
       type: IsarType.string,
     ),
     r'receiveCancelled': PropertySchema(
-      id: 38,
+      id: 41,
       name: r'receiveCancelled',
       type: IsarType.string,
     ),
     r'receivePending': PropertySchema(
-      id: 39,
+      id: 42,
       name: r'receivePending',
       type: IsarType.string,
     ),
     r'send': PropertySchema(
-      id: 40,
+      id: 43,
       name: r'send',
       type: IsarType.string,
     ),
     r'sendCancelled': PropertySchema(
-      id: 41,
+      id: 44,
       name: r'sendCancelled',
       type: IsarType.string,
     ),
     r'sendPending': PropertySchema(
-      id: 42,
+      id: 45,
       name: r'sendPending',
       type: IsarType.string,
     ),
     r'stack': PropertySchema(
-      id: 43,
+      id: 46,
       name: r'stack',
       type: IsarType.string,
     ),
     r'stackIcon': PropertySchema(
-      id: 44,
+      id: 47,
       name: r'stackIcon',
       type: IsarType.string,
     ),
     r'themePreview': PropertySchema(
-      id: 45,
+      id: 48,
       name: r'themePreview',
       type: IsarType.string,
     ),
     r'themeSelector': PropertySchema(
-      id: 46,
+      id: 49,
       name: r'themeSelector',
       type: IsarType.string,
     ),
     r'txExchange': PropertySchema(
-      id: 47,
+      id: 50,
       name: r'txExchange',
       type: IsarType.string,
     ),
     r'txExchangeFailed': PropertySchema(
-      id: 48,
+      id: 51,
       name: r'txExchangeFailed',
       type: IsarType.string,
     ),
     r'txExchangePending': PropertySchema(
-      id: 49,
+      id: 52,
       name: r'txExchangePending',
       type: IsarType.string,
     ),
     r'wownero': PropertySchema(
-      id: 50,
+      id: 53,
       name: r'wownero',
       type: IsarType.string,
     ),
     r'wowneroImage': PropertySchema(
-      id: 51,
+      id: 54,
       name: r'wowneroImage',
       type: IsarType.string,
     ),
     r'wowneroImageSecondary': PropertySchema(
-      id: 52,
+      id: 55,
       name: r'wowneroImageSecondary',
       type: IsarType.string,
     )
@@ -17967,6 +17982,9 @@ int _themeAssetsEstimateSize(
   bytesCount += 3 + object.namecoin.length * 3;
   bytesCount += 3 + object.namecoinImage.length * 3;
   bytesCount += 3 + object.namecoinImageSecondary.length * 3;
+  bytesCount += 3 + object.nano.length * 3;
+  bytesCount += 3 + object.nanoImage.length * 3;
+  bytesCount += 3 + object.nanoImageSecondary.length * 3;
   bytesCount += 3 + object.particl.length * 3;
   bytesCount += 3 + object.particlImage.length * 3;
   bytesCount += 3 + object.particlImageSecondary.length * 3;
@@ -18029,27 +18047,30 @@ void _themeAssetsSerialize(
   writer.writeString(offsets[29], object.namecoin);
   writer.writeString(offsets[30], object.namecoinImage);
   writer.writeString(offsets[31], object.namecoinImageSecondary);
-  writer.writeString(offsets[32], object.particl);
-  writer.writeString(offsets[33], object.particlImage);
-  writer.writeString(offsets[34], object.particlImageSecondary);
-  writer.writeString(offsets[35], object.personaEasy);
-  writer.writeString(offsets[36], object.personaIncognito);
-  writer.writeString(offsets[37], object.receive);
-  writer.writeString(offsets[38], object.receiveCancelled);
-  writer.writeString(offsets[39], object.receivePending);
-  writer.writeString(offsets[40], object.send);
-  writer.writeString(offsets[41], object.sendCancelled);
-  writer.writeString(offsets[42], object.sendPending);
-  writer.writeString(offsets[43], object.stack);
-  writer.writeString(offsets[44], object.stackIcon);
-  writer.writeString(offsets[45], object.themePreview);
-  writer.writeString(offsets[46], object.themeSelector);
-  writer.writeString(offsets[47], object.txExchange);
-  writer.writeString(offsets[48], object.txExchangeFailed);
-  writer.writeString(offsets[49], object.txExchangePending);
-  writer.writeString(offsets[50], object.wownero);
-  writer.writeString(offsets[51], object.wowneroImage);
-  writer.writeString(offsets[52], object.wowneroImageSecondary);
+  writer.writeString(offsets[32], object.nano);
+  writer.writeString(offsets[33], object.nanoImage);
+  writer.writeString(offsets[34], object.nanoImageSecondary);
+  writer.writeString(offsets[35], object.particl);
+  writer.writeString(offsets[36], object.particlImage);
+  writer.writeString(offsets[37], object.particlImageSecondary);
+  writer.writeString(offsets[38], object.personaEasy);
+  writer.writeString(offsets[39], object.personaIncognito);
+  writer.writeString(offsets[40], object.receive);
+  writer.writeString(offsets[41], object.receiveCancelled);
+  writer.writeString(offsets[42], object.receivePending);
+  writer.writeString(offsets[43], object.send);
+  writer.writeString(offsets[44], object.sendCancelled);
+  writer.writeString(offsets[45], object.sendPending);
+  writer.writeString(offsets[46], object.stack);
+  writer.writeString(offsets[47], object.stackIcon);
+  writer.writeString(offsets[48], object.themePreview);
+  writer.writeString(offsets[49], object.themeSelector);
+  writer.writeString(offsets[50], object.txExchange);
+  writer.writeString(offsets[51], object.txExchangeFailed);
+  writer.writeString(offsets[52], object.txExchangePending);
+  writer.writeString(offsets[53], object.wownero);
+  writer.writeString(offsets[54], object.wowneroImage);
+  writer.writeString(offsets[55], object.wowneroImageSecondary);
 }
 
 ThemeAssets _themeAssetsDeserialize(
@@ -18091,27 +18112,30 @@ ThemeAssets _themeAssetsDeserialize(
   object.namecoin = reader.readString(offsets[29]);
   object.namecoinImage = reader.readString(offsets[30]);
   object.namecoinImageSecondary = reader.readString(offsets[31]);
-  object.particl = reader.readString(offsets[32]);
-  object.particlImage = reader.readString(offsets[33]);
-  object.particlImageSecondary = reader.readString(offsets[34]);
-  object.personaEasy = reader.readString(offsets[35]);
-  object.personaIncognito = reader.readString(offsets[36]);
-  object.receive = reader.readString(offsets[37]);
-  object.receiveCancelled = reader.readString(offsets[38]);
-  object.receivePending = reader.readString(offsets[39]);
-  object.send = reader.readString(offsets[40]);
-  object.sendCancelled = reader.readString(offsets[41]);
-  object.sendPending = reader.readString(offsets[42]);
-  object.stack = reader.readString(offsets[43]);
-  object.stackIcon = reader.readString(offsets[44]);
-  object.themePreview = reader.readString(offsets[45]);
-  object.themeSelector = reader.readString(offsets[46]);
-  object.txExchange = reader.readString(offsets[47]);
-  object.txExchangeFailed = reader.readString(offsets[48]);
-  object.txExchangePending = reader.readString(offsets[49]);
-  object.wownero = reader.readString(offsets[50]);
-  object.wowneroImage = reader.readString(offsets[51]);
-  object.wowneroImageSecondary = reader.readString(offsets[52]);
+  object.nano = reader.readString(offsets[32]);
+  object.nanoImage = reader.readString(offsets[33]);
+  object.nanoImageSecondary = reader.readString(offsets[34]);
+  object.particl = reader.readString(offsets[35]);
+  object.particlImage = reader.readString(offsets[36]);
+  object.particlImageSecondary = reader.readString(offsets[37]);
+  object.personaEasy = reader.readString(offsets[38]);
+  object.personaIncognito = reader.readString(offsets[39]);
+  object.receive = reader.readString(offsets[40]);
+  object.receiveCancelled = reader.readString(offsets[41]);
+  object.receivePending = reader.readString(offsets[42]);
+  object.send = reader.readString(offsets[43]);
+  object.sendCancelled = reader.readString(offsets[44]);
+  object.sendPending = reader.readString(offsets[45]);
+  object.stack = reader.readString(offsets[46]);
+  object.stackIcon = reader.readString(offsets[47]);
+  object.themePreview = reader.readString(offsets[48]);
+  object.themeSelector = reader.readString(offsets[49]);
+  object.txExchange = reader.readString(offsets[50]);
+  object.txExchangeFailed = reader.readString(offsets[51]);
+  object.txExchangePending = reader.readString(offsets[52]);
+  object.wownero = reader.readString(offsets[53]);
+  object.wowneroImage = reader.readString(offsets[54]);
+  object.wowneroImageSecondary = reader.readString(offsets[55]);
   return object;
 }
 
@@ -18227,6 +18251,12 @@ P _themeAssetsDeserializeProp<P>(
     case 51:
       return (reader.readString(offset)) as P;
     case 52:
+      return (reader.readString(offset)) as P;
+    case 53:
+      return (reader.readString(offset)) as P;
+    case 54:
+      return (reader.readString(offset)) as P;
+    case 55:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -22609,6 +22639,409 @@ extension ThemeAssetsQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'namecoinImageSecondary',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition> nanoEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'nano',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition> nanoGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'nano',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition> nanoLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'nano',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition> nanoBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'nano',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition> nanoStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'nano',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition> nanoEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'nano',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition> nanoContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'nano',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition> nanoMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'nano',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition> nanoIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'nano',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      nanoIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'nano',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      nanoImageEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'nanoImage',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      nanoImageGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'nanoImage',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      nanoImageLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'nanoImage',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      nanoImageBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'nanoImage',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      nanoImageStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'nanoImage',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      nanoImageEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'nanoImage',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      nanoImageContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'nanoImage',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      nanoImageMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'nanoImage',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      nanoImageIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'nanoImage',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      nanoImageIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'nanoImage',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      nanoImageSecondaryEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'nanoImageSecondary',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      nanoImageSecondaryGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'nanoImageSecondary',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      nanoImageSecondaryLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'nanoImageSecondary',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      nanoImageSecondaryBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'nanoImageSecondary',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      nanoImageSecondaryStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'nanoImageSecondary',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      nanoImageSecondaryEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'nanoImageSecondary',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      nanoImageSecondaryContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'nanoImageSecondary',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      nanoImageSecondaryMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'nanoImageSecondary',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      nanoImageSecondaryIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'nanoImageSecondary',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
+      nanoImageSecondaryIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'nanoImageSecondary',
         value: '',
       ));
     });

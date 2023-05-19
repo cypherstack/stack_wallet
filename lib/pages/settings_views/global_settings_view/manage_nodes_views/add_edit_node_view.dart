@@ -717,6 +717,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
       case Coin.epicCash:
+      case Coin.nano:
         return false;
 
       case Coin.ethereum:

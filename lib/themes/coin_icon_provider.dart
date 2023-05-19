@@ -32,5 +32,7 @@ final coinIconProvider = Provider.family<String, Coin>((ref, coin) {
       return assets.particl;
     case Coin.ethereum:
       return assets.ethereum;
+    case Coin.nano:
+      return assets.nano;
   }
 });
