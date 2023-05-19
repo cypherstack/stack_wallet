@@ -143,11 +143,15 @@ class _MoreFeaturesItem extends StatelessWidget {
               child: Center(
                 child: SvgPicture.asset(
                   iconAsset,
-                  width: iconSize,
-                  height: iconSize,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .settingsIconIcon,
+                  width:
+                      iconAsset == Assets.svg.anonymize ? iconSizeBG : iconSize,
+                  height:
+                      iconAsset == Assets.svg.anonymize ? iconSizeBG : iconSize,
+                  color: iconAsset == Assets.svg.anonymize
+                      ? null
+                      : Theme.of(context)
+                          .extension<StackColors>()!
+                          .settingsIconIcon,
                 ),
               ),
             ),
