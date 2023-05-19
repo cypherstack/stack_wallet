@@ -98,9 +98,12 @@ class DesktopAboutView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    String firoCommit ="lololololo"; // FIRO_VERSIONS.getPluginVersion();
-    String epicCashCommit ="lololololo"; // EPIC_VERSIONS.getPluginVersion();
-    String moneroCommit = "lololololo"; //MONERO_VERSIONS.getPluginVersion();
+    String firoCommit =
+        "Unable to fetch version"; // FIRO_VERSIONS.getPluginVersion();
+    String epicCashCommit =
+        "Unable to fetch version"; // EPIC_VERSIONS.getPluginVersion();
+    String moneroCommit =
+        "Unable to fetch version"; //MONERO_VERSIONS.getPluginVersion();
     List<Future> futureFiroList = [
       doesCommitExist("cypherstack", "flutter_liblelantus", firoCommit),
       isHeadCommit("cypherstack", "flutter_liblelantus", "main", firoCommit),
@@ -237,13 +240,13 @@ class DesktopAboutView extends ConsumerWidget {
                                     String signature = "";
                                     String build = "";
 
-                                    if (snapshot.connectionState ==
-                                            ConnectionState.done &&
-                                        snapshot.hasData) {
-                                      version = snapshot.data!.version;
-                                      build = snapshot.data!.buildNumber;
-                                      signature = snapshot.data!.buildSignature;
-                                    }
+                                    // if (snapshot.connectionState ==
+                                    //         ConnectionState.done &&
+                                    //     snapshot.hasData) {
+                                    //   version = snapshot.data!.version;
+                                    //   build = snapshot.data!.buildNumber;
+                                    //   signature = snapshot.data!.buildSignature;
+                                    // }
 
                                     return Column(
                                       mainAxisAlignment:

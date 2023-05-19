@@ -291,9 +291,12 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                     final signature =
                                         packageInfo.buildSignature;
                                     final appName = packageInfo.appName;
-                                    String firoCommit ="lololololo"; //FIRO_VERSIONS.getPluginVersion();
-                                    String epicCashCommit ="lololololo"; //EPIC_VERSIONS.getPluginVersion();
-                                    String moneroCommit ="lololololo"; // MONERO_VERSIONS.getPluginVersion();
+                                    String firoCommit =
+                                        "Unable to fetch version"; //FIRO_VERSIONS.getPluginVersion();
+                                    String epicCashCommit =
+                                        "Unable to fetch version"; //EPIC_VERSIONS.getPluginVersion();
+                                    String moneroCommit =
+                                        "Unable to fetch version"; // MONERO_VERSIONS.getPluginVersion();
                                     DeviceInfoPlugin deviceInfoPlugin =
                                         DeviceInfoPlugin();
                                     final deviceInfo =
