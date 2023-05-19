@@ -178,8 +178,10 @@ void main() async {
     }
   }
 
-  wownero.onStartup();
-  monero.onStartup();
+  if (!Platform.isWindows) {
+    wownero.onStartup();
+    monero.onStartup();
+  }
 
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
   //     overlays: [SystemUiOverlay.bottom]);
