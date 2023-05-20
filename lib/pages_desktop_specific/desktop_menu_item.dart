@@ -63,8 +63,8 @@ class DesktopBuyIcon extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return SvgPicture.asset(
-      ref.watch(themeProvider.select((value) => value.assets.buy)),
+    return SvgPicture.file(
+      File(ref.watch(themeAssetsProvider).buy),
       width: 20,
       height: 20,
       color: DesktopMenuItemId.buy ==

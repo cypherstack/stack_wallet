@@ -165,6 +165,7 @@ class _SVG {
   String get questionMessage => "assets/svg/message-question.svg";
   String get envelope => "assets/svg/envelope.svg";
   String get share => "assets/svg/share-2.svg";
+  String get recycle => "assets/svg/anonymize.svg";
   String get anonymize => "assets/svg/tx-icon-anonymize.svg";
   String get anonymizePending => "assets/svg/tx-icon-anonymize-pending.svg";
   String get anonymizeFailed => "assets/svg/tx-icon-anonymize-failed.svg";
@@ -193,7 +194,7 @@ class _SVG {
   String get exchange3 => "assets/svg/exchange-3.svg";
   String get messageQuestion => "assets/svg/message-question-1.svg";
   String get list => "assets/svg/list-ul.svg";
-  String get unclaimedPaynym => "assets/svg/unclaimed.png";
+  String get unclaimedPaynym => "assets/svg/unclaimed.svg";
 
   String get trocadorRatingA => "assets/svg/trocador_rating_a.svg";
   String get trocadorRatingB => "assets/svg/trocador_rating_b.svg";

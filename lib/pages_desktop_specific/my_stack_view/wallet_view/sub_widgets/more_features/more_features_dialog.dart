@@ -69,7 +69,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
             _MoreFeaturesItem(
               label: "Anonymize funds",
               detail: "Anonymize funds",
-              iconAsset: Assets.svg.anonymize,
+              iconAsset: Assets.svg.recycle,
               onPressed: () => widget.onAnonymizeAllPressed?.call(),
             ),
           if (manager.hasWhirlpoolSupport)

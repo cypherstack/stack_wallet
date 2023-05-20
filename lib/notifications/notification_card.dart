@@ -32,7 +32,7 @@ class NotificationCard extends ConsumerWidget {
   static const double mobileIconSize = 24;
   static const double desktopIconSize = 30;
 
-  String coinIconPath(ThemeAssets assets, WidgetRef ref) {
+  String coinIconPath(IThemeAssets assets, WidgetRef ref) {
     try {
       final coin = coinFromPrettyName(notification.coinName);
       return ref.read(coinIconProvider(coin));
@@ -61,7 +61,7 @@ class NotificationCard extends ConsumerWidget {
                       File(
                         coinIconPath(
                             ref.watch(
-                              themeProvider.select((value) => value.assets),
+                              themeAssetsProvider,
                             ),
                             ref),
                       ),
@@ -79,7 +79,7 @@ class NotificationCard extends ConsumerWidget {
                         File(
                           coinIconPath(
                               ref.watch(
-                                themeProvider.select((value) => value.assets),
+                                themeAssetsProvider,
                               ),
                               ref),
                         ),
