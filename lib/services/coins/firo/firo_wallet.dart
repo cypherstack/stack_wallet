@@ -2555,7 +2555,7 @@ class FiroWallet extends CoinServiceAPI
     var tmpTotal = total;
     var index = 1;
     var mints = <Map<String, dynamic>>[];
-    final nextFreeMintIndex = firoGetMintIndex()!;
+    final nextFreeMintIndex = firoGetMintIndex();
     while (tmpTotal > 0) {
       final mintValue = min(tmpTotal, MINT_LIMIT);
       final mint = await _getMintHex(
@@ -2720,7 +2720,7 @@ class FiroWallet extends CoinServiceAPI
       amount += utxosToUse[i].value;
     }
 
-    final index = firoGetMintIndex()!;
+    final index = firoGetMintIndex();
     Logging.instance.log("index of mint $index", level: LogLevel.Info);
 
     for (var mintsElement in mintsMap) {
@@ -2987,7 +2987,7 @@ class FiroWallet extends CoinServiceAPI
 
         // if a jmint was made add it to the unspent coin index
         LelantusCoin jmint = LelantusCoin(
-            index!,
+            index,
             transactionInfo['jmintValue'] as int? ?? 0,
             transactionInfo['publicCoin'] as String,
             transactionInfo['txid'] as String,
