@@ -155,6 +155,9 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
   void initState() {
     final installedTheme = getInstalled();
     _hasTheme = installedTheme != null;
+    if (_hasTheme) {
+      _needsUpdate = widget.data.version > (installedTheme?.version ?? 0);
+    }
 
     _subscription = ref
         .read(mainDBProvider)
@@ -169,7 +172,8 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
           setState(() {
             _hasTheme = hasTheme;
             if (hasTheme) {
-              _needsUpdate = widget.data.version > installedTheme.version!;
+              _needsUpdate =
+                  widget.data.version > (installedTheme.version ?? 0);
             }
           });
         });
