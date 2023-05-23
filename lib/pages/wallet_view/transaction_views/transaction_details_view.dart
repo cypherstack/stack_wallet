@@ -619,16 +619,37 @@ class _TransactionDetailsViewState
                                                   CustomTextButton(
                                                     text: "Info",
                                                     onTap: () {
-                                                      Navigator.of(context)
-                                                          .pushNamed(
-                                                        AddressDetailsView
-                                                            .routeName,
-                                                        arguments: Tuple2(
-                                                          _transaction.address
-                                                              .value!.id,
-                                                          widget.walletId,
-                                                        ),
-                                                      );
+                                                      if (isDesktop) {
+                                                        showDialog<void>(
+                                                          context: context,
+                                                          builder: (_) =>
+                                                              DesktopDialog(
+                                                            maxHeight:
+                                                                double.infinity,
+                                                            child:
+                                                                AddressDetailsView(
+                                                              addressId:
+                                                                  _transaction
+                                                                      .address
+                                                                      .value!
+                                                                      .id,
+                                                              walletId: widget
+                                                                  .walletId,
+                                                            ),
+                                                          ),
+                                                        );
+                                                      } else {
+                                                        Navigator.of(context)
+                                                            .pushNamed(
+                                                          AddressDetailsView
+                                                              .routeName,
+                                                          arguments: Tuple2(
+                                                            _transaction.address
+                                                                .value!.id,
+                                                            widget.walletId,
+                                                          ),
+                                                        );
+                                                      }
                                                     },
                                                   )
                                                 ],
