@@ -225,14 +225,14 @@ class _IncognitoInstalledThemesState
     extends ConsumerState<IncognitoInstalledThemes> {
   late final StreamSubscription<void> _subscription;
 
-  List<Tuple2<String, String>> installedThemeIdNames = [];
+  List<Tuple3<String, String, int?>> installedThemeIdNames = [];
 
   void _updateInstalledList() {
     installedThemeIdNames = ref
         .read(pThemeService)
         .installedThemes
         .where((e) => e.themeId != "light" && e.themeId != "dark")
-        .map((e) => Tuple2(e.themeId, e.name))
+        .map((e) => Tuple3(e.themeId, e.name, e.version))
         .toList();
   }
 
@@ -274,6 +274,7 @@ class _IncognitoInstalledThemesState
                 data: StackThemeMetaData(
                   name: e.item2,
                   id: e.item1,
+                  version: e.item3 ?? 1,
                   sha256: "",
                   size: "",
                   previewImageUrl: "",
