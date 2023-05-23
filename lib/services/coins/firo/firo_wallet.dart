@@ -405,7 +405,7 @@ Future<Map<dynamic, dynamic>> staticProcessRestore(
         tx = null;
       }
 
-      if (tx == null) {
+      if (tx == null || tx.subType == isar_models.TransactionSubType.join) {
         // This is a jmint.
         return;
       }
