@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
@@ -287,7 +288,7 @@ class DesktopTradeRowCard extends ConsumerStatefulWidget {
 class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
   late final String tradeId;
 
-  String _fetchIconAssetForStatus(String statusString, ThemeAssets assets) {
+  String _fetchIconAssetForStatus(String statusString, IThemeAssets assets) {
     ChangeNowTransactionStatus? status;
     try {
       if (statusString.toLowerCase().startsWith("waiting")) {
@@ -522,10 +523,14 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
                   borderRadius: BorderRadius.circular(32),
                 ),
                 child: Center(
-                  child: SvgPicture.asset(
-                    _fetchIconAssetForStatus(
-                      trade.status,
-                      ref.watch(themeProvider.select((value) => value.assets)),
+                  child: SvgPicture.file(
+                    File(
+                      _fetchIconAssetForStatus(
+                        trade.status,
+                        ref.watch(
+                          themeAssetsProvider,
+                        ),
+                      ),
                     ),
                     width: 32,
                     height: 32,

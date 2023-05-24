@@ -7,7 +7,7 @@ import 'dart:async' as _i4;
 import 'dart:ui' as _i5;
 
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/models/contact.dart' as _i2;
+import 'package:stackwallet/models/isar/models/contact_entry.dart' as _i2;
 import 'package:stackwallet/services/address_book_service.dart' as _i3;
 
 // ignore_for_file: type=lint
@@ -21,8 +21,8 @@ import 'package:stackwallet/services/address_book_service.dart' as _i3;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-class _FakeContact_0 extends _i1.SmartFake implements _i2.Contact {
-  _FakeContact_0(
+class _FakeContactEntry_0 extends _i1.SmartFake implements _i2.ContactEntry {
+  _FakeContactEntry_0(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -41,46 +41,43 @@ class MockAddressBookService extends _i1.Mock
   }
 
   @override
-  List<_i2.Contact> get contacts => (super.noSuchMethod(
+  List<_i2.ContactEntry> get contacts => (super.noSuchMethod(
         Invocation.getter(#contacts),
-        returnValue: <_i2.Contact>[],
-      ) as List<_i2.Contact>);
-  @override
-  _i4.Future<List<_i2.Contact>> get addressBookEntries => (super.noSuchMethod(
-        Invocation.getter(#addressBookEntries),
-        returnValue: _i4.Future<List<_i2.Contact>>.value(<_i2.Contact>[]),
-      ) as _i4.Future<List<_i2.Contact>>);
+        returnValue: <_i2.ContactEntry>[],
+      ) as List<_i2.ContactEntry>);
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
       ) as bool);
   @override
-  _i2.Contact getContactById(String? id) => (super.noSuchMethod(
+  _i2.ContactEntry getContactById(String? id) => (super.noSuchMethod(
         Invocation.method(
           #getContactById,
           [id],
         ),
-        returnValue: _FakeContact_0(
+        returnValue: _FakeContactEntry_0(
           this,
           Invocation.method(
             #getContactById,
             [id],
           ),
         ),
-      ) as _i2.Contact);
+      ) as _i2.ContactEntry);
   @override
-  _i4.Future<List<_i2.Contact>> search(String? text) => (super.noSuchMethod(
+  _i4.Future<List<_i2.ContactEntry>> search(String? text) =>
+      (super.noSuchMethod(
         Invocation.method(
           #search,
           [text],
         ),
-        returnValue: _i4.Future<List<_i2.Contact>>.value(<_i2.Contact>[]),
-      ) as _i4.Future<List<_i2.Contact>>);
+        returnValue:
+            _i4.Future<List<_i2.ContactEntry>>.value(<_i2.ContactEntry>[]),
+      ) as _i4.Future<List<_i2.ContactEntry>>);
   @override
   bool matches(
     String? term,
-    _i2.Contact? contact,
+    _i2.ContactEntry? contact,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -93,7 +90,7 @@ class MockAddressBookService extends _i1.Mock
         returnValue: false,
       ) as bool);
   @override
-  _i4.Future<bool> addContact(_i2.Contact? contact) => (super.noSuchMethod(
+  _i4.Future<bool> addContact(_i2.ContactEntry? contact) => (super.noSuchMethod(
         Invocation.method(
           #addContact,
           [contact],
@@ -101,7 +98,7 @@ class MockAddressBookService extends _i1.Mock
         returnValue: _i4.Future<bool>.value(false),
       ) as _i4.Future<bool>);
   @override
-  _i4.Future<bool> editContact(_i2.Contact? editedContact) =>
+  _i4.Future<bool> editContact(_i2.ContactEntry? editedContact) =>
       (super.noSuchMethod(
         Invocation.method(
           #editContact,

@@ -25,6 +25,7 @@ abstract class Constants {
   // static bool enableBuy = enableExchange;
   // // true; // true for development,
 
+  static const BigInt _satsPerCoinECash = BigInt.from(100);
   static final BigInt _satsPerCoinEthereum = BigInt.from(1000000000000000000);
   static final BigInt _satsPerCoinMonero = BigInt.from(1000000000000);
   static final BigInt _satsPerCoinWownero = BigInt.from(100000000000);
@@ -35,6 +36,7 @@ abstract class Constants {
   static const int _decimalPlacesWownero = 11;
   static const int _decimalPlacesMonero = 12;
   static const int _decimalPlacesEthereum = 18;
+  static const int _decimalPlacesECash = 2;
 
   static const int notificationsMax = 0xFFFFFFFF;
   static const Duration networkAliveTimerDuration = Duration(seconds: 10);
@@ -44,7 +46,7 @@ abstract class Constants {
   // Enable Logger.print statements
   static const bool disableLogger = false;
 
-  static const int currentHiveDbVersion = 8;
+  static const int currentDataVersion = 10;
 
   static const int rescanV1 = 1;
 
@@ -76,6 +78,9 @@ abstract class Constants {
 
       case Coin.ethereum:
         return _satsPerCoinEthereum;
+
+      case Coin.eCash:
+        return _satsPerCoinECash;
     }
   }
 
@@ -107,6 +112,9 @@ abstract class Constants {
 
       case Coin.ethereum:
         return _decimalPlacesEthereum;
+
+      case Coin.eCash:
+        return _decimalPlacesECash;
     }
   }
 
@@ -123,6 +131,7 @@ abstract class Constants {
       case Coin.bitcoinTestNet:
       case Coin.dogecoinTestNet:
       case Coin.firoTestNet:
+      case Coin.eCash:
       case Coin.epicCash:
       case Coin.ethereum:
       case Coin.namecoin:
@@ -146,10 +155,9 @@ abstract class Constants {
     switch (coin) {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
-        return 600;
-
       case Coin.bitcoincash:
       case Coin.bitcoincashTestnet:
+      case Coin.eCash:
         return 600;
 
       case Coin.dogecoin:
@@ -187,7 +195,7 @@ abstract class Constants {
     }
   }
 
-  static const int seedPhraseWordCountBip39 = 24;
+  static const int seedPhraseWordCountBip39 = 12;
   static const int seedPhraseWordCountMonero = 25;
 
   static const Map<int, String> monthMapShort = {

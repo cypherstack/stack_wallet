@@ -103,6 +103,7 @@ class StackColors extends ThemeExtension<StackColors> {
 // icons
   final Color bottomNavIconBack;
   final Color bottomNavIconIcon;
+  final Color bottomNavIconIconHighlighted;
   final Color topNavIconPrimary;
   final Color topNavIconGreen;
   final Color topNavIconYellow;
@@ -281,6 +282,7 @@ class StackColors extends ThemeExtension<StackColors> {
     required this.snackBarTextInfo,
     required this.bottomNavIconBack,
     required this.bottomNavIconIcon,
+    required this.bottomNavIconIconHighlighted,
     required this.topNavIconPrimary,
     required this.topNavIconGreen,
     required this.topNavIconYellow,
@@ -441,6 +443,7 @@ class StackColors extends ThemeExtension<StackColors> {
       snackBarTextInfo: colorTheme.snackBarTextInfo,
       bottomNavIconBack: colorTheme.bottomNavIconBack,
       bottomNavIconIcon: colorTheme.bottomNavIconIcon,
+      bottomNavIconIconHighlighted: colorTheme.bottomNavIconIconHighlighted,
       topNavIconPrimary: colorTheme.topNavIconPrimary,
       topNavIconGreen: colorTheme.topNavIconGreen,
       topNavIconYellow: colorTheme.topNavIconYellow,
@@ -603,6 +606,7 @@ class StackColors extends ThemeExtension<StackColors> {
     Color? snackBarTextInfo,
     Color? bottomNavIconBack,
     Color? bottomNavIconIcon,
+    Color? bottomNavIconIconHighlighted,
     Color? topNavIconPrimary,
     Color? topNavIconGreen,
     Color? topNavIconYellow,
@@ -776,6 +780,8 @@ class StackColors extends ThemeExtension<StackColors> {
       snackBarTextInfo: snackBarTextInfo ?? this.snackBarTextInfo,
       bottomNavIconBack: bottomNavIconBack ?? this.bottomNavIconBack,
       bottomNavIconIcon: bottomNavIconIcon ?? this.bottomNavIconIcon,
+      bottomNavIconIconHighlighted:
+          bottomNavIconIconHighlighted ?? this.bottomNavIconIconHighlighted,
       topNavIconPrimary: topNavIconPrimary ?? this.topNavIconPrimary,
       topNavIconGreen: topNavIconGreen ?? this.topNavIconGreen,
       topNavIconYellow: topNavIconYellow ?? this.topNavIconYellow,
@@ -1279,6 +1285,11 @@ class StackColors extends ThemeExtension<StackColors> {
         other.bottomNavIconIcon,
         t,
       )!,
+      bottomNavIconIconHighlighted: Color.lerp(
+        bottomNavIconIconHighlighted,
+        other.bottomNavIconIconHighlighted,
+        t,
+      )!,
       topNavIconPrimary: Color.lerp(
         topNavIconPrimary,
         other.topNavIconPrimary,
@@ -1671,6 +1682,8 @@ class StackColors extends ThemeExtension<StackColors> {
         return _coin.dogecoin;
       case Coin.epicCash:
         return _coin.epicCash;
+      case Coin.eCash:
+        return _coin.eCash;
       case Coin.ethereum:
         return _coin.ethereum;
       case Coin.firo:

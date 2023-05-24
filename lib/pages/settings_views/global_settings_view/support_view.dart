@@ -190,7 +190,7 @@ class AboutItem extends StatelessWidget {
                       height: iconSize,
                       color: Theme.of(context)
                           .extension<StackColors>()!
-                          .bottomNavIconIcon,
+                          .topNavIconPrimary,
                     ),
                   ),
                   const SizedBox(

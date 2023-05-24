@@ -8,7 +8,6 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/coins/manager.dart';
-import 'package:stackwallet/services/mixins/xpubable.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
@@ -177,7 +176,7 @@ class _XPubViewState extends ConsumerState<XPubView> {
                 child: child,
               ),
               child: FutureBuilder(
-                future: (manager.wallet as XPubAble).xpub,
+                future: manager.xpub,
                 builder: (context, AsyncSnapshot<String> snapshot) {
                   if (snapshot.connectionState == ConnectionState.done &&
                       snapshot.hasData) {

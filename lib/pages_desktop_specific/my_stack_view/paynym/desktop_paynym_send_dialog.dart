@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -10,8 +12,8 @@ import 'package:stackwallet/providers/global/price_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
@@ -81,8 +83,10 @@ class _DesktopPaynymSendDialogState
               // Theme.of(context).extension<StackColors>()!.textSubtitle4,
               child: Row(
                 children: [
-                  SvgPicture.asset(
-                    ref.watch(coinIconProvider(coin)),
+                  SvgPicture.file(
+                    File(
+                      ref.watch(coinIconProvider(coin)),
+                    ),
                     width: 36,
                     height: 36,
                   ),

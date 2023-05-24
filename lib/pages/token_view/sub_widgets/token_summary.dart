@@ -308,14 +308,23 @@ class TokenOptionsButton extends StatelessWidget {
                   child: child,
                 ),
               ),
-              child: SvgPicture.file(
-                File(iconAssetPathSVG),
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .tokenSummaryIcon,
-                width: iconSize,
-                height: iconSize,
-              ),
+              child: iconAssetPathSVG.startsWith("assets/")
+                  ? SvgPicture.asset(
+                      iconAssetPathSVG,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .tokenSummaryIcon,
+                      width: iconSize,
+                      height: iconSize,
+                    )
+                  : SvgPicture.file(
+                      File(iconAssetPathSVG),
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .tokenSummaryIcon,
+                      width: iconSize,
+                      height: iconSize,
+                    ),
             ),
           ),
         ),

@@ -71,7 +71,6 @@ String constructDerivePath({
     case 0x80: // bch mainnet wif
       switch (derivePathType) {
         case DerivePathType.bip44:
-        case DerivePathType.bip49:
           coinType = 145; // bch mainnet
           break;
         case DerivePathType.bch44: // bitcoin.com wallet specific
@@ -94,9 +93,6 @@ String constructDerivePath({
     case DerivePathType.bip44:
     case DerivePathType.bch44:
       purpose = 44;
-      break;
-    case DerivePathType.bip49:
-      purpose = 49;
       break;
     default:
       throw Exception("DerivePathType $derivePathType not supported");
@@ -283,10 +279,6 @@ class BitcoinCashWallet extends CoinServiceAPI
         return DerivePathType.bip44;
       }
 
-      if (decodeBase58[0] == _network.scriptHash) {
-        // P2SH
-        return DerivePathType.bip49;
-      }
       throw ArgumentError('Invalid version or Network mismatch');
     } else {
       try {
@@ -419,15 +411,6 @@ class BitcoinCashWallet extends CoinServiceAPI
             addrType = isar_models.AddressType.p2pkh;
             addressString = bitbox.Address.toCashAddress(addressString);
             break;
-          case DerivePathType.bip49:
-            addressString = P2SH(
-                    data: PaymentData(
-                        redeem: P2WPKH(data: data, network: _network).data),
-                    network: _network)
-                .data
-                .address!;
-            addrType = isar_models.AddressType.p2sh;
-            break;
           default:
             throw Exception("DerivePathType $type not supported");
         }
@@ -518,7 +501,6 @@ class BitcoinCashWallet extends CoinServiceAPI
 
     final deriveTypes = [
       DerivePathType.bip44,
-      DerivePathType.bip49,
     ];
 
     if (coin != Coin.bitcoincashTestnet) {
@@ -1389,7 +1371,7 @@ class BitcoinCashWallet extends CoinServiceAPI
     }
     await _secureStore.write(
         key: '${_walletId}_mnemonic',
-        value: bip39.generateMnemonic(strength: 256));
+        value: bip39.generateMnemonic(strength: 128));
     await _secureStore.write(key: '${_walletId}_mnemonicPassphrase', value: "");
 
     // Generate and add addresses to relevant arrays
@@ -1397,10 +1379,6 @@ class BitcoinCashWallet extends CoinServiceAPI
       // P2PKH
       _generateAddressForChain(0, 0, DerivePathType.bip44),
       _generateAddressForChain(1, 0, DerivePathType.bip44),
-
-      // P2SH
-      _generateAddressForChain(0, 0, DerivePathType.bip49),
-      _generateAddressForChain(1, 0, DerivePathType.bip49),
     ]);
 
     await db.putAddresses(initialAddresses);
@@ -1408,7 +1386,7 @@ class BitcoinCashWallet extends CoinServiceAPI
     Logging.instance.log("_generateNewWalletFinished", level: LogLevel.Info);
   }
 
-  /// Generates a new internal or external chain address for the wallet using a BIP44 or BIP49 derivation path.
+  /// Generates a new internal or external chain address for the wallet using a BIP44 derivation path.
   /// [chain] - Use 0 for receiving (external), 1 for change (internal). Should not be any other value!
   /// [index] - This can be any integer >= 0
   Future<isar_models.Address> _generateAddressForChain(
@@ -1449,17 +1427,6 @@ class BitcoinCashWallet extends CoinServiceAPI
         addrType = isar_models.AddressType.p2pkh;
         address = bitbox.Address.toCashAddress(address);
         break;
-      case DerivePathType.bip49:
-        address = P2SH(
-                data: PaymentData(
-                    redeem: P2WPKH(data: data, network: _network).data),
-                network: _network)
-            .data
-            .address!;
-        addrType = isar_models.AddressType.p2sh;
-        break;
-      case DerivePathType.bip84:
-        throw UnsupportedError("bip84 not supported by BCH");
       default:
         throw Exception("DerivePathType $derivePathType not supported");
     }
@@ -1502,13 +1469,6 @@ class BitcoinCashWallet extends CoinServiceAPI
         coinType = coin == Coin.bitcoincash ? "0" : "1";
         purpose = "44";
         break;
-      case DerivePathType.bip49:
-        type = isar_models.AddressType.p2sh;
-        coinType = coin == Coin.bitcoincash ? "145" : "1";
-        purpose = "49";
-        break;
-      case DerivePathType.bip84:
-        throw UnsupportedError("bip84 not supported by BCH");
       default:
         throw Exception("DerivePathType $derivePathType not supported");
     }
@@ -1536,9 +1496,6 @@ class BitcoinCashWallet extends CoinServiceAPI
         break;
       case DerivePathType.bch44:
         key = "${walletId}_${chainId}DerivationsBch44P2PKH";
-        break;
-      case DerivePathType.bip49:
-        key = "${walletId}_${chainId}DerivationsP2SH";
         break;
       default:
         throw UnsupportedError(
@@ -2719,20 +2676,6 @@ class BitcoinCashWallet extends CoinServiceAPI
                 network: _network,
               ).data;
               redeemScript = null;
-              break;
-
-            case DerivePathType.bip49:
-              final p2wpkh = P2WPKH(
-                data: PaymentData(
-                  pubkey: Format.stringToUint8List(pubKey),
-                ),
-                network: _network,
-              ).data;
-              redeemScript = p2wpkh.output;
-              data = P2SH(
-                data: PaymentData(redeem: p2wpkh),
-                network: _network,
-              ).data;
               break;
 
             default:

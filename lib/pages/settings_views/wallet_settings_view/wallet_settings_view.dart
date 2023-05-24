@@ -33,7 +33,7 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
 
 /// [eventBus] should only be set during testing
-class WalletSettingsView extends StatefulWidget {
+class WalletSettingsView extends ConsumerStatefulWidget {
   const WalletSettingsView({
     Key? key,
     required this.walletId,
@@ -52,10 +52,10 @@ class WalletSettingsView extends StatefulWidget {
   final EventBus? eventBus;
 
   @override
-  State<WalletSettingsView> createState() => _WalletSettingsViewState();
+  ConsumerState<WalletSettingsView> createState() => _WalletSettingsViewState();
 }
 
-class _WalletSettingsViewState extends State<WalletSettingsView> {
+class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
   late final String walletId;
   late final Coin coin;
   late String xpub;
@@ -74,7 +74,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView> {
     walletId = widget.walletId;
     coin = widget.coin;
     xPubEnabled =
-        coin != Coin.monero && coin != Coin.wownero && coin != Coin.epicCash;
+        ref.read(walletsChangeNotifierProvider).getManager(walletId).hasXPub;
     xpub = "";
 
     _currentSyncStatus = widget.initialSyncStatus;

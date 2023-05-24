@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -54,7 +55,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
       int dbVersion = DB.instance.get<dynamic>(
               boxName: DB.boxNameDBInfo, key: "hive_data_version") as int? ??
           0;
-      if (dbVersion < Constants.currentHiveDbVersion) {
+      if (dbVersion < Constants.currentDataVersion) {
         try {
           await DbVersionMigrator().migrate(
             dbVersion,
@@ -166,10 +167,12 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SvgPicture.asset(
-                  ref.watch(
-                    themeProvider.select(
-                      (value) => value.assets.stackIcon,
+                SvgPicture.file(
+                  File(
+                    ref.watch(
+                      themeProvider.select(
+                        (value) => value.assets.stackIcon,
+                      ),
                     ),
                   ),
                   width: 100,
@@ -249,7 +252,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                           ),
                           suffixIcon: UnconstrainedBox(
                             child: SizedBox(
-                              height: 70,
+                              height: 40,
                               child: Row(
                                 children: [
                                   const SizedBox(

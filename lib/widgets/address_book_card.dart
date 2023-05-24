@@ -1,10 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/contact.dart';
+import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/contact_popup.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -13,8 +16,6 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/expandable.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-
-import '../themes/theme_providers.dart';
 
 class AddressBookCard extends ConsumerStatefulWidget {
   const AddressBookCard({
@@ -48,7 +49,7 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
   @override
   Widget build(BuildContext context) {
     // provider hack to prevent trying to update widget with deleted contact
-    Contact? _contact;
+    ContactEntry? _contact;
     try {
       _contact = ref.watch(addressBookServiceProvider
           .select((value) => value.getContactById(contactId)));
@@ -81,7 +82,7 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: contact.id == "default"
+              color: contact.customId == "default"
                   ? Theme.of(context)
                       .extension<StackColors>()!
                       .myStackContactIconBG
@@ -90,12 +91,14 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
                       .textFieldDefaultBG,
               borderRadius: BorderRadius.circular(32),
             ),
-            child: contact.id == "default"
+            child: contact.customId == "default"
                 ? Center(
-                    child: SvgPicture.asset(
-                      ref.watch(
-                        themeProvider.select(
-                          (value) => value.assets.stackIcon,
+                    child: SvgPicture.file(
+                      File(
+                        ref.watch(
+                          themeProvider.select(
+                            (value) => value.assets.stackIcon,
+                          ),
                         ),
                       ),
                       width: 20,
@@ -176,7 +179,7 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
               useSafeArea: true,
               barrierDismissible: true,
               builder: (_) => ContactPopUp(
-                contactId: contact.id,
+                contactId: contact.customId,
               ),
             );
           },

@@ -53,11 +53,11 @@ import 'package:uuid/uuid.dart';
 const int MINIMUM_CONFIRMATIONS = 1;
 final Amount DUST_LIMIT = Amount(
   rawValue: BigInt.from(294),
-  fractionDigits: Coin.particl.decimals,
+  fractionDigits: Coin.bitcoin.decimals,
 );
 final Amount DUST_LIMIT_P2PKH = Amount(
   rawValue: BigInt.from(546),
-  fractionDigits: Coin.particl.decimals,
+  fractionDigits: Coin.bitcoin.decimals,
 );
 
 const String GENESIS_HASH_MAINNET =
@@ -1468,7 +1468,7 @@ class BitcoinWallet extends CoinServiceAPI
     }
     await _secureStore.write(
         key: '${_walletId}_mnemonic',
-        value: bip39.generateMnemonic(strength: 256));
+        value: bip39.generateMnemonic(strength: 128));
     await _secureStore.write(key: '${_walletId}_mnemonicPassphrase', value: "");
 
     // Generate and add addresses to relevant arrays
