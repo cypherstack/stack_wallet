@@ -3361,33 +3361,33 @@ class FiroWallet extends CoinServiceAPI
 
     List<Map<String, dynamic>> allTransactions = [];
 
-    final currentHeight = await chainHeight;
+    // final currentHeight = await chainHeight;
 
     for (final txHash in allTxHashes) {
-      final storedTx = await db
-          .getTransactions(walletId)
-          .filter()
-          .txidEqualTo(txHash["tx_hash"] as String)
-          .findFirst();
+      // final storedTx = await db
+      //     .getTransactions(walletId)
+      //     .filter()
+      //     .txidEqualTo(txHash["tx_hash"] as String)
+      //     .findFirst();
 
-      if (storedTx == null ||
-          !storedTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)) {
-        final tx = await cachedElectrumXClient.getTransaction(
-          txHash: txHash["tx_hash"] as String,
-          verbose: true,
-          coin: coin,
-        );
+      // if (storedTx == null ||
+      //     !storedTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)) {
+      final tx = await cachedElectrumXClient.getTransaction(
+        txHash: txHash["tx_hash"] as String,
+        verbose: true,
+        coin: coin,
+      );
 
-        if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
-          tx["address"] = await db
-              .getAddresses(walletId)
-              .filter()
-              .valueEqualTo(txHash["address"] as String)
-              .findFirst();
-          tx["height"] = txHash["height"];
-          allTransactions.add(tx);
-        }
+      if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
+        tx["address"] = await db
+            .getAddresses(walletId)
+            .filter()
+            .valueEqualTo(txHash["address"] as String)
+            .findFirst();
+        tx["height"] = txHash["height"];
+        allTransactions.add(tx);
       }
+      // }
     }
 
     final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
