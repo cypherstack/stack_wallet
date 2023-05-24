@@ -27,6 +27,8 @@ class JsonRPC {
   void Function(List<int>)? _onData;
   void Function(Object, StackTrace)? _onError;
 
+  List<dynamic>? _requestQueue; // TODO make Request model
+
   Future<dynamic> request(String jsonRpcRequest) async {
     final completer = Completer<dynamic>();
     final List<int> responseData = [];
@@ -39,7 +41,7 @@ class JsonRPC {
       if (data.last == 0x0A) {
         try {
           final response = json.decode(String.fromCharCodes(responseData));
-          completer.complete(response);
+          completer.complete(response); // TODO only complete on last chunk?
         } catch (e, s) {
           Logging.instance
               .log("JsonRPC json.decode: $e\n$s", level: LogLevel.Error);
@@ -89,7 +91,7 @@ class JsonRPC {
 
     if (useSSL) {
       socket ??= await SecureSocket.connect(host, port,
-          timeout: connectionTimeout, onBadCertificate: (_) => true);
+          timeout: connectionTimeout, onBadCertificate: (_) => true); // TODO do not automatically trust bad certificates
       _subscription ??= socket!.listen(
         _onData,
         onError: _onError,
