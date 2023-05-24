@@ -10,7 +10,7 @@ class CustomPinPutState extends State<CustomPinPut>
 
   int get selectedIndex => _controller.value.text.length;
 
-  int pinCount = 1;
+  int pinCount = 0;
 
   @override
   void initState() {
@@ -52,7 +52,6 @@ class CustomPinPutState extends State<CustomPinPut>
 
   @override
   Widget build(BuildContext context) {
-    // int pinCount = 0;
     return SizedBox(
       width: widget.width,
       height: widget.height,
@@ -90,7 +89,7 @@ class CustomPinPutState extends State<CustomPinPut>
                 }
                 // decrement counter here
                 setState(() {
-                  if (pinCount != 1) {
+                  if (pinCount != 0) {
                     pinCount--;
                   }
                 });
@@ -127,7 +126,7 @@ class CustomPinPutState extends State<CustomPinPut>
       textCapitalization: widget.textCapitalization,
       inputFormatters: widget.inputFormatters,
       enableInteractiveSelection: false,
-      maxLength: pinCount,
+      maxLength: 10,
       showCursor: false,
       scrollPadding: EdgeInsets.zero,
       decoration: widget.inputDecoration,
@@ -139,21 +138,20 @@ class CustomPinPutState extends State<CustomPinPut>
 
   // have it include an int as a param
   Widget _fields(int count) {
-    // Widget get _fields {
     return ValueListenableBuilder<String>(
       valueListenable: _textControllerValue,
       builder: (BuildContext context, value, Widget? child) {
         return Row(
           mainAxisSize: widget.mainAxisSize,
           mainAxisAlignment: widget.fieldsAlignment,
-          children: _buildFieldsWithSeparator(),
+          children: _buildFieldsWithSeparator(count),
         );
       },
     );
   }
 
-  List<Widget> _buildFieldsWithSeparator() {
-    final fields = Iterable<int>.generate(pinCount).map((index) {
+  List<Widget> _buildFieldsWithSeparator(int count) {
+    final fields = Iterable<int>.generate(count).map((index) {
       return _getField(index);
     }).toList();
 

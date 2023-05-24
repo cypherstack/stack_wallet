@@ -35,10 +35,10 @@ class CreatePinView extends ConsumerStatefulWidget {
 class _CreatePinViewState extends ConsumerState<CreatePinView> {
   BoxDecoration get _pinPutDecoration {
     return BoxDecoration(
-      color: Colors.transparent,
+      color: Theme.of(context).extension<StackColors>()!.infoItemIcons,
       border: Border.all(
         width: 1,
-        color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
+        color: Theme.of(context).extension<StackColors>()!.infoItemIcons,
       ),
       borderRadius: BorderRadius.circular(6),
     );
@@ -147,21 +147,12 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                     ),
                     isRandom:
                         ref.read(prefsChangeNotifierProvider).randomizePIN,
-                    submittedFieldDecoration: _pinPutDecoration.copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .infoItemIcons,
-                      border: Border.all(
-                        width: 1,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .infoItemIcons,
-                      ),
-                    ),
+                    submittedFieldDecoration: _pinPutDecoration,
                     selectedFieldDecoration: _pinPutDecoration,
                     followingFieldDecoration: _pinPutDecoration,
                     onSubmit: (String pin) {
                       if (pin.length < Constants.pinLength) {
+                        print("PIN: $pin");
                         showFloatingFlushBar(
                           type: FlushBarType.warning,
                           message: "PIN not long enough!",
