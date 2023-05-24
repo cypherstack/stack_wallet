@@ -1,13 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/models/isar/stack_theme.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/widgets/trade_card.dart';
 
+import '../sample_data/theme_json.dart';
+import 'trade_card_test.mocks.dart';
+
+@GenerateMocks([
+  ThemeService,
+])
 void main() {
   testWidgets("Test Trade card builds", (widgetTester) async {
+    final mockThemeService = MockThemeService();
+    when(mockThemeService.getTheme(themeId: "light")).thenAnswer(
+      (_) => StackTheme.fromJson(
+        json: lightThemeJsonMap,
+        applicationThemesDirectoryPath: "test",
+      ),
+    );
     final trade = Trade(
         uuid: "uuid",
         tradeId: "trade id",
@@ -34,12 +50,17 @@ void main() {
 
     await widgetTester.pumpWidget(
       ProviderScope(
-        overrides: [],
+        overrides: [
+          pThemeService.overrideWithValue(mockThemeService),
+        ],
         child: MaterialApp(
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
-                LightColors(),
+                StackTheme.fromJson(
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test/sample_data",
+                ),
               ),
             ],
           ),

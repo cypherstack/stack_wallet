@@ -1,10 +1,13 @@
+import 'dart:io';
+
 import 'package:decimal/decimal.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/models/isar/stack_theme.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -21,7 +24,7 @@ class TradeCard extends ConsumerWidget {
   final Trade trade;
   final VoidCallback onTap;
 
-  String _fetchIconAssetForStatus(String statusString, BuildContext context) {
+  String _fetchIconAssetForStatus(String statusString, ThemeAssets assets) {
     ChangeNowTransactionStatus? status;
     try {
       if (statusString.toLowerCase().startsWith("waiting")) {
@@ -32,10 +35,10 @@ class TradeCard extends ConsumerWidget {
       switch (statusString.toLowerCase()) {
         case "funds confirming":
         case "processing payment":
-          return Assets.svg.txExchangePending(context);
+          return assets.txExchangePending;
 
         case "completed":
-          return Assets.svg.txExchange(context);
+          return assets.txExchange;
 
         default:
           status = ChangeNowTransactionStatus.Failed;
@@ -50,11 +53,11 @@ class TradeCard extends ConsumerWidget {
       case ChangeNowTransactionStatus.Sending:
       case ChangeNowTransactionStatus.Refunded:
       case ChangeNowTransactionStatus.Verifying:
-        return Assets.svg.txExchangePending(context);
+        return assets.txExchangePending;
       case ChangeNowTransactionStatus.Finished:
-        return Assets.svg.txExchange(context);
+        return assets.txExchange;
       case ChangeNowTransactionStatus.Failed:
-        return Assets.svg.txExchangeFailed(context);
+        return assets.txExchangeFailed;
     }
   }
 
@@ -82,10 +85,16 @@ class TradeCard extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(32),
                 ),
                 child: Center(
-                  child: SvgPicture.asset(
-                    _fetchIconAssetForStatus(
-                      trade.status,
-                      context,
+                  child: SvgPicture.file(
+                    File(
+                      _fetchIconAssetForStatus(
+                        trade.status,
+                        ref.watch(
+                          themeProvider.select(
+                            (value) => value.assets,
+                          ),
+                        ),
+                      ),
                     ),
                     width: 32,
                     height: 32,

@@ -61,6 +61,7 @@ abstract class Constants {
       case Coin.epicCash:
       case Coin.namecoin:
       case Coin.particl:
+      case Coin.nano: // TODO: Check this: https://nano.org/en/faq#what-are-the-units-of-nano
         return _satsPerCoin;
 
       case Coin.wownero:
@@ -89,6 +90,7 @@ abstract class Constants {
       case Coin.epicCash:
       case Coin.namecoin:
       case Coin.particl:
+      case Coin.nano:
         return _decimalPlaces;
 
       case Coin.wownero:
@@ -119,6 +121,7 @@ abstract class Constants {
       case Coin.ethereum:
       case Coin.namecoin:
       case Coin.particl:
+      case Coin.nano:
         values.addAll([24, 21, 18, 15, 12]);
         break;
 
@@ -172,6 +175,9 @@ abstract class Constants {
 
       case Coin.particl:
         return 600;
+
+      case Coin.nano: // TODO: Verify this
+        return 3;
     }
   }
 

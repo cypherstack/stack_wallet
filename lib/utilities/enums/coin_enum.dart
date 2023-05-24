@@ -16,6 +16,7 @@ import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart'
 import 'package:stackwallet/services/coins/particl/particl_wallet.dart'
     as particl;
 import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart' as wow;
+import 'package:stackwallet/services/coins/nano/nano_wallet.dart' as nano;
 import 'package:stackwallet/utilities/constants.dart';
 
 enum Coin {
@@ -30,6 +31,7 @@ enum Coin {
   namecoin,
   particl,
   wownero,
+  nano,
 
   ///
 
@@ -71,6 +73,8 @@ extension CoinExt on Coin {
         return "Wownero";
       case Coin.namecoin:
         return "Namecoin";
+      case Coin.nano:
+        return "Nano";
       case Coin.bitcoinTestNet:
         return "tBitcoin";
       case Coin.litecoinTestNet:
@@ -108,6 +112,8 @@ extension CoinExt on Coin {
         return "WOW";
       case Coin.namecoin:
         return "NMC";
+      case Coin.nano:
+        return "XNO";
       case Coin.bitcoinTestNet:
         return "tBTC";
       case Coin.litecoinTestNet:
@@ -146,6 +152,8 @@ extension CoinExt on Coin {
         return "wownero";
       case Coin.namecoin:
         return "namecoin";
+      case Coin.nano:
+        return "nano";
       case Coin.bitcoinTestNet:
         return "bitcoin";
       case Coin.litecoinTestNet:
@@ -179,6 +187,7 @@ extension CoinExt on Coin {
       case Coin.ethereum:
       case Coin.monero:
       case Coin.wownero:
+      case Coin.nano: // TODO: Check this
         return false;
     }
   }
@@ -203,6 +212,7 @@ extension CoinExt on Coin {
       case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
+      case Coin.nano:
         return false;
     }
   }
@@ -220,6 +230,7 @@ extension CoinExt on Coin {
       case Coin.ethereum:
       case Coin.monero:
       case Coin.wownero:
+      case Coin.nano:
         return false;
 
       case Coin.dogecoinTestNet:
@@ -244,6 +255,7 @@ extension CoinExt on Coin {
       case Coin.ethereum:
       case Coin.monero:
       case Coin.wownero:
+      case Coin.nano:
         return this;
 
       case Coin.dogecoinTestNet:
@@ -302,6 +314,9 @@ extension CoinExt on Coin {
 
       case Coin.namecoin:
         return nmc.MINIMUM_CONFIRMATIONS;
+
+      case Coin.nano:
+        return nano.MINIMUM_CONFIRMATIONS;
     }
   }
 
@@ -383,6 +398,10 @@ Coin coinFromPrettyName(String name) {
     case "wownero":
       return Coin.wownero;
 
+    case "Nano":
+    case "nano":
+      return Coin.nano;
+
     default:
       throw ArgumentError.value(
         name,
@@ -426,6 +445,8 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.dogecoinTestNet;
     case "wow":
       return Coin.wownero;
+    case "xno":
+      return Coin.nano;
     default:
       throw ArgumentError.value(
           ticker, "name", "No Coin enum value with that ticker");

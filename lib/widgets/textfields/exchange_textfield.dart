@@ -3,9 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/exchange/aggregate_currency.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 
@@ -158,10 +158,14 @@ class _ExchangeTextFieldState extends State<ExchangeTextField> {
                             builder: (context) {
                               if (isStackCoin(widget.currency?.ticker)) {
                                 return Center(
-                                  child: getIconForTicker(
-                                    widget.currency!.ticker,
+                                  child: CoinIconForTicker(
                                     size: 18,
+                                    ticker: widget.currency!.ticker,
                                   ),
+                                  // child: getIconForTicker(
+                                  //   widget.currency!.ticker,
+                                  //   size: 18,
+                                  // ),
                                 );
                               } else if (widget.currency != null &&
                                   widget.currency!.image.isNotEmpty) {

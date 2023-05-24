@@ -42,7 +42,7 @@ packages:
     source: hosted
     version: "4.2.0"
   archive:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: archive
       sha256: "80e5141fafcb3361653ce308776cfd7d45e6e9fbb429e14eec571382c0c5fecb"
@@ -458,6 +458,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.2.2"
+  desktop_drop:
+    dependency: "direct main"
+    description:
+      name: desktop_drop
+      sha256: "4ca4d960f4b11c032e9adfd2a0a8ac615bc3fddb4cbe73dcf840dd8077582186"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.1"
   device_info_plus:
     dependency: "direct main"
     description:
@@ -570,6 +578,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.1"
+  fixnum_nanodart:
+    dependency: transitive
+    description:
+      name: fixnum_nanodart
+      sha256: "4b0132d11ecddc0d2ca64b6d7dee6726db432ed02cac1349d7532a08be5c54fc"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   flare_flutter:
     dependency: "direct main"
     description:
@@ -1085,6 +1101,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.1"
+  nanodart:
+    dependency: "direct main"
+    description:
+      name: nanodart
+      sha256: "4b2f42d60307b54e8cf384d6193a567d07f8efd773858c0d5948246153c13282"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   nm:
     dependency: transitive
     description:

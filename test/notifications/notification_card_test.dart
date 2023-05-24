@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/models/notification_model.dart';
 import 'package:stackwallet/notifications/notification_card.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+
+import '../sample_data/theme_json.dart';
 
 void main() {
   testWidgets("test notification card", (widgetTester) async {
@@ -18,7 +18,7 @@ void main() {
           id: 1,
           title: "notification title",
           description: "notification description",
-          iconAssetName: Assets.svg.iconFor(coin: Coin.bitcoin),
+          iconAssetName: Assets.svg.plus,
           date: DateTime.parse("1662544771"),
           walletId: "wallet id",
           read: true,
@@ -30,7 +30,12 @@ void main() {
       MaterialApp(
         theme: ThemeData(
           extensions: [
-            StackColors.fromStackColorTheme(LightColors()),
+            StackColors.fromStackColorTheme(
+              StackTheme.fromJson(
+                json: lightThemeJsonMap,
+                applicationThemesDirectoryPath: "test",
+              ),
+            ),
           ],
         ),
         home: Material(

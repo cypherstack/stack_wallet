@@ -33,6 +33,7 @@ extension DerivePathTypeExt on DerivePathType {
       case Coin.epicCash:
       case Coin.monero:
       case Coin.wownero:
+      case Coin.nano:
         throw UnsupportedError(
             "$coin does not use bitcoin style derivation paths");
     }

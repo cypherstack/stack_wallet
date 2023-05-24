@@ -171,6 +171,18 @@ abstract class DefaultNodes {
       isFailover: true,
       isDown: false);
 
+  static NodeModel get nano => NodeModel(
+      host: "https://rainstorm.city/api",
+      port: 443,
+      name: defaultName,
+      id: _nodeId(Coin.nano),
+      useSSL: true,
+      enabled: true,
+      coinName: Coin.nano.name,
+      isFailover: true,
+      isDown: false
+  );
+
   static NodeModel get bitcoinTestnet => NodeModel(
         host: "bitcoin-testnet.stackwallet.com",
         port: 51002,
@@ -253,6 +265,9 @@ abstract class DefaultNodes {
 
       case Coin.particl:
         return particl;
+
+      case Coin.nano:
+        return nano;
 
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;

@@ -9,16 +9,18 @@ import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
 import 'package:stackwallet/providers/exchange/trade_sent_from_stack_lookup_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/route_generator.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -285,7 +287,7 @@ class DesktopTradeRowCard extends ConsumerStatefulWidget {
 class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
   late final String tradeId;
 
-  String _fetchIconAssetForStatus(String statusString, BuildContext context) {
+  String _fetchIconAssetForStatus(String statusString, ThemeAssets assets) {
     ChangeNowTransactionStatus? status;
     try {
       if (statusString.toLowerCase().startsWith("waiting")) {
@@ -296,10 +298,10 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
       switch (statusString.toLowerCase()) {
         case "funds confirming":
         case "processing payment":
-          return Assets.svg.txExchangePending(context);
+          return assets.txExchangePending;
 
         case "completed":
-          return Assets.svg.txExchange(context);
+          return assets.txExchange;
 
         default:
           status = ChangeNowTransactionStatus.Failed;
@@ -314,11 +316,11 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
       case ChangeNowTransactionStatus.Sending:
       case ChangeNowTransactionStatus.Refunded:
       case ChangeNowTransactionStatus.Verifying:
-        return Assets.svg.txExchangePending(context);
+        return assets.txExchangePending;
       case ChangeNowTransactionStatus.Finished:
-        return Assets.svg.txExchange(context);
+        return assets.txExchange;
       case ChangeNowTransactionStatus.Failed:
-        return Assets.svg.txExchangeFailed(context);
+        return assets.txExchangeFailed;
     }
   }
 
@@ -523,7 +525,7 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
                   child: SvgPicture.asset(
                     _fetchIconAssetForStatus(
                       trade.status,
-                      context,
+                      ref.watch(themeProvider.select((value) => value.assets)),
                     ),
                     width: 32,
                     height: 32,

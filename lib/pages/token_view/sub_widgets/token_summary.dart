@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,12 +16,13 @@ import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/price_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:tuple/tuple.dart';
@@ -163,7 +165,7 @@ class TokenSummary extends ConsumerWidget {
   }
 }
 
-class TokenWalletOptions extends StatelessWidget {
+class TokenWalletOptions extends ConsumerWidget {
   const TokenWalletOptions({
     Key? key,
     required this.walletId,
@@ -199,7 +201,7 @@ class TokenWalletOptions extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -214,7 +216,7 @@ class TokenWalletOptions extends StatelessWidget {
             );
           },
           subLabel: "Receive",
-          iconAssetSVG: Assets.svg.arrowDownLeft,
+          iconAssetPathSVG: Assets.svg.arrowDownLeft,
         ),
         const SizedBox(
           width: 16,
@@ -231,7 +233,7 @@ class TokenWalletOptions extends StatelessWidget {
             );
           },
           subLabel: "Send",
-          iconAssetSVG: Assets.svg.arrowUpRight,
+          iconAssetPathSVG: Assets.svg.arrowUpRight,
         ),
         const SizedBox(
           width: 16,
@@ -239,7 +241,11 @@ class TokenWalletOptions extends StatelessWidget {
         TokenOptionsButton(
           onPressed: () => _onExchangePressed(context),
           subLabel: "Swap",
-          iconAssetSVG: Assets.svg.exchange(context),
+          iconAssetPathSVG: ref.watch(
+            themeProvider.select(
+              (value) => value.assets.exchange,
+            ),
+          ),
         ),
         const SizedBox(
           width: 16,
@@ -247,7 +253,7 @@ class TokenWalletOptions extends StatelessWidget {
         TokenOptionsButton(
           onPressed: () => _onBuyPressed(context),
           subLabel: "Buy",
-          iconAssetSVG: Assets.svg.creditCard,
+          iconAssetPathSVG: Assets.svg.creditCard,
         ),
       ],
     );
@@ -259,12 +265,12 @@ class TokenOptionsButton extends StatelessWidget {
     Key? key,
     required this.onPressed,
     required this.subLabel,
-    required this.iconAssetSVG,
+    required this.iconAssetPathSVG,
   }) : super(key: key);
 
   final VoidCallback onPressed;
   final String subLabel;
-  final String iconAssetSVG;
+  final String iconAssetPathSVG;
 
   @override
   Widget build(BuildContext context) {
@@ -302,8 +308,8 @@ class TokenOptionsButton extends StatelessWidget {
                   child: child,
                 ),
               ),
-              child: SvgPicture.asset(
-                iconAssetSVG,
+              child: SvgPicture.file(
+                File(iconAssetPathSVG),
                 color: Theme.of(context)
                     .extension<StackColors>()!
                     .tokenSummaryIcon,

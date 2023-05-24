@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:bitcoindart/bitcoindart.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_libepiccash/epic_cash.dart';
+import 'package:nanodart/nanodart.dart';
 import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
@@ -71,6 +72,8 @@ class AddressUtils {
         return Address.validateAddress(address, namecoin, namecoin.bech32!);
       case Coin.particl:
         return Address.validateAddress(address, particl);
+      case Coin.nano:
+        return NanoAccounts.isValid(NanoAccountType.NANO, address);
       case Coin.bitcoinTestNet:
         return Address.validateAddress(address, testnet);
       case Coin.litecoinTestNet:
