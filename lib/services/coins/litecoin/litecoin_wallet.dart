@@ -1793,6 +1793,27 @@ class LitecoinWallet extends CoinServiceAPI
             coin: coin,
           );
 
+          final storedTx = await db.getTransaction(
+            walletId,
+            jsonUTXO["tx_hash"] as String,
+          );
+
+          bool shouldBlock = false;
+          String? blockReason;
+          String? label;
+
+          if (storedTx?.amountString != null) {
+            final amount = Amount.fromSerializedJsonString(
+              storedTx!.amountString!,
+            );
+
+            if (amount.raw <= BigInt.from(10000)) {
+              shouldBlock = true;
+              blockReason = "May contain ordinal";
+              label = "Possible ordinal";
+            }
+          }
+
           final vout = jsonUTXO["tx_pos"] as int;
 
           final outputs = txn["vout"] as List;
@@ -1812,9 +1833,9 @@ class LitecoinWallet extends CoinServiceAPI
             txid: txn["txid"] as String,
             vout: vout,
             value: jsonUTXO["value"] as int,
-            name: "",
-            isBlocked: false,
-            blockedReason: null,
+            name: label ?? "",
+            isBlocked: shouldBlock,
+            blockedReason: blockReason,
             isCoinbase: txn["is_coinbase"] as bool? ?? false,
             blockHash: txn["blockhash"] as String?,
             blockHeight: jsonUTXO["height"] as int?,
