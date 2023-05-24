@@ -256,11 +256,6 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlI
         throw Exception("Received error ${decoded["error"]}");
       }
 
-      print(jsonDecode(processBody));
-      print(jsonDecode(processResponse.body));
-
-      throw Exception("Received error ${decoded["error"]}");
-
       // return the hash of the transaction:
       return decoded["hash"].toString();
     } catch (e, s) {
