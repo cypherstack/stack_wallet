@@ -17,6 +17,8 @@ Uri getDefaultBlockExplorerUrlFor({
       return Uri.parse("https://mempool.space/testnet/tx/$txid");
     case Coin.dogecoin:
       return Uri.parse("https://chain.so/tx/DOGE/$txid");
+    case Coin.eCash:
+      return Uri.parse("https://explorer.bitcoinabc.org/tx/$txid");
     case Coin.dogecoinTestNet:
       return Uri.parse("https://chain.so/tx/DOGETEST/$txid");
     case Coin.epicCash:

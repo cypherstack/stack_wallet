@@ -14,7 +14,7 @@ class ExchangeNavIcon extends ConsumerWidget {
       File(
         ref.watch(
           themeProvider.select(
-            (value) => value.assets.buy,
+            (value) => value.assets.exchange,
           ),
         ),
       ),

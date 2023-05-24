@@ -147,7 +147,7 @@ class _DesktopContactOptionsMenuPopupState
                               onPressed: () {
                                 ref
                                     .read(addressBookServiceProvider)
-                                    .removeContact(contact.id);
+                                    .removeContact(contact.customId);
                                 Navigator.of(context).pop();
                                 showFloatingFlushBar(
                                   type: FlushBarType.success,

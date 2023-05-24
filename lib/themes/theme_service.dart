@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:archive/archive_io.dart';
 import 'package:crypto/crypto.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart';
 import 'package:isar/isar.dart';
@@ -17,6 +17,7 @@ final pThemeService = Provider<ThemeService>((ref) {
 });
 
 class ThemeService {
+  static const _currentDefaultThemeVersion = 2;
   ThemeService._();
   static ThemeService? _instance;
   static ThemeService get instance => _instance ??= ThemeService._();
@@ -89,6 +90,70 @@ class ThemeService {
         "Failed to delete theme $themeId",
         level: LogLevel.Warning,
       );
+    }
+  }
+
+  Future<void> checkDefaultThemesOnStartup() async {
+    // install default themes
+    if (!(await ThemeService.instance.verifyInstalled(themeId: "light"))) {
+      Logging.instance.log(
+        "Installing default light theme...",
+        level: LogLevel.Info,
+      );
+      final lightZip = await rootBundle.load("assets/default_themes/light.zip");
+      await ThemeService.instance
+          .install(themeArchiveData: lightZip.buffer.asUint8List());
+      Logging.instance.log(
+        "Installing default light theme... finished",
+        level: LogLevel.Info,
+      );
+    } else {
+      // check installed version
+      final theme = ThemeService.instance.getTheme(themeId: "light");
+      if ((theme?.version ?? 1) < _currentDefaultThemeVersion) {
+        Logging.instance.log(
+          "Updating default light theme...",
+          level: LogLevel.Info,
+        );
+        final lightZip =
+            await rootBundle.load("assets/default_themes/light.zip");
+        await ThemeService.instance
+            .install(themeArchiveData: lightZip.buffer.asUint8List());
+        Logging.instance.log(
+          "Updating default light theme... finished",
+          level: LogLevel.Info,
+        );
+      }
+    }
+
+    if (!(await ThemeService.instance.verifyInstalled(themeId: "dark"))) {
+      Logging.instance.log(
+        "Installing default dark theme... ",
+        level: LogLevel.Info,
+      );
+      final darkZip = await rootBundle.load("assets/default_themes/dark.zip");
+      await ThemeService.instance
+          .install(themeArchiveData: darkZip.buffer.asUint8List());
+      Logging.instance.log(
+        "Installing default dark theme... finished",
+        level: LogLevel.Info,
+      );
+    } else {
+      // check installed version
+      final theme = ThemeService.instance.getTheme(themeId: "dark");
+      if ((theme?.version ?? 1) < _currentDefaultThemeVersion) {
+        Logging.instance.log(
+          "Updating default dark theme...",
+          level: LogLevel.Info,
+        );
+        final darkZip = await rootBundle.load("assets/default_themes/dark.zip");
+        await ThemeService.instance
+            .install(themeArchiveData: darkZip.buffer.asUint8List());
+        Logging.instance.log(
+          "Updating default dark theme... finished",
+          level: LogLevel.Info,
+        );
+      }
     }
   }
 
@@ -175,6 +240,7 @@ class ThemeService {
 class StackThemeMetaData {
   final String name;
   final String id;
+  final int version;
   final String sha256;
   final String size;
   final String previewImageUrl;
@@ -182,6 +248,7 @@ class StackThemeMetaData {
   StackThemeMetaData({
     required this.name,
     required this.id,
+    required this.version,
     required this.sha256,
     required this.size,
     required this.previewImageUrl,
@@ -192,6 +259,7 @@ class StackThemeMetaData {
       return StackThemeMetaData(
         name: map["name"] as String,
         id: map["id"] as String,
+        version: map["version"] as int? ?? 1,
         sha256: map["sha256"] as String,
         size: map["size"] as String,
         previewImageUrl: map["previewImageUrl"] as String,
@@ -210,6 +278,7 @@ class StackThemeMetaData {
     return "$runtimeType("
         "name: $name, "
         "id: $id, "
+        "version: $version, "
         "sha256: $sha256, "
         "size: $size, "
         "previewImageUrl: $previewImageUrl"

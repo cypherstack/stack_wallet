@@ -39,6 +39,7 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
   late final StreamSubscription<void> _subscription;
 
   late bool _hasTheme;
+  bool _needsUpdate = false;
   String? _cachedSize;
 
   Future<bool> _downloadAndInstall() async {
@@ -84,6 +85,7 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
             title: message,
             onOkPressed: (_) {
               setState(() {
+                _needsUpdate = !result;
                 _hasTheme = result;
               });
             },
@@ -141,16 +143,21 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
     }
   }
 
+  StackTheme? getInstalled() => ref
+      .read(mainDBProvider)
+      .isar
+      .stackThemes
+      .where()
+      .themeIdEqualTo(widget.data.id)
+      .findFirstSync();
+
   @override
   void initState() {
-    _hasTheme = ref
-            .read(mainDBProvider)
-            .isar
-            .stackThemes
-            .where()
-            .themeIdEqualTo(widget.data.id)
-            .countSync() >
-        0;
+    final installedTheme = getInstalled();
+    _hasTheme = installedTheme != null;
+    if (_hasTheme) {
+      _needsUpdate = widget.data.version > (installedTheme?.version ?? 0);
+    }
 
     _subscription = ref
         .read(mainDBProvider)
@@ -158,18 +165,16 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
         .stackThemes
         .watchLazy()
         .listen((event) async {
-      final hasTheme = (await ref
-              .read(mainDBProvider)
-              .isar
-              .stackThemes
-              .where()
-              .themeIdEqualTo(widget.data.id)
-              .count()) >
-          0;
+      final installedTheme = getInstalled();
+      final hasTheme = installedTheme != null;
       if (_hasTheme != hasTheme && mounted) {
         WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
           setState(() {
             _hasTheme = hasTheme;
+            if (hasTheme) {
+              _needsUpdate =
+                  widget.data.version > (installedTheme.version ?? 0);
+            }
           });
         });
       }
@@ -272,6 +277,16 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
               }
             },
           ),
+          if (_hasTheme && _needsUpdate)
+            const SizedBox(
+              height: 12,
+            ),
+          if (_hasTheme && _needsUpdate)
+            PrimaryButton(
+              label: "Update",
+              buttonHeight: isDesktop ? ButtonHeight.s : ButtonHeight.l,
+              onPressed: _downloadPressed,
+            ),
           const SizedBox(
             height: 12,
           ),

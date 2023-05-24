@@ -41,7 +41,6 @@ class DB {
   String boxNameUsedSerialsCache({required Coin coin}) =>
       "${coin.name}_usedSerialsCache";
 
-  Box<dynamic>? _boxAddressBook;
   Box<String>? _boxDebugInfo;
   Box<NodeModel>? _boxNodeModels;
   Box<NodeModel>? _boxPrimaryNodes;
@@ -100,7 +99,6 @@ class DB {
       _boxPrefs = await Hive.openBox<dynamic>(boxNamePrefs);
     }
 
-    _boxAddressBook = await Hive.openBox<dynamic>(boxNameAddressBook);
     _boxDebugInfo = await Hive.openBox<String>(boxNameDebugInfo);
 
     if (Hive.isBoxOpen(boxNameNodeModels)) {

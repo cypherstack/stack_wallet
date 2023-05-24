@@ -1,6 +1,5 @@
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-// import 'package:web3dart/browser.dart';
 
 abstract class DefaultNodes {
   static const String defaultNodeIdPrefix = "default_";
@@ -13,6 +12,7 @@ abstract class DefaultNodes {
         dogecoin,
         firo,
         monero,
+        eCash,
         epicCash,
         ethereum,
         bitcoincash,
@@ -231,6 +231,18 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
+  static NodeModel get eCash => NodeModel(
+        host: "electrum.bitcoinabc.org",
+        port: 50002,
+        name: defaultName,
+        id: _nodeId(Coin.eCash),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.eCash.name,
+        isFailover: true,
+        isDown: false,
+      );
+
   static NodeModel getNodeFor(Coin coin) {
     switch (coin) {
       case Coin.bitcoin:
@@ -244,6 +256,9 @@ abstract class DefaultNodes {
 
       case Coin.dogecoin:
         return dogecoin;
+
+      case Coin.eCash:
+        return eCash;
 
       case Coin.epicCash:
         return epicCash;

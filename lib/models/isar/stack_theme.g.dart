@@ -53,758 +53,774 @@ const StackThemeSchema = CollectionSchema(
       type: IsarType.object,
       target: r'ThemeAssets',
     ),
-    r'backgroundAppBarInt': PropertySchema(
+    r'assetsV2': PropertySchema(
       id: 7,
+      name: r'assetsV2',
+      type: IsarType.object,
+      target: r'ThemeAssetsV2',
+    ),
+    r'backgroundAppBarInt': PropertySchema(
+      id: 8,
       name: r'backgroundAppBarInt',
       type: IsarType.long,
     ),
     r'backgroundInt': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'backgroundInt',
       type: IsarType.long,
     ),
     r'bottomNavBackInt': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'bottomNavBackInt',
       type: IsarType.long,
     ),
     r'bottomNavIconBackInt': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'bottomNavIconBackInt',
       type: IsarType.long,
     ),
+    r'bottomNavIconIconHighlightedInt': PropertySchema(
+      id: 12,
+      name: r'bottomNavIconIconHighlightedInt',
+      type: IsarType.long,
+    ),
     r'bottomNavIconIconInt': PropertySchema(
-      id: 11,
+      id: 13,
       name: r'bottomNavIconIconInt',
       type: IsarType.long,
     ),
     r'bottomNavShadowInt': PropertySchema(
-      id: 12,
+      id: 14,
       name: r'bottomNavShadowInt',
       type: IsarType.long,
     ),
     r'bottomNavTextInt': PropertySchema(
-      id: 13,
+      id: 15,
       name: r'bottomNavTextInt',
       type: IsarType.long,
     ),
     r'brightnessString': PropertySchema(
-      id: 14,
+      id: 16,
       name: r'brightnessString',
       type: IsarType.string,
     ),
     r'buttonBackBorderDisabledInt': PropertySchema(
-      id: 15,
+      id: 17,
       name: r'buttonBackBorderDisabledInt',
       type: IsarType.long,
     ),
     r'buttonBackBorderInt': PropertySchema(
-      id: 16,
+      id: 18,
       name: r'buttonBackBorderInt',
       type: IsarType.long,
     ),
     r'buttonBackBorderSecondaryDisabledInt': PropertySchema(
-      id: 17,
+      id: 19,
       name: r'buttonBackBorderSecondaryDisabledInt',
       type: IsarType.long,
     ),
     r'buttonBackBorderSecondaryInt': PropertySchema(
-      id: 18,
+      id: 20,
       name: r'buttonBackBorderSecondaryInt',
       type: IsarType.long,
     ),
     r'buttonBackPrimaryDisabledInt': PropertySchema(
-      id: 19,
+      id: 21,
       name: r'buttonBackPrimaryDisabledInt',
       type: IsarType.long,
     ),
     r'buttonBackPrimaryInt': PropertySchema(
-      id: 20,
+      id: 22,
       name: r'buttonBackPrimaryInt',
       type: IsarType.long,
     ),
     r'buttonBackSecondaryDisabledInt': PropertySchema(
-      id: 21,
+      id: 23,
       name: r'buttonBackSecondaryDisabledInt',
       type: IsarType.long,
     ),
     r'buttonBackSecondaryInt': PropertySchema(
-      id: 22,
+      id: 24,
       name: r'buttonBackSecondaryInt',
       type: IsarType.long,
     ),
     r'buttonTextBorderInt': PropertySchema(
-      id: 23,
+      id: 25,
       name: r'buttonTextBorderInt',
       type: IsarType.long,
     ),
     r'buttonTextBorderlessDisabledInt': PropertySchema(
-      id: 24,
+      id: 26,
       name: r'buttonTextBorderlessDisabledInt',
       type: IsarType.long,
     ),
     r'buttonTextBorderlessInt': PropertySchema(
-      id: 25,
+      id: 27,
       name: r'buttonTextBorderlessInt',
       type: IsarType.long,
     ),
     r'buttonTextDisabledInt': PropertySchema(
-      id: 26,
+      id: 28,
       name: r'buttonTextDisabledInt',
       type: IsarType.long,
     ),
     r'buttonTextPrimaryDisabledInt': PropertySchema(
-      id: 27,
+      id: 29,
       name: r'buttonTextPrimaryDisabledInt',
       type: IsarType.long,
     ),
     r'buttonTextPrimaryInt': PropertySchema(
-      id: 28,
+      id: 30,
       name: r'buttonTextPrimaryInt',
       type: IsarType.long,
     ),
     r'buttonTextSecondaryDisabledInt': PropertySchema(
-      id: 29,
+      id: 31,
       name: r'buttonTextSecondaryDisabledInt',
       type: IsarType.long,
     ),
     r'buttonTextSecondaryInt': PropertySchema(
-      id: 30,
+      id: 32,
       name: r'buttonTextSecondaryInt',
       type: IsarType.long,
     ),
     r'checkboxBGCheckedInt': PropertySchema(
-      id: 31,
+      id: 33,
       name: r'checkboxBGCheckedInt',
       type: IsarType.long,
     ),
     r'checkboxBGDisabledInt': PropertySchema(
-      id: 32,
+      id: 34,
       name: r'checkboxBGDisabledInt',
       type: IsarType.long,
     ),
     r'checkboxBorderEmptyInt': PropertySchema(
-      id: 33,
+      id: 35,
       name: r'checkboxBorderEmptyInt',
       type: IsarType.long,
     ),
     r'checkboxIconCheckedInt': PropertySchema(
-      id: 34,
+      id: 36,
       name: r'checkboxIconCheckedInt',
       type: IsarType.long,
     ),
     r'checkboxIconDisabledInt': PropertySchema(
-      id: 35,
+      id: 37,
       name: r'checkboxIconDisabledInt',
       type: IsarType.long,
     ),
     r'checkboxTextLabelInt': PropertySchema(
-      id: 36,
+      id: 38,
       name: r'checkboxTextLabelInt',
       type: IsarType.long,
     ),
     r'coinColorsJsonString': PropertySchema(
-      id: 37,
+      id: 39,
       name: r'coinColorsJsonString',
       type: IsarType.string,
     ),
     r'currencyListItemBGInt': PropertySchema(
-      id: 38,
+      id: 40,
       name: r'currencyListItemBGInt',
       type: IsarType.long,
     ),
     r'customTextButtonDisabledTextInt': PropertySchema(
-      id: 39,
+      id: 41,
       name: r'customTextButtonDisabledTextInt',
       type: IsarType.long,
     ),
     r'customTextButtonEnabledTextInt': PropertySchema(
-      id: 40,
+      id: 42,
       name: r'customTextButtonEnabledTextInt',
       type: IsarType.long,
     ),
     r'ethTagBGInt': PropertySchema(
-      id: 41,
+      id: 43,
       name: r'ethTagBGInt',
       type: IsarType.long,
     ),
     r'ethTagTextInt': PropertySchema(
-      id: 42,
+      id: 44,
       name: r'ethTagTextInt',
       type: IsarType.long,
     ),
     r'ethWalletTagBGInt': PropertySchema(
-      id: 43,
+      id: 45,
       name: r'ethWalletTagBGInt',
       type: IsarType.long,
     ),
     r'ethWalletTagTextInt': PropertySchema(
-      id: 44,
+      id: 46,
       name: r'ethWalletTagTextInt',
       type: IsarType.long,
     ),
     r'favoriteStarActiveInt': PropertySchema(
-      id: 45,
+      id: 47,
       name: r'favoriteStarActiveInt',
       type: IsarType.long,
     ),
     r'favoriteStarInactiveInt': PropertySchema(
-      id: 46,
+      id: 48,
       name: r'favoriteStarInactiveInt',
       type: IsarType.long,
     ),
     r'gradientBackgroundString': PropertySchema(
-      id: 47,
+      id: 49,
       name: r'gradientBackgroundString',
       type: IsarType.string,
     ),
     r'highlightInt': PropertySchema(
-      id: 48,
+      id: 50,
       name: r'highlightInt',
       type: IsarType.long,
     ),
     r'homeViewButtonBarBoxShadowString': PropertySchema(
-      id: 49,
+      id: 51,
       name: r'homeViewButtonBarBoxShadowString',
       type: IsarType.string,
     ),
     r'infoItemBGInt': PropertySchema(
-      id: 50,
+      id: 52,
       name: r'infoItemBGInt',
       type: IsarType.long,
     ),
     r'infoItemIconsInt': PropertySchema(
-      id: 51,
+      id: 53,
       name: r'infoItemIconsInt',
       type: IsarType.long,
     ),
     r'infoItemLabelInt': PropertySchema(
-      id: 52,
+      id: 54,
       name: r'infoItemLabelInt',
       type: IsarType.long,
     ),
     r'infoItemTextInt': PropertySchema(
-      id: 53,
+      id: 55,
       name: r'infoItemTextInt',
       type: IsarType.long,
     ),
     r'loadingOverlayTextColorInt': PropertySchema(
-      id: 54,
+      id: 56,
       name: r'loadingOverlayTextColorInt',
       type: IsarType.long,
     ),
     r'myStackContactIconBGInt': PropertySchema(
-      id: 55,
+      id: 57,
       name: r'myStackContactIconBGInt',
       type: IsarType.long,
     ),
     r'name': PropertySchema(
-      id: 56,
+      id: 58,
       name: r'name',
       type: IsarType.string,
     ),
     r'numberBackDefaultInt': PropertySchema(
-      id: 57,
+      id: 59,
       name: r'numberBackDefaultInt',
       type: IsarType.long,
     ),
     r'numberTextDefaultInt': PropertySchema(
-      id: 58,
+      id: 60,
       name: r'numberTextDefaultInt',
       type: IsarType.long,
     ),
     r'numpadBackDefaultInt': PropertySchema(
-      id: 59,
+      id: 61,
       name: r'numpadBackDefaultInt',
       type: IsarType.long,
     ),
     r'numpadTextDefaultInt': PropertySchema(
-      id: 60,
+      id: 62,
       name: r'numpadTextDefaultInt',
       type: IsarType.long,
     ),
     r'overlayInt': PropertySchema(
-      id: 61,
+      id: 63,
       name: r'overlayInt',
       type: IsarType.long,
     ),
     r'popupBGInt': PropertySchema(
-      id: 62,
+      id: 64,
       name: r'popupBGInt',
       type: IsarType.long,
     ),
     r'radioButtonBorderDisabledInt': PropertySchema(
-      id: 63,
+      id: 65,
       name: r'radioButtonBorderDisabledInt',
       type: IsarType.long,
     ),
     r'radioButtonBorderEnabledInt': PropertySchema(
-      id: 64,
+      id: 66,
       name: r'radioButtonBorderEnabledInt',
       type: IsarType.long,
     ),
     r'radioButtonIconBorderDisabledInt': PropertySchema(
-      id: 65,
+      id: 67,
       name: r'radioButtonIconBorderDisabledInt',
       type: IsarType.long,
     ),
     r'radioButtonIconBorderInt': PropertySchema(
-      id: 66,
+      id: 68,
       name: r'radioButtonIconBorderInt',
       type: IsarType.long,
     ),
     r'radioButtonIconCircleInt': PropertySchema(
-      id: 67,
+      id: 69,
       name: r'radioButtonIconCircleInt',
       type: IsarType.long,
     ),
     r'radioButtonIconEnabledInt': PropertySchema(
-      id: 68,
+      id: 70,
       name: r'radioButtonIconEnabledInt',
       type: IsarType.long,
     ),
     r'radioButtonLabelDisabledInt': PropertySchema(
-      id: 69,
+      id: 71,
       name: r'radioButtonLabelDisabledInt',
       type: IsarType.long,
     ),
     r'radioButtonLabelEnabledInt': PropertySchema(
-      id: 70,
+      id: 72,
       name: r'radioButtonLabelEnabledInt',
       type: IsarType.long,
     ),
     r'radioButtonTextDisabledInt': PropertySchema(
-      id: 71,
+      id: 73,
       name: r'radioButtonTextDisabledInt',
       type: IsarType.long,
     ),
     r'radioButtonTextEnabledInt': PropertySchema(
-      id: 72,
+      id: 74,
       name: r'radioButtonTextEnabledInt',
       type: IsarType.long,
     ),
     r'rateTypeToggleColorOffInt': PropertySchema(
-      id: 73,
+      id: 75,
       name: r'rateTypeToggleColorOffInt',
       type: IsarType.long,
     ),
     r'rateTypeToggleColorOnInt': PropertySchema(
-      id: 74,
+      id: 76,
       name: r'rateTypeToggleColorOnInt',
       type: IsarType.long,
     ),
     r'rateTypeToggleDesktopColorOffInt': PropertySchema(
-      id: 75,
+      id: 77,
       name: r'rateTypeToggleDesktopColorOffInt',
       type: IsarType.long,
     ),
     r'rateTypeToggleDesktopColorOnInt': PropertySchema(
-      id: 76,
+      id: 78,
       name: r'rateTypeToggleDesktopColorOnInt',
       type: IsarType.long,
     ),
     r'settingsIconBack2Int': PropertySchema(
-      id: 77,
+      id: 79,
       name: r'settingsIconBack2Int',
       type: IsarType.long,
     ),
     r'settingsIconBackInt': PropertySchema(
-      id: 78,
+      id: 80,
       name: r'settingsIconBackInt',
       type: IsarType.long,
     ),
     r'settingsIconElementInt': PropertySchema(
-      id: 79,
+      id: 81,
       name: r'settingsIconElementInt',
       type: IsarType.long,
     ),
     r'settingsIconIconInt': PropertySchema(
-      id: 80,
+      id: 82,
       name: r'settingsIconIconInt',
       type: IsarType.long,
     ),
     r'settingsItem2ActiveBGInt': PropertySchema(
-      id: 81,
+      id: 83,
       name: r'settingsItem2ActiveBGInt',
       type: IsarType.long,
     ),
     r'settingsItem2ActiveSubInt': PropertySchema(
-      id: 82,
+      id: 84,
       name: r'settingsItem2ActiveSubInt',
       type: IsarType.long,
     ),
     r'settingsItem2ActiveTextInt': PropertySchema(
-      id: 83,
+      id: 85,
       name: r'settingsItem2ActiveTextInt',
       type: IsarType.long,
     ),
     r'shadowInt': PropertySchema(
-      id: 84,
+      id: 86,
       name: r'shadowInt',
       type: IsarType.long,
     ),
     r'snackBarBackErrorInt': PropertySchema(
-      id: 85,
+      id: 87,
       name: r'snackBarBackErrorInt',
       type: IsarType.long,
     ),
     r'snackBarBackInfoInt': PropertySchema(
-      id: 86,
+      id: 88,
       name: r'snackBarBackInfoInt',
       type: IsarType.long,
     ),
     r'snackBarBackSuccessInt': PropertySchema(
-      id: 87,
+      id: 89,
       name: r'snackBarBackSuccessInt',
       type: IsarType.long,
     ),
     r'snackBarTextErrorInt': PropertySchema(
-      id: 88,
+      id: 90,
       name: r'snackBarTextErrorInt',
       type: IsarType.long,
     ),
     r'snackBarTextInfoInt': PropertySchema(
-      id: 89,
+      id: 91,
       name: r'snackBarTextInfoInt',
       type: IsarType.long,
     ),
     r'snackBarTextSuccessInt': PropertySchema(
-      id: 90,
+      id: 92,
       name: r'snackBarTextSuccessInt',
       type: IsarType.long,
     ),
     r'splashInt': PropertySchema(
-      id: 91,
+      id: 93,
       name: r'splashInt',
       type: IsarType.long,
     ),
     r'stackWalletBGInt': PropertySchema(
-      id: 92,
+      id: 94,
       name: r'stackWalletBGInt',
       type: IsarType.long,
     ),
     r'stackWalletBottomInt': PropertySchema(
-      id: 93,
+      id: 95,
       name: r'stackWalletBottomInt',
       type: IsarType.long,
     ),
     r'stackWalletMidInt': PropertySchema(
-      id: 94,
+      id: 96,
       name: r'stackWalletMidInt',
       type: IsarType.long,
     ),
     r'standardBoxShadowString': PropertySchema(
-      id: 95,
+      id: 97,
       name: r'standardBoxShadowString',
       type: IsarType.string,
     ),
     r'stepIndicatorBGCheckInt': PropertySchema(
-      id: 96,
+      id: 98,
       name: r'stepIndicatorBGCheckInt',
       type: IsarType.long,
     ),
     r'stepIndicatorBGInactiveInt': PropertySchema(
-      id: 97,
+      id: 99,
       name: r'stepIndicatorBGInactiveInt',
       type: IsarType.long,
     ),
     r'stepIndicatorBGLinesInactiveInt': PropertySchema(
-      id: 98,
+      id: 100,
       name: r'stepIndicatorBGLinesInactiveInt',
       type: IsarType.long,
     ),
     r'stepIndicatorBGLinesInt': PropertySchema(
-      id: 99,
+      id: 101,
       name: r'stepIndicatorBGLinesInt',
       type: IsarType.long,
     ),
     r'stepIndicatorBGNumberInt': PropertySchema(
-      id: 100,
+      id: 102,
       name: r'stepIndicatorBGNumberInt',
       type: IsarType.long,
     ),
     r'stepIndicatorIconInactiveInt': PropertySchema(
-      id: 101,
+      id: 103,
       name: r'stepIndicatorIconInactiveInt',
       type: IsarType.long,
     ),
     r'stepIndicatorIconNumberInt': PropertySchema(
-      id: 102,
+      id: 104,
       name: r'stepIndicatorIconNumberInt',
       type: IsarType.long,
     ),
     r'stepIndicatorIconTextInt': PropertySchema(
-      id: 103,
+      id: 105,
       name: r'stepIndicatorIconTextInt',
       type: IsarType.long,
     ),
     r'switchBGDisabledInt': PropertySchema(
-      id: 104,
+      id: 106,
       name: r'switchBGDisabledInt',
       type: IsarType.long,
     ),
     r'switchBGOffInt': PropertySchema(
-      id: 105,
+      id: 107,
       name: r'switchBGOffInt',
       type: IsarType.long,
     ),
     r'switchBGOnInt': PropertySchema(
-      id: 106,
+      id: 108,
       name: r'switchBGOnInt',
       type: IsarType.long,
     ),
     r'switchCircleDisabledInt': PropertySchema(
-      id: 107,
+      id: 109,
       name: r'switchCircleDisabledInt',
       type: IsarType.long,
     ),
     r'switchCircleOffInt': PropertySchema(
-      id: 108,
+      id: 110,
       name: r'switchCircleOffInt',
       type: IsarType.long,
     ),
     r'switchCircleOnInt': PropertySchema(
-      id: 109,
+      id: 111,
       name: r'switchCircleOnInt',
       type: IsarType.long,
     ),
     r'textConfirmTotalAmountInt': PropertySchema(
-      id: 110,
+      id: 112,
       name: r'textConfirmTotalAmountInt',
       type: IsarType.long,
     ),
     r'textDark2Int': PropertySchema(
-      id: 111,
+      id: 113,
       name: r'textDark2Int',
       type: IsarType.long,
     ),
     r'textDark3Int': PropertySchema(
-      id: 112,
+      id: 114,
       name: r'textDark3Int',
       type: IsarType.long,
     ),
     r'textDarkInt': PropertySchema(
-      id: 113,
+      id: 115,
       name: r'textDarkInt',
       type: IsarType.long,
     ),
     r'textErrorInt': PropertySchema(
-      id: 114,
+      id: 116,
       name: r'textErrorInt',
       type: IsarType.long,
     ),
     r'textFavoriteCardInt': PropertySchema(
-      id: 115,
+      id: 117,
       name: r'textFavoriteCardInt',
       type: IsarType.long,
     ),
     r'textFieldActiveBGInt': PropertySchema(
-      id: 116,
+      id: 118,
       name: r'textFieldActiveBGInt',
       type: IsarType.long,
     ),
     r'textFieldActiveLabelInt': PropertySchema(
-      id: 117,
+      id: 119,
       name: r'textFieldActiveLabelInt',
       type: IsarType.long,
     ),
     r'textFieldActiveSearchIconLeftInt': PropertySchema(
-      id: 118,
+      id: 120,
       name: r'textFieldActiveSearchIconLeftInt',
       type: IsarType.long,
     ),
     r'textFieldActiveSearchIconRightInt': PropertySchema(
-      id: 119,
+      id: 121,
       name: r'textFieldActiveSearchIconRightInt',
       type: IsarType.long,
     ),
     r'textFieldActiveTextInt': PropertySchema(
-      id: 120,
+      id: 122,
       name: r'textFieldActiveTextInt',
       type: IsarType.long,
     ),
     r'textFieldDefaultBGInt': PropertySchema(
-      id: 121,
+      id: 123,
       name: r'textFieldDefaultBGInt',
       type: IsarType.long,
     ),
     r'textFieldDefaultSearchIconLeftInt': PropertySchema(
-      id: 122,
+      id: 124,
       name: r'textFieldDefaultSearchIconLeftInt',
       type: IsarType.long,
     ),
     r'textFieldDefaultSearchIconRightInt': PropertySchema(
-      id: 123,
+      id: 125,
       name: r'textFieldDefaultSearchIconRightInt',
       type: IsarType.long,
     ),
     r'textFieldDefaultTextInt': PropertySchema(
-      id: 124,
+      id: 126,
       name: r'textFieldDefaultTextInt',
       type: IsarType.long,
     ),
     r'textFieldErrorBGInt': PropertySchema(
-      id: 125,
+      id: 127,
       name: r'textFieldErrorBGInt',
       type: IsarType.long,
     ),
     r'textFieldErrorBorderInt': PropertySchema(
-      id: 126,
+      id: 128,
       name: r'textFieldErrorBorderInt',
       type: IsarType.long,
     ),
     r'textFieldErrorLabelInt': PropertySchema(
-      id: 127,
+      id: 129,
       name: r'textFieldErrorLabelInt',
       type: IsarType.long,
     ),
     r'textFieldErrorSearchIconLeftInt': PropertySchema(
-      id: 128,
+      id: 130,
       name: r'textFieldErrorSearchIconLeftInt',
       type: IsarType.long,
     ),
     r'textFieldErrorSearchIconRightInt': PropertySchema(
-      id: 129,
+      id: 131,
       name: r'textFieldErrorSearchIconRightInt',
       type: IsarType.long,
     ),
     r'textFieldErrorTextInt': PropertySchema(
-      id: 130,
+      id: 132,
       name: r'textFieldErrorTextInt',
       type: IsarType.long,
     ),
     r'textFieldSuccessBGInt': PropertySchema(
-      id: 131,
+      id: 133,
       name: r'textFieldSuccessBGInt',
       type: IsarType.long,
     ),
     r'textFieldSuccessBorderInt': PropertySchema(
-      id: 132,
+      id: 134,
       name: r'textFieldSuccessBorderInt',
       type: IsarType.long,
     ),
     r'textFieldSuccessLabelInt': PropertySchema(
-      id: 133,
+      id: 135,
       name: r'textFieldSuccessLabelInt',
       type: IsarType.long,
     ),
     r'textFieldSuccessSearchIconLeftInt': PropertySchema(
-      id: 134,
+      id: 136,
       name: r'textFieldSuccessSearchIconLeftInt',
       type: IsarType.long,
     ),
     r'textFieldSuccessSearchIconRightInt': PropertySchema(
-      id: 135,
+      id: 137,
       name: r'textFieldSuccessSearchIconRightInt',
       type: IsarType.long,
     ),
     r'textFieldSuccessTextInt': PropertySchema(
-      id: 136,
+      id: 138,
       name: r'textFieldSuccessTextInt',
       type: IsarType.long,
     ),
     r'textRestoreInt': PropertySchema(
-      id: 137,
+      id: 139,
       name: r'textRestoreInt',
       type: IsarType.long,
     ),
     r'textSelectedWordTableItemInt': PropertySchema(
-      id: 138,
+      id: 140,
       name: r'textSelectedWordTableItemInt',
       type: IsarType.long,
     ),
     r'textSubtitle1Int': PropertySchema(
-      id: 139,
+      id: 141,
       name: r'textSubtitle1Int',
       type: IsarType.long,
     ),
     r'textSubtitle2Int': PropertySchema(
-      id: 140,
+      id: 142,
       name: r'textSubtitle2Int',
       type: IsarType.long,
     ),
     r'textSubtitle3Int': PropertySchema(
-      id: 141,
+      id: 143,
       name: r'textSubtitle3Int',
       type: IsarType.long,
     ),
     r'textSubtitle4Int': PropertySchema(
-      id: 142,
+      id: 144,
       name: r'textSubtitle4Int',
       type: IsarType.long,
     ),
     r'textSubtitle5Int': PropertySchema(
-      id: 143,
+      id: 145,
       name: r'textSubtitle5Int',
       type: IsarType.long,
     ),
     r'textSubtitle6Int': PropertySchema(
-      id: 144,
+      id: 146,
       name: r'textSubtitle6Int',
       type: IsarType.long,
     ),
     r'textWhiteInt': PropertySchema(
-      id: 145,
+      id: 147,
       name: r'textWhiteInt',
       type: IsarType.long,
     ),
     r'themeId': PropertySchema(
-      id: 146,
+      id: 148,
       name: r'themeId',
       type: IsarType.string,
     ),
     r'tokenSummaryBGInt': PropertySchema(
-      id: 147,
+      id: 149,
       name: r'tokenSummaryBGInt',
       type: IsarType.long,
     ),
     r'tokenSummaryButtonBGInt': PropertySchema(
-      id: 148,
+      id: 150,
       name: r'tokenSummaryButtonBGInt',
       type: IsarType.long,
     ),
     r'tokenSummaryIconInt': PropertySchema(
-      id: 149,
+      id: 151,
       name: r'tokenSummaryIconInt',
       type: IsarType.long,
     ),
     r'tokenSummaryTextPrimaryInt': PropertySchema(
-      id: 150,
+      id: 152,
       name: r'tokenSummaryTextPrimaryInt',
       type: IsarType.long,
     ),
     r'tokenSummaryTextSecondaryInt': PropertySchema(
-      id: 151,
+      id: 153,
       name: r'tokenSummaryTextSecondaryInt',
       type: IsarType.long,
     ),
     r'topNavIconGreenInt': PropertySchema(
-      id: 152,
+      id: 154,
       name: r'topNavIconGreenInt',
       type: IsarType.long,
     ),
     r'topNavIconPrimaryInt': PropertySchema(
-      id: 153,
+      id: 155,
       name: r'topNavIconPrimaryInt',
       type: IsarType.long,
     ),
     r'topNavIconRedInt': PropertySchema(
-      id: 154,
+      id: 156,
       name: r'topNavIconRedInt',
       type: IsarType.long,
     ),
     r'topNavIconYellowInt': PropertySchema(
-      id: 155,
+      id: 157,
       name: r'topNavIconYellowInt',
       type: IsarType.long,
     ),
+    r'version': PropertySchema(
+      id: 158,
+      name: r'version',
+      type: IsarType.long,
+    ),
     r'warningBackgroundInt': PropertySchema(
-      id: 156,
+      id: 159,
       name: r'warningBackgroundInt',
       type: IsarType.long,
     ),
     r'warningForegroundInt': PropertySchema(
-      id: 157,
+      id: 160,
       name: r'warningForegroundInt',
       type: IsarType.long,
     )
@@ -830,7 +846,10 @@ const StackThemeSchema = CollectionSchema(
     )
   },
   links: {},
-  embeddedSchemas: {r'ThemeAssets': ThemeAssetsSchema},
+  embeddedSchemas: {
+    r'ThemeAssets': ThemeAssetsSchema,
+    r'ThemeAssetsV2': ThemeAssetsV2Schema
+  },
   getId: _stackThemeGetId,
   getLinks: _stackThemeGetLinks,
   attach: _stackThemeAttach,
@@ -843,9 +862,22 @@ int _stackThemeEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  bytesCount += 3 +
-      ThemeAssetsSchema.estimateSize(
-          object.assets, allOffsets[ThemeAssets]!, allOffsets);
+  {
+    final value = object.assetsV1;
+    if (value != null) {
+      bytesCount += 3 +
+          ThemeAssetsSchema.estimateSize(
+              value, allOffsets[ThemeAssets]!, allOffsets);
+    }
+  }
+  {
+    final value = object.assetsV2;
+    if (value != null) {
+      bytesCount += 3 +
+          ThemeAssetsV2Schema.estimateSize(
+              value, allOffsets[ThemeAssetsV2]!, allOffsets);
+    }
+  }
   bytesCount += 3 + object.brightnessString.length * 3;
   bytesCount += 3 + object.coinColorsJsonString.length * 3;
   {
@@ -882,159 +914,167 @@ void _stackThemeSerialize(
     offsets[6],
     allOffsets,
     ThemeAssetsSchema.serialize,
-    object.assets,
+    object.assetsV1,
   );
-  writer.writeLong(offsets[7], object.backgroundAppBarInt);
-  writer.writeLong(offsets[8], object.backgroundInt);
-  writer.writeLong(offsets[9], object.bottomNavBackInt);
-  writer.writeLong(offsets[10], object.bottomNavIconBackInt);
-  writer.writeLong(offsets[11], object.bottomNavIconIconInt);
-  writer.writeLong(offsets[12], object.bottomNavShadowInt);
-  writer.writeLong(offsets[13], object.bottomNavTextInt);
-  writer.writeString(offsets[14], object.brightnessString);
-  writer.writeLong(offsets[15], object.buttonBackBorderDisabledInt);
-  writer.writeLong(offsets[16], object.buttonBackBorderInt);
-  writer.writeLong(offsets[17], object.buttonBackBorderSecondaryDisabledInt);
-  writer.writeLong(offsets[18], object.buttonBackBorderSecondaryInt);
-  writer.writeLong(offsets[19], object.buttonBackPrimaryDisabledInt);
-  writer.writeLong(offsets[20], object.buttonBackPrimaryInt);
-  writer.writeLong(offsets[21], object.buttonBackSecondaryDisabledInt);
-  writer.writeLong(offsets[22], object.buttonBackSecondaryInt);
-  writer.writeLong(offsets[23], object.buttonTextBorderInt);
-  writer.writeLong(offsets[24], object.buttonTextBorderlessDisabledInt);
-  writer.writeLong(offsets[25], object.buttonTextBorderlessInt);
-  writer.writeLong(offsets[26], object.buttonTextDisabledInt);
-  writer.writeLong(offsets[27], object.buttonTextPrimaryDisabledInt);
-  writer.writeLong(offsets[28], object.buttonTextPrimaryInt);
-  writer.writeLong(offsets[29], object.buttonTextSecondaryDisabledInt);
-  writer.writeLong(offsets[30], object.buttonTextSecondaryInt);
-  writer.writeLong(offsets[31], object.checkboxBGCheckedInt);
-  writer.writeLong(offsets[32], object.checkboxBGDisabledInt);
-  writer.writeLong(offsets[33], object.checkboxBorderEmptyInt);
-  writer.writeLong(offsets[34], object.checkboxIconCheckedInt);
-  writer.writeLong(offsets[35], object.checkboxIconDisabledInt);
-  writer.writeLong(offsets[36], object.checkboxTextLabelInt);
-  writer.writeString(offsets[37], object.coinColorsJsonString);
-  writer.writeLong(offsets[38], object.currencyListItemBGInt);
-  writer.writeLong(offsets[39], object.customTextButtonDisabledTextInt);
-  writer.writeLong(offsets[40], object.customTextButtonEnabledTextInt);
-  writer.writeLong(offsets[41], object.ethTagBGInt);
-  writer.writeLong(offsets[42], object.ethTagTextInt);
-  writer.writeLong(offsets[43], object.ethWalletTagBGInt);
-  writer.writeLong(offsets[44], object.ethWalletTagTextInt);
-  writer.writeLong(offsets[45], object.favoriteStarActiveInt);
-  writer.writeLong(offsets[46], object.favoriteStarInactiveInt);
-  writer.writeString(offsets[47], object.gradientBackgroundString);
-  writer.writeLong(offsets[48], object.highlightInt);
-  writer.writeString(offsets[49], object.homeViewButtonBarBoxShadowString);
-  writer.writeLong(offsets[50], object.infoItemBGInt);
-  writer.writeLong(offsets[51], object.infoItemIconsInt);
-  writer.writeLong(offsets[52], object.infoItemLabelInt);
-  writer.writeLong(offsets[53], object.infoItemTextInt);
-  writer.writeLong(offsets[54], object.loadingOverlayTextColorInt);
-  writer.writeLong(offsets[55], object.myStackContactIconBGInt);
-  writer.writeString(offsets[56], object.name);
-  writer.writeLong(offsets[57], object.numberBackDefaultInt);
-  writer.writeLong(offsets[58], object.numberTextDefaultInt);
-  writer.writeLong(offsets[59], object.numpadBackDefaultInt);
-  writer.writeLong(offsets[60], object.numpadTextDefaultInt);
-  writer.writeLong(offsets[61], object.overlayInt);
-  writer.writeLong(offsets[62], object.popupBGInt);
-  writer.writeLong(offsets[63], object.radioButtonBorderDisabledInt);
-  writer.writeLong(offsets[64], object.radioButtonBorderEnabledInt);
-  writer.writeLong(offsets[65], object.radioButtonIconBorderDisabledInt);
-  writer.writeLong(offsets[66], object.radioButtonIconBorderInt);
-  writer.writeLong(offsets[67], object.radioButtonIconCircleInt);
-  writer.writeLong(offsets[68], object.radioButtonIconEnabledInt);
-  writer.writeLong(offsets[69], object.radioButtonLabelDisabledInt);
-  writer.writeLong(offsets[70], object.radioButtonLabelEnabledInt);
-  writer.writeLong(offsets[71], object.radioButtonTextDisabledInt);
-  writer.writeLong(offsets[72], object.radioButtonTextEnabledInt);
-  writer.writeLong(offsets[73], object.rateTypeToggleColorOffInt);
-  writer.writeLong(offsets[74], object.rateTypeToggleColorOnInt);
-  writer.writeLong(offsets[75], object.rateTypeToggleDesktopColorOffInt);
-  writer.writeLong(offsets[76], object.rateTypeToggleDesktopColorOnInt);
-  writer.writeLong(offsets[77], object.settingsIconBack2Int);
-  writer.writeLong(offsets[78], object.settingsIconBackInt);
-  writer.writeLong(offsets[79], object.settingsIconElementInt);
-  writer.writeLong(offsets[80], object.settingsIconIconInt);
-  writer.writeLong(offsets[81], object.settingsItem2ActiveBGInt);
-  writer.writeLong(offsets[82], object.settingsItem2ActiveSubInt);
-  writer.writeLong(offsets[83], object.settingsItem2ActiveTextInt);
-  writer.writeLong(offsets[84], object.shadowInt);
-  writer.writeLong(offsets[85], object.snackBarBackErrorInt);
-  writer.writeLong(offsets[86], object.snackBarBackInfoInt);
-  writer.writeLong(offsets[87], object.snackBarBackSuccessInt);
-  writer.writeLong(offsets[88], object.snackBarTextErrorInt);
-  writer.writeLong(offsets[89], object.snackBarTextInfoInt);
-  writer.writeLong(offsets[90], object.snackBarTextSuccessInt);
-  writer.writeLong(offsets[91], object.splashInt);
-  writer.writeLong(offsets[92], object.stackWalletBGInt);
-  writer.writeLong(offsets[93], object.stackWalletBottomInt);
-  writer.writeLong(offsets[94], object.stackWalletMidInt);
-  writer.writeString(offsets[95], object.standardBoxShadowString);
-  writer.writeLong(offsets[96], object.stepIndicatorBGCheckInt);
-  writer.writeLong(offsets[97], object.stepIndicatorBGInactiveInt);
-  writer.writeLong(offsets[98], object.stepIndicatorBGLinesInactiveInt);
-  writer.writeLong(offsets[99], object.stepIndicatorBGLinesInt);
-  writer.writeLong(offsets[100], object.stepIndicatorBGNumberInt);
-  writer.writeLong(offsets[101], object.stepIndicatorIconInactiveInt);
-  writer.writeLong(offsets[102], object.stepIndicatorIconNumberInt);
-  writer.writeLong(offsets[103], object.stepIndicatorIconTextInt);
-  writer.writeLong(offsets[104], object.switchBGDisabledInt);
-  writer.writeLong(offsets[105], object.switchBGOffInt);
-  writer.writeLong(offsets[106], object.switchBGOnInt);
-  writer.writeLong(offsets[107], object.switchCircleDisabledInt);
-  writer.writeLong(offsets[108], object.switchCircleOffInt);
-  writer.writeLong(offsets[109], object.switchCircleOnInt);
-  writer.writeLong(offsets[110], object.textConfirmTotalAmountInt);
-  writer.writeLong(offsets[111], object.textDark2Int);
-  writer.writeLong(offsets[112], object.textDark3Int);
-  writer.writeLong(offsets[113], object.textDarkInt);
-  writer.writeLong(offsets[114], object.textErrorInt);
-  writer.writeLong(offsets[115], object.textFavoriteCardInt);
-  writer.writeLong(offsets[116], object.textFieldActiveBGInt);
-  writer.writeLong(offsets[117], object.textFieldActiveLabelInt);
-  writer.writeLong(offsets[118], object.textFieldActiveSearchIconLeftInt);
-  writer.writeLong(offsets[119], object.textFieldActiveSearchIconRightInt);
-  writer.writeLong(offsets[120], object.textFieldActiveTextInt);
-  writer.writeLong(offsets[121], object.textFieldDefaultBGInt);
-  writer.writeLong(offsets[122], object.textFieldDefaultSearchIconLeftInt);
-  writer.writeLong(offsets[123], object.textFieldDefaultSearchIconRightInt);
-  writer.writeLong(offsets[124], object.textFieldDefaultTextInt);
-  writer.writeLong(offsets[125], object.textFieldErrorBGInt);
-  writer.writeLong(offsets[126], object.textFieldErrorBorderInt);
-  writer.writeLong(offsets[127], object.textFieldErrorLabelInt);
-  writer.writeLong(offsets[128], object.textFieldErrorSearchIconLeftInt);
-  writer.writeLong(offsets[129], object.textFieldErrorSearchIconRightInt);
-  writer.writeLong(offsets[130], object.textFieldErrorTextInt);
-  writer.writeLong(offsets[131], object.textFieldSuccessBGInt);
-  writer.writeLong(offsets[132], object.textFieldSuccessBorderInt);
-  writer.writeLong(offsets[133], object.textFieldSuccessLabelInt);
-  writer.writeLong(offsets[134], object.textFieldSuccessSearchIconLeftInt);
-  writer.writeLong(offsets[135], object.textFieldSuccessSearchIconRightInt);
-  writer.writeLong(offsets[136], object.textFieldSuccessTextInt);
-  writer.writeLong(offsets[137], object.textRestoreInt);
-  writer.writeLong(offsets[138], object.textSelectedWordTableItemInt);
-  writer.writeLong(offsets[139], object.textSubtitle1Int);
-  writer.writeLong(offsets[140], object.textSubtitle2Int);
-  writer.writeLong(offsets[141], object.textSubtitle3Int);
-  writer.writeLong(offsets[142], object.textSubtitle4Int);
-  writer.writeLong(offsets[143], object.textSubtitle5Int);
-  writer.writeLong(offsets[144], object.textSubtitle6Int);
-  writer.writeLong(offsets[145], object.textWhiteInt);
-  writer.writeString(offsets[146], object.themeId);
-  writer.writeLong(offsets[147], object.tokenSummaryBGInt);
-  writer.writeLong(offsets[148], object.tokenSummaryButtonBGInt);
-  writer.writeLong(offsets[149], object.tokenSummaryIconInt);
-  writer.writeLong(offsets[150], object.tokenSummaryTextPrimaryInt);
-  writer.writeLong(offsets[151], object.tokenSummaryTextSecondaryInt);
-  writer.writeLong(offsets[152], object.topNavIconGreenInt);
-  writer.writeLong(offsets[153], object.topNavIconPrimaryInt);
-  writer.writeLong(offsets[154], object.topNavIconRedInt);
-  writer.writeLong(offsets[155], object.topNavIconYellowInt);
-  writer.writeLong(offsets[156], object.warningBackgroundInt);
-  writer.writeLong(offsets[157], object.warningForegroundInt);
+  writer.writeObject<ThemeAssetsV2>(
+    offsets[7],
+    allOffsets,
+    ThemeAssetsV2Schema.serialize,
+    object.assetsV2,
+  );
+  writer.writeLong(offsets[8], object.backgroundAppBarInt);
+  writer.writeLong(offsets[9], object.backgroundInt);
+  writer.writeLong(offsets[10], object.bottomNavBackInt);
+  writer.writeLong(offsets[11], object.bottomNavIconBackInt);
+  writer.writeLong(offsets[12], object.bottomNavIconIconHighlightedInt);
+  writer.writeLong(offsets[13], object.bottomNavIconIconInt);
+  writer.writeLong(offsets[14], object.bottomNavShadowInt);
+  writer.writeLong(offsets[15], object.bottomNavTextInt);
+  writer.writeString(offsets[16], object.brightnessString);
+  writer.writeLong(offsets[17], object.buttonBackBorderDisabledInt);
+  writer.writeLong(offsets[18], object.buttonBackBorderInt);
+  writer.writeLong(offsets[19], object.buttonBackBorderSecondaryDisabledInt);
+  writer.writeLong(offsets[20], object.buttonBackBorderSecondaryInt);
+  writer.writeLong(offsets[21], object.buttonBackPrimaryDisabledInt);
+  writer.writeLong(offsets[22], object.buttonBackPrimaryInt);
+  writer.writeLong(offsets[23], object.buttonBackSecondaryDisabledInt);
+  writer.writeLong(offsets[24], object.buttonBackSecondaryInt);
+  writer.writeLong(offsets[25], object.buttonTextBorderInt);
+  writer.writeLong(offsets[26], object.buttonTextBorderlessDisabledInt);
+  writer.writeLong(offsets[27], object.buttonTextBorderlessInt);
+  writer.writeLong(offsets[28], object.buttonTextDisabledInt);
+  writer.writeLong(offsets[29], object.buttonTextPrimaryDisabledInt);
+  writer.writeLong(offsets[30], object.buttonTextPrimaryInt);
+  writer.writeLong(offsets[31], object.buttonTextSecondaryDisabledInt);
+  writer.writeLong(offsets[32], object.buttonTextSecondaryInt);
+  writer.writeLong(offsets[33], object.checkboxBGCheckedInt);
+  writer.writeLong(offsets[34], object.checkboxBGDisabledInt);
+  writer.writeLong(offsets[35], object.checkboxBorderEmptyInt);
+  writer.writeLong(offsets[36], object.checkboxIconCheckedInt);
+  writer.writeLong(offsets[37], object.checkboxIconDisabledInt);
+  writer.writeLong(offsets[38], object.checkboxTextLabelInt);
+  writer.writeString(offsets[39], object.coinColorsJsonString);
+  writer.writeLong(offsets[40], object.currencyListItemBGInt);
+  writer.writeLong(offsets[41], object.customTextButtonDisabledTextInt);
+  writer.writeLong(offsets[42], object.customTextButtonEnabledTextInt);
+  writer.writeLong(offsets[43], object.ethTagBGInt);
+  writer.writeLong(offsets[44], object.ethTagTextInt);
+  writer.writeLong(offsets[45], object.ethWalletTagBGInt);
+  writer.writeLong(offsets[46], object.ethWalletTagTextInt);
+  writer.writeLong(offsets[47], object.favoriteStarActiveInt);
+  writer.writeLong(offsets[48], object.favoriteStarInactiveInt);
+  writer.writeString(offsets[49], object.gradientBackgroundString);
+  writer.writeLong(offsets[50], object.highlightInt);
+  writer.writeString(offsets[51], object.homeViewButtonBarBoxShadowString);
+  writer.writeLong(offsets[52], object.infoItemBGInt);
+  writer.writeLong(offsets[53], object.infoItemIconsInt);
+  writer.writeLong(offsets[54], object.infoItemLabelInt);
+  writer.writeLong(offsets[55], object.infoItemTextInt);
+  writer.writeLong(offsets[56], object.loadingOverlayTextColorInt);
+  writer.writeLong(offsets[57], object.myStackContactIconBGInt);
+  writer.writeString(offsets[58], object.name);
+  writer.writeLong(offsets[59], object.numberBackDefaultInt);
+  writer.writeLong(offsets[60], object.numberTextDefaultInt);
+  writer.writeLong(offsets[61], object.numpadBackDefaultInt);
+  writer.writeLong(offsets[62], object.numpadTextDefaultInt);
+  writer.writeLong(offsets[63], object.overlayInt);
+  writer.writeLong(offsets[64], object.popupBGInt);
+  writer.writeLong(offsets[65], object.radioButtonBorderDisabledInt);
+  writer.writeLong(offsets[66], object.radioButtonBorderEnabledInt);
+  writer.writeLong(offsets[67], object.radioButtonIconBorderDisabledInt);
+  writer.writeLong(offsets[68], object.radioButtonIconBorderInt);
+  writer.writeLong(offsets[69], object.radioButtonIconCircleInt);
+  writer.writeLong(offsets[70], object.radioButtonIconEnabledInt);
+  writer.writeLong(offsets[71], object.radioButtonLabelDisabledInt);
+  writer.writeLong(offsets[72], object.radioButtonLabelEnabledInt);
+  writer.writeLong(offsets[73], object.radioButtonTextDisabledInt);
+  writer.writeLong(offsets[74], object.radioButtonTextEnabledInt);
+  writer.writeLong(offsets[75], object.rateTypeToggleColorOffInt);
+  writer.writeLong(offsets[76], object.rateTypeToggleColorOnInt);
+  writer.writeLong(offsets[77], object.rateTypeToggleDesktopColorOffInt);
+  writer.writeLong(offsets[78], object.rateTypeToggleDesktopColorOnInt);
+  writer.writeLong(offsets[79], object.settingsIconBack2Int);
+  writer.writeLong(offsets[80], object.settingsIconBackInt);
+  writer.writeLong(offsets[81], object.settingsIconElementInt);
+  writer.writeLong(offsets[82], object.settingsIconIconInt);
+  writer.writeLong(offsets[83], object.settingsItem2ActiveBGInt);
+  writer.writeLong(offsets[84], object.settingsItem2ActiveSubInt);
+  writer.writeLong(offsets[85], object.settingsItem2ActiveTextInt);
+  writer.writeLong(offsets[86], object.shadowInt);
+  writer.writeLong(offsets[87], object.snackBarBackErrorInt);
+  writer.writeLong(offsets[88], object.snackBarBackInfoInt);
+  writer.writeLong(offsets[89], object.snackBarBackSuccessInt);
+  writer.writeLong(offsets[90], object.snackBarTextErrorInt);
+  writer.writeLong(offsets[91], object.snackBarTextInfoInt);
+  writer.writeLong(offsets[92], object.snackBarTextSuccessInt);
+  writer.writeLong(offsets[93], object.splashInt);
+  writer.writeLong(offsets[94], object.stackWalletBGInt);
+  writer.writeLong(offsets[95], object.stackWalletBottomInt);
+  writer.writeLong(offsets[96], object.stackWalletMidInt);
+  writer.writeString(offsets[97], object.standardBoxShadowString);
+  writer.writeLong(offsets[98], object.stepIndicatorBGCheckInt);
+  writer.writeLong(offsets[99], object.stepIndicatorBGInactiveInt);
+  writer.writeLong(offsets[100], object.stepIndicatorBGLinesInactiveInt);
+  writer.writeLong(offsets[101], object.stepIndicatorBGLinesInt);
+  writer.writeLong(offsets[102], object.stepIndicatorBGNumberInt);
+  writer.writeLong(offsets[103], object.stepIndicatorIconInactiveInt);
+  writer.writeLong(offsets[104], object.stepIndicatorIconNumberInt);
+  writer.writeLong(offsets[105], object.stepIndicatorIconTextInt);
+  writer.writeLong(offsets[106], object.switchBGDisabledInt);
+  writer.writeLong(offsets[107], object.switchBGOffInt);
+  writer.writeLong(offsets[108], object.switchBGOnInt);
+  writer.writeLong(offsets[109], object.switchCircleDisabledInt);
+  writer.writeLong(offsets[110], object.switchCircleOffInt);
+  writer.writeLong(offsets[111], object.switchCircleOnInt);
+  writer.writeLong(offsets[112], object.textConfirmTotalAmountInt);
+  writer.writeLong(offsets[113], object.textDark2Int);
+  writer.writeLong(offsets[114], object.textDark3Int);
+  writer.writeLong(offsets[115], object.textDarkInt);
+  writer.writeLong(offsets[116], object.textErrorInt);
+  writer.writeLong(offsets[117], object.textFavoriteCardInt);
+  writer.writeLong(offsets[118], object.textFieldActiveBGInt);
+  writer.writeLong(offsets[119], object.textFieldActiveLabelInt);
+  writer.writeLong(offsets[120], object.textFieldActiveSearchIconLeftInt);
+  writer.writeLong(offsets[121], object.textFieldActiveSearchIconRightInt);
+  writer.writeLong(offsets[122], object.textFieldActiveTextInt);
+  writer.writeLong(offsets[123], object.textFieldDefaultBGInt);
+  writer.writeLong(offsets[124], object.textFieldDefaultSearchIconLeftInt);
+  writer.writeLong(offsets[125], object.textFieldDefaultSearchIconRightInt);
+  writer.writeLong(offsets[126], object.textFieldDefaultTextInt);
+  writer.writeLong(offsets[127], object.textFieldErrorBGInt);
+  writer.writeLong(offsets[128], object.textFieldErrorBorderInt);
+  writer.writeLong(offsets[129], object.textFieldErrorLabelInt);
+  writer.writeLong(offsets[130], object.textFieldErrorSearchIconLeftInt);
+  writer.writeLong(offsets[131], object.textFieldErrorSearchIconRightInt);
+  writer.writeLong(offsets[132], object.textFieldErrorTextInt);
+  writer.writeLong(offsets[133], object.textFieldSuccessBGInt);
+  writer.writeLong(offsets[134], object.textFieldSuccessBorderInt);
+  writer.writeLong(offsets[135], object.textFieldSuccessLabelInt);
+  writer.writeLong(offsets[136], object.textFieldSuccessSearchIconLeftInt);
+  writer.writeLong(offsets[137], object.textFieldSuccessSearchIconRightInt);
+  writer.writeLong(offsets[138], object.textFieldSuccessTextInt);
+  writer.writeLong(offsets[139], object.textRestoreInt);
+  writer.writeLong(offsets[140], object.textSelectedWordTableItemInt);
+  writer.writeLong(offsets[141], object.textSubtitle1Int);
+  writer.writeLong(offsets[142], object.textSubtitle2Int);
+  writer.writeLong(offsets[143], object.textSubtitle3Int);
+  writer.writeLong(offsets[144], object.textSubtitle4Int);
+  writer.writeLong(offsets[145], object.textSubtitle5Int);
+  writer.writeLong(offsets[146], object.textSubtitle6Int);
+  writer.writeLong(offsets[147], object.textWhiteInt);
+  writer.writeString(offsets[148], object.themeId);
+  writer.writeLong(offsets[149], object.tokenSummaryBGInt);
+  writer.writeLong(offsets[150], object.tokenSummaryButtonBGInt);
+  writer.writeLong(offsets[151], object.tokenSummaryIconInt);
+  writer.writeLong(offsets[152], object.tokenSummaryTextPrimaryInt);
+  writer.writeLong(offsets[153], object.tokenSummaryTextSecondaryInt);
+  writer.writeLong(offsets[154], object.topNavIconGreenInt);
+  writer.writeLong(offsets[155], object.topNavIconPrimaryInt);
+  writer.writeLong(offsets[156], object.topNavIconRedInt);
+  writer.writeLong(offsets[157], object.topNavIconYellowInt);
+  writer.writeLong(offsets[158], object.version);
+  writer.writeLong(offsets[159], object.warningBackgroundInt);
+  writer.writeLong(offsets[160], object.warningForegroundInt);
 }
 
 StackTheme _stackThemeDeserialize(
@@ -1043,172 +1083,178 @@ StackTheme _stackThemeDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = StackTheme(
-    accentColorBlueInt: reader.readLong(offsets[0]),
-    accentColorDarkInt: reader.readLong(offsets[1]),
-    accentColorGreenInt: reader.readLong(offsets[2]),
-    accentColorOrangeInt: reader.readLong(offsets[3]),
-    accentColorRedInt: reader.readLong(offsets[4]),
-    accentColorYellowInt: reader.readLong(offsets[5]),
-    assets: reader.readObjectOrNull<ThemeAssets>(
-          offsets[6],
-          ThemeAssetsSchema.deserialize,
-          allOffsets,
-        ) ??
-        ThemeAssets(),
-    backgroundAppBarInt: reader.readLong(offsets[7]),
-    backgroundInt: reader.readLong(offsets[8]),
-    bottomNavBackInt: reader.readLong(offsets[9]),
-    bottomNavIconBackInt: reader.readLong(offsets[10]),
-    bottomNavIconIconInt: reader.readLong(offsets[11]),
-    bottomNavShadowInt: reader.readLong(offsets[12]),
-    bottomNavTextInt: reader.readLong(offsets[13]),
-    brightnessString: reader.readString(offsets[14]),
-    buttonBackBorderDisabledInt: reader.readLong(offsets[15]),
-    buttonBackBorderInt: reader.readLong(offsets[16]),
-    buttonBackBorderSecondaryDisabledInt: reader.readLong(offsets[17]),
-    buttonBackBorderSecondaryInt: reader.readLong(offsets[18]),
-    buttonBackPrimaryDisabledInt: reader.readLong(offsets[19]),
-    buttonBackPrimaryInt: reader.readLong(offsets[20]),
-    buttonBackSecondaryDisabledInt: reader.readLong(offsets[21]),
-    buttonBackSecondaryInt: reader.readLong(offsets[22]),
-    buttonTextBorderInt: reader.readLong(offsets[23]),
-    buttonTextBorderlessDisabledInt: reader.readLong(offsets[24]),
-    buttonTextBorderlessInt: reader.readLong(offsets[25]),
-    buttonTextDisabledInt: reader.readLong(offsets[26]),
-    buttonTextPrimaryDisabledInt: reader.readLong(offsets[27]),
-    buttonTextPrimaryInt: reader.readLong(offsets[28]),
-    buttonTextSecondaryDisabledInt: reader.readLong(offsets[29]),
-    buttonTextSecondaryInt: reader.readLong(offsets[30]),
-    checkboxBGCheckedInt: reader.readLong(offsets[31]),
-    checkboxBGDisabledInt: reader.readLong(offsets[32]),
-    checkboxBorderEmptyInt: reader.readLong(offsets[33]),
-    checkboxIconCheckedInt: reader.readLong(offsets[34]),
-    checkboxIconDisabledInt: reader.readLong(offsets[35]),
-    checkboxTextLabelInt: reader.readLong(offsets[36]),
-    coinColorsJsonString: reader.readString(offsets[37]),
-    currencyListItemBGInt: reader.readLong(offsets[38]),
-    customTextButtonDisabledTextInt: reader.readLong(offsets[39]),
-    customTextButtonEnabledTextInt: reader.readLong(offsets[40]),
-    ethTagBGInt: reader.readLong(offsets[41]),
-    ethTagTextInt: reader.readLong(offsets[42]),
-    ethWalletTagBGInt: reader.readLong(offsets[43]),
-    ethWalletTagTextInt: reader.readLong(offsets[44]),
-    favoriteStarActiveInt: reader.readLong(offsets[45]),
-    favoriteStarInactiveInt: reader.readLong(offsets[46]),
-    gradientBackgroundString: reader.readStringOrNull(offsets[47]),
-    highlightInt: reader.readLong(offsets[48]),
-    homeViewButtonBarBoxShadowString: reader.readStringOrNull(offsets[49]),
-    infoItemBGInt: reader.readLong(offsets[50]),
-    infoItemIconsInt: reader.readLong(offsets[51]),
-    infoItemLabelInt: reader.readLong(offsets[52]),
-    infoItemTextInt: reader.readLong(offsets[53]),
-    loadingOverlayTextColorInt: reader.readLong(offsets[54]),
-    myStackContactIconBGInt: reader.readLong(offsets[55]),
-    name: reader.readString(offsets[56]),
-    numberBackDefaultInt: reader.readLong(offsets[57]),
-    numberTextDefaultInt: reader.readLong(offsets[58]),
-    numpadBackDefaultInt: reader.readLong(offsets[59]),
-    numpadTextDefaultInt: reader.readLong(offsets[60]),
-    overlayInt: reader.readLong(offsets[61]),
-    popupBGInt: reader.readLong(offsets[62]),
-    radioButtonBorderDisabledInt: reader.readLong(offsets[63]),
-    radioButtonBorderEnabledInt: reader.readLong(offsets[64]),
-    radioButtonIconBorderDisabledInt: reader.readLong(offsets[65]),
-    radioButtonIconBorderInt: reader.readLong(offsets[66]),
-    radioButtonIconCircleInt: reader.readLong(offsets[67]),
-    radioButtonIconEnabledInt: reader.readLong(offsets[68]),
-    radioButtonLabelDisabledInt: reader.readLong(offsets[69]),
-    radioButtonLabelEnabledInt: reader.readLong(offsets[70]),
-    radioButtonTextDisabledInt: reader.readLong(offsets[71]),
-    radioButtonTextEnabledInt: reader.readLong(offsets[72]),
-    rateTypeToggleColorOffInt: reader.readLong(offsets[73]),
-    rateTypeToggleColorOnInt: reader.readLong(offsets[74]),
-    rateTypeToggleDesktopColorOffInt: reader.readLong(offsets[75]),
-    rateTypeToggleDesktopColorOnInt: reader.readLong(offsets[76]),
-    settingsIconBack2Int: reader.readLong(offsets[77]),
-    settingsIconBackInt: reader.readLong(offsets[78]),
-    settingsIconElementInt: reader.readLong(offsets[79]),
-    settingsIconIconInt: reader.readLong(offsets[80]),
-    settingsItem2ActiveBGInt: reader.readLong(offsets[81]),
-    settingsItem2ActiveSubInt: reader.readLong(offsets[82]),
-    settingsItem2ActiveTextInt: reader.readLong(offsets[83]),
-    shadowInt: reader.readLong(offsets[84]),
-    snackBarBackErrorInt: reader.readLong(offsets[85]),
-    snackBarBackInfoInt: reader.readLong(offsets[86]),
-    snackBarBackSuccessInt: reader.readLong(offsets[87]),
-    snackBarTextErrorInt: reader.readLong(offsets[88]),
-    snackBarTextInfoInt: reader.readLong(offsets[89]),
-    snackBarTextSuccessInt: reader.readLong(offsets[90]),
-    splashInt: reader.readLong(offsets[91]),
-    stackWalletBGInt: reader.readLong(offsets[92]),
-    stackWalletBottomInt: reader.readLong(offsets[93]),
-    stackWalletMidInt: reader.readLong(offsets[94]),
-    standardBoxShadowString: reader.readString(offsets[95]),
-    stepIndicatorBGCheckInt: reader.readLong(offsets[96]),
-    stepIndicatorBGInactiveInt: reader.readLong(offsets[97]),
-    stepIndicatorBGLinesInactiveInt: reader.readLong(offsets[98]),
-    stepIndicatorBGLinesInt: reader.readLong(offsets[99]),
-    stepIndicatorBGNumberInt: reader.readLong(offsets[100]),
-    stepIndicatorIconInactiveInt: reader.readLong(offsets[101]),
-    stepIndicatorIconNumberInt: reader.readLong(offsets[102]),
-    stepIndicatorIconTextInt: reader.readLong(offsets[103]),
-    switchBGDisabledInt: reader.readLong(offsets[104]),
-    switchBGOffInt: reader.readLong(offsets[105]),
-    switchBGOnInt: reader.readLong(offsets[106]),
-    switchCircleDisabledInt: reader.readLong(offsets[107]),
-    switchCircleOffInt: reader.readLong(offsets[108]),
-    switchCircleOnInt: reader.readLong(offsets[109]),
-    textConfirmTotalAmountInt: reader.readLong(offsets[110]),
-    textDark2Int: reader.readLong(offsets[111]),
-    textDark3Int: reader.readLong(offsets[112]),
-    textDarkInt: reader.readLong(offsets[113]),
-    textErrorInt: reader.readLong(offsets[114]),
-    textFavoriteCardInt: reader.readLong(offsets[115]),
-    textFieldActiveBGInt: reader.readLong(offsets[116]),
-    textFieldActiveLabelInt: reader.readLong(offsets[117]),
-    textFieldActiveSearchIconLeftInt: reader.readLong(offsets[118]),
-    textFieldActiveSearchIconRightInt: reader.readLong(offsets[119]),
-    textFieldActiveTextInt: reader.readLong(offsets[120]),
-    textFieldDefaultBGInt: reader.readLong(offsets[121]),
-    textFieldDefaultSearchIconLeftInt: reader.readLong(offsets[122]),
-    textFieldDefaultSearchIconRightInt: reader.readLong(offsets[123]),
-    textFieldDefaultTextInt: reader.readLong(offsets[124]),
-    textFieldErrorBGInt: reader.readLong(offsets[125]),
-    textFieldErrorBorderInt: reader.readLong(offsets[126]),
-    textFieldErrorLabelInt: reader.readLong(offsets[127]),
-    textFieldErrorSearchIconLeftInt: reader.readLong(offsets[128]),
-    textFieldErrorSearchIconRightInt: reader.readLong(offsets[129]),
-    textFieldErrorTextInt: reader.readLong(offsets[130]),
-    textFieldSuccessBGInt: reader.readLong(offsets[131]),
-    textFieldSuccessBorderInt: reader.readLong(offsets[132]),
-    textFieldSuccessLabelInt: reader.readLong(offsets[133]),
-    textFieldSuccessSearchIconLeftInt: reader.readLong(offsets[134]),
-    textFieldSuccessSearchIconRightInt: reader.readLong(offsets[135]),
-    textFieldSuccessTextInt: reader.readLong(offsets[136]),
-    textRestoreInt: reader.readLong(offsets[137]),
-    textSelectedWordTableItemInt: reader.readLong(offsets[138]),
-    textSubtitle1Int: reader.readLong(offsets[139]),
-    textSubtitle2Int: reader.readLong(offsets[140]),
-    textSubtitle3Int: reader.readLong(offsets[141]),
-    textSubtitle4Int: reader.readLong(offsets[142]),
-    textSubtitle5Int: reader.readLong(offsets[143]),
-    textSubtitle6Int: reader.readLong(offsets[144]),
-    textWhiteInt: reader.readLong(offsets[145]),
-    themeId: reader.readString(offsets[146]),
-    tokenSummaryBGInt: reader.readLong(offsets[147]),
-    tokenSummaryButtonBGInt: reader.readLong(offsets[148]),
-    tokenSummaryIconInt: reader.readLong(offsets[149]),
-    tokenSummaryTextPrimaryInt: reader.readLong(offsets[150]),
-    tokenSummaryTextSecondaryInt: reader.readLong(offsets[151]),
-    topNavIconGreenInt: reader.readLong(offsets[152]),
-    topNavIconPrimaryInt: reader.readLong(offsets[153]),
-    topNavIconRedInt: reader.readLong(offsets[154]),
-    topNavIconYellowInt: reader.readLong(offsets[155]),
-    warningBackgroundInt: reader.readLong(offsets[156]),
-    warningForegroundInt: reader.readLong(offsets[157]),
+  final object = StackTheme();
+  object.accentColorBlueInt = reader.readLong(offsets[0]);
+  object.accentColorDarkInt = reader.readLong(offsets[1]);
+  object.accentColorGreenInt = reader.readLong(offsets[2]);
+  object.accentColorOrangeInt = reader.readLong(offsets[3]);
+  object.accentColorRedInt = reader.readLong(offsets[4]);
+  object.accentColorYellowInt = reader.readLong(offsets[5]);
+  object.assetsV1 = reader.readObjectOrNull<ThemeAssets>(
+    offsets[6],
+    ThemeAssetsSchema.deserialize,
+    allOffsets,
   );
+  object.assetsV2 = reader.readObjectOrNull<ThemeAssetsV2>(
+    offsets[7],
+    ThemeAssetsV2Schema.deserialize,
+    allOffsets,
+  );
+  object.backgroundAppBarInt = reader.readLong(offsets[8]);
+  object.backgroundInt = reader.readLong(offsets[9]);
+  object.bottomNavBackInt = reader.readLong(offsets[10]);
+  object.bottomNavIconBackInt = reader.readLong(offsets[11]);
+  object.bottomNavIconIconHighlightedInt = reader.readLong(offsets[12]);
+  object.bottomNavIconIconInt = reader.readLong(offsets[13]);
+  object.bottomNavShadowInt = reader.readLong(offsets[14]);
+  object.bottomNavTextInt = reader.readLong(offsets[15]);
+  object.brightnessString = reader.readString(offsets[16]);
+  object.buttonBackBorderDisabledInt = reader.readLong(offsets[17]);
+  object.buttonBackBorderInt = reader.readLong(offsets[18]);
+  object.buttonBackBorderSecondaryDisabledInt = reader.readLong(offsets[19]);
+  object.buttonBackBorderSecondaryInt = reader.readLong(offsets[20]);
+  object.buttonBackPrimaryDisabledInt = reader.readLong(offsets[21]);
+  object.buttonBackPrimaryInt = reader.readLong(offsets[22]);
+  object.buttonBackSecondaryDisabledInt = reader.readLong(offsets[23]);
+  object.buttonBackSecondaryInt = reader.readLong(offsets[24]);
+  object.buttonTextBorderInt = reader.readLong(offsets[25]);
+  object.buttonTextBorderlessDisabledInt = reader.readLong(offsets[26]);
+  object.buttonTextBorderlessInt = reader.readLong(offsets[27]);
+  object.buttonTextDisabledInt = reader.readLong(offsets[28]);
+  object.buttonTextPrimaryDisabledInt = reader.readLong(offsets[29]);
+  object.buttonTextPrimaryInt = reader.readLong(offsets[30]);
+  object.buttonTextSecondaryDisabledInt = reader.readLong(offsets[31]);
+  object.buttonTextSecondaryInt = reader.readLong(offsets[32]);
+  object.checkboxBGCheckedInt = reader.readLong(offsets[33]);
+  object.checkboxBGDisabledInt = reader.readLong(offsets[34]);
+  object.checkboxBorderEmptyInt = reader.readLong(offsets[35]);
+  object.checkboxIconCheckedInt = reader.readLong(offsets[36]);
+  object.checkboxIconDisabledInt = reader.readLong(offsets[37]);
+  object.checkboxTextLabelInt = reader.readLong(offsets[38]);
+  object.coinColorsJsonString = reader.readString(offsets[39]);
+  object.currencyListItemBGInt = reader.readLong(offsets[40]);
+  object.customTextButtonDisabledTextInt = reader.readLong(offsets[41]);
+  object.customTextButtonEnabledTextInt = reader.readLong(offsets[42]);
+  object.ethTagBGInt = reader.readLong(offsets[43]);
+  object.ethTagTextInt = reader.readLong(offsets[44]);
+  object.ethWalletTagBGInt = reader.readLong(offsets[45]);
+  object.ethWalletTagTextInt = reader.readLong(offsets[46]);
+  object.favoriteStarActiveInt = reader.readLong(offsets[47]);
+  object.favoriteStarInactiveInt = reader.readLong(offsets[48]);
+  object.gradientBackgroundString = reader.readStringOrNull(offsets[49]);
+  object.highlightInt = reader.readLong(offsets[50]);
+  object.homeViewButtonBarBoxShadowString =
+      reader.readStringOrNull(offsets[51]);
   object.id = id;
+  object.infoItemBGInt = reader.readLong(offsets[52]);
+  object.infoItemIconsInt = reader.readLong(offsets[53]);
+  object.infoItemLabelInt = reader.readLong(offsets[54]);
+  object.infoItemTextInt = reader.readLong(offsets[55]);
+  object.loadingOverlayTextColorInt = reader.readLong(offsets[56]);
+  object.myStackContactIconBGInt = reader.readLong(offsets[57]);
+  object.name = reader.readString(offsets[58]);
+  object.numberBackDefaultInt = reader.readLong(offsets[59]);
+  object.numberTextDefaultInt = reader.readLong(offsets[60]);
+  object.numpadBackDefaultInt = reader.readLong(offsets[61]);
+  object.numpadTextDefaultInt = reader.readLong(offsets[62]);
+  object.overlayInt = reader.readLong(offsets[63]);
+  object.popupBGInt = reader.readLong(offsets[64]);
+  object.radioButtonBorderDisabledInt = reader.readLong(offsets[65]);
+  object.radioButtonBorderEnabledInt = reader.readLong(offsets[66]);
+  object.radioButtonIconBorderDisabledInt = reader.readLong(offsets[67]);
+  object.radioButtonIconBorderInt = reader.readLong(offsets[68]);
+  object.radioButtonIconCircleInt = reader.readLong(offsets[69]);
+  object.radioButtonIconEnabledInt = reader.readLong(offsets[70]);
+  object.radioButtonLabelDisabledInt = reader.readLong(offsets[71]);
+  object.radioButtonLabelEnabledInt = reader.readLong(offsets[72]);
+  object.radioButtonTextDisabledInt = reader.readLong(offsets[73]);
+  object.radioButtonTextEnabledInt = reader.readLong(offsets[74]);
+  object.rateTypeToggleColorOffInt = reader.readLong(offsets[75]);
+  object.rateTypeToggleColorOnInt = reader.readLong(offsets[76]);
+  object.rateTypeToggleDesktopColorOffInt = reader.readLong(offsets[77]);
+  object.rateTypeToggleDesktopColorOnInt = reader.readLong(offsets[78]);
+  object.settingsIconBack2Int = reader.readLong(offsets[79]);
+  object.settingsIconBackInt = reader.readLong(offsets[80]);
+  object.settingsIconElementInt = reader.readLong(offsets[81]);
+  object.settingsIconIconInt = reader.readLong(offsets[82]);
+  object.settingsItem2ActiveBGInt = reader.readLong(offsets[83]);
+  object.settingsItem2ActiveSubInt = reader.readLong(offsets[84]);
+  object.settingsItem2ActiveTextInt = reader.readLong(offsets[85]);
+  object.shadowInt = reader.readLong(offsets[86]);
+  object.snackBarBackErrorInt = reader.readLong(offsets[87]);
+  object.snackBarBackInfoInt = reader.readLong(offsets[88]);
+  object.snackBarBackSuccessInt = reader.readLong(offsets[89]);
+  object.snackBarTextErrorInt = reader.readLong(offsets[90]);
+  object.snackBarTextInfoInt = reader.readLong(offsets[91]);
+  object.snackBarTextSuccessInt = reader.readLong(offsets[92]);
+  object.splashInt = reader.readLong(offsets[93]);
+  object.stackWalletBGInt = reader.readLong(offsets[94]);
+  object.stackWalletBottomInt = reader.readLong(offsets[95]);
+  object.stackWalletMidInt = reader.readLong(offsets[96]);
+  object.standardBoxShadowString = reader.readString(offsets[97]);
+  object.stepIndicatorBGCheckInt = reader.readLong(offsets[98]);
+  object.stepIndicatorBGInactiveInt = reader.readLong(offsets[99]);
+  object.stepIndicatorBGLinesInactiveInt = reader.readLong(offsets[100]);
+  object.stepIndicatorBGLinesInt = reader.readLong(offsets[101]);
+  object.stepIndicatorBGNumberInt = reader.readLong(offsets[102]);
+  object.stepIndicatorIconInactiveInt = reader.readLong(offsets[103]);
+  object.stepIndicatorIconNumberInt = reader.readLong(offsets[104]);
+  object.stepIndicatorIconTextInt = reader.readLong(offsets[105]);
+  object.switchBGDisabledInt = reader.readLong(offsets[106]);
+  object.switchBGOffInt = reader.readLong(offsets[107]);
+  object.switchBGOnInt = reader.readLong(offsets[108]);
+  object.switchCircleDisabledInt = reader.readLong(offsets[109]);
+  object.switchCircleOffInt = reader.readLong(offsets[110]);
+  object.switchCircleOnInt = reader.readLong(offsets[111]);
+  object.textConfirmTotalAmountInt = reader.readLong(offsets[112]);
+  object.textDark2Int = reader.readLong(offsets[113]);
+  object.textDark3Int = reader.readLong(offsets[114]);
+  object.textDarkInt = reader.readLong(offsets[115]);
+  object.textErrorInt = reader.readLong(offsets[116]);
+  object.textFavoriteCardInt = reader.readLong(offsets[117]);
+  object.textFieldActiveBGInt = reader.readLong(offsets[118]);
+  object.textFieldActiveLabelInt = reader.readLong(offsets[119]);
+  object.textFieldActiveSearchIconLeftInt = reader.readLong(offsets[120]);
+  object.textFieldActiveSearchIconRightInt = reader.readLong(offsets[121]);
+  object.textFieldActiveTextInt = reader.readLong(offsets[122]);
+  object.textFieldDefaultBGInt = reader.readLong(offsets[123]);
+  object.textFieldDefaultSearchIconLeftInt = reader.readLong(offsets[124]);
+  object.textFieldDefaultSearchIconRightInt = reader.readLong(offsets[125]);
+  object.textFieldDefaultTextInt = reader.readLong(offsets[126]);
+  object.textFieldErrorBGInt = reader.readLong(offsets[127]);
+  object.textFieldErrorBorderInt = reader.readLong(offsets[128]);
+  object.textFieldErrorLabelInt = reader.readLong(offsets[129]);
+  object.textFieldErrorSearchIconLeftInt = reader.readLong(offsets[130]);
+  object.textFieldErrorSearchIconRightInt = reader.readLong(offsets[131]);
+  object.textFieldErrorTextInt = reader.readLong(offsets[132]);
+  object.textFieldSuccessBGInt = reader.readLong(offsets[133]);
+  object.textFieldSuccessBorderInt = reader.readLong(offsets[134]);
+  object.textFieldSuccessLabelInt = reader.readLong(offsets[135]);
+  object.textFieldSuccessSearchIconLeftInt = reader.readLong(offsets[136]);
+  object.textFieldSuccessSearchIconRightInt = reader.readLong(offsets[137]);
+  object.textFieldSuccessTextInt = reader.readLong(offsets[138]);
+  object.textRestoreInt = reader.readLong(offsets[139]);
+  object.textSelectedWordTableItemInt = reader.readLong(offsets[140]);
+  object.textSubtitle1Int = reader.readLong(offsets[141]);
+  object.textSubtitle2Int = reader.readLong(offsets[142]);
+  object.textSubtitle3Int = reader.readLong(offsets[143]);
+  object.textSubtitle4Int = reader.readLong(offsets[144]);
+  object.textSubtitle5Int = reader.readLong(offsets[145]);
+  object.textSubtitle6Int = reader.readLong(offsets[146]);
+  object.textWhiteInt = reader.readLong(offsets[147]);
+  object.themeId = reader.readString(offsets[148]);
+  object.tokenSummaryBGInt = reader.readLong(offsets[149]);
+  object.tokenSummaryButtonBGInt = reader.readLong(offsets[150]);
+  object.tokenSummaryIconInt = reader.readLong(offsets[151]);
+  object.tokenSummaryTextPrimaryInt = reader.readLong(offsets[152]);
+  object.tokenSummaryTextSecondaryInt = reader.readLong(offsets[153]);
+  object.topNavIconGreenInt = reader.readLong(offsets[154]);
+  object.topNavIconPrimaryInt = reader.readLong(offsets[155]);
+  object.topNavIconRedInt = reader.readLong(offsets[156]);
+  object.topNavIconYellowInt = reader.readLong(offsets[157]);
+  object.version = reader.readLongOrNull(offsets[158]);
+  object.warningBackgroundInt = reader.readLong(offsets[159]);
+  object.warningForegroundInt = reader.readLong(offsets[160]);
   return object;
 }
 
@@ -1233,13 +1279,16 @@ P _stackThemeDeserializeProp<P>(
       return (reader.readLong(offset)) as P;
     case 6:
       return (reader.readObjectOrNull<ThemeAssets>(
-            offset,
-            ThemeAssetsSchema.deserialize,
-            allOffsets,
-          ) ??
-          ThemeAssets()) as P;
+        offset,
+        ThemeAssetsSchema.deserialize,
+        allOffsets,
+      )) as P;
     case 7:
-      return (reader.readLong(offset)) as P;
+      return (reader.readObjectOrNull<ThemeAssetsV2>(
+        offset,
+        ThemeAssetsV2Schema.deserialize,
+        allOffsets,
+      )) as P;
     case 8:
       return (reader.readLong(offset)) as P;
     case 9:
@@ -1253,11 +1302,11 @@ P _stackThemeDeserializeProp<P>(
     case 13:
       return (reader.readLong(offset)) as P;
     case 14:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 15:
       return (reader.readLong(offset)) as P;
     case 16:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 17:
       return (reader.readLong(offset)) as P;
     case 18:
@@ -1299,11 +1348,11 @@ P _stackThemeDeserializeProp<P>(
     case 36:
       return (reader.readLong(offset)) as P;
     case 37:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 38:
       return (reader.readLong(offset)) as P;
     case 39:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 40:
       return (reader.readLong(offset)) as P;
     case 41:
@@ -1319,7 +1368,7 @@ P _stackThemeDeserializeProp<P>(
     case 46:
       return (reader.readLong(offset)) as P;
     case 47:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 48:
       return (reader.readLong(offset)) as P;
     case 49:
@@ -1327,7 +1376,7 @@ P _stackThemeDeserializeProp<P>(
     case 50:
       return (reader.readLong(offset)) as P;
     case 51:
-      return (reader.readLong(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 52:
       return (reader.readLong(offset)) as P;
     case 53:
@@ -1337,11 +1386,11 @@ P _stackThemeDeserializeProp<P>(
     case 55:
       return (reader.readLong(offset)) as P;
     case 56:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 57:
       return (reader.readLong(offset)) as P;
     case 58:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 59:
       return (reader.readLong(offset)) as P;
     case 60:
@@ -1415,11 +1464,11 @@ P _stackThemeDeserializeProp<P>(
     case 94:
       return (reader.readLong(offset)) as P;
     case 95:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 96:
       return (reader.readLong(offset)) as P;
     case 97:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 98:
       return (reader.readLong(offset)) as P;
     case 99:
@@ -1517,11 +1566,11 @@ P _stackThemeDeserializeProp<P>(
     case 145:
       return (reader.readLong(offset)) as P;
     case 146:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 147:
       return (reader.readLong(offset)) as P;
     case 148:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 149:
       return (reader.readLong(offset)) as P;
     case 150:
@@ -1539,6 +1588,12 @@ P _stackThemeDeserializeProp<P>(
     case 156:
       return (reader.readLong(offset)) as P;
     case 157:
+      return (reader.readLong(offset)) as P;
+    case 158:
+      return (reader.readLongOrNull(offset)) as P;
+    case 159:
+      return (reader.readLong(offset)) as P;
+    case 160:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -2072,6 +2127,40 @@ extension StackThemeQueryFilter
     });
   }
 
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition> assetsV1IsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'assets',
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition>
+      assetsV1IsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'assets',
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition> assetsV2IsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'assetsV2',
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition>
+      assetsV2IsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'assetsV2',
+      ));
+    });
+  }
+
   QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition>
       backgroundAppBarIntEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
@@ -2288,6 +2377,62 @@ extension StackThemeQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'bottomNavIconBackInt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition>
+      bottomNavIconIconHighlightedIntEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'bottomNavIconIconHighlightedInt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition>
+      bottomNavIconIconHighlightedIntGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'bottomNavIconIconHighlightedInt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition>
+      bottomNavIconIconHighlightedIntLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'bottomNavIconIconHighlightedInt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition>
+      bottomNavIconIconHighlightedIntBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'bottomNavIconIconHighlightedInt',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -11055,6 +11200,77 @@ extension StackThemeQueryFilter
     });
   }
 
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition> versionIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'version',
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition>
+      versionIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'version',
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition> versionEqualTo(
+      int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'version',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition>
+      versionGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'version',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition> versionLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'version',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition> versionBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'version',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition>
       warningBackgroundIntEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
@@ -11170,10 +11386,17 @@ extension StackThemeQueryFilter
 
 extension StackThemeQueryObject
     on QueryBuilder<StackTheme, StackTheme, QFilterCondition> {
-  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition> assets(
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition> assetsV1(
       FilterQuery<ThemeAssets> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'assets');
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition> assetsV2(
+      FilterQuery<ThemeAssetsV2> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'assetsV2');
     });
   }
 }
@@ -11316,6 +11539,20 @@ extension StackThemeQuerySortBy
       sortByBottomNavIconBackIntDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'bottomNavIconBackInt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterSortBy>
+      sortByBottomNavIconIconHighlightedInt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'bottomNavIconIconHighlightedInt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterSortBy>
+      sortByBottomNavIconIconHighlightedIntDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'bottomNavIconIconHighlightedInt', Sort.desc);
     });
   }
 
@@ -13299,6 +13536,18 @@ extension StackThemeQuerySortBy
     });
   }
 
+  QueryBuilder<StackTheme, StackTheme, QAfterSortBy> sortByVersion() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'version', Sort.asc);
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterSortBy> sortByVersionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'version', Sort.desc);
+    });
+  }
+
   QueryBuilder<StackTheme, StackTheme, QAfterSortBy>
       sortByWarningBackgroundInt() {
     return QueryBuilder.apply(this, (query) {
@@ -13463,6 +13712,20 @@ extension StackThemeQuerySortThenBy
       thenByBottomNavIconBackIntDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'bottomNavIconBackInt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterSortBy>
+      thenByBottomNavIconIconHighlightedInt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'bottomNavIconIconHighlightedInt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterSortBy>
+      thenByBottomNavIconIconHighlightedIntDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'bottomNavIconIconHighlightedInt', Sort.desc);
     });
   }
 
@@ -15458,6 +15721,18 @@ extension StackThemeQuerySortThenBy
     });
   }
 
+  QueryBuilder<StackTheme, StackTheme, QAfterSortBy> thenByVersion() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'version', Sort.asc);
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterSortBy> thenByVersionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'version', Sort.desc);
+    });
+  }
+
   QueryBuilder<StackTheme, StackTheme, QAfterSortBy>
       thenByWarningBackgroundInt() {
     return QueryBuilder.apply(this, (query) {
@@ -15554,6 +15829,13 @@ extension StackThemeQueryWhereDistinct
       distinctByBottomNavIconBackInt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'bottomNavIconBackInt');
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QDistinct>
+      distinctByBottomNavIconIconHighlightedInt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'bottomNavIconIconHighlightedInt');
     });
   }
 
@@ -16549,6 +16831,12 @@ extension StackThemeQueryWhereDistinct
     });
   }
 
+  QueryBuilder<StackTheme, StackTheme, QDistinct> distinctByVersion() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'version');
+    });
+  }
+
   QueryBuilder<StackTheme, StackTheme, QDistinct>
       distinctByWarningBackgroundInt() {
     return QueryBuilder.apply(this, (query) {
@@ -16611,9 +16899,16 @@ extension StackThemeQueryProperty
     });
   }
 
-  QueryBuilder<StackTheme, ThemeAssets, QQueryOperations> assetsProperty() {
+  QueryBuilder<StackTheme, ThemeAssets?, QQueryOperations> assetsV1Property() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'assets');
+    });
+  }
+
+  QueryBuilder<StackTheme, ThemeAssetsV2?, QQueryOperations>
+      assetsV2Property() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'assetsV2');
     });
   }
 
@@ -16640,6 +16935,13 @@ extension StackThemeQueryProperty
       bottomNavIconBackIntProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'bottomNavIconBackInt');
+    });
+  }
+
+  QueryBuilder<StackTheme, int, QQueryOperations>
+      bottomNavIconIconHighlightedIntProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'bottomNavIconIconHighlightedInt');
     });
   }
 
@@ -17621,6 +17923,12 @@ extension StackThemeQueryProperty
     });
   }
 
+  QueryBuilder<StackTheme, int?, QQueryOperations> versionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'version');
+    });
+  }
+
   QueryBuilder<StackTheme, int, QQueryOperations>
       warningBackgroundIntProperty() {
     return QueryBuilder.apply(this, (query) {
@@ -17807,123 +18115,108 @@ const ThemeAssetsSchema = Schema(
       name: r'namecoinImageSecondary',
       type: IsarType.string,
     ),
-    r'nano': PropertySchema(
-      id: 32,
-      name: r'nano',
-      type: IsarType.string,
-    ),
-    r'nanoImage': PropertySchema(
-      id: 33,
-      name: r'nanoImage',
-      type: IsarType.string,
-    ),
-    r'nanoImageSecondary': PropertySchema(
-      id: 34,
-      name: r'nanoImageSecondary',
-      type: IsarType.string,
-    ),
     r'particl': PropertySchema(
-      id: 35,
+      id: 32,
       name: r'particl',
       type: IsarType.string,
     ),
     r'particlImage': PropertySchema(
-      id: 36,
+      id: 33,
       name: r'particlImage',
       type: IsarType.string,
     ),
     r'particlImageSecondary': PropertySchema(
-      id: 37,
+      id: 34,
       name: r'particlImageSecondary',
       type: IsarType.string,
     ),
     r'personaEasy': PropertySchema(
-      id: 38,
+      id: 35,
       name: r'personaEasy',
       type: IsarType.string,
     ),
     r'personaIncognito': PropertySchema(
-      id: 39,
+      id: 36,
       name: r'personaIncognito',
       type: IsarType.string,
     ),
     r'receive': PropertySchema(
-      id: 40,
+      id: 37,
       name: r'receive',
       type: IsarType.string,
     ),
     r'receiveCancelled': PropertySchema(
-      id: 41,
+      id: 38,
       name: r'receiveCancelled',
       type: IsarType.string,
     ),
     r'receivePending': PropertySchema(
-      id: 42,
+      id: 39,
       name: r'receivePending',
       type: IsarType.string,
     ),
     r'send': PropertySchema(
-      id: 43,
+      id: 40,
       name: r'send',
       type: IsarType.string,
     ),
     r'sendCancelled': PropertySchema(
-      id: 44,
+      id: 41,
       name: r'sendCancelled',
       type: IsarType.string,
     ),
     r'sendPending': PropertySchema(
-      id: 45,
+      id: 42,
       name: r'sendPending',
       type: IsarType.string,
     ),
     r'stack': PropertySchema(
-      id: 46,
+      id: 43,
       name: r'stack',
       type: IsarType.string,
     ),
     r'stackIcon': PropertySchema(
-      id: 47,
+      id: 44,
       name: r'stackIcon',
       type: IsarType.string,
     ),
     r'themePreview': PropertySchema(
-      id: 48,
+      id: 45,
       name: r'themePreview',
       type: IsarType.string,
     ),
     r'themeSelector': PropertySchema(
-      id: 49,
+      id: 46,
       name: r'themeSelector',
       type: IsarType.string,
     ),
     r'txExchange': PropertySchema(
-      id: 50,
+      id: 47,
       name: r'txExchange',
       type: IsarType.string,
     ),
     r'txExchangeFailed': PropertySchema(
-      id: 51,
+      id: 48,
       name: r'txExchangeFailed',
       type: IsarType.string,
     ),
     r'txExchangePending': PropertySchema(
-      id: 52,
+      id: 49,
       name: r'txExchangePending',
       type: IsarType.string,
     ),
     r'wownero': PropertySchema(
-      id: 53,
+      id: 50,
       name: r'wownero',
       type: IsarType.string,
     ),
     r'wowneroImage': PropertySchema(
-      id: 54,
+      id: 51,
       name: r'wowneroImage',
       type: IsarType.string,
     ),
     r'wowneroImageSecondary': PropertySchema(
-      id: 55,
+      id: 52,
       name: r'wowneroImageSecondary',
       type: IsarType.string,
     )
@@ -17982,9 +18275,6 @@ int _themeAssetsEstimateSize(
   bytesCount += 3 + object.namecoin.length * 3;
   bytesCount += 3 + object.namecoinImage.length * 3;
   bytesCount += 3 + object.namecoinImageSecondary.length * 3;
-  bytesCount += 3 + object.nano.length * 3;
-  bytesCount += 3 + object.nanoImage.length * 3;
-  bytesCount += 3 + object.nanoImageSecondary.length * 3;
   bytesCount += 3 + object.particl.length * 3;
   bytesCount += 3 + object.particlImage.length * 3;
   bytesCount += 3 + object.particlImageSecondary.length * 3;
@@ -18047,30 +18337,27 @@ void _themeAssetsSerialize(
   writer.writeString(offsets[29], object.namecoin);
   writer.writeString(offsets[30], object.namecoinImage);
   writer.writeString(offsets[31], object.namecoinImageSecondary);
-  writer.writeString(offsets[32], object.nano);
-  writer.writeString(offsets[33], object.nanoImage);
-  writer.writeString(offsets[34], object.nanoImageSecondary);
-  writer.writeString(offsets[35], object.particl);
-  writer.writeString(offsets[36], object.particlImage);
-  writer.writeString(offsets[37], object.particlImageSecondary);
-  writer.writeString(offsets[38], object.personaEasy);
-  writer.writeString(offsets[39], object.personaIncognito);
-  writer.writeString(offsets[40], object.receive);
-  writer.writeString(offsets[41], object.receiveCancelled);
-  writer.writeString(offsets[42], object.receivePending);
-  writer.writeString(offsets[43], object.send);
-  writer.writeString(offsets[44], object.sendCancelled);
-  writer.writeString(offsets[45], object.sendPending);
-  writer.writeString(offsets[46], object.stack);
-  writer.writeString(offsets[47], object.stackIcon);
-  writer.writeString(offsets[48], object.themePreview);
-  writer.writeString(offsets[49], object.themeSelector);
-  writer.writeString(offsets[50], object.txExchange);
-  writer.writeString(offsets[51], object.txExchangeFailed);
-  writer.writeString(offsets[52], object.txExchangePending);
-  writer.writeString(offsets[53], object.wownero);
-  writer.writeString(offsets[54], object.wowneroImage);
-  writer.writeString(offsets[55], object.wowneroImageSecondary);
+  writer.writeString(offsets[32], object.particl);
+  writer.writeString(offsets[33], object.particlImage);
+  writer.writeString(offsets[34], object.particlImageSecondary);
+  writer.writeString(offsets[35], object.personaEasy);
+  writer.writeString(offsets[36], object.personaIncognito);
+  writer.writeString(offsets[37], object.receive);
+  writer.writeString(offsets[38], object.receiveCancelled);
+  writer.writeString(offsets[39], object.receivePending);
+  writer.writeString(offsets[40], object.send);
+  writer.writeString(offsets[41], object.sendCancelled);
+  writer.writeString(offsets[42], object.sendPending);
+  writer.writeString(offsets[43], object.stack);
+  writer.writeString(offsets[44], object.stackIcon);
+  writer.writeString(offsets[45], object.themePreview);
+  writer.writeString(offsets[46], object.themeSelector);
+  writer.writeString(offsets[47], object.txExchange);
+  writer.writeString(offsets[48], object.txExchangeFailed);
+  writer.writeString(offsets[49], object.txExchangePending);
+  writer.writeString(offsets[50], object.wownero);
+  writer.writeString(offsets[51], object.wowneroImage);
+  writer.writeString(offsets[52], object.wowneroImageSecondary);
 }
 
 ThemeAssets _themeAssetsDeserialize(
@@ -18112,30 +18399,27 @@ ThemeAssets _themeAssetsDeserialize(
   object.namecoin = reader.readString(offsets[29]);
   object.namecoinImage = reader.readString(offsets[30]);
   object.namecoinImageSecondary = reader.readString(offsets[31]);
-  object.nano = reader.readString(offsets[32]);
-  object.nanoImage = reader.readString(offsets[33]);
-  object.nanoImageSecondary = reader.readString(offsets[34]);
-  object.particl = reader.readString(offsets[35]);
-  object.particlImage = reader.readString(offsets[36]);
-  object.particlImageSecondary = reader.readString(offsets[37]);
-  object.personaEasy = reader.readString(offsets[38]);
-  object.personaIncognito = reader.readString(offsets[39]);
-  object.receive = reader.readString(offsets[40]);
-  object.receiveCancelled = reader.readString(offsets[41]);
-  object.receivePending = reader.readString(offsets[42]);
-  object.send = reader.readString(offsets[43]);
-  object.sendCancelled = reader.readString(offsets[44]);
-  object.sendPending = reader.readString(offsets[45]);
-  object.stack = reader.readString(offsets[46]);
-  object.stackIcon = reader.readString(offsets[47]);
-  object.themePreview = reader.readString(offsets[48]);
-  object.themeSelector = reader.readString(offsets[49]);
-  object.txExchange = reader.readString(offsets[50]);
-  object.txExchangeFailed = reader.readString(offsets[51]);
-  object.txExchangePending = reader.readString(offsets[52]);
-  object.wownero = reader.readString(offsets[53]);
-  object.wowneroImage = reader.readString(offsets[54]);
-  object.wowneroImageSecondary = reader.readString(offsets[55]);
+  object.particl = reader.readString(offsets[32]);
+  object.particlImage = reader.readString(offsets[33]);
+  object.particlImageSecondary = reader.readString(offsets[34]);
+  object.personaEasy = reader.readString(offsets[35]);
+  object.personaIncognito = reader.readString(offsets[36]);
+  object.receive = reader.readString(offsets[37]);
+  object.receiveCancelled = reader.readString(offsets[38]);
+  object.receivePending = reader.readString(offsets[39]);
+  object.send = reader.readString(offsets[40]);
+  object.sendCancelled = reader.readString(offsets[41]);
+  object.sendPending = reader.readString(offsets[42]);
+  object.stack = reader.readString(offsets[43]);
+  object.stackIcon = reader.readString(offsets[44]);
+  object.themePreview = reader.readString(offsets[45]);
+  object.themeSelector = reader.readString(offsets[46]);
+  object.txExchange = reader.readString(offsets[47]);
+  object.txExchangeFailed = reader.readString(offsets[48]);
+  object.txExchangePending = reader.readString(offsets[49]);
+  object.wownero = reader.readString(offsets[50]);
+  object.wowneroImage = reader.readString(offsets[51]);
+  object.wowneroImageSecondary = reader.readString(offsets[52]);
   return object;
 }
 
@@ -18251,12 +18535,6 @@ P _themeAssetsDeserializeProp<P>(
     case 51:
       return (reader.readString(offset)) as P;
     case 52:
-      return (reader.readString(offset)) as P;
-    case 53:
-      return (reader.readString(offset)) as P;
-    case 54:
-      return (reader.readString(offset)) as P;
-    case 55:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -22644,409 +22922,6 @@ extension ThemeAssetsQueryFilter
     });
   }
 
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition> nanoEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'nano',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition> nanoGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'nano',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition> nanoLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'nano',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition> nanoBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'nano',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition> nanoStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'nano',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition> nanoEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'nano',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition> nanoContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'nano',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition> nanoMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'nano',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition> nanoIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'nano',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      nanoIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'nano',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      nanoImageEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'nanoImage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      nanoImageGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'nanoImage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      nanoImageLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'nanoImage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      nanoImageBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'nanoImage',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      nanoImageStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'nanoImage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      nanoImageEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'nanoImage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      nanoImageContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'nanoImage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      nanoImageMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'nanoImage',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      nanoImageIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'nanoImage',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      nanoImageIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'nanoImage',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      nanoImageSecondaryEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'nanoImageSecondary',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      nanoImageSecondaryGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'nanoImageSecondary',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      nanoImageSecondaryLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'nanoImageSecondary',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      nanoImageSecondaryBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'nanoImageSecondary',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      nanoImageSecondaryStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'nanoImageSecondary',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      nanoImageSecondaryEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'nanoImageSecondary',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      nanoImageSecondaryContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'nanoImageSecondary',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      nanoImageSecondaryMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'nanoImageSecondary',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      nanoImageSecondaryIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'nanoImageSecondary',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition>
-      nanoImageSecondaryIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'nanoImageSecondary',
-        value: '',
-      ));
-    });
-  }
-
   QueryBuilder<ThemeAssets, ThemeAssets, QAfterFilterCondition> particlEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -25893,3 +25768,3611 @@ extension ThemeAssetsQueryFilter
 
 extension ThemeAssetsQueryObject
     on QueryBuilder<ThemeAssets, ThemeAssets, QFilterCondition> {}
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
+
+const ThemeAssetsV2Schema = Schema(
+  name: r'ThemeAssetsV2',
+  id: -373522695224267013,
+  properties: {
+    r'background': PropertySchema(
+      id: 0,
+      name: r'background',
+      type: IsarType.string,
+    ),
+    r'bellNew': PropertySchema(
+      id: 1,
+      name: r'bellNew',
+      type: IsarType.string,
+    ),
+    r'buy': PropertySchema(
+      id: 2,
+      name: r'buy',
+      type: IsarType.string,
+    ),
+    r'coinIconsString': PropertySchema(
+      id: 3,
+      name: r'coinIconsString',
+      type: IsarType.string,
+    ),
+    r'coinImagesString': PropertySchema(
+      id: 4,
+      name: r'coinImagesString',
+      type: IsarType.string,
+    ),
+    r'coinPlaceholder': PropertySchema(
+      id: 5,
+      name: r'coinPlaceholder',
+      type: IsarType.string,
+    ),
+    r'coinSecondaryImagesString': PropertySchema(
+      id: 6,
+      name: r'coinSecondaryImagesString',
+      type: IsarType.string,
+    ),
+    r'exchange': PropertySchema(
+      id: 7,
+      name: r'exchange',
+      type: IsarType.string,
+    ),
+    r'loadingGif': PropertySchema(
+      id: 8,
+      name: r'loadingGif',
+      type: IsarType.string,
+    ),
+    r'personaEasy': PropertySchema(
+      id: 9,
+      name: r'personaEasy',
+      type: IsarType.string,
+    ),
+    r'personaIncognito': PropertySchema(
+      id: 10,
+      name: r'personaIncognito',
+      type: IsarType.string,
+    ),
+    r'receive': PropertySchema(
+      id: 11,
+      name: r'receive',
+      type: IsarType.string,
+    ),
+    r'receiveCancelled': PropertySchema(
+      id: 12,
+      name: r'receiveCancelled',
+      type: IsarType.string,
+    ),
+    r'receivePending': PropertySchema(
+      id: 13,
+      name: r'receivePending',
+      type: IsarType.string,
+    ),
+    r'send': PropertySchema(
+      id: 14,
+      name: r'send',
+      type: IsarType.string,
+    ),
+    r'sendCancelled': PropertySchema(
+      id: 15,
+      name: r'sendCancelled',
+      type: IsarType.string,
+    ),
+    r'sendPending': PropertySchema(
+      id: 16,
+      name: r'sendPending',
+      type: IsarType.string,
+    ),
+    r'stack': PropertySchema(
+      id: 17,
+      name: r'stack',
+      type: IsarType.string,
+    ),
+    r'stackIcon': PropertySchema(
+      id: 18,
+      name: r'stackIcon',
+      type: IsarType.string,
+    ),
+    r'themePreview': PropertySchema(
+      id: 19,
+      name: r'themePreview',
+      type: IsarType.string,
+    ),
+    r'themeSelector': PropertySchema(
+      id: 20,
+      name: r'themeSelector',
+      type: IsarType.string,
+    ),
+    r'txExchange': PropertySchema(
+      id: 21,
+      name: r'txExchange',
+      type: IsarType.string,
+    ),
+    r'txExchangeFailed': PropertySchema(
+      id: 22,
+      name: r'txExchangeFailed',
+      type: IsarType.string,
+    ),
+    r'txExchangePending': PropertySchema(
+      id: 23,
+      name: r'txExchangePending',
+      type: IsarType.string,
+    )
+  },
+  estimateSize: _themeAssetsV2EstimateSize,
+  serialize: _themeAssetsV2Serialize,
+  deserialize: _themeAssetsV2Deserialize,
+  deserializeProp: _themeAssetsV2DeserializeProp,
+);
+
+int _themeAssetsV2EstimateSize(
+  ThemeAssetsV2 object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  {
+    final value = object.background;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  bytesCount += 3 + object.bellNew.length * 3;
+  bytesCount += 3 + object.buy.length * 3;
+  bytesCount += 3 + object.coinIconsString.length * 3;
+  bytesCount += 3 + object.coinImagesString.length * 3;
+  bytesCount += 3 + object.coinPlaceholder.length * 3;
+  bytesCount += 3 + object.coinSecondaryImagesString.length * 3;
+  bytesCount += 3 + object.exchange.length * 3;
+  {
+    final value = object.loadingGif;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  bytesCount += 3 + object.personaEasy.length * 3;
+  bytesCount += 3 + object.personaIncognito.length * 3;
+  bytesCount += 3 + object.receive.length * 3;
+  bytesCount += 3 + object.receiveCancelled.length * 3;
+  bytesCount += 3 + object.receivePending.length * 3;
+  bytesCount += 3 + object.send.length * 3;
+  bytesCount += 3 + object.sendCancelled.length * 3;
+  bytesCount += 3 + object.sendPending.length * 3;
+  bytesCount += 3 + object.stack.length * 3;
+  bytesCount += 3 + object.stackIcon.length * 3;
+  bytesCount += 3 + object.themePreview.length * 3;
+  bytesCount += 3 + object.themeSelector.length * 3;
+  bytesCount += 3 + object.txExchange.length * 3;
+  bytesCount += 3 + object.txExchangeFailed.length * 3;
+  bytesCount += 3 + object.txExchangePending.length * 3;
+  return bytesCount;
+}
+
+void _themeAssetsV2Serialize(
+  ThemeAssetsV2 object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeString(offsets[0], object.background);
+  writer.writeString(offsets[1], object.bellNew);
+  writer.writeString(offsets[2], object.buy);
+  writer.writeString(offsets[3], object.coinIconsString);
+  writer.writeString(offsets[4], object.coinImagesString);
+  writer.writeString(offsets[5], object.coinPlaceholder);
+  writer.writeString(offsets[6], object.coinSecondaryImagesString);
+  writer.writeString(offsets[7], object.exchange);
+  writer.writeString(offsets[8], object.loadingGif);
+  writer.writeString(offsets[9], object.personaEasy);
+  writer.writeString(offsets[10], object.personaIncognito);
+  writer.writeString(offsets[11], object.receive);
+  writer.writeString(offsets[12], object.receiveCancelled);
+  writer.writeString(offsets[13], object.receivePending);
+  writer.writeString(offsets[14], object.send);
+  writer.writeString(offsets[15], object.sendCancelled);
+  writer.writeString(offsets[16], object.sendPending);
+  writer.writeString(offsets[17], object.stack);
+  writer.writeString(offsets[18], object.stackIcon);
+  writer.writeString(offsets[19], object.themePreview);
+  writer.writeString(offsets[20], object.themeSelector);
+  writer.writeString(offsets[21], object.txExchange);
+  writer.writeString(offsets[22], object.txExchangeFailed);
+  writer.writeString(offsets[23], object.txExchangePending);
+}
+
+ThemeAssetsV2 _themeAssetsV2Deserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = ThemeAssetsV2();
+  object.background = reader.readStringOrNull(offsets[0]);
+  object.bellNew = reader.readString(offsets[1]);
+  object.buy = reader.readString(offsets[2]);
+  object.coinIconsString = reader.readString(offsets[3]);
+  object.coinImagesString = reader.readString(offsets[4]);
+  object.coinPlaceholder = reader.readString(offsets[5]);
+  object.coinSecondaryImagesString = reader.readString(offsets[6]);
+  object.exchange = reader.readString(offsets[7]);
+  object.loadingGif = reader.readStringOrNull(offsets[8]);
+  object.personaEasy = reader.readString(offsets[9]);
+  object.personaIncognito = reader.readString(offsets[10]);
+  object.receive = reader.readString(offsets[11]);
+  object.receiveCancelled = reader.readString(offsets[12]);
+  object.receivePending = reader.readString(offsets[13]);
+  object.send = reader.readString(offsets[14]);
+  object.sendCancelled = reader.readString(offsets[15]);
+  object.sendPending = reader.readString(offsets[16]);
+  object.stack = reader.readString(offsets[17]);
+  object.stackIcon = reader.readString(offsets[18]);
+  object.themePreview = reader.readString(offsets[19]);
+  object.themeSelector = reader.readString(offsets[20]);
+  object.txExchange = reader.readString(offsets[21]);
+  object.txExchangeFailed = reader.readString(offsets[22]);
+  object.txExchangePending = reader.readString(offsets[23]);
+  return object;
+}
+
+P _themeAssetsV2DeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readStringOrNull(offset)) as P;
+    case 1:
+      return (reader.readString(offset)) as P;
+    case 2:
+      return (reader.readString(offset)) as P;
+    case 3:
+      return (reader.readString(offset)) as P;
+    case 4:
+      return (reader.readString(offset)) as P;
+    case 5:
+      return (reader.readString(offset)) as P;
+    case 6:
+      return (reader.readString(offset)) as P;
+    case 7:
+      return (reader.readString(offset)) as P;
+    case 8:
+      return (reader.readStringOrNull(offset)) as P;
+    case 9:
+      return (reader.readString(offset)) as P;
+    case 10:
+      return (reader.readString(offset)) as P;
+    case 11:
+      return (reader.readString(offset)) as P;
+    case 12:
+      return (reader.readString(offset)) as P;
+    case 13:
+      return (reader.readString(offset)) as P;
+    case 14:
+      return (reader.readString(offset)) as P;
+    case 15:
+      return (reader.readString(offset)) as P;
+    case 16:
+      return (reader.readString(offset)) as P;
+    case 17:
+      return (reader.readString(offset)) as P;
+    case 18:
+      return (reader.readString(offset)) as P;
+    case 19:
+      return (reader.readString(offset)) as P;
+    case 20:
+      return (reader.readString(offset)) as P;
+    case 21:
+      return (reader.readString(offset)) as P;
+    case 22:
+      return (reader.readString(offset)) as P;
+    case 23:
+      return (reader.readString(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+extension ThemeAssetsV2QueryFilter
+    on QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QFilterCondition> {
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'background',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'background',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'background',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'background',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'background',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'background',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'background',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'background',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'background',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'background',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'background',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'background',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      bellNewEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'bellNew',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      bellNewGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'bellNew',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      bellNewLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'bellNew',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      bellNewBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'bellNew',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      bellNewStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'bellNew',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      bellNewEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'bellNew',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      bellNewContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'bellNew',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      bellNewMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'bellNew',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      bellNewIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'bellNew',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      bellNewIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'bellNew',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition> buyEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'buy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      buyGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'buy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition> buyLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'buy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition> buyBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'buy',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      buyStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'buy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition> buyEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'buy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition> buyContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'buy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition> buyMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'buy',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      buyIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'buy',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      buyIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'buy',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinIconsStringEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinIconsString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinIconsStringGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'coinIconsString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinIconsStringLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'coinIconsString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinIconsStringBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'coinIconsString',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinIconsStringStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'coinIconsString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinIconsStringEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'coinIconsString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinIconsStringContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'coinIconsString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinIconsStringMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'coinIconsString',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinIconsStringIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinIconsString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinIconsStringIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'coinIconsString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinImagesStringEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinImagesStringGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'coinImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinImagesStringLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'coinImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinImagesStringBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'coinImagesString',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinImagesStringStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'coinImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinImagesStringEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'coinImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinImagesStringContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'coinImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinImagesStringMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'coinImagesString',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinImagesStringIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinImagesString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinImagesStringIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'coinImagesString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinPlaceholderEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinPlaceholder',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinPlaceholderGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'coinPlaceholder',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinPlaceholderLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'coinPlaceholder',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinPlaceholderBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'coinPlaceholder',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinPlaceholderStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'coinPlaceholder',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinPlaceholderEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'coinPlaceholder',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinPlaceholderContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'coinPlaceholder',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinPlaceholderMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'coinPlaceholder',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinPlaceholderIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinPlaceholder',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinPlaceholderIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'coinPlaceholder',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinSecondaryImagesStringEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinSecondaryImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinSecondaryImagesStringGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'coinSecondaryImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinSecondaryImagesStringLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'coinSecondaryImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinSecondaryImagesStringBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'coinSecondaryImagesString',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinSecondaryImagesStringStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'coinSecondaryImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinSecondaryImagesStringEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'coinSecondaryImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinSecondaryImagesStringContains(String value,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'coinSecondaryImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinSecondaryImagesStringMatches(String pattern,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'coinSecondaryImagesString',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinSecondaryImagesStringIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinSecondaryImagesString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinSecondaryImagesStringIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'coinSecondaryImagesString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      exchangeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'exchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      exchangeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'exchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      exchangeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'exchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      exchangeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'exchange',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      exchangeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'exchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      exchangeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'exchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      exchangeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'exchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      exchangeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'exchange',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      exchangeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'exchange',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      exchangeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'exchange',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'loadingGif',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'loadingGif',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'loadingGif',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'loadingGif',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'loadingGif',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'loadingGif',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'loadingGif',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'loadingGif',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'loadingGif',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'loadingGif',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'loadingGif',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'loadingGif',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaEasyEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'personaEasy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaEasyGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'personaEasy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaEasyLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'personaEasy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaEasyBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'personaEasy',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaEasyStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'personaEasy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaEasyEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'personaEasy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaEasyContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'personaEasy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaEasyMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'personaEasy',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaEasyIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'personaEasy',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaEasyIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'personaEasy',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaIncognitoEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'personaIncognito',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaIncognitoGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'personaIncognito',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaIncognitoLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'personaIncognito',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaIncognitoBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'personaIncognito',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaIncognitoStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'personaIncognito',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaIncognitoEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'personaIncognito',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaIncognitoContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'personaIncognito',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaIncognitoMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'personaIncognito',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaIncognitoIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'personaIncognito',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaIncognitoIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'personaIncognito',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'receive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'receive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'receive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'receive',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'receive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'receive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'receive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'receive',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'receive',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'receive',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveCancelledEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'receiveCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveCancelledGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'receiveCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveCancelledLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'receiveCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveCancelledBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'receiveCancelled',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveCancelledStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'receiveCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveCancelledEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'receiveCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveCancelledContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'receiveCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveCancelledMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'receiveCancelled',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveCancelledIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'receiveCancelled',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveCancelledIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'receiveCancelled',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receivePendingEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'receivePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receivePendingGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'receivePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receivePendingLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'receivePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receivePendingBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'receivePending',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receivePendingStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'receivePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receivePendingEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'receivePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receivePendingContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'receivePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receivePendingMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'receivePending',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receivePendingIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'receivePending',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receivePendingIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'receivePending',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition> sendEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'send',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'send',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'send',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition> sendBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'send',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'send',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'send',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'send',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition> sendMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'send',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'send',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'send',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendCancelledEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'sendCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendCancelledGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'sendCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendCancelledLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'sendCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendCancelledBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'sendCancelled',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendCancelledStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'sendCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendCancelledEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'sendCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendCancelledContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'sendCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendCancelledMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'sendCancelled',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendCancelledIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'sendCancelled',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendCancelledIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'sendCancelled',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendPendingEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'sendPending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendPendingGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'sendPending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendPendingLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'sendPending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendPendingBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'sendPending',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendPendingStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'sendPending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendPendingEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'sendPending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendPendingContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'sendPending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendPendingMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'sendPending',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendPendingIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'sendPending',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendPendingIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'sendPending',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'stack',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'stack',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'stack',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'stack',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'stack',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'stack',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'stack',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'stack',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'stack',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'stack',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIconEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'stackIcon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIconGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'stackIcon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIconLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'stackIcon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIconBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'stackIcon',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIconStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'stackIcon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIconEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'stackIcon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIconContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'stackIcon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIconMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'stackIcon',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIconIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'stackIcon',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIconIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'stackIcon',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themePreviewEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'themePreview',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themePreviewGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'themePreview',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themePreviewLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'themePreview',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themePreviewBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'themePreview',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themePreviewStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'themePreview',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themePreviewEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'themePreview',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themePreviewContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'themePreview',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themePreviewMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'themePreview',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themePreviewIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'themePreview',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themePreviewIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'themePreview',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themeSelectorEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themeSelectorGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themeSelectorLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themeSelectorBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'themeSelector',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themeSelectorStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themeSelectorEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themeSelectorContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themeSelectorMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'themeSelector',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themeSelectorIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'themeSelector',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themeSelectorIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'themeSelector',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'txExchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'txExchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'txExchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'txExchange',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'txExchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'txExchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'txExchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'txExchange',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'txExchange',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'txExchange',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeFailedEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'txExchangeFailed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeFailedGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'txExchangeFailed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeFailedLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'txExchangeFailed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeFailedBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'txExchangeFailed',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeFailedStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'txExchangeFailed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeFailedEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'txExchangeFailed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeFailedContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'txExchangeFailed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeFailedMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'txExchangeFailed',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeFailedIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'txExchangeFailed',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeFailedIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'txExchangeFailed',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangePendingEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'txExchangePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangePendingGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'txExchangePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangePendingLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'txExchangePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangePendingBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'txExchangePending',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangePendingStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'txExchangePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangePendingEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'txExchangePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangePendingContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'txExchangePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangePendingMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'txExchangePending',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangePendingIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'txExchangePending',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangePendingIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'txExchangePending',
+        value: '',
+      ));
+    });
+  }
+}
+
+extension ThemeAssetsV2QueryObject
+    on QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QFilterCondition> {}
