@@ -35,10 +35,11 @@ class CreatePinView extends ConsumerStatefulWidget {
 class _CreatePinViewState extends ConsumerState<CreatePinView> {
   BoxDecoration get _pinPutDecoration {
     return BoxDecoration(
-      color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
+      color: Colors.transparent,
       border: Border.all(
-          width: 1,
-          color: Theme.of(context).extension<StackColors>()!.textSubtitle3),
+        width: 1,
+        color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
+      ),
       borderRadius: BorderRadius.circular(6),
     );
   }
@@ -57,10 +58,14 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
   late SecureStorageInterface _secureStore;
   late Biometrics biometrics;
 
+  late int pinCount;
+
   @override
   initState() {
     _secureStore = ref.read(secureStoreProvider);
     biometrics = widget.biometrics;
+    pinCount = 1;
+
     super.initState();
   }
 
@@ -71,11 +76,13 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
     _pinPutController2.dispose();
     _pinPutFocusNode1.dispose();
     _pinPutFocusNode2.dispose();
+
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // int pinCount = 1;
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -116,7 +123,7 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                     height: 36,
                   ),
                   CustomPinPut(
-                    fieldsCount: Constants.pinLength,
+                    fieldsCount: pinCount,
                     eachFieldHeight: 12,
                     eachFieldWidth: 12,
                     textStyle: STextStyles.label(context).copyWith(
@@ -154,7 +161,13 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                     selectedFieldDecoration: _pinPutDecoration,
                     followingFieldDecoration: _pinPutDecoration,
                     onSubmit: (String pin) {
-                      if (pin.length == Constants.pinLength) {
+                      if (pin.length < Constants.pinLength) {
+                        showFloatingFlushBar(
+                          type: FlushBarType.warning,
+                          message: "PIN not long enough!",
+                          context: context,
+                        );
+                      } else {
                         _pageController.nextPage(
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.linear,

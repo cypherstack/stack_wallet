@@ -53,8 +53,7 @@ class CustomPinPut extends StatefulWidget {
     this.mainAxisSize = MainAxisSize.max,
     this.autofillHints,
     this.customKey,
-  })  : assert(fieldsCount > 0),
-        super(key: key);
+  }) : super(key: key);
 
   final double? width;
   final double? height;

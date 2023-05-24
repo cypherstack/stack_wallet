@@ -10,6 +10,8 @@ class CustomPinPutState extends State<CustomPinPut>
 
   int get selectedIndex => _controller.value.text.length;
 
+  int pinCount = 1;
+
   @override
   void initState() {
     _controller = widget.controller ?? TextEditingController();
@@ -50,9 +52,7 @@ class CustomPinPutState extends State<CustomPinPut>
 
   @override
   Widget build(BuildContext context) {
-    // final bool randomize = ref
-    //     .read(prefsChangeNotifierProvider)
-    //     .randomizePIN;
+    // int pinCount = 0;
     return SizedBox(
       width: widget.width,
       height: widget.height,
@@ -65,7 +65,7 @@ class CustomPinPutState extends State<CustomPinPut>
                 _hiddenTextField,
                 Align(
                   alignment: Alignment.bottomCenter,
-                  child: _fields,
+                  child: _fields(pinCount),
                 ),
               ],
             ),
@@ -78,12 +78,22 @@ class CustomPinPutState extends State<CustomPinPut>
                 if (_controller.text.length < widget.fieldsCount) {
                   _controller.text += number;
                 }
+                // add a set state and have the counter increment
+                setState(() {
+                  pinCount++;
+                });
               },
               onBackPressed: () {
                 final text = _controller.text;
                 if (text.isNotEmpty) {
                   _controller.text = text.substring(0, text.length - 1);
                 }
+                // decrement counter here
+                setState(() {
+                  if (pinCount != 1) {
+                    pinCount--;
+                  }
+                });
               },
               onSubmitPressed: () {
                 final pin = _controller.value.text;
@@ -117,7 +127,7 @@ class CustomPinPutState extends State<CustomPinPut>
       textCapitalization: widget.textCapitalization,
       inputFormatters: widget.inputFormatters,
       enableInteractiveSelection: false,
-      maxLength: widget.fieldsCount,
+      maxLength: pinCount,
       showCursor: false,
       scrollPadding: EdgeInsets.zero,
       decoration: widget.inputDecoration,
@@ -127,7 +137,9 @@ class CustomPinPutState extends State<CustomPinPut>
     );
   }
 
-  Widget get _fields {
+  // have it include an int as a param
+  Widget _fields(int count) {
+    // Widget get _fields {
     return ValueListenableBuilder<String>(
       valueListenable: _textControllerValue,
       builder: (BuildContext context, value, Widget? child) {
@@ -141,7 +153,7 @@ class CustomPinPutState extends State<CustomPinPut>
   }
 
   List<Widget> _buildFieldsWithSeparator() {
-    final fields = Iterable<int>.generate(widget.fieldsCount).map((index) {
+    final fields = Iterable<int>.generate(pinCount).map((index) {
       return _getField(index);
     }).toList();
 
