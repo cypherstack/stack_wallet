@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:stackwallet/widgets/custom_pin_put/custom_pin_put.dart';
 import 'package:stackwallet/widgets/custom_pin_put/pin_keyboard.dart';
@@ -63,7 +65,7 @@ class CustomPinPutState extends State<CustomPinPut>
       child: Column(
         children: [
           SizedBox(
-            width: (30 * widget.fieldsCount) - 18,
+            width: max((30 * pinCount) - 18, 1),
             child: Stack(
               children: [
                 _hiddenTextField,

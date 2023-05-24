@@ -160,6 +160,7 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                         showFloatingFlushBar(
                           type: FlushBarType.warning,
                           message: "PIN not long enough!",
+                          iconAsset: Assets.svg.alertCircle,
                           context: context,
                         );
                       } else {
