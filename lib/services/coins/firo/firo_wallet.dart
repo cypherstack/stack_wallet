@@ -2338,7 +2338,7 @@ class FiroWallet extends CoinServiceAPI
   Future<int> _fetchMaxFee() async {
     final balance = availablePrivateBalance();
     int spendAmount =
-        (balance.decimal * Decimal.fromInt(Constants.satsPerCoin(coin)))
+        (balance.decimal * Decimal.fromInt(Constants.satsPerCoin(coin).toInt()))
             .toBigInt()
             .toInt();
     int fee = await estimateJoinSplitFee(spendAmount);
@@ -3549,7 +3549,7 @@ class FiroWallet extends CoinServiceAPI
           if (nFees != null) {
             nFeesUsed = true;
             fees = (Decimal.parse(nFees.toString()) *
-                    Decimal.fromInt(Constants.satsPerCoin(coin)))
+                    Decimal.fromInt(Constants.satsPerCoin(coin).toInt()))
                 .toBigInt()
                 .toInt();
           }
@@ -3573,14 +3573,14 @@ class FiroWallet extends CoinServiceAPI
 
           if (value != null) {
             outAmount += (Decimal.parse(value.toString()) *
-                    Decimal.fromInt(Constants.satsPerCoin(coin)))
+                    Decimal.fromInt(Constants.satsPerCoin(coin).toInt()))
                 .toBigInt()
                 .toInt();
 
             if (address != null) {
               if (changeAddresses.contains(address)) {
                 inputAmtSentFromWallet -= (Decimal.parse(value.toString()) *
-                        Decimal.fromInt(Constants.satsPerCoin(coin)))
+                        Decimal.fromInt(Constants.satsPerCoin(coin).toInt()))
                     .toBigInt()
                     .toInt();
               } else {
@@ -3597,7 +3597,7 @@ class FiroWallet extends CoinServiceAPI
           final nFees = input["nFees"];
           if (nFees != null) {
             fees += (Decimal.parse(nFees.toString()) *
-                    Decimal.fromInt(Constants.satsPerCoin(coin)))
+                    Decimal.fromInt(Constants.satsPerCoin(coin).toInt()))
                 .toBigInt()
                 .toInt();
           }
@@ -3612,7 +3612,7 @@ class FiroWallet extends CoinServiceAPI
 
             if (allAddresses.where((e) => e.value == address).isNotEmpty) {
               outputAmtAddressedToWallet += (Decimal.parse(value.toString()) *
-                      Decimal.fromInt(Constants.satsPerCoin(coin)))
+                      Decimal.fromInt(Constants.satsPerCoin(coin).toInt()))
                   .toBigInt()
                   .toInt();
               outAddress = address;
@@ -4833,7 +4833,7 @@ class FiroWallet extends CoinServiceAPI
   ) async {
     var lelantusEntry = await _getLelantusEntry();
     final balance = availablePrivateBalance().decimal;
-    int spendAmount = (balance * Decimal.fromInt(Constants.satsPerCoin(coin)))
+    int spendAmount = (balance * Decimal.fromInt(Constants.satsPerCoin(coin).toInt()))
         .toBigInt()
         .toInt();
     if (spendAmount == 0 || lelantusEntry.isEmpty) {

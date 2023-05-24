@@ -223,7 +223,7 @@ class LitecoinWallet extends CoinServiceAPI
   Future<int> get maxFee async {
     final fee = (await fees).fast as String;
     final satsFee =
-        Decimal.parse(fee) * Decimal.fromInt(Constants.satsPerCoin(coin));
+        Decimal.parse(fee) * Decimal.fromInt(Constants.satsPerCoin(coin).toInt());
     return satsFee.floor().toBigInt().toInt();
   }
 

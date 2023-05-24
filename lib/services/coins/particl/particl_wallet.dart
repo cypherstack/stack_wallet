@@ -210,7 +210,7 @@ class ParticlWallet extends CoinServiceAPI
   Future<int> get maxFee async {
     final fee = (await fees).fast as String;
     final satsFee =
-        Decimal.parse(fee) * Decimal.fromInt(Constants.satsPerCoin(coin));
+        Decimal.parse(fee) * Decimal.fromInt(Constants.satsPerCoin(coin).toInt());
     return satsFee.floor().toBigInt().toInt();
   }
 
@@ -2191,7 +2191,7 @@ class ParticlWallet extends CoinServiceAPI
             if (prevOut == out["n"]) {
               inputAmtSentFromWallet +=
                   (Decimal.parse(out["value"]!.toString()) *
-                          Decimal.fromInt(Constants.satsPerCoin(coin)))
+                          Decimal.fromInt(Constants.satsPerCoin(coin).toInt()))
                       .toBigInt()
                       .toInt();
             }
@@ -2210,7 +2210,7 @@ class ParticlWallet extends CoinServiceAPI
                   output["scriptPubKey"]!["addresses"][0] as String;
               final value = output["value"]!;
               final _value = (Decimal.parse(value.toString()) *
-                      Decimal.fromInt(Constants.satsPerCoin(coin)))
+                      Decimal.fromInt(Constants.satsPerCoin(coin).toInt()))
                   .toBigInt()
                   .toInt();
               totalOutput += _value;
@@ -2245,7 +2245,7 @@ class ParticlWallet extends CoinServiceAPI
                 level: LogLevel.Info);
             final ctFee = output["ct_fee"]!;
             final feeValue = (Decimal.parse(ctFee.toString()) *
-                    Decimal.fromInt(Constants.satsPerCoin(coin)))
+                    Decimal.fromInt(Constants.satsPerCoin(coin).toInt()))
                 .toBigInt()
                 .toInt();
             Logging.instance.log(
@@ -2280,7 +2280,7 @@ class ParticlWallet extends CoinServiceAPI
                 output["scriptPubKey"]?["addresses"]?[0] as String?;
             if (address != null) {
               final value = (Decimal.parse((output["value"] ?? 0).toString()) *
-                      Decimal.fromInt(Constants.satsPerCoin(coin)))
+                      Decimal.fromInt(Constants.satsPerCoin(coin).toInt()))
                   .toBigInt()
                   .toInt();
               totalOut += value;
@@ -2306,7 +2306,7 @@ class ParticlWallet extends CoinServiceAPI
           for (final out in tx["vout"] as List) {
             if (prevOut == out["n"]) {
               totalIn += (Decimal.parse((out["value"] ?? 0).toString()) *
-                      Decimal.fromInt(Constants.satsPerCoin(coin)))
+                      Decimal.fromInt(Constants.satsPerCoin(coin).toInt()))
                   .toBigInt()
                   .toInt();
             }
