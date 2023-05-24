@@ -27,8 +27,6 @@ class JsonRPC {
   void Function(List<int>)? _onData;
   void Function(Object, StackTrace)? _onError;
 
-  List<dynamic>? _requestQueue; // TODO make Request model
-
   Future<dynamic> request(String jsonRpcRequest) async {
     final completer = Completer<dynamic>();
     final List<int> responseData = [];
